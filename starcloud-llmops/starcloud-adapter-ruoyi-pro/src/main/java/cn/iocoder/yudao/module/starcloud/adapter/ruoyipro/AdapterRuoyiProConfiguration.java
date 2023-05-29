@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration
-@ComponentScan(basePackages = "com.starcloud.ops")
 @MapperScan(value = "com.starcloud.ops", annotationClass = Mapper.class, lazyInitialization = "false")
 public class AdapterRuoyiProConfiguration implements ApplicationListener<ApplicationStartedEvent> {
 
