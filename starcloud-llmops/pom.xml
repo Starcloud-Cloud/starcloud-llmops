@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>yudao</artifactId>
+        <groupId>cn.iocoder.boot</groupId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.starcloud.ops</groupId>
+    <artifactId>starcloud-llmops</artifactId>
+    <packaging>pom</packaging>
+    <version>${starcloud.revision}</version>
+
+    <properties>
+        <starcloud.revision>1.0.0-SNAPSHOT</starcloud.revision>
+    </properties>
+
+    <modules>
+        <module>starcloud-connection</module>
+        <module>starcloud-business</module>
+        <module>starcloud-llm</module>
+        <module>starcloud-framework</module>
+        <module>starcloud-server</module>
+        <module>starcloud-core</module>
+        <module>starcloud-adapter-ruoyi-pro</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-connection</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business</artifactId>
+                <version>${starcloud.revision}</version>
+
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-llm</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-framework</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-server</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-core</artifactId>
+                <version>${starcloud.revision}</version>
+
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+
+    <distributionManagement>
+        <repository>
+            <id>seastar</id>
+            <url>https://pkgs.dev.azure.com/duanfeisj/seastar/_packaging/seastar/maven/v1</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>seastar</id>
+            <url>https://pkgs.dev.azure.com/duanfeisj/seastar/_packaging/seastar/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
+
+    <build>
+<!--        <pluginManagement>-->
+            <plugins>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>1.2.7</version>
+                    <configuration>
+                        <outputDirectory>${project.build.directory}</outputDirectory>
+                        <updatePomFile>true</updatePomFile>
+                        <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>flatten</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>flatten</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>flatten.clean</id>
+                            <phase>clean</phase>
+                            <goals>
+                                <goal>clean</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+
+<!--        </pluginManagement>-->
+    </build>
+
+</project>
