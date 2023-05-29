@@ -1,6 +1,6 @@
 ## 平台简介
 
-**starcloud-llmops**，打造中国第一流的大语言模型运营开发平台。
+**starcloud-llmops**，打造一流的大语言模型运营开发平台 for java。
 
 > 有任何问题，或者想要的功能，可以在 _Issues_ 中提。
 >
