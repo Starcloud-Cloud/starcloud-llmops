@@ -15,7 +15,6 @@
 
     <dependencies>
 
-
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
@@ -49,10 +48,6 @@
             <artifactId>starcloud-langchain</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-langchain-workflow</artifactId>
-        </dependency>
     </dependencies>
 
 </project>
