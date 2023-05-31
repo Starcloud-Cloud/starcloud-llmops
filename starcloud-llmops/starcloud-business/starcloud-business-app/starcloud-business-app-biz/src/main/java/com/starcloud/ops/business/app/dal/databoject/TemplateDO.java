@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
  * @version 1.0.0
  * @since 2023-05-29
  */
-@TableName("ss_template")
-@KeySequence("ss_template_seq")
+@TableName("llm_template")
+@KeySequence("llm_template_seq")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
