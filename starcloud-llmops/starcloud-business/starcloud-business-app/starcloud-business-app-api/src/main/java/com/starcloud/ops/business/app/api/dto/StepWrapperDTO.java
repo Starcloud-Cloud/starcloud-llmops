@@ -25,7 +25,7 @@ public class StepWrapperDTO implements Serializable {
      * 步骤label
      */
     @Schema(description = "步骤label")
-    private String label;
+    private String name;
 
     /**
      * 步骤 field

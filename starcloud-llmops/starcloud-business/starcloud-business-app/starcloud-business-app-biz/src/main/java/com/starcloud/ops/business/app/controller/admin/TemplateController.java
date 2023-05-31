@@ -3,15 +3,14 @@ package com.starcloud.ops.business.app.controller.admin;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.dto.TemplateDTO;
-import com.starcloud.ops.business.app.api.dto.request.TemplatePageQuery;
-import com.starcloud.ops.business.app.api.dto.request.TemplateRequest;
-import com.starcloud.ops.business.app.api.dto.request.TemplateUpdateRequest;
+import com.starcloud.ops.business.app.api.request.TemplatePageQuery;
+import com.starcloud.ops.business.app.api.request.TemplateRequest;
+import com.starcloud.ops.business.app.api.request.TemplateUpdateRequest;
 import com.starcloud.ops.business.app.service.TemplateService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

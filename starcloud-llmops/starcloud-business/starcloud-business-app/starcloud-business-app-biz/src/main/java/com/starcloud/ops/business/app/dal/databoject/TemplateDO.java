@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.dal.databoject;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,7 +21,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TemplateDO extends BaseDO {
+public class TemplateDO extends TenantBaseDO {
 
     private static final long serialVersionUID = 1345563234255L;
 
@@ -125,12 +126,5 @@ public class TemplateDO extends BaseDO {
      */
     @TableField("last_upload")
     private LocalDateTime lastUpload;
-
-    /**
-     * 租户编号
-     */
-    @TableField("tenant_id")
-    private Long tenantId;
-
 
 }

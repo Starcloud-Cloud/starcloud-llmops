@@ -1,9 +1,9 @@
 package com.starcloud.ops.business.app.service;
 
 import com.starcloud.ops.business.app.api.dto.TemplateDTO;
-import com.starcloud.ops.business.app.api.dto.request.TemplatePageQuery;
-import com.starcloud.ops.business.app.api.dto.request.TemplateRequest;
-import com.starcloud.ops.business.app.api.dto.request.TemplateUpdateRequest;
+import com.starcloud.ops.business.app.api.request.TemplatePageQuery;
+import com.starcloud.ops.business.app.api.request.TemplateRequest;
+import com.starcloud.ops.business.app.api.request.TemplateUpdateRequest;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;

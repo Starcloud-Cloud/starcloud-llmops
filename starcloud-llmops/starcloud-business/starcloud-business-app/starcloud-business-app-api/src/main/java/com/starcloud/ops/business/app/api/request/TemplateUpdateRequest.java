@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.dto.request;
+package com.starcloud.ops.business.app.api.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
