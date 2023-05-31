@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
-import cn.kstry.framework.core.annotation.NoticeResult;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import com.starcloud.ops.business.app.domain.context.AppContext;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component;
  */
 @TaskComponent(name = "OpenAiChatStepHandler")
 @Component
-public class OpenAiChatStepHandler extends BaseStepHandler {
+public class OpenAIChatStepHandler extends BaseStepHandler {
 
     @TaskService(name = "OpenAiChatStepHandler")
     @Override

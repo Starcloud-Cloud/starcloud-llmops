@@ -36,10 +36,10 @@ public class AppProcessParser implements ConfigResource {
 
         //instance parser to processLink
 
+
+        bpmnLink.nextService("").name("123").build();
+
         bpmnLink.end();
-
-
-
 
 
         return Optional.of(bpmnLink);
