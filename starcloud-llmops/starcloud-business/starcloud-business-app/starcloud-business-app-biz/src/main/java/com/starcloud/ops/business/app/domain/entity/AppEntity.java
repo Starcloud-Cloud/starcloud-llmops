@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 /**
@@ -8,16 +9,23 @@ import lombok.Data;
  * @since 2023-05-31
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AppEntity {
 
-
+    /**
+     * App 唯一标识
+     */
     private String uid;
 
+    /**
+     * App 名称
+     */
     private String name;
 
+    /**
+     * App 版本
+     */
     private Integer version;
-
-    private String content;
 
 
     public String getUniqueName() {

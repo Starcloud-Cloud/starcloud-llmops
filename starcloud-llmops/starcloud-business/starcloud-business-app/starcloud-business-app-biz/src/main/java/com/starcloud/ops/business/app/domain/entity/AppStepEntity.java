@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class BaseStepEntity {
+public class AppStepEntity {
 
     /**
      * 步骤名称

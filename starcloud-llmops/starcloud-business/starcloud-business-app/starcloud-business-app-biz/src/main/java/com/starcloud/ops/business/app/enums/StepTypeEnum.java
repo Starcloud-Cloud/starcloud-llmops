@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.enums;
 
-import com.starcloud.ops.business.app.domain.entity.BaseStepEntity;
+import com.starcloud.ops.business.app.domain.entity.AppStepEntity;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -31,7 +31,7 @@ public enum StepTypeEnum {
      * 步骤实体类
      */
     @Getter
-    private final Class<? extends BaseStepEntity> entity;
+    private final Class<? extends AppStepEntity> entity;
 
     /**
      * 步骤类型说明
@@ -48,7 +48,7 @@ public enum StepTypeEnum {
         Arrays.stream(StepTypeEnum.values()).forEach(item -> STEP_TYPE_MAP.put(item.name(), item));
     }
 
-    StepTypeEnum(String code, Class<? extends BaseStepEntity> entity, String message) {
+    StepTypeEnum(String code, Class<? extends AppStepEntity> entity, String message) {
         this.code = code;
         this.entity = entity;
         this.message = message;
@@ -73,7 +73,7 @@ public enum StepTypeEnum {
      * @param name 枚举名称
      * @return 枚举的 entity
      */
-    public static Class<? extends BaseStepEntity> getEntityByName(String name) {
+    public static Class<? extends AppStepEntity> getEntityByName(String name) {
         return getByName(name).getEntity();
     }
 }
