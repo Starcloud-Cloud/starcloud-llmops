@@ -1,5 +1,9 @@
 package com.starcloud.ops.business.app.domain.handler;
 
+import cn.kstry.framework.core.annotation.NoticeResult;
+import cn.kstry.framework.core.annotation.TaskService;
+import com.starcloud.ops.business.app.domain.context.AppContext;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -7,7 +11,5 @@ package com.starcloud.ops.business.app.domain.handler;
  */
 public abstract class BaseStepHandler {
 
-    public void execute() {
-
-    }
+    public abstract void execute(AppContext context);
 }

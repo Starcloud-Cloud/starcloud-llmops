@@ -6,6 +6,7 @@ import cn.kstry.framework.core.component.bpmn.link.StartProcessLink;
 import cn.kstry.framework.core.resource.config.ConfigResource;
 import com.starcloud.ops.business.app.api.dto.StepWrapperDTO;
 import com.starcloud.ops.business.app.api.dto.TemplateDTO;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -16,29 +17,32 @@ import java.util.Optional;
  */
 public class AppProcessParser implements ConfigResource {
 
-    private final TemplateDTO appInstance;
+    private final AppEntity app;
 
     private final String resourceName;
 
-    public AppProcessParser(TemplateDTO appInstance) {
-        this.appInstance = appInstance;
-        this.resourceName = appInstance.getName() + appInstance.getVersion();
+    public AppProcessParser(AppEntity app) {
+        this.app = app;
+        this.resourceName = app.getUniqueName();
     }
 
     public Optional<ProcessLink> getProcessLink() {
 
+        String stepId = this.app.getUid();
 
-
-       // StartProcessLink bpmnLink = StartProcessLink.build(this.getAppStepId(this.appInstance), this.resourceName);
+        StartProcessLink bpmnLink = StartProcessLink.build(this.app.getUniqueName(), this.app.getName());
 
         // 初始化基本信息
 
         //instance parser to processLink
 
+        bpmnLink.end();
 
 
 
-        return Optional.of(null);
+
+
+        return Optional.of(bpmnLink);
     }
 //
 //    private String getAppStepId(TemplateDTO templateDTO) {
