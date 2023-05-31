@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
  * @version 1.0.0
  * @since 2023-05-31
  */
-@TaskComponent(name = "OpenAiChatStepHandler")
+@TaskComponent(name = "OpenAIChatStepHandler")
 @Component
 public class OpenAIChatStepHandler extends BaseStepHandler {
 
-    @TaskService(name = "OpenAiChatStepHandler")
+    @TaskService(name = "OpenAIChatStepHandler")
     @Override
     public void execute(AppContext context) {
         System.out.println("OpenAiChatStepHandler.handle");
