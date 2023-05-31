@@ -67,7 +67,5 @@ public abstract class BaseStepEntity {
      */
     private String description;
 
-    public abstract void verify();
 
-    public abstract void execute();
 }

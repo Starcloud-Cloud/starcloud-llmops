@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.enums;
 
 import com.starcloud.ops.business.app.domain.entity.BaseStepEntity;
-import com.starcloud.ops.business.app.domain.entity.OpenAiChatStepEntity;
+import com.starcloud.ops.business.app.domain.handler.OpenAiChatStepHandler;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -18,7 +18,7 @@ public enum StepTypeEnum {
     /**
      * OpenAiChat 步骤
      */
-    OPEN_AI_CHAT_STEP("1EFFA33C-C099-BE3A-94B9-AFE1534372C5", OpenAiChatStepEntity.class, "OpenAi Chat 步骤"),
+//    OPEN_AI_CHAT_STEP("1EFFA33C-C099-BE3A-94B9-AFE1534372C5", OpenAiChatStepHandler.class, "OpenAi Chat 步骤"),
 
     ;
 
