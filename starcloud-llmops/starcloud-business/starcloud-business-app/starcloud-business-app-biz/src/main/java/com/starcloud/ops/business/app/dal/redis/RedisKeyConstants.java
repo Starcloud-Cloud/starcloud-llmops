@@ -13,4 +13,6 @@ public interface RedisKeyConstants {
             "xxxx_code:%s",
             STRING, String.class, RedisKeyDefine.TimeoutTypeEnum.DYNAMIC);
 
+    String RECOMMENDED_TEMPLATES_KEY = "recommended_templates";
+
 }

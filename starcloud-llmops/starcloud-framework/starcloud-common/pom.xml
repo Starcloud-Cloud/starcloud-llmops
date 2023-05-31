@@ -19,6 +19,7 @@
         <transmittable-thread-local.version>2.14.2</transmittable-thread-local.version>
         <mapstruct.version>1.5.3.Final</mapstruct.version>
         <swagger-annotations.version>1.6.2</swagger-annotations.version>
+        <swagger-annotations-3.version>2.2.9</swagger-annotations-3.version>
     </properties>
 
     <dependencies>
@@ -113,6 +114,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>${swagger-annotations-3.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope> <!-- 设置为 provided，只有工具类需要使用到 -->
@@ -143,6 +150,11 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
         </dependency>
 
         <dependency>
