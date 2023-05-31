@@ -2,7 +2,6 @@ package com.starcloud.ops.workflow.component.app.process;
 
 import cn.kstry.framework.core.component.bpmn.link.ProcessLink;
 import cn.kstry.framework.core.component.dynamic.creator.DynamicProcess;
-import com.starcloud.ops.workflow.component.app.AppProcessParser;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -24,9 +23,10 @@ public class AppProcessRegister implements DynamicProcess {
         //find appInstance
         Object appInstance = getAppInstance(appId);
 
-        AppProcessParser parser = new AppProcessParser(appInstance, appInstance.getClass().getName());
-
-        return parser.getProcessLink(appId);
+//        AppProcessParser parser = new AppProcessParser(appInstance, appInstance.getClass().getName());
+//
+//        return parser.getProcessLink();
+        return null;
     }
 
     private Object getAppInstance(String appId) {
