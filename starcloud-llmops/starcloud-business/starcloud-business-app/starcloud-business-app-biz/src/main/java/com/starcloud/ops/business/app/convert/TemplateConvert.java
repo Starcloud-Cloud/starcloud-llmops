@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.api.dto.TemplateDTO;
 import com.starcloud.ops.business.app.api.request.TemplateRequest;
 import com.starcloud.ops.business.app.api.request.TemplateUpdateRequest;
 import com.starcloud.ops.business.app.dal.databoject.TemplateDO;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 
