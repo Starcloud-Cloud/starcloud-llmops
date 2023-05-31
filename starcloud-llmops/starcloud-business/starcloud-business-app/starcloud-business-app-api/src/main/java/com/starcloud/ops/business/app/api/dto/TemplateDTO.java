@@ -29,6 +29,12 @@ public class TemplateDTO implements Serializable {
     private Long id;
 
     /**
+     * 模版唯一标识
+     */
+    @Schema(description = "模版唯一标识")
+    private String uid;
+
+    /**
      * 模版名称
      */
     @Schema(description = "模版名称")
