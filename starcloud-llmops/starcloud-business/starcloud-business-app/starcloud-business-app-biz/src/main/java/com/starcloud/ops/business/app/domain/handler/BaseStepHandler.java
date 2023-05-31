@@ -11,5 +11,9 @@ import com.starcloud.ops.business.app.domain.context.AppContext;
  */
 public abstract class BaseStepHandler {
 
+    /**
+     * 执行步骤
+     * @param context 上下文
+     */
     public abstract void execute(AppContext context);
 }

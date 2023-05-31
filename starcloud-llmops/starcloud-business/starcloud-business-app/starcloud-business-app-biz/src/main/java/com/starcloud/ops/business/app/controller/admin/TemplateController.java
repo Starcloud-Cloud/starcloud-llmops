@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.api.dto.TemplateDTO;
 import com.starcloud.ops.business.app.api.request.TemplatePageQuery;
 import com.starcloud.ops.business.app.api.request.TemplateRequest;
 import com.starcloud.ops.business.app.api.request.TemplateUpdateRequest;
+import com.starcloud.ops.business.app.domain.factory.AppStepHandlerFactory;
 import com.starcloud.ops.business.app.service.TemplateService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,12 +26,15 @@ import java.util.List;
  * @since 2023-05-29
  */
 @RestController
-@RequestMapping("/llm/app/template")
+@RequestMapping("/llm/app")
 @Tag(name = "星河云海-模版管理", description = "星河云海模版管理")
 public class TemplateController {
 
     @Resource
     private TemplateService templateService;
+
+    @Resource
+    private AppStepHandlerFactory appStepHandlerFactory;
 
     @GetMapping("/listRecommended")
     @Operation(summary = "查询推荐的模版列表", description = "查询推荐的模版列表")
