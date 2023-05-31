@@ -9,6 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
+import javax.annotation.PostConstruct;
+
 @Slf4j
 @Configuration
 @ComponentScan(basePackages = "com.starcloud.ops")
@@ -16,5 +18,8 @@ import org.springframework.context.annotation.PropertySource;
 @EnableConfigurationProperties(value = {StarcloudServerProperties.class, BusinessAppProperties.class})
 public class StarcloudServerConfiguration {
 
-
+    @PostConstruct
+    public void init() {
+        log.info("init StarCloud-LLMops ...... ");
+    }
 }
