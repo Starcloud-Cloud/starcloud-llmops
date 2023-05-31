@@ -9,7 +9,7 @@ import lombok.Data;
  * @since 2023-05-31
  */
 @Data
-public class AppContent {
+public class AppContext {
 
     private AppEntity app;
 }
