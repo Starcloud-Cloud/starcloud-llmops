@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.api.dto.TemplateDTO;
 import com.starcloud.ops.business.app.api.request.TemplateRequest;
 import com.starcloud.ops.business.app.api.request.TemplateUpdateRequest;
 import com.starcloud.ops.business.app.dal.databoject.TemplateDO;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,12 +28,12 @@ public class TemplateConvert {
      * 将 DTO 转换为 DO
      *
      * @param template 模版 DTO
-     *
      * @return 模版 DO
      */
     public static TemplateDO convert(TemplateDTO template) {
         TemplateDO templateDO = new TemplateDO();
         templateDO.setId(template.getId());
+        templateDO.setUid(template.getUid());
         templateDO.setName(template.getName());
         templateDO.setType(template.getType());
         templateDO.setLogotype(template.getLogotype());
@@ -56,12 +57,12 @@ public class TemplateConvert {
      * 将 DO 转换为 DTO
      *
      * @param templateDO 模版 DO
-     *
      * @return 模版 DTO
      */
     public static TemplateDTO convert(TemplateDO templateDO) {
         TemplateDTO template = new TemplateDTO();
         template.setId(templateDO.getId());
+        template.setUid(templateDO.getUid());
         template.setName(templateDO.getName());
         template.setType(templateDO.getType());
         template.setLogotype(templateDO.getLogotype());
@@ -91,7 +92,6 @@ public class TemplateConvert {
      * 将请求转换为 DO
      *
      * @param request 请求
-     *
      * @return 模版 DO
      */
     public static TemplateDO convert(TemplateRequest request) {
@@ -100,6 +100,8 @@ public class TemplateConvert {
         if (request instanceof TemplateUpdateRequest) {
             templateDO.setId(((TemplateUpdateRequest) request).getId());
         }
+        // 雪花算法生成 uid
+        templateDO.setUid("");
         templateDO.setName(request.getName());
         templateDO.setType(request.getType());
         templateDO.setLogotype(request.getLogotype());

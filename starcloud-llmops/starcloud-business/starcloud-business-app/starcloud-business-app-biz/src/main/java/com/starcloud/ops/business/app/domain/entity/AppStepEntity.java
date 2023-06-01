@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.dto.VariableDTO;
 import lombok.Data;
 
 import java.util.List;
@@ -15,7 +14,7 @@ import java.util.List;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class BaseStepEntity {
+public class AppStepEntity {
 
     /**
      * 步骤名称
@@ -50,12 +49,12 @@ public abstract class BaseStepEntity {
     /**
      * 步骤变量
      */
-    private List<VariableDTO> variables;
+    private List<AppVariableEntity> variables;
 
     /**
      * 步骤执行结果
      */
-    private String response;
+    private AppStepResponse response;
 
     /**
      * 步骤图标
