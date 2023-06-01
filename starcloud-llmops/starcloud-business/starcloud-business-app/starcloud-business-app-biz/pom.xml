@@ -21,22 +21,17 @@
         </dependency>
 
         <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>cn.kstry.framework</groupId>
             <artifactId>kstry-core</artifactId>
             <version>1.1.5</version>
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>cn.iocoder.boot</groupId>
-            <artifactId>yudao-spring-boot-starter-biz-tenant</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-core</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>com.starcloud.ops</groupId>

@@ -14,23 +14,11 @@
     <version>${starcloud.revision}</version>
 
 
-    <dependencyManagement>
-        <dependencies>
-            <!--            <dependency>-->
-            <!--                <groupId>com.starcloud.ops</groupId>-->
-            <!--                <artifactId>starcloud-business-app</artifactId>-->
-            <!--                <version>${starcloud.revision}</version>-->
-            <!--                <scope>import</scope>-->
-            <!--                <type>pom</type>-->
-            <!--            </dependency>-->
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
 
         <dependency>
             <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-core</artifactId>
+            <artifactId>starcloud-workflow</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
 
@@ -45,42 +33,14 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-        </dependency>
 
+        <!-- Test 测试相关 -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-
     </dependencies>
-
-    <!--    <build>-->
-    <!--        &lt;!&ndash; 设置构建的 jar 包名 &ndash;&gt;-->
-    <!--        <finalName>${project.artifactId}</finalName>-->
-    <!--        <plugins>-->
-    <!--            &lt;!&ndash; 打包 &ndash;&gt;-->
-    <!--            <plugin>-->
-    <!--                <groupId>org.springframework.boot</groupId>-->
-    <!--                <artifactId>spring-boot-maven-plugin</artifactId>-->
-    <!--                <version>2.7.10</version> &lt;!&ndash; 如果 spring.boot.version 版本修改，则这里也要跟着修改 &ndash;&gt;-->
-    <!--                <configuration>-->
-    <!--                    <fork>true</fork>-->
-    <!--                </configuration>-->
-    <!--                <executions>-->
-    <!--                    <execution>-->
-    <!--                        <goals>-->
-    <!--                            <goal>repackage</goal> &lt;!&ndash; 将引入的 jar 打入其中 &ndash;&gt;-->
-    <!--                        </goals>-->
-    <!--                    </execution>-->
-    <!--                </executions>-->
-    <!--            </plugin>-->
-    <!--        </plugins>-->
-    <!--    </build>-->
 
 </project>

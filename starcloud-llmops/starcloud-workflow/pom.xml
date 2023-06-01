@@ -13,12 +13,8 @@
     <artifactId>starcloud-workflow</artifactId>
     <version>${starcloud.revision}</version>
 
-    <properties>
-        <maven.compiler.source>18</maven.compiler.source>
-        <maven.compiler.target>18</maven.compiler.target>
-    </properties>
-
     <dependencies>
+
         <dependency>
             <groupId>cn.kstry.framework</groupId>
             <artifactId>kstry-core</artifactId>
@@ -36,6 +32,21 @@
             <artifactId>starcloud-business-app-biz</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
+
+        <!-- Test 测试相关 -->
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>com.starcloud.ops</groupId>-->
+<!--            <artifactId>starcloud-server</artifactId>-->
+<!--            <version>${starcloud.revision}</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+
 
     </dependencies>
 

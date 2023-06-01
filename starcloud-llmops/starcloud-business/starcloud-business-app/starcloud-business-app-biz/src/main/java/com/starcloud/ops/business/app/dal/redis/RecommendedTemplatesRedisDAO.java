@@ -9,6 +9,7 @@ import com.starcloud.ops.business.app.dal.databoject.TemplateDO;
 import com.starcloud.ops.business.app.dal.mysql.TemplateMapper;
 import com.starcloud.ops.business.app.enums.TemplateTypeEnum;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -28,7 +29,7 @@ public class RecommendedTemplatesRedisDAO {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    @Resource
+    @Autowired(required = false)
     private TemplateMapper templateMapper;
 
     /**
