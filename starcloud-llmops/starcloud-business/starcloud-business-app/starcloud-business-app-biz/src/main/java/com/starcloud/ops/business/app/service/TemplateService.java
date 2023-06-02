@@ -38,7 +38,7 @@ public interface TemplateService {
      * @param query 查询条件
      * @return 模版列表
      */
-    PageResp<TemplateDTO> pageMyTemplates(TemplatePageQuery query);
+    PageResp<TemplateDTO> pageMyTemplate(TemplatePageQuery query);
 
     /**
      * 根据模版 ID 获取模版详情
@@ -85,6 +85,6 @@ public interface TemplateService {
      * @param marketKey 模版市场特有的 key，唯一。
      * @return 是否已经下载
      */
-    Boolean verifyTemplateDownloaded(String marketKey);
+    Boolean verifyHasDownloaded(String marketKey);
 
 }

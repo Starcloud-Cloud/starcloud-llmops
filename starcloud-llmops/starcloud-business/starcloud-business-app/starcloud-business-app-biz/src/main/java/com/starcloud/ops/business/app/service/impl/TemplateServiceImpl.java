@@ -84,7 +84,7 @@ public class TemplateServiceImpl implements TemplateService {
      * @return 模版列表
      */
     @Override
-    public PageResp<TemplateDTO> pageMyTemplates(TemplatePageQuery query) {
+    public PageResp<TemplateDTO> pageMyTemplate(TemplatePageQuery query) {
         LambdaQueryWrapper<TemplateDO> wrapper = Wrappers.lambdaQuery();
         wrapper.likeLeft(TemplateDO::getName, query.getName())
                 .eq(TemplateDO::getType, TemplateTypeEnum.MY_TEMPLATE.name())
@@ -178,11 +178,11 @@ public class TemplateServiceImpl implements TemplateService {
      * @return 是否已经下载
      */
     @Override
-    public Boolean verifyTemplateDownloaded(String marketKey) {
+    public Boolean verifyHasDownloaded(String marketKey) {
         LambdaQueryWrapper<TemplateDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(TemplateDO::getMarketKey, marketKey)
                 .eq(TemplateDO::getType, TemplateTypeEnum.DOWNLOAD_TEMPLATE.name())
-                .eq(TemplateDO::getDeleted, true)
+                .eq(TemplateDO::getDeleted, Boolean.FALSE)
                 .eq(TemplateDO::getStatus, 0);
         Long count = templateMapper.selectCount(wrapper);
 
@@ -198,7 +198,7 @@ public class TemplateServiceImpl implements TemplateService {
     public void duplicateNameVerification(String name) {
         LambdaQueryWrapper<TemplateDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(TemplateDO::getName, name)
-                .eq(TemplateDO::getDeleted, true)
+                .eq(TemplateDO::getDeleted, Boolean.FALSE)
                 .eq(TemplateDO::getStatus, 0);
         TemplateDO templateDO = templateMapper.selectOne(wrapper);
         Assert.isNull(templateDO, "The name: " + name + " has been exist, please change the template name and try again.");
