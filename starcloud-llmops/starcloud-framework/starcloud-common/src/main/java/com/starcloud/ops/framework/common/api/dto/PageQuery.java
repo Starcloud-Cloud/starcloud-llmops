@@ -33,14 +33,14 @@ public class PageQuery implements Serializable {
     /**
      * 页码，从 1 开始
      */
-    @Schema(description = "页码，从 1 开始", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @Schema(description = "页码，从 1 开始，默认为 1", example = "1")
     @Min(value = 1, message = "页码最小值为 1")
     private Integer pageNo = DEFAULT_PAGE_NO;
 
     /**
      * 每页条数
      */
-    @Schema(description = "每页条数，最大值为 100", requiredMode = Schema.RequiredMode.REQUIRED, example = "10")
+    @Schema(description = "每页条数，最大值为 10000, 默认为 10", example = "10")
     @Min(value = 1, message = "每页条数最小值为 1")
     @Max(value = 10000, message = "每页条数最大值为 10000")
     private Integer pageSize = DEFAULT_PAGE_SIZE;

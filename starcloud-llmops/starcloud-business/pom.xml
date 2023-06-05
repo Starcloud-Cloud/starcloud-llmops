@@ -36,12 +36,6 @@
 
             <dependency>
                 <groupId>com.starcloud.ops</groupId>
-                <artifactId>starcloud-langchain-workflow</artifactId>
-                <version>${starcloud.revision}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.starcloud.ops</groupId>
                 <artifactId>starcloud-langchain</artifactId>
                 <version>${starcloud.revision}</version>
             </dependency>

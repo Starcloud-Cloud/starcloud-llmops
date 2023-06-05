@@ -11,10 +11,10 @@ import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -25,7 +25,7 @@ import java.util.List;
  * @since 2023-05-29
  */
 @RestController
-@RequestMapping("/llm/app/template")
+@RequestMapping("/llm/app")
 @Tag(name = "星河云海-模版管理", description = "星河云海模版管理")
 public class TemplateController {
 
@@ -42,57 +42,57 @@ public class TemplateController {
     @GetMapping("/pageDownload")
     @Operation(summary = "分页查询下载的模版列表", description = "分页查询下载的模版列表")
     @ApiOperationSupport(order = 11, author = "nacoyer")
-    public CommonResult<PageResp<TemplateDTO>> pageDownload(@Valid TemplatePageQuery query) {
+    public CommonResult<PageResp<TemplateDTO>> pageDownload(@Validated TemplatePageQuery query) {
         return CommonResult.success(templateService.pageDownloadTemplates(query));
     }
 
-    @GetMapping("/pageMyTemplates")
+    @GetMapping("/pageMyTemplate")
     @Operation(summary = "分页查询我的模版列表", description = "分页查询我的模版列表")
     @ApiOperationSupport(order = 12, author = "nacoyer")
-    public CommonResult<PageResp<TemplateDTO>> pageMyTemplates(@Valid TemplatePageQuery query) {
-        return CommonResult.success(templateService.pageMyTemplates(query));
+    public CommonResult<PageResp<TemplateDTO>> pageMyTemplate(@Validated TemplatePageQuery query) {
+        return CommonResult.success(templateService.pageMyTemplate(query));
     }
 
     @GetMapping("/get")
     @Operation(summary = "获得模版", description = "根据 ID 获取模版详情")
     @ApiOperationSupport(order = 13, author = "nacoyer")
-    public CommonResult<TemplateDTO> get(@RequestParam("id") Long id) {
+    public CommonResult<TemplateDTO> get(@Parameter(name = "模版 ID") @RequestParam("id") Long id) {
         return CommonResult.success(templateService.getById(id));
     }
 
     @PostMapping("/create")
     @Operation(summary = "创建模版", description = "创建一个新的模版")
     @ApiOperationSupport(order = 14, author = "nacoyer")
-    public CommonResult<Long> create(@Valid @RequestBody TemplateRequest request) {
-        return CommonResult.success(templateService.create(request));
+    public CommonResult<Long> create(@Validated @RequestBody TemplateRequest template) {
+        return CommonResult.success(templateService.create(template));
     }
 
     @PostMapping("/copy")
     @Operation(summary = "复制模版", description = "复制一个模版")
     @ApiOperationSupport(order = 15, author = "nacoyer")
-    public CommonResult<Long> copy(@Valid @RequestBody TemplateRequest request) {
-        return CommonResult.success(templateService.copy(request));
+    public CommonResult<Long> copy(@Validated @RequestBody TemplateRequest template) {
+        return CommonResult.success(templateService.copy(template));
     }
 
-    @PostMapping("/modify")
+    @PutMapping("/modify")
     @Operation(summary = "更新模版", description = "根据 ID 更新模版")
     @ApiOperationSupport(order = 16, author = "nacoyer")
-    public CommonResult<Long> modify(@Valid @RequestBody TemplateUpdateRequest request) {
-        return CommonResult.success(templateService.modify(request));
-    }
-
-    @PostMapping("/verifyTemplateDownloaded")
-    @Operation(summary = "校验模版是否已经下载过", description = "校验模版是否已经下载过")
-    @ApiOperationSupport(order = 17, author = "nacoyer")
-    public CommonResult<Boolean> verifyTemplateDownloaded(@RequestParam("marketKey") String marketKey) {
-        return CommonResult.success(templateService.verifyTemplateDownloaded(marketKey));
+    public CommonResult<Long> modify(@Validated @RequestBody TemplateUpdateRequest template) {
+        return CommonResult.success(templateService.modify(template));
     }
 
     @DeleteMapping("/delete")
     @Operation(summary = "删除模版", description = "根据 ID 删除模版")
-    @ApiOperationSupport(order = 18, author = "nacoyer")
+    @ApiOperationSupport(order = 17, author = "nacoyer")
     public CommonResult<Boolean> delete(@Parameter(name = "模版 ID") @RequestParam("id") Long id) {
         templateService.delete(id);
         return CommonResult.success(true);
+    }
+
+    @PostMapping("/verifyHasDownloaded")
+    @Operation(summary = "校验模版是否已经下载过", description = "校验模版是否已经下载过")
+    @ApiOperationSupport(order = 18, author = "nacoyer")
+    public CommonResult<Boolean> verifyHasDownloaded(@Parameter(name = "模版市场 key") @RequestParam("marketKey") String marketKey) {
+        return CommonResult.success(templateService.verifyHasDownloaded(marketKey));
     }
 }

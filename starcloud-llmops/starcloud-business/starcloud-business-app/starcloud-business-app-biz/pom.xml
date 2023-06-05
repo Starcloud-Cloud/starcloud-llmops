@@ -15,10 +15,16 @@
 
     <dependencies>
 
-
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.kstry.framework</groupId>
+            <artifactId>kstry-core</artifactId>
+            <version>1.1.5</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -49,10 +55,6 @@
             <artifactId>starcloud-langchain</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-langchain-workflow</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

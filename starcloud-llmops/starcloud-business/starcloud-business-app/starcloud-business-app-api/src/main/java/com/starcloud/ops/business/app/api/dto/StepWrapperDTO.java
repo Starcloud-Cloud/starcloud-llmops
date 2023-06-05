@@ -46,7 +46,7 @@ public class StepWrapperDTO implements Serializable {
     private StepDTO step;
 
     /**
-     * 步骤变量
+     * 步骤变量,执行
      */
     @Schema(description = "步骤变量")
     private List<VariableDTO> variables;

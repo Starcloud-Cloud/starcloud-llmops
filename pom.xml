@@ -21,7 +21,7 @@
         <module>starcloud-llmops</module>
     </modules>
 
-    <name>starcloud-llmops</name>
+    <name>starcloud-llmops-server</name>
     <description>大语言模型运营开发平台</description>
     <url>https://github.com/Starcloud-Cloud/starcloud-llmops</url>
 

@@ -67,7 +67,7 @@ public class StepDTO implements Serializable {
      * 步骤执行结果
      */
     @Schema(description = "步骤执行结果")
-    private String response;
+    private StepResponse response;
 
     /**
      * 步骤图标

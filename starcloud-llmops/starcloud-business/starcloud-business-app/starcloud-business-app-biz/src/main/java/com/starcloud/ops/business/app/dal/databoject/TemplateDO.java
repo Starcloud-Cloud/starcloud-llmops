@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.dal.databoject;
 
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -16,8 +15,8 @@ import java.time.LocalDateTime;
  * @version 1.0.0
  * @since 2023-05-29
  */
-@TableName("ss_template")
-@KeySequence("ss_template_seq")
+@TableName("llm_template")
+@KeySequence("llm_template_seq")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -30,6 +29,12 @@ public class TemplateDO extends TenantBaseDO {
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
+
+    /**
+     * 模版唯一标识
+     */
+    @TableField("uid")
+    private String uid;
 
     /**
      * 模版名称

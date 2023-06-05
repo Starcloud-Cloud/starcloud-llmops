@@ -16,7 +16,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>starcloud-langchain</module>
-        <module>starcloud-workflow</module>
     </modules>
 
     <dependencyManagement>
@@ -28,13 +27,6 @@
                 <artifactId>starcloud-langchain</artifactId>
                 <version>${starcloud.revision}</version>
             </dependency>
-
-            <dependency>
-                <groupId>com.starcloud.ops</groupId>
-                <artifactId>starcloud-workflow</artifactId>
-                <version>${starcloud.revision}</version>
-            </dependency>
-
         </dependencies>
 
     </dependencyManagement>
