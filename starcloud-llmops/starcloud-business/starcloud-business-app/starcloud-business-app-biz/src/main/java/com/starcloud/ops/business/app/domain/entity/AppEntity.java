@@ -69,7 +69,7 @@ public class AppEntity {
 
 
     public String getUniqueName() {
-        return this.name + this.version + this.uid;
+        return this.uid + "_" + this.version;
     }
 
 

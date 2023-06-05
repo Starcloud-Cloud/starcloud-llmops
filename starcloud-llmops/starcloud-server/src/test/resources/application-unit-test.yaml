@@ -47,3 +47,10 @@ mybatis:
 yudao:
   info:
     base-package: cn.iocoder.yudao.module
+
+
+kstry:
+  story:
+    tracking:
+      log: true # 是否打印回溯log，默认为 false
+#
