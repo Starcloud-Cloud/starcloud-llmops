@@ -1,12 +1,11 @@
 package com.starcloud.ops.business.app.convert;
 
 import com.alibaba.fastjson.JSON;
-import com.starcloud.ops.business.app.api.dto.TemplateConfigDTO;
-import com.starcloud.ops.business.app.api.dto.TemplateDTO;
-import com.starcloud.ops.business.app.api.request.TemplateRequest;
-import com.starcloud.ops.business.app.api.request.TemplateUpdateRequest;
-import com.starcloud.ops.business.app.dal.databoject.TemplateDO;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.api.template.dto.TemplateConfigDTO;
+import com.starcloud.ops.business.app.api.template.dto.TemplateDTO;
+import com.starcloud.ops.business.app.api.template.request.TemplateRequest;
+import com.starcloud.ops.business.app.api.template.request.TemplateUpdateRequest;
+import com.starcloud.ops.business.app.dal.databoject.template.TemplateDO;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,35 +22,6 @@ import java.util.stream.Collectors;
  */
 @UtilityClass
 public class TemplateConvert {
-
-    /**
-     * 将 DTO 转换为 DO
-     *
-     * @param template 模版 DTO
-     * @return 模版 DO
-     */
-    public static TemplateDO convert(TemplateDTO template) {
-        TemplateDO templateDO = new TemplateDO();
-        templateDO.setId(template.getId());
-        templateDO.setUid(template.getUid());
-        templateDO.setName(template.getName());
-        templateDO.setType(template.getType());
-        templateDO.setLogotype(template.getLogotype());
-        templateDO.setSourceType(template.getSourceType());
-        templateDO.setMarketKey(template.getMarketKey());
-        templateDO.setVersion(template.getVersion());
-        templateDO.setTags(StringUtils.join(template.getTags(), ","));
-        templateDO.setCategories(StringUtils.join(template.getCategories(), ","));
-        templateDO.setScenes(StringUtils.join(template.getScenes(), ","));
-
-        templateDO.setConfig(JSON.toJSONString(buildConfig(template)));
-        templateDO.setImages(StringUtils.join(template.getImages(), ","));
-        templateDO.setIcon(template.getIcon());
-        templateDO.setStepIcons(StringUtils.join(template.getStepIcons(), ","));
-        templateDO.setDescription(template.getDescription());
-        templateDO.setTenantId(template.getTenantId());
-        return templateDO;
-    }
 
     /**
      * 将 DO 转换为 DTO
@@ -94,21 +64,18 @@ public class TemplateConvert {
      * @param request 请求
      * @return 模版 DO
      */
-    public static TemplateDO convert(TemplateRequest request) {
+    public static TemplateDO convertCreate(TemplateRequest request) {
 
-        TemplateDO templateDO = new TemplateDO();
-        if (request instanceof TemplateUpdateRequest) {
-            templateDO.setId(((TemplateUpdateRequest) request).getId());
-        }
+        TemplateDO template = new TemplateDO();
         // 雪花算法生成 uid
-        templateDO.setUid("");
-        templateDO.setName(request.getName());
-        templateDO.setType(request.getType());
-        templateDO.setLogotype(request.getLogotype());
-        templateDO.setSourceType(request.getSourceType());
-        templateDO.setTags(StringUtils.join(request.getTags(), ","));
-        templateDO.setCategories(StringUtils.join(request.getCategories(), ","));
-        templateDO.setScenes(StringUtils.join(request.getScenes(), ","));
+        template.setUid("");
+        template.setName(request.getName());
+        template.setType(request.getType());
+        template.setLogotype(request.getLogotype());
+        template.setSourceType(request.getSourceType());
+        template.setTags(StringUtils.join(request.getTags(), ","));
+        template.setCategories(StringUtils.join(request.getCategories(), ","));
+        template.setScenes(StringUtils.join(request.getScenes(), ","));
 
         // 保证 config 中的一些数据和 template 中的一致
         TemplateConfigDTO config = request.getConfig();
@@ -119,30 +86,24 @@ public class TemplateConvert {
         config.setCategories(request.getCategories());
         config.setScenes(request.getScenes());
 
-        templateDO.setConfig(JSON.toJSONString(config));
-        templateDO.setImages(StringUtils.join(request.getImages(), ","));
-        templateDO.setIcon(request.getIcon());
+        template.setConfig(JSON.toJSONString(config));
+        template.setImages(StringUtils.join(request.getImages(), ","));
+        template.setIcon(request.getIcon());
         List<String> stepIcons = config.getSteps().stream().map(stepWrapper -> stepWrapper.getStep().getIcon()).collect(Collectors.toList());
-        templateDO.setStepIcons(StringUtils.join(stepIcons, ","));
-        templateDO.setDescription(request.getDescription());
-        templateDO.setStatus(0);
-        templateDO.setDeleted(false);
+        template.setStepIcons(StringUtils.join(stepIcons, ","));
+        template.setDescription(request.getDescription());
+        template.setStatus(0);
+        template.setDeleted(false);
 
-        return templateDO;
+        return template;
 
     }
 
-    public static TemplateConfigDTO buildConfig(TemplateDTO template) {
-        // 保证 config 中的一些数据和 template 中的一致
-        TemplateConfigDTO config = template.getConfig();
-        config.setType(template.getType());
-        config.setLogotype(template.getLogotype());
-        config.setSourceType(template.getSourceType());
-        config.setTags(template.getTags());
-        config.setCategories(template.getCategories());
-        config.setScenes(template.getScenes());
+    public static TemplateDO convertModify(TemplateUpdateRequest request) {
+        TemplateDO template = new TemplateDO();
 
-        return config;
+
+        return template;
     }
 
 }
