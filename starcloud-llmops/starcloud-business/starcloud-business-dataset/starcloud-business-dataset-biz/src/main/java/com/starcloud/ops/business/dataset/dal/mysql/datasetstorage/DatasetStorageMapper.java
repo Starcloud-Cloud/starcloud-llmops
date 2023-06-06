@@ -19,7 +19,7 @@ public interface DatasetStorageMapper extends BaseMapperX<DatasetStorageDO> {
                 .eqIfPresent(DatasetStorageDO::getUid, reqVO.getUid())
                 .likeIfPresent(DatasetStorageDO::getName, reqVO.getName())
                 .eqIfPresent(DatasetStorageDO::getType, reqVO.getType())
-                .eqIfPresent(DatasetStorageDO::getKey, reqVO.getKey())
+                .eqIfPresent(DatasetStorageDO::getStorageKey, reqVO.getStorageKey())
                 .eqIfPresent(DatasetStorageDO::getStorageType, reqVO.getStorageType())
                 .eqIfPresent(DatasetStorageDO::getSize, reqVO.getSize())
                 .eqIfPresent(DatasetStorageDO::getMimeType, reqVO.getMimeType())

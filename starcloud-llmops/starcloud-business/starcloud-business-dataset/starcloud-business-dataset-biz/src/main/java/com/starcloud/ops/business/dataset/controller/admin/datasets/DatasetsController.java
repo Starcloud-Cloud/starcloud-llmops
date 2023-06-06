@@ -12,6 +12,7 @@ import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,7 +44,7 @@ public class DatasetsController {
 
     @PostMapping("/create")
     @Operation(summary = "创建数据集")
-    //@PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:create')")
+    @PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:create')")
     public CommonResult<String> createDatasets(@Valid @RequestBody DatasetsCreateReqVO createReqVO) {
         return success(datasetsService.createDatasets(createReqVO));
     }
