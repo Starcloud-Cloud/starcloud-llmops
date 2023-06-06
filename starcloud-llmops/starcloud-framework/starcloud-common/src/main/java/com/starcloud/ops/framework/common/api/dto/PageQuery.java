@@ -6,6 +6,7 @@ import lombok.Data;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 分页查询对象
@@ -45,5 +46,9 @@ public class PageQuery implements Serializable {
     @Max(value = 10000, message = "每页条数最大值为 10000")
     private Integer pageSize = DEFAULT_PAGE_SIZE;
 
-
+    /**
+     * 排序字段
+     */
+    @Schema(description = "排序字段")
+    private List<SortQuery> sorts;
 }

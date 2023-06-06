@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.api;
 
-import com.starcloud.ops.business.app.api.dto.TemplateDTO;
+import com.starcloud.ops.business.app.api.template.dto.TemplateDTO;
 
 /**
  * 模版服务 API

@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.api;
 
 
-import com.starcloud.ops.business.app.api.dto.TemplateDTO;
-import com.starcloud.ops.business.app.service.TemplateService;
+import com.starcloud.ops.business.app.api.template.dto.TemplateDTO;
+import com.starcloud.ops.business.app.service.template.TemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

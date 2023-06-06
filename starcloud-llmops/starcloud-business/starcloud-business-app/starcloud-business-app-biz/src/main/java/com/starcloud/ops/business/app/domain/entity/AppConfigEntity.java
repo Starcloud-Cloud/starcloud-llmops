@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.dto.StepWrapperDTO;
-import com.starcloud.ops.business.app.api.dto.VariableDTO;
 import lombok.Data;
 
 import java.util.ArrayList;
