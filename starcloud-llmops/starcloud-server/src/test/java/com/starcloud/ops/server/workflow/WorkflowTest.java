@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatSt
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import com.starcloud.ops.workflow.service.AppWorkflowService;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.internal.bytebuddy.matcher.StringMatcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,6 +44,8 @@ public class WorkflowTest extends BaseDbUnitTest {
 
     final String requestId = "appId-request-xxx-id";
 
+    final String stepId = "title";
+
     @Test
     public void demoTest() {
 
@@ -56,6 +59,7 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         appEntity.setUid(appId);
         appEntity.setVersion("123");
+        appEntity.setName("ppId-test name");
 
         AppConfigEntity appConfigEntity = new AppConfigEntity();
 
@@ -76,7 +80,8 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         Mockito.when(AppFactory.factory(appId, new TemplateDTO())).thenReturn(appEntity);
 
-        Mockito.when(AppFactory.factory(appId, new TemplateDTO(), requestId)).thenReturn(appEntity);
+        Mockito.when(AppFactory.factory(appId, new TemplateDTO(), stepId)).thenReturn(appEntity);
+
 
     }
 
@@ -120,6 +125,13 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         appWorkflowService.fireByApp(appId, new TemplateDTO(), "title");
     }
+
+    @Test
+    public void fireByAppStepContentTest() {
+
+        appWorkflowService.fireByApp(appId, new TemplateDTO(), "content");
+    }
+
 
 
     @Test

@@ -1,6 +1,9 @@
 package com.starcloud.ops.workflow.component.app.process;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.kstry.framework.core.component.bpmn.builder.ParallelJoinPointBuilder;
+import cn.kstry.framework.core.component.bpmn.joinpoint.InclusiveJoinPoint;
+import cn.kstry.framework.core.component.bpmn.joinpoint.ParallelJoinPoint;
 import cn.kstry.framework.core.component.bpmn.link.ProcessLink;
 import cn.kstry.framework.core.component.bpmn.link.StartProcessLink;
 import cn.kstry.framework.core.resource.config.ConfigResource;
@@ -30,23 +33,22 @@ public class AppProcessParser implements ConfigResource {
 
         StartProcessLink bpmnLink = StartProcessLink.build(this.app.getUid(), this.app.getName());
 
-        ProcessLink processLink = bpmnLink;
-
-        ProcessLink exclusive = bpmnLink.nextExclusive().build();
-
 
         List<ProcessLink> processLinks = new ArrayList<>();
 
+        // ProcessLink processLink = null;
+
         List<AppStepWrapper> appStepWrappers = CollectionUtil.defaultIfEmpty(this.app.getConfig().getSteps(), new ArrayList<>());
         for (AppStepWrapper appStepWrapper : appStepWrappers) {
-            processLink = processLink.nextService(KeyUtil.req("stepId", "==", appStepWrapper.getField()), appStepWrapper.getStep().getType()).name(appStepWrapper.getName()).build();
+            ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '"+appStepWrapper.getField() +"'"), appStepWrapper.getStep().getType()).name(appStepWrapper.getName()).build();
 
-            exclusive.joinTask(processLink.getElement());
-
-            //bpmnLink.joinTask(bpmnLink);
+           processLink.end();
         }
 
-        processLink.end();
+        // parallelJoinPoint.end();
+
+        bpmnLink.end();
+
         return Optional.of(bpmnLink);
     }
 
