@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.market.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.market.dto.TemplateMarketDTO;
@@ -74,6 +75,20 @@ public class TemplateMarketServiceImpl implements TemplateMarketService {
     }
 
     /**
+     * 根据模版 uid 获取模版详情
+     *
+     * @param uid 模版 uid
+     * @return 模版详情
+     */
+    @Override
+    public TemplateMarketDTO getByUid(String uid) {
+        LambdaQueryWrapper<TemplateMarketDO> wrapper = buildBaseQueryWrapper().eq(TemplateMarketDO::getUid, uid);
+        TemplateMarketDO templateMarketDO = templateMarketMapper.selectOne(wrapper);
+        Assert.notNull(templateMarketDO, "The Uid: " + uid + " template does not exist in template market.");
+        return TemplateMarketConvert.convert(templateMarketDO);
+    }
+
+    /**
      * 创建模版市场的模版
      *
      * @param request 模版信息
@@ -100,7 +115,11 @@ public class TemplateMarketServiceImpl implements TemplateMarketService {
     public Boolean modify(TemplateMarketUpdateRequest request) {
         try {
             TemplateMarketDO templateMarketDO = TemplateMarketConvert.convertModify(request);
-            templateMarketMapper.updateById(templateMarketDO);
+            LambdaUpdateWrapper<TemplateMarketDO> wrapper = Wrappers.lambdaUpdate(TemplateMarketDO.class)
+                    .eq(TemplateMarketDO::getUid, request.getUid())
+                    .eq(TemplateMarketDO::getDeleted, Boolean.FALSE)
+                    .eq(TemplateMarketDO::getStatus, StateEnum.ENABLE.getCode());
+            templateMarketMapper.update(templateMarketDO, wrapper);
             return Boolean.TRUE;
         } catch (Exception e) {
             throw TemplateMarketException.exception(AppResultCode.TEMPLATE_MARKET_MODIFY_FAILED, e.getMessage());
@@ -126,29 +145,61 @@ public class TemplateMarketServiceImpl implements TemplateMarketService {
     }
 
     /**
+     * 删除模版市场的模版
+     *
+     * @param uid 模版 uid
+     * @return 是否删除成功
+     */
+    @Override
+    public Boolean deleteByUid(String uid) {
+        try {
+            LambdaQueryWrapper<TemplateMarketDO> wrapper = buildBaseQueryWrapper().eq(TemplateMarketDO::getUid, uid);
+            TemplateMarketDO templateMarketDO = templateMarketMapper.selectOne(wrapper);
+            // 您要删除的模版不存在
+            Assert.notNull(templateMarketDO, "The Uid: " + uid + " of you want to delete template does not exist in template market.");
+            templateMarketMapper.deleteById(templateMarketDO.getId());
+            return Boolean.TRUE;
+        } catch (Exception e) {
+            throw TemplateMarketException.exception(AppResultCode.TEMPLATE_MARKET_DELETE_FAILED, e.getMessage());
+        }
+    }
+
+    /**
+     * 基础查询条件
+     *
+     * @return 基础查询条件
+     */
+    private static LambdaQueryWrapper<TemplateMarketDO> buildBaseQueryWrapper() {
+        return Wrappers.lambdaQuery(TemplateMarketDO.class)
+                .eq(TemplateMarketDO::getDeleted, Boolean.FALSE)
+                .eq(TemplateMarketDO::getStatus, StateEnum.ENABLE.getCode());
+    }
+
+    /**
      * 构建分页查询条件, 只查询部分字段
      *
      * @return 分页查询条件
      */
     private static LambdaQueryWrapper<TemplateMarketDO> buildPageQueryWrapper() {
         return Wrappers.lambdaQuery(TemplateMarketDO.class).select(
-                TemplateMarketDO::getId,
-                TemplateMarketDO::getKey,
-                TemplateMarketDO::getName,
-                TemplateMarketDO::getDescription,
-                TemplateMarketDO::getIcon,
-                TemplateMarketDO::getImages,
-                TemplateMarketDO::getCategories,
-                TemplateMarketDO::getTags,
-                TemplateMarketDO::getScenes,
-                TemplateMarketDO::getVersion,
-                TemplateMarketDO::getFree,
-                TemplateMarketDO::getCost,
-                TemplateMarketDO::getVersion,
-                TemplateMarketDO::getViewCount,
-                TemplateMarketDO::getLikeCount,
-                TemplateMarketDO::getCreator,
-                TemplateMarketDO::getCreateTime
-        );
+                        TemplateMarketDO::getUid,
+                        TemplateMarketDO::getName,
+                        TemplateMarketDO::getDescription,
+                        TemplateMarketDO::getIcon,
+                        TemplateMarketDO::getImages,
+                        TemplateMarketDO::getCategories,
+                        TemplateMarketDO::getTags,
+                        TemplateMarketDO::getScenes,
+                        TemplateMarketDO::getVersion,
+                        TemplateMarketDO::getFree,
+                        TemplateMarketDO::getCost,
+                        TemplateMarketDO::getVersion,
+                        TemplateMarketDO::getViewCount,
+                        TemplateMarketDO::getLikeCount,
+                        TemplateMarketDO::getCreator,
+                        TemplateMarketDO::getCreateTime
+                )
+                .eq(TemplateMarketDO::getDeleted, Boolean.FALSE)
+                .eq(TemplateMarketDO::getStatus, StateEnum.ENABLE.getCode());
     }
 }

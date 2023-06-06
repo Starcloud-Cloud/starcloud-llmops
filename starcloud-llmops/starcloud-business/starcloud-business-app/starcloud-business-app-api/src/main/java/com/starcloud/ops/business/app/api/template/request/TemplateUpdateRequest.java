@@ -25,8 +25,8 @@ public class TemplateUpdateRequest extends TemplateRequest {
     /**
      * 模版ID
      */
-    @Schema(description = "模版ID")
-    @NotNull(message = "模版ID不能为空")
-    private Long id;
+    @Schema(description = "模版UID")
+    @NotNull(message = "模版UID不能为空")
+    private String uid;
 
 }

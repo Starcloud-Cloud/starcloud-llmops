@@ -54,10 +54,10 @@ public class TemplateController {
     }
 
     @GetMapping("/get")
-    @Operation(summary = "获得模版", description = "根据 ID 获取模版详情")
+    @Operation(summary = "获得模版", description = "根据 UID 获取模版详情")
     @ApiOperationSupport(order = 13, author = "nacoyer")
-    public CommonResult<TemplateDTO> get(@Parameter(name = "模版 ID") @RequestParam("id") Long id) {
-        return CommonResult.success(templateService.getById(id));
+    public CommonResult<TemplateDTO> get(@Parameter(name = "模版 UID") @RequestParam("uid") String uid) {
+        return CommonResult.success(templateService.getByUid(uid));
     }
 
     @PostMapping("/create")
@@ -75,23 +75,23 @@ public class TemplateController {
     }
 
     @PutMapping("/modify")
-    @Operation(summary = "更新模版", description = "根据 ID 更新模版")
+    @Operation(summary = "更新模版", description = "根据 UID 更新模版")
     @ApiOperationSupport(order = 16, author = "nacoyer")
     public CommonResult<Boolean> modify(@Validated @RequestBody TemplateUpdateRequest template) {
         return CommonResult.success(templateService.modify(template));
     }
 
     @DeleteMapping("/delete")
-    @Operation(summary = "删除模版", description = "根据 ID 删除模版")
+    @Operation(summary = "删除模版", description = "根据 UID 删除模版")
     @ApiOperationSupport(order = 17, author = "nacoyer")
-    public CommonResult<Boolean> delete(@Parameter(name = "模版 ID") @RequestParam("id") Long id) {
-        return CommonResult.success(templateService.delete(id));
+    public CommonResult<Boolean> delete(@Parameter(name = "模版 UID") @RequestParam("uid") String uid) {
+        return CommonResult.success(templateService.deleteByUid(uid));
     }
 
     @PostMapping("/verifyHasDownloaded")
     @Operation(summary = "校验模版是否已经下载过", description = "校验模版是否已经下载过")
     @ApiOperationSupport(order = 18, author = "nacoyer")
-    public CommonResult<Boolean> verifyHasDownloaded(@Parameter(name = "模版市场 key") @RequestParam("marketKey") String marketKey) {
-        return CommonResult.success(templateService.verifyHasDownloaded(marketKey));
+    public CommonResult<Boolean> verifyHasDownloaded(@Parameter(name = "模版市场 UID") @RequestParam("marketUid") String marketUid) {
+        return CommonResult.success(templateService.verifyHasDownloaded(marketUid));
     }
 }

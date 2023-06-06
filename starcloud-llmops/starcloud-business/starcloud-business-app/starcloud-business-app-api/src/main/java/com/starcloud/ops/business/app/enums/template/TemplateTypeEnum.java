@@ -69,7 +69,6 @@ public enum TemplateTypeEnum {
      * 根据枚举名称获取枚举Code
      *
      * @param name 枚举名称
-     *
      * @return 枚举Code
      */
     public static Integer getCodeByName(String name) {
@@ -80,7 +79,6 @@ public enum TemplateTypeEnum {
      * 根据枚举Code 获取枚举名称
      *
      * @param code 枚举 Code
-     *
      * @return 枚举名称
      */
     public static String getNameByCode(Integer code) {
@@ -89,21 +87,22 @@ public enum TemplateTypeEnum {
                 return type.name();
             }
         }
-        throw new IllegalArgumentException("No enum constant " + TemplateTypeEnum.class.getCanonicalName() + ". When Code is: " + code);
+        // 不支持的模版类型 Code
+        throw new IllegalArgumentException("The code " + code + " of " + TemplateTypeEnum.class.getCanonicalName() + " is not supported.");
     }
 
     /**
      * 根据名称获取模版类型枚举
      *
      * @param name 枚举名称
-     *
      * @return 模版类型
      */
     public static TemplateTypeEnum getEnumByName(String name) {
         if (TEMPLATE_TYPE_CACHE.containsKey(name)) {
             return TEMPLATE_TYPE_CACHE.get(name);
         }
-        throw new IllegalArgumentException("No enum constant " + TemplateTypeEnum.class.getCanonicalName() + "." + name);
+        // 不支持的模版类型名称
+        throw new IllegalArgumentException("The name " + name + " of " + TemplateTypeEnum.class.getCanonicalName() + " is not supported.");
     }
 
 }

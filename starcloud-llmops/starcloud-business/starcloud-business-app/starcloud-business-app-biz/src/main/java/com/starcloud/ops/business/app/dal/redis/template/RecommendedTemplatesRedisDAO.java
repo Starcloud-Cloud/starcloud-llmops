@@ -2,13 +2,14 @@ package com.starcloud.ops.business.app.dal.redis.template;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.starcloud.ops.business.app.api.template.dto.TemplateDTO;
 import com.starcloud.ops.business.app.convert.TemplateConvert;
 import com.starcloud.ops.business.app.dal.databoject.template.TemplateDO;
 import com.starcloud.ops.business.app.dal.mysql.template.TemplateMapper;
 import com.starcloud.ops.business.app.dal.redis.RedisKeyConstants;
 import com.starcloud.ops.business.app.enums.template.TemplateTypeEnum;
+import com.starcloud.ops.business.app.service.template.impl.TemplateServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -51,13 +52,11 @@ public class RecommendedTemplatesRedisDAO {
      * 设置推荐的模板
      */
     public List<TemplateDTO> set() {
-        // 查询推荐的模版列表
-        List<TemplateDO> templates = templateMapper.selectList(Wrappers.lambdaQuery(TemplateDO.class)
+        LambdaQueryWrapper<TemplateDO> wrapper = TemplateServiceImpl.buildPageQueryWrapper()
                 .eq(TemplateDO::getType, TemplateTypeEnum.SYSTEM_TEMPLATE.name())
-                .eq(TemplateDO::getDeleted, Boolean.FALSE)
-                .eq(TemplateDO::getStatus, 0)
-                .orderByDesc(TemplateDO::getUpdateTime)
-        );
+                .orderByDesc(TemplateDO::getUpdateTime);
+        // 查询推荐的模版列表
+        List<TemplateDO> templates = templateMapper.selectList(wrapper);
         List<TemplateDTO> templateList = CollectionUtil.emptyIfNull(templates).stream().map(TemplateConvert::convert).collect(Collectors.toList());
         // 缓存到redis
         stringRedisTemplate.opsForValue().set(getKey(), JSON.toJSONString(templateList));

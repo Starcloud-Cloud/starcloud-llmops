@@ -32,6 +32,14 @@ public interface TemplateMarketService {
     TemplateMarketDTO getById(Long id);
 
     /**
+     * 根据模版 uid 获取模版详情
+     *
+     * @param uid 模版 uid
+     * @return 模版详情
+     */
+    TemplateMarketDTO getByUid(String uid);
+
+    /**
      * 创建模版市场的模版
      *
      * @param request 模版信息
@@ -54,4 +62,12 @@ public interface TemplateMarketService {
      * @return 是否删除成功
      */
     Boolean delete(Long id);
+
+    /**
+     * 删除模版市场的模版
+     *
+     * @param uid 模版 uid
+     * @return 是否删除成功
+     */
+    Boolean deleteByUid(String uid);
 }

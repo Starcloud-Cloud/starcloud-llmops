@@ -57,6 +57,14 @@ public interface TemplateService {
     TemplateDTO getById(Long id);
 
     /**
+     * 根据模版 UID 获取模版详情
+     *
+     * @param uid 模版 UID
+     * @return 模版详情
+     */
+    TemplateDTO getByUid(String uid);
+
+    /**
      * 创建模版
      *
      * @param request 模版信息
@@ -89,11 +97,26 @@ public interface TemplateService {
     Boolean delete(Long id);
 
     /**
+     * 根据模版 UID 删除模版
+     *
+     * @param uid 模版 UID
+     * @return 是否删除成功
+     */
+    Boolean deleteByUid(String uid);
+
+    /**
      * 校验模版是否已经下载过
      *
      * @param marketKey 模版市场特有的 key，唯一。
      * @return 是否已经下载
      */
     Boolean verifyHasDownloaded(String marketKey);
+
+    /**
+     * 模版名称重复校验
+     * @param name 模版名称
+     * @return 是否重复
+     */
+    Boolean duplicateNameVerification(String name);
 
 }
