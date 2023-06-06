@@ -61,8 +61,8 @@ public class TemplateDTO implements Serializable {
     /**
      * 模版市场 key，我的模版上传到模版市场时候，会生成一个模版市场 key，下载模版的时候，会将该 key 存到此处。
      */
-    @Schema(description = "模版市场 key")
-    private String marketKey;
+    @Schema(description = "模版市场 uid")
+    private String marketUid;
 
     /**
      * 模版版本，默认版本 1.0.0

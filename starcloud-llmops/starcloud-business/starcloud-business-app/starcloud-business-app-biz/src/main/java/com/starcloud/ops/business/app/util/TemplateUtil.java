@@ -1,12 +1,16 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.starcloud.ops.business.app.api.template.dto.StepDTO;
+import com.starcloud.ops.business.app.api.template.dto.StepWrapperDTO;
+import com.starcloud.ops.business.app.api.template.dto.TemplateConfigDTO;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -30,7 +34,7 @@ public class TemplateUtil {
      * @param source 标签字符串
      * @return 标签列表
      */
-    public static List<String> build(String source) {
+    public static List<String> buildField(String source) {
         if (StringUtils.isBlank(source)) {
             return Collections.emptyList();
         }
@@ -45,7 +49,7 @@ public class TemplateUtil {
      * @param source 标签列表
      * @return 标签字符串
      */
-    public static String build(List<String> source) {
+    public static String buildField(List<String> source) {
         if (CollectionUtil.isEmpty(source)) {
             return StringUtils.EMPTY;
         }
@@ -110,4 +114,28 @@ public class TemplateUtil {
         return target;
     }
 
+    /**
+     * 构建步骤图标
+     *
+     * @param config 模版配置
+     * @return 图标字符串
+     */
+    public static String buildStepIcons(TemplateConfigDTO config) {
+        return CollectionUtil.emptyIfNull(config.getSteps()).stream()
+                .map(stepWrapper -> Optional.ofNullable(stepWrapper).map(StepWrapperDTO::getStep).map(StepDTO::getIcon).orElse(StringUtils.EMPTY))
+                .filter(StringUtils::isNotBlank)
+                .map(String::trim)
+                .collect(Collectors.joining(","));
+    }
+
+    /**
+     * 构建步骤word 数量
+     *
+     * @param config 模版配置
+     * @return word 数量
+     */
+    public static Integer buildWord(TemplateConfigDTO config) {
+
+        return 0;
+    }
 }

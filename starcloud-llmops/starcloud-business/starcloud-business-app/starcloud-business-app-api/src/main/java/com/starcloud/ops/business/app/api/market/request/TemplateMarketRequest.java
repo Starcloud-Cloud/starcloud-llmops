@@ -7,6 +7,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -52,6 +53,12 @@ public class TemplateMarketRequest implements Serializable {
     private String sourceType;
 
     /**
+     * 模版市场模版版本号
+     */
+    @Schema(description = "模版市场模版版本号")
+    private String version;
+
+    /**
      * 模版标签
      */
     @Schema(description = "模版标签")
@@ -68,6 +75,13 @@ public class TemplateMarketRequest implements Serializable {
      */
     @Schema(description = "模版场景")
     private List<String> scenes;
+
+    /**
+     * 模版语言
+     */
+    @Schema(description = "模版语言")
+    @NotBlank(message = "模版语言不能为空")
+    private String language;
 
     /**
      * 模版详细配置信息, 步骤，变量，场景等
@@ -92,5 +106,64 @@ public class TemplateMarketRequest implements Serializable {
      */
     @Schema(description = "模版描述")
     private String description;
+
+    /**
+     * 模版提示信息
+     */
+    private String promptInfo;
+
+    /**
+     * 模版价格
+     */
+    @Schema(description = "模版价格")
+    private BigDecimal cost;
+
+    /**
+     * 模版是否免费
+     */
+    @Schema(description = "模版是否免费")
+    private Boolean free;
+
+    /**
+     * 点赞数量
+     */
+    @Schema(description = "点赞数量")
+    private Integer likeCount;
+
+    /**
+     * 查看数量
+     */
+    @Schema(description = "查看数量")
+    private Integer viewCount;
+
+    /**
+     * 下载数量
+     */
+    @Schema(description = "下载数量")
+    private Integer downloadCount;
+
+    /**
+     * 插件版本
+     */
+    @Schema(description = "插件版本")
+    private String pluginVersion;
+
+    /**
+     * 插件级别
+     */
+    @Schema(description = "插件级别")
+    private String pluginLevel;
+
+    /**
+     * 模版审核
+     */
+    @Schema(description = "模版审核")
+    private Integer audit;
+
+    /**
+     * 模版状态，0：启用，1：禁用
+     */
+    @Schema(description = "模版状态")
+    private Integer status;
 
 }

@@ -2,7 +2,9 @@ package com.starcloud.ops.business.app.service.template.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.template.dto.TemplateDTO;
@@ -16,6 +18,7 @@ import com.starcloud.ops.business.app.dal.redis.template.RecommendedTemplatesRed
 import com.starcloud.ops.business.app.enums.AppResultCode;
 import com.starcloud.ops.business.app.enums.template.TemplateTypeEnum;
 import com.starcloud.ops.business.app.exception.TemplateException;
+import com.starcloud.ops.business.app.exception.TemplateMarketException;
 import com.starcloud.ops.business.app.service.template.TemplateService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -127,6 +130,20 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     /**
+     * 根据模版 UID 获取模版详情
+     *
+     * @param uid 模版 UID
+     * @return 模版详情
+     */
+    @Override
+    public TemplateDTO getByUid(String uid) {
+        LambdaQueryWrapper<TemplateDO> wrapper = buildBaseQueryWrapper().eq(TemplateDO::getUid, uid);
+        TemplateDO templateDO = templateMapper.selectOne(wrapper);
+        Assert.notNull(templateDO, () -> TemplateException.exception(AppResultCode.TEMPLATE_NOT_EXISTS, uid));
+        return TemplateConvert.convert(templateDO);
+    }
+
+    /**
      * 创建模版
      *
      * @param request 模版信息
@@ -135,8 +152,10 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     public Boolean create(TemplateRequest request) {
         try {
-            duplicateNameVerification(request.getName());
+            duplicateNameVerification(request);
             TemplateDO templateDO = TemplateConvert.convertCreate(request);
+            // 生成唯一 ID
+            templateDO.setUid(IdUtil.fastSimpleUUID());
             templateMapper.insert(templateDO);
             // 如果新增的是系统模版，则需要更新缓存
             recommendedTemplatesRedisDAO.resetByType(templateDO.getType());
@@ -156,8 +175,11 @@ public class TemplateServiceImpl implements TemplateService {
     public Boolean copy(TemplateRequest request) {
         try {
             String name = request.getName() + "-Copy";
-            duplicateNameVerification(name);
+            request.setName(name);
+            duplicateNameVerification(request);
             TemplateDO templateDO = TemplateConvert.convertCreate(request);
+            // 生成唯一 ID
+            templateDO.setUid(IdUtil.fastSimpleUUID());
             templateMapper.insert(templateDO);
             // 如果新增的是系统模版，则需要更新缓存
             recommendedTemplatesRedisDAO.resetByType(templateDO.getType());
@@ -176,9 +198,13 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     public Boolean modify(TemplateUpdateRequest request) {
         try {
-            duplicateNameVerification(request.getName());
+            duplicateNameVerification(request);
             TemplateDO templateDO = TemplateConvert.convertModify(request);
-            templateMapper.updateById(templateDO);
+            LambdaUpdateWrapper<TemplateDO> wrapper = Wrappers.lambdaUpdate(TemplateDO.class)
+                    .eq(TemplateDO::getUid, request.getUid())
+                    .eq(TemplateDO::getDeleted, Boolean.FALSE)
+                    .eq(TemplateDO::getStatus, StateEnum.ENABLE.getCode());
+            templateMapper.update(templateDO, wrapper);
             // 如果新增的是系统模版，则需要更新缓存
             recommendedTemplatesRedisDAO.resetByType(templateDO.getType());
             return Boolean.TRUE;
@@ -203,26 +229,47 @@ public class TemplateServiceImpl implements TemplateService {
             recommendedTemplatesRedisDAO.resetByType(templateDO.getType());
             return Boolean.TRUE;
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
+            throw TemplateException.exception(AppResultCode.TEMPLATE_DELETE_FAILED, e.getMessage());
+        }
+    }
+
+    /**
+     * 根据模版 UID 删除模版
+     *
+     * @param uid 模版 UID
+     * @return 是否删除成功
+     */
+    @Override
+    public Boolean deleteByUid(String uid) {
+        try {
+            TemplateDO templateDO = templateMapper.selectOne(buildBaseQueryWrapper().eq(TemplateDO::getUid, uid));
+            Assert.notNull(templateDO, () -> TemplateException.exception(AppResultCode.TEMPLATE_NOT_EXISTS, uid));
+            templateMapper.deleteById(templateDO.getId());
+            // 如果新增的是系统模版，则需要更新缓存
+            recommendedTemplatesRedisDAO.resetByType(templateDO.getType());
+            return Boolean.TRUE;
+        } catch (IllegalArgumentException e) {
+            throw TemplateException.exception(AppResultCode.TEMPLATE_DELETE_FAILED, e.getMessage());
         }
     }
 
     /**
      * 校验模版是否已经下载过
      *
-     * @param marketKey 模版市场特有的 key，唯一。
-     * @return 是否已经下载
+     * @param marketUid 模版市场特有的 key，唯一。
+     * @return 是否已经下载, true: 已经下载, false: 未下载
      */
     @Override
-    public Boolean verifyHasDownloaded(String marketKey) {
-        LambdaQueryWrapper<TemplateDO> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(TemplateDO::getMarketKey, marketKey)
-                .eq(TemplateDO::getType, TemplateTypeEnum.DOWNLOAD_TEMPLATE.name())
-                .eq(TemplateDO::getDeleted, Boolean.FALSE)
-                .eq(TemplateDO::getStatus, StateEnum.ENABLE.getCode());
-        Long count = templateMapper.selectCount(wrapper);
-
-        return count > 0;
+    public Boolean verifyHasDownloaded(String marketUid) {
+        try {
+            LambdaQueryWrapper<TemplateDO> wrapper = buildBaseQueryWrapper()
+                    .eq(TemplateDO::getMarketUid, marketUid)
+                    .eq(TemplateDO::getType, TemplateTypeEnum.DOWNLOAD_TEMPLATE.name());
+            Long count = templateMapper.selectCount(wrapper);
+            return count > 0;
+        } catch (Exception e) {
+            throw TemplateException.exception(AppResultCode.TEMPLATE_VERIFY_HAS_DOWNLOADED_FAILED, e.getMessage());
+        }
     }
 
 
@@ -230,14 +277,38 @@ public class TemplateServiceImpl implements TemplateService {
      * 模版名称重复校验, 重复抛出异常
      *
      * @param name 模版名称
+     * @return 是否重复 true: 重复, false: 不重复
      */
-    public void duplicateNameVerification(String name) {
-        LambdaQueryWrapper<TemplateDO> wrapper = Wrappers.lambdaQuery(TemplateDO.class)
-                .eq(TemplateDO::getName, name)
+    public Boolean duplicateNameVerification(String name) {
+        try {
+            LambdaQueryWrapper<TemplateDO> wrapper = buildBaseQueryWrapper().eq(TemplateDO::getName, name);
+            Long count = templateMapper.selectCount(wrapper);
+            return count > 0;
+        } catch (TemplateMarketException e) {
+            throw TemplateException.exception(AppResultCode.TEMPLATE_DEFAULT_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 模版名称重复校验, 重复抛出异常
+     *
+     * @param request 模版信息
+     */
+    private void duplicateNameVerification(TemplateRequest request) {
+        if (duplicateNameVerification(request.getName())) {
+            throw TemplateException.exception(AppResultCode.TEMPLATE_NAME_DUPLICATE, request.getName());
+        }
+    }
+
+    /**
+     * 构建基础查询条件
+     *
+     * @return 查询条件
+     */
+    public static LambdaQueryWrapper<TemplateDO> buildBaseQueryWrapper() {
+        return Wrappers.lambdaQuery(TemplateDO.class)
                 .eq(TemplateDO::getDeleted, Boolean.FALSE)
                 .eq(TemplateDO::getStatus, StateEnum.ENABLE.getCode());
-        TemplateDO templateDO = templateMapper.selectOne(wrapper);
-        Assert.isNull(templateDO, () -> TemplateException.exception(AppResultCode.TEMPLATE_NAME_DUPLICATE, name));
     }
 
     /**
@@ -245,25 +316,26 @@ public class TemplateServiceImpl implements TemplateService {
      *
      * @return 查询条件
      */
-    private static LambdaQueryWrapper<TemplateDO> buildPageQueryWrapper() {
+    public static LambdaQueryWrapper<TemplateDO> buildPageQueryWrapper() {
         return Wrappers.lambdaQuery(TemplateDO.class).select(
-                TemplateDO::getId,
-                TemplateDO::getUid,
-                TemplateDO::getMarketKey,
-                TemplateDO::getType,
-                TemplateDO::getLogotype,
-                TemplateDO::getSourceType,
-                TemplateDO::getVersion,
-                TemplateDO::getName,
-                TemplateDO::getDescription,
-                TemplateDO::getIcon,
-                TemplateDO::getTags,
-                TemplateDO::getCategories,
-                TemplateDO::getScenes,
-                TemplateDO::getCreator,
-                TemplateDO::getUpdater,
-                TemplateDO::getCreateTime,
-                TemplateDO::getUpdateTime
-        );
+                        TemplateDO::getUid,
+                        TemplateDO::getMarketUid,
+                        TemplateDO::getType,
+                        TemplateDO::getLogotype,
+                        TemplateDO::getSourceType,
+                        TemplateDO::getVersion,
+                        TemplateDO::getName,
+                        TemplateDO::getDescription,
+                        TemplateDO::getIcon,
+                        TemplateDO::getTags,
+                        TemplateDO::getCategories,
+                        TemplateDO::getScenes,
+                        TemplateDO::getCreator,
+                        TemplateDO::getUpdater,
+                        TemplateDO::getCreateTime,
+                        TemplateDO::getUpdateTime
+                )
+                .eq(TemplateDO::getDeleted, Boolean.FALSE)
+                .eq(TemplateDO::getStatus, StateEnum.ENABLE.getCode());
     }
 }

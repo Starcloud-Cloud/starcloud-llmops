@@ -1,14 +1,21 @@
 package com.starcloud.ops.business.app.convert;
 
+import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson.JSON;
-import com.starcloud.ops.business.app.api.template.dto.TemplateConfigDTO;
 import com.starcloud.ops.business.app.api.market.dto.TemplateMarketDTO;
 import com.starcloud.ops.business.app.api.market.request.TemplateMarketRequest;
+import com.starcloud.ops.business.app.api.market.request.TemplateMarketUpdateRequest;
+import com.starcloud.ops.business.app.api.template.dto.TemplateConfigDTO;
 import com.starcloud.ops.business.app.dal.databoject.market.TemplateMarketDO;
+import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.AppResultCode;
+import com.starcloud.ops.business.app.exception.TemplateMarketException;
+import com.starcloud.ops.business.app.util.TemplateUtil;
+import com.starcloud.ops.business.app.validate.TemplateValidate;
 import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * 模版市场转换器
@@ -21,54 +28,6 @@ import java.util.Arrays;
 public class TemplateMarketConvert {
 
     /**
-     * 将 DTO 转换为 DO
-     *
-     * @param market 模版市场 DTO
-     * @return 模版市场 DO
-     */
-    public static TemplateMarketDO convert(TemplateMarketDTO market) {
-        TemplateMarketDO marketDO = new TemplateMarketDO();
-        marketDO.setId(market.getId());
-        marketDO.setKey(market.getKey());
-        marketDO.setName(market.getName());
-        marketDO.setType(market.getType());
-        marketDO.setLogotype(market.getLogotype());
-        marketDO.setSourceType(market.getSourceType());
-        marketDO.setVersion(market.getVersion());
-        marketDO.setTags(StringUtils.join(market.getTags(), ","));
-        marketDO.setCategories(StringUtils.join(market.getCategories(), ","));
-        marketDO.setScenes(StringUtils.join(market.getScenes(), ","));
-
-        // 保证 config 中的一些数据和 template 中的一致
-        TemplateConfigDTO config = market.getConfig();
-        config.setType(market.getType());
-        config.setLogotype(market.getLogotype());
-        config.setSourceType(market.getSourceType());
-        config.setTags(market.getTags());
-        config.setCategories(market.getCategories());
-        config.setScenes(market.getScenes());
-        marketDO.setConfig(JSON.toJSONString(config));
-
-        marketDO.setImages(StringUtils.join(market.getImages(), ","));
-        marketDO.setIcon(market.getIcon());
-        marketDO.setStepCount(market.getStepCount());
-        marketDO.setStepIcons(StringUtils.join(market.getStepIcons(), ","));
-        marketDO.setDescription(market.getDescription());
-        marketDO.setPromptInfo(market.getPromptInfo());
-        marketDO.setCost(market.getCost());
-        marketDO.setWord(market.getWord());
-        marketDO.setFree(market.getFree());
-        marketDO.setLikeCount(market.getLikeCount());
-        marketDO.setViewCount(market.getViewCount());
-        marketDO.setDownloadCount(market.getDownloadCount());
-        marketDO.setPluginLevel(market.getPluginLevel());
-        marketDO.setPluginVersion(market.getPluginVersion());
-        marketDO.setAudit(market.getAudit());
-        marketDO.setStatus(market.getStatus());
-        return marketDO;
-    }
-
-    /**
      * 将 DO 转换为 DTO
      *
      * @param marketDO 模版市场 DO
@@ -76,21 +35,22 @@ public class TemplateMarketConvert {
      */
     public static TemplateMarketDTO convert(TemplateMarketDO marketDO) {
         TemplateMarketDTO market = new TemplateMarketDTO();
-        market.setId(marketDO.getId());
-        market.setKey(marketDO.getKey());
+        // id 为 null，防止前端使用
+        market.setId(null);
+        market.setUid(marketDO.getUid());
         market.setName(marketDO.getName());
         market.setType(marketDO.getType());
         market.setLogotype(marketDO.getLogotype());
         market.setSourceType(marketDO.getSourceType());
-        market.setVersion(marketDO.getVersion());
-        market.setTags(Arrays.asList(StringUtils.split(marketDO.getTags(), ",")));
-        market.setCategories(Arrays.asList(StringUtils.split(marketDO.getCategories(), ",")));
-        market.setScenes(Arrays.asList(StringUtils.split(marketDO.getScenes(), ",")));
+        market.setVersion(Optional.ofNullable(marketDO.getVersion()).orElse(AppConstants.DEFAULT_VERSION));
+        market.setTags(TemplateUtil.buildField(marketDO.getTags()));
+        market.setCategories(TemplateUtil.buildField(marketDO.getCategories()));
+        market.setScenes(TemplateUtil.buildScenes(marketDO.getScenes()));
         market.setConfig(JSON.parseObject(marketDO.getConfig(), TemplateConfigDTO.class));
-        market.setImages(Arrays.asList(StringUtils.split(marketDO.getImages(), ",")));
+        market.setImages(TemplateUtil.buildField(marketDO.getImages()));
         market.setIcon(marketDO.getIcon());
         market.setStepCount(marketDO.getStepCount());
-        market.setStepIcons(Arrays.asList(StringUtils.split(marketDO.getStepIcons(), ",")));
+        market.setStepIcons(TemplateUtil.buildField(marketDO.getStepIcons()));
         market.setDescription(marketDO.getDescription());
         market.setPromptInfo(marketDO.getPromptInfo());
         market.setCost(marketDO.getCost());
@@ -113,14 +73,68 @@ public class TemplateMarketConvert {
     }
 
     public static TemplateMarketDO convertCreate(TemplateMarketRequest request) {
-        TemplateMarketDO marketDO = new TemplateMarketDO();
 
-        return marketDO;
+        // 基础校验和数据处理
+        Assert.notNull(request, () -> TemplateMarketException.exception(AppResultCode.TEMPLATE_MARKET_DATA_IS_NULL, "TemplateMarketRequest"));
+        String name = TemplateValidate.validateName(request.getName());
+        String type = TemplateValidate.validateType(request.getType());
+        String logotype = TemplateValidate.validateLogotype(request.getLogotype());
+        String sourceType = TemplateValidate.validateSourceType(request.getSourceType());
+        TemplateConfigDTO config = TemplateValidate.validateConfig(request.getConfig());
+        String tags = TemplateUtil.buildField(request.getTags());
+        String categories = TemplateUtil.buildField(request.getCategories());
+        String scenes = TemplateUtil.buildScenes(request.getScenes());
+
+        TemplateMarketDO market = new TemplateMarketDO();
+        market.setName(name);
+        market.setType(type);
+        market.setLogotype(logotype);
+        market.setSourceType(sourceType);
+        market.setVersion(Optional.ofNullable(request.getVersion()).orElse(AppConstants.DEFAULT_VERSION));
+        market.setTags(tags);
+        market.setCategories(categories);
+        market.setScenes(scenes);
+        market.setLanguage(request.getLanguage());
+        market.setImages(TemplateUtil.buildField(request.getImages()));
+        market.setIcon(request.getIcon());
+        market.setStepIcons(TemplateUtil.buildStepIcons(config));
+        market.setStepCount(Optional.ofNullable(config.getSteps()).map(List::size).orElse(0));
+        market.setDescription(request.getDescription());
+        market.setPromptInfo("");
+
+        market.setCost(request.getCost());
+        market.setWord(TemplateUtil.buildWord(config));
+        market.setFree(request.getFree());
+        market.setLikeCount(Optional.ofNullable(request.getLikeCount()).orElse(0));
+        market.setViewCount(Optional.ofNullable(request.getViewCount()).orElse(0));
+        market.setDownloadCount(Optional.ofNullable(request.getDownloadCount()).orElse(0));
+        market.setPluginLevel(request.getPluginLevel());
+        market.setPluginVersion(request.getPluginVersion());
+        market.setAudit(request.getAudit());
+        market.setStatus(request.getStatus());
+
+        // 保证 config 中的一些数据和 template 中的一致
+        config.setType(type);
+        config.setLogotype(logotype);
+        config.setSourceType(sourceType);
+        config.setTags(TemplateUtil.buildField(tags));
+        config.setCategories(TemplateUtil.buildField(categories));
+        config.setScenes(TemplateUtil.buildScenes(scenes));
+        market.setConfig(JSON.toJSONString(config));
+
+        return market;
     }
 
-    public static TemplateMarketDO convertModify(TemplateMarketRequest request) {
-        TemplateMarketDO marketDO = new TemplateMarketDO();
-
-        return marketDO;
+    /**
+     * 将修改请求转换为 DO
+     *
+     * @param request 修改请求
+     * @return 模版市场 DO
+     */
+    public static TemplateMarketDO convertModify(TemplateMarketUpdateRequest request) {
+        TemplateMarketDO market = new TemplateMarketDO();
+        Assert.notNull(request, () -> TemplateMarketException.exception(AppResultCode.TEMPLATE_MARKET_DATA_IS_NULL, "TemplateMarketUpdateRequest"));
+        market.setUid(request.getUid());
+        return convertCreate(request);
     }
 }

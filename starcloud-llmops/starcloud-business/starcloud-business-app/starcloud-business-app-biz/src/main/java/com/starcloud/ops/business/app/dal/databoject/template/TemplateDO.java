@@ -63,8 +63,8 @@ public class TemplateDO extends TenantBaseDO {
     /**
      * 模版市场 key，我的模版上传到模版市场时候，会生成一个模版市场 key，下载模版的时候，会将该 key 存到此处。
      */
-    @TableField("market_key")
-    private String marketKey;
+    @TableField("market_uid")
+    private String marketUid;
 
     /**
      * 模版版本，默认版本 1.0.0
