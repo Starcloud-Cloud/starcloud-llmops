@@ -1,6 +1,6 @@
-package com.starcloud.ops.llm.langchain.core.vectorstores;
+package com.starcloud.ops.llm.langchain.indexes.vectorstores;
 
-import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegment;
+import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryHit;
 
@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface BasicVectorStore {
 
-    void addSegment(List<DocumentSegment> segments);
+    void addSegment(List<DocumentSegmentDTO> segments);
 
     List<KnnQueryHit> knnSearch(List<Float> queryVector, KnnQueryDTO queryDTO);
 

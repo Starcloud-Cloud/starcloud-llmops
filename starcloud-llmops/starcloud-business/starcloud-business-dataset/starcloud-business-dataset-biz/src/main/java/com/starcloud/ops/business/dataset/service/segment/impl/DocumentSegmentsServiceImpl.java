@@ -6,31 +6,35 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import com.alibaba.fastjson.JSON;
 import com.github.xiaoymin.knife4j.core.util.Assert;
 import com.knuddels.jtokkit.api.ModelType;
+import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.SegmentsEmbeddingsDO;
+import com.starcloud.ops.business.dataset.dal.dataobject.segment.SplitRulesDO;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.DocumentSegmentMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.SegmentsEmbeddingsDOMapper;
+import com.starcloud.ops.business.dataset.dal.mysql.segment.SplitRulesMapper;
 import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
+import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
-import com.starcloud.ops.llm.langchain.core.embeddings.BasicEmbedding;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegment;
+import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
+import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.EmbeddingDetail;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitDetail;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
 import com.starcloud.ops.llm.langchain.core.parser.DocumentSegmentsParser;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
-import com.starcloud.ops.llm.langchain.core.vectorstores.BasicVectorStore;
+import com.starcloud.ops.llm.langchain.indexes.vectorstores.BasicVectorStore;
 import com.starcloud.ops.llm.langchain.core.utils.VectorSerializeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -57,12 +61,19 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Autowired
     private BasicVectorStore basicVectorStore;
 
+    @Autowired
+    private DatasetStorageService datasetStorageService;
+
+    @Autowired
+    private SplitRulesMapper splitRulesMapper;
+
     @Override
     public SplitForecastResponse splitForecast(FileSplitRequest fileSplitRequest) {
         Tika tika = new Tika();
+        tika.setMaxStringLength(-1);
         try {
-            String text = tika.parseToString(new URL(""));
-
+            DatasetStorageUpLoadRespVO upLoadRespVO = datasetStorageService.getDatasetStorageByUID(fileSplitRequest.getDocumentId());
+            String text = tika.parseToString(new URL(upLoadRespVO.getStorageKey()));
             List<SplitDetail> splitDocs = DocumentSegmentsParser.INSTANCE.splitText(text, fileSplitRequest.getSplitRule());
             long totalTokens = splitDocs.stream().map(SplitDetail::getTokens).count();
             BigDecimal totalPrice = TokenCalculator.getTextPrice(totalTokens, ModelType.TEXT_EMBEDDING_ADA_002);
@@ -74,11 +85,11 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
     public void splitAndIndex(SplitRule splitRule, String datasetId, String documentId, String url) {
         Assert.notBlank(datasetId, "datasetId is null");
         Assert.notBlank(documentId, "documentId is null");
         Tika tika = new Tika();
+        tika.setMaxStringLength(-1);
         try {
             long start = System.currentTimeMillis();
             String text = tika.parseToString(new URL(url));
@@ -87,7 +98,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             List<SplitDetail> splitDocs = DocumentSegmentsParser.INSTANCE.splitText(text, splitRule);
             long splitEnd = System.currentTimeMillis();
             log.info("clean and split finished , time consume {}", splitEnd - parseEnd);
-            List<DocumentSegment> segments = new ArrayList<>(splitDocs.size());
+            List<DocumentSegmentDTO> segments = new ArrayList<>(splitDocs.size());
             Long tenantId = TenantContextHolder.getTenantId();
             String creator = WebFrameworkUtils.getLoginUserId().toString();
 
@@ -95,14 +106,14 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                 String segmentId = IdUtil.getSnowflakeNextIdStr();
                 SplitDetail splitDoc = splitDocs.get(i);
                 String segmentHash = strToHex(splitDoc.getSegment());
-                DocumentSegment documentSegment = new DocumentSegment();
-                documentSegment.setTenantId(tenantId);
-                documentSegment.setCreator(creator);
-                documentSegment.setDataSetId(datasetId);
-                documentSegment.setDocumentId(documentId);
-                documentSegment.setSegmentId(segmentId);
-                documentSegment.setSegmentText(splitDoc.getSegment());
-                documentSegment.setStatus(true);
+                DocumentSegmentDTO documentSegmentDTO = new DocumentSegmentDTO();
+                documentSegmentDTO.setTenantId(tenantId);
+                documentSegmentDTO.setCreator(creator);
+                documentSegmentDTO.setDataSetId(datasetId);
+                documentSegmentDTO.setDocumentId(documentId);
+                documentSegmentDTO.setSegmentId(segmentId);
+                documentSegmentDTO.setSegmentText(splitDoc.getSegment());
+                documentSegmentDTO.setStatus(true);
 
                 DocumentSegmentDO documentSegmentDO = new DocumentSegmentDO();
                 documentSegmentDO.setId(segmentId);
@@ -115,19 +126,19 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                 documentSegmentDO.setContent(splitDoc.getSegment());
                 documentSegmentDO.setWordCount(splitDoc.getSegment().length());
                 documentSegmentDO.setSegmentHash(segmentHash);
-                documentSegmentDO.setStatus(DocumentSegmentEnum.COMPLETED.getCode());
+                documentSegmentDO.setStatus(DocumentSegmentEnum.INDEXING.getCode());
                 SegmentsEmbeddingsDO segmentsEmbeddingsDO = embeddingsDOMapper.selectOneByHash(segmentHash);
                 if (ObjectUtil.isNotNull(segmentsEmbeddingsDO)) {
                     segmentsEmbeddingsDO.setId(null);
                     documentSegmentDO.setTokens(segmentsEmbeddingsDO.getTokens());
-                    documentSegment.setVector(VectorSerializeUtils.deserialize(segmentsEmbeddingsDO.getVector()));
+                    documentSegmentDTO.setVector(VectorSerializeUtils.deserialize(segmentsEmbeddingsDO.getVector()));
                 } else {
                     EmbeddingDetail embeddingDetail = basicEmbedding.embedText(splitDoc.getSegment());
                     segmentsEmbeddingsDO = new SegmentsEmbeddingsDO();
                     segmentsEmbeddingsDO.setTokens(embeddingDetail.getTotalTokens());
                     segmentsEmbeddingsDO.setVector(VectorSerializeUtils.serialize(embeddingDetail.getEmbedding()));
                     documentSegmentDO.setTokens(embeddingDetail.getTotalTokens());
-                    documentSegment.setVector(embeddingDetail.getEmbedding());
+                    documentSegmentDTO.setVector(embeddingDetail.getEmbedding());
                 }
                 segmentsEmbeddingsDO.setTenantId(tenantId);
                 segmentsEmbeddingsDO.setCreator(creator);
@@ -136,16 +147,26 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                 segmentsEmbeddingsDO.setDeleted(false);
                 segmentMapper.insert(documentSegmentDO);
                 embeddingsDOMapper.insert(segmentsEmbeddingsDO);
-                segments.add(documentSegment);
+                segments.add(documentSegmentDTO);
             }
             basicVectorStore.addSegment(segments);
             long embeddingEnd = System.currentTimeMillis();
-            // todo 更新doc状态
-
+            // todo 更新doc状态 doc.ruleId
+            String ruleId = IdUtil.getSnowflakeNextIdStr();
+            SplitRulesDO splitRulesDO = new SplitRulesDO();
+            splitRulesDO.setMode(splitRule.getAutomatic());
+            splitRulesDO.setRules(JSON.toJSONString(splitRule));
+            splitRulesDO.setId(ruleId);
+            splitRulesDO.setDatasetId(datasetId);
+            splitRulesDO.setTenantId(tenantId);
+            splitRulesDO.setCreator(creator);
+            splitRulesMapper.insert(splitRulesDO);
+            segmentMapper.updateStatus(documentId,DocumentSegmentEnum.COMPLETED.getCode());
             log.info("embedding finished , time consume {}", embeddingEnd - splitEnd);
-        } catch (IOException | TikaException | ClassNotFoundException e) {
+        } catch (Exception e) {
+            // todo 更新doc状态 doc.ruleId
             log.info("split and index error:", e);
-            throw new ServiceException(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR.getCode(), e.getMessage());
+            segmentMapper.updateStatus(documentId,DocumentSegmentEnum.ERROR.getCode());
         }
     }
 

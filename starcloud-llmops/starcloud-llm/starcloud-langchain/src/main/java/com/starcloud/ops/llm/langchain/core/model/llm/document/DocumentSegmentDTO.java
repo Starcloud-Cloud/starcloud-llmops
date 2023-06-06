@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DocumentSegment {
+public class DocumentSegmentDTO {
 
     /**
      * 数据集 id

@@ -1,4 +1,4 @@
-package com.starcloud.ops.llm.langchain.core.embeddings;
+package com.starcloud.ops.llm.langchain.core.model.embeddings;
 
 import com.starcloud.ops.llm.langchain.core.model.llm.document.EmbeddingDetail;
 

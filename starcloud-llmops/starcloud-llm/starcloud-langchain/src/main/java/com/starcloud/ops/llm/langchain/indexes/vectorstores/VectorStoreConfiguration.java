@@ -1,10 +1,9 @@
-package com.starcloud.ops.llm.langchain.core.vectorstores;
+package com.starcloud.ops.llm.langchain.indexes.vectorstores;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import com.starcloud.ops.llm.langchain.core.vectorstores.DefaultVectorStore.SegmentEmbeddingMapper;
 import org.apache.http.HttpHost;
 import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.Configuration;
@@ -37,7 +36,7 @@ public class VectorStoreConfiguration {
 
     @Bean("defaultRepository")
     @ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "default", matchIfMissing = true)
-    public SegmentEmbeddingMapper initDefaultRepository(DataSource dataSource) {
+    public DefaultVectorStore.SegmentEmbeddingMapper initDefaultRepository(DataSource dataSource) {
         //事务
         TransactionFactory transactionFactory = new JdbcTransactionFactory();
         //创建环境
@@ -45,10 +44,10 @@ public class VectorStoreConfiguration {
         //创建配置
         Configuration configuration = new Configuration(environment);
         configuration.setMapUnderscoreToCamelCase(true);
-        configuration.addMapper(SegmentEmbeddingMapper.class);
+        configuration.addMapper(DefaultVectorStore.SegmentEmbeddingMapper.class);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
         SqlSession session = sqlSessionFactory.openSession();
-        SegmentEmbeddingMapper mapper = session.getMapper(SegmentEmbeddingMapper.class);
+        DefaultVectorStore.SegmentEmbeddingMapper mapper = session.getMapper(DefaultVectorStore.SegmentEmbeddingMapper.class);
         return mapper;
     }
 

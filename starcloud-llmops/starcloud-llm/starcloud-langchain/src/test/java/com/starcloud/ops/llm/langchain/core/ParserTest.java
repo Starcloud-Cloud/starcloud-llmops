@@ -1,7 +1,6 @@
 package com.starcloud.ops.llm.langchain.core;
 
 import com.starcloud.ops.llm.langchain.LangChainConfiguration;
-import com.starcloud.ops.llm.langchain.core.embeddings.BasicEmbedding;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitDetail;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
 import com.starcloud.ops.llm.langchain.core.parser.DocumentSegmentsParser;

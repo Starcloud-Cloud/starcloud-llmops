@@ -20,6 +20,13 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
         return this.selectList(queryWrapper);
     }
 
+    default int updateStatus(String documentId,String status) {
+        LambdaUpdateWrapper<DocumentSegmentDO> updateWrapper = Wrappers.lambdaUpdate(DocumentSegmentDO.class)
+                .eq(DocumentSegmentDO::getDocumentId, documentId)
+                .set(DocumentSegmentDO::getStatus,status);
+        return this.update(null,updateWrapper);
+    }
+
     default List<DocumentSegmentDO> segmentDetail(String datasetId,boolean disable, String docId, int lastPosition) {
         LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDeleted, false)
