@@ -9,7 +9,7 @@ import cn.kstry.framework.core.enums.TrackingTypeEnum;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.util.GlobalUtil;
-import com.starcloud.ops.business.app.api.dto.TemplateDTO;
+import com.starcloud.ops.business.app.api.template.dto.TemplateDTO;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
