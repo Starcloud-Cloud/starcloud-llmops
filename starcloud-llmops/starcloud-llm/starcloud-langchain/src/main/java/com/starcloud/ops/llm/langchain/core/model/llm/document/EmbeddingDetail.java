@@ -1,6 +1,5 @@
 package com.starcloud.ops.llm.langchain.core.model.llm.document;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 

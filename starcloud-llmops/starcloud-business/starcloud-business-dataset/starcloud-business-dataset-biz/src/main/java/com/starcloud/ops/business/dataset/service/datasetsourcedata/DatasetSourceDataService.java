@@ -21,7 +21,7 @@ public interface DatasetSourceDataService {
      * @param createReqVO 创建信息
      * @return 编号
      */
-    Long createDatasetSourceData(@Valid DatasetSourceDataCreateReqVO createReqVO);
+    void createDatasetSourceData(@Valid DatasetSourceDataCreateReqVO createReqVO);
 
     /**
      * 更新数据集源数据

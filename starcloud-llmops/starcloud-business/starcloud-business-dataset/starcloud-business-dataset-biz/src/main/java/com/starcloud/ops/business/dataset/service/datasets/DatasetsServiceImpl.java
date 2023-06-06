@@ -3,6 +3,7 @@ package com.starcloud.ops.business.dataset.service.datasets;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsCreateReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsExportReqVO;
@@ -10,6 +11,7 @@ import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsP
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsUpdateReqVO;
 import com.starcloud.ops.business.dataset.convert.datasets.DatasetsConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
+import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import org.springframework.stereotype.Service;
@@ -36,12 +38,12 @@ public class DatasetsServiceImpl implements DatasetsService {
 
     @Override
     public String createDatasets(DatasetsCreateReqVO createReqVO) {
+        // TODO 校验当前用户权限 是否可以创建数据集
+
         //数据非空校验
         if (ObjectUtil.isEmpty(createReqVO)) {
             throw exception(DATASETS_PARAM_NULL);
         }
-        // TODO 校验当前用户权限 是否可以创建数据集
-
         // 数据转换
         DatasetsDO datasets = DatasetsConvert.convert(createReqVO, DatasetUID.getDatasetUID());
         //数据插入
@@ -53,25 +55,21 @@ public class DatasetsServiceImpl implements DatasetsService {
     @Override
     public void updateDatasets(DatasetsUpdateReqVO updateReqVO) {
         // 校验存在
-        validateDatasetsExists(updateReqVO.getId());
+        validateDatasetsExists(updateReqVO.getUid());
         // 更新
         DatasetsDO updateObj = DatasetsConvert.convert(updateReqVO);
-        datasetsMapper.updateById(updateObj);
+        datasetsMapper.update(updateObj,Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid,updateReqVO.getUid()));
     }
 
     @Override
-    public void deleteDatasets(Long id) {
+    public void deleteDatasets(String uid) {
         // 校验存在
-        validateDatasetsExists(id);
+        validateDatasetsExists(uid);
         // 删除
-        datasetsMapper.deleteById(id);
+        datasetsMapper.delete(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid,uid));
     }
 
-    private void validateDatasetsExists(Long id) {
-        if (datasetsMapper.selectById(id) == null) {
-            throw exception(DATASETS_NOT_EXISTS);
-        }
-    }
+
 
     @Override
     public DatasetsDO getDatasets(String uid) {
@@ -86,18 +84,20 @@ public class DatasetsServiceImpl implements DatasetsService {
        return datasetsDO;
     }
 
-    @Override
-    public List<DatasetsDO> getDatasetsList(Collection<Long> ids) {
-        return datasetsMapper.selectBatchIds(ids);
-    }
 
     @Override
     public PageResult<DatasetsDO> getDatasetsPage(DatasetsPageReqVO pageReqVO) {
         return datasetsMapper.selectPage(pageReqVO);
     }
 
-    @Override
-    public List<DatasetsDO> getDatasetsList(DatasetsExportReqVO exportReqVO) {
-        return datasetsMapper.selectList(exportReqVO);
+    /**
+     * 数据存在校验
+     * @param uid
+     */
+    private void validateDatasetsExists(String uid) {
+
+        if (datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid,uid)) == null) {
+            throw exception(DATASETS_NOT_EXISTS);
+        }
     }
 }

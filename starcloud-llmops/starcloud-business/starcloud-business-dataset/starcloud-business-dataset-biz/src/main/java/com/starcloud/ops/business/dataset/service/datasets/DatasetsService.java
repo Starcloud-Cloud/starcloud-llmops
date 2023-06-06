@@ -34,9 +34,9 @@ public interface DatasetsService {
     /**
      * 删除数据集
      *
-     * @param id 编号
+     * @param uid 编号
      */
-    void deleteDatasets(Long id);
+    void deleteDatasets(String uid);
 
     /**
      * 获得数据集
@@ -46,13 +46,6 @@ public interface DatasetsService {
      */
     DatasetsDO getDatasets(String uid);
 
-    /**
-     * 获得数据集列表
-     *
-     * @param ids 编号
-     * @return 数据集列表
-     */
-    List<DatasetsDO> getDatasetsList(Collection<Long> ids);
 
     /**
      * 获得数据集分页
@@ -62,12 +55,6 @@ public interface DatasetsService {
      */
     PageResult<DatasetsDO> getDatasetsPage(DatasetsPageReqVO pageReqVO);
 
-    /**
-     * 获得数据集列表, 用于 Excel 导出
-     *
-     * @param exportReqVO 查询条件
-     * @return 数据集列表
-     */
-    List<DatasetsDO> getDatasetsList(DatasetsExportReqVO exportReqVO);
+
 
 }

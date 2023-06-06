@@ -129,10 +129,6 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      */
     private LocalDateTime disabledTime;
     /**
-     * 创建人
-     */
-    private String creater;
-    /**
      * 索引状态
      */
     private String indexingStatus;

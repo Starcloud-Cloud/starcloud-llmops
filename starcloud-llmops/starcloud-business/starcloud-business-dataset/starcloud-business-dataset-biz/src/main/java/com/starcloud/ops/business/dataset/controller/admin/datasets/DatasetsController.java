@@ -9,6 +9,7 @@ import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsU
 import com.starcloud.ops.business.dataset.convert.datasets.DatasetsConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
+import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -61,28 +62,20 @@ public class DatasetsController {
     @Operation(summary = "删除数据集")
     @Parameter(name = "id", description = "编号", required = true)
     //@PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:delete')")
-    public CommonResult<Boolean> deleteDatasets(@RequestParam("id") Long id) {
-        datasetsService.deleteDatasets(id);
+    public CommonResult<Boolean> deleteDatasets(@RequestParam("uid") @ApiParam(value = "数据集编号", required = true) String uid) {
+        datasetsService.deleteDatasets(uid);
         return success(true);
     }
 
     @GetMapping("/get")
     @Operation(summary = "获得数据集")
-    @Parameter(name = "id", description = "编号", required = true, example = "1024")
+    @Parameter(name = "id", description = "编号", required = true)
     //@PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:query')")
-    public CommonResult<DatasetsRespVO> getDatasets(@RequestParam("id") String id) {
-        DatasetsDO datasets = datasetsService.getDatasets(id);
+    public CommonResult<DatasetsRespVO> getDatasets(@RequestParam("uid")  @ApiParam(value = "数据集编号", required = true) String uid) {
+        DatasetsDO datasets = datasetsService.getDatasets(uid);
         return success(DatasetsConvert.convert(datasets));
     }
 
-    @GetMapping("/list")
-    @Operation(summary = "获得数据集列表")
-    @Parameter(name = "ids", description = "编号列表", required = true, example = "1024,2048")
-    //@PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:query')")
-    public CommonResult<List<DatasetsRespVO>> getDatasetsList(@RequestParam("ids") Collection<Long> ids) {
-        List<DatasetsDO> list = datasetsService.getDatasetsList(ids);
-        return success(DatasetsConvert.convertList(list));
-    }
 
     @GetMapping("/page")
     @Operation(summary = "获得数据集分页")
@@ -91,7 +84,4 @@ public class DatasetsController {
         PageResult<DatasetsDO> pageResult = datasetsService.getDatasetsPage(pageVO);
         return success(DatasetsConvert.convertPage(pageResult));
     }
-
-
-
 }
