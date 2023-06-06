@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.dal.redis.RedisKeyConstants;
 import com.starcloud.ops.business.app.enums.template.TemplateTypeEnum;
 import com.starcloud.ops.business.app.service.template.impl.TemplateServiceImpl;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -30,7 +31,7 @@ public class RecommendedTemplatesRedisDAO {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    @Resource
+    @Autowired(required = false)
     private TemplateMapper templateMapper;
 
     /**

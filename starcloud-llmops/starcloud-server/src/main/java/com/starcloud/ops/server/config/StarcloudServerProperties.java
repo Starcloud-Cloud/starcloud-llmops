@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.core.config;
+package com.starcloud.ops.server.config;
 
 
 import lombok.Data;

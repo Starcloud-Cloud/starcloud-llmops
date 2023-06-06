@@ -1,10 +1,14 @@
 package com.starcloud.ops.workflow.component.app.process;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.kstry.framework.core.component.bpmn.link.ProcessLink;
 import cn.kstry.framework.core.component.bpmn.link.StartProcessLink;
 import cn.kstry.framework.core.resource.config.ConfigResource;
+import cn.kstry.framework.core.util.KeyUtil;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-
+import com.starcloud.ops.business.app.domain.entity.AppStepWrapper;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -23,62 +27,26 @@ public class AppProcessParser implements ConfigResource {
 
     public Optional<ProcessLink> getProcessLink() {
 
-        String stepId = this.app.getUid();
-
-        StartProcessLink bpmnLink = StartProcessLink.build(this.app.getUniqueName(), this.app.getName());
-
-        // 初始化基本信息
-
-        //instance parser to processLink
+        StartProcessLink bpmnLink = StartProcessLink.build(this.app.getUid(), this.app.getName());
 
 
-        bpmnLink.nextService("").name("123").build();
+        List<ProcessLink> processLinks = new ArrayList<>();
+
+        // ProcessLink processLink = null;
+
+        List<AppStepWrapper> appStepWrappers = CollectionUtil.defaultIfEmpty(this.app.getConfig().getSteps(), new ArrayList<>());
+        for (AppStepWrapper appStepWrapper : appStepWrappers) {
+            ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '"+appStepWrapper.getField() +"'"), appStepWrapper.getStep().getType()).name(appStepWrapper.getName()).build();
+
+           processLink.end();
+        }
+
+        // parallelJoinPoint.end();
 
         bpmnLink.end();
 
-
         return Optional.of(bpmnLink);
     }
-//
-//    private String getAppStepId(TemplateDTO templateDTO) {
-//
-//        Optional<StepWrapperDTO> stepWrapperDTO = this.appInstance.getConfig().getFirstStep();
-//
-//        return templateDTO.getId() + stepWrapperDTO.get().getStep().getName();
-//    }
-//
-//
-//    public Optional<ProcessLink> getProcessLink(String startStepId) {
-//        if (StringUtils.isBlank(startStepId)) {
-//            return Optional.empty();
-//        }
-//
-//        StartProcessLink bpmnLink = StartProcessLink.build("12", "展示商品详情");
-//
-//        //instance parser to processLink
-//
-//        appInstance.getVersion();
-//        appInstance.getConfig().getSteps().forEach((stepWrapperDTO) -> {
-//
-//            stepWrapperDTO.getStep();
-//
-//        });
-//
-//
-//        return Optional.of(bpmnLink);
-//    }
-//
-//    public Map<String, SubProcessLink> getAllSubProcessLink() {
-//        return null;
-//    }
-//
-//    public Optional<SubProcessLink> getSubProcessLink(String subProcessId) {
-//        if (StringUtils.isBlank(subProcessId)) {
-//            return Optional.empty();
-//        }
-//        return Optional.ofNullable(getAllSubProcessLink().get(subProcessId));
-//    }
-
 
     @Override
     public String getConfigName() {

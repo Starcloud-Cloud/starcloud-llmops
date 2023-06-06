@@ -3,7 +3,9 @@ package com.starcloud.ops.business.app.domain.entity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * App 配置实体类
@@ -65,5 +67,13 @@ public class AppConfigEntity {
      * 模版变量
      */
     private List<AppVariableEntity> variables;
+
+
+    /**
+     * 模版步骤
+     */
+    public AppStepWrapper getFirstStep() {
+        return Optional.ofNullable(steps).orElse(new ArrayList<>()).stream().findFirst().orElse(null);
+    }
 
 }

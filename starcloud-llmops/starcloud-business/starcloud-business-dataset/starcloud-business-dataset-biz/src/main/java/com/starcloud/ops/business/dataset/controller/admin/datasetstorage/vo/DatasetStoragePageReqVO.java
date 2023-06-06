@@ -27,7 +27,7 @@ public class DatasetStoragePageReqVO extends PageParam {
     private String type;
 
     @Schema(description = "键")
-    private String key;
+    private String storageKey;
 
     @Schema(description = "存储类型", example = "2")
     private String storageType;

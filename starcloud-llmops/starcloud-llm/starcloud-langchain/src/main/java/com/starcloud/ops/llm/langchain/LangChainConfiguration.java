@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
  * 分发域启动类
  */
 @Configuration
-@ComponentScan(basePackages = {"com.seastar.langchain"})
+@ComponentScan(basePackages = {"com.starcloud.ops.llm.langchain"})
 public class LangChainConfiguration {
 
 

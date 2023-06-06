@@ -25,7 +25,6 @@
         <module>starcloud-llm</module>
         <module>starcloud-framework</module>
         <module>starcloud-server</module>
-        <module>starcloud-core</module>
         <module>starcloud-adapter-ruoyi-pro</module>
         <module>starcloud-workflow</module>
     </modules>
@@ -68,13 +67,6 @@
                 <groupId>com.starcloud.ops</groupId>
                 <artifactId>starcloud-server</artifactId>
                 <version>${starcloud.revision}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.starcloud.ops</groupId>
-                <artifactId>starcloud-core</artifactId>
-                <version>${starcloud.revision}</version>
-
             </dependency>
 
             <dependency>

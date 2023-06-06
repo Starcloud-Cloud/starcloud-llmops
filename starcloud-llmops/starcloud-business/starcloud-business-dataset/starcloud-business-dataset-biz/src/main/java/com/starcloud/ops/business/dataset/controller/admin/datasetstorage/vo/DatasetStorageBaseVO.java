@@ -30,7 +30,7 @@ public class DatasetStorageBaseVO {
 
     @Schema(description = "键", required = true)
     @NotNull(message = "键不能为空")
-    private String key;
+    private String storageKey;
 
     @Schema(description = "存储类型", required = true, example = "2")
     @NotNull(message = "存储类型不能为空")
@@ -38,7 +38,7 @@ public class DatasetStorageBaseVO {
 
     @Schema(description = "大小", required = true)
     @NotNull(message = "大小不能为空")
-    private Integer size;
+    private Long size;
 
     @Schema(description = "MIME类型", example = "2")
     private String mimeType;

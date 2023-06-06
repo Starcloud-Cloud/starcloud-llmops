@@ -1,9 +1,9 @@
 package com.starcloud.ops.business.app.domain.factory;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.Assert;
 import com.starcloud.ops.business.app.api.template.dto.*;
 import com.starcloud.ops.business.app.domain.entity.*;
-
 import java.util.stream.Collectors;
 
 /**
@@ -22,14 +22,19 @@ public class AppFactory {
     }
 
 
-    public static AppEntity factoryBase(String appId) {
+    public static AppEntity factory(String appId, TemplateDTO template) {
 
-        return new AppEntity();
+        AppEntity app = transform(template);
+        Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
+
+        return app;
     }
 
-    public static AppEntity factory(TemplateDTO template) {
+
+    public static AppEntity factory(String appId, TemplateDTO template, String requestId) {
         return transform(template);
     }
+
 
     /**
      * 转换模版DTO为AppEntity

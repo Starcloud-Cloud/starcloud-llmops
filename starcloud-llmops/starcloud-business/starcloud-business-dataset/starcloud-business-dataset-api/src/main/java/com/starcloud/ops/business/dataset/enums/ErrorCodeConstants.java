@@ -19,5 +19,9 @@ public interface ErrorCodeConstants {
     ErrorCode DATASETS_NOT_EXISTS = new ErrorCode(1002001001, "数据集不存在");
     ErrorCode DATASETS_ERROR_REPEAT = new ErrorCode(1003001009, "数据集编号为{},数据异常");
 
+    ErrorCode DATASET_SOURCE_DATA_NOT_EXISTS = new ErrorCode(1003001009, "数据集源数据不存在");
+    ErrorCode DATASET_STORAGE_NOT_EXISTS = new ErrorCode(99999999, "数据集源数据存储不存在");
+
+
 
 }

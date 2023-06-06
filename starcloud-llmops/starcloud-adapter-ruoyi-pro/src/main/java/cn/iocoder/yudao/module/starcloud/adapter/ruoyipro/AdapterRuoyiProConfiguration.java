@@ -7,11 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Mapper;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springdoc.core.GroupedOpenApi;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Slf4j
@@ -19,9 +18,9 @@ import org.springframework.context.annotation.Configuration;
 @MapperScan(value = "com.starcloud.ops", annotationClass = Mapper.class, lazyInitialization = "false")
 public class AdapterRuoyiProConfiguration implements ApplicationListener<ApplicationStartedEvent> {
 
-
-    @Autowired
-    private TenantProperties tenantProperties;
+//
+//    @Autowired
+//    private TenantProperties tenantProperties;
 
     /**
      * swagger url: v3/api-docs/starcloud-llm
@@ -31,10 +30,15 @@ public class AdapterRuoyiProConfiguration implements ApplicationListener<Applica
         return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("starcloud-llm", "/llm");
     }
 
+
     @Override
     public void onApplicationEvent(ApplicationStartedEvent event) {
 
-        tenantProperties.getIgnoreUrls().add("/app-api/llm/**");
+        ObjectProvider<TenantProperties> properties = event.getApplicationContext().getBeanProvider(TenantProperties.class);
+
+        if (properties.stream().findFirst().isPresent()) {
+            properties.stream().findFirst().get().getIgnoreUrls().add("/app-api/llm/**");
+        }
 
     }
 

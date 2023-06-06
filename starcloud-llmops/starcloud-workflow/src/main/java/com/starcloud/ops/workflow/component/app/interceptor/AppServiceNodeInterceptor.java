@@ -1,4 +1,4 @@
-package com.starcloud.ops.workflow.kstry.TaskInterceptor;
+package com.starcloud.ops.workflow.component.app.interceptor;
 
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import cn.kstry.framework.core.engine.interceptor.Iter;
@@ -6,13 +6,12 @@ import cn.kstry.framework.core.engine.interceptor.IterData;
 import cn.kstry.framework.core.engine.interceptor.TaskInterceptor;
 import cn.kstry.framework.core.resource.service.ServiceNodeResource;
 import cn.kstry.framework.core.role.Role;
+import com.starcloud.ops.business.app.domain.context.AppContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
-public class ServiceNodeInterceptor implements TaskInterceptor {
+public class AppServiceNodeInterceptor implements TaskInterceptor {
 
     /**
      * 接口有默认行为，可以不实现该方法
@@ -28,7 +27,8 @@ public class ServiceNodeInterceptor implements TaskInterceptor {
     @Override
     public boolean match(IterData iterData) {
         ScopeDataOperator dataOperator = iterData.getDataOperator();
-        return true;
+
+        return dataOperator.getReqScope() instanceof AppContext;
     }
 
     @Override
@@ -42,3 +42,4 @@ public class ServiceNodeInterceptor implements TaskInterceptor {
         return data;
     }
 }
+

@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.app.domain.handler;
 
+import cn.kstry.framework.core.annotation.NoticeSta;
+import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.starcloud.ops.business.app.domain.context.AppContext;
+import com.starcloud.ops.business.app.domain.entity.AppStepResponse;
 
 /**
  * @author nacoyer
@@ -14,5 +17,5 @@ public abstract class BaseStepHandler {
      *
      * @param context 上下文
      */
-    public abstract void execute(AppContext context);
+    public abstract AppStepResponse execute(AppContext context, ScopeDataOperator scopeDataOperator);
 }

@@ -2,8 +2,8 @@ package com.starcloud.ops.server;
 
 
 import com.starcloud.ops.business.core.config.BusinessAppProperties;
+import com.starcloud.ops.server.config.StarcloudServerProperties;
 import com.starcloud.ops.business.core.config.BusinessDatasetProperties;
-import com.starcloud.ops.business.core.config.StarcloudServerProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
