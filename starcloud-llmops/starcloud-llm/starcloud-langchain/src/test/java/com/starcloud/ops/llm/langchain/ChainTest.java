@@ -13,14 +13,15 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 import java.util.List;
 
-@RunWith(SpringRunner.class)
+
 @Slf4j
-public class ChainTest extends SpringBootApplicationTests {
+public class ChainTest extends SpringBootTests {
 
     @Test
     public void ConversationChainTest() {
