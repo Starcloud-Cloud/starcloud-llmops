@@ -35,7 +35,7 @@ public class VectorStoreConfiguration {
     }
 
     @Bean("defaultRepository")
-    @ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "default", matchIfMissing = true)
+    @ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "default")
     public DefaultVectorStore.SegmentEmbeddingMapper initDefaultRepository(DataSource dataSource) {
         //事务
         TransactionFactory transactionFactory = new JdbcTransactionFactory();
