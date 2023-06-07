@@ -43,15 +43,15 @@ public class SegmentController {
         return CommonResult.success(documentSegmentDOS);
     }
 
-    @GetMapping("/split/enable/{datasetId}/{documentId}")
+    @GetMapping("/split/enable/{documentId}/{segmentId}")
     @Operation(summary = "文档分段禁用/启用", description = "文档分段禁用/启用")
     public CommonResult<Boolean> updateEnable(
-            @PathVariable("datasetId") String datasetId,
             @PathVariable("documentId") String documentId,
+            @PathVariable("segmentId") String segmentId,
             @RequestParam(value = "disable") boolean enable
 
     ) {
-        boolean success = documentSegmentsService.updateEnable(datasetId, documentId, enable);
+        boolean success = documentSegmentsService.updateEnable(documentId, segmentId, enable);
         return success ? CommonResult.success(true): CommonResult.error(GlobalErrorCodeConstants.LOCKED);
     }
 

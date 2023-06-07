@@ -32,7 +32,7 @@ public interface DocumentSegmentsService {
     /**
      * 启用/禁用分段
      */
-    public boolean updateEnable(String datasetId, String segmentId, boolean enable);
+    public boolean updateEnable(String documentId, String segmentId, boolean enable);
 
     /**
      * 删除文档所有分段

@@ -40,7 +40,7 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
 
     default int updateEnable(String datasetId, String segmentId, boolean enable){
         LambdaUpdateWrapper<DocumentSegmentDO> updateWrapper = Wrappers.lambdaUpdate(DocumentSegmentDO.class)
-                .eq(DocumentSegmentDO::getDatasetId, datasetId)
+                .eq(DocumentSegmentDO::getDocumentId, datasetId)
                 .eq(DocumentSegmentDO::getId,segmentId)
                 .set(DocumentSegmentDO::getDisabled,!enable);
         return this.update(null,updateWrapper);

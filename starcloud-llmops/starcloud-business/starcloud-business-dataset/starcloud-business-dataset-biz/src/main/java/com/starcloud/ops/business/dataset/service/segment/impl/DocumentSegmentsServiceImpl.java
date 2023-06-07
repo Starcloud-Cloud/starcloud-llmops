@@ -7,12 +7,17 @@ import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstant
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.xiaoymin.knife4j.core.util.Assert;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
+import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.SegmentsEmbeddingsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.SplitRulesDO;
+import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.DocumentSegmentMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.SegmentsEmbeddingsDOMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.SplitRulesMapper;
@@ -42,6 +47,9 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,8 +75,12 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Autowired
     private SplitRulesMapper splitRulesMapper;
 
+    @Autowired
+    private DatasetSourceDataMapper sourceDataMapper;
+
     @Override
     public SplitForecastResponse splitForecast(FileSplitRequest fileSplitRequest) {
+        validateTenantId(fileSplitRequest.getDocumentId());
         Tika tika = new Tika();
         tika.setMaxStringLength(-1);
         try {
@@ -79,7 +91,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             BigDecimal totalPrice = TokenCalculator.getTextPrice(totalTokens, ModelType.TEXT_EMBEDDING_ADA_002);
             return SplitForecastResponse.builder().splitList(splitDocs).totalPrice(totalPrice).build();
         } catch (IOException | TikaException e) {
-            log.info("split forecast error:", e);
+            log.error("split forecast error:", e);
             throw new ServiceException(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR.getCode(), e.getMessage());
         }
     }
@@ -88,10 +100,15 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     public void splitAndIndex(SplitRule splitRule, String datasetId, String documentId, String url) {
         Assert.notBlank(datasetId, "datasetId is null");
         Assert.notBlank(documentId, "documentId is null");
+        log.info("start split and index,datasetId={},documentId={},url={},splitRule={}", datasetId, documentId, url, splitRule);
+        long start = System.currentTimeMillis();
+        validateTenantId(documentId);
         Tika tika = new Tika();
         tika.setMaxStringLength(-1);
+        LambdaUpdateWrapper<DatasetSourceDataDO> updateWrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class)
+                .eq(DatasetSourceDataDO::getUid, documentId)
+                .eq(DatasetSourceDataDO::getDatasetId, datasetId);
         try {
-            long start = System.currentTimeMillis();
             String text = tika.parseToString(new URL(url));
             long parseEnd = System.currentTimeMillis();
             log.info("parse finished , time consume {}", parseEnd - start);
@@ -151,7 +168,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             }
             basicVectorStore.addSegment(segments);
             long embeddingEnd = System.currentTimeMillis();
-            // todo 更新doc状态 doc.ruleId
+            log.info("embedding finished , time consume {}", embeddingEnd - splitEnd);
             String ruleId = IdUtil.getSnowflakeNextIdStr();
             SplitRulesDO splitRulesDO = new SplitRulesDO();
             splitRulesDO.setMode(splitRule.getAutomatic());
@@ -161,27 +178,44 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             splitRulesDO.setTenantId(tenantId);
             splitRulesDO.setCreator(creator);
             splitRulesMapper.insert(splitRulesDO);
-            segmentMapper.updateStatus(documentId,DocumentSegmentEnum.COMPLETED.getCode());
-            log.info("embedding finished , time consume {}", embeddingEnd - splitEnd);
+            segmentMapper.updateStatus(documentId, DocumentSegmentEnum.COMPLETED.getCode());
+            updateWrapper.set(DatasetSourceDataDO::getProcessingStartedTime, ofMill(start))
+                    .set(DatasetSourceDataDO::getCleaningCompletedTime, ofMill(splitEnd))
+                    .set(DatasetSourceDataDO::getSplittingCompletedTime, ofMill(splitEnd))
+                    .set(DatasetSourceDataDO::getIndexingTime, embeddingEnd - splitEnd)
+                    .set(DatasetSourceDataDO::getDatasetProcessRuleId, ruleId)
+                    .set(DatasetSourceDataDO::getEnabled, true);
         } catch (Exception e) {
-            // todo 更新doc状态 doc.ruleId
-            log.info("split and index error:", e);
-            segmentMapper.updateStatus(documentId,DocumentSegmentEnum.ERROR.getCode());
+            updateWrapper.set(DatasetSourceDataDO::getEnabled, false)
+                    .set(DatasetSourceDataDO::getErrorMessage, e.getMessage());
+            log.error("split and index error:", e);
+            segmentMapper.updateStatus(documentId, DocumentSegmentEnum.ERROR.getCode());
         }
+        long end = System.currentTimeMillis();
+        updateWrapper.set(DatasetSourceDataDO::getCompletedAt, ofMill(end));
+        sourceDataMapper.update(null, updateWrapper);
+        log.info("spilt and index finished , time consume {}", end - start);
+    }
+
+    private LocalDateTime ofMill(long mill) {
+        Instant instant = Instant.ofEpochMilli(mill);
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 
     @Override
     public List<DocumentSegmentDO> segmentDetail(String datasetId, boolean disable, String docId, int lastPosition) {
         Assert.notBlank(datasetId, "datasetId is null");
         Assert.notBlank(docId, "documentId is null");
+        validateTenantId(docId);
         return segmentMapper.segmentDetail(datasetId, disable, docId, lastPosition);
     }
 
     @Override
-    public boolean updateEnable(String datasetId, String segmentId, boolean enable) {
-        Assert.notBlank(datasetId, "datasetId is null");
+    public boolean updateEnable(String documentId, String segmentId, boolean enable) {
+        Assert.notBlank(documentId, "datasetId is null");
         Assert.notBlank(segmentId, "segmentId is null");
-        int i = segmentMapper.updateEnable(datasetId, segmentId, enable);
+        validateTenantId(documentId);
+        int i = segmentMapper.updateEnable(documentId, segmentId, enable);
         return i > 0;
     }
 
@@ -189,8 +223,16 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     public boolean deleteSegment(String datasetId, String documentId) {
         Assert.notBlank(datasetId, "datasetId is null");
         Assert.notBlank(documentId, "documentId is null");
+        validateTenantId(documentId);
         int i = segmentMapper.deleteSegment(datasetId, documentId);
         return i > 0;
+    }
+
+    private void validateTenantId(String documentId) {
+        LambdaQueryWrapper<DatasetSourceDataDO> queryWrapper = Wrappers.lambdaQuery(DatasetSourceDataDO.class)
+                .eq(DatasetSourceDataDO::getUid, documentId)
+                .eq(DatasetSourceDataDO::getTenantId, TenantContextHolder.getTenantId());
+        Assert.isTrue(sourceDataMapper.exists(queryWrapper), "current tenant permission denied");
     }
 
     private String strToHex(String text) {
