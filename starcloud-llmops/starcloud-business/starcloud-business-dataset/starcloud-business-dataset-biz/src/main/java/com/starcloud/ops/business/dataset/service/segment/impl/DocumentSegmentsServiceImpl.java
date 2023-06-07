@@ -26,14 +26,15 @@ import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
+import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
+import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.EmbeddingDetail;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitDetail;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
-import com.starcloud.ops.llm.langchain.core.indexes.parser.DocumentSegmentsParser;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStore;
+import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.starcloud.ops.llm.langchain.core.utils.VectorSerializeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
@@ -86,10 +87,12 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         try {
             DatasetStorageUpLoadRespVO upLoadRespVO = datasetStorageService.getDatasetStorageByUID(fileSplitRequest.getDocumentId());
             String text = tika.parseToString(new URL(upLoadRespVO.getStorageKey()));
-            List<SplitDetail> splitDocs = DocumentSegmentsParser.INSTANCE.splitText(text, fileSplitRequest.getSplitRule());
-            long totalTokens = splitDocs.stream().map(SplitDetail::getTokens).count();
+            SplitRule splitRule = fileSplitRequest.getSplitRule();
+            String cleanText = TextCleanUtils.cleanText(text, splitRule);
+            List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(cleanText, splitRule.getChunkSize(), splitRule.getSeparator());
+            Long totalTokens = splitText.stream().mapToLong(split -> TokenUtils.tokens(ModelType.TEXT_DAVINCI_002, split)).sum();
             BigDecimal totalPrice = TokenCalculator.getTextPrice(totalTokens, ModelType.TEXT_EMBEDDING_ADA_002);
-            return SplitForecastResponse.builder().splitList(splitDocs).totalPrice(totalPrice).build();
+            return SplitForecastResponse.builder().totalTokens(totalTokens).splitList(splitText).totalSegment(splitText.size()).totalPrice(totalPrice).build();
         } catch (IOException | TikaException e) {
             log.error("split forecast error:", e);
             throw new ServiceException(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR.getCode(), e.getMessage());
@@ -111,25 +114,28 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         try {
             String text = tika.parseToString(new URL(url));
             long parseEnd = System.currentTimeMillis();
-            log.info("parse finished , time consume {}", parseEnd - start);
-            List<SplitDetail> splitDocs = DocumentSegmentsParser.INSTANCE.splitText(text, splitRule);
+            log.info("parse text finished , time consume {}", parseEnd - start);
+            String cleanText = TextCleanUtils.cleanText(text, splitRule);
+            long cleanEnd = System.currentTimeMillis();
+            log.info("clean text finished , time consume {}", cleanEnd - parseEnd);
+            List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(cleanText, splitRule.getChunkSize(), splitRule.getSeparator());
             long splitEnd = System.currentTimeMillis();
-            log.info("clean and split finished , time consume {}", splitEnd - parseEnd);
-            List<DocumentSegmentDTO> segments = new ArrayList<>(splitDocs.size());
+            log.info("split text finished , time consume {}", splitEnd - cleanEnd);
+            List<DocumentSegmentDTO> segments = new ArrayList<>(splitText.size());
             Long tenantId = TenantContextHolder.getTenantId();
             String creator = WebFrameworkUtils.getLoginUserId().toString();
 
-            for (int i = 0; i < splitDocs.size(); i++) {
+            for (int i = 0; i < splitText.size(); i++) {
                 String segmentId = IdUtil.getSnowflakeNextIdStr();
-                SplitDetail splitDoc = splitDocs.get(i);
-                String segmentHash = strToHex(splitDoc.getSegment());
+                String split = splitText.get(i);
+                String segmentHash = strToHex(split);
                 DocumentSegmentDTO documentSegmentDTO = new DocumentSegmentDTO();
                 documentSegmentDTO.setTenantId(tenantId);
                 documentSegmentDTO.setCreator(creator);
                 documentSegmentDTO.setDataSetId(datasetId);
                 documentSegmentDTO.setDocumentId(documentId);
                 documentSegmentDTO.setSegmentId(segmentId);
-                documentSegmentDTO.setSegmentText(splitDoc.getSegment());
+                documentSegmentDTO.setSegmentText(split);
                 documentSegmentDTO.setStatus(true);
 
                 DocumentSegmentDO documentSegmentDO = new DocumentSegmentDO();
@@ -140,8 +146,8 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                 documentSegmentDO.setDatasetId(datasetId);
                 documentSegmentDO.setDocumentId(documentId);
                 documentSegmentDO.setPosition(i);
-                documentSegmentDO.setContent(splitDoc.getSegment());
-                documentSegmentDO.setWordCount(splitDoc.getSegment().length());
+                documentSegmentDO.setContent(split);
+                documentSegmentDO.setWordCount(split.length());
                 documentSegmentDO.setSegmentHash(segmentHash);
                 documentSegmentDO.setStatus(DocumentSegmentEnum.INDEXING.getCode());
                 SegmentsEmbeddingsDO segmentsEmbeddingsDO = embeddingsDOMapper.selectOneByHash(segmentHash);
@@ -150,7 +156,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                     documentSegmentDO.setTokens(segmentsEmbeddingsDO.getTokens());
                     documentSegmentDTO.setVector(VectorSerializeUtils.deserialize(segmentsEmbeddingsDO.getVector()));
                 } else {
-                    EmbeddingDetail embeddingDetail = basicEmbedding.embedText(splitDoc.getSegment());
+                    EmbeddingDetail embeddingDetail = basicEmbedding.embedText(split);
                     segmentsEmbeddingsDO = new SegmentsEmbeddingsDO();
                     segmentsEmbeddingsDO.setTokens(embeddingDetail.getTotalTokens());
                     segmentsEmbeddingsDO.setVector(VectorSerializeUtils.serialize(embeddingDetail.getEmbedding()));
@@ -180,7 +186,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             splitRulesMapper.insert(splitRulesDO);
             segmentMapper.updateStatus(documentId, DocumentSegmentEnum.COMPLETED.getCode());
             updateWrapper.set(DatasetSourceDataDO::getProcessingStartedTime, ofMill(start))
-                    .set(DatasetSourceDataDO::getCleaningCompletedTime, ofMill(splitEnd))
+                    .set(DatasetSourceDataDO::getCleaningCompletedTime, ofMill(cleanEnd))
                     .set(DatasetSourceDataDO::getSplittingCompletedTime, ofMill(splitEnd))
                     .set(DatasetSourceDataDO::getIndexingTime, embeddingEnd - splitEnd)
                     .set(DatasetSourceDataDO::getDatasetProcessRuleId, ruleId)

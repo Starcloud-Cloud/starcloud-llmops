@@ -7,9 +7,8 @@ import java.util.List;
 public interface BasicEmbedding {
 
 
-    List<List<Float>> embedDocuments(List<String> documents);
+    List<List<Float>> embedTexts(List<String> texts);
 
     EmbeddingDetail embedText(String text);
-
 
 }
