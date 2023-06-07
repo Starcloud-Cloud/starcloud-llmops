@@ -26,9 +26,9 @@ import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDT
 import com.starcloud.ops.llm.langchain.core.model.llm.document.EmbeddingDetail;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitDetail;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
-import com.starcloud.ops.llm.langchain.core.parser.DocumentSegmentsParser;
+import com.starcloud.ops.llm.langchain.core.indexes.parser.DocumentSegmentsParser;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
-import com.starcloud.ops.llm.langchain.indexes.vectorstores.BasicVectorStore;
+import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStore;
 import com.starcloud.ops.llm.langchain.core.utils.VectorSerializeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;

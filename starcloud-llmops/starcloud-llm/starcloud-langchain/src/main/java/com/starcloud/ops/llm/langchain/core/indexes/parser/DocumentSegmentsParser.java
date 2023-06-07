@@ -1,4 +1,4 @@
-package com.starcloud.ops.llm.langchain.core.parser;
+package com.starcloud.ops.llm.langchain.core.indexes.parser;
 
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitDetail;

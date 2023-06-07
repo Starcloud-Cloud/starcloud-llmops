@@ -1,4 +1,4 @@
-package com.starcloud.ops.llm.langchain.indexes.vectorstores;
+package com.starcloud.ops.llm.langchain.core.indexes.vectorstores;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;

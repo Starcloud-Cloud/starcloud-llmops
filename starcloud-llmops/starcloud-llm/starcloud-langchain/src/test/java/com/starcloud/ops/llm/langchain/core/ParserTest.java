@@ -3,7 +3,7 @@ package com.starcloud.ops.llm.langchain.core;
 import com.starcloud.ops.llm.langchain.LangChainConfiguration;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitDetail;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
-import com.starcloud.ops.llm.langchain.core.parser.DocumentSegmentsParser;
+import com.starcloud.ops.llm.langchain.core.indexes.parser.DocumentSegmentsParser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
