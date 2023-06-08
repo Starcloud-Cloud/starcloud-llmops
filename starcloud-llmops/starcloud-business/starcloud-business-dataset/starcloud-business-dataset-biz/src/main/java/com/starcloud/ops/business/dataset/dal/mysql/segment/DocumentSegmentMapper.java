@@ -2,12 +2,14 @@ package com.starcloud.ops.business.dataset.dal.mysql.segment;
 
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper
 public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
@@ -16,6 +18,14 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
         LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDeleted, false)
                 .eq(DocumentSegmentDO::getDatasetId, datasetId)
+                .orderByAsc(DocumentSegmentDO::getCreateTime);
+        return this.selectList(queryWrapper);
+    }
+
+    default List<DocumentSegmentDO> selectByDocId(String DocumentId) {
+        LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
+                .eq(DocumentSegmentDO::getDeleted, false)
+                .eq(DocumentSegmentDO::getDocumentId,DocumentId)
                 .orderByAsc(DocumentSegmentDO::getCreateTime);
         return this.selectList(queryWrapper);
     }
@@ -40,7 +50,7 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
 
     default int updateEnable(String datasetId, String segmentId, boolean enable){
         LambdaUpdateWrapper<DocumentSegmentDO> updateWrapper = Wrappers.lambdaUpdate(DocumentSegmentDO.class)
-                .eq(DocumentSegmentDO::getDatasetId, datasetId)
+                .eq(DocumentSegmentDO::getDocumentId, datasetId)
                 .eq(DocumentSegmentDO::getId,segmentId)
                 .set(DocumentSegmentDO::getDisabled,!enable);
         return this.update(null,updateWrapper);

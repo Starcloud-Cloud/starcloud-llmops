@@ -1,14 +1,22 @@
 package com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo;
 
+import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @Schema(description = "管理后台 - 数据集源数据创建 Request VO")
 @Data
-@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class DatasetSourceDataCreateReqVO extends DatasetSourceDataBaseVO {
+public class DatasetSourceDataCreateReqVO {
+
+    @Schema(description = "文件ID", required = true)
+    private String filed;
+
+    @Schema(description = "数据集ID", required = true)
+    private String datasetId;
+
+    @Schema(description = "数据集处理规则")
+    private SplitRule splitRule;
 
 }

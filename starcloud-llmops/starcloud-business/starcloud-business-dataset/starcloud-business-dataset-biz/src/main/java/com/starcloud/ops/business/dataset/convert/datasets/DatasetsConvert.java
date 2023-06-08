@@ -38,8 +38,6 @@ public class DatasetsConvert {
     public DatasetsDO convert(DatasetsUpdateReqVO bean) {
 
         DatasetsDO.DatasetsDOBuilder datasetsDO = DatasetsDO.builder();
-
-        datasetsDO.id(bean.getId());
         datasetsDO.name(bean.getName());
         datasetsDO.description(bean.getDescription());
         datasetsDO.permission(bean.getPermission());

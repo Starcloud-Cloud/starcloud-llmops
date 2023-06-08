@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstant
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,25 +37,30 @@ public class SegmentController {
             @PathVariable("datasetId") String datasetId,
             @PathVariable("documentId") String documentId,
             @RequestParam(value = "disable", defaultValue = "true") boolean disable,
-            @RequestParam(value = "disable", defaultValue = "-1") int lastPosition
+            @RequestParam(value = "lastPosition", defaultValue = "-1") int lastPosition
 
     ) {
         List<DocumentSegmentDO> documentSegmentDOS = documentSegmentsService.segmentDetail(datasetId, disable, documentId, lastPosition);
         return CommonResult.success(documentSegmentDOS);
     }
 
-    @GetMapping("/split/enable/{datasetId}/{documentId}")
+    @GetMapping("/split/enable/{documentId}/{segmentId}")
     @Operation(summary = "文档分段禁用/启用", description = "文档分段禁用/启用")
     public CommonResult<Boolean> updateEnable(
-            @PathVariable("datasetId") String datasetId,
             @PathVariable("documentId") String documentId,
+            @PathVariable("segmentId") String segmentId,
             @RequestParam(value = "disable") boolean enable
 
     ) {
-        boolean success = documentSegmentsService.updateEnable(datasetId, documentId, enable);
-        return success ? CommonResult.success(true): CommonResult.error(GlobalErrorCodeConstants.LOCKED);
+        boolean success = documentSegmentsService.updateEnable(documentId, segmentId, enable);
+        return success ? CommonResult.success(true) : CommonResult.error(GlobalErrorCodeConstants.LOCKED);
     }
 
+    @PostMapping("/match/text")
+    @Operation(summary = "文档分段命中测试", description = "文档分段命中测试")
+    public CommonResult matchTest(@RequestBody @Valid MatchTestRequest request) {
+        return CommonResult.success(documentSegmentsService.matchTest(request));
+    }
 
 
 

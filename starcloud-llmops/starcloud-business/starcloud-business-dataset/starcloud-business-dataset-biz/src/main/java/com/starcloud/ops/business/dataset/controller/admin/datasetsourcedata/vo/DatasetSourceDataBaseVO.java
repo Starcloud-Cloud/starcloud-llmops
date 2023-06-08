@@ -16,11 +16,11 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @Data
 public class DatasetSourceDataBaseVO {
 
-    @Schema(description = "编号", required = true, example = "9732")
+    @Schema(description = "编号", required = true)
     @NotNull(message = "编号不能为空")
     private String uid;
 
-    @Schema(description = "名称", required = true, example = "张三")
+    @Schema(description = "名称", required = true)
     @NotNull(message = "名称不能为空")
     private String name;
 
@@ -31,14 +31,14 @@ public class DatasetSourceDataBaseVO {
     @NotNull(message = "位置不能为空")
     private Integer position;
 
-    @Schema(description = "数据源类型（0-本地上传，1-接口上传）", required = true, example = "1")
+    @Schema(description = "数据源类型（0-本地上传，1-接口上传）", required = true)
     @NotNull(message = "数据源类型（0-本地上传，1-接口上传）不能为空")
     private Integer dataSourceType;
 
     @Schema(description = "数据源信息")
     private String dataSourceInfo;
 
-    @Schema(description = "数据集处理规则ID", example = "13802")
+    @Schema(description = "数据集处理规则ID")
     private String datasetProcessRuleId;
 
     @Schema(description = "批次", required = true)
@@ -49,17 +49,17 @@ public class DatasetSourceDataBaseVO {
     @NotNull(message = "创建来源不能为空")
     private String createdFrom;
 
-    @Schema(description = "字数", example = "20733")
+    @Schema(description = "字数")
     private Long wordCount;
 
     @Schema(description = "令牌数")
     private Long tokens;
 
-    @Schema(description = "数据集ID", required = true, example = "26942")
+    @Schema(description = "数据集ID", required = true)
     @NotNull(message = "数据集ID不能为空")
     private String datasetId;
 
-    @Schema(description = "创建API请求ID", example = "2458")
+    @Schema(description = "创建API请求ID")
     private String createdApiRequestId;
 
     @Schema(description = "解析完成时间")
@@ -75,7 +75,7 @@ public class DatasetSourceDataBaseVO {
     private LocalDateTime splittingCompletedTime;
 
     @Schema(description = "索引创建时间")
-    private Object indexingTime;
+    private Double indexingTime;
 
     @Schema(description = "处理开始时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
@@ -106,9 +106,6 @@ public class DatasetSourceDataBaseVO {
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime disabledTime;
 
-    @Schema(description = "创建人", required = true)
-    @NotNull(message = "创建人不能为空")
-    private String creater;
 
     @Schema(description = "索引状态", required = true, example = "1")
     @NotNull(message = "索引状态不能为空")

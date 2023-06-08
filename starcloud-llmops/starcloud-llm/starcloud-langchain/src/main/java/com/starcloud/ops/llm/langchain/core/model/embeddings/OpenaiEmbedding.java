@@ -25,11 +25,10 @@ public class OpenaiEmbedding implements BasicEmbedding {
     private String chatAiKey;
 
     @Override
-    public List<List<Float>> embedDocuments(List<String> documents) {
-        // todo 计算token
+    public List<List<Float>> embedTexts(List<String> texts) {
         OpenAiService service = new OpenAiService(chatAiKey, Duration.ofSeconds(60L));
         EmbeddingRequest request = EmbeddingRequest.builder()
-                .input(documents)
+                .input(texts)
                 .model(MODEL).build();
         EmbeddingResult embeddings = service.createEmbeddings(request);
         List<List<Float>> result = new ArrayList<>();

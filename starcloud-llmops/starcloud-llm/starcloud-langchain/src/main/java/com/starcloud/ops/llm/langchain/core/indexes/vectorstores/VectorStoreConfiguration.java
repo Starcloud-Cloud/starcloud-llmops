@@ -1,4 +1,4 @@
-package com.starcloud.ops.llm.langchain.indexes.vectorstores;
+package com.starcloud.ops.llm.langchain.core.indexes.vectorstores;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
@@ -35,7 +35,7 @@ public class VectorStoreConfiguration {
     }
 
     @Bean("defaultRepository")
-    @ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "default", matchIfMissing = true)
+    @ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "default")
     public DefaultVectorStore.SegmentEmbeddingMapper initDefaultRepository(DataSource dataSource) {
         //事务
         TransactionFactory transactionFactory = new JdbcTransactionFactory();

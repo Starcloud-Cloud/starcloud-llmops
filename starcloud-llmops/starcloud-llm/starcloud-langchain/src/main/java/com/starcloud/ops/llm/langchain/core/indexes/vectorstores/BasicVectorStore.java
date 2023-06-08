@@ -1,4 +1,4 @@
-package com.starcloud.ops.llm.langchain.indexes.vectorstores;
+package com.starcloud.ops.llm.langchain.core.indexes.vectorstores;
 
 import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;

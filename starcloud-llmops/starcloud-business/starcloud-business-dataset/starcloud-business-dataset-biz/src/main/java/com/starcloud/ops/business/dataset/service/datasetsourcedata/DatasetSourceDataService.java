@@ -21,7 +21,7 @@ public interface DatasetSourceDataService {
      * @param createReqVO 创建信息
      * @return 编号
      */
-    Long createDatasetSourceData(@Valid DatasetSourceDataCreateReqVO createReqVO);
+    void createDatasetSourceData(@Valid DatasetSourceDataCreateReqVO createReqVO);
 
     /**
      * 更新数据集源数据
@@ -33,25 +33,10 @@ public interface DatasetSourceDataService {
     /**
      * 删除数据集源数据
      *
-     * @param id 编号
+     * @param uid 数据集源数据编号
      */
-    void deleteDatasetSourceData(Long id);
+    void deleteDatasetSourceData(String uid);
 
-    /**
-     * 获得数据集源数据
-     *
-     * @param id 编号
-     * @return 数据集源数据
-     */
-    DatasetSourceDataDO getDatasetSourceData(Long id);
-
-    /**
-     * 获得数据集源数据列表
-     *
-     * @param ids 编号
-     * @return 数据集源数据列表
-     */
-    List<DatasetSourceDataDO> getDatasetSourceDataList(Collection<Long> ids);
 
     /**
      * 获得数据集源数据分页
@@ -61,6 +46,19 @@ public interface DatasetSourceDataService {
      */
     PageResult<DatasetSourceDataDO> getDatasetSourceDataPage(DatasetSourceDataPageReqVO pageReqVO);
 
+    /**
+     * 归档数据集源数据
+     *
+     * @param uid 数据集源数据编号
+     */
+    void archivedDatasetSourceData( String uid);
+
+    /**
+     * 取消归档数据集源数据
+     *
+     * @param uid 数据集源数据编号
+     */
+    void unArchivedDatasetSourceData( String uid);
 
 
 }

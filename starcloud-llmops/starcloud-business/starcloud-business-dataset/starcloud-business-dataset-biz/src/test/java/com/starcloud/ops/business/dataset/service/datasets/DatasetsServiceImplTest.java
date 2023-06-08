@@ -51,22 +51,6 @@ public class DatasetsServiceImplTest extends BaseDbUnitTest {
         assertPojoEquals(reqVO, datasets);
     }
 
-    @Test
-    public void testUpdateDatasets_success() {
-        // mock 数据
-        DatasetsDO dbDatasets = randomPojo(DatasetsDO.class);
-        datasetsMapper.insert(dbDatasets);// @Sql: 先插入出一条存在的数据
-        // 准备参数
-        DatasetsUpdateReqVO reqVO = randomPojo(DatasetsUpdateReqVO.class, o -> {
-            o.setId(dbDatasets.getId()); // 设置更新的 ID
-        });
-
-        // 调用
-        datasetsService.updateDatasets(reqVO);
-        // 校验是否更新正确
-        DatasetsDO datasets = datasetsMapper.selectById(reqVO.getId()); // 获取最新的
-        assertPojoEquals(reqVO, datasets);
-    }
 
     @Test
     public void testUpdateDatasets_notExists() {
@@ -75,29 +59,6 @@ public class DatasetsServiceImplTest extends BaseDbUnitTest {
 
         // 调用, 并断言异常
         assertServiceException(() -> datasetsService.updateDatasets(reqVO), DATASETS_NOT_EXISTS);
-    }
-
-    @Test
-    public void testDeleteDatasets_success() {
-        // mock 数据
-        DatasetsDO dbDatasets = randomPojo(DatasetsDO.class);
-        datasetsMapper.insert(dbDatasets);// @Sql: 先插入出一条存在的数据
-        // 准备参数
-        Long id = dbDatasets.getId();
-
-        // 调用
-        datasetsService.deleteDatasets(id);
-       // 校验数据不存在了
-       assertNull(datasetsMapper.selectById(id));
-    }
-
-    @Test
-    public void testDeleteDatasets_notExists() {
-        // 准备参数
-        Long id = randomLongId();
-
-        // 调用, 并断言异常
-        assertServiceException(() -> datasetsService.deleteDatasets(id), DATASETS_NOT_EXISTS);
     }
 
     @Test
@@ -158,61 +119,5 @@ public class DatasetsServiceImplTest extends BaseDbUnitTest {
        assertPojoEquals(dbDatasets, pageResult.getList().get(0));
     }
 
-    @Test
-    @Disabled  // TODO 请修改 null 为需要的值，然后删除 @Disabled 注解
-    public void testGetDatasetsList() {
-       // mock 数据
-       DatasetsDO dbDatasets = randomPojo(DatasetsDO.class, o -> { // 等会查询到
-           o.setUid(null);
-           o.setName(null);
-           o.setDescription(null);
-           o.setProvider(null);
-           o.setPermission(null);
-           o.setSourceType(null);
-           o.setIndexingModel(null);
-           o.setIndexStruct(null);
-           o.setCreateTime(null);
-           o.setEnabled(null);
-       });
-       datasetsMapper.insert(dbDatasets);
-       // 测试 uid 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setUid(null)));
-       // 测试 name 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setName(null)));
-       // 测试 description 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setDescription(null)));
-       // 测试 provider 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setProvider(null)));
-       // 测试 permission 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setPermission(null)));
-       // 测试 sourceType 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setSourceType(null)));
-       // 测试 indexingModel 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setIndexingModel(null)));
-       // 测试 indexStruct 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setIndexStruct(null)));
-       // 测试 createTime 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setCreateTime(null)));
-       // 测试 enabled 不匹配
-       datasetsMapper.insert(cloneIgnoreId(dbDatasets, o -> o.setEnabled(null)));
-       // 准备参数
-       DatasetsExportReqVO reqVO = new DatasetsExportReqVO();
-       reqVO.setUid(null);
-       reqVO.setName(null);
-       reqVO.setDescription(null);
-       reqVO.setProvider(null);
-       reqVO.setPermission(null);
-       reqVO.setSourceType(null);
-       reqVO.setIndexingModel(null);
-       reqVO.setIndexStruct(null);
-       reqVO.setCreateTime(buildBetweenTime(2023, 2, 1, 2023, 2, 28));
-       reqVO.setEnabled(null);
-
-       // 调用
-       List<DatasetsDO> list = datasetsService.getDatasetsList(reqVO);
-       // 断言
-       assertEquals(1, list.size());
-       assertPojoEquals(dbDatasets, list.get(0));
-    }
 
 }

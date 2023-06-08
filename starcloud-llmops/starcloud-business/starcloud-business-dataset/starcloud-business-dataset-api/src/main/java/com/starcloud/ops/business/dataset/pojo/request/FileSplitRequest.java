@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.dataset.pojo.request;
 
-import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
+import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

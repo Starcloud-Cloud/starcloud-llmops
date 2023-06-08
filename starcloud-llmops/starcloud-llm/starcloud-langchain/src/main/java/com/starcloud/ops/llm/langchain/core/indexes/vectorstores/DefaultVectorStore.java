@@ -1,4 +1,4 @@
-package com.starcloud.ops.llm.langchain.indexes.vectorstores;
+package com.starcloud.ops.llm.langchain.core.indexes.vectorstores;
 
 import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;
@@ -9,6 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +20,7 @@ import java.util.Map;
  * embedding保存在数据库中，在本地内存中做l2向量距离计算
  */
 @Component
-@ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "default", matchIfMissing = true)
+@ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "default")
 public class DefaultVectorStore implements BasicVectorStore {
 
     /**
@@ -47,25 +50,36 @@ public class DefaultVectorStore implements BasicVectorStore {
         List<KnnQueryHit> knnQueryHitList = new ArrayList<>();
 
         for (Map<String, Object> map : maps) {
+            List<Float> vector = deserialize((byte[]) map.get("vector"));
             DocumentSegmentDTO documentSegment = DocumentSegmentDTO.builder()
                     .tenantId(Long.valueOf(map.get("tenant_id").toString()))
                     .dataSetId(String.valueOf(map.get("dataset_id")))
                     .documentId(String.valueOf(map.get("document_id")))
                     .segmentId(String.valueOf(map.get("segment_id")))
                     .segmentText(String.valueOf(map.get("content")))
-                    .vector((List<Float>) map.get("vector"))
+                    .vector(vector)
                     .build();
-            List<Float> vector = (List<Float>) map.get("vector");
             double[] docVec = vector.stream().mapToDouble(Float::floatValue).toArray();
             double[] queryVec = queryVector.stream().mapToDouble(Float::floatValue).toArray();
-            double score = MathArrays.distance(docVec, queryVec);
+            double score = 1 - MathArrays.distance(docVec, queryVec);
             KnnQueryHit knnQueryHit = KnnQueryHit.builder().document(documentSegment).score(score).build();
             knnQueryHitList.add(knnQueryHit);
 
         }
         // desc sort
         knnQueryHitList.sort((a, b) -> a.getScore() > b.getScore() ? -1 : 1);
-        return knnQueryHitList.subList(0, Math.toIntExact(queryDTO.getK()));
+        return knnQueryHitList.subList(0, (int) Math.min(queryDTO.getK(),knnQueryHitList.size()));
+    }
+
+    private List<Float> deserialize(byte[] data) {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
+             ObjectInputStream ois = new ObjectInputStream(bis)) {
+
+            return (List<Float>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -77,8 +91,8 @@ public class DefaultVectorStore implements BasicVectorStore {
 
         @Select("<script> "
                 + "select e.tenant_id,e.dataset_id,e.document_id,e.segment_id,e.vector,s.content"
-                + " from llm_segments_embeddings e inner join llm_document_segments s on e.segment_id = s.id"
-                + " where status = true and segment_id in "
+                + " from llm_document_segments s INNER JOIN llm_segments_embeddings e ON s.id =  e.segment_id"
+                + " where s.deleted = false and s.id in "
                 + "  <foreach collection='list' item='item' index='index' "
                 + "    open='(' separator=',' close=')' >                 "
                 + "    #{item}                                            "
@@ -89,7 +103,7 @@ public class DefaultVectorStore implements BasicVectorStore {
 
         @Update(
                 "<script> "
-                + "update llm_segments_embeddings set status = false where segment_id in "
+                + "update llm_segments_embeddings set deleted = false where segment_id in "
                 + "  <foreach collection='list' item='item' index='index' "
                 + "    open='(' separator=',' close=')' >                 "
                 + "    #{item}                                            "
