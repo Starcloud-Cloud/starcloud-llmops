@@ -186,12 +186,15 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.info("embedding finished , time consume {}", embeddingEnd - splitEnd);
             String ruleId = IdUtil.getSnowflakeNextIdStr();
             SplitRulesDO splitRulesDO = new SplitRulesDO();
-            splitRulesDO.setMode(splitRule.getAutomatic());
+            splitRulesDO.setAutomatic(splitRule.getAutomatic());
             splitRulesDO.setRules(JSON.toJSONString(splitRule));
             splitRulesDO.setId(ruleId);
             splitRulesDO.setDatasetId(datasetId);
             splitRulesDO.setTenantId(tenantId);
             splitRulesDO.setCreator(creator);
+            splitRulesDO.setDocumentId(documentId);
+            splitRulesDO.setUpdater(creator);
+
             splitRulesMapper.insert(splitRulesDO);
             segmentMapper.updateStatus(documentId, DocumentSegmentEnum.COMPLETED.getCode());
             updateWrapper.set(DatasetSourceDataDO::getProcessingStartedTime, ofMill(start))

@@ -6,8 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName("llm_segments_embeddings")
-@KeySequence("llm_segments_embeddings")
+@TableName("llm_split_rules")
+@KeySequence("llm_split_rules")
 public class SplitRulesDO extends TenantBaseDO {
 
     private static final long serialVersionUID = -9155374188984988756L;
@@ -16,7 +16,9 @@ public class SplitRulesDO extends TenantBaseDO {
 
     private String datasetId;
 
-    private Boolean mode;
+    private String documentId;
+
+    private Boolean automatic;
 
     private String rules;
 }
