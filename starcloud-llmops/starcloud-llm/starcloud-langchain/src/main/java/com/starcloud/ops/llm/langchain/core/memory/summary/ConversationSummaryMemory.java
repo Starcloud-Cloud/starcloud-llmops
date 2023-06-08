@@ -2,6 +2,7 @@ package com.starcloud.ops.llm.langchain.core.memory.summary;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLM;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseOpenAI;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
@@ -26,7 +27,7 @@ public class ConversationSummaryMemory extends SummarizerMixin {
         super();
     }
 
-    public ConversationSummaryMemory(BaseOpenAI llm) {
+    public ConversationSummaryMemory(BaseLLM llm) {
         super(llm);
     }
 

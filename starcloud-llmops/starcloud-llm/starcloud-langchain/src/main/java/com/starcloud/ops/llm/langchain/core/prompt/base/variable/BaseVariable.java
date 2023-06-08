@@ -43,7 +43,7 @@ public class BaseVariable {
         return BaseVariable.builder().type(VariableTypeEnum.ARRAY).field(field).build();
     }
 
-    public static BaseVariable of(BaseVariable variable) {
+    public static BaseVariable copy(BaseVariable variable) {
 
         return new BaseVariable(
                 variable.getType(),

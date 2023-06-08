@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptValue;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.Data;
 
@@ -24,6 +25,15 @@ public class BasePromptTemplate {
     public BasePromptTemplate(String prompt, List<BaseVariable> inputVariables) {
         this.template = new StringPromptTemplate(prompt);
         this.inputVariables = inputVariables;
+    }
+
+    public static BasePromptTemplate of(String prompt, List<BaseVariable> inputVariables) {
+        return new BasePromptTemplate(prompt, inputVariables);
+    }
+
+    public static BasePromptTemplate of(String prompt, String... inputVariables) {
+
+        return new BasePromptTemplate(prompt, Arrays.stream(Optional.ofNullable(inputVariables).orElse(new String[]{})).map(BaseVariable::newString).collect(Collectors.toList()));
     }
 
     public BaseVariable getFirstVariable() {
@@ -56,11 +66,8 @@ public class BasePromptTemplate {
         }));
 
         String str = StrUtil.format(this.getTemplate().getPrompt(), maps);
-        HumanMessage message = HumanMessage.builder().content(str).build();
 
-        return PromptValue.builder().str(str).messages(
-                Arrays.asList(message)
-        ).build();
+        return new StringPromptValue(str);
     }
 
 

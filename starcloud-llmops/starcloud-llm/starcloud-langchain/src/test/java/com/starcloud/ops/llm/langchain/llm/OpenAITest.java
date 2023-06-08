@@ -1,44 +1,51 @@
-package com.starcloud.ops.llm.langchain;
+package com.starcloud.ops.llm.langchain.llm;
 
+import com.starcloud.ops.llm.langchain.SpringBootTests;
 import com.starcloud.ops.llm.langchain.core.chain.conversation.ConversationChain;
-import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
 import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferWindowMemory;
 import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationTokenBufferMemory;
 import com.starcloud.ops.llm.langchain.core.memory.summary.ConversationSummaryBufferMemory;
 import com.starcloud.ops.llm.langchain.core.memory.summary.ConversationSummaryMemory;
-import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.OpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
+import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
 
-
 @Slf4j
-public class ChainTest extends SpringBootTests {
+public class OpenAITest extends SpringBootTests {
+
+
+    @MockBean
+    private DataSource dataSource;
+
+
+    @Test
+    public void generateTest() {
+
+        OpenAI llm = new OpenAI();
+
+        log.info("result : {}", llm.call("Hi there! what you name?"));
+
+    }
+
 
     @Test
     public void ConversationChainTest() {
 
         OpenAI llm = new OpenAI();
 
-        ConversationChain conversationChain = new ConversationChain(llm, new ConversationBufferMemory());
+        ConversationChain conversationChain = new ConversationChain(llm);
         conversationChain.setVerbose(true);
 
-
-        BaseLLMResult baseLLMResult = conversationChain.predict(Arrays.asList(BaseVariable.newString("input", "Hi there!")));
-
-        log.info("baseLLMResult1: {}", baseLLMResult);
+        BaseLLMResult baseLLMResult = conversationChain.predict(Arrays.asList(BaseVariable.newString("input", "Hi there! what you name?")));
 
         baseLLMResult = conversationChain.predict(Arrays.asList(BaseVariable.newString("input", "I'm doing well! Just having a conversation with an AI.")));
-
-        log.info("baseLLMResult2: {}", baseLLMResult);
 
     }
 
@@ -70,12 +77,14 @@ public class ChainTest extends SpringBootTests {
 
     @Test
     public void ConversationSummaryMemoryTest() {
-        ConversationSummaryMemory memory = new ConversationSummaryMemory();
+        OpenAI llm = new OpenAI();
+
+        ConversationSummaryMemory memory = new ConversationSummaryMemory(llm);
         // memory.setReturnMessages(true);
 
         memory.saveContext(Arrays.asList(
                 BaseVariable.newString("input", "hi")
-        ), BaseLLMResult.success("whats up"));
+        ), BaseLLMResult.data("whats up"));
 
         log.info("loadMemoryVariables: {}", memory.loadMemoryVariables());
     }
@@ -119,11 +128,11 @@ public class ChainTest extends SpringBootTests {
 
         memory.saveContext(Arrays.asList(
                 BaseVariable.newString("input", "hi")
-        ), BaseLLMResult.success("whats up"));
+        ), BaseLLMResult.data("whats up"));
 
         memory.saveContext(Arrays.asList(
                 BaseVariable.newString("input", "not much you")
-        ), BaseLLMResult.success("not much"));
+        ), BaseLLMResult.data("not much"));
 
         log.info("baseLLMResult3: {}", memory.loadMemoryVariables());
     }
@@ -174,7 +183,7 @@ public class ChainTest extends SpringBootTests {
 
         OpenAI llm = new OpenAI();
 
-        ConversationSummaryBufferMemory memory = new ConversationSummaryBufferMemory(new ChatOpenAI(), 90);
+        ConversationSummaryBufferMemory memory = new ConversationSummaryBufferMemory(new OpenAI(), 90);
 
         ConversationChain conversationChain = new ConversationChain(llm, memory);
         conversationChain.setVerbose(true);
@@ -206,4 +215,6 @@ public class ChainTest extends SpringBootTests {
         log.info("baseLLMResult4: {}", result);
 
     }
+
+
 }

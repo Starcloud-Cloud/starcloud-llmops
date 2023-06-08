@@ -6,4 +6,8 @@ public class HumanMessagePromptTemplate extends BaseMessagePromptTemplate {
         super(promptTemplate);
         this.setRole("user");
     }
+
+    public static HumanMessagePromptTemplate fromTemplate(BasePromptTemplate promptTemplate) {
+        return new HumanMessagePromptTemplate(promptTemplate);
+    }
 }

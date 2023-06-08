@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 public abstract class BaseChatMemory extends BaseMemory {
 

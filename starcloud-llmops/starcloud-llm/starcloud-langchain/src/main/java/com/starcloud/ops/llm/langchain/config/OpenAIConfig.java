@@ -1,25 +1,30 @@
 package com.starcloud.ops.llm.langchain.config;
 
 
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 
-@Component
+@Data
+@Configuration
+@ConfigurationProperties(prefix = "starcloud-langchain.model.llm.openai")
 public class OpenAIConfig {
 
-    public static String apiKey;
+    private String apiKey;
 
-    public static Long timeOut;
-
-    @Value("${OpenAIConfig.apiKey}")
-    public void setApiKey(String apiKey) {
-        OpenAIConfig.apiKey = apiKey;
-    }
-
-    @Value("${OpenAIConfig.timeOut}")
-    public void setTimeOut(Long timeOut) {
-        OpenAIConfig.timeOut = timeOut;
-    }
+    private Long timeOut;
+//
+//
+//    public void setApiKey(String apiKey) {
+//        OpenAIConfig.apiKey = apiKey;
+//    }
+//
+//    public void setTimeOut(Long timeOut) {
+//        OpenAIConfig.timeOut = timeOut;
+//    }
 
 }

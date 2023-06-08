@@ -6,12 +6,10 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
-@SuperBuilder
-@Data
-public class PromptValue {
+public abstract class PromptValue {
 
-    private String str;
+    public abstract String toStr();
 
-    private List<BaseChatMessage> messages;
+    public abstract List<BaseChatMessage> toMessage();
 
 }

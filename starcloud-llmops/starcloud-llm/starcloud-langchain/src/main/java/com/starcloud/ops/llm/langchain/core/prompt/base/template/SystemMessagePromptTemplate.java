@@ -6,4 +6,8 @@ public class SystemMessagePromptTemplate extends BaseMessagePromptTemplate {
         super(promptTemplate);
         this.setRole("system");
     }
+
+    public static SystemMessagePromptTemplate fromTemplate(BasePromptTemplate promptTemplate) {
+        return new SystemMessagePromptTemplate(promptTemplate);
+    }
 }

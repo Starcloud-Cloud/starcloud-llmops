@@ -20,4 +20,11 @@ public class BaseChatMessage {
     public BaseChatMessage(String content) {
         this.content = content;
     }
+
+
+    //@todo for type
+    public static BaseChatMessage ofRole(String role) {
+
+        return BaseChatMessage.builder().role(role).build();
+    }
 }
