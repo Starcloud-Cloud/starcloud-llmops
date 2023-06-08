@@ -12,11 +12,15 @@ import javax.validation.constraints.NotNull;
 @Data
 public class DatasetStorageUpLoadRespVO {
 
-    @Schema(description = "编号", required = true, example = "25468")
+    @Schema(description = "编号", required = true)
     @NotNull(message = "编号不能为空")
     private String uid;
 
-    @Schema(description = "数据类型", required = true, example = "2")
+    @Schema(description = "文件名称", required = true)
+    @NotNull(message = "文件名称")
+    private String name;
+
+    @Schema(description = "数据类型", required = true)
     @NotNull(message = "数据类型不能为空")
     private String type;
 
@@ -24,10 +28,9 @@ public class DatasetStorageUpLoadRespVO {
     @NotNull(message = "键不能为空")
     private String storageKey;
 
-    @Schema(description = "存储类型", required = true, example = "2")
+    @Schema(description = "存储类型", required = true)
     @NotNull(message = "存储类型不能为空")
     private String storageType;
-
 
     @Schema(description = "MIME类型", example = "2")
     private String mimeType;

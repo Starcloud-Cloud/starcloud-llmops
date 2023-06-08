@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 @ToString(callSuper = true)
 public class DatasetsUpdateReqVO extends DatasetsBaseVO {
 
-    @Schema(description = "主键ID", required = true, example = "21796")
-    @NotNull(message = "主键ID不能为空")
-    private Long id;
+    @Schema(description = "数据集编号", required = true)
+    @NotNull(message = "数据集编号不能为空")
+    private String uid;
 
 }

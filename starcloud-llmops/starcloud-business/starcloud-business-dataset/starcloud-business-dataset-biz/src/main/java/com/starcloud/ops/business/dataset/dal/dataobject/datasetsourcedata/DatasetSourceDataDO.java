@@ -95,7 +95,7 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     /**
      * 索引创建时间
      */
-    private Object indexingTime;
+    private Double indexingTime;
     /**
      * 处理开始时间
      */
@@ -128,10 +128,6 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      * 禁用时间
      */
     private LocalDateTime disabledTime;
-    /**
-     * 创建人
-     */
-    private String creater;
     /**
      * 索引状态
      */

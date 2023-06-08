@@ -84,6 +84,7 @@ public class DatasetStorageConvert {
         DatasetStorageUpLoadRespVO datasetStorageUpLoadRespVO = new DatasetStorageUpLoadRespVO();
         datasetStorageUpLoadRespVO.setUid( bean.getUid() );
         datasetStorageUpLoadRespVO.setType( bean.getType() );
+        datasetStorageUpLoadRespVO.setName( bean.getName() );
         datasetStorageUpLoadRespVO.setStorageType( bean.getStorageType() );
         datasetStorageUpLoadRespVO.setMimeType( bean.getMimeType() );
 

@@ -30,7 +30,6 @@ public class DatasetsBaseVO {
     @NotNull(message = "权限不能为空")
     private Integer permission;
 
-
     @Schema(description = "索引技术", required = true)
     private String indexingModel;
 

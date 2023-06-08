@@ -44,7 +44,6 @@ public interface DatasetSourceDataMapper extends BaseMapperX<DatasetSourceDataDO
                 .betweenIfPresent(DatasetSourceDataDO::getPausedTime, reqVO.getPausedTime())
                 .eqIfPresent(DatasetSourceDataDO::getDisabledAt, reqVO.getDisabledAt())
                 .betweenIfPresent(DatasetSourceDataDO::getDisabledTime, reqVO.getDisabledTime())
-                .eqIfPresent(DatasetSourceDataDO::getCreater, reqVO.getCreater())
                 .betweenIfPresent(DatasetSourceDataDO::getCreateTime, reqVO.getCreateTime())
                 .eqIfPresent(DatasetSourceDataDO::getIndexingStatus, reqVO.getIndexingStatus())
                 .eqIfPresent(DatasetSourceDataDO::getEnabled, reqVO.getEnabled())

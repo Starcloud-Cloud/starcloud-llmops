@@ -25,4 +25,12 @@ public interface DatasetStorageService {
      * @return
      */
     DatasetStorageUpLoadRespVO getDatasetStorageByUID(String UID);
+
+
+    /**
+     * 文件预览
+     * @param UID
+     * @return
+     */
+    String previewUpLoadFile(String UID);
 }

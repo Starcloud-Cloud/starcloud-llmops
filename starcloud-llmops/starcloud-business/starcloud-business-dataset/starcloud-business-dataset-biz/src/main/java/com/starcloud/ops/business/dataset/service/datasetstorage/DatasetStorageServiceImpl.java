@@ -25,7 +25,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
@@ -65,6 +68,12 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
         byte[] content = new byte[0];
         try {
             content = IoUtil.readBytes(file.getInputStream());
+            //try (BufferedReader reader = new BufferedReader(
+            //        new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+            //    return IoUtil.read(reader).length();
+            //} catch (IOException e) {
+            //    e.printStackTrace();
+            //}
         } catch (IOException e) {
             log.error("[uploadSourceData][数据流转换失败：文件名({})|文件地址({})|用户名({})", name, path, null);
             throw new RuntimeException(e);
@@ -150,6 +159,19 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
         datasetStorageUpLoadRespVO.setStorageKey(fileDO.getUrl());
         //数据转换
         return datasetStorageUpLoadRespVO;
+    }
+
+    /**
+     * 文件预览
+     *
+     * @param UID
+     *
+     * @return
+     */
+    @Override
+    public String previewUpLoadFile(String UID) {
+
+        return null;
     }
 
     private void validateDatasetStorageExists(Long id) {
