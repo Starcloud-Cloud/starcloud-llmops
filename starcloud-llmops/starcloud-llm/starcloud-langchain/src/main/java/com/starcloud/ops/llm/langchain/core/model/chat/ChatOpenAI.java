@@ -88,7 +88,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                         } else {
 
-                            this.getCallbackManager().onLLMError(e.getCause().getMessage(), e);
+                            this.getCallbackManager().onLLMError(e.getMessage(), e);
                         }
 
                         log.error("chat stream error:", e);

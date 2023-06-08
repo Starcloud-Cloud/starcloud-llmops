@@ -1,6 +1,7 @@
 package com.starcloud.ops.llm.langchain.core.model.chat.base.message;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -22,9 +23,16 @@ public class BaseChatMessage {
     }
 
 
-    //@todo for type
     public static BaseChatMessage ofRole(String role) {
 
-        return BaseChatMessage.builder().role(role).build();
+        switch (role) {
+            case "assistant":
+                return AIMessage.builder().build();
+            case "user":
+                return HumanMessage.builder().build();
+            default:
+                return SystemMessage.builder().build();
+        }
+
     }
 }
