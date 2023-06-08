@@ -174,6 +174,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                 segmentsEmbeddingsDO.setDatasetId(datasetId);
                 segmentsEmbeddingsDO.setDocumentId(documentId);
                 segmentsEmbeddingsDO.setDeleted(false);
+                segmentsEmbeddingsDO.setSegmentId(segmentId);
+                segmentsEmbeddingsDO.setUpdater(creator);
+                segmentsEmbeddingsDO.setSegmentHash(segmentHash);
                 segmentMapper.insert(documentSegmentDO);
                 embeddingsDOMapper.insert(segmentsEmbeddingsDO);
                 segments.add(documentSegmentDTO);
@@ -256,7 +259,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().segmentIds(segmentIds).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
         List<RecordDTO> recordDTOS = new ArrayList<>(knnQueryHitList.size());
-        Map<String, DocumentSegmentDO> segmentDOMap = segmentDOS.stream().collect(Collectors.toMap(DocumentSegmentDO::getDocumentId, Function.identity(), (a, b) -> b));
+        Map<String, DocumentSegmentDO> segmentDOMap = segmentDOS.stream().collect(Collectors.toMap(DocumentSegmentDO::getId, Function.identity(), (a, b) -> b));
         for (KnnQueryHit knnQueryHit : knnQueryHitList) {
             String segmentId = knnQueryHit.getDocument().getSegmentId();
             RecordDTO recordDTO = DocumentSegmentConvert.INSTANCE.segmentDo2Record(segmentDOMap.get(segmentId)).setScore(knnQueryHit.getScore());

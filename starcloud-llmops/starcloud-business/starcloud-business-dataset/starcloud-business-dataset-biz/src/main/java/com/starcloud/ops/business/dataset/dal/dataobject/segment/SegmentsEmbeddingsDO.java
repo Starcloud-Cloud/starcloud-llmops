@@ -23,8 +23,6 @@ public class SegmentsEmbeddingsDO extends TenantBaseDO {
 
     private String segmentHash;
 
-    private Boolean status;
-
     private byte[] vector;
 
     private Long tokens;

@@ -37,7 +37,7 @@ public class SegmentController {
             @PathVariable("datasetId") String datasetId,
             @PathVariable("documentId") String documentId,
             @RequestParam(value = "disable", defaultValue = "true") boolean disable,
-            @RequestParam(value = "disable", defaultValue = "-1") int lastPosition
+            @RequestParam(value = "lastPosition", defaultValue = "-1") int lastPosition
 
     ) {
         List<DocumentSegmentDO> documentSegmentDOS = documentSegmentsService.segmentDetail(datasetId, disable, documentId, lastPosition);
