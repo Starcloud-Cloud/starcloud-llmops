@@ -16,10 +16,10 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.Datas
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
+import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
