@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.dataset.util.dataset;
 
-import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
+import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 

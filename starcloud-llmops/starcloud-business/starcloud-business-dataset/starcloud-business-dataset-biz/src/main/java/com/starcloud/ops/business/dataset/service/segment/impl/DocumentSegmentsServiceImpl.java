@@ -13,6 +13,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.xiaoymin.knife4j.core.util.Assert;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
+import com.starcloud.ops.business.dataset.convert.segment.DocumentSegmentConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.SegmentsEmbeddingsDO;
@@ -22,16 +23,18 @@ import com.starcloud.ops.business.dataset.dal.mysql.segment.DocumentSegmentMappe
 import com.starcloud.ops.business.dataset.dal.mysql.segment.SegmentsEmbeddingsDOMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.SplitRulesMapper;
 import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
+import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
+import com.starcloud.ops.business.dataset.pojo.response.MatchTestResponse;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.EmbeddingDetail;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
+import com.starcloud.ops.llm.langchain.core.model.llm.document.*;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStore;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
@@ -53,6 +56,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -239,6 +245,24 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                 .eq(DatasetSourceDataDO::getUid, documentId)
                 .eq(DatasetSourceDataDO::getTenantId, TenantContextHolder.getTenantId());
         Assert.isTrue(sourceDataMapper.exists(queryWrapper), "current tenant permission denied");
+    }
+
+    @Override
+    public MatchTestResponse matchTest(MatchTestRequest request) {
+        validateTenantId(request.getDocumentId());
+        List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDocId(request.getDocumentId());
+        List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
+        EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
+        KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().segmentIds(segmentIds).k(request.getK()).build();
+        List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
+        List<RecordDTO> recordDTOS = new ArrayList<>(knnQueryHitList.size());
+        Map<String, DocumentSegmentDO> segmentDOMap = segmentDOS.stream().collect(Collectors.toMap(DocumentSegmentDO::getDocumentId, Function.identity(), (a, b) -> b));
+        for (KnnQueryHit knnQueryHit : knnQueryHitList) {
+            String segmentId = knnQueryHit.getDocument().getSegmentId();
+            RecordDTO recordDTO = DocumentSegmentConvert.INSTANCE.segmentDo2Record(segmentDOMap.get(segmentId)).setScore(knnQueryHit.getScore());
+            recordDTOS.add(recordDTO);
+        }
+        return MatchTestResponse.builder().records(recordDTOS).queryText(request.getText()).build();
     }
 
     private String strToHex(String text) {

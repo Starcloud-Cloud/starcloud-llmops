@@ -2,7 +2,6 @@ package com.starcloud.ops.llm.langchain.core;
 
 import com.starcloud.ops.llm.langchain.LangChainConfiguration;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,8 +27,6 @@ public class ParserTest {
                 "陈祚明评选《采菽堂古诗选》卷十三：“倾耳”二句写风雪得神，而高旷之怀，超脱如睹。……起四句，一句一意，一意一转，曲折尽致，全得子卿“骨肉缘枝叶”章法，而无揣摹之迹。\n" +
                 "\n" +
                 "延君寿《老生常谈》：“凄凄岁暮风……在目皓已洁。”自是咏雪名句。下接云“劲气侵襟袖，箪瓢谢屡设”。接得沉着有力量。又云“高操非所攀……栖迟讵为拙”，想见作者之磊落光明，傲物自高。每闻人称陶公恬淡，固也；然试想此等人物，如松柏之耐岁寒，其劲直之气与有生俱来，安能不偶然流露于楮墨之间\n";
-        SplitRule splitRule = new SplitRule();
-        splitRule.setAutomatic(true);
         List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(str, 100, null);
         Assert.isTrue(splitText.size() > 0, "split text error");
     }

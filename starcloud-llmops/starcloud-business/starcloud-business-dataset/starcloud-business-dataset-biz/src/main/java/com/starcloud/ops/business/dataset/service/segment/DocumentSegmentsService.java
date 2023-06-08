@@ -2,8 +2,10 @@ package com.starcloud.ops.business.dataset.service.segment;
 
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
+import com.starcloud.ops.business.dataset.pojo.response.MatchTestResponse;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.SplitRule;
+import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 
 import java.util.List;
 
@@ -38,4 +40,11 @@ public interface DocumentSegmentsService {
      * 删除文档所有分段
      */
     public boolean deleteSegment(String datasetId, String documentId);
+
+    /**
+     * 文本向量匹配测试
+     * @param request
+     * @return
+     */
+    public MatchTestResponse matchTest(MatchTestRequest request);
 }

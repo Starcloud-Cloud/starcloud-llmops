@@ -1,8 +1,10 @@
-package com.starcloud.ops.llm.langchain.core.model.llm.document;
+package com.starcloud.ops.business.dataset.pojo.dto;
 
 import lombok.Data;
 import lombok.ToString;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import java.util.List;
 
 @Data
@@ -18,6 +20,8 @@ public class SplitRule {
 
     private Boolean removeUrlsEmails;
 
+    @Max(1000)
+    @Min(100)
     private Integer chunkSize;
 
     private List<String> separator;

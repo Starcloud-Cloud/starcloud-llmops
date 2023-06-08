@@ -69,6 +69,10 @@
             <artifactId>yudao-module-infra-biz</artifactId>
             <version>1.7.2-snapshot</version>
         </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
 
     </dependencies>
 

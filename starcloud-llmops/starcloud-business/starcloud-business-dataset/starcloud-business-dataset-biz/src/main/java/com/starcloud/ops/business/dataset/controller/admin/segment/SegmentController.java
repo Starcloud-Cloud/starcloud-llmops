@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstant
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,9 +53,14 @@ public class SegmentController {
 
     ) {
         boolean success = documentSegmentsService.updateEnable(documentId, segmentId, enable);
-        return success ? CommonResult.success(true): CommonResult.error(GlobalErrorCodeConstants.LOCKED);
+        return success ? CommonResult.success(true) : CommonResult.error(GlobalErrorCodeConstants.LOCKED);
     }
 
+    @PostMapping("/match/text")
+    @Operation(summary = "文档分段命中测试", description = "文档分段命中测试")
+    public CommonResult matchTest(@RequestBody @Valid MatchTestRequest request) {
+        return CommonResult.success(documentSegmentsService.matchTest(request));
+    }
 
 
 

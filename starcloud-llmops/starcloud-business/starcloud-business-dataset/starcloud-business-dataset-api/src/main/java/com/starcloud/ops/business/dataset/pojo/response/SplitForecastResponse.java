@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "")
+@Schema(description = "文件切割")
 @Builder
 public class SplitForecastResponse {
     private BigDecimal totalPrice;
