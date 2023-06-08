@@ -50,6 +50,12 @@ public class TemplateRequest implements Serializable {
     private String sourceType;
 
     /**
+     * 模版版本
+     */
+    @Schema(description = "模版版本")
+    private String version;
+
+    /**
      * 模版标签
      */
     @Schema(description = "模版标签")

@@ -1,4 +1,4 @@
-package com.starcloud.ops.llm.langchain.core.embeddings;
+package com.starcloud.ops.llm.langchain.core.model.embeddings;
 
 import com.starcloud.ops.llm.langchain.core.model.llm.document.EmbeddingDetail;
 import com.theokanning.openai.embedding.Embedding;
@@ -6,7 +6,6 @@ import com.theokanning.openai.embedding.EmbeddingRequest;
 import com.theokanning.openai.embedding.EmbeddingResult;
 import com.theokanning.openai.service.OpenAiService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -26,11 +25,10 @@ public class OpenaiEmbedding implements BasicEmbedding {
     private String chatAiKey;
 
     @Override
-    public List<List<Float>> embedDocuments(List<String> documents) {
-        // todo 计算token
+    public List<List<Float>> embedTexts(List<String> texts) {
         OpenAiService service = new OpenAiService(chatAiKey, Duration.ofSeconds(60L));
         EmbeddingRequest request = EmbeddingRequest.builder()
-                .input(documents)
+                .input(texts)
                 .model(MODEL).build();
         EmbeddingResult embeddings = service.createEmbeddings(request);
         List<List<Float>> result = new ArrayList<>();

@@ -1,6 +1,6 @@
-package com.starcloud.ops.llm.langchain.core.vectorstores;
+package com.starcloud.ops.llm.langchain.core.indexes.vectorstores;
 
-import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegment;
+import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryHit;
 import org.apache.commons.math3.util.MathArrays;
@@ -37,7 +37,7 @@ public class DefaultVectorStore implements BasicVectorStore {
 
 
     @Override
-    public void addSegment(List<DocumentSegment> segments) {
+    public void addSegment(List<DocumentSegmentDTO> segments) {
         //todo 不需插入 复用llm_segments_embeddings中的向量
     }
 
@@ -47,7 +47,7 @@ public class DefaultVectorStore implements BasicVectorStore {
         List<KnnQueryHit> knnQueryHitList = new ArrayList<>();
 
         for (Map<String, Object> map : maps) {
-            DocumentSegment documentSegment = DocumentSegment.builder()
+            DocumentSegmentDTO documentSegment = DocumentSegmentDTO.builder()
                     .tenantId(Long.valueOf(map.get("tenant_id").toString()))
                     .dataSetId(String.valueOf(map.get("dataset_id")))
                     .documentId(String.valueOf(map.get("document_id")))

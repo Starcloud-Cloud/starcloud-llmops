@@ -2,7 +2,8 @@ package com.starcloud.ops.business.dataset.enums;
 
 public enum DocumentSegmentEnum {
     INDEXING("INDEXING"),
-    COMPLETED("COMPLETED");
+    COMPLETED("COMPLETED"),
+    ERROR("ERROR");
 
     DocumentSegmentEnum(String code) {
         this.code = code;

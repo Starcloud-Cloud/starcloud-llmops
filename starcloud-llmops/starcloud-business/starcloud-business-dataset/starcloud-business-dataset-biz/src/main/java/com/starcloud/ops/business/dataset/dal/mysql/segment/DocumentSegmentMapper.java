@@ -20,6 +20,13 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
         return this.selectList(queryWrapper);
     }
 
+    default int updateStatus(String documentId,String status) {
+        LambdaUpdateWrapper<DocumentSegmentDO> updateWrapper = Wrappers.lambdaUpdate(DocumentSegmentDO.class)
+                .eq(DocumentSegmentDO::getDocumentId, documentId)
+                .set(DocumentSegmentDO::getStatus,status);
+        return this.update(null,updateWrapper);
+    }
+
     default List<DocumentSegmentDO> segmentDetail(String datasetId,boolean disable, String docId, int lastPosition) {
         LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDeleted, false)
@@ -33,7 +40,7 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
 
     default int updateEnable(String datasetId, String segmentId, boolean enable){
         LambdaUpdateWrapper<DocumentSegmentDO> updateWrapper = Wrappers.lambdaUpdate(DocumentSegmentDO.class)
-                .eq(DocumentSegmentDO::getDatasetId, datasetId)
+                .eq(DocumentSegmentDO::getDocumentId, datasetId)
                 .eq(DocumentSegmentDO::getId,segmentId)
                 .set(DocumentSegmentDO::getDisabled,!enable);
         return this.update(null,updateWrapper);

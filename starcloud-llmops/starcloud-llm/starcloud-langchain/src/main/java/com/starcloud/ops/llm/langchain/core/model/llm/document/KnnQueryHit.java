@@ -8,7 +8,7 @@ import lombok.Data;
 @Builder
 public class KnnQueryHit {
 
-    private DocumentSegment document;
+    private DocumentSegmentDTO document;
 
     private Double score;
 }

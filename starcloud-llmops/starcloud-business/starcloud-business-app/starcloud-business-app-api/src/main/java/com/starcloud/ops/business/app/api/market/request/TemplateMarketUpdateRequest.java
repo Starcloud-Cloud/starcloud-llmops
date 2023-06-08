@@ -27,6 +27,6 @@ public class TemplateMarketUpdateRequest extends TemplateMarketRequest {
      */
     @Schema(description = "模版ID")
     @NotNull(message = "模版ID不能为空")
-    private Long id;
+    private String uid;
 
 }

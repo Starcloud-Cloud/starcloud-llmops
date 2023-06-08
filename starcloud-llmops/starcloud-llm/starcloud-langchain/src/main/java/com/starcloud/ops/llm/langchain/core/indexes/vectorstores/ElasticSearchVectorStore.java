@@ -1,4 +1,4 @@
-package com.starcloud.ops.llm.langchain.core.vectorstores;
+package com.starcloud.ops.llm.langchain.core.indexes.vectorstores;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
@@ -8,12 +8,10 @@ import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegment;
+import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryHit;
-import org.checkerframework.checker.units.qual.K;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -32,9 +30,9 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
     private ElasticsearchClient esClient;
 
     @Override
-    public void addSegment(List<DocumentSegment> segments) {
+    public void addSegment(List<DocumentSegmentDTO> segments) {
         List<BulkOperation> operations = new ArrayList<>();
-        for (DocumentSegment document : segments) {
+        for (DocumentSegmentDTO document : segments) {
             BulkOperation operation = BulkOperation.of(builder -> builder
                     .index(index -> index
                             .index(INDEX_NAME)
@@ -68,7 +66,7 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
                 .build();
         SearchRequest vector = new SearchRequest.Builder().knn(knnQuery).index(INDEX_NAME).build();
         try {
-            SearchResponse<DocumentSegment> search = esClient.search(vector, DocumentSegment.class);
+            SearchResponse<DocumentSegmentDTO> search = esClient.search(vector, DocumentSegmentDTO.class);
             List<KnnQueryHit> knnQueryHitList = search.hits().hits().stream().map(hit -> {
                 return KnnQueryHit.builder().score(hit.score()).document(hit.source()).build();
             }).collect(Collectors.toList());
@@ -81,7 +79,7 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
     @Override
     public void removeSegment(List<String> segmentIds) {
         List<BulkOperation> operations = new ArrayList<>();
-        DocumentSegment documentSegment = DocumentSegment.builder().status(false).build();
+        DocumentSegmentDTO documentSegment = DocumentSegmentDTO.builder().status(false).build();
         for (String segmentId : segmentIds) {
             BulkOperation operation = BulkOperation.of(builder -> builder
                     .update(index -> index
