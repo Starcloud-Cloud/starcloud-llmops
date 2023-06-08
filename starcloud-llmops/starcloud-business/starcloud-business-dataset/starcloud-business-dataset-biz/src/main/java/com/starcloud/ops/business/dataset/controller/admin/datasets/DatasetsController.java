@@ -84,4 +84,19 @@ public class DatasetsController {
         PageResult<DatasetsDO> pageResult = datasetsService.getDatasetsPage(pageVO);
         return success(DatasetsConvert.convertPage(pageResult));
     }
+
+    @PostMapping("/enable")
+    @Operation(summary = "启用数据集")
+    //@PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:update')")
+    public CommonResult<Boolean> enableDatasets(@RequestParam("uid")  @ApiParam(value = "数据集编号", required = true) String uid) {
+        datasetsService.enableDatasets(uid);
+        return success(true);
+    }
+    @PostMapping("/off")
+    @Operation(summary = "停用数据集")
+    //@PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:update')")
+    public CommonResult<Boolean> offDatasets(@RequestParam("uid")  @ApiParam(value = "数据集编号", required = true) String uid) {
+        datasetsService.offDatasets(uid);
+        return success(true);
+    }
 }

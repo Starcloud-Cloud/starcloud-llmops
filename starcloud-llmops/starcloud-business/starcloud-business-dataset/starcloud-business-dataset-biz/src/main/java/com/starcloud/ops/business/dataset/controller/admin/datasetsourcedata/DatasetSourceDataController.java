@@ -45,8 +45,8 @@ public class DatasetSourceDataController {
     @Operation(summary = "删除数据集源数据")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:delete')")
-    public CommonResult<Boolean> deleteDatasetSourceData(@RequestParam("id") Long id) {
-        datasetSourceDataService.deleteDatasetSourceData(id);
+    public CommonResult<Boolean> deleteDatasetSourceData(@RequestParam("id") String uid) {
+        datasetSourceDataService.deleteDatasetSourceData(uid);
         return success(true);
     }
 

@@ -161,6 +161,19 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
         return datasetStorageUpLoadRespVO;
     }
 
+    /**
+     * 文件预览
+     *
+     * @param UID
+     *
+     * @return
+     */
+    @Override
+    public String previewUpLoadFile(String UID) {
+
+        return null;
+    }
+
     private void validateDatasetStorageExists(Long id) {
         if (datasetStorageMapper.selectById(id) == null) {
             throw exception(DATASET_STORAGE_NOT_EXISTS);

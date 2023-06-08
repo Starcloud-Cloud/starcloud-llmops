@@ -32,16 +32,30 @@ public interface DatasetsService {
     void updateDatasets(@Valid DatasetsUpdateReqVO updateReqVO);
 
     /**
+     * 启用数据集
+     *
+     * @param uid 数据集编号
+     */
+    void enableDatasets( String uid);
+
+    /**
+     * 停用数据集
+     *
+     * @param uid 数据集编号
+     */
+    void offDatasets( String uid);
+
+    /**
      * 删除数据集
      *
-     * @param uid 编号
+     * @param uid 数据集编号
      */
     void deleteDatasets(String uid);
 
     /**
      * 获得数据集
      *
-     * @param uid 编号
+     * @param uid 数据集编号
      * @return 数据集
      */
     DatasetsDO getDatasets(String uid);
@@ -54,6 +68,9 @@ public interface DatasetsService {
      * @return 数据集分页
      */
     PageResult<DatasetsDO> getDatasetsPage(DatasetsPageReqVO pageReqVO);
+
+
+
 
 
 

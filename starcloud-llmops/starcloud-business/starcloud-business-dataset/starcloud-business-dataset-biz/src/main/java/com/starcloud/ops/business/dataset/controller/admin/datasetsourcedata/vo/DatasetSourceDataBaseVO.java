@@ -75,7 +75,7 @@ public class DatasetSourceDataBaseVO {
     private LocalDateTime splittingCompletedTime;
 
     @Schema(description = "索引创建时间")
-    private Object indexingTime;
+    private Double indexingTime;
 
     @Schema(description = "处理开始时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
