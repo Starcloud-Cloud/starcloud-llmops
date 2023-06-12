@@ -22,6 +22,7 @@
         <module>starcloud-business-limits</module>
         <module>starcloud-business-dataset</module>
         <module>starcloud-business-core</module>
+        <module>starcloud-business-log</module>
     </modules>
 
     <dependencyManagement>
@@ -92,6 +93,12 @@
             <dependency>
                 <groupId>com.starcloud.ops</groupId>
                 <artifactId>starcloud-business-limits</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-log</artifactId>
                 <version>${starcloud.revision}</version>
             </dependency>
 
