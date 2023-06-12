@@ -1,11 +1,11 @@
 package com.starcloud.ops.business.app.validate;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
-import com.starcloud.ops.business.app.enums.AppResultCode;
-import com.starcloud.ops.business.app.enums.AppLogotypeEnum;
-import com.starcloud.ops.business.app.enums.AppSourceTypeEnum;
-import com.starcloud.ops.business.app.enums.AppTypeEnum;
-import com.starcloud.ops.business.app.exception.AppException;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppLogotypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -22,7 +22,7 @@ public class AppValidate {
      */
     public static String validateName(String name) {
         if (StringUtils.isBlank(name)) {
-            throw AppException.exception(AppResultCode.TEMPLATE_FIELD_IS_REQUIRED, "name");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "name");
         }
         return name.trim();
     }
@@ -34,13 +34,13 @@ public class AppValidate {
      */
     public static String validateType(String type) {
         if (StringUtils.isBlank(type)) {
-            throw AppException.exception(AppResultCode.TEMPLATE_FIELD_IS_REQUIRED, "type");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "type");
         }
         type = type.trim();
         try {
             AppTypeEnum.getEnumByName(type);
         } catch (Exception e) {
-            throw AppException.exception(AppResultCode.TEMPLATE_FIELD_NOT_SUPPORT, "type", type);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_NOT_SUPPORT, "type", type);
         }
         return type;
     }
@@ -53,13 +53,13 @@ public class AppValidate {
      */
     public static String validateLogotype(String logotype) {
         if (StringUtils.isBlank(logotype)) {
-            throw AppException.exception(AppResultCode.TEMPLATE_FIELD_IS_REQUIRED, "logotype");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "logotype");
         }
         logotype = logotype.trim();
         try {
             AppLogotypeEnum.getEnumByName(logotype);
         } catch (Exception e) {
-            throw AppException.exception(AppResultCode.TEMPLATE_FIELD_NOT_SUPPORT, "logotype", logotype);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_NOT_SUPPORT, "logotype", logotype);
         }
         return logotype;
     }
@@ -72,13 +72,13 @@ public class AppValidate {
      */
     public static String validateSourceType(String sourceType) {
         if (StringUtils.isBlank(sourceType)) {
-            throw AppException.exception(AppResultCode.TEMPLATE_FIELD_IS_REQUIRED, "sourceType");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "sourceType");
         }
         sourceType = sourceType.trim();
         try {
             AppSourceTypeEnum.getEnumByName(sourceType);
         } catch (Exception e) {
-            throw AppException.exception(AppResultCode.TEMPLATE_FIELD_NOT_SUPPORT, "sourceType", sourceType);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_NOT_SUPPORT, "sourceType", sourceType);
         }
         return sourceType;
     }
@@ -91,7 +91,7 @@ public class AppValidate {
      */
     public static AppConfigDTO validateConfig(AppConfigDTO config) {
         if (config == null) {
-            throw AppException.exception(AppResultCode.TEMPLATE_FIELD_IS_REQUIRED, "config");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "config");
         }
         return config;
     }

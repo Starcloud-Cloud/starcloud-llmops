@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.enums;
+package com.starcloud.ops.business.app.enums.app;
 
 import lombok.Getter;
 
@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 版标识, 区分自定义模版和每一种具体的系统模版，所有的模版的具体类型都基于此标识，不同的标识，模版的具体配置（步骤，变量，场景等）会有所不同。
+ * 版标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
  *
  * @author nacoyer
  * @version 1.0.0
@@ -17,90 +17,90 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum AppLogotypeEnum {
 
     /**
-     * 自定义模版：用户可以自定义模版的步骤
+     * 自定义应用：用户可以自定义应用的步骤
      */
-    CUSTOM(0, "自定义模版：用户可以自定义模版的步骤"),
+    CUSTOM(0, "自定义应用：用户可以自定义应用的步骤"),
 
     /**
-     * 系统模版：生成文本模版
+     * 系统应用：生成文本应用
      */
-    TEXT(1, "系统模版：生成文本模版"),
+    TEXT(1, "系统应用：生成文本应用"),
 
     /**
-     * 系统模版：生成图片模版
+     * 系统应用：生成图片应用
      */
-    IMAGE(2, "系统模版：生成图片模版"),
+    IMAGE(2, "系统应用：生成图片应用"),
 
     /**
-     * 系统模版：根据文本生成图片模版
+     * 系统应用：根据文本生成图片应用
      */
-    IMAGE_BY_TEXT(3, "系统模版：根据文本生成图片模版"),
+    IMAGE_BY_TEXT(3, "系统应用：根据文本生成图片应用"),
 
     /**
-     * 系统模版：文章模版
+     * 系统应用：文章应用
      */
-    ARTICLE(4, "系统模版：文章模版"),
+    ARTICLE(4, "系统应用：文章应用"),
 
     /**
-     * 系统模版：产品报告模版
+     * 系统应用：产品报告应用
      */
-    PRODUCT_REPORT(5, "系统模版：产品报告模版"),
+    PRODUCT_REPORT(5, "系统应用：产品报告应用"),
 
     /**
-     * 系统模版：文章标题模版
+     * 系统应用：文章标题应用
      */
-    POST_TITLE(6, "系统模版：文章标题模版"),
+    POST_TITLE(6, "系统应用：文章标题应用"),
 
     /**
-     * 系统模版：文章摘要模版
+     * 系统应用：文章摘要应用
      */
-    POST_EXCERPT(7, "系统模版：文章摘要模版"),
+    POST_EXCERPT(7, "系统应用：文章摘要应用"),
 
     /**
-     * 系统模版：翻译文本模版
+     * 系统应用：翻译文本应用
      */
-    TRANSLATE_TEXT(8, "系统模版：翻译文本模版"),
+    TRANSLATE_TEXT(8, "系统应用：翻译文本应用"),
 
     /**
-     * 系统模版：提升写作模版
+     * 系统应用：提升写作应用
      */
-    IMPROVE_WRITING(9, "系统模版：提升写作模版"),
+    IMPROVE_WRITING(9, "系统应用：提升写作应用"),
 
     /**
-     * 系统模版：续写模版
+     * 系统应用：续写应用
      */
-    CONTINUE_WRITING(10, "系统模版：续写模版"),
+    CONTINUE_WRITING(10, "系统应用：续写应用"),
 
     /**
-     * 系统模版：延长文本模版
+     * 系统应用：延长文本应用
      */
-    MAKE_LONGER(11, "系统模版：延长文本模版"),
+    MAKE_LONGER(11, "系统应用：延长文本应用"),
 
     /**
-     * 系统模版：总结文本模版
+     * 系统应用：总结文本应用
      */
-    SUMMARIZE_TEXT(12, "系统模版：总结文本模版"),
+    SUMMARIZE_TEXT(12, "系统应用：总结文本应用"),
 
     /**
-     * 系统模版：总结表格模版
+     * 系统应用：总结表格应用
      */
-    SUMMARIZE_TABLE(13, "系统模版：总结表格模版"),
+    SUMMARIZE_TABLE(13, "系统应用：总结表格应用"),
 
     /**
-     * 系统模版：生成表格模版
+     * 系统应用：生成表格应用
      */
-    GENERATE_TABLE(14, "系统模版：生成表格模版"),
+    GENERATE_TABLE(14, "系统应用：生成表格应用"),
 
     ;
 
     /**
-     * 模版类型Code
+     * 应用类型Code
      */
     @Getter
     private final Integer code;
 
     /**
-     * 模版类型说明
+     * 应用类型说明
      */
     @Getter
     private final String message;
@@ -117,8 +117,8 @@ public enum AppLogotypeEnum {
     /**
      * 构造函数
      *
-     * @param code    模版类型 Code
-     * @param message 模版类型说明
+     * @param code    应用类型 Code
+     * @param message 应用类型说明
      */
     AppLogotypeEnum(Integer code, String message) {
         this.code = code;
@@ -157,7 +157,7 @@ public enum AppLogotypeEnum {
      *
      * @param name 枚举名称
      *
-     * @return 模版类型
+     * @return 应用类型
      */
     public static AppLogotypeEnum getEnumByName(String name) {
         if (TEMPLATE_LOGOTYPE_CACHE.containsKey(name)) {

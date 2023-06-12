@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "模版市场对象实体")
+@Schema(description = "应用市场对象实体")
 public class AppMarketDTO implements Serializable {
 
     private static final long serialVersionUID = 1475037816778901152L;
@@ -29,87 +29,87 @@ public class AppMarketDTO implements Serializable {
     private Long id;
 
     /**
-     * 模版市场 key，我的模版上传到模版市场时候，会生成一个模版市场 key，下载模版的时候，会将该 key 存到此处。
+     * 应用市场 key，我的应用上传到应用市场时候，会生成一个应用市场 key，下载应用的时候，会将该 key 存到此处。
      */
-    @Schema(description = "模版市场 uid")
+    @Schema(description = "应用市场 uid")
     private String uid;
 
     /**
-     * 模版名称
+     * 应用名称
      */
-    @Schema(description = "模版名称")
+    @Schema(description = "应用名称")
     private String name;
 
     /**
-     * 模版类型, SYSTEM：系统推荐模版，MY_TEMPLATE：我的模版，DOWNLOAD_TEMPLATE：下载模版
+     * 应用类型, SYSTEM：系统推荐应用，MY_TEMPLATE：我的应用，DOWNLOAD_TEMPLATE：下载应用
      */
-    @Schema(description = "模版类型")
+    @Schema(description = "应用类型")
     private String type;
 
     /**
-     * 模版标识, 区分自定义模版和每一种具体的系统模版，所有的模版的具体类型都基于此标识，不同的标识，模版的具体配置（步骤，变量，场景等）会有所不同。
+     * 应用标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
      */
-    @Schema(description = "模版标识")
+    @Schema(description = "应用标识")
     private String logotype;
 
     /**
-     * 模版来源类型，表示模版的是从那个平台创建，或者下载的。比如 WrdPress ， Chrome插件等
+     * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress ， Chrome插件等
      */
-    @Schema(description = "模版来源类型")
+    @Schema(description = "应用来源类型")
     private String sourceType;
 
     /**
-     * 模版版本，默认版本 1.0.0
+     * 应用版本，默认版本 1.0.0
      */
-    @Schema(description = "模版版本")
+    @Schema(description = "应用版本")
     private String version;
 
     /**
-     * 模版标签，多个以逗号分割
+     * 应用标签，多个以逗号分割
      */
-    @Schema(description = "模版标签")
+    @Schema(description = "应用标签")
     private List<String> tags;
 
     /**
-     * 模版类别，多个以逗号分割
+     * 应用类别，多个以逗号分割
      */
-    @Schema(description = "模版类别")
+    @Schema(description = "应用类别")
     private List<String> categories;
 
     /**
-     * 模版场景，多个以逗号分割
+     * 应用场景，多个以逗号分割
      */
-    @Schema(description = "模版场景")
+    @Schema(description = "应用场景")
     private List<String> scenes;
 
     /**
-     * 模版语言
+     * 应用语言
      */
-    @Schema(description = "模版语言")
+    @Schema(description = "应用语言")
     private String language;
 
     /**
-     * 模版详细配置信息, 步骤，变量，场景等
+     * 应用详细配置信息, 步骤，变量，场景等
      */
-    @Schema(description = "模版详细配置信息")
+    @Schema(description = "应用详细配置信息")
     private AppConfigDTO config;
 
     /**
-     * 模版图片，多个以逗号分割
+     * 应用图片，多个以逗号分割
      */
-    @Schema(description = "模版图片")
+    @Schema(description = "应用图片")
     private List<String> images;
 
     /**
-     * 模版图标
+     * 应用图标
      */
-    @Schema(description = "模版图标")
+    @Schema(description = "应用图标")
     private String icon;
 
     /**
-     * 模版步骤图标、多个以逗号分割
+     * 应用步骤图标、多个以逗号分割
      */
-    @Schema(description = "模版步骤图标")
+    @Schema(description = "应用步骤图标")
     private List<String> stepIcons;
 
     /**
@@ -119,33 +119,33 @@ public class AppMarketDTO implements Serializable {
     private Integer stepCount;
 
     /**
-     * 模版描述
+     * 应用描述
      */
-    @Schema(description = "模版描述")
+    @Schema(description = "应用描述")
     private String description;
 
     /**
-     * 模版 Prompt详情
+     * 应用 Prompt详情
      */
-    @Schema(description = "模版 Prompt详情")
+    @Schema(description = "应用 Prompt详情")
     private String promptInfo;
 
     /**
-     * 模版收费数
+     * 应用收费数
      */
-    @Schema(description = "模版收费数")
+    @Schema(description = "应用收费数")
     private BigDecimal cost;
 
     /**
-     * 模版 word
+     * 应用 word
      */
-    @Schema(description = "模版 word")
+    @Schema(description = "应用 word")
     private Integer word;
 
     /**
-     * 模版是否是免费的
+     * 应用是否是免费的
      */
-    @Schema(description = "模版是否是免费的")
+    @Schema(description = "应用是否是免费的")
     private Boolean free;
 
     /**
@@ -179,15 +179,15 @@ public class AppMarketDTO implements Serializable {
     private String pluginLevel;
 
     /**
-     * 模版审核
+     * 应用审核
      */
-    @Schema(description = "模版审核")
+    @Schema(description = "应用审核")
     private Integer audit;
 
     /**
-     * 模版状态，0：启用，1：禁用
+     * 应用状态，0：启用，1：禁用
      */
-    @Schema(description = "模版状态")
+    @Schema(description = "应用状态")
     private Integer status;
 
     /**

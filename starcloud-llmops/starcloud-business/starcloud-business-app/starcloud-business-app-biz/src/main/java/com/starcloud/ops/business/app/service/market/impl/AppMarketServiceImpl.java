@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.market.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -12,16 +13,14 @@ import com.starcloud.ops.business.app.api.market.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
 import com.starcloud.ops.business.app.api.market.request.AppMarketUpdateRequest;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateRequest;
-import com.starcloud.ops.business.app.convert.AppMarketConvert;
-import com.starcloud.ops.business.app.convert.AppOperateConvert;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.convert.operate.AppOperateConvert;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.databoject.operate.AppOperateDO;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
-import com.starcloud.ops.business.app.enums.AppResultCode;
-import com.starcloud.ops.business.app.enums.AppOperateTypeEnum;
-import com.starcloud.ops.business.app.exception.AppException;
-import com.starcloud.ops.business.app.exception.AppMarketException;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -36,7 +35,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 模版市场服务
+ * 应用市场服务
  *
  * @author nacoyer
  * @version 1.0.0
@@ -56,10 +55,10 @@ public class AppMarketServiceImpl implements AppMarketService {
     private TransactionTemplate transactionTemplate;
 
     /**
-     * 分页查询模版市场列表
+     * 分页查询应用市场列表
      *
      * @param query 查询条件
-     * @return 模版市场列表
+     * @return 应用市场列表
      */
     @Override
     public PageResp<AppMarketDTO> page(AppMarketPageQuery query) {
@@ -76,30 +75,31 @@ public class AppMarketServiceImpl implements AppMarketService {
     }
 
     /**
-     * 根据模版 ID 获取模版详情
+     * 根据应用 ID 获取应用详情
      *
-     * @param id 模版 ID
-     * @return 模版详情
+     * @param id 应用 ID
+     * @return 应用详情
      */
     @Override
     public AppMarketDTO getById(Long id) {
         AppMarketDO templateMarketDO = appMarketMapper.selectById(id);
-        Assert.notNull(templateMarketDO, "The Id: " + id + " template does not exist in template market.");
+        Assert.notNull(templateMarketDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NOT_EXISTS, id));
         return AppMarketConvert.convert(templateMarketDO);
     }
 
     /**
-     * 根据模版 uid 获取模版详情
+     * 根据应用 uid 获取应用详情
      *
-     * @param uid 模版 uid
-     * @return 模版详情
+     * @param uid     应用 uid
+     * @param version 应用版本
+     * @return 应用详情
      */
     @Override
-    public AppMarketDTO getByUid(String uid) {
-        LambdaQueryWrapper<AppMarketDO> wrapper = buildBaseQueryWrapper().eq(AppMarketDO::getUid, uid);
+    public AppMarketDTO getByUid(String uid, String version) {
+        LambdaQueryWrapper<AppMarketDO> wrapper = buildBaseQueryWrapper().eq(AppMarketDO::getUid, uid).eq(AppMarketDO::getVersion, version);
         AppMarketDO templateMarketDO = appMarketMapper.selectOne(wrapper);
-        Assert.notNull(templateMarketDO, "The Uid: " + uid + " template does not exist in template market.");
-        // 查看详情时候，会增加模版的查看量
+        Assert.notNull(templateMarketDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid));
+        // 查看详情时候，会增加应用的查看量
         Integer viewCount = templateMarketDO.getViewCount() + 1;
         appMarketMapper.update(null, Wrappers.lambdaUpdate(AppMarketDO.class)
                 .set(AppMarketDO::getViewCount, viewCount)
@@ -111,129 +111,94 @@ public class AppMarketServiceImpl implements AppMarketService {
     }
 
     /**
-     * 创建模版市场的模版
+     * 创建应用市场的应用
      *
-     * @param request 模版信息
-     * @return 是否创建成功
+     * @param request 应用信息
      */
     @Override
-    public Boolean create(AppMarketRequest request) {
-        try {
-            AppMarketDO templateMarketDO = AppMarketConvert.convertCreate(request);
-            templateMarketDO.setUid(IdUtil.simpleUUID());
-            appMarketMapper.insert(templateMarketDO);
-            return Boolean.TRUE;
-        } catch (AppMarketException | AppException e) {
-            throw e;
-        } catch (Exception e) {
-            throw AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_CREATE_FAILED, e.getMessage());
-        }
+    public void create(AppMarketRequest request) {
+        AppMarketDO templateMarketDO = AppMarketConvert.convertCreate(request);
+        templateMarketDO.setUid(IdUtil.simpleUUID());
+        appMarketMapper.insert(templateMarketDO);
     }
 
     /**
-     * 更新模版市场的模版
+     * 更新应用市场的应用
      *
-     * @param request 模版信息
-     * @return 是否更新成功
+     * @param request 应用信息
      */
     @Override
-    public Boolean modify(AppMarketUpdateRequest request) {
-        try {
-            AppMarketDO templateMarketDO = AppMarketConvert.convertModify(request);
-            LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
-                    .eq(AppMarketDO::getUid, request.getUid())
-                    .eq(AppMarketDO::getDeleted, Boolean.FALSE)
-                    .eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode());
-            appMarketMapper.update(templateMarketDO, wrapper);
-            return Boolean.TRUE;
-        } catch (AppMarketException | AppException e) {
-            throw e;
-        } catch (Exception e) {
-            throw AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_MODIFY_FAILED, e.getMessage());
-        }
+    public void modify(AppMarketUpdateRequest request) {
+        AppMarketDO templateMarketDO = AppMarketConvert.convertModify(request);
+        LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
+                .eq(AppMarketDO::getUid, request.getUid())
+                .eq(AppMarketDO::getVersion, request.getVersion())
+                .eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode());
+        appMarketMapper.update(templateMarketDO, wrapper);
     }
 
     /**
-     * 删除模版市场的模版
+     * 删除应用市场的应用
      *
-     * @param id 模版 ID
-     * @return 是否删除成功
+     * @param id 应用 ID
      */
     @Override
-    public Boolean delete(Long id) {
-        try {
-            AppMarketDO templateMarketDO = appMarketMapper.selectById(id);
-            Assert.notNull(templateMarketDO, "The Id: " + id + " template does not exist in template market.");
-            appMarketMapper.deleteById(id);
-            return Boolean.TRUE;
-        } catch (AppMarketException e) {
-            throw e;
-        } catch (Exception e) {
-            throw AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_DELETE_FAILED, e.getMessage());
-        }
+    public void delete(Long id) {
+        AppMarketDO templateMarketDO = appMarketMapper.selectById(id);
+        Assert.notNull(templateMarketDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NOT_EXISTS, id));
+        appMarketMapper.deleteById(id);
     }
 
     /**
-     * 删除模版市场的模版
+     * 删除应用市场的应用
      *
-     * @param uid 模版 uid
-     * @return 是否删除成功
+     * @param uid     应用 uid
+     * @param version 应用版本
      */
     @Override
-    public Boolean deleteByUid(String uid) {
-        try {
-            LambdaQueryWrapper<AppMarketDO> wrapper = buildBaseQueryWrapper().eq(AppMarketDO::getUid, uid);
-            AppMarketDO appMarketDO = appMarketMapper.selectOne(wrapper);
-            // 您要删除的模版不存在
-            Assert.notNull(appMarketDO, "The Uid: " + uid + " of you want to delete template does not exist in template market.");
-            appMarketMapper.deleteById(appMarketDO.getId());
-            return Boolean.TRUE;
-        } catch (AppMarketException e) {
-            throw e;
-        } catch (Exception e) {
-            throw AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_DELETE_FAILED, e.getMessage());
-        }
+    public void deleteByUid(String uid, String version) {
+        LambdaQueryWrapper<AppMarketDO> wrapper = buildBaseQueryWrapper()
+                .eq(AppMarketDO::getUid, uid)
+                .eq(AppMarketDO::getVersion, version);
+        AppMarketDO appMarketDO = appMarketMapper.selectOne(wrapper);
+        // 您要删除的应用不存在
+        Assert.notNull(appMarketDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid));
+        appMarketMapper.deleteById(appMarketDO.getId());
     }
 
     /**
-     * 模版操作
+     * 应用操作
      *
      * @param request 操作请求
      * @return 是否操作成功
      */
     @Override
     public Boolean operate(AppOperateRequest request) {
-        try {
-            AppMarketDTO appMarketDTO = this.getByUid(request.getTemplateUid());
-            Assert.notNull(appMarketDTO, "The Uid: " + request.getTemplateUid() + " template does not exist in template market.");
-            return transactionTemplate.execute(status -> {
-                AppOperateDO operateDO = AppOperateConvert.convert(request);
-                // 插入操作记录
-                appOperateMapper.insert(operateDO);
-                // 更新模版市场的操作的数量
-                String operate = request.getOperate().toUpperCase();
-                AppMarketDO appMarketDO = new AppMarketDO();
-                LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
-                        .eq(AppMarketDO::getUid, request.getTemplateUid())
-                        .eq(AppMarketDO::getDeleted, Boolean.FALSE)
-                        .eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode());
-                if (AppOperateTypeEnum.LIKE.name().equals(operate)) {
-                    appMarketDO.setLikeCount(appMarketDTO.getLikeCount() + 1);
-                } else if (AppOperateTypeEnum.DOWNLOAD.name().equals(operate)) {
-                    appMarketDO.setDownloadCount(appMarketDTO.getDownloadCount() + 1);
-                } else if (AppOperateTypeEnum.VIEW.name().equals(operate)) {
-                    appMarketDO.setViewCount(appMarketDTO.getViewCount() + 1);
-                } else {
-                    throw AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_OPERATE_FAIL, "The operate: " + request.getOperate() + " is not supported.");
-                }
-                appMarketMapper.update(appMarketDO, wrapper);
-                return Boolean.TRUE;
-            });
-        } catch (AppMarketException e) {
-            throw e;
-        } catch (Exception e) {
-            throw AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_OPERATE_FAIL, e.getMessage());
-        }
+        AppMarketDTO appMarketDTO = this.getByUid(request.getTemplateUid(), request.getVersion());
+        Assert.notNull(appMarketDTO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, request.getTemplateUid()));
+        return transactionTemplate.execute(status -> {
+            AppOperateDO operateDO = AppOperateConvert.convert(request);
+            // 插入操作记录
+            appOperateMapper.insert(operateDO);
+            // 更新应用市场的操作的数量
+            String operate = request.getOperate().toUpperCase();
+            AppMarketDO appMarketDO = new AppMarketDO();
+            LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
+                    .eq(AppMarketDO::getUid, request.getTemplateUid())
+                    .eq(AppMarketDO::getDeleted, Boolean.FALSE)
+                    .eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode());
+            if (AppOperateTypeEnum.LIKE.name().equals(operate)) {
+                appMarketDO.setLikeCount(appMarketDTO.getLikeCount() + 1);
+            } else if (AppOperateTypeEnum.DOWNLOAD.name().equals(operate)) {
+                appMarketDO.setDownloadCount(appMarketDTO.getDownloadCount() + 1);
+            } else if (AppOperateTypeEnum.VIEW.name().equals(operate)) {
+                appMarketDO.setViewCount(appMarketDTO.getViewCount() + 1);
+            } else {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_OPERATE_NOT_SUPPORTED, request.getOperate());
+            }
+            appMarketMapper.update(appMarketDO, wrapper);
+            return Boolean.TRUE;
+        });
     }
 
     /**
@@ -242,9 +207,7 @@ public class AppMarketServiceImpl implements AppMarketService {
      * @return 基础查询条件
      */
     private static LambdaQueryWrapper<AppMarketDO> buildBaseQueryWrapper() {
-        return Wrappers.lambdaQuery(AppMarketDO.class)
-                .eq(AppMarketDO::getDeleted, Boolean.FALSE)
-                .eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode());
+        return Wrappers.lambdaQuery(AppMarketDO.class).eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode());
     }
 
     /**
@@ -271,7 +234,6 @@ public class AppMarketServiceImpl implements AppMarketService {
                         AppMarketDO::getCreator,
                         AppMarketDO::getCreateTime
                 )
-                .eq(AppMarketDO::getDeleted, Boolean.FALSE)
                 .eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode());
     }
 }

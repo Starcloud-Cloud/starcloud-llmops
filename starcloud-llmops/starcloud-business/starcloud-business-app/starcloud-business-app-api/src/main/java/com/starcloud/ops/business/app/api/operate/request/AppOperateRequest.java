@@ -8,30 +8,30 @@ import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
- * 模版操作管理表DO，operate 表示操作类型，LIKE 标识喜欢，VIEW 标识查看，DOWNLOAD 标识下载
+ * 应用操作管理表DO，operate 表示操作类型，LIKE 标识喜欢，VIEW 标识查看，DOWNLOAD 标识下载
  *
  * @author admin
  * @since 2023-06-12
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Schema(description = "模版操作管理表请求类")
+@Schema(description = "应用操作管理表请求类")
 public class AppOperateRequest implements Serializable {
 
     private static final long serialVersionUID = -2376678376100185771L;
 
     /**
-     * 模版 UID
+     * 应用 UID
      */
-    @Schema(description = "模版 UID")
-    @NotBlank(message = "模版 UID 不能为空")
+    @Schema(description = "应用 UID")
+    @NotBlank(message = "应用 UID 不能为空")
     private String templateUid;
 
     /**
      * 版本号
      */
-    @Schema(description = "模版版本号")
-    @NotBlank(message = "模版版本号不能为空")
+    @Schema(description = "应用版本号")
+    @NotBlank(message = "应用版本号不能为空")
     private String version;
 
     /**

@@ -18,39 +18,39 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "模版查询类")
+@Schema(description = "应用查询类")
 public class AppPageQuery extends PageQuery {
 
     private static final long serialVersionUID = 7950105091779298947L;
 
     /**
-     * 模版名称
+     * 应用名称
      */
-    @Schema(description = "模版名称")
+    @Schema(description = "应用名称")
     private String name;
 
     /**
-     * 模版类型
+     * 应用类型
      */
-    @Schema(description = "模版类型")
+    @Schema(description = "应用类型")
     private String type;
 
     /**
-     * 模版标签
+     * 应用标签
      */
-    @Schema(description = "模版标签")
+    @Schema(description = "应用标签")
     private List<String> tags;
 
     /**
-     * 模版分类
+     * 应用分类
      */
-    @Schema(description = "模版分类")
+    @Schema(description = "应用分类")
     private List<String> categories;
 
     /**
-     * 模版场景
+     * 应用场景
      */
-    @Schema(description = "模版场景")
+    @Schema(description = "应用场景")
     private List<String> scenes;
 
 }

@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.enums;
+package com.starcloud.ops.business.app.enums.app;
 
 import lombok.Getter;
 
@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 模版类型, 0：系统推荐模版，1：我的模版，2：下载模版
+ * 应用类型, 0：系统推荐应用，1：我的应用，2：下载应用
  *
  * @author nacoyer
  * @version 1.0.0
@@ -17,30 +17,30 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum AppTypeEnum {
 
     /**
-     * 系统模版：系统提供的推荐模版
+     * 系统应用：系统提供的推荐应用
      */
-    SYSTEM_TEMPLATE(0, "系统模版：系统提供的推荐模版"),
+    SYSTEM_TEMPLATE(0, "系统应用：系统提供的推荐应用"),
 
     /**
-     * 我的模版：我创建的模版
+     * 我的应用：我创建的应用
      */
-    MY_TEMPLATE(1, "我的模版：我创建的模版"),
+    MY_TEMPLATE(1, "我的应用：我创建的应用"),
 
     /**
-     * 下载模版：我已经下载的模版
+     * 下载应用：我已经下载的应用
      */
-    DOWNLOAD_TEMPLATE(2, "下载模版：我已经下载的模版"),
+    DOWNLOAD_TEMPLATE(2, "下载应用：我已经下载的应用"),
 
     ;
 
     /**
-     * 模版类型Code
+     * 应用类型Code
      */
     @Getter
     private final Integer code;
 
     /**
-     * 模版类型说明
+     * 应用类型说明
      */
     @Getter
     private final String message;
@@ -57,8 +57,8 @@ public enum AppTypeEnum {
     /**
      * 构造函数
      *
-     * @param code    模版类型 Code
-     * @param message 模版类型说明
+     * @param code    应用类型 Code
+     * @param message 应用类型说明
      */
     AppTypeEnum(Integer code, String message) {
         this.code = code;
@@ -87,21 +87,21 @@ public enum AppTypeEnum {
                 return type.name();
             }
         }
-        // 不支持的模版类型 Code
+        // 不支持的应用类型 Code
         throw new IllegalArgumentException("The code " + code + " of " + AppTypeEnum.class.getCanonicalName() + " is not supported.");
     }
 
     /**
-     * 根据名称获取模版类型枚举
+     * 根据名称获取应用类型枚举
      *
      * @param name 枚举名称
-     * @return 模版类型
+     * @return 应用类型
      */
     public static AppTypeEnum getEnumByName(String name) {
         if (TEMPLATE_TYPE_CACHE.containsKey(name)) {
             return TEMPLATE_TYPE_CACHE.get(name);
         }
-        // 不支持的模版类型名称
+        // 不支持的应用类型名称
         throw new IllegalArgumentException("The name " + name + " of " + AppTypeEnum.class.getCanonicalName() + " is not supported.");
     }
 

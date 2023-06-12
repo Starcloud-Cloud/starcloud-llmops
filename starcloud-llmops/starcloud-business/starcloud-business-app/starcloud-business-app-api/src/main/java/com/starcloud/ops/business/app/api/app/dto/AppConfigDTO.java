@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * AIGC 模版配置DTO
+ * AIGC 应用配置DTO
  *
  * @author nacoyer
  * @version 1.0.0
@@ -16,75 +16,75 @@ import java.util.List;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "模版配置DTO")
+@Schema(description = "应用配置DTO")
 public class AppConfigDTO implements Serializable {
 
     private static final long serialVersionUID = 1575558145567574534L;
 
     /**
-     * 模版名称
+     * 应用名称
      */
-    @Schema(description = "模版名称")
+    @Schema(description = "应用名称")
     private String name;
 
     /**
-     * 模版类型, 0：系统推荐模版，1：我的模版，2：下载模版
+     * 应用类型, 0：系统推荐应用，1：我的应用，2：下载应用
      */
-    @Schema(description = "模版类型")
+    @Schema(description = "应用类型")
     private String type;
 
     /**
-     * 模版标识, 区分自定义模版和每一种具体的系统模版，所有的模版的具体类型都基于此标识，不同的标识，模版的具体配置（步骤，变量，场景等）会有所不同。
+     * 应用标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
      */
-    @Schema(description = "模版标识")
+    @Schema(description = "应用标识")
     private String logotype;
 
     /**
-     * 模版来源类型，表示模版的是从那个平台创建，或者下载的。比如 WrdPress，Chrome插件等
+     * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress，Chrome插件等
      */
-    @Schema(description = "模版来源类型")
+    @Schema(description = "应用来源类型")
     private String sourceType;
 
     /**
-     * 模版版本，默认版本 1.0.0
+     * 应用版本，默认版本 1.0.0
      */
-    @Schema(description = "模版版本")
+    @Schema(description = "应用版本")
     private String version;
 
     /**
-     * 模版标签
+     * 应用标签
      */
-    @Schema(description = "模版标签")
+    @Schema(description = "应用标签")
     private List<String> tags;
 
     /**
-     * 模版类别
+     * 应用类别
      */
-    @Schema(description = "模版类别")
+    @Schema(description = "应用类别")
     private List<String> categories;
 
     /**
-     * 模版场景
+     * 应用场景
      */
-    @Schema(description = "模版场景")
+    @Schema(description = "应用场景")
     private List<String> scenes;
 
     /**
-     * 模版步骤
+     * 应用步骤
      */
-    @Schema(description = "模版步骤")
+    @Schema(description = "应用步骤")
     private List<StepWrapperDTO> steps;
 
     /**
-     * 模版变量
+     * 应用变量
      */
-    @Schema(description = "模版变量")
+    @Schema(description = "应用变量")
     private List<VariableDTO> variables;
 
     /**
-     * 模版描述
+     * 应用描述
      */
-    @Schema(description = "模版描述")
+    @Schema(description = "应用描述")
     private String description;
 
 }

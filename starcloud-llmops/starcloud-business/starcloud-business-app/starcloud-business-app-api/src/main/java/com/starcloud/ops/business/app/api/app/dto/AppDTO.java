@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 模版数据传输对象
+ * 应用数据传输对象
  *
  * @author nacoyer
  * @version 1.0.0
@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "模版对象实体")
+@Schema(description = "应用对象实体")
 public class AppDTO implements Serializable {
 
     private static final long serialVersionUID = 1578944445567574534L;
@@ -29,105 +29,105 @@ public class AppDTO implements Serializable {
     private Long id;
 
     /**
-     * 模版唯一标识
+     * 应用唯一标识
      */
-    @Schema(description = "模版唯一标识")
+    @Schema(description = "应用唯一标识")
     private String uid;
 
     /**
-     * 模版名称
+     * 应用名称
      */
-    @Schema(description = "模版名称")
+    @Schema(description = "应用名称")
     private String name;
 
     /**
-     * 模版类型
+     * 应用类型
      */
-    @Schema(description = "模版类型")
+    @Schema(description = "应用类型")
     private String type;
 
     /**
-     * 模版标识, 区分自定义模版和每一种具体的系统模版，所有的模版的具体类型都基于此标识，不同的标识，模版的具体配置（步骤，变量，场景等）会有所不同。
+     * 应用标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
      */
-    @Schema(description = "模版标识")
+    @Schema(description = "应用标识")
     private String logotype;
 
     /**
-     * 模版来源类型，表示模版的是从那个平台创建，或者下载的。比如 WrdPress，Chrome插件等
+     * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress，Chrome插件等
      */
-    @Schema(description = "模版来源类型")
+    @Schema(description = "应用来源类型")
     private String sourceType;
 
     /**
-     * 上传成功后，模版市场 UID
+     * 上传成功后，应用市场 UID
      */
-    @Schema(description = "上传成功后，模版市场 UID")
+    @Schema(description = "上传成功后，应用市场 UID")
     private String uploadUid;
 
     /**
-     * 下载成功后，模版市场 UID
+     * 下载成功后，应用市场 UID
      */
-    @Schema(description = "下载成功后，模版市场 UID")
+    @Schema(description = "下载成功后，应用市场 UID")
     private String downloadUid;
 
     /**
-     * 模版版本，默认版本 1.0.0
+     * 应用版本，默认版本 1.0.0
      */
-    @Schema(description = "模版版本")
+    @Schema(description = "应用版本")
     private String version;
 
     /**
-     * 模版标签
+     * 应用标签
      */
-    @Schema(description = "模版标签")
+    @Schema(description = "应用标签")
     private List<String> tags;
 
     /**
-     * 模版类别
+     * 应用类别
      */
-    @Schema(description = "模版类别")
+    @Schema(description = "应用类别")
     private List<String> categories;
 
     /**
-     * 模版场景
+     * 应用场景
      */
-    @Schema(description = "模版场景")
+    @Schema(description = "应用场景")
     private List<String> scenes;
 
     /**
-     * 模版详细配置信息, 步骤，变量，场景等
+     * 应用详细配置信息, 步骤，变量，场景等
      */
-    @Schema(description = "模版详细配置信息")
+    @Schema(description = "应用详细配置信息")
     private AppConfigDTO config;
 
     /**
-     * 模版图片
+     * 应用图片
      */
-    @Schema(description = "模版图片")
+    @Schema(description = "应用图片")
     private List<String> images;
 
     /**
-     * 模版图标
+     * 应用图标
      */
-    @Schema(description = "模版图标")
+    @Schema(description = "应用图标")
     private String icon;
 
     /**
-     * 模版步骤的图标
+     * 应用步骤的图标
      */
-    @Schema(description = "模版步骤的图标")
+    @Schema(description = "应用步骤的图标")
     private List<String> stepIcons;
 
     /**
-     * 模版描述
+     * 应用描述
      */
-    @Schema(description = "模版描述")
+    @Schema(description = "应用描述")
     private String description;
 
     /**
-     * 模版状态，0：启用，1：禁用
+     * 应用状态，0：启用，1：禁用
      */
-    @Schema(description = "模版状态")
+    @Schema(description = "应用状态")
     private Integer status;
 
     /**
@@ -137,33 +137,33 @@ public class AppDTO implements Serializable {
     private Boolean deleted;
 
     /**
-     * 模版创建者
+     * 应用创建者
      */
-    @Schema(description = "模版创建者")
+    @Schema(description = "应用创建者")
     private String creator;
 
     /**
-     * 模版修改者
+     * 应用修改者
      */
-    @Schema(description = "模版修改者")
+    @Schema(description = "应用修改者")
     private String updater;
 
     /**
-     * 模版创建时间
+     * 应用创建时间
      */
-    @Schema(description = "模版创建时间")
+    @Schema(description = "应用创建时间")
     private LocalDateTime createTime;
 
     /**
-     * 模版更新时间
+     * 应用更新时间
      */
-    @Schema(description = "模版更新时间")
+    @Schema(description = "应用更新时间")
     private LocalDateTime updateTime;
 
     /**
-     * 最后一次上传到模版市场时间
+     * 最后一次上传到应用市场时间
      */
-    @Schema(description = "最后一次上传到模版市场时间")
+    @Schema(description = "最后一次上传到应用市场时间")
     private LocalDateTime lastUpload;
 
     /**

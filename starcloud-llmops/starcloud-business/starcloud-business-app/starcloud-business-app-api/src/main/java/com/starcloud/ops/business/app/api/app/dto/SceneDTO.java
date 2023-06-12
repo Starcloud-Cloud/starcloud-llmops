@@ -7,7 +7,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 模版场景
+ * 应用场景
  *
  * @author nacoyer
  * @version 1.0.0
@@ -15,7 +15,7 @@ import java.io.Serializable;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "模版场景")
+@Schema(description = "应用场景")
 public class SceneDTO implements Serializable {
 
     private static final long serialVersionUID = 157689534536774534L;

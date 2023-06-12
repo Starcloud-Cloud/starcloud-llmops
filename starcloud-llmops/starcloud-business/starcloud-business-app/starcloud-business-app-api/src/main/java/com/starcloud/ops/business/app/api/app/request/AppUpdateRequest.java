@@ -17,16 +17,16 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "模版更新请求实体")
+@Schema(description = "应用更新请求实体")
 public class AppUpdateRequest extends AppRequest {
 
     private static final long serialVersionUID = 1578943423437574534L;
 
     /**
-     * 模版ID
+     * 应用ID
      */
-    @Schema(description = "模版UID")
-    @NotNull(message = "模版UID不能为空")
+    @Schema(description = "应用UID")
+    @NotNull(message = "应用UID不能为空")
     private String uid;
 
 }

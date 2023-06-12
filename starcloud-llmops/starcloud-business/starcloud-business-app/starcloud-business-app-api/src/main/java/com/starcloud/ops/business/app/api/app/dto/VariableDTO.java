@@ -89,9 +89,9 @@ public class VariableDTO implements Serializable {
     private Integer order;
 
     /**
-     * 模版描述
+     * 应用描述
      */
-    @Schema(description = "模版描述")
+    @Schema(description = "应用描述")
     private String description;
 
 }
