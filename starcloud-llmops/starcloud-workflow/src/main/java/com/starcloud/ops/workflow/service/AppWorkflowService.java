@@ -44,9 +44,9 @@ public class AppWorkflowService {
     }
 
 
-    public void fireByApp(String appId, AppDTO templateDTO) {
+    public void fireByApp(String appId, AppDTO AppDTO) {
 
-        AppEntity app = AppFactory.factory(appId, templateDTO);
+        AppEntity app = AppFactory.factory(appId, AppDTO);
 
         log.info("fireByAppUid app: {}", app);
 
@@ -69,9 +69,9 @@ public class AppWorkflowService {
         this.fireByAppContext(appContext);
     }
 
-    public void fireByApp(String appId, TemplateDTO templateDTO, String stepId, HttpServletResponse httpServletResponse) {
+    public void fireByApp(String appId, AppDTO AppDTO, String stepId, HttpServletResponse httpServletResponse) {
 
-        AppEntity app = AppFactory.factory(appId, templateDTO, stepId);
+        AppEntity app = AppFactory.factory(appId, AppDTO, stepId);
 
         log.info("fireByAppUid app: {}", app);
 
@@ -91,7 +91,7 @@ public class AppWorkflowService {
 
         AppContext appContext = new AppContext(app);
         appContext.setStepId(stepId);
-        appContext.setRequestId(requestId);
+        appContext.setConversationId(requestId);
 
         this.fireByAppContext(appContext);
 
