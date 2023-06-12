@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.enums;
+package com.starcloud.ops.business.app.enums.app;
 
 import lombok.Getter;
 
@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 模版来源类型，表示模版的是从那个平台创建，或者下载的。比如 WrdPress ， Chrome插件等
+ * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress ， Chrome插件等
  *
  * @author nacoyer
  * @version 1.0.0
@@ -38,13 +38,13 @@ public enum AppSourceTypeEnum {
     
     ;
     /**
-     * 模版类型Code
+     * 应用类型Code
      */
     @Getter
     private final Integer code;
 
     /**
-     * 模版类型说明
+     * 应用类型说明
      */
     @Getter
     private final String message;
@@ -61,8 +61,8 @@ public enum AppSourceTypeEnum {
     /**
      * 构造函数
      *
-     * @param code    模版类型 Code
-     * @param message 模版类型说明
+     * @param code    应用类型 Code
+     * @param message 应用类型说明
      */
     AppSourceTypeEnum(Integer code, String message) {
         this.code = code;
@@ -101,7 +101,7 @@ public enum AppSourceTypeEnum {
      *
      * @param name 枚举名称
      *
-     * @return 模版类型
+     * @return 应用类型
      */
     public static AppSourceTypeEnum getEnumByName(String name) {
         if (TEMPLATE_SOURCE_TYPE_CACHE.containsKey(name)) {

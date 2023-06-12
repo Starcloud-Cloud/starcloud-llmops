@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "模版步骤对象")
+@Schema(description = "应用步骤对象")
 public class StepDTO implements Serializable {
 
     private static final long serialVersionUID = 157666534536774534L;

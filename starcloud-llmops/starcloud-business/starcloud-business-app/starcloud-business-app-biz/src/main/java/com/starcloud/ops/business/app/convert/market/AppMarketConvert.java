@@ -1,15 +1,15 @@
-package com.starcloud.ops.business.app.convert;
+package com.starcloud.ops.business.app.convert.market;
 
 import cn.hutool.core.lang.Assert;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
 import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
 import com.starcloud.ops.business.app.api.market.request.AppMarketUpdateRequest;
-import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.AppResultCode;
-import com.starcloud.ops.business.app.exception.AppMarketException;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.AppUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import lombok.experimental.UtilityClass;
@@ -75,7 +75,7 @@ public class AppMarketConvert {
     public static AppMarketDO convertCreate(AppMarketRequest request) {
 
         // 基础校验和数据处理
-        Assert.notNull(request, () -> AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_DATA_IS_NULL, "TemplateMarketRequest"));
+        Assert.notNull(request, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_DATA_IS_NULL, "AppMarketRequest"));
         String name = AppValidate.validateName(request.getName());
         String type = AppValidate.validateType(request.getType());
         String logotype = AppValidate.validateLogotype(request.getLogotype());
@@ -90,7 +90,7 @@ public class AppMarketConvert {
         market.setType(type);
         market.setLogotype(logotype);
         market.setSourceType(sourceType);
-        market.setVersion(Optional.ofNullable(request.getVersion()).orElse(AppConstants.DEFAULT_VERSION));
+        market.setVersion(AppConstants.DEFAULT_VERSION);
         market.setTags(tags);
         market.setCategories(categories);
         market.setScenes(scenes);
@@ -133,8 +133,9 @@ public class AppMarketConvert {
      */
     public static AppMarketDO convertModify(AppMarketUpdateRequest request) {
         AppMarketDO market = new AppMarketDO();
-        Assert.notNull(request, () -> AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_DATA_IS_NULL, "TemplateMarketUpdateRequest"));
+        Assert.notNull(request, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_DATA_IS_NULL, "AppMarketUpdateRequest"));
         market.setUid(request.getUid());
+        market.setVersion(request.getVersion());
         return convertCreate(request);
     }
 }

@@ -1,13 +1,17 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.StepDTO;
 import com.starcloud.ops.business.app.api.app.dto.StepWrapperDTO;
-import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -140,4 +144,5 @@ public class AppUtil {
 
         return 0;
     }
+
 }

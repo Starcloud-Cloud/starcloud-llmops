@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.enums;
+package com.starcloud.ops.business.app.enums.operate;
 
 import lombok.Getter;
 
@@ -26,13 +26,13 @@ public enum AppOperateTypeEnum {
     ;
 
     /**
-     * 模版类型Code
+     * 应用类型Code
      */
     @Getter
     private final Integer code;
 
     /**
-     * 模版类型说明
+     * 应用类型说明
      */
     @Getter
     private final String message;
@@ -40,8 +40,8 @@ public enum AppOperateTypeEnum {
     /**
      * 构造函数
      *
-     * @param code    模版操作类型 Code
-     * @param message 模版操作类型说明
+     * @param code    应用操作类型 Code
+     * @param message 应用操作类型说明
      */
     AppOperateTypeEnum(Integer code, String message) {
         this.code = code;

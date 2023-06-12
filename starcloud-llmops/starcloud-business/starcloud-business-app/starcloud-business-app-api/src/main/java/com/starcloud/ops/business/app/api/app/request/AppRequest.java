@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "模版基础请求实体")
+@Schema(description = "应用基础请求实体")
 public class AppRequest implements Serializable {
 
     private static final long serialVersionUID = 1578944445567574534L;

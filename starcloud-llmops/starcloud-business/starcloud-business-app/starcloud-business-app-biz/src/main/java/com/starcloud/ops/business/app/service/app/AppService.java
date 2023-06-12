@@ -9,7 +9,7 @@ import com.starcloud.ops.framework.common.api.dto.PageResp;
 import java.util.List;
 
 /**
- * 模版管理服务
+ * 应用管理服务
  *
  * @author nacoyer
  * @version 1.0.0
@@ -18,103 +18,99 @@ import java.util.List;
 public interface AppService {
 
     /**
-     * 查询推荐的模版列表
+     * 查询推荐的应用列表
      *
      * @return 模版列表
      */
     List<AppDTO> listRecommendedTemplates();
 
     /**
-     * 分页查询模版列表
+     * 分页查询应用列表
      *
      * @param query 查询条件
-     * @return 模版列表
+     * @return 应用列表
      */
     PageResp<AppDTO> page(AppPageQuery query);
 
     /**
-     * 分页查询下载的模版列表
+     * 分页查询已下载的应用列表
      *
      * @param query 查询条件
-     * @return 模版列表
+     * @return 已下载应用列表
      */
     PageResp<AppDTO> pageDownloadTemplates(AppPageQuery query);
 
     /**
-     * 分页查询我的模版列表
+     * 分页查询我的应用列表
      *
      * @param query 查询条件
-     * @return 模版列表
+     * @return 我的应用列表
      */
     PageResp<AppDTO> pageMyTemplate(AppPageQuery query);
 
     /**
-     * 根据模版 ID 获取模版详情
+     * 根据应用 ID 获取应用详情
      *
-     * @param id 模版 ID
-     * @return 模版详情
+     * @param id 应用 ID
+     * @return 应用详情
      */
     AppDTO getById(Long id);
 
     /**
-     * 根据模版 UID 获取模版详情
+     * 根据应用 UID 获取应用详情
      *
-     * @param uid 模版 UID
-     * @return 模版详情
+     * @param uid 应用 UID
+     * @return 应用详情
      */
     AppDTO getByUid(String uid);
 
     /**
      * 创建模版
      *
-     * @param request 模版信息
-     * @return 是否创建成功
+     * @param request 应用请求信息
      */
-    Boolean create(AppRequest request);
+    void create(AppRequest request);
 
     /**
-     * 复制模版
+     * 复制应用
      *
-     * @param request 模版信息
-     * @return 是否复制成功
+     * @param request 应用请求信息
      */
-    Boolean copy(AppRequest request);
+    void copy(AppRequest request);
 
     /**
-     * 更新模版
+     * 应用模版
      *
-     * @param request 模版信息
-     * @return 是否更新成功
+     * @param request 应用更新请求信息
      */
-    Boolean modify(AppUpdateRequest request);
+    void modify(AppUpdateRequest request);
 
     /**
-     * 删除模版
+     * 删除应用
      *
-     * @param id 模版ID
-     * @return 是否删除成功
+     * @param id 应用ID
      */
-    Boolean delete(Long id);
+    void delete(Long id);
 
     /**
-     * 根据模版 UID 删除模版
+     * 根据应用 UID 删除应用
      *
-     * @param uid 模版 UID
-     * @return 是否删除成功
+     * @param uid 应用 UID
      */
-    Boolean deleteByUid(String uid);
+    void deleteByUid(String uid);
 
     /**
-     * 校验模版是否已经下载过
+     * 校验应用是否已经下载过
      *
-     * @param marketKey 模版市场特有的 key，唯一。
+     * @param marketKey 应用市场 UID。
      * @return 是否已经下载
      */
     Boolean verifyHasDownloaded(String marketKey);
 
     /**
-     * 模版名称重复校验
-     * @param name 模版名称
+     * 应用名称重复校验
+     *
+     * @param name 应用名称
      * @return 是否重复
      */
     Boolean duplicateNameVerification(String name);

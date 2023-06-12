@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * 模版步骤响应 DTO
+ * 应用步骤响应 DTO
  *
  * @author nacoyer
  * @version 1.0.0
@@ -13,7 +13,7 @@ import lombok.Data;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "模版步骤响应对象")
+@Schema(description = "应用步骤响应对象")
 public class StepResponse {
 
     /**

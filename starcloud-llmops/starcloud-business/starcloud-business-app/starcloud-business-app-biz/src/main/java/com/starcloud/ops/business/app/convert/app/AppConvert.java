@@ -1,6 +1,7 @@
-package com.starcloud.ops.business.app.convert;
+package com.starcloud.ops.business.app.convert.app;
 
 import cn.hutool.core.lang.Assert;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
@@ -8,8 +9,7 @@ import com.starcloud.ops.business.app.api.app.request.AppRequest;
 import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.AppResultCode;
-import com.starcloud.ops.business.app.exception.AppException;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.AppUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
@@ -34,7 +34,7 @@ public class AppConvert {
      * @return 模版 DTO
      */
     public static AppDTO convert(AppDO appDO) {
-        Assert.notNull(appDO, () -> AppException.exception(AppResultCode.TEMPLATE_DATA_IS_NULL, "AppDO"));
+        Assert.notNull(appDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_DATA_IS_NULL, "AppDO"));
         AppDTO appDTO = new AppDTO();
         // ID 为 null, 不透传给前端
         appDTO.setId(null);
@@ -73,7 +73,7 @@ public class AppConvert {
      */
     public static AppDO convertCreate(AppRequest request) {
         // 基础校验和数据处理
-        Assert.notNull(request, () -> AppException.exception(AppResultCode.TEMPLATE_DATA_IS_NULL, "TemplateRequest"));
+        Assert.notNull(request, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_DATA_IS_NULL, "AppRequest"));
         String name = AppValidate.validateName(request.getName());
         String type = AppValidate.validateType(request.getType());
         String logotype = AppValidate.validateLogotype(request.getLogotype());
@@ -119,8 +119,8 @@ public class AppConvert {
      * @return 模版 DO
      */
     public static AppDO convertModify(AppUpdateRequest request) {
-        Assert.notNull(request, () -> AppException.exception(AppResultCode.TEMPLATE_DATA_IS_NULL, "TemplateUpdateRequest"));
-        Assert.notBlank(request.getUid(), () -> AppException.exception(AppResultCode.TEMPLATE_UID_IS_REQUIRED));
+        Assert.notNull(request, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_DATA_IS_NULL, "AppUpdateRequest"));
+        Assert.notBlank(request.getUid(), () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "uid"));
         return convertCreate(request);
     }
 
