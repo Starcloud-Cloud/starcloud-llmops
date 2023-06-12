@@ -6,7 +6,7 @@ import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
 import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
 import com.starcloud.ops.business.app.api.market.request.AppMarketUpdateRequest;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
-import com.starcloud.ops.business.app.dal.databoject.AppMarketDO;
+import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.AppResultCode;
 import com.starcloud.ops.business.app.exception.AppMarketException;

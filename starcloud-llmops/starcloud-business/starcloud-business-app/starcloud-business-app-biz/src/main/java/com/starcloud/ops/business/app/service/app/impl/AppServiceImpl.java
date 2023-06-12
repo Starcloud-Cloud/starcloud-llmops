@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service.impl;
+package com.starcloud.ops.business.app.service.app.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
@@ -12,13 +12,13 @@ import com.starcloud.ops.business.app.api.app.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.request.AppRequest;
 import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
 import com.starcloud.ops.business.app.convert.AppConvert;
-import com.starcloud.ops.business.app.dal.databoject.AppDO;
-import com.starcloud.ops.business.app.dal.mysql.AppMapper;
-import com.starcloud.ops.business.app.dal.redis.RecommendedAppRedisDAO;
+import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
+import com.starcloud.ops.business.app.dal.redis.app.RecommendedAppRedisDAO;
 import com.starcloud.ops.business.app.enums.AppResultCode;
 import com.starcloud.ops.business.app.enums.AppTypeEnum;
 import com.starcloud.ops.business.app.exception.AppException;
-import com.starcloud.ops.business.app.service.AppService;
+import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.dto.SortQuery;
@@ -81,9 +81,7 @@ public class AppServiceImpl implements AppService {
         // 构建查询条件
         LambdaQueryWrapper<AppDO> wrapper = buildPageQueryWrapper()
                 .likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName())
-                .eq(StringUtils.isNotBlank(query.getType()), AppDO::getType, query.getType())
-                .eq(AppDO::getDeleted, Boolean.FALSE)
-                .eq(AppDO::getStatus, StateEnum.ENABLE.getCode());
+                .eq(StringUtils.isNotBlank(query.getType()), AppDO::getType, query.getType());
 
         // 执行分页查询
         Page<AppDO> page = appMapper.selectPage(PageUtil.page(query), wrapper);
@@ -100,7 +98,7 @@ public class AppServiceImpl implements AppService {
     @Override
     public PageResp<AppDTO> pageDownloadTemplates(AppPageQuery query) {
         query.setType(AppTypeEnum.DOWNLOAD_TEMPLATE.name());
-        return page(query);
+        return this.page(query);
     }
 
     /**
@@ -112,7 +110,7 @@ public class AppServiceImpl implements AppService {
     @Override
     public PageResp<AppDTO> pageMyTemplate(AppPageQuery query) {
         query.setType(AppTypeEnum.MY_TEMPLATE.name());
-        return page(query);
+        return this.page(query);
     }
 
     /**
@@ -123,9 +121,9 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppDTO getById(Long id) {
-        AppDO templateDO = appMapper.selectById(id);
-        Assert.notNull(templateDO, () -> AppException.exception(AppResultCode.TEMPLATE_NOT_EXISTS, id));
-        return AppConvert.convert(templateDO);
+        AppDO appDO = appMapper.selectById(id);
+        Assert.notNull(appDO, () -> AppException.exception(AppResultCode.TEMPLATE_NOT_EXISTS, id));
+        return AppConvert.convert(appDO);
     }
 
     /**
@@ -152,12 +150,12 @@ public class AppServiceImpl implements AppService {
     public Boolean create(AppRequest request) {
         try {
             duplicateNameVerification(request);
-            AppDO templateDO = AppConvert.convertCreate(request);
+            AppDO appDO = AppConvert.convertCreate(request);
             // 生成唯一 ID
-            templateDO.setUid(IdUtil.fastSimpleUUID());
-            appMapper.insert(templateDO);
+            appDO.setUid(IdUtil.fastSimpleUUID());
+            appMapper.insert(appDO);
             // 如果新增的是系统模版，则需要更新缓存
-            recommendedAppRedisDAO.resetByType(templateDO.getType());
+            recommendedAppRedisDAO.resetByType(appDO.getType());
             return Boolean.TRUE;
         } catch (AppException e) {
             throw e;
@@ -178,12 +176,12 @@ public class AppServiceImpl implements AppService {
             String name = request.getName() + "-Copy";
             request.setName(name);
             duplicateNameVerification(request);
-            AppDO templateDO = AppConvert.convertCreate(request);
+            AppDO appDO = AppConvert.convertCreate(request);
             // 生成唯一 ID
-            templateDO.setUid(IdUtil.fastSimpleUUID());
-            appMapper.insert(templateDO);
+            appDO.setUid(IdUtil.fastSimpleUUID());
+            appMapper.insert(appDO);
             // 如果新增的是系统模版，则需要更新缓存
-            recommendedAppRedisDAO.resetByType(templateDO.getType());
+            recommendedAppRedisDAO.resetByType(appDO.getType());
             return Boolean.TRUE;
         } catch (AppException e) {
             throw e;
@@ -202,14 +200,11 @@ public class AppServiceImpl implements AppService {
     public Boolean modify(AppUpdateRequest request) {
         try {
             duplicateNameVerification(request);
-            AppDO templateDO = AppConvert.convertModify(request);
-            LambdaUpdateWrapper<AppDO> wrapper = Wrappers.lambdaUpdate(AppDO.class)
-                    .eq(AppDO::getUid, request.getUid())
-                    .eq(AppDO::getDeleted, Boolean.FALSE)
-                    .eq(AppDO::getStatus, StateEnum.ENABLE.getCode());
-            appMapper.update(templateDO, wrapper);
+            AppDO appDO = AppConvert.convertModify(request);
+            LambdaUpdateWrapper<AppDO> wrapper = buildBaseUpdateWrapper().eq(AppDO::getUid, request.getUid());
+            appMapper.update(appDO, wrapper);
             // 如果新增的是系统模版，则需要更新缓存
-            recommendedAppRedisDAO.resetByType(templateDO.getType());
+            recommendedAppRedisDAO.resetByType(appDO.getType());
             return Boolean.TRUE;
         } catch (AppException e) {
             throw e;
@@ -227,8 +222,10 @@ public class AppServiceImpl implements AppService {
     @Override
     public Boolean delete(Long id) {
         try {
+            // 判断模版是否存在, 不存在则抛出异常
             AppDO appDO = appMapper.selectById(id);
             Assert.notNull(appDO, () -> AppException.exception(AppResultCode.TEMPLATE_NOT_EXISTS, id));
+            // 根据 ID 删除模版
             appMapper.deleteById(id);
             // 如果新增的是系统模版，则需要更新缓存
             recommendedAppRedisDAO.resetByType(appDO.getType());
@@ -249,8 +246,10 @@ public class AppServiceImpl implements AppService {
     @Override
     public Boolean deleteByUid(String uid) {
         try {
+            // 判断模版是否存在, 不存在则抛出异常
             AppDO appDO = appMapper.selectOne(buildBaseQueryWrapper().eq(AppDO::getUid, uid));
             Assert.notNull(appDO, () -> AppException.exception(AppResultCode.TEMPLATE_NOT_EXISTS, uid));
+            // 根据 ID 删除模版
             appMapper.deleteById(appDO.getId());
             // 如果新增的是系统模版，则需要更新缓存
             recommendedAppRedisDAO.resetByType(appDO.getType());
@@ -271,9 +270,7 @@ public class AppServiceImpl implements AppService {
     @Override
     public Boolean verifyHasDownloaded(String marketUid) {
         try {
-            LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper()
-                    .eq(AppDO::getMarketUid, marketUid)
-                    .eq(AppDO::getType, AppTypeEnum.DOWNLOAD_TEMPLATE.name());
+            LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper().eq(AppDO::getDownloadUid, marketUid).eq(AppDO::getType, AppTypeEnum.DOWNLOAD_TEMPLATE.name());
             Long count = appMapper.selectCount(wrapper);
             return count > 0;
         } catch (AppException e) {
@@ -290,6 +287,7 @@ public class AppServiceImpl implements AppService {
      * @param name 模版名称
      * @return 是否重复 true: 重复, false: 不重复
      */
+    @Override
     public Boolean duplicateNameVerification(String name) {
         try {
             LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper().eq(AppDO::getName, name);
@@ -314,14 +312,21 @@ public class AppServiceImpl implements AppService {
     }
 
     /**
+     * 构建基础更新条件
+     *
+     * @return 更新条件
+     */
+    public static LambdaUpdateWrapper<AppDO> buildBaseUpdateWrapper() {
+        return Wrappers.lambdaUpdate(AppDO.class).eq(AppDO::getStatus, StateEnum.ENABLE.getCode());
+    }
+
+    /**
      * 构建基础查询条件
      *
      * @return 查询条件
      */
     public static LambdaQueryWrapper<AppDO> buildBaseQueryWrapper() {
-        return Wrappers.lambdaQuery(AppDO.class)
-                .eq(AppDO::getDeleted, Boolean.FALSE)
-                .eq(AppDO::getStatus, StateEnum.ENABLE.getCode());
+        return Wrappers.lambdaQuery(AppDO.class).eq(AppDO::getStatus, StateEnum.ENABLE.getCode());
     }
 
     /**
@@ -332,7 +337,8 @@ public class AppServiceImpl implements AppService {
     public static LambdaQueryWrapper<AppDO> buildPageQueryWrapper() {
         return Wrappers.lambdaQuery(AppDO.class).select(
                         AppDO::getUid,
-                        AppDO::getMarketUid,
+                        AppDO::getUploadUid,
+                        AppDO::getDownloadUid,
                         AppDO::getType,
                         AppDO::getLogotype,
                         AppDO::getSourceType,
@@ -348,7 +354,6 @@ public class AppServiceImpl implements AppService {
                         AppDO::getCreateTime,
                         AppDO::getUpdateTime
                 )
-                .eq(AppDO::getDeleted, Boolean.FALSE)
                 .eq(AppDO::getStatus, StateEnum.ENABLE.getCode());
     }
 }

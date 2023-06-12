@@ -1,7 +1,7 @@
-package com.starcloud.ops.business.app.dal.mysql;
+package com.starcloud.ops.business.app.dal.mysql.market;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.starcloud.ops.business.app.dal.databoject.AppMarketDO;
+import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

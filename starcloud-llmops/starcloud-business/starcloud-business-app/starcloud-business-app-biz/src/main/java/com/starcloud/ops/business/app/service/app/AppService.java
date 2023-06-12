@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service;
+package com.starcloud.ops.business.app.service.app;
 
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.api.app.request.AppPageQuery;

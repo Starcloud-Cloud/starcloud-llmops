@@ -6,7 +6,7 @@ import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
 import com.starcloud.ops.business.app.api.market.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
 import com.starcloud.ops.business.app.api.market.request.AppMarketUpdateRequest;
-import com.starcloud.ops.business.app.service.AppMarketService;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

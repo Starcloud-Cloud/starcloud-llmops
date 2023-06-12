@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.convert;
 
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateRequest;
-import com.starcloud.ops.business.app.dal.databoject.AppOperateDO;
+import com.starcloud.ops.business.app.dal.databoject.operate.AppOperateDO;
 import com.starcloud.ops.business.app.enums.AppResultCode;
 import com.starcloud.ops.business.app.enums.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.exception.AppMarketException;

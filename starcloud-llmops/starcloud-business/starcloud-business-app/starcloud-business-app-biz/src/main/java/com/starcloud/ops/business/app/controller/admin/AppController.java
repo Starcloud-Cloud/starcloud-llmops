@@ -6,7 +6,7 @@ import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.api.app.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.request.AppRequest;
 import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
-import com.starcloud.ops.business.app.service.AppService;
+import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -6,7 +6,7 @@ import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.api.app.request.AppRequest;
 import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
-import com.starcloud.ops.business.app.dal.databoject.AppDO;
+import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.AppResultCode;
 import com.starcloud.ops.business.app.exception.AppException;
@@ -83,32 +83,32 @@ public class AppConvert {
         String categories = AppUtil.buildField(request.getCategories());
         String scenes = AppUtil.buildScenes(request.getScenes());
 
-        AppDO template = new AppDO();
-        template.setName(name);
-        template.setType(type);
-        template.setLogotype(logotype);
-        template.setSourceType(sourceType);
-        template.setVersion(Optional.ofNullable(request.getVersion()).orElse(AppConstants.DEFAULT_VERSION));
-        template.setTags(tags);
-        template.setCategories(categories);
-        template.setScenes(scenes);
-        template.setImages(AppUtil.buildField(request.getImages()));
-        template.setIcon(request.getIcon());
-        template.setStepIcons(AppUtil.buildStepIcons(config));
-        template.setDescription(request.getDescription());
-        template.setStatus(StateEnum.ENABLE.getCode());
-        template.setDeleted(Boolean.FALSE);
+        AppDO appDO = new AppDO();
+        appDO.setName(name);
+        appDO.setType(type);
+        appDO.setLogotype(logotype);
+        appDO.setSourceType(sourceType);
+        appDO.setVersion(Optional.ofNullable(request.getVersion()).orElse(AppConstants.DEFAULT_VERSION));
+        appDO.setTags(tags);
+        appDO.setCategories(categories);
+        appDO.setScenes(scenes);
+        appDO.setImages(AppUtil.buildField(request.getImages()));
+        appDO.setIcon(request.getIcon());
+        appDO.setStepIcons(AppUtil.buildStepIcons(config));
+        appDO.setDescription(request.getDescription());
+        appDO.setStatus(StateEnum.ENABLE.getCode());
+        appDO.setDeleted(Boolean.FALSE);
 
-        // 保证 config 中的一些数据和 template 中的一致
+        // 保证 config 中的一些数据和 appDO 中的一致
         config.setType(type);
         config.setLogotype(logotype);
         config.setSourceType(sourceType);
         config.setTags(AppUtil.buildField(tags));
         config.setCategories(AppUtil.buildField(categories));
         config.setScenes(AppUtil.buildScenes(scenes));
-        template.setConfig(JSON.toJSONString(config));
+        appDO.setConfig(JSON.toJSONString(config));
 
-        return template;
+        return appDO;
 
     }
 

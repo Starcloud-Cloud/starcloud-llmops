@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service;
+package com.starcloud.ops.business.app.service.market;
 
 import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
 import com.starcloud.ops.business.app.api.market.request.AppMarketPageQuery;

@@ -1,14 +1,15 @@
-package com.starcloud.ops.business.app.dal.redis;
+package com.starcloud.ops.business.app.dal.redis.app;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.convert.AppConvert;
-import com.starcloud.ops.business.app.dal.databoject.AppDO;
-import com.starcloud.ops.business.app.dal.mysql.AppMapper;
+import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
+import com.starcloud.ops.business.app.dal.redis.RedisKeyConstants;
 import com.starcloud.ops.business.app.enums.AppTypeEnum;
-import com.starcloud.ops.business.app.service.impl.AppServiceImpl;
+import com.starcloud.ops.business.app.service.app.impl.AppServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
