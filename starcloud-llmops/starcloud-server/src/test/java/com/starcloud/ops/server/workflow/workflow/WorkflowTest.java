@@ -130,7 +130,7 @@ public class WorkflowTest extends BaseDbUnitTest {
     public void fireByAppStepStreamTest() {
         MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
-        appWorkflowService.fireByApp(appId, new TemplateDTO(), "title", mockHttpServletResponse);
+        appWorkflowService.fireByApp(appId, new AppDTO(), "title", mockHttpServletResponse);
 
     }
 
