@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -70,8 +71,8 @@ public class AppMarketController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除应用市场模版", description = "根据 UID 删除应用市场应用")
     @ApiOperationSupport(order = 15, author = "nacoyer")
-    public CommonResult<Boolean> delete(@Validated @RequestBody AppMarketUidVersionRequest request) {
-        appMarketService.deleteByUid(request.getUid(), request.getVersion());
+    public CommonResult<Boolean> delete(@RequestParam("uid") String uid, @RequestParam("version") String version) {
+        appMarketService.deleteByUid(uid, version);
         return CommonResult.success(Boolean.TRUE);
     }
 
