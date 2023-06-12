@@ -110,6 +110,11 @@ public enum AppResultCode implements ResultCode {
      */
     TEMPLATE_MARKET_DATA_IS_NULL(300200005, "The %s must cannot be null"),
 
+    /**
+     * 模版市场操作失败
+     */
+    TEMPLATE_MARKET_OPERATE_FAIL(300200005, "Template market operate failed, %s"),
+
 
     ;
 

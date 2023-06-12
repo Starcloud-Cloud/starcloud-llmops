@@ -3,7 +3,7 @@ package com.starcloud.ops.server.workflow.workflow;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import cn.kstry.framework.core.engine.StoryEngine;
-import com.starcloud.ops.business.app.api.template.dto.TemplateDTO;
+import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.domain.entity.AppConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppStepEntity;
@@ -76,9 +76,9 @@ public class WorkflowTest extends BaseDbUnitTest {
         Mockito.when(AppFactory.factory(appId)).thenReturn(appEntity);
 
 
-        Mockito.when(AppFactory.factory(appId, new TemplateDTO())).thenReturn(appEntity);
+        Mockito.when(AppFactory.factory(appId, new AppDTO())).thenReturn(appEntity);
 
-        Mockito.when(AppFactory.factory(appId, new TemplateDTO(), stepId)).thenReturn(appEntity);
+        Mockito.when(AppFactory.factory(appId, new AppDTO(), stepId)).thenReturn(appEntity);
 
 
     }
@@ -113,7 +113,7 @@ public class WorkflowTest extends BaseDbUnitTest {
     public void fireByAppTest() {
 
 
-        appWorkflowService.fireByApp(appId, new TemplateDTO());
+        appWorkflowService.fireByApp(appId, new AppDTO());
 
     }
 
@@ -122,7 +122,7 @@ public class WorkflowTest extends BaseDbUnitTest {
         MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
 
-        appWorkflowService.fireByApp(appId, new TemplateDTO(), "title");
+        appWorkflowService.fireByApp(appId, new AppDTO(), "title");
     }
 
 
@@ -138,14 +138,14 @@ public class WorkflowTest extends BaseDbUnitTest {
     @Test
     public void fireByAppStepContentTest() {
 
-        appWorkflowService.fireByApp(appId, new TemplateDTO(), "content");
+        appWorkflowService.fireByApp(appId, new AppDTO(), "content");
     }
 
 
     @Test
     public void fireByAppStepRequestIdTest() {
 
-        appWorkflowService.fireByApp(appId, new TemplateDTO(), "title", "requestId-test");
+        appWorkflowService.fireByApp(appId, new AppDTO(), "title", "requestId-test");
     }
 
 }

@@ -1,6 +1,5 @@
 package com.starcloud.ops.workflow.service;
 
-import cn.hutool.core.lang.Assert;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
 import cn.kstry.framework.core.engine.facade.StoryRequest;
@@ -9,7 +8,7 @@ import cn.kstry.framework.core.enums.TrackingTypeEnum;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.util.GlobalUtil;
-import com.starcloud.ops.business.app.api.template.dto.TemplateDTO;
+import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
@@ -45,7 +44,7 @@ public class AppWorkflowService {
     }
 
 
-    public void fireByApp(String appId, TemplateDTO templateDTO) {
+    public void fireByApp(String appId, AppDTO templateDTO) {
 
         AppEntity app = AppFactory.factory(appId, templateDTO);
 
@@ -58,9 +57,9 @@ public class AppWorkflowService {
     }
 
 
-    public void fireByApp(String appId, TemplateDTO templateDTO, String stepId) {
+    public void fireByApp(String appId, AppDTO appDTO, String stepId) {
 
-        AppEntity app = AppFactory.factory(appId, templateDTO, stepId);
+        AppEntity app = AppFactory.factory(appId, appDTO, stepId);
 
         log.info("fireByAppUid app: {}", app);
 
@@ -84,9 +83,9 @@ public class AppWorkflowService {
     }
 
 
-    public void fireByApp(String appId, TemplateDTO templateDTO, String stepId, String requestId) {
+    public void fireByApp(String appId, AppDTO appDTO, String stepId, String requestId) {
 
-        AppEntity app = AppFactory.factory(appId, templateDTO, stepId);
+        AppEntity app = AppFactory.factory(appId, appDTO, stepId);
 
         log.info("fireByAppUid app: {}", app);
 

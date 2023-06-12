@@ -21,7 +21,7 @@ public class OpenaiEmbedding implements BasicEmbedding {
 
     private static final String MODEL = "text-embedding-ada-002";
 
-    @Value("${OpenAIConfig.apiKey}")
+    @Value("${starcloud-langchain.model.llm.openai.apiKey}")
     private String chatAiKey;
 
     @Override
