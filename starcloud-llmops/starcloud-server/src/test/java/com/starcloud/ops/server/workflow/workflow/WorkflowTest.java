@@ -1,4 +1,4 @@
-package com.starcloud.ops.server.workflow;
+package com.starcloud.ops.server.workflow.workflow;
 
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
@@ -13,16 +13,14 @@ import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatSt
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import com.starcloud.ops.workflow.service.AppWorkflowService;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.internal.bytebuddy.matcher.StringMatcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.event.annotation.BeforeTestClass;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +104,6 @@ public class WorkflowTest extends BaseDbUnitTest {
     public void testRunTest() {
 
 
-
         appWorkflowService.fireByAppUid(appId);
 
     }
@@ -122,16 +119,27 @@ public class WorkflowTest extends BaseDbUnitTest {
 
     @Test
     public void fireByAppStepTest() {
+        MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
 
         appWorkflowService.fireByApp(appId, new TemplateDTO(), "title");
     }
+
+
+    @Test
+    public void fireByAppStepStreamTest() {
+        MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+        appWorkflowService.fireByApp(appId, new TemplateDTO(), "title", mockHttpServletResponse);
+
+    }
+
 
     @Test
     public void fireByAppStepContentTest() {
 
         appWorkflowService.fireByApp(appId, new TemplateDTO(), "content");
     }
-
 
 
     @Test

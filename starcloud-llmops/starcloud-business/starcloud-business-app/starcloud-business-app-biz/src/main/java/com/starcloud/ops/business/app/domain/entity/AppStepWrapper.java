@@ -3,7 +3,9 @@ package com.starcloud.ops.business.app.domain.entity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * App 步骤实体包装类
@@ -45,4 +47,16 @@ public class AppStepWrapper {
      * 步骤描述
      */
     private String description;
+
+
+    public Map<String, Object> getContextVariables() {
+
+
+        this.step.getResponse();
+
+        return new HashMap(){{
+            put("_STEP.xxx._OUT", "hah");
+        }};
+    }
+
 }

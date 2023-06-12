@@ -27,6 +27,7 @@ spring:
     database: 0 # 数据库索引
 
 mybatis:
+  type-aliases-package: ${yudao.info.base-package}.module.*.dal.dataobject
   lazy-initialization: true # 单元测试，设置 MyBatis Mapper 延迟加载，加速每个单元测试
 
 --- #################### 定时任务相关配置 ####################

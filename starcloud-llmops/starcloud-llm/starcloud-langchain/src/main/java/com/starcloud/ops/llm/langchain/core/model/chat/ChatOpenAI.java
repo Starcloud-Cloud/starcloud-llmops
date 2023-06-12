@@ -11,6 +11,7 @@ import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMess
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.theokanning.openai.Usage;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
@@ -72,13 +73,15 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         chatCompletionRequest.setMessages(chatMessages);
 
-        ChatResult chatResult = new ChatResult();
-
         if (chatCompletionRequest.getStream()) {
+
+            ChatResult chatResult = new ChatResult();
 
             StringBuffer sb = new StringBuffer();
 
-            this.getCallbackManager().onLLMStart(this.getClass().getSimpleName(), chatCompletionRequest);
+            Long requestToken = this.getNumTokensFromMessages(messages);
+
+            this.getCallbackManager().onLLMStart(this.getClass().getSimpleName(), chatCompletionRequest, requestToken);
 
             openAiService.streamChatCompletion(chatCompletionRequest)
                     .doOnError(e -> {
@@ -110,7 +113,12 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                     })
                     .doFinally(() -> {
 
-                        this.getCallbackManager().onLLMEnd();
+                        String resultMsg = sb.toString();
+
+                        Long resultToke = this.getNumTokens(resultMsg);
+                        Long totalTokens = resultToke + requestToken;
+
+                        this.getCallbackManager().onLLMEnd("finally", resultMsg, totalTokens);
                     })
                     .blockingForEach(t -> {
                         String msg = t.getChoices().get(0).getMessage().getContent();
@@ -152,25 +160,6 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         }
 
-
     }
-
-    @Override
-    public Long getNumTokens(String text) {
-        return null;
-    }
-
-
-    @Override
-    public Long getNumTokensFromMessages(List<BaseChatMessage> messages) {
-
-        Long sum = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map((message) -> {
-            message.setTokens(this.getNumTokens(message.getContent()));
-            return message.getTokens();
-        }).reduce(0L, Long::sum);
-
-        return sum;
-    }
-
 
 }

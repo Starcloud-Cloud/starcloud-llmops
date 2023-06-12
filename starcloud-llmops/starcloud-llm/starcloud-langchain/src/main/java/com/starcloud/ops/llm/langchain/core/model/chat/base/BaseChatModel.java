@@ -37,7 +37,6 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
         this.verbose = verbose;
     }
 
-
     private Boolean cache;
 
     private LLMCallbackManager callbackManager = new LLMCallbackManager();
@@ -95,12 +94,6 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
     }
 
 
-//    public ChatResult<R> generatePrompt(List<PromptValue> promptValues) {
-//
-//        return this.generate(Optional.ofNullable(promptValues).orElse(new ArrayList<>()).stream().map(PromptValue::toMessage).collect(Collectors.toList()));
-//    }
-
-
     public String call(List<BaseChatMessage> chatMessages) {
         ChatResult<R> chatResult = this.generate(Arrays.asList(chatMessages));
         return chatResult.getChatGenerations().get(0).getText();
@@ -117,10 +110,5 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
         return ChatResult.data(generations, baseLLMUsage);
 
     }
-
-    public abstract Long getNumTokens(String text);
-
-    public abstract Long getNumTokensFromMessages(List<BaseChatMessage> messages);
-
 
 }
