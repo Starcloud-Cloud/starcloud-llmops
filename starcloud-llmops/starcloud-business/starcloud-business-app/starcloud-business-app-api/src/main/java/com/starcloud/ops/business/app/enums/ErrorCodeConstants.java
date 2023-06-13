@@ -75,4 +75,8 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_MARKET_VERSION_REQUIRED = new ErrorCode(300200005, "The App Version Is Required, Please Check And Try Again ! ");
 
+    /**
+     * 应用市场模型未知
+     */
+    ErrorCode APP_MODEL_IS_UNKNOWN = new ErrorCode(300200006, "The App Model Is Unknown, Please Check And Try Again ! [model: {}]");
 }

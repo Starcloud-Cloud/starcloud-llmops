@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
- * 模版操作管理表DO，operate 表示操作类型，LIKE 标识喜欢，VIEW 标识查看，DOWNLOAD 标识下载
+ * 应用操作管理表DO，operate 表示操作类型，LIKE 标识喜欢，VIEW 标识查看，DOWNLOAD 标识下载
  *
  * @author admin
  * @since 2023-06-12
@@ -34,7 +34,7 @@ public class AppOperateDO extends TenantBaseDO {
     private String user;
 
     /**
-     * 模版 UID
+     * 应用 UID
      */
     @TableField("template_uid")
     private String templateUid;

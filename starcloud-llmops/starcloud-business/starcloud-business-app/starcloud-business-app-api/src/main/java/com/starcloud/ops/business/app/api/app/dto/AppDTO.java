@@ -41,6 +41,12 @@ public class AppDTO implements Serializable {
     private String name;
 
     /**
+     * 应用模型
+     */
+    @Schema(description = "应用模型")
+    private String model;
+
+    /**
      * 应用类型
      */
     @Schema(description = "应用类型")
@@ -99,6 +105,12 @@ public class AppDTO implements Serializable {
      */
     @Schema(description = "应用详细配置信息")
     private AppConfigDTO config;
+
+    /**
+     * 应用聊天配置信息
+     */
+    @Schema(description = "应用聊天配置信息")
+    private AppChatConfigDTO chatConfig;
 
     /**
      * 应用图片

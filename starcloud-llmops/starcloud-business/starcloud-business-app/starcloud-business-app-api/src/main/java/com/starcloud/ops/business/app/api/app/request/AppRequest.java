@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.app.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -22,79 +23,92 @@ public class AppRequest implements Serializable {
     private static final long serialVersionUID = 1578944445567574534L;
 
     /**
-     * 模版名称
+     * 应用名称
      */
-    @Schema(description = "模版名称")
-    @NotBlank(message = "模版名称不能为空")
+    @Schema(description = "应用名称")
+    @NotBlank(message = "应用名称不能为空")
     private String name;
 
     /**
-     * 模版类型
+     * 应用模型
      */
-    @Schema(description = "模版类型")
-    @NotBlank(message = "模版类型不能为空")
+    @Schema(description = "应用模型")
+    @NotBlank(message = "应用不能为空")
+    private String model;
+
+    /**
+     * 应用类型
+     */
+    @Schema(description = "应用类型")
+    @NotBlank(message = "应用类型不能为空")
     private String type;
 
     /**
-     * 模版标识, 区分自定义模版和每一种具体的系统模版，所有的模版的具体类型都基于此标识，不同的标识，模版的具体配置（步骤，变量，场景等）会有所不同。
+     * 应用标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
      */
-    @Schema(description = "模版标识")
-    @NotBlank(message = "模版标识不能为空")
+    @Schema(description = "应用标识")
+    @NotBlank(message = "应用标识不能为空")
     private String logotype;
 
     /**
-     * 模版来源类型，表示模版的是从那个平台创建，或者下载的。比如 WrdPress，Chrome插件等
+     * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress，Chrome插件等
      */
-    @Schema(description = "模版来源类型")
-    @NotBlank(message = "模版来源类型不能为空")
+    @Schema(description = "应用来源类型")
+    @NotBlank(message = "应用来源类型不能为空")
     private String sourceType;
 
     /**
-     * 模版版本
+     * 应用版本
      */
-    @Schema(description = "模版版本")
+    @Schema(description = "应用版本")
     private String version;
 
     /**
-     * 模版标签
+     * 应用标签
      */
-    @Schema(description = "模版标签")
+    @Schema(description = "应用标签")
     private List<String> tags;
 
     /**
-     * 模版类别
+     * 应用类别
      */
-    @Schema(description = "模版类别")
+    @Schema(description = "应用类别")
     private List<String> categories;
 
     /**
-     * 模版场景
+     * 应用场景
      */
-    @Schema(description = "模版场景")
+    @Schema(description = "应用场景")
     private List<String> scenes;
 
     /**
-     * 模版详细配置信息, 步骤，变量，场景等
+     * 应用详细配置信息, 步骤，变量，场景等
      */
-    @Schema(description = "模版详细配置信息")
+    @Schema(description = "应用详细配置信息")
     private AppConfigDTO config;
 
     /**
-     * 模版图片
+     * 应用聊天配置信息
      */
-    @Schema(description = "模版图片")
+    @Schema(description = "应用聊天配置信息")
+    private AppChatConfigDTO chatConfig;
+
+    /**
+     * 应用图片
+     */
+    @Schema(description = "应用图片")
     private List<String> images;
 
     /**
-     * 模版图标
+     * 应用图标
      */
-    @Schema(description = "模版图标")
+    @Schema(description = "应用图标")
     private String icon;
 
     /**
-     * 模版描述
+     * 应用描述
      */
-    @Schema(description = "模版描述")
+    @Schema(description = "应用描述")
     private String description;
 
 

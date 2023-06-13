@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 模版市场表 Mapper 接口
+ * 应用市场表 Mapper 接口
  * </p>
  *
  * @author admin
