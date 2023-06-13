@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy;
 
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -45,7 +44,6 @@ public class UserBenefitsStrategyDO extends TenantBaseDO {
     private String strategyDesc;
     /**
      * 策略类型枚举
-     *
      * 枚举
      */
     private String strategyType;

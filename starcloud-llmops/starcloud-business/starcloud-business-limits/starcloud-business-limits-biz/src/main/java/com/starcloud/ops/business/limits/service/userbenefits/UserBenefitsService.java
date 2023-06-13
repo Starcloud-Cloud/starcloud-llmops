@@ -1,14 +1,9 @@
 package com.starcloud.ops.business.limits.service.userbenefits;
 
-import java.util.*;
-import javax.validation.*;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsCreateReqVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsUpdateReqVO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * 用户权益 Service 接口
@@ -20,7 +15,8 @@ public interface UserBenefitsService {
     /**
      * 新增用户权益
      *
-     * @param createReqVO 创建信息
+     * @param code 权益 code
+     * @param userId  用户 ID
      * @return 编号
      */
     Boolean addUserBenefitsByCode(String code,Long userId);
@@ -37,7 +33,6 @@ public interface UserBenefitsService {
      * @param userId 用户 ID
      * @param amount 使用数
      * @param benefitsType 权益类型 对应 BenefitsTypeEnums 枚举类
-     * @return Boolean
      */
     void expendBenefits(String benefitsType,Long amount,Long userId);
 

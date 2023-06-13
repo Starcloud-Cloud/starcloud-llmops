@@ -2,7 +2,6 @@ package com.starcloud.ops.business.limits.controller.admin.userbenefits.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 

@@ -8,8 +8,6 @@ import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBe
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.List;
-
 /**
  * 用户权益 Mapper
  *
