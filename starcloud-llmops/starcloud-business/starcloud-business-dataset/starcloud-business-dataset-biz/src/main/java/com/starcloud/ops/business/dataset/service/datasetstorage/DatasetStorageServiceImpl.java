@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASET_STORAGE_NOT_EXISTS;
 
 /**
@@ -146,13 +147,13 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
         DatasetStorageDO datasetStorageDO = datasetStorageMapper.selectOne(wrapper);
         //文件不存在，则报错
         if (ObjectUtil.isEmpty(datasetStorageDO)){
-            log.error("[getDatasetStorageInfo][获取源数据失败，文件不存在：文件UID({})|用户ID({})|租户ID({})", UID, getLoginUser().getId(), getLoginUser().getTenantId());
+            log.error("[getDatasetStorageInfo][获取源数据失败，文件不存在：文件UID({})|用户ID({})|租户ID({})", UID, getLoginUserId(), getLoginUser().getTenantId());
             throw exception(DATASET_STORAGE_NOT_EXISTS);
         }
         //根据ID获取文件信息
         FileDO fileDO = fileMapper.selectById(datasetStorageDO.getStorageKey());
         if (ObjectUtil.isEmpty(fileDO)){
-            log.error("[getDatasetStorageInfo][获取源数据失败，文件不存在：文件UID({})|用户ID({})|租户ID({})", UID, getLoginUser().getId(), getLoginUser().getTenantId());
+            log.error("[getDatasetStorageInfo][获取源数据失败，文件不存在：文件UID({})|用户ID({})|租户ID({})", UID, getLoginUserId(), getLoginUser().getTenantId());
             throw exception(DATASET_STORAGE_NOT_EXISTS);
         }
         DatasetStorageUpLoadRespVO datasetStorageUpLoadRespVO = DatasetStorageConvert.convert2LoadRespVO(datasetStorageDO);
