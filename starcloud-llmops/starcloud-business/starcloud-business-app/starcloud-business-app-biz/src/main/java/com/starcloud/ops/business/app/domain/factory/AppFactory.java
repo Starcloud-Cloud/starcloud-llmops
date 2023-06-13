@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.domain.factory;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
-import com.starcloud.ops.business.app.api.template.dto.*;
+import com.starcloud.ops.business.app.api.app.dto.*;
 import com.starcloud.ops.business.app.domain.entity.*;
 import java.util.stream.Collectors;
 
@@ -22,7 +22,7 @@ public class AppFactory {
     }
 
 
-    public static AppEntity factory(String appId, TemplateDTO template) {
+    public static AppEntity factory(String appId, AppDTO template) {
 
         AppEntity app = transform(template);
         Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
@@ -31,7 +31,7 @@ public class AppFactory {
     }
 
 
-    public static AppEntity factory(String appId, TemplateDTO template, String requestId) {
+    public static AppEntity factory(String appId, AppDTO template, String requestId) {
         return transform(template);
     }
 
@@ -42,7 +42,7 @@ public class AppFactory {
      * @param template 模版DTO
      * @return AppEntity
      */
-    public static AppEntity transform(TemplateDTO template) {
+    public static AppEntity transform(AppDTO template) {
         AppEntity appEntity = new AppEntity();
         appEntity.setUid(template.getUid());
         appEntity.setName(template.getName());
@@ -63,7 +63,7 @@ public class AppFactory {
      * @param config 模版配置DTO
      * @return AppStepEntity
      */
-    public static AppConfigEntity transformConfig(TemplateConfigDTO config) {
+    public static AppConfigEntity transformConfig(AppConfigDTO config) {
         AppConfigEntity appConfigEntity = new AppConfigEntity();
         appConfigEntity.setName(config.getName());
         appConfigEntity.setVersion(config.getVersion());
@@ -126,7 +126,7 @@ public class AppFactory {
         appStepResponse.setType(response.getType());
         appStepResponse.setStyle(response.getStyle());
         appStepResponse.setIsShow(response.getIsShow());
-        appStepResponse.setData(response.getData());
+        appStepResponse.setAnswer(String.valueOf(response.getData()));
         return appStepResponse;
     }
 

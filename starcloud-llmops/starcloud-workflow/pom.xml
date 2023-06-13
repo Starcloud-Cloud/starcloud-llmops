@@ -34,8 +34,20 @@
         </dependency>
 
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>25.1-jre</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-app-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-log-biz</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
 

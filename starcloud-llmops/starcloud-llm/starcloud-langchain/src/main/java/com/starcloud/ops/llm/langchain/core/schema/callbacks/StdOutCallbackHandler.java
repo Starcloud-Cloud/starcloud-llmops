@@ -11,17 +11,17 @@ public class StdOutCallbackHandler extends BaseCallbackHandler {
     @Override
     public void onLLMStart(Object... objects) {
 
-        log.info("onLLMStart: {}", objects);
+        log.info("onLLMStart: {} {} {}", objects);
     }
 
     @Override
     public void onLLMNewToken(Object... objects) {
-        log.info("onLLMNewToken: {}", objects);
+        log.info("onLLMNewToken: {} {}", objects);
     }
 
     @Override
     public void onLLMEnd(Object... objects) {
-        log.info("onLLMEnd: {}", objects);
+        log.info("onLLMEnd: {} {} {}", objects);
     }
 
 

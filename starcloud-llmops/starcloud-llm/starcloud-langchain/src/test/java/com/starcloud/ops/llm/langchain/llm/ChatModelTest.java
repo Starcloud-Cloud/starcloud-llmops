@@ -43,7 +43,6 @@ public class ChatModelTest extends SpringBootTests {
 
         MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
-
         ChatOpenAI chatOpenAI = new ChatOpenAI();
         chatOpenAI.setStream(true);
         chatOpenAI.setVerbose(true);

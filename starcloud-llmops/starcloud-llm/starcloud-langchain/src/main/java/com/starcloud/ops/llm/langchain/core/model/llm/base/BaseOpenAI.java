@@ -98,9 +98,4 @@ public class BaseOpenAI extends BaseLLM<CompletionResult> {
         }
 
     }
-
-    @Override
-    public Long getNumTokens(String text) {
-        return null;
-    }
 }

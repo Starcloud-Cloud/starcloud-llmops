@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * App 实体类
@@ -70,6 +71,5 @@ public class AppEntity {
     public String getUniqueName() {
         return this.uid + "_" + this.version;
     }
-
 
 }

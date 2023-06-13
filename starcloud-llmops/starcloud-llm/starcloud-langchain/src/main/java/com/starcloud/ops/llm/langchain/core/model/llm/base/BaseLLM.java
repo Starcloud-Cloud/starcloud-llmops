@@ -134,25 +134,5 @@ public abstract class BaseLLM<R> extends BaseLanguageModel<R> {
 
     }
 
-
-    public abstract Long getNumTokens(String text);
-
-
-//    public Long getNumTokens(String text) {
-//
-//        return (long) (StrUtil.length(text) / 4);
-//    }
-
-
-    public Long getNumTokensFromMessages(List<BaseChatMessage> messages) {
-
-        Long sum = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map((message) -> {
-            message.setTokens(this.getNumTokens(message.getContent()));
-            return message.getTokens();
-        }).reduce(0L, Long::sum);
-
-        return sum;
-    }
-
 }
 

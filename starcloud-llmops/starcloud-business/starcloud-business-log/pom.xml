@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>starcloud-business</artifactId>
+        <groupId>com.starcloud.ops</groupId>
+        <version>${starcloud.revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>starcloud-business-log</artifactId>
+    <packaging>pom</packaging>
+    <version>${starcloud.revision}</version>
+    <modules>
+        <module>starcloud-business-log-api</module>
+        <module>starcloud-business-log-biz</module>
+
+    </modules>
+
+    <dependencyManagement>
+
+        <dependencies>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-log-api</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-log-biz</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
+
+</project>

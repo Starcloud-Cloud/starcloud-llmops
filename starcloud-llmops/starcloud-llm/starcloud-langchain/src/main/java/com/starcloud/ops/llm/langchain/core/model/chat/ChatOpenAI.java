@@ -11,6 +11,7 @@ import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMess
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.theokanning.openai.Usage;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
@@ -72,13 +73,15 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         chatCompletionRequest.setMessages(chatMessages);
 
-        ChatResult chatResult = new ChatResult();
-
         if (chatCompletionRequest.getStream()) {
+
+            ChatResult chatResult = new ChatResult();
 
             StringBuffer sb = new StringBuffer();
 
-            this.getCallbackManager().onLLMStart(this.getClass().getSimpleName(), chatCompletionRequest);
+            Long requestToken = this.getNumTokensFromMessages(messages);
+
+            this.getCallbackManager().onLLMStart(this.getClass().getSimpleName(), chatCompletionRequest, requestToken);
 
             openAiService.streamChatCompletion(chatCompletionRequest)
                     .doOnError(e -> {
@@ -88,7 +91,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                         } else {
 
-                            this.getCallbackManager().onLLMError(e.getCause().getMessage(), e);
+                            this.getCallbackManager().onLLMError(e.getMessage(), e);
                         }
 
                         log.error("chat stream error:", e);
@@ -98,19 +101,37 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                     })
                     .doOnComplete(() -> {
-                        String text = sb.toString();
+
+                        String resultMsg = sb.toString();
+
+                        Long resultToke = this.getNumTokens(resultMsg);
+                        Long totalTokens = resultToke + requestToken;
 
                         //todo usage
-                        BaseLLMUsage baseLLMUsage = BaseLLMUsage.builder().build();
+                        BaseLLMUsage baseLLMUsage = BaseLLMUsage.builder().promptTokens(requestToken).completionTokens(resultToke).totalTokens(totalTokens).build();
 
-                        chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(text).build()).usage(baseLLMUsage).build()));
+                        chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
                         chatResult.setUsage(baseLLMUsage);
 
-                        this.getCallbackManager().onLLMEnd("complete");
+                        this.getCallbackManager().onLLMEnd("complete", resultMsg, totalTokens);
                     })
                     .doFinally(() -> {
 
-                        this.getCallbackManager().onLLMEnd();
+                        String resultMsg = sb.toString();
+
+                        if (chatResult.getUsage() == null) {
+
+                            Long resultToke = this.getNumTokens(resultMsg);
+                            Long totalTokens = resultToke + requestToken;
+
+                            //todo usage
+                            BaseLLMUsage baseLLMUsage = BaseLLMUsage.builder().promptTokens(requestToken).completionTokens(resultToke).totalTokens(totalTokens).build();
+
+                            chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
+                            chatResult.setUsage(baseLLMUsage);
+                        }
+
+                        //this.getCallbackManager().onLLMEnd("finally", resultMsg, totalTokens);
                     })
                     .blockingForEach(t -> {
                         String msg = t.getChoices().get(0).getMessage().getContent();
@@ -129,6 +150,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                         }
                     });
 
+            openAiService.shutdownExecutor();
 
             return chatResult;
 
@@ -152,25 +174,6 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         }
 
-
     }
-
-    @Override
-    public Long getNumTokens(String text) {
-        return null;
-    }
-
-
-    @Override
-    public Long getNumTokensFromMessages(List<BaseChatMessage> messages) {
-
-        Long sum = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map((message) -> {
-            message.setTokens(this.getNumTokens(message.getContent()));
-            return message.getTokens();
-        }).reduce(0L, Long::sum);
-
-        return sum;
-    }
-
 
 }
