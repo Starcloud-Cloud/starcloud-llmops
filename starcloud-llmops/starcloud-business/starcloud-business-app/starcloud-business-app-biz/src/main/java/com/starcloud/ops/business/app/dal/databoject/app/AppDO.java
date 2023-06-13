@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName("llm_template")
-@KeySequence("llm_template_seq")
+@TableName("llm_app")
+@KeySequence("llm_app_seq")
 public class AppDO extends TenantBaseDO {
 
     private static final long serialVersionUID = 1345563234255L;
