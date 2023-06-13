@@ -44,6 +44,15 @@ public interface LogAppConversationService {
      */
     LogAppConversationDO getAppConversation(Long id);
 
+
+    /**
+     * 获得应用执行日志会话
+     *
+     * @param uid 编号
+     * @return 应用执行日志会话
+     */
+    LogAppConversationDO getAppConversation(String uid);
+
     /**
      * 获得应用执行日志会话列表
      *

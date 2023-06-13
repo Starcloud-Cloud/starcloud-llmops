@@ -28,9 +28,9 @@ public class LogAppConversationBaseVO {
     @NotNull(message = "app 配置不能为空")
     private String appConfig;
 
-    @Schema(description = "模版状态，0：失败，1：成功", required = true, example = "2")
-    @NotNull(message = "模版状态，0：失败，1：成功不能为空")
-    private Byte status;
+    @Schema(description = "执行状态，error：失败，success：成功", required = true, example = "2")
+    @NotNull(message = "执行状态，error：失败，success：成功不能为空")
+    private String status;
 
     @Schema(description = "执行场景", required = true)
     @NotNull(message = "执行场景不能为空")

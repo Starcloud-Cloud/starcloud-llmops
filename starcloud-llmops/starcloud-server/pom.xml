@@ -34,11 +34,18 @@
             <version>${starcloud.revision}</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.starcloud.ops</groupId>-->
-<!--            <artifactId>starcloud-business-dataset-biz</artifactId>-->
-<!--            <version>${starcloud.revision}</version>-->
-<!--        </dependency>-->
+        <!--数据集  -->
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-dataset-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+        <!--限制  -->
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-limits-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>

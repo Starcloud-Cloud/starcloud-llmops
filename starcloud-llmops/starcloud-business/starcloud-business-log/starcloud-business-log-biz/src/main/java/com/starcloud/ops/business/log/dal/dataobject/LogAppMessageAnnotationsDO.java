@@ -1,11 +1,8 @@
 package com.starcloud.ops.business.log.dal.dataobject;
 
 import lombok.*;
-import java.util.*;
-import java.time.LocalDateTime;
-import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.*;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+
 
 /**
  * 应用执行日志结果反馈标注 DO

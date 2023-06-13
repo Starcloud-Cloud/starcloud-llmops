@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.log.api.message.vo;
 
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.util.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -31,8 +33,8 @@ public class LogAppMessageExportReqVO {
     @Schema(description = "执行的 app step")
     private String appStep;
 
-    @Schema(description = "模版状态，0：失败，1：成功", example = "2")
-    private Byte status;
+    @Schema(description = "执行状态，error：失败，success：成功", required = true, example = "2")
+    private String status;
 
     @Schema(description = "错误码")
     private String errorCode;
@@ -50,7 +52,7 @@ public class LogAppMessageExportReqVO {
     private Integer messageTokens;
 
     @Schema(description = "消耗token单位价格", example = "23618")
-    private Long messageUnitPrice;
+    private BigDecimal messageUnitPrice;
 
     @Schema(description = "返回内容")
     private String answer;
@@ -59,13 +61,13 @@ public class LogAppMessageExportReqVO {
     private Integer answerTokens;
 
     @Schema(description = "消耗token单位价格", example = "18453")
-    private Long answerUnitPrice;
+    private BigDecimal answerUnitPrice;
 
     @Schema(description = "执行耗时")
-    private Object elapsed;
+    private Long elapsed;
 
     @Schema(description = "总消耗价格", example = "4382")
-    private Long totalPrice;
+    private BigDecimal totalPrice;
 
     @Schema(description = "价格单位")
     private String currency;

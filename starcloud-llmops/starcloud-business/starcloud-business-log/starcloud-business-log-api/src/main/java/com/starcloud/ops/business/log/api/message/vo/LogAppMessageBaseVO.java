@@ -2,6 +2,8 @@ package com.starcloud.ops.business.log.api.message.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.util.*;
 import java.time.LocalDateTime;
 import java.time.LocalDateTime;
@@ -38,9 +40,9 @@ public class LogAppMessageBaseVO {
     @NotNull(message = "执行的 app step不能为空")
     private String appStep;
 
-    @Schema(description = "模版状态，0：失败，1：成功", required = true, example = "2")
-    @NotNull(message = "模版状态，0：失败，1：成功不能为空")
-    private Byte status;
+    @Schema(description = "执行状态，error：失败，success：成功", required = true, example = "2")
+    @NotNull(message = "执行状态，error：失败，success：成功不能为空")
+    private String status;
 
     @Schema(description = "错误码")
     private String errorCode;
@@ -62,7 +64,7 @@ public class LogAppMessageBaseVO {
 
     @Schema(description = "消耗token单位价格", required = true, example = "23618")
     @NotNull(message = "消耗token单位价格不能为空")
-    private Long messageUnitPrice;
+    private BigDecimal messageUnitPrice;
 
     @Schema(description = "返回内容", required = true)
     @NotNull(message = "返回内容不能为空")
@@ -74,15 +76,15 @@ public class LogAppMessageBaseVO {
 
     @Schema(description = "消耗token单位价格", required = true, example = "18453")
     @NotNull(message = "消耗token单位价格不能为空")
-    private Long answerUnitPrice;
+    private BigDecimal answerUnitPrice;
 
     @Schema(description = "执行耗时", required = true)
     @NotNull(message = "执行耗时不能为空")
-    private Object elapsed;
+    private Long elapsed;
 
     @Schema(description = "总消耗价格", required = true, example = "4382")
     @NotNull(message = "总消耗价格不能为空")
-    private Long totalPrice;
+    private BigDecimal totalPrice;
 
     @Schema(description = "价格单位", required = true)
     @NotNull(message = "价格单位不能为空")

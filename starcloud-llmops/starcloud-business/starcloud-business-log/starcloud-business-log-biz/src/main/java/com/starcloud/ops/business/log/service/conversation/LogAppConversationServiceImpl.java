@@ -1,17 +1,22 @@
 package com.starcloud.ops.business.log.service.conversation;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.log.api.conversation.vo.*;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
+
 import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.log.enums.ErrorCodeConstants.*;
+
 /**
  * 应用执行日志会话 Service 实现类
  *
@@ -36,10 +41,12 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     @Override
     public void updateAppConversation(LogAppConversationUpdateReqVO updateReqVO) {
         // 校验存在
-        validateAppConversationExists(updateReqVO.getId());
+       // validateAppConversationExists(updateReqVO.getId());
         // 更新
         LogAppConversationDO updateObj = LogAppConversationConvert.INSTANCE.convert(updateReqVO);
-        appConversationMapper.updateById(updateObj);
+
+        appConversationMapper.update(updateObj, Wrappers.lambdaQuery(LogAppConversationDO.class).eq(LogAppConversationDO::getUid,updateReqVO.getUid()));
+
     }
 
     @Override
@@ -59,6 +66,12 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     @Override
     public LogAppConversationDO getAppConversation(Long id) {
         return appConversationMapper.selectById(id);
+    }
+
+    @Override
+    public LogAppConversationDO getAppConversation(String uid) {
+
+        return appConversationMapper.selectOne(LogAppConversationDO::getUid, uid);
     }
 
     @Override

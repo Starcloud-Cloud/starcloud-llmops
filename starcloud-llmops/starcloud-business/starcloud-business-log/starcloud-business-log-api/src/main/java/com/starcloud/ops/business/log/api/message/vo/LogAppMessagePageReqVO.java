@@ -33,8 +33,8 @@ public class LogAppMessagePageReqVO extends PageParam {
     @Schema(description = "执行的 app step")
     private String appStep;
 
-    @Schema(description = "模版状态，0：失败，1：成功", example = "2")
-    private Byte status;
+    @Schema(description = "执行状态，error：失败，success：成功", required = true, example = "2")
+    private String status;
 
     @Schema(description = "错误码")
     private String errorCode;
@@ -64,7 +64,7 @@ public class LogAppMessagePageReqVO extends PageParam {
     private Long answerUnitPrice;
 
     @Schema(description = "执行耗时")
-    private Object elapsed;
+    private Long elapsed;
 
     @Schema(description = "总消耗价格", example = "4382")
     private Long totalPrice;
