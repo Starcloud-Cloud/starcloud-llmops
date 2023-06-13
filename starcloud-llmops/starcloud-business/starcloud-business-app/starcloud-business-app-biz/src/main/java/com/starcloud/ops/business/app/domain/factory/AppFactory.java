@@ -126,7 +126,7 @@ public class AppFactory {
         appStepResponse.setType(response.getType());
         appStepResponse.setStyle(response.getStyle());
         appStepResponse.setIsShow(response.getIsShow());
-        appStepResponse.setData(response.getData());
+        appStepResponse.setAnswer(String.valueOf(response.getData()));
         return appStepResponse;
     }
 

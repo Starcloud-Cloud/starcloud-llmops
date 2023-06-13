@@ -101,24 +101,37 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                     })
                     .doOnComplete(() -> {
-                        String text = sb.toString();
-
-                        //todo usage
-                        BaseLLMUsage baseLLMUsage = BaseLLMUsage.builder().build();
-
-                        chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(text).build()).usage(baseLLMUsage).build()));
-                        chatResult.setUsage(baseLLMUsage);
-
-                        this.getCallbackManager().onLLMEnd("complete");
-                    })
-                    .doFinally(() -> {
 
                         String resultMsg = sb.toString();
 
                         Long resultToke = this.getNumTokens(resultMsg);
                         Long totalTokens = resultToke + requestToken;
 
-                        this.getCallbackManager().onLLMEnd("finally", resultMsg, totalTokens);
+                        //todo usage
+                        BaseLLMUsage baseLLMUsage = BaseLLMUsage.builder().promptTokens(requestToken).completionTokens(resultToke).totalTokens(totalTokens).build();
+
+                        chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
+                        chatResult.setUsage(baseLLMUsage);
+
+                        this.getCallbackManager().onLLMEnd("complete", resultMsg, totalTokens);
+                    })
+                    .doFinally(() -> {
+
+                        String resultMsg = sb.toString();
+
+                        if (chatResult.getUsage() == null) {
+
+                            Long resultToke = this.getNumTokens(resultMsg);
+                            Long totalTokens = resultToke + requestToken;
+
+                            //todo usage
+                            BaseLLMUsage baseLLMUsage = BaseLLMUsage.builder().promptTokens(requestToken).completionTokens(resultToke).totalTokens(totalTokens).build();
+
+                            chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
+                            chatResult.setUsage(baseLLMUsage);
+                        }
+
+                        //this.getCallbackManager().onLLMEnd("finally", resultMsg, totalTokens);
                     })
                     .blockingForEach(t -> {
                         String msg = t.getChoices().get(0).getMessage().getContent();
@@ -137,6 +150,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                         }
                     });
 
+            openAiService.shutdownExecutor();
 
             return chatResult;
 

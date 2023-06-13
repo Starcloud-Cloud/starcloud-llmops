@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.log.api.conversation.vo;
 
 import lombok.*;
+
+import java.time.LocalDateTime;
 import java.util.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.*;
@@ -10,5 +12,15 @@ import javax.validation.constraints.*;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class LogAppConversationCreateReqVO extends LogAppConversationBaseVO {
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    /**
+     * 最后更新时间
+     */
+    private LocalDateTime updateTime;
 
 }

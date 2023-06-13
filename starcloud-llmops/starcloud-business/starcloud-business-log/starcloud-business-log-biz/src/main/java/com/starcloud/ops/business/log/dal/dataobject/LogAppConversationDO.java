@@ -4,7 +4,6 @@ import lombok.*;
 
 
 import com.baomidou.mybatisplus.annotation.*;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 
 /**
  * 应用执行日志会话 DO
@@ -43,9 +42,9 @@ public class LogAppConversationDO extends BaseDO {
      */
     private String appConfig;
     /**
-     * 模版状态，0：失败，1：成功
+     * 执行状态，error：失败，success：成功
      */
-    private Byte status;
+    private String status;
     /**
      * 执行场景
      */

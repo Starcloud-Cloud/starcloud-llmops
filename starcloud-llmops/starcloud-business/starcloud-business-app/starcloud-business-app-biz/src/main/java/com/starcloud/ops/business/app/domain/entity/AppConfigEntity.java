@@ -76,4 +76,11 @@ public class AppConfigEntity {
         return Optional.ofNullable(steps).orElse(new ArrayList<>()).stream().findFirst().orElse(null);
     }
 
+    /**
+     * 模版步骤
+     */
+    public AppStepWrapper getStep(String stepId) {
+        return Optional.ofNullable(steps).orElse(new ArrayList<>()).stream().filter((stepWrapper) ->  stepWrapper.getField().equals(stepId)).findFirst().orElse(null);
+    }
+
 }

@@ -1,11 +1,9 @@
 package com.starcloud.ops.business.log.dal.dataobject;
 
 import lombok.*;
-import java.util.*;
-import java.time.LocalDateTime;
-import java.time.LocalDateTime;
+
+import java.math.BigDecimal;
 import com.baomidou.mybatisplus.annotation.*;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 
 /**
  * 应用执行日志结果 DO
@@ -52,9 +50,9 @@ public class LogAppMessageDO extends BaseDO {
      */
     private String appStep;
     /**
-     * 模版状态，0：失败，1：成功
+     * 执行状态，error：失败，success：成功
      */
-    private Byte status;
+    private String status;
     /**
      * 错误码
      */
@@ -78,7 +76,7 @@ public class LogAppMessageDO extends BaseDO {
     /**
      * 消耗token单位价格
      */
-    private Long messageUnitPrice;
+    private BigDecimal messageUnitPrice;
     /**
      * 返回内容
      */
@@ -90,15 +88,15 @@ public class LogAppMessageDO extends BaseDO {
     /**
      * 消耗token单位价格
      */
-    private Long answerUnitPrice;
+    private BigDecimal answerUnitPrice;
     /**
      * 执行耗时
      */
-    private Object elapsed;
+    private Long elapsed;
     /**
      * 总消耗价格
      */
-    private Long totalPrice;
+    private BigDecimal totalPrice;
     /**
      * 价格单位
      */
