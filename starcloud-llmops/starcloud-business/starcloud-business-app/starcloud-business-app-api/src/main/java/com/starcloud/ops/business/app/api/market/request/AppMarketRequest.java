@@ -53,6 +53,13 @@ public class AppMarketRequest implements Serializable {
     private String sourceType;
 
     /**
+     * 应用市场应用版本号
+     */
+    @Schema(description = "应用市场应用版本号")
+    @NotBlank(message = "应用市场应用版本号不能为空")
+    private String version;
+
+    /**
      * 应用标签
      */
     @Schema(description = "应用标签")

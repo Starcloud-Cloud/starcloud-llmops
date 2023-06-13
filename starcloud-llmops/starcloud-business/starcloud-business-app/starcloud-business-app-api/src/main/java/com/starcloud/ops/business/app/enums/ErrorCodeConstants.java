@@ -70,4 +70,9 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_MARKET_FAIL = new ErrorCode(300200004, "App Market Fail: {} ");
 
+    /**
+     * 应用市场版本为必须的
+     */
+    ErrorCode APP_MARKET_VERSION_REQUIRED = new ErrorCode(300200005, "The App Version Is Required, Please Check And Try Again ! ");
+
 }

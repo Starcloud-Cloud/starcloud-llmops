@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.AppUtil;
+import com.starcloud.ops.business.app.util.VersionUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import lombok.experimental.UtilityClass;
 
@@ -90,7 +91,7 @@ public class AppMarketConvert {
         market.setType(type);
         market.setLogotype(logotype);
         market.setSourceType(sourceType);
-        market.setVersion(AppConstants.DEFAULT_VERSION);
+        market.setVersion(VersionUtils.nextVersion(request.getVersion()));
         market.setTags(tags);
         market.setCategories(categories);
         market.setScenes(scenes);
@@ -135,7 +136,6 @@ public class AppMarketConvert {
         AppMarketDO market = new AppMarketDO();
         Assert.notNull(request, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_DATA_IS_NULL, "AppMarketUpdateRequest"));
         market.setUid(request.getUid());
-        market.setVersion(request.getVersion());
         return convertCreate(request);
     }
 }

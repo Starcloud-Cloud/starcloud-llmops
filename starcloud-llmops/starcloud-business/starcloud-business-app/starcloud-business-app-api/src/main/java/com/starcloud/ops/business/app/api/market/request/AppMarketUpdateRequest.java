@@ -30,11 +30,4 @@ public class AppMarketUpdateRequest extends AppMarketRequest {
     @NotNull(message = "应用ID不能为空")
     private String uid;
 
-    /**
-     * 应用市场应用版本号
-     */
-    @Schema(description = "应用市场应用版本号")
-    @NotBlank(message = "应用市场应用版本号不能为空")
-    private String version;
-
 }

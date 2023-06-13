@@ -129,6 +129,8 @@ public class AppMarketServiceImpl implements AppMarketService {
      */
     @Override
     public void modify(AppMarketUpdateRequest request) {
+        // 更新的时候，version 是必须的
+        Assert.notBlank(request.getVersion(), () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_VERSION_REQUIRED));
         AppMarketDO templateMarketDO = AppMarketConvert.convertModify(request);
         LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
                 .eq(AppMarketDO::getUid, request.getUid())
