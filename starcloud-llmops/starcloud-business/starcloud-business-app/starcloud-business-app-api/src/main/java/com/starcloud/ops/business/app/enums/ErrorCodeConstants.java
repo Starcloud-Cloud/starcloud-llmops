@@ -65,4 +65,9 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_MARKET_OPERATE_NOT_SUPPORTED = new ErrorCode(300200003, "The [{}] operate is not supported");
 
+    /**
+     * 应用市场操作失败
+     */
+    ErrorCode APP_MARKET_FAIL = new ErrorCode(300200004, "App Market Fail: {} ");
+
 }
