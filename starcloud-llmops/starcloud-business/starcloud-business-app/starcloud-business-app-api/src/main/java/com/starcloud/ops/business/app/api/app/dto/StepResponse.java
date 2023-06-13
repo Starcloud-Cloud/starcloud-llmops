@@ -19,36 +19,49 @@ public class StepResponse {
     /**
      * 响应状态
      */
+    @Schema(description = "响应状态")
     private Boolean success;
 
     /**
      * 响应错误码
      */
+    @Schema(description = "响应错误码")
     private String errorCode;
 
     /**
      * 响应信息
      */
+    @Schema(description = "响应信息")
     private String message;
 
     /**
-     * 相应类型
+     * 响应类型
      */
+    @Schema(description = "响应类型")
     private String type;
 
     /**
-     * 响应数据
+     * 响应样式
      */
+    @Schema(description = "响应样式")
     private String style;
 
     /**
      * 是否显示
      */
+    @Schema(description = "是否显示")
     private Boolean isShow;
 
     /**
      * 响应数据
      */
+    @Schema(description = "响应数据")
     private Object data;
+
+    /**
+     * 流程请求参数
+     */
+    @Schema(description = "流程请求参数")
+    private ProcessRequest processRequest;
 
 }

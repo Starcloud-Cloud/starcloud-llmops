@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.market.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -32,6 +33,13 @@ public class AppMarketRequest implements Serializable {
     private String name;
 
     /**
+     * 应用模型
+     */
+    @Schema(description = "应用模型")
+    @NotBlank(message = "应用模型不能为空")
+    private String model;
+
+    /**
      * 应用类型
      */
     @Schema(description = "应用类型")
@@ -51,6 +59,13 @@ public class AppMarketRequest implements Serializable {
     @Schema(description = "应用来源类型")
     @NotBlank(message = "应用来源类型不能为空")
     private String sourceType;
+
+    /**
+     * 应用市场应用版本号
+     */
+    @Schema(description = "应用市场应用版本号")
+    @NotBlank(message = "应用市场应用版本号不能为空")
+    private String version;
 
     /**
      * 应用标签
@@ -82,6 +97,12 @@ public class AppMarketRequest implements Serializable {
      */
     @Schema(description = "应用详细配置信息")
     private AppConfigDTO config;
+
+    /**
+     * 应用聊天配置
+     */
+    @Schema(description = "应用聊天配置")
+    private AppChatConfigDTO chatConfig;
 
     /**
      * 应用图片

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.convert.app;
 import cn.hutool.core.lang.Assert;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.api.app.request.AppRequest;
@@ -10,6 +11,7 @@ import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.util.AppUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
@@ -40,6 +42,7 @@ public class AppConvert {
         appDTO.setId(null);
         appDTO.setUid(appDO.getUid());
         appDTO.setName(appDO.getName());
+        appDTO.setModel(appDO.getModel());
         appDTO.setType(appDO.getType());
         appDTO.setLogotype(appDO.getLogotype());
         appDTO.setSourceType(appDO.getSourceType());
@@ -49,7 +52,11 @@ public class AppConvert {
         appDTO.setTags(AppUtil.buildField(appDO.getTags()));
         appDTO.setCategories(AppUtil.buildField(appDO.getCategories()));
         appDTO.setScenes(AppUtil.buildScenes(appDO.getScenes()));
-        appDTO.setConfig(JSON.parseObject(appDO.getConfig(), AppConfigDTO.class));
+        if (AppModelEnum.COMPLETION.name().equals(appDO.getModel())) {
+            appDTO.setConfig(JSON.parseObject(appDO.getConfig(), AppConfigDTO.class));
+        } else {
+            appDTO.setChatConfig(JSON.parseObject(appDO.getConfig(), AppChatConfigDTO.class));
+        }
         appDTO.setImages(AppUtil.buildField(appDO.getImages()));
         appDTO.setIcon(appDO.getIcon());
         appDTO.setStepIcons(AppUtil.buildField(appDO.getStepIcons()));
@@ -75,10 +82,10 @@ public class AppConvert {
         // 基础校验和数据处理
         Assert.notNull(request, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_DATA_IS_NULL, "AppRequest"));
         String name = AppValidate.validateName(request.getName());
+        String model = AppValidate.validateModel(request.getModel());
         String type = AppValidate.validateType(request.getType());
         String logotype = AppValidate.validateLogotype(request.getLogotype());
         String sourceType = AppValidate.validateSourceType(request.getSourceType());
-        AppConfigDTO config = AppValidate.validateConfig(request.getConfig());
         String tags = AppUtil.buildField(request.getTags());
         String categories = AppUtil.buildField(request.getCategories());
         String scenes = AppUtil.buildScenes(request.getScenes());
@@ -94,19 +101,28 @@ public class AppConvert {
         appDO.setScenes(scenes);
         appDO.setImages(AppUtil.buildField(request.getImages()));
         appDO.setIcon(request.getIcon());
-        appDO.setStepIcons(AppUtil.buildStepIcons(config));
         appDO.setDescription(request.getDescription());
         appDO.setStatus(StateEnum.ENABLE.getCode());
         appDO.setDeleted(Boolean.FALSE);
-
-        // 保证 config 中的一些数据和 appDO 中的一致
-        config.setType(type);
-        config.setLogotype(logotype);
-        config.setSourceType(sourceType);
-        config.setTags(AppUtil.buildField(tags));
-        config.setCategories(AppUtil.buildField(categories));
-        config.setScenes(AppUtil.buildScenes(scenes));
-        appDO.setConfig(JSON.toJSONString(config));
+        if (AppModelEnum.COMPLETION.name().equals(model)) {
+            AppConfigDTO config = AppValidate.validateConfig(request.getConfig());
+            // 生成模式应用
+            config.setType(type);
+            config.setLogotype(logotype);
+            config.setSourceType(sourceType);
+            config.setTags(AppUtil.buildField(tags));
+            config.setCategories(AppUtil.buildField(categories));
+            config.setScenes(AppUtil.buildScenes(scenes));
+            appDO.setConfig(JSON.toJSONString(config));
+            appDO.setStepIcons(AppUtil.buildStepIcons(config));
+        } else if (AppModelEnum.CHAT.name().equals(model)) {
+            // 聊天模式
+            AppChatConfigDTO chatConfig = AppValidate.validateChatConfig(request.getChatConfig());
+            appDO.setConfig(JSON.toJSONString(chatConfig));
+        } else {
+            // 未知模式
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MODEL_IS_UNKNOWN, model);
+        }
 
         return appDO;
 

@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.market.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -39,6 +40,12 @@ public class AppMarketDTO implements Serializable {
      */
     @Schema(description = "应用名称")
     private String name;
+
+    /**
+     * 应用模型
+     */
+    @Schema(description = "应用模型")
+    private String model;
 
     /**
      * 应用类型, SYSTEM：系统推荐应用，MY_TEMPLATE：我的应用，DOWNLOAD_TEMPLATE：下载应用
@@ -93,6 +100,12 @@ public class AppMarketDTO implements Serializable {
      */
     @Schema(description = "应用详细配置信息")
     private AppConfigDTO config;
+
+    /**
+     * 应用聊天配置
+     */
+    @Schema(description = "应用聊天配置")
+    private AppChatConfigDTO chatConfig;
 
     /**
      * 应用图片，多个以逗号分割

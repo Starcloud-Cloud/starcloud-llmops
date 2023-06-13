@@ -1,9 +1,12 @@
 package com.starcloud.ops.business.app.validate;
 
+import cn.hutool.core.lang.Assert;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppLogotypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -16,9 +19,9 @@ import org.apache.commons.lang3.StringUtils;
 public class AppValidate {
 
     /**
-     * 校验模版名称
+     * 校验应用名称
      *
-     * @param name 模版名称
+     * @param name 应用名称
      */
     public static String validateName(String name) {
         if (StringUtils.isBlank(name)) {
@@ -28,9 +31,28 @@ public class AppValidate {
     }
 
     /**
-     * 校验模版类型
+     * 校验应用模型
      *
-     * @param type 模版类型
+     * @param model 应用模型
+     * @return 应用模型
+     */
+    public static String validateModel(String model) {
+        if (StringUtils.isBlank(model)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "model");
+        }
+        model = model.trim();
+        try {
+            AppModelEnum.getEnumByName(model);
+        } catch (Exception e) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_NOT_SUPPORT, "model", model);
+        }
+        return model;
+    }
+
+    /**
+     * 校验应用类型
+     *
+     * @param type 应用类型
      */
     public static String validateType(String type) {
         if (StringUtils.isBlank(type)) {
@@ -46,10 +68,10 @@ public class AppValidate {
     }
 
     /**
-     * 校验模版标识
+     * 校验应用标识
      *
-     * @param logotype 模版标识
-     * @return 模版标识
+     * @param logotype 应用标识
+     * @return 应用标识
      */
     public static String validateLogotype(String logotype) {
         if (StringUtils.isBlank(logotype)) {
@@ -65,10 +87,10 @@ public class AppValidate {
     }
 
     /**
-     * 校验模版来源
+     * 校验应用来源
      *
-     * @param sourceType 模版来源
-     * @return 模版来源
+     * @param sourceType 应用来源
+     * @return 应用来源
      */
     public static String validateSourceType(String sourceType) {
         if (StringUtils.isBlank(sourceType)) {
@@ -84,15 +106,19 @@ public class AppValidate {
     }
 
     /**
-     * 校验模版配置
+     * 校验应用配置
      *
-     * @param config 模版配置
-     * @return 模版配置
+     * @param config 应用配置
+     * @return 应用配置
      */
     public static AppConfigDTO validateConfig(AppConfigDTO config) {
-        if (config == null) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "config");
-        }
+        Assert.notNull(config, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "config"));
         return config;
+    }
+
+    public static AppChatConfigDTO validateChatConfig(AppChatConfigDTO chatConfig) {
+        Assert.notNull(chatConfig, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "chatConfig"));
+
+        return chatConfig;
     }
 }

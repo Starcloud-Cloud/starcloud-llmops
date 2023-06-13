@@ -1,11 +1,12 @@
 package com.starcloud.ops.business.app.convert.operate;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateRequest;
 import com.starcloud.ops.business.app.dal.databoject.operate.AppOperateDO;
-//import com.starcloud.ops.business.app.enums.AppResultCode;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
-//import com.starcloud.ops.business.app.exception.AppMarketException;
+
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 
 import java.util.Objects;
 
@@ -26,14 +27,14 @@ public class AppOperateConvert {
         AppOperateDO operate = new AppOperateDO();
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (Objects.isNull(loginUserId)) {
-            //throw AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_OPERATE_FAIL, "User may not login");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "User may not login");
         }
         operate.setUser(loginUserId.toString());
         operate.setTemplateUid(request.getTemplateUid());
         operate.setVersion(request.getVersion());
         AppOperateTypeEnum operateTypeEnum = AppOperateTypeEnum.getByName(request.getOperate().toUpperCase());
         if (Objects.isNull(operateTypeEnum)) {
-            //throw AppMarketException.exception(AppResultCode.TEMPLATE_MARKET_OPERATE_FAIL, "Operate type not Support " + request.getOperate());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_OPERATE_NOT_SUPPORTED, request.getOperate());
         }
         operate.setOperate(request.getOperate());
         return operate;

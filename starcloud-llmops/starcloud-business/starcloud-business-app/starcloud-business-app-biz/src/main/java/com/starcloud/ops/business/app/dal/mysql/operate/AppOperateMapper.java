@@ -5,7 +5,7 @@ import com.starcloud.ops.business.app.dal.databoject.operate.AppOperateDO;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * 模版操作关联 Mapper 接口
+ * 应用操作关联 Mapper 接口
  *
  * @author nacoyer
  * @version 1.0.0

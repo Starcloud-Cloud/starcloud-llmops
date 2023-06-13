@@ -34,10 +34,22 @@ public class StepDTO implements Serializable {
     private String type;
 
     /**
+     * 步骤来源
+     */
+    @Schema(description = "步骤来源")
+    private String source;
+
+    /**
      * 是否自动执行
      */
     @Schema(description = "是否自动执行")
     private Boolean isAuto;
+
+    /**
+     * 是否是可编辑步骤
+     */
+    @Schema(description = "是否是可编辑步骤")
+    private Boolean isCanEditStep;
 
     /**
      * 步骤版本，默认版本 1.0.0

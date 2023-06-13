@@ -1,8 +1,7 @@
 package com.starcloud.ops.framework.common.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,7 +15,7 @@ import java.io.Serializable;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel(value = "选项对象", description = "选项对象, 一般用于下拉框，用于描述 label 和 value")
+@Schema(description = "选项对象, 一般用于下拉框，用于描述 label 和 value")
 public class Option implements Serializable {
 
     private static final long serialVersionUID = 178678534536774534L;
@@ -24,19 +23,19 @@ public class Option implements Serializable {
     /**
      * label：属性名，用于展示
      */
-    @ApiModelProperty(value = "属性名，用于展示")
+    @Schema(description = "属性名，用于展示")
     private String label;
 
     /**
      * value：属性值，用于传递
      */
-    @ApiModelProperty(value = "属性值，用于传递")
-    private String value;
+    @Schema(description = "属性值，用于传递")
+    private Object value;
 
     /**
      * 描述，用于展示，对该选项的描述
      */
-    @ApiModelProperty(value = "描述，用于展示，对该选项的描述")
+    @Schema(description = "描述，用于展示，对该选项的描述")
     private String description;
 
     /**
@@ -44,10 +43,9 @@ public class Option implements Serializable {
      *
      * @param label label
      * @param value value
-     *
      * @return LabelValue 对象
      */
-    public static Option of(String label, String value) {
+    public static Option of(String label, Object value) {
         Option option = new Option();
         option.setLabel(label);
         option.setValue(value);
