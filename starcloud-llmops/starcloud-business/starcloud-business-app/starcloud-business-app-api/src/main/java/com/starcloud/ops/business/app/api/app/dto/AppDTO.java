@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api.app.dto;
 
+import cn.iocoder.yudao.framework.common.util.date.DateUtils;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -164,18 +166,21 @@ public class AppDTO implements Serializable {
      * 应用创建时间
      */
     @Schema(description = "应用创建时间")
+    @JsonFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, timezone = "GMT+8")
     private LocalDateTime createTime;
 
     /**
      * 应用更新时间
      */
     @Schema(description = "应用更新时间")
+    @JsonFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, timezone = "GMT+8")
     private LocalDateTime updateTime;
 
     /**
      * 最后一次上传到应用市场时间
      */
     @Schema(description = "最后一次上传到应用市场时间")
+    @JsonFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, timezone = "GMT+8")
     private LocalDateTime lastUpload;
 
     /**

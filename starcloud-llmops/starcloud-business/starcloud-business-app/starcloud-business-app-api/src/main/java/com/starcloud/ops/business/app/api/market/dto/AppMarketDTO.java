@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api.market.dto;
 
+import cn.iocoder.yudao.framework.common.util.date.DateUtils;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
@@ -207,12 +209,14 @@ public class AppMarketDTO implements Serializable {
      * 创建时间
      */
     @Schema(description = "创建时间")
+    @JsonFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, timezone = "GMT+8")
     private LocalDateTime createTime;
 
     /**
      * 最后更新时间
      */
     @Schema(description = "最后更新时间")
+    @JsonFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, timezone = "GMT+8")
     private LocalDateTime updateTime;
 
     /**

@@ -28,7 +28,7 @@ public class AppUtil {
     /**
      * 默认场景
      */
-    public static final List<String> DEFAULT_SCENES = Arrays.asList("1", "2");
+    public static final List<String> DEFAULT_SCENES = Arrays.asList("WPAdminSceneModule", "WPShortCodeSceneModule", "WPTemplateMarketSceneModule");
 
     /**
      * 将字符串构建成集合

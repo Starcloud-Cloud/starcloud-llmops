@@ -64,7 +64,7 @@ public class AppController {
     @GetMapping("/get")
     @Operation(summary = "获得应用", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 13, author = "nacoyer")
-    public CommonResult<AppDTO> get(@Parameter(name = "应用 UID") @RequestParam("uid") String uid) {
+    public CommonResult<AppDTO> get(@Parameter(name = "uid", description = "应用 UID") @RequestParam("uid") String uid) {
         return CommonResult.success(appService.getByUid(uid));
     }
 
@@ -95,7 +95,7 @@ public class AppController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除应用", description = "根据 UID 删除应用")
     @ApiOperationSupport(order = 17, author = "nacoyer")
-    public CommonResult<Boolean> delete(@Parameter(name = "应用 UID") @RequestParam("uid") String uid) {
+    public CommonResult<Boolean> delete(@Parameter(name = "uid", description = "应用 UID") @RequestParam("uid") String uid) {
         appService.deleteByUid(uid);
         return CommonResult.success(Boolean.TRUE);
     }
