@@ -16,7 +16,8 @@ import javax.annotation.PostConstruct;
 @Slf4j
 @Configuration
 @ComponentScan(basePackages = "com.starcloud.ops")
-@PropertySource(value = {"classpath:starcloud-llm-config.properties", "classpath:starcloud-llm-config-${spring.profiles.active}.properties"}, ignoreResourceNotFound = true)
+@PropertySource(value = {"classpath:config/starcloud-llm-config.properties","classpath:starcloud-llm-config.properties",
+        "classpath:config/starcloud-llm-config-${spring.profiles.active}.properties","classpath:starcloud-llm-config-${spring.profiles.active}.properties"}, ignoreResourceNotFound = true)
 @EnableConfigurationProperties(value = {StarcloudServerProperties.class, BusinessAppProperties.class, BusinessDatasetProperties.class, BusinessLimitProperties.class})
 public class StarcloudServerConfiguration {
 
