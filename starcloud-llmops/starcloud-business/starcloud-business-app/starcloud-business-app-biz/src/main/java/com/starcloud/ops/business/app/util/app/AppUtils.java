@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.app.util.app;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.StepDTO;
 import com.starcloud.ops.business.app.api.app.dto.StepWrapperDTO;
 import com.starcloud.ops.business.app.api.app.request.AppRequest;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
@@ -161,5 +163,44 @@ public class AppUtils {
      */
     public static List<String> split(String str) {
         return StringUtil.toList(str);
+    }
+
+    /**
+     * 生成uid, 例如：uid-1
+     *
+     * @param uid     uid
+     * @param version 版本号
+     * @return uid
+     */
+    public static String generateUid(String uid, Integer version) {
+        return uid + "-" + version;
+    }
+
+    /**
+     * 获取uid, 例如：uid-1
+     *
+     * @param uid uid
+     * @return uid
+     */
+    public static String getUid(String uid) {
+        String[] split = uid.split("-");
+        if (split.length != 2) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "Un Known Error");
+        }
+        return split[0];
+    }
+
+    /**
+     * 获取版本号, 例如：uid-1
+     *
+     * @param uid uid
+     * @return 版本号
+     */
+    public static Integer getVersion(String uid) {
+        String[] split = uid.split("-");
+        if (split.length != 2) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "Un Known Error");
+        }
+        return Integer.valueOf(split[1]);
     }
 }

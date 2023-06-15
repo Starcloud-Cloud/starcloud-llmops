@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.convert.app;
 
-import cn.hutool.core.lang.Assert;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
@@ -45,7 +44,7 @@ public class AppConvert {
         appDTO.setTags(AppUtils.split(appDO.getTags()));
         appDTO.setCategories(AppUtils.split(appDO.getCategories()));
         appDTO.setScenes(AppUtils.splitScenes(appDO.getScenes()));
-        appDTO.setImages(AppUtils.split(appDO.getImages()));
+        appDTO.setImages(null);
         appDTO.setIcon(appDO.getIcon());
         appDTO.setStepIcons(StringUtil.toList(appDO.getStepIcons()));
         appDTO.setDescription(appDO.getDescription());
@@ -86,7 +85,7 @@ public class AppConvert {
         appDO.setTags(AppUtils.join(request.getTags()));
         appDO.setCategories(AppUtils.join(request.getCategories()));
         appDO.setScenes(AppUtils.joinScenes(request.getScenes()));
-        appDO.setImages(AppUtils.join(request.getImages()));
+        appDO.setImages(null);
         appDO.setIcon(request.getIcon());
         appDO.setDescription(request.getDescription());
         appDO.setStatus(StateEnum.ENABLE.getCode());

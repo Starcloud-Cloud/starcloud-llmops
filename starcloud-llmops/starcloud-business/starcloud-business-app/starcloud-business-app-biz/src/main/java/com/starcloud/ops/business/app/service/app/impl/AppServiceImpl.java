@@ -26,6 +26,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.util.PageUtil;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.dto.SortQuery;
 import com.starcloud.ops.framework.common.api.enums.SortType;
@@ -33,7 +34,7 @@ import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -60,9 +61,6 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private RecommendedAppRedisDAO recommendedAppRedisDAO;
-
-    @Resource
-    private TransactionTemplate transactionTemplate;
 
     /**
      * 查询应用分类列表
@@ -201,6 +199,7 @@ public class AppServiceImpl implements AppService {
      * @param request 应用发布到应用市场请求对象
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void publicAppToMarket(AppPublishRequest request) {
 
         // 查询应用是否存在，不存在则抛出异常
@@ -218,7 +217,7 @@ public class AppServiceImpl implements AppService {
         } else {
             // 说明已经发布过应用市场。
             LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class)
-                    .eq(AppMarketDO::getUid, appDO.getUploadUid())
+                    .eq(AppMarketDO::getUid, AppUtils.getUid(appDO.getUploadUid()))
                     .eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode())
                     .orderByDesc(AppMarketDO::getCreateTime);
             List<AppMarketDO> appMarketList = appMarketMapper.selectList(wrapper);
@@ -238,17 +237,17 @@ public class AppServiceImpl implements AppService {
                 marketDO.setDownloadCount(0);
             }
         }
-
-        transactionTemplate.executeWithoutResult(status -> {
-            // 保存到应用市场
-            appMarketMapper.insert(marketDO);
-            // 更新我的应用
-            AppDO publishApp = AppConvert.convertPublish(request);
-            publishApp.setUploadUid(marketDO.getUid());
-            appMapper.update(publishApp, Wrappers.lambdaUpdate(AppDO.class)
-                    .eq(AppDO::getUid, request.getUid())
-                    .eq(AppDO::getStatus, StateEnum.ENABLE.getCode()));
-        });
+        // 保存到应用市场
+        appMarketMapper.insert(marketDO);
+        // 更新我的应用
+        AppDO publishApp = AppConvert.convertPublish(request);
+        publishApp.setUploadUid(AppUtils.generateUid(marketDO.getUid(), marketDO.getVersion()));
+        appMapper.update(publishApp, Wrappers.lambdaUpdate(AppDO.class)
+                .eq(AppDO::getUid, request.getUid())
+                .eq(AppDO::getStatus, StateEnum.ENABLE.getCode()));
+//        transactionTemplate.executeWithoutResult(status -> {
+//
+//        });
 
 
     }
@@ -308,16 +307,17 @@ public class AppServiceImpl implements AppService {
     public static LambdaQueryWrapper<AppDO> buildPageQueryWrapper() {
         return Wrappers.lambdaQuery(AppDO.class).select(
                         AppDO::getUid,
-                        AppDO::getUploadUid,
-                        AppDO::getDownloadUid,
-                        AppDO::getType,
-                        AppDO::getSource,
                         AppDO::getName,
-                        AppDO::getDescription,
-                        AppDO::getIcon,
+                        AppDO::getType,
+                        AppDO::getModel,
+                        AppDO::getSource,
                         AppDO::getTags,
                         AppDO::getCategories,
                         AppDO::getScenes,
+                        AppDO::getIcon,
+                        AppDO::getDescription,
+                        AppDO::getUploadUid,
+                        AppDO::getDownloadUid,
                         AppDO::getCreator,
                         AppDO::getUpdater,
                         AppDO::getCreateTime,
