@@ -5,8 +5,10 @@ import javax.validation.*;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.log.api.conversation.vo.*;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 
 /**
  * 应用执行日志会话 Service 接口
@@ -79,7 +81,16 @@ public interface LogAppConversationService {
     List<LogAppConversationDO> getAppConversationList(LogAppConversationExportReqVO exportReqVO);
 
 
-
     PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO);
+
+
+    /**
+     * app message 统计列表数据
+     *
+     * @param statisticsListReqVO
+     * @return
+     */
+    List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO statisticsListReqVO);
+
 
 }
