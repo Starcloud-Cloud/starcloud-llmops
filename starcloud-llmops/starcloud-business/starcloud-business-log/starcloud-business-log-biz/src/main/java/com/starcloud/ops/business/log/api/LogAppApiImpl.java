@@ -2,12 +2,17 @@ package com.starcloud.ops.business.log.api;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
+import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
@@ -26,7 +31,6 @@ public class LogAppApiImpl implements LogAppApi {
 
     @Autowired
     private LogAppMessageService logAppMessageService;
-
 
     @Override
     public LogAppConversationCreateReqVO createAppConversation(LogAppConversationCreateReqVO logAppConversationCreateReqVO) {

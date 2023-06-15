@@ -2,12 +2,22 @@ package com.starcloud.ops.business.log.dal.mysql;
 
 import java.util.*;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.yulichang.method.mp.SelectCount;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import com.starcloud.ops.business.core.mybatis.query.MPJLambdaWrapperX;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageFeedbacksDO;
 import org.apache.ibatis.annotations.Mapper;
 
 
@@ -43,6 +53,38 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
                 .eqIfPresent(LogAppConversationDO::getEndUser, reqVO.getEndUser())
                 .betweenIfPresent(LogAppConversationDO::getCreateTime, reqVO.getCreateTime())
                 .orderByDesc(LogAppConversationDO::getId));
+    }
+
+
+    default PageResult<LogAppConversationInfoPO> selectPage(LogAppConversationInfoPageReqVO reqVO) {
+
+        MPJLambdaWrapperX<LogAppConversationDO> lambdaWrapperX = (MPJLambdaWrapperX<LogAppConversationDO>) new MPJLambdaWrapperX<LogAppConversationDO>()
+
+                .select(LogAppConversationDO::getUid, LogAppConversationDO::getAppUid, LogAppConversationDO::getAppMode)
+
+                .selectCount(LogAppMessageDO::getId, LogAppConversationInfoPO::getMessageCount)
+                .selectCount(LogAppMessageFeedbacksDO::getId, LogAppConversationInfoPO::getFeedbacksCount)
+                .selectSum(LogAppMessageDO::getElapsed, LogAppConversationInfoPO::getElapsedTotal)
+
+                .leftJoin(LogAppMessageDO.class, LogAppMessageDO::getAppConversationUid, LogAppConversationDO::getUid)
+                .leftJoin(LogAppMessageFeedbacksDO.class, LogAppMessageFeedbacksDO::getAppMessageUid, LogAppMessageDO::getUid)
+
+                .eq(ObjectUtil.isNotEmpty(reqVO.getUid()), LogAppConversationDO::getUid, reqVO.getUid())
+                .eq(ObjectUtil.isNotEmpty(reqVO.getAppUid()), LogAppConversationDO::getAppUid, reqVO.getAppUid())
+                .eq(ObjectUtil.isNotEmpty(reqVO.getAppMode()), LogAppConversationDO::getAppMode, reqVO.getAppMode())
+                .eq(ObjectUtil.isNotEmpty(reqVO.getStatus()), LogAppConversationDO::getStatus, reqVO.getStatus())
+                .eq(ObjectUtil.isNotEmpty(reqVO.getFromScene()), LogAppConversationDO::getFromScene, reqVO.getFromScene())
+                .eq(ObjectUtil.isNotEmpty(reqVO.getEndUser()), LogAppConversationDO::getEndUser, reqVO.getEndUser());
+
+                lambdaWrapperX.betweenIfPresent(LogAppConversationDO::getCreateTime, reqVO.getStartTime(), reqVO.getEndTime())
+
+                .groupBy(LogAppConversationDO::getId);
+
+        IPage<LogAppConversationInfoPO> mpPage = this.selectJoinPage(new Page<>(reqVO.getPageNo(), reqVO.getPageSize()), LogAppConversationInfoPO.class, lambdaWrapperX);
+
+
+        return new PageResult<>(mpPage.getRecords(), mpPage.getTotal());
+
     }
 
 }

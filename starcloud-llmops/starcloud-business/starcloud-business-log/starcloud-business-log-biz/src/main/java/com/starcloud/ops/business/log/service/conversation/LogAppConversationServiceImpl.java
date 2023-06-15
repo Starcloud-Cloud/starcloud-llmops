@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.log.api.conversation.vo.*;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import org.springframework.stereotype.Service;
 
@@ -41,11 +42,11 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     @Override
     public void updateAppConversation(LogAppConversationUpdateReqVO updateReqVO) {
         // 校验存在
-       // validateAppConversationExists(updateReqVO.getId());
+        // validateAppConversationExists(updateReqVO.getId());
         // 更新
         LogAppConversationDO updateObj = LogAppConversationConvert.INSTANCE.convert(updateReqVO);
 
-        appConversationMapper.update(updateObj, Wrappers.lambdaQuery(LogAppConversationDO.class).eq(LogAppConversationDO::getUid,updateReqVO.getUid()));
+        appConversationMapper.update(updateObj, Wrappers.lambdaQuery(LogAppConversationDO.class).eq(LogAppConversationDO::getUid, updateReqVO.getUid()));
 
     }
 
@@ -88,5 +89,19 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     public List<LogAppConversationDO> getAppConversationList(LogAppConversationExportReqVO exportReqVO) {
         return appConversationMapper.selectList(exportReqVO);
     }
+
+
+    /**
+     * 查询应用执行日志信息接口
+     *
+     * @param pageReqVO
+     * @return
+     */
+    @Override
+    public PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO) {
+
+        return appConversationMapper.selectPage(pageReqVO);
+    }
+
 
 }
