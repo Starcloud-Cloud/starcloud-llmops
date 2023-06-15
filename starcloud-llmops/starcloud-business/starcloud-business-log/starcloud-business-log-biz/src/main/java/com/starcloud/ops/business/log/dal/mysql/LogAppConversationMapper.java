@@ -14,10 +14,8 @@ import com.starcloud.ops.business.core.mybatis.query.MPJLambdaWrapperX;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageFeedbacksDO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.dal.dataobject.*;
 import org.apache.ibatis.annotations.Mapper;
 
 

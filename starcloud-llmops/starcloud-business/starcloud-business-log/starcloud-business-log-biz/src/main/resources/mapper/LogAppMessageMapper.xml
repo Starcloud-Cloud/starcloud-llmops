@@ -9,4 +9,43 @@
         文档可见：https://www.iocoder.cn/MyBatis/x-plugins/
      -->
 
+    <select id="getAppMessageStatisticsList"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
+        SELECT count(ms.id) as total,
+        COUNT(DISTINCT(ms.creator)) as user,
+        SUM(ms.elapsed) as elapsedTotal,
+        AVG(ms.elapsed) as elapsedAvg,
+        SUM(message_tokens) as messageTokens,
+        SUM(answer_tokens) as answerTokens,
+        date_format(ms.create_time, '%Y-%m-%d') as create_date
+        from llm_log_app_message as ms LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
+
+        <where>
+            <if test="req.appName !=null and req.appName!=''">
+                <bind name="appName" value="req.appName+'%'"/>
+                AND co.app_name LIKE #{appName}
+            </if>
+
+            <if test="req.appUid !=null and req.appUid!=''">
+                AND ms.app_uid = #{req.appUid}
+            </if>
+
+            <if test="req.fromScene !=null and req.fromScene!=''">
+                AND ms.from_scene = #{req.fromScene}
+            </if>
+
+            <if test="req.status !=null and req.status!=''">
+                AND ms.status = #{req.status}
+            </if>
+
+            <if test="req.startTime !=null and req.startTime!='' and req.endTime !=null and req.endTime!=''">
+                AND between #{req.startTime} and #{req.endTime}
+            </if>
+        </where>
+
+        GROUP BY date_format(ms.create_time, '%Y-%m-%d') ORDER BY create_date DESC ;
+
+    </select>
+
+
 </mapper>
