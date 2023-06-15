@@ -2,11 +2,9 @@ package com.starcloud.ops.business.limits.service.userbenefitsstrategy;
 
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.baomidou.dynamic.datasource.annotation.Master;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo.UserBenefitsStrategyCreateReqVO;
@@ -58,7 +56,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
             throw exception(BENEFITS_STRATEGY_TYPE_NOT_EXISTS);
         }
         // 生成兑换码 code
-        String code =strategyTypeEnums.getPrefix() + "_" + IdUtil.fastSimpleUUID().substring(0, 12).toUpperCase();
+        String code = strategyTypeEnums.getPrefix() + "_" + IdUtil.fastSimpleUUID().substring(0, 12).toUpperCase();
 
         // 创建查询条件
         LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
@@ -86,7 +84,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         // 权益策略枚举校验
         BenefitsStrategyTypeEnums strategyTypeEnums = BenefitsStrategyTypeEnums.getByCode(strategyType);
 
-        if (!strategyTypeEnums.getPrefix().equals(code.substring(0,2))) {
+        if (!strategyTypeEnums.getPrefix().equals(code.substring(0, 2))) {
             throw exception(BENEFITS_STRATEGY_PREFIX_NO_VALIDITY);
         }
         // 创建查询条件
@@ -112,7 +110,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         }
 
         // code 合法性检测
-        if (!checkCode(createReqVO.getCode(),createReqVO.getStrategyType())) {
+        if (!checkCode(createReqVO.getCode(), createReqVO.getStrategyType())) {
             throw exception(BENEFITS_STRATEGY_CODE_EXISTS);
         }
 

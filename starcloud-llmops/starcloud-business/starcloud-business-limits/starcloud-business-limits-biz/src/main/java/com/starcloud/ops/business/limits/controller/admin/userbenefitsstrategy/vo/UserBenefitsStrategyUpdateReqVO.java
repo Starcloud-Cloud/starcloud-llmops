@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 @Schema(description = "管理后台 - 用户权益策略表 更新 Request VO")
 @Data

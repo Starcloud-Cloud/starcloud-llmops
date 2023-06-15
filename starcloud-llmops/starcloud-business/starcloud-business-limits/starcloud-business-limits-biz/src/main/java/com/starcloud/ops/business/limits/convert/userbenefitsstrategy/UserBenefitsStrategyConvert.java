@@ -102,7 +102,7 @@ public class UserBenefitsStrategyConvert {
             return null;
         }
 
-        List<UserBenefitsStrategyRespVO> list1 = new ArrayList<UserBenefitsStrategyRespVO>( list.size() );
+        List<UserBenefitsStrategyRespVO> list1 = new ArrayList<>(list.size());
         for ( UserBenefitsStrategyDO userBenefitsStrategyDO : list ) {
             list1.add( convert( userBenefitsStrategyDO ) );
         }
@@ -115,7 +115,7 @@ public class UserBenefitsStrategyConvert {
             return null;
         }
 
-        PageResult<UserBenefitsStrategyRespVO> pageResult = new PageResult<UserBenefitsStrategyRespVO>();
+        PageResult<UserBenefitsStrategyRespVO> pageResult = new PageResult<>();
 
         pageResult.setList( convertList( page.getList() ) );
         pageResult.setTotal( page.getTotal() );

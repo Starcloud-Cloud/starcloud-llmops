@@ -20,8 +20,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -46,11 +44,11 @@ public class UserBenefitsStrategyController {
         return success(userBenefitsStrategyService.generateUniqueCode(strategyType));
     }
 
-    @PostMapping("/check-code/{code}")
+    @PostMapping("/check-code/{code}/{strategyType}")
     @Operation(summary = "验证策略 code 是否合法 ")
     @PreAuthorize("@ss.hasPermission('starcloud-business-limits:user-benefits-strategy:create')")
-    public CommonResult<Boolean> checkCode(@ApiParam("主键") @PathVariable(value = "code") String code) {
-        return success(userBenefitsStrategyService.checkCode(code));
+    public CommonResult<Boolean> checkCode(@ApiParam("主键") @PathVariable(value = "code") String code,@ApiParam("策略类型") @PathVariable(value = "strategyType") String strategyType) {
+        return success(userBenefitsStrategyService.checkCode(code,strategyType));
     }
 
     @PostMapping("/master-config/{strategyType}")

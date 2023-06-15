@@ -14,7 +14,7 @@ import javax.validation.constraints.Size;
 public class UserBenefitsStrategyCreateReqVO {
 
     @Schema(description = "兑换码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 12, message = "兑换码长度不能超过12个字符")
+    @Size(max = 15, message = "兑换码长度不能超过12个字符")
     private String code;
 
     @Schema(description = "策略名称", requiredMode = Schema.RequiredMode.REQUIRED)
