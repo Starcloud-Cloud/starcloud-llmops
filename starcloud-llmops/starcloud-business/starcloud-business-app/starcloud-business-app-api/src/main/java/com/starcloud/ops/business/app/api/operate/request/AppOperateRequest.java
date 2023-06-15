@@ -27,14 +27,14 @@ public class AppOperateRequest implements Serializable {
      */
     @Schema(description = "应用 UID")
     @NotBlank(message = "应用 UID 不能为空")
-    private String templateUid;
+    private String appUid;
 
     /**
      * 版本号
      */
     @Schema(description = "应用版本号")
     @NotBlank(message = "应用版本号不能为空")
-    private String version;
+    private Integer version;
 
     /**
      * 操作类型

@@ -30,7 +30,7 @@ public class AppOperateConvert {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "User may not login");
         }
         operate.setUser(loginUserId.toString());
-        operate.setTemplateUid(request.getTemplateUid());
+        operate.setAppUid(request.getAppUid());
         operate.setVersion(request.getVersion());
         AppOperateTypeEnum operateTypeEnum = AppOperateTypeEnum.getByName(request.getOperate().toUpperCase());
         if (Objects.isNull(operateTypeEnum)) {

@@ -37,6 +37,12 @@ public class AppCategoryDTO implements Serializable {
     private String name;
 
     /**
+     * 应用类别应用数量
+     */
+    @Schema(description = "该类别应用数量")
+    private Integer appCount;
+
+    /**
      * 应用类别图标
      */
     @Schema(description = "类别图标")
@@ -59,6 +65,5 @@ public class AppCategoryDTO implements Serializable {
      */
     @Schema(description = "类别描述")
     private String description;
-
 
 }

@@ -2,6 +2,9 @@ package com.starcloud.ops.business.app.enums.market;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 应用市场审核步骤类型枚举
  *
@@ -25,7 +28,7 @@ public enum AppMarketAuditEnum {
     /**
      * 审核不通过
      */
-    REJECT(2, "审核不通过");
+    REJECTED(2, "审核不通过");
 
     /**
      * 步骤类型Code
@@ -39,6 +42,8 @@ public enum AppMarketAuditEnum {
     @Getter
     private final String message;
 
+    private static final List<AppMarketAuditEnum> SUPPORTS = Arrays.asList(AppMarketAuditEnum.APPROVED, AppMarketAuditEnum.REJECTED);
+
     /**
      * 构造函数
      *
@@ -48,5 +53,15 @@ public enum AppMarketAuditEnum {
     AppMarketAuditEnum(Integer code, String message) {
         this.code = code;
         this.message = message;
+    }
+
+    /**
+     * 判断是否支持
+     *
+     * @param code 步骤类型 Code
+     * @return 是否支持
+     */
+    public static Boolean isSupported(Integer code) {
+        return SUPPORTS.stream().anyMatch(item -> item.getCode().equals(code));
     }
 }

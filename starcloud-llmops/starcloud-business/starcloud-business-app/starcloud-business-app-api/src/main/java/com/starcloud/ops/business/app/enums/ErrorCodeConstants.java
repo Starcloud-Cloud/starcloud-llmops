@@ -43,6 +43,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_FIELD_NOT_SUPPORT = new ErrorCode(300100006, "The App {}: {} Is Not Supported");
 
+    /**
+     * 应用 UID 为必须的
+     */
+    ErrorCode APP_UID_IS_REQUIRED = new ErrorCode(300100007, "The App UID Is Required, Please Check And Try Again ! ");
+
 
     // ========== 应用市场错误码 3-002-000-000 ==========
     /**
@@ -54,6 +59,11 @@ public interface ErrorCodeConstants {
      * 应用市场应用不存在
      */
     ErrorCode APP_MARKET_NO_EXISTS_UID = new ErrorCode(300200001, "The App Is Not Exists In The Market! [UID: {}]");
+
+    /**
+     * 应用市场应用不存在
+     */
+    ErrorCode APP_MARKET_NO_EXISTS_UID_VERSION = new ErrorCode(300200001, "The App Is Not Exists In The Market! [UID: {}, version: {}]");
 
     /**
      * 应用市场数据不能为空
@@ -79,4 +89,15 @@ public interface ErrorCodeConstants {
      * 应用市场模型未知
      */
     ErrorCode APP_MODEL_IS_UNKNOWN = new ErrorCode(300200006, "The App Model Is Unknown, Please Check And Try Again ! [model: {}]");
+
+    /**
+     * 应用市场审核为必须的
+     */
+    ErrorCode APP_MARKET_AUDIT_IS_REQUIRED = new ErrorCode(300200007, "The App Audit Is Required, Please Check And Try Again ! ");
+
+    /**
+     * 应用市场审核不支持
+     */
+    ErrorCode APP_MARKET_AUDIT_IS_NOT_SUPPORT = new ErrorCode(300200008, "The App Audit Is Not Support, Please Check And Try Again ! [audit: {}]");
+
 }

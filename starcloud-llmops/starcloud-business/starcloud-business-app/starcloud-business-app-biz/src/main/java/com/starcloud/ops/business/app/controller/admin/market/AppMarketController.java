@@ -48,8 +48,8 @@ public class AppMarketController {
     @GetMapping("/get")
     @Operation(summary = "根据 UID 和版本号 获得应用详情", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 11, author = "nacoyer")
-    public CommonResult<AppMarketDTO> get(@Validated AppMarketUidVersionRequest request) {
-        return CommonResult.success(appMarketService.getByUid(request.getUid(), request.getVersion()));
+    public CommonResult<AppMarketDTO> get(@RequestParam("uid") String uid, @RequestParam("version") Integer version) {
+        return CommonResult.success(appMarketService.getByUid(uid, version));
     }
 
     @PostMapping("/create")
@@ -71,7 +71,7 @@ public class AppMarketController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除应用市场模版", description = "根据 UID 删除应用市场应用")
     @ApiOperationSupport(order = 15, author = "nacoyer")
-    public CommonResult<Boolean> delete(@RequestParam("uid") String uid, @RequestParam("version") String version) {
+    public CommonResult<Boolean> delete(@RequestParam("uid") String uid, @RequestParam("version") Integer version) {
         appMarketService.deleteByUid(uid, version);
         return CommonResult.success(Boolean.TRUE);
     }

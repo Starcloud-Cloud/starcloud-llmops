@@ -4,12 +4,17 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
+import com.starcloud.ops.business.app.api.app.dto.CategoryRemark;
 import com.starcloud.ops.business.app.api.app.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
 import com.starcloud.ops.business.app.api.app.request.AppRequest;
@@ -33,12 +38,15 @@ import com.starcloud.ops.framework.common.api.enums.SortType;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -62,6 +70,9 @@ public class AppServiceImpl implements AppService {
     @Resource
     private RecommendedAppRedisDAO recommendedAppRedisDAO;
 
+    @Resource
+    private DictDataService dictDataService;
+
     /**
      * 查询应用分类列表
      *
@@ -69,8 +80,43 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<AppCategoryDTO> categories() {
+        // 查询应用分类字典数据
+        DictDataExportReqVO request = new DictDataExportReqVO();
+        request.setDictType(AppConstants.APP_CATEGORY_DICT_TYPE);
+        request.setStatus(StateEnum.ENABLE.getCode());
+        List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
 
-        return null;
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return Collections.emptyList();
+        }
+
+        List<AppCategoryDTO> categoryList = dictDataList.stream().map(dictData -> {
+            String remark = dictData.getRemark();
+            if (StringUtils.isBlank(remark)) {
+                return null;
+            }
+            CategoryRemark categoryRemark = JSON.parseObject(remark, CategoryRemark.class);
+            if (categoryRemark == null) {
+                return null;
+            }
+
+            AppCategoryDTO category = new AppCategoryDTO();
+            category.setCode(dictData.getValue());
+            category.setSort(dictData.getSort());
+            category.setIcon(categoryRemark.getIcon());
+            category.setImage(categoryRemark.getImage());
+            Locale locale = LocaleContextHolder.getLocale();
+            if (locale.equals(Locale.SIMPLIFIED_CHINESE)) {
+                category.setName(categoryRemark.getLabelZh());
+                category.setDescription(categoryRemark.getDescriptionZh());
+            } else {
+                category.setName(categoryRemark.getLabelEn());
+                category.setDescription(categoryRemark.getDescriptionEn());
+            }
+            return category;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        return categoryList;
     }
 
     /**
@@ -245,10 +291,15 @@ public class AppServiceImpl implements AppService {
         appMapper.update(publishApp, Wrappers.lambdaUpdate(AppDO.class)
                 .eq(AppDO::getUid, request.getUid())
                 .eq(AppDO::getStatus, StateEnum.ENABLE.getCode()));
-//        transactionTemplate.executeWithoutResult(status -> {
-//
-//        });
+    }
 
+    /**
+     * 批量发布应用到应用市场
+     *
+     * @param requestList 应用发布到应用市场请求对象列表
+     */
+    @Override
+    public void batchPublicAppToMarket(List<AppPublishRequest> requestList) {
 
     }
 
