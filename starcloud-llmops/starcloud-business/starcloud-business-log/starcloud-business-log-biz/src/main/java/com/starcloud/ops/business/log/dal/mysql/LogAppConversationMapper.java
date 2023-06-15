@@ -31,6 +31,7 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
         return selectPage(reqVO, new LambdaQueryWrapperX<LogAppConversationDO>()
                 .eqIfPresent(LogAppConversationDO::getUid, reqVO.getUid())
                 .eqIfPresent(LogAppConversationDO::getAppUid, reqVO.getAppUid())
+                .eqIfPresent(LogAppConversationDO::getAppName, reqVO.getAppName())
                 .eqIfPresent(LogAppConversationDO::getAppMode, reqVO.getAppMode())
                 .eqIfPresent(LogAppConversationDO::getAppConfig, reqVO.getAppConfig())
                 .eqIfPresent(LogAppConversationDO::getStatus, reqVO.getStatus())
@@ -44,6 +45,7 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
         return selectList(new LambdaQueryWrapperX<LogAppConversationDO>()
                 .eqIfPresent(LogAppConversationDO::getUid, reqVO.getUid())
                 .eqIfPresent(LogAppConversationDO::getAppUid, reqVO.getAppUid())
+                .eqIfPresent(LogAppConversationDO::getAppName, reqVO.getAppName())
                 .eqIfPresent(LogAppConversationDO::getAppMode, reqVO.getAppMode())
                 .eqIfPresent(LogAppConversationDO::getAppConfig, reqVO.getAppConfig())
                 .eqIfPresent(LogAppConversationDO::getStatus, reqVO.getStatus())
@@ -58,7 +60,7 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
 
         MPJLambdaWrapperX<LogAppConversationDO> lambdaWrapperX = (MPJLambdaWrapperX<LogAppConversationDO>) new MPJLambdaWrapperX<LogAppConversationDO>()
 
-                .select(LogAppConversationDO::getUid, LogAppConversationDO::getAppUid, LogAppConversationDO::getAppMode)
+                .select(LogAppConversationDO::getUid, LogAppConversationDO::getAppUid, LogAppConversationDO::getAppName, LogAppConversationDO::getAppMode)
 
                 .selectCount(LogAppMessageDO::getId, LogAppConversationInfoPO::getMessageCount)
                 .selectCount(LogAppMessageFeedbacksDO::getId, LogAppConversationInfoPO::getFeedbacksCount)
@@ -69,6 +71,8 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
 
                 .eq(ObjectUtil.isNotEmpty(reqVO.getUid()), LogAppConversationDO::getUid, reqVO.getUid())
                 .eq(ObjectUtil.isNotEmpty(reqVO.getAppUid()), LogAppConversationDO::getAppUid, reqVO.getAppUid())
+                .eq(ObjectUtil.isNotEmpty(reqVO.getAppName()), LogAppConversationDO::getAppName, reqVO.getAppName())
+
                 .eq(ObjectUtil.isNotEmpty(reqVO.getAppMode()), LogAppConversationDO::getAppMode, reqVO.getAppMode())
                 .eq(ObjectUtil.isNotEmpty(reqVO.getStatus()), LogAppConversationDO::getStatus, reqVO.getStatus())
                 .eq(ObjectUtil.isNotEmpty(reqVO.getFromScene()), LogAppConversationDO::getFromScene, reqVO.getFromScene())
