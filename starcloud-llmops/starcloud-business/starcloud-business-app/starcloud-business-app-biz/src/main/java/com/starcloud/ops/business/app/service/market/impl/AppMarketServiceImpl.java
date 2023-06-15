@@ -75,19 +75,6 @@ public class AppMarketServiceImpl implements AppMarketService {
     }
 
     /**
-     * 根据应用 ID 获取应用详情
-     *
-     * @param id 应用 ID
-     * @return 应用详情
-     */
-    @Override
-    public AppMarketDTO getById(Long id) {
-        AppMarketDO templateMarketDO = appMarketMapper.selectById(id);
-        Assert.notNull(templateMarketDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NOT_EXISTS, id));
-        return AppMarketConvert.convert(templateMarketDO);
-    }
-
-    /**
      * 根据应用 uid 获取应用详情
      *
      * @param uid     应用 uid
@@ -130,25 +117,13 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Override
     public void modify(AppMarketUpdateRequest request) {
         // 更新的时候，version 是必须的
-        Assert.notBlank(request.getVersion(), () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_VERSION_REQUIRED));
+        Assert.notNull(request.getVersion(), () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_VERSION_REQUIRED));
         AppMarketDO templateMarketDO = AppMarketConvert.convertModify(request);
         LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
                 .eq(AppMarketDO::getUid, request.getUid())
                 .eq(AppMarketDO::getVersion, request.getVersion())
                 .eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode());
         appMarketMapper.update(templateMarketDO, wrapper);
-    }
-
-    /**
-     * 删除应用市场的应用
-     *
-     * @param id 应用 ID
-     */
-    @Override
-    public void delete(Long id) {
-        AppMarketDO templateMarketDO = appMarketMapper.selectById(id);
-        Assert.notNull(templateMarketDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NOT_EXISTS, id));
-        appMarketMapper.deleteById(id);
     }
 
     /**

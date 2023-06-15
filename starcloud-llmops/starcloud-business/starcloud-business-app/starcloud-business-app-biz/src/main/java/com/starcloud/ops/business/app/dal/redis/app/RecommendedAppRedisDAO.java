@@ -55,15 +55,15 @@ public class RecommendedAppRedisDAO {
      */
     public List<AppDTO> set() {
         LambdaQueryWrapper<AppDO> wrapper = AppServiceImpl.buildPageQueryWrapper()
-                .eq(AppDO::getType, AppTypeEnum.SYSTEM_TEMPLATE.name())
+                .eq(AppDO::getType, AppTypeEnum.SYSTEM.name())
                 .orderByDesc(AppDO::getUpdateTime);
         // 查询推荐的模版列表
-        List<AppDO> templates = appMapper.selectList(wrapper);
-        List<AppDTO> templateList = CollectionUtil.emptyIfNull(templates).stream().map(AppConvert::convert).collect(Collectors.toList());
+        List<AppDO> apps = appMapper.selectList(wrapper);
+        List<AppDTO> appList = CollectionUtil.emptyIfNull(apps).stream().map(AppConvert::convert).collect(Collectors.toList());
         // 缓存到redis
-        stringRedisTemplate.opsForValue().set(getKey(), JSON.toJSONString(templateList));
+        stringRedisTemplate.opsForValue().set(getKey(), JSON.toJSONString(appList));
 
-        return templateList;
+        return appList;
     }
 
     /**
@@ -72,7 +72,7 @@ public class RecommendedAppRedisDAO {
      * @param type 模版类型
      */
     public void resetByType(String type) {
-        if (AppTypeEnum.SYSTEM_TEMPLATE.name().equals(type)) {
+        if (AppTypeEnum.SYSTEM.name().equals(type)) {
             set();
         }
     }

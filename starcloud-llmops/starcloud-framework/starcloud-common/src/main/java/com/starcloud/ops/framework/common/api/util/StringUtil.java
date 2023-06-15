@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,9 @@ public class StringUtil {
      * @return 集合
      */
     public static List<String> toList(String source) {
+        if (StringUtils.isBlank(source)) {
+            return Collections.emptyList();
+        }
         return Arrays.stream(source.split(","))
                 .distinct()
                 .sorted()

@@ -1,7 +1,11 @@
 package com.starcloud.ops.business.app.dal.databoject.market;
 
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -20,7 +24,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @TableName("llm_app_market")
-@KeySequence("llm_app__market_seq")
+@KeySequence("llm_app_market_seq")
 public class AppMarketDO extends TenantBaseDO {
 
     private static final long serialVersionUID = -7392992852206247688L;
@@ -32,7 +36,7 @@ public class AppMarketDO extends TenantBaseDO {
     private Long id;
 
     /**
-     * 应用市场 key，我的应用上传到应用市场时候，会生成一个应用市场 key，下载应用的时候，会将该 key 存到此处。
+     * 市场应用 UID
      */
     @TableField("uid")
     private String uid;
@@ -44,34 +48,22 @@ public class AppMarketDO extends TenantBaseDO {
     private String name;
 
     /**
-     * 应用模型
+     * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @TableField("model")
     private String model;
 
     /**
-     * 应用类型, SYSTEM：系统推荐应用，MY_TEMPLATE：我的应用，DOWNLOAD_TEMPLATE：下载应用
-     */
-    @TableField("type")
-    private String type;
-
-    /**
-     * 应用标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
-     */
-    @TableField("logotype")
-    private String logotype;
-
-    /**
-     * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress ， Chrome插件等
-     */
-    @TableField("source_type")
-    private String sourceType;
-
-    /**
-     * 应用版本，默认版本 1.0.0
+     * 应用版本，默认版本 1
      */
     @TableField("version")
-    private String version;
+    private Integer version;
+
+    /**
+     * 应用语言
+     */
+    @TableField("language")
+    private String language;
 
     /**
      * 应用标签，多个以逗号分割
@@ -92,18 +84,6 @@ public class AppMarketDO extends TenantBaseDO {
     private String scenes;
 
     /**
-     * 应用语言
-     */
-    @TableField("language")
-    private String language;
-
-    /**
-     * 应用详细配置信息, 步骤，变量，场景等
-     */
-    @TableField("config")
-    private String config;
-
-    /**
      * 应用图片，多个以逗号分割
      */
     @TableField("images")
@@ -116,28 +96,10 @@ public class AppMarketDO extends TenantBaseDO {
     private String icon;
 
     /**
-     * 应用步骤图标、多个以逗号分割
+     * 应用是否是免费的
      */
-    @TableField("step_icons")
-    private String stepIcons;
-
-    /**
-     * 步骤数量
-     */
-    @TableField("step_count")
-    private Integer stepCount;
-
-    /**
-     * 应用描述
-     */
-    @TableField("description")
-    private String description;
-
-    /**
-     * 应用 Prompt详情
-     */
-    @TableField("prompt_info")
-    private String promptInfo;
+    @TableField("free")
+    private Integer free;
 
     /**
      * 应用收费数
@@ -152,40 +114,40 @@ public class AppMarketDO extends TenantBaseDO {
     private Integer word;
 
     /**
-     * 应用是否是免费的
-     */
-    @TableField("free")
-    private Boolean free;
-
-    /**
-     * 点赞数量
+     * 应用点赞数量
      */
     @TableField("like_count")
     private Integer likeCount;
 
     /**
-     * 查看数量
+     * 应用查看数量
      */
     @TableField("view_count")
     private Integer viewCount;
 
     /**
-     * 下载数量
+     * 应用下载数量
      */
     @TableField("download_count")
     private Integer downloadCount;
 
     /**
-     * 插件版本
+     * 应用详细配置信息, 步骤，变量，场景等
      */
-    @TableField("plugin_version")
-    private String pluginVersion;
+    @TableField("config")
+    private String config;
 
     /**
-     * 插件级别
+     * 应用描述
      */
-    @TableField("plugin_level")
-    private String pluginLevel;
+    @TableField("description")
+    private String description;
+
+    /**
+     * 应用example
+     */
+    @TableField("example")
+    private String example;
 
     /**
      * 应用审核

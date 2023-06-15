@@ -2,8 +2,11 @@ package com.starcloud.ops.business.log.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.log.api.conversation.vo.*;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,5 +85,22 @@ public class LogAppConversationController {
         return success(LogAppConversationConvert.INSTANCE.convertPage(pageResult));
     }
 
+
+    @GetMapping("/infoPage")
+    @Operation(summary = "获得应用执行日志会话分页")
+    @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
+    public CommonResult<PageResult<LogAppConversationInfoRespVO>> getAppConversationPage(@Valid LogAppConversationInfoPageReqVO pageVO) {
+        PageResult<LogAppConversationInfoPO> pageResult = appConversationService.getAppConversationInfoPage(pageVO);
+        return success(LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult));
+    }
+
+    @GetMapping("/statistics")
+    @Operation(summary = "获得应用执行统计列表")
+    @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
+    public CommonResult<List<LogAppMessageStatisticsListVO>> getAppMessageStatisticsList(@Valid LogAppMessageStatisticsListReqVO pageVO) {
+        List<LogAppMessageStatisticsListPO> pageResult = appConversationService.getAppMessageStatisticsList(pageVO);
+        return success(LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult));
+
+    }
 
 }

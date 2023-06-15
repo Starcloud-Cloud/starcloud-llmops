@@ -19,17 +19,4 @@ import javax.annotation.Resource;
 @Service
 public class AppApiImpl implements AppApi {
 
-    @Resource
-    private AppService appService;
-
-    /**
-     * 根据模版 ID 获取模版信息
-     *
-     * @param id 模版 ID
-     * @return 模版信息
-     */
-    @Override
-    public AppDTO get(Long id) {
-        return appService.getById(id);
-    }
 }

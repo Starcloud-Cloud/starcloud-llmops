@@ -8,18 +8,25 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.api.app.request.AppPageQuery;
+import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
 import com.starcloud.ops.business.app.api.app.request.AppRequest;
 import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
+import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.redis.app.RecommendedAppRedisDAO;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.util.PageUtil;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.dto.SortQuery;
 import com.starcloud.ops.framework.common.api.enums.SortType;
@@ -27,10 +34,12 @@ import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +57,21 @@ public class AppServiceImpl implements AppService {
     private AppMapper appMapper;
 
     @Resource
+    private AppMarketMapper appMarketMapper;
+
+    @Resource
     private RecommendedAppRedisDAO recommendedAppRedisDAO;
+
+    /**
+     * 查询应用分类列表
+     *
+     * @return 应用分类列表
+     */
+    @Override
+    public List<AppCategoryDTO> categories() {
+
+        return null;
+    }
 
     /**
      * 查询推荐的应用列表
@@ -56,7 +79,7 @@ public class AppServiceImpl implements AppService {
      * @return 应用列表
      */
     @Override
-    public List<AppDTO> listRecommendedTemplates() {
+    public List<AppDTO> listRecommendedApps() {
         // 缓存中获取，如果有则直接返回
         List<AppDTO> list = recommendedAppRedisDAO.get();
         if (CollectionUtil.isNotEmpty(list)) {
@@ -81,49 +104,12 @@ public class AppServiceImpl implements AppService {
         // 构建查询条件
         LambdaQueryWrapper<AppDO> wrapper = buildPageQueryWrapper()
                 .likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName())
-                .eq(StringUtils.isNotBlank(query.getType()), AppDO::getType, query.getType());
+                .in(AppDO::getType, AppTypeEnum.MYSELF.name(), AppTypeEnum.DOWNLOAD.name());
 
         // 执行分页查询
         Page<AppDO> page = appMapper.selectPage(PageUtil.page(query), wrapper);
         List<AppDTO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream().map(AppConvert::convert).collect(Collectors.toList());
         return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
-    }
-
-    /**
-     * 分页查询下载的应用列表
-     *
-     * @param query 查询条件
-     * @return 已下载应用列表
-     */
-    @Override
-    public PageResp<AppDTO> pageDownloadTemplates(AppPageQuery query) {
-        query.setType(AppTypeEnum.DOWNLOAD_TEMPLATE.name());
-        return this.page(query);
-    }
-
-    /**
-     * 分页查询我的应用列表
-     *
-     * @param query 查询条件
-     * @return 我的应用列表
-     */
-    @Override
-    public PageResp<AppDTO> pageMyTemplate(AppPageQuery query) {
-        query.setType(AppTypeEnum.MY_TEMPLATE.name());
-        return this.page(query);
-    }
-
-    /**
-     * 根据应用 ID 获取应用详情
-     *
-     * @param id 应用 ID
-     * @return 应用详情
-     */
-    @Override
-    public AppDTO getById(Long id) {
-        AppDO appDO = appMapper.selectById(id);
-        Assert.notNull(appDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NOT_EXISTS_ID, id));
-        return AppConvert.convert(appDO);
     }
 
     /**
@@ -192,22 +178,6 @@ public class AppServiceImpl implements AppService {
     }
 
     /**
-     * 应用模版
-     *
-     * @param id 应用 ID
-     */
-    @Override
-    public void delete(Long id) {
-        // 判断应用是否存在, 不存在则抛出异常
-        AppDO appDO = appMapper.selectById(id);
-        Assert.notNull(appDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NOT_EXISTS_ID, id));
-        // 根据 ID 删除应用
-        appMapper.deleteById(id);
-        // 如果新增的是系统应用，则需要更新缓存
-        recommendedAppRedisDAO.resetByType(appDO.getType());
-    }
-
-    /**
      * 根据应用 UID 删除应用
      *
      * @param uid 应用 UID
@@ -224,6 +194,65 @@ public class AppServiceImpl implements AppService {
     }
 
     /**
+     * 发布应用到应用市场
+     *
+     * @param request 应用发布到应用市场请求对象
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void publicAppToMarket(AppPublishRequest request) {
+
+        // 查询应用是否存在，不存在则抛出异常
+        AppDO appDO = appMapper.selectOne(buildBaseQueryWrapper().eq(AppDO::getUid, request.getUid()));
+        Assert.notNull(appDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, request.getUid()));
+
+        AppMarketDO marketDO = AppMarketConvert.convertPublish(request);
+        marketDO.setUid(IdUtil.fastSimpleUUID());
+        if (StringUtils.isBlank(appDO.getUploadUid())) {
+            // 说明没有发布过应用市场。
+            marketDO.setVersion(AppConstants.DEFAULT_VERSION);
+            marketDO.setLikeCount(0);
+            marketDO.setViewCount(0);
+            marketDO.setDownloadCount(0);
+        } else {
+            // 说明已经发布过应用市场。
+            LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class)
+                    .eq(AppMarketDO::getUid, AppUtils.getUid(appDO.getUploadUid()))
+                    .eq(AppMarketDO::getStatus, StateEnum.ENABLE.getCode())
+                    .orderByDesc(AppMarketDO::getCreateTime);
+            List<AppMarketDO> appMarketList = appMarketMapper.selectList(wrapper);
+            if (CollectionUtil.isNotEmpty(appMarketList)) {
+                AppMarketDO appMarketDO = appMarketList.get(0);
+                marketDO.setUid(appMarketDO.getUid());
+                // 版本号增加
+                marketDO.setVersion(appMarketDO.getVersion() + 1);
+                marketDO.setLikeCount(Optional.ofNullable(appMarketDO.getLikeCount()).orElse(0));
+                marketDO.setViewCount(Optional.ofNullable(appMarketDO.getViewCount()).orElse(0));
+                marketDO.setDownloadCount(Optional.ofNullable(appMarketDO.getDownloadCount()).orElse(0));
+            } else {
+                // 说明已经发布过应用市场，但是已经被删除了。或者是数据异常。覆盖发布。
+                marketDO.setVersion(AppConstants.DEFAULT_VERSION);
+                marketDO.setLikeCount(0);
+                marketDO.setViewCount(0);
+                marketDO.setDownloadCount(0);
+            }
+        }
+        // 保存到应用市场
+        appMarketMapper.insert(marketDO);
+        // 更新我的应用
+        AppDO publishApp = AppConvert.convertPublish(request);
+        publishApp.setUploadUid(AppUtils.generateUid(marketDO.getUid(), marketDO.getVersion()));
+        appMapper.update(publishApp, Wrappers.lambdaUpdate(AppDO.class)
+                .eq(AppDO::getUid, request.getUid())
+                .eq(AppDO::getStatus, StateEnum.ENABLE.getCode()));
+//        transactionTemplate.executeWithoutResult(status -> {
+//
+//        });
+
+
+    }
+
+    /**
      * 校验应用是否已经下载过
      *
      * @param marketUid 应用市场 UID。
@@ -231,7 +260,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public Boolean verifyHasDownloaded(String marketUid) {
-        LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper().eq(AppDO::getDownloadUid, marketUid).eq(AppDO::getType, AppTypeEnum.DOWNLOAD_TEMPLATE.name());
+        LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper().eq(AppDO::getDownloadUid, marketUid).eq(AppDO::getType, AppTypeEnum.DOWNLOAD.name());
         Long count = appMapper.selectCount(wrapper);
         return count > 0;
     }
@@ -278,18 +307,17 @@ public class AppServiceImpl implements AppService {
     public static LambdaQueryWrapper<AppDO> buildPageQueryWrapper() {
         return Wrappers.lambdaQuery(AppDO.class).select(
                         AppDO::getUid,
-                        AppDO::getUploadUid,
-                        AppDO::getDownloadUid,
-                        AppDO::getType,
-                        AppDO::getLogotype,
-                        AppDO::getSourceType,
-                        AppDO::getVersion,
                         AppDO::getName,
-                        AppDO::getDescription,
-                        AppDO::getIcon,
+                        AppDO::getType,
+                        AppDO::getModel,
+                        AppDO::getSource,
                         AppDO::getTags,
                         AppDO::getCategories,
                         AppDO::getScenes,
+                        AppDO::getIcon,
+                        AppDO::getDescription,
+                        AppDO::getUploadUid,
+                        AppDO::getDownloadUid,
                         AppDO::getCreator,
                         AppDO::getUpdater,
                         AppDO::getCreateTime,

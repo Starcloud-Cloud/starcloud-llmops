@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.api.app.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
@@ -15,6 +17,8 @@ import java.util.List;
  * @since 2023-05-19
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用步骤对象")
 public class StepDTO implements Serializable {
@@ -54,8 +58,8 @@ public class StepDTO implements Serializable {
     /**
      * 步骤版本，默认版本 1.0.0
      */
-    @Schema(description = "步骤版本，默认版本 1.0.0")
-    private String version;
+    @Schema(description = "步骤版本，默认版本 1")
+    private Integer version;
 
     /**
      * 步骤标签
