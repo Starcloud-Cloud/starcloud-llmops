@@ -19,7 +19,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/llm/auth")
-@Tag(name = "注册")
+@Tag(name = "星河云海-用户管理")
 public class LlmUserController {
 
     @Autowired

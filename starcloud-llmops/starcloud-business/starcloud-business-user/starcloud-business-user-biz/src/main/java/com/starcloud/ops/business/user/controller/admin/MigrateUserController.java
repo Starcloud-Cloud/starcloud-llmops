@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/llm/migrate")
-@Tag(name = "注册")
+@Tag(name = "星河云海-wp用户迁移")
 public class MigrateUserController {
 
     @Autowired
