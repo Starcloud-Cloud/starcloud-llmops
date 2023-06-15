@@ -1,11 +1,14 @@
 package com.starcloud.ops.business.limits.service.userbenefitsusagelog;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.vo.UserBenefitsUsageLogCreateReqVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.vo.UserBenefitsUsageLogPageReqVO;
 import com.starcloud.ops.business.limits.convert.userbenefitsusagelog.UserBenefitsUsageLogConvert;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsusagelog.UserBenefitsUsageLogDO;
 import com.starcloud.ops.business.limits.dal.mysql.userbenefitsusagelog.UserBenefitsUsageLogMapper;
 import com.starcloud.ops.business.limits.enums.BenefitsActionEnums;
@@ -18,6 +21,8 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.*;
@@ -35,8 +40,15 @@ public class UserBenefitsUsageLogServiceImpl implements UserBenefitsUsageLogServ
     @Resource
     private UserBenefitsUsageLogMapper userBenefitsUsageLogMapper;
 
+    /**
+     *
+     * @param createReqVO 创建信息
+     *
+     * @return
+     */
     @Override
     public Long createUserBenefitsUsageLog(UserBenefitsUsageLogCreateReqVO createReqVO) {
+
         log.info("[createUserBenefitsUsageLog][创建用户权益使用日志，用户ID({})|操作:({})：策略ID({})|数量({})", createReqVO.getUserId(), createReqVO.getAction(), createReqVO.getBenefitsIds(), createReqVO.getAmount());
         // 操作校验
         validateActionTypeExists(createReqVO.getAction());
@@ -44,12 +56,42 @@ public class UserBenefitsUsageLogServiceImpl implements UserBenefitsUsageLogServ
         validateBenefitsTypeExists(createReqVO.getBenefitsType());
         // 插入
         UserBenefitsUsageLogDO userBenefitsUsageLog = UserBenefitsUsageLogConvert.INSTANCE.convert(createReqVO);
-
         userBenefitsUsageLogMapper.insert(userBenefitsUsageLog);
         // 返回
         return userBenefitsUsageLog.getId();
     }
 
+    /**
+     * 批量增加权益日志
+     * @param userBenefitsDO
+     * @param benefitsStrategy
+     *
+     * @return
+     */
+    @Override
+    public Boolean batchCreateUserBenefitsUsageBatchLog(UserBenefitsDO userBenefitsDO, UserBenefitsStrategyDO benefitsStrategy) {
+        LocalDateTime now = LocalDateTimeUtil.now();
+
+        List<UserBenefitsUsageLogDO> collect = Stream.of(
+                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.APP, benefitsStrategy.getAppCount(), now),
+                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.DATASET, benefitsStrategy.getDatasetCount(), now),
+                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.IMAGE, benefitsStrategy.getImageCount(), now),
+                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.TOKEN, benefitsStrategy.getTokenCount(), now)
+        ).collect(Collectors.toList());
+        userBenefitsUsageLogMapper.insertBatch(collect);
+        return true;
+    }
+
+    private UserBenefitsUsageLogDO createUserBenefitsUsageLog(UserBenefitsDO userBenefitsDO, BenefitsTypeEnums benefitsType, Long amount, LocalDateTime usageTime) {
+        UserBenefitsUsageLogDO usageLog = new UserBenefitsUsageLogDO();
+        usageLog.setUserId(userBenefitsDO.getUserId());
+        usageLog.setAction(BenefitsActionEnums.ADD.getCode());
+        usageLog.setBenefitsIds(String.valueOf(userBenefitsDO.getId()));
+        usageLog.setUsageTime(usageTime);
+        usageLog.setBenefitsType(benefitsType.getCode());
+        usageLog.setAmount(amount);
+        return usageLog;
+    }
 
 
     private void validateUserBenefitsUsageLogExists(Long id) {

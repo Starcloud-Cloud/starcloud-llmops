@@ -46,7 +46,7 @@ public class BenefitsOperationServiceImpl implements BenefitsOperationService {
             throw exception(BENEFITS_STRATEGY_CAN_NOT_MODIFY_USED);
         }
         // 数据更新
-        userBenefitsStrategyService.updateUserBenefitsStrategy(updateReqVO);
+        userBenefitsStrategyService.updateStrategy(updateReqVO);
 
     }
 
@@ -64,7 +64,7 @@ public class BenefitsOperationServiceImpl implements BenefitsOperationService {
             log.error("[deleteUserBenefitsStrategy][修改用户权益策略失败，该配置已经被使用：策略ID({})|用户ID({})", id, getLoginUserId());
             throw exception(BENEFITS_STRATEGY_CAN_NOT_DELETE);
         }
-        userBenefitsStrategyService.deleteUserBenefitsStrategy(id);
+        userBenefitsStrategyService.deleteStrategy(id);
     }
 
 

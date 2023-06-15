@@ -1,8 +1,7 @@
 package com.starcloud.ops.business.limits.service.util;
 
 import com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo.UserBenefitsStrategyUpdateReqVO;
-
-import javax.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * 权益操作 Service 接口
@@ -16,7 +15,7 @@ public interface BenefitsOperationService {
      *
      * @param updateReqVO 更新信息
      */
-    void updateUserBenefitsStrategy(@Valid UserBenefitsStrategyUpdateReqVO updateReqVO);
+    void updateUserBenefitsStrategy(@Validated UserBenefitsStrategyUpdateReqVO updateReqVO);
 
     /**
      * 删除用户权益策略

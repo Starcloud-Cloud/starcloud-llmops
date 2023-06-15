@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.limits.service.userbenefits;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
@@ -8,12 +9,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.vo.UserBenefitsUsageLogCreateReqVO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.dal.mysql.userbenefits.UserBenefitsMapper;
-import com.starcloud.ops.business.limits.enums.BenefitsStrategyScopeEnums;
-import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.enums.*;
 import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.limits.service.userbenefitsusagelog.UserBenefitsUsageLogService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -69,29 +69,124 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(code);
         // 获取当前策略枚举
         BenefitsStrategyTypeEnums strategyTypeEnums = BenefitsStrategyTypeEnums.getByCode(benefitsStrategy.getStrategyType());
+
         // 根据枚举中的规则判断当前策略是否可以使用
-        switch (strategyTypeEnums) {
-            case USER_ATTENDANCE:
-                // 检查用户是否已签到
-                if (hasUserCheckIn(userId)) {
-                    log.error("[addUserBenefitsByCode][签到权益重复领取：用户ID({})]", userId);
-                    throw exception(USER_BENEFITS_GET_FAIL_ATTENDANCE);
-                }
-                break;
-            case SIGN_IN:
-            case INVITE_TO_REGISTER:
-                // 是否已使用注册和邀请注册类型的权益
-                if (hasUserClaimedBenefits(userId, strategyTypeEnums)) {
-                    log.error("[addUserBenefitsByCode][权益重复领取：用户ID({})｜权益类型({})]", userId, strategyTypeEnums.getCode());
-                    throw exception(USER_BENEFITS_GET_FAIL_SING_IN);
-                }
-                break;
-            default:
-                // 其他类型的权益暂不需要进行额外检查
-                break;
+        if (isStrategyNotAllowed(userId, strategyTypeEnums)) {
+            log.error("[addUserBenefitsByCode][权益重复领取：用户ID({})｜权益类型({})]", userId, strategyTypeEnums.getName());
+            throw exception(USER_BENEFITS_GET_FAIL_MANY_TIMES);
+        }
+        // 如果可以使用，使用 userBenefitsMapper新增权益
+        UserBenefitsDO userBenefitsDO = createUserBenefits(userId, benefitsStrategy);
+        userBenefitsMapper.insert(userBenefitsDO);
+
+        // 增加记录
+        userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
+
+        return true;
+    }
+
+    /**
+     * 根据类型新增权益 - 用作系统权益增加
+     *
+     * @param strategyType
+     * @param userId
+     *
+     * @return
+     */
+    public Boolean addUserBenefitsByStrategyType(String strategyType, Long userId) {
+        // 根据 code 获取权益策略
+        UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getMasterConfigStrategyByType(strategyType);
+
+        if (benefitsStrategy.getLimitNum() != -1) {
+            // 查询条件-检验是否超过兑换限制
+            LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
+            wrapper.eq(UserBenefitsDO::getStrategyId, benefitsStrategy.getId());
+
+            if (benefitsStrategy.getLimitNum() <= userBenefitsMapper.selectCount(wrapper)) {
+                log.error("[addUserBenefitsByCode][权益超出兑换次数：用户ID({})｜权益类型({})]", userId, strategyType);
+                throw exception(USER_BENEFITS_CASH_COUNT_EXCEEDED);
+            }
+        }
+        // 检测权益使用频率是否合法
+        // 1. LimitIntervalNum 如果不做限制 则表明该权益用户可以一直兑换 ，不校验LimitIntervalUnit
+        // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
+        // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
+        // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
+        // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
+        if (benefitsStrategy.getLimitIntervalNum() > 0) {
+            if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
+                log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, strategyType);
+                throw exception(USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED);
+            }
         }
 
         // 如果可以使用，使用 userBenefitsMapper新增权益
+        UserBenefitsDO userBenefitsDO = createUserBenefits(userId, benefitsStrategy);
+        userBenefitsMapper.insert(userBenefitsDO);
+
+        // 增加记录
+        userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
+
+        return true;
+    }
+
+    /**
+     * 检测是否兑换频率限制
+     *
+     * @param benefitsStrategy
+     * @param userId
+     *
+     * @return
+     */
+    private boolean checkBenefitsUsageFrequency(UserBenefitsStrategyDO benefitsStrategy, Long userId) {
+        LocalDateTime startTime = LocalDateTime.now();
+        LocalDateTime endTime = null;
+
+        BenefitsStrategyLimitIntervalEnums limitIntervalUnit = BenefitsStrategyLimitIntervalEnums.getByCode(benefitsStrategy.getLimitIntervalUnit());
+
+        switch (limitIntervalUnit) {
+            case DAY:
+                endTime = startTime.minus(benefitsStrategy.getLimitIntervalNum(), ChronoUnit.DAYS);
+                break;
+            case WEEK:
+                endTime = startTime.minus(benefitsStrategy.getLimitIntervalNum(), ChronoUnit.WEEKS);
+                break;
+            case MONTH:
+                endTime = startTime.minus(benefitsStrategy.getLimitIntervalNum(), ChronoUnit.MONTHS);
+                break;
+            case YEAR:
+                endTime = startTime.minus(benefitsStrategy.getLimitIntervalNum(), ChronoUnit.YEARS);
+                break;
+            case ONCE_ONLY:
+            default:
+                // No need to set endTime
+                break;
+        }
+        // 构建查询条件
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.<UserBenefitsDO>lambdaQuery()
+                .eq(UserBenefitsDO::getUserId, userId)
+                .lt(UserBenefitsDO::getCreateTime, startTime);
+
+        if (endTime != null) {
+            wrapper.gt(UserBenefitsDO::getCreateTime, endTime);
+        }
+
+        // 查询符合条件的权益数
+        long usageCount = userBenefitsMapper.selectCount(wrapper);
+
+        // 判断是否超过限制的使用次数
+        return usageCount < benefitsStrategy.getLimitIntervalNum();
+    }
+
+    /**
+     * 根据策略和用户封装用户权益数据
+     *
+     * @param userId
+     * @param benefitsStrategy
+     *
+     * @return
+     */
+    private UserBenefitsDO createUserBenefits(Long userId, UserBenefitsStrategyDO benefitsStrategy) {
         UserBenefitsDO userBenefitsDO = new UserBenefitsDO();
         userBenefitsDO.setUid(IdUtil.fastSimpleUUID());
         userBenefitsDO.setUserId(String.valueOf(userId));
@@ -100,71 +195,82 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         userBenefitsDO.setDatasetCountUsed(benefitsStrategy.getDatasetCount());
         userBenefitsDO.setImageCountUsed(benefitsStrategy.getImageCount());
         userBenefitsDO.setTokenCountUsed(benefitsStrategy.getTokenCount());
+
+        userBenefitsDO.setAppCountInit(benefitsStrategy.getAppCount());
+        userBenefitsDO.setDatasetCountInit(benefitsStrategy.getDatasetCount());
+        userBenefitsDO.setImageCountInit(benefitsStrategy.getImageCount());
+        userBenefitsDO.setTokenCountInit(benefitsStrategy.getTokenCount());
+
         // 根据策略设置时间
-        BenefitsStrategyScopeEnums scopeEnums = BenefitsStrategyScopeEnums.getByCode(benefitsStrategy.getScope());
+        BenefitsStrategyEffectiveUnitEnums scopeEnums = BenefitsStrategyEffectiveUnitEnums.getByCode(benefitsStrategy.getEffectiveUnit());
         LocalDateTime now = LocalDateTimeUtil.now();
+        LocalDateTime expirationTime = calculateExpirationTime(now, scopeEnums, benefitsStrategy.getEffectiveNum());
+        userBenefitsDO.setEffectiveTime(now);
+        userBenefitsDO.setExpirationTime(expirationTime);
+        userBenefitsDO.setEnabled(true);
+
+        return userBenefitsDO;
+    }
+
+    /**
+     * 根据权益策略设置用户权益时间
+     *
+     * @param now
+     * @param scopeEnums
+     * @param effectiveNum
+     *
+     * @return
+     */
+    private LocalDateTime calculateExpirationTime(LocalDateTime now, BenefitsStrategyEffectiveUnitEnums scopeEnums, Long effectiveNum) {
         LocalDateTime expirationTime = null;
         switch (scopeEnums) {
             case ALWAYS:
                 expirationTime = now.plusYears(100);
                 break;
             case DAY:
-                expirationTime = now.plusDays(benefitsStrategy.getScopeNum());
+                expirationTime = now.plusDays(effectiveNum);
                 break;
             case WEEK:
-                expirationTime = now.plusWeeks(benefitsStrategy.getScopeNum());
+                expirationTime = now.plusWeeks(effectiveNum);
+                break;
             case MONTH:
-                expirationTime = now.plusMonths(benefitsStrategy.getScopeNum());
+                expirationTime = now.plusMonths(effectiveNum);
                 break;
             case YEAR:
-                expirationTime = now.plusYears(benefitsStrategy.getScopeNum());
+                expirationTime = now.plusYears(effectiveNum);
                 break;
         }
-        userBenefitsDO.setEffectiveTime(now);
-        userBenefitsDO.setExpirationTime(expirationTime);
-        userBenefitsDO.setEnabled(true);
-        userBenefitsMapper.insert(userBenefitsDO);
-
-        return true;
+        return expirationTime;
     }
 
     /**
-     * 当天是否存在签到权益
+     * 系统 权益校验
      *
      * @param userId
+     * @param strategyTypeEnums
      *
      * @return
      */
-    private boolean hasUserCheckIn(Long userId) {
-        // 查询条件-获取当天新增的所有权益
-        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
-
-        wrapper.eq(UserBenefitsDO::getUserId, userId);
-        LocalDateTime now = LocalDateTimeUtil.now();
-
-        LocalDateTime startOfDay = now.with(LocalTime.MIN);
-        LocalDateTime endOfDay = now.with(LocalTime.MAX);
-        wrapper.between(UserBenefitsDO::getCreateTime, startOfDay, endOfDay);
-
-        // 数据查询
-        List<UserBenefitsDO> userBenefitsDOS = userBenefitsMapper.selectList(wrapper);
-
-        boolean result = false;
-        for (UserBenefitsDO userBenefitsDO : userBenefitsDOS) {
-            UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(userBenefitsDO.getStrategyId());
-
-            if (BenefitsStrategyTypeEnums.USER_ATTENDANCE.getCode().equals(userBenefitsStrategy.getStrategyType())) {
-                result = true;
+    private boolean isStrategyNotAllowed(Long userId, BenefitsStrategyTypeEnums strategyTypeEnums) {
+        switch (strategyTypeEnums) {
+            case USER_ATTENDANCE:
+            case SIGN_IN:
+            case USER_INVITE:
+            case INVITE_TO_REGISTER:
+                throw exception(USER_BENEFITS_ILLEGAL_USE);
+            default:
+                // 其他类型的权益暂不需要进行额外检查
                 break;
-            }
         }
-        return result;
+        return false;
     }
 
     /**
      * 是否存在注册权益
+     *
      * @param userId
      * @param benefitsType
+     *
      * @return
      */
     private boolean hasUserClaimedBenefits(Long userId, BenefitsStrategyTypeEnums benefitsType) {
@@ -178,8 +284,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         for (UserBenefitsDO userBenefitsDO : userBenefitsDOS) {
             UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(userBenefitsDO.getStrategyId());
 
-            if (BenefitsStrategyTypeEnums.SIGN_IN.getCode().equals(userBenefitsStrategy.getStrategyType()) ||
-                    BenefitsStrategyTypeEnums.INVITE_TO_REGISTER.getCode().equals(userBenefitsStrategy.getStrategyType())) {
+            if (BenefitsStrategyTypeEnums.SIGN_IN.getName().equals(userBenefitsStrategy.getStrategyType()) ||
+                    BenefitsStrategyTypeEnums.INVITE_TO_REGISTER.getName().equals(userBenefitsStrategy.getStrategyType())) {
 
                 result = true;
                 break;
@@ -301,6 +407,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         }
         // 查询数据
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
+        if (CollUtil.isEmpty(resultList)) {
+            log.error("[expendBenefits][权益扣减失败，用户所使用权益为 0：用户ID({})｜权益类型({})|扣除数量({})", userId, benefitsTypeCode, amount);
+            throw exception(USER_BENEFITS_USELESS_INTEREST);
+        }
 
         switch (benefitsType) {
             case APP:
@@ -319,6 +429,20 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         // 批量更新数据
         userBenefitsMapper.updateBatch(resultList, resultList.size());
+
+        UserBenefitsUsageLogCreateReqVO userBenefitsUsageLogCreateReqVO = new UserBenefitsUsageLogCreateReqVO();
+
+        userBenefitsUsageLogCreateReqVO.setUserId(String.valueOf(userId));
+        userBenefitsUsageLogCreateReqVO.setBenefitsType(benefitsTypeCode);
+        userBenefitsUsageLogCreateReqVO.setAction(BenefitsActionEnums.USED.getCode());
+        userBenefitsUsageLogCreateReqVO.setAmount(amount);
+
+        List<Long> benefitsIds = resultList.stream()
+                .map(UserBenefitsDO::getId)
+                .collect(Collectors.toList());
+        userBenefitsUsageLogCreateReqVO.setBenefitsIds(benefitsIds.toString());
+
+        userBenefitsUsageLogService.createUserBenefitsUsageLog(userBenefitsUsageLogCreateReqVO);
     }
 
     /**
@@ -393,10 +517,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         if (userBenefitsMapper.selectById(id) == null) {
             throw exception(USER_BENEFITS_NOT_EXISTS);
         }
-    }
-
-    public static void main(String[] args) {
-        long available = 0;  // 计算可用数量
     }
 
 

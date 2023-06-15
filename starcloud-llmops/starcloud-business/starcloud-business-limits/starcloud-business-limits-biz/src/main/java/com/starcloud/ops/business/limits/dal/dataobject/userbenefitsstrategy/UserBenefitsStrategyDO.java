@@ -29,7 +29,18 @@ public class UserBenefitsStrategyDO extends TenantBaseDO {
      */
     @TableId
     private Long id;
-
+    /**
+     * 是否归档
+     */
+    private Boolean archived;
+    /**
+     * 归档人
+     */
+    private String archivedBy;
+    /**
+     * 归档时间
+     */
+    private LocalDateTime archivedTime;
     /**
      * 兑换码
      */
@@ -43,8 +54,7 @@ public class UserBenefitsStrategyDO extends TenantBaseDO {
      */
     private String strategyDesc;
     /**
-     * 策略类型枚举
-     * 枚举
+     * 权益类型（字典中管理）
      */
     private String strategyType;
     /**
@@ -64,32 +74,28 @@ public class UserBenefitsStrategyDO extends TenantBaseDO {
      */
     private Long tokenCount;
     /**
-     * 枚举
+     * 有效时间单位范围（-1，不设限制）
      */
-    private String scope;
+    private String effectiveUnit;
     /**
-     * 适用时间
+     * 有效时间数
      */
-    private Integer scopeNum;
+    private Long effectiveNum;
+    /**
+     * 限制兑换次数
+     */
+    private Long limitNum;
+    /**
+     * 限制间隔多久可用（-1，不设限制）
+     */
+    private String limitIntervalUnit;
     /**
      * 限制兑换次数（-1，不设限制）
      */
-    private Long limitUnit;
+    private Long limitIntervalNum;
     /**
      * 是否启用
      */
     private Boolean enabled;
-    /**
-     * 是否归档
-     */
-    private Boolean archived;
-    /**
-     * 归档人
-     */
-    private String archivedBy;
-    /**
-     * 归档时间
-     */
-    private LocalDateTime archivedTime;
 
 }

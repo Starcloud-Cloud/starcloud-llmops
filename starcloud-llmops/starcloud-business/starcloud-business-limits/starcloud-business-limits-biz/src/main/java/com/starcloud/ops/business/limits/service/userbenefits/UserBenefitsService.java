@@ -22,6 +22,15 @@ public interface UserBenefitsService {
     Boolean addUserBenefitsByCode(String code,Long userId);
 
     /**
+     * 新增用户权益
+     *
+     * @param benefitsType 权益 type
+     * @param userId  用户 ID
+     * @return 编号
+     */
+    Boolean addUserBenefitsByStrategyType(String benefitsType,Long userId);
+
+    /**
      * 根据用户 ID 获取当前用户权益信息
      * @param userId 用户 ID
      * @return UserBenefitsInfoResultVO
