@@ -97,9 +97,10 @@ public class LogAppConversationController {
     @GetMapping("/statistics")
     @Operation(summary = "获得应用执行统计列表")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<List<LogAppMessageStatisticsListPO>> getAppMessageStatisticsList(@Valid LogAppMessageStatisticsListReqVO pageVO) {
+    public CommonResult<List<LogAppMessageStatisticsListVO>> getAppMessageStatisticsList(@Valid LogAppMessageStatisticsListReqVO pageVO) {
         List<LogAppMessageStatisticsListPO> pageResult = appConversationService.getAppMessageStatisticsList(pageVO);
-        return success(pageResult);
+        return success(LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult));
+
     }
 
 }

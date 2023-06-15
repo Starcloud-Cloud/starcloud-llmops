@@ -8,6 +8,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.*;
 import com.starcloud.ops.business.log.controller.admin.LogAppConversationExcelVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -35,5 +36,9 @@ public interface LogAppConversationConvert {
 
 
     PageResult<LogAppConversationInfoRespVO> convertInfoPage(PageResult<LogAppConversationInfoPO> page);
+
+
+    List<LogAppMessageStatisticsListVO> convertStatisticsList(List<LogAppMessageStatisticsListPO> page);
+
 
 }
