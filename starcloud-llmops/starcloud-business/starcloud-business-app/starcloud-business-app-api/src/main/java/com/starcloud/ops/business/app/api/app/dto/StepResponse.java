@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.api.app.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * 应用步骤响应 DTO
@@ -12,6 +14,8 @@ import lombok.Data;
  * @since 2023-05-31
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用步骤响应对象")
 public class StepResponse {

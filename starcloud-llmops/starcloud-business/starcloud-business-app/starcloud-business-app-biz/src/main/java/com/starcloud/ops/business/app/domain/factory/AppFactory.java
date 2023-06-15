@@ -46,10 +46,8 @@ public class AppFactory {
         AppEntity appEntity = new AppEntity();
         appEntity.setUid(template.getUid());
         appEntity.setName(template.getName());
-        appEntity.setVersion(template.getVersion());
         appEntity.setType(template.getType());
-        appEntity.setLogotype(template.getLogotype());
-        appEntity.setSourceType(template.getSourceType());
+        appEntity.setSourceType(template.getSource());
         appEntity.setTags(template.getTags());
         appEntity.setCategories(template.getCategories());
         appEntity.setScenes(template.getScenes());
@@ -66,10 +64,8 @@ public class AppFactory {
     public static AppConfigEntity transformConfig(AppConfigDTO config) {
         AppConfigEntity appConfigEntity = new AppConfigEntity();
         appConfigEntity.setName(config.getName());
-        appConfigEntity.setVersion(config.getVersion());
         appConfigEntity.setType(config.getType());
-        appConfigEntity.setLogotype(config.getLogotype());
-        appConfigEntity.setSourceType(config.getSourceType());
+        appConfigEntity.setSourceType(config.getSource());
         appConfigEntity.setTags(config.getTags());
         appConfigEntity.setCategories(config.getCategories());
         appConfigEntity.setScenes(config.getScenes());

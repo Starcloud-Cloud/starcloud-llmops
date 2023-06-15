@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
+import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
 import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
 import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
 import com.starcloud.ops.business.app.api.market.request.AppMarketUpdateRequest;
@@ -12,12 +13,15 @@ import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.util.AppUtil;
-import com.starcloud.ops.business.app.util.VersionUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
+import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.market.AppMarketUtils;
+import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.business.app.validate.market.AppMarketValidate;
+import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.experimental.UtilityClass;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
@@ -38,37 +42,24 @@ public class AppMarketConvert {
      */
     public static AppMarketDTO convert(AppMarketDO marketDO) {
         AppMarketDTO market = new AppMarketDTO();
-        // id 为 null，防止前端使用
-        market.setId(null);
         market.setUid(marketDO.getUid());
         market.setName(marketDO.getName());
         market.setModel(marketDO.getModel());
-        market.setType(marketDO.getType());
-        market.setLogotype(marketDO.getLogotype());
-        market.setSourceType(marketDO.getSourceType());
         market.setVersion(Optional.ofNullable(marketDO.getVersion()).orElse(AppConstants.DEFAULT_VERSION));
-        market.setTags(AppUtil.buildField(marketDO.getTags()));
-        market.setCategories(AppUtil.buildField(marketDO.getCategories()));
-        market.setScenes(AppUtil.buildScenes(marketDO.getScenes()));
-        if (AppModelEnum.COMPLETION.name().equals(marketDO.getModel())) {
-            market.setConfig(JSON.parseObject(marketDO.getConfig(), AppConfigDTO.class));
-        } else {
-            market.setChatConfig(JSON.parseObject(marketDO.getConfig(), AppChatConfigDTO.class));
-        }
-        market.setImages(AppUtil.buildField(marketDO.getImages()));
+        market.setLanguage(marketDO.getLanguage());
+        market.setTags(AppUtils.split(marketDO.getTags()));
+        market.setCategories(AppUtils.split(marketDO.getCategories()));
+        market.setScenes(AppUtils.splitScenes(marketDO.getScenes()));
+        market.setImages(AppUtils.split(marketDO.getImages()));
         market.setIcon(marketDO.getIcon());
-        market.setStepCount(marketDO.getStepCount());
-        market.setStepIcons(AppUtil.buildField(marketDO.getStepIcons()));
-        market.setDescription(marketDO.getDescription());
-        market.setPromptInfo(marketDO.getPromptInfo());
+        market.setFree(marketDO.getFree());
         market.setCost(marketDO.getCost());
         market.setWord(marketDO.getWord());
-        market.setFree(marketDO.getFree());
         market.setLikeCount(marketDO.getLikeCount());
         market.setViewCount(marketDO.getViewCount());
         market.setDownloadCount(marketDO.getDownloadCount());
-        market.setPluginLevel(marketDO.getPluginLevel());
-        market.setPluginVersion(marketDO.getPluginVersion());
+        market.setDescription(marketDO.getDescription());
+        market.setExample(marketDO.getExample());
         market.setAudit(marketDO.getAudit());
         market.setStatus(marketDO.getStatus());
         market.setCreator(marketDO.getCreator());
@@ -77,63 +68,60 @@ public class AppMarketConvert {
         market.setUpdateTime(marketDO.getUpdateTime());
         market.setDeleted(marketDO.getDeleted());
         market.setTenantId(marketDO.getTenantId());
+        if (AppModelEnum.COMPLETION.name().equals(marketDO.getModel())) {
+            market.setConfig(JSON.parseObject(marketDO.getConfig(), AppConfigDTO.class));
+        } else if (AppModelEnum.CHAT.name().equals(marketDO.getModel())) {
+            market.setChatConfig(JSON.parseObject(marketDO.getConfig(), AppChatConfigDTO.class));
+        } else {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MODEL_IS_UNKNOWN, marketDO.getModel());
+        }
         return market;
     }
 
+    /**
+     * 将生成模版市场的请求，转换为 DO
+     *
+     * @param request 生成模版市场的请求
+     * @return 模版市场 DO
+     */
     public static AppMarketDO convertCreate(AppMarketRequest request) {
 
-        // 基础校验和数据处理
-        Assert.notNull(request, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_DATA_IS_NULL, "AppMarketRequest"));
-        String name = AppValidate.validateName(request.getName());
-        String model = AppValidate.validateModel(request.getModel());
-        String type = AppValidate.validateType(request.getType());
-        String logotype = AppValidate.validateLogotype(request.getLogotype());
-        String sourceType = AppValidate.validateSourceType(request.getSourceType());
-        String tags = AppUtil.buildField(request.getTags());
-        String categories = AppUtil.buildField(request.getCategories());
-        String scenes = AppUtil.buildScenes(request.getScenes());
+        AppMarketValidate.validate(request);
+        AppMarketUtils.buildRequest(request);
 
         AppMarketDO market = new AppMarketDO();
-        market.setName(name);
-        market.setModel(model);
-        market.setType(type);
-        market.setLogotype(logotype);
-        market.setSourceType(sourceType);
-        market.setVersion(VersionUtils.nextVersion(request.getVersion()));
-        market.setTags(tags);
-        market.setCategories(categories);
-        market.setScenes(scenes);
+        market.setName(request.getName());
+        market.setModel(request.getModel());
+        market.setVersion(AppConstants.DEFAULT_VERSION);
         market.setLanguage(request.getLanguage());
-        market.setImages(AppUtil.buildField(request.getImages()));
+        market.setTags(AppUtils.join(request.getTags()));
+        market.setCategories(AppUtils.join(request.getCategories()));
+        market.setScenes(AppUtils.joinScenes(request.getScenes()));
+        market.setImages(AppUtils.join(request.getImages()));
         market.setIcon(request.getIcon());
-        market.setDescription(request.getDescription());
-        market.setPromptInfo("");
-        market.setCost(request.getCost());
         market.setFree(request.getFree());
+        market.setCost(request.getCost());
         market.setLikeCount(Optional.ofNullable(request.getLikeCount()).orElse(0));
         market.setViewCount(Optional.ofNullable(request.getViewCount()).orElse(0));
         market.setDownloadCount(Optional.ofNullable(request.getDownloadCount()).orElse(0));
-        market.setPluginLevel(request.getPluginLevel());
-        market.setPluginVersion(request.getPluginVersion());
-        market.setAudit(request.getAudit());
-        market.setStatus(request.getStatus());
-
-        if (AppModelEnum.COMPLETION.name().equals(model)) {
-            AppConfigDTO config = AppValidate.validateConfig(request.getConfig());
-            config.setType(type);
-            config.setLogotype(logotype);
-            config.setSourceType(sourceType);
-            config.setTags(AppUtil.buildField(tags));
-            config.setCategories(AppUtil.buildField(categories));
-            config.setScenes(AppUtil.buildScenes(scenes));
+        market.setDescription(request.getDescription());
+        market.setExample("");
+        market.setAudit(AppMarketAuditEnum.PENDING.getCode());
+        market.setStatus(StateEnum.ENABLE.getCode());
+        market.setDeleted(Boolean.FALSE);
+        if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
+            AppConfigDTO config = request.getConfig();
+            config.setTags(request.getTags());
+            config.setCategories(request.getCategories());
+            config.setScenes(request.getScenes());
 
             market.setConfig(JSON.toJSONString(config));
-            market.setStepIcons(AppUtil.buildStepIcons(config));
-            market.setStepCount(Optional.ofNullable(config.getSteps()).map(List::size).orElse(0));
-            market.setWord(AppUtil.buildWord(config));
-        } else if (AppModelEnum.CHAT.name().equals(model)) {
-            AppChatConfigDTO chatConfig = AppValidate.validateChatConfig(request.getChatConfig());
+            market.setWord(AppUtils.buildWord(config));
+        } else if (AppModelEnum.CHAT.name().equals(request.getModel())) {
+            AppChatConfigDTO chatConfig = request.getChatConfig();
             market.setConfig(JSON.toJSONString(chatConfig));
+        } else {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MODEL_IS_UNKNOWN, request.getModel());
         }
 
         return market;
@@ -146,9 +134,62 @@ public class AppMarketConvert {
      * @return 模版市场 DO
      */
     public static AppMarketDO convertModify(AppMarketUpdateRequest request) {
+        AppValidate.assertNotNull(request, "App Market Update Request Data");
+        Assert.notBlank(request.getUid(), () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "uid"));
+        AppMarketDO market = convertCreate(request);
+        // 修改时，版本号加 1
+        market.setVersion(request.getVersion() + 1);
+        market.setStatus(null);
+        market.setDeleted(null);
+        market.setAudit(null);
+        return market;
+    }
+
+    /**
+     * 将发布请求转换为 DO
+     *
+     * @param request 发布请求
+     * @return 模版市场 DO
+     */
+    public static AppMarketDO convertPublish(AppPublishRequest request) {
+        AppValidate.assertNotNull(request, "App Market Publish Request Data");
+        Assert.notBlank(request.getUid(), () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_IS_REQUIRED, "uid"));
+
+        AppValidate.validate(request);
+        AppUtils.buildRequest(request);
+
         AppMarketDO market = new AppMarketDO();
-        Assert.notNull(request, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_DATA_IS_NULL, "AppMarketUpdateRequest"));
-        market.setUid(request.getUid());
-        return convertCreate(request);
+        market.setName(request.getName());
+        market.setModel(request.getModel());
+        market.setVersion(AppConstants.DEFAULT_VERSION);
+        market.setLanguage(request.getLanguage());
+        market.setTags(AppUtils.join(request.getTags()));
+        market.setCategories(AppUtils.join(request.getCategories()));
+        market.setScenes(AppUtils.joinScenes(request.getScenes()));
+        market.setImages(AppUtils.join(request.getImages()));
+        market.setIcon(request.getIcon());
+        market.setFree(1);
+        market.setCost(BigDecimal.ZERO);
+        market.setDescription(request.getDescription());
+        market.setExample("");
+        market.setAudit(AppMarketAuditEnum.PENDING.getCode());
+        market.setStatus(StateEnum.ENABLE.getCode());
+        market.setDeleted(Boolean.FALSE);
+        if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
+            AppConfigDTO config = request.getConfig();
+            config.setTags(request.getTags());
+            config.setCategories(request.getCategories());
+            config.setScenes(request.getScenes());
+
+            market.setConfig(JSON.toJSONString(config));
+            market.setWord(AppUtils.buildWord(config));
+        } else if (AppModelEnum.CHAT.name().equals(request.getModel())) {
+            AppChatConfigDTO chatConfig = request.getChatConfig();
+            market.setConfig(JSON.toJSONString(chatConfig));
+        } else {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MODEL_IS_UNKNOWN, request.getModel());
+        }
+
+        return market;
     }
 }

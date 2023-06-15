@@ -11,12 +11,5 @@ import com.starcloud.ops.business.app.api.app.dto.AppDTO;
  */
 public interface AppApi {
 
-    /**
-     * 根据应用 ID 获取应用信息
-     *
-     * @param id 应用 ID
-     * @return 应用信息
-     */
-    AppDTO get(Long id);
 
 }

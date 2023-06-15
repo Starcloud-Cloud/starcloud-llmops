@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.service.app;
 
+import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.api.app.request.AppPageQuery;
+import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
 import com.starcloud.ops.business.app.api.app.request.AppRequest;
 import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -18,11 +20,18 @@ import java.util.List;
 public interface AppService {
 
     /**
+     * 查询应用分类列表
+     *
+     * @return 应用分类列表
+     */
+    List<AppCategoryDTO> categories();
+
+    /**
      * 查询推荐的应用列表
      *
      * @return 模版列表
      */
-    List<AppDTO> listRecommendedTemplates();
+    List<AppDTO> listRecommendedApps();
 
     /**
      * 分页查询应用列表
@@ -31,30 +40,6 @@ public interface AppService {
      * @return 应用列表
      */
     PageResp<AppDTO> page(AppPageQuery query);
-
-    /**
-     * 分页查询已下载的应用列表
-     *
-     * @param query 查询条件
-     * @return 已下载应用列表
-     */
-    PageResp<AppDTO> pageDownloadTemplates(AppPageQuery query);
-
-    /**
-     * 分页查询我的应用列表
-     *
-     * @param query 查询条件
-     * @return 我的应用列表
-     */
-    PageResp<AppDTO> pageMyTemplate(AppPageQuery query);
-
-    /**
-     * 根据应用 ID 获取应用详情
-     *
-     * @param id 应用 ID
-     * @return 应用详情
-     */
-    AppDTO getById(Long id);
 
     /**
      * 根据应用 UID 获取应用详情
@@ -86,18 +71,18 @@ public interface AppService {
     void modify(AppUpdateRequest request);
 
     /**
-     * 删除应用
-     *
-     * @param id 应用ID
-     */
-    void delete(Long id);
-
-    /**
      * 根据应用 UID 删除应用
      *
      * @param uid 应用 UID
      */
     void deleteByUid(String uid);
+
+    /**
+     * 发布应用到应用市场
+     *
+     * @param request 应用发布到应用市场请求对象
+     */
+    void publicAppToMarket(AppPublishRequest request);
 
     /**
      * 校验应用是否已经下载过

@@ -1,7 +1,11 @@
 package com.starcloud.ops.business.app.dal.databoject.app;
 
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -31,7 +35,7 @@ public class AppDO extends TenantBaseDO {
     private Long id;
 
     /**
-     * 应用唯一标识
+     * 应用唯一 ID
      */
     @TableField("uid")
     private String uid;
@@ -43,46 +47,22 @@ public class AppDO extends TenantBaseDO {
     private String name;
 
     /**
-     * 应用模型
+     * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @TableField("model")
     private String model;
 
     /**
-     * 应用类型, SYSTEM：系统推荐应用，MY_TEMPLATE：我的应用，DOWNLOAD_TEMPLATE：下载应用
+     * 应用类型：MYSELF：我的应用，DOWNLOAD：已下载应用
      */
     @TableField("type")
     private String type;
 
     /**
-     * 应用标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
+     * 应用来源类型：表示应用的是从那个平台创建，或者下载的。
      */
-    @TableField("logotype")
-    private String logotype;
-
-    /**
-     * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress ， Chrome插件等
-     */
-    @TableField("source_type")
-    private String sourceType;
-
-    /**
-     * 上传成功后，应用市场 UID
-     */
-    @TableField("upload_uid")
-    private String uploadUid;
-
-    /**
-     * 下载成功后，应用市场 UID
-     */
-    @TableField("download_uid")
-    private String downloadUid;
-
-    /**
-     * 应用版本，默认版本 1.0.0
-     */
-    @TableField("version")
-    private String version;
+    @TableField("source")
+    private String source;
 
     /**
      * 应用标签，多个以逗号分割
@@ -103,12 +83,6 @@ public class AppDO extends TenantBaseDO {
     private String scenes;
 
     /**
-     * 应用详细配置信息, 步骤，变量，场景等
-     */
-    @TableField("config")
-    private String config;
-
-    /**
      * 应用图片，多个以逗号分割
      */
     @TableField("images")
@@ -121,6 +95,12 @@ public class AppDO extends TenantBaseDO {
     private String icon;
 
     /**
+     * 应用详细配置信息, 步骤，变量，场景等
+     */
+    @TableField("config")
+    private String config;
+
+    /**
      * 应用步骤图标、多个以逗号分割
      */
     @TableField("step_icons")
@@ -131,6 +111,18 @@ public class AppDO extends TenantBaseDO {
      */
     @TableField("description")
     private String description;
+
+    /**
+     * 应用上传成功后，应用市场 UID
+     */
+    @TableField("upload_uid")
+    private String uploadUid;
+
+    /**
+     * 应用下载成功后，应用市场 UID
+     */
+    @TableField("download_uid")
+    private String downloadUid;
 
     /**
      * 应用状态，0：启用，1：禁用

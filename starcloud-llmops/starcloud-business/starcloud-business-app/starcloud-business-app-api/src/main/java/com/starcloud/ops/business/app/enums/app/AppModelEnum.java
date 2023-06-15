@@ -14,14 +14,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum AppModelEnum {
 
     /**
-     * 聊天应用
-     */
-    CHAT(1, "聊天应用"),
-
-    /**
      * 生成内容/图片等应用
      */
-    COMPLETION(2, "生成");
+    COMPLETION(1, "生成式应用"),
+
+    /**
+     * 聊天应用
+     */
+    CHAT(2, "聊天式应用");
 
     /**
      * 应用类型Code
@@ -47,8 +47,8 @@ public enum AppModelEnum {
     /**
      * 构造函数
      *
-     * @param code    应用类型 Code
-     * @param message 应用类型说明
+     * @param code    枚举值
+     * @param message 枚举描述
      */
     AppModelEnum(Integer code, String message) {
         this.code = code;
@@ -56,42 +56,11 @@ public enum AppModelEnum {
     }
 
     /**
-     * 根据枚举名称获取枚举Code
+     * 枚举缓存
      *
-     * @param name 枚举名称
-     * @return 枚举Code
+     * @return 枚举缓存
      */
-    public static Integer getCodeByName(String name) {
-        return getEnumByName(name).getCode();
-    }
-
-    /**
-     * 根据枚举Code 获取枚举名称
-     *
-     * @param code 枚举 Code
-     * @return 枚举名称
-     */
-    public static String getNameByCode(Integer code) {
-        for (AppModelEnum type : TEMPLATE_MODEL_CACHE.values()) {
-            if (type.getCode().equals(code)) {
-                return type.name();
-            }
-        }
-        // 不支持的应用类型 Code
-        throw new IllegalArgumentException("The code " + code + " of " + AppModelEnum.class.getCanonicalName() + " is not supported.");
-    }
-
-    /**
-     * 根据名称获取应用类型枚举
-     *
-     * @param name 枚举名称
-     * @return 应用类型
-     */
-    public static AppModelEnum getEnumByName(String name) {
-        if (TEMPLATE_MODEL_CACHE.containsKey(name)) {
-            return TEMPLATE_MODEL_CACHE.get(name);
-        }
-        // 不支持的应用类型名称
-        throw new IllegalArgumentException("The name " + name + " of " + AppModelEnum.class.getCanonicalName() + " is not supported.");
+    public static Map<String, AppModelEnum> cache() {
+        return TEMPLATE_MODEL_CACHE;
     }
 }
