@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.log.api.conversation.vo.*;
 import com.starcloud.ops.business.log.controller.admin.LogAppConversationExcelVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -31,5 +32,8 @@ public interface LogAppConversationConvert {
     PageResult<LogAppConversationRespVO> convertPage(PageResult<LogAppConversationDO> page);
 
     List<LogAppConversationExcelVO> convertList02(List<LogAppConversationDO> list);
+
+
+    PageResult<LogAppConversationInfoRespVO> convertInfoPage(PageResult<LogAppConversationInfoPO> page);
 
 }
