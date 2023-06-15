@@ -12,5 +12,5 @@ public interface AppConstants {
     /**
      * 默认版本
      */
-    String DEFAULT_VERSION = "1.0.0";
+    Integer DEFAULT_VERSION = 1;
 }

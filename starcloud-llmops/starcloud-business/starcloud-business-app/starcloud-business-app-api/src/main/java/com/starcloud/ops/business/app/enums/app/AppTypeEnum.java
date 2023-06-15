@@ -19,17 +19,17 @@ public enum AppTypeEnum {
     /**
      * 系统应用：系统提供的推荐应用
      */
-    SYSTEM_TEMPLATE(0, "系统应用：系统提供的推荐应用"),
+    SYSTEM(0, "系统应用：系统提供的推荐应用"),
 
     /**
      * 我的应用：我创建的应用
      */
-    MY_TEMPLATE(1, "我的应用：我创建的应用"),
+    MYSELF(1, "我的应用：我创建的应用"),
 
     /**
      * 下载应用：我已经下载的应用
      */
-    DOWNLOAD_TEMPLATE(2, "下载应用：我已经下载的应用"),
+    DOWNLOAD(2, "下载应用：我已经下载的应用"),
 
     ;
 
@@ -66,43 +66,12 @@ public enum AppTypeEnum {
     }
 
     /**
-     * 根据枚举名称获取枚举Code
+     * 枚举缓存
      *
-     * @param name 枚举名称
-     * @return 枚举Code
+     * @return 枚举缓存
      */
-    public static Integer getCodeByName(String name) {
-        return getEnumByName(name).getCode();
-    }
-
-    /**
-     * 根据枚举Code 获取枚举名称
-     *
-     * @param code 枚举 Code
-     * @return 枚举名称
-     */
-    public static String getNameByCode(Integer code) {
-        for (AppTypeEnum type : TEMPLATE_TYPE_CACHE.values()) {
-            if (type.getCode().equals(code)) {
-                return type.name();
-            }
-        }
-        // 不支持的应用类型 Code
-        throw new IllegalArgumentException("The code " + code + " of " + AppTypeEnum.class.getCanonicalName() + " is not supported.");
-    }
-
-    /**
-     * 根据名称获取应用类型枚举
-     *
-     * @param name 枚举名称
-     * @return 应用类型
-     */
-    public static AppTypeEnum getEnumByName(String name) {
-        if (TEMPLATE_TYPE_CACHE.containsKey(name)) {
-            return TEMPLATE_TYPE_CACHE.get(name);
-        }
-        // 不支持的应用类型名称
-        throw new IllegalArgumentException("The name " + name + " of " + AppTypeEnum.class.getCanonicalName() + " is not supported.");
+    public static Map<String, AppTypeEnum> cache() {
+        return TEMPLATE_TYPE_CACHE;
     }
 
 }

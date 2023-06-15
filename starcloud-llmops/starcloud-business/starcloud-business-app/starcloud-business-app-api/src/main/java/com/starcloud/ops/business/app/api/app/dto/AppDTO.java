@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -18,6 +20,8 @@ import java.util.List;
  * @since 2023-05-18
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用对象实体")
 public class AppDTO implements Serializable {
@@ -25,15 +29,15 @@ public class AppDTO implements Serializable {
     private static final long serialVersionUID = 1578944445567574534L;
 
     /**
-     * 模板ID
+     * 我的应用 ID
      */
-    @Schema(description = "模板ID")
+    @Schema(description = "id")
     private Long id;
 
     /**
-     * 应用唯一标识
+     * 应用 UID, 每个应用的唯一标识
      */
-    @Schema(description = "应用唯一标识")
+    @Schema(description = "应用 UID, 每个应用的唯一标识")
     private String uid;
 
     /**
@@ -43,81 +47,45 @@ public class AppDTO implements Serializable {
     private String name;
 
     /**
-     * 应用模型
+     * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
-    @Schema(description = "应用模型")
+    @Schema(description = "应用模型：CHAT：聊天式应用，COMPLETION：生成式应用")
     private String model;
 
     /**
-     * 应用类型
+     * 应用类型：MYSELF：我的应用，DOWNLOAD：已下载应用
      */
-    @Schema(description = "应用类型")
+    @Schema(description = "应用类型：MYSELF：我的应用，DOWNLOAD：已下载应用")
     private String type;
 
     /**
-     * 应用标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
+     * 应用来源类型：表示应用的是从那个平台创建，或者下载的。
      */
-    @Schema(description = "应用标识")
-    private String logotype;
+    @Schema(description = "应用来源类型：表示应用的是从那个平台创建，或者下载的。")
+    private String source;
 
     /**
-     * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress，Chrome插件等
+     * 应用标签，多个以逗号分割
      */
-    @Schema(description = "应用来源类型")
-    private String sourceType;
-
-    /**
-     * 上传成功后，应用市场 UID
-     */
-    @Schema(description = "上传成功后，应用市场 UID")
-    private String uploadUid;
-
-    /**
-     * 下载成功后，应用市场 UID
-     */
-    @Schema(description = "下载成功后，应用市场 UID")
-    private String downloadUid;
-
-    /**
-     * 应用版本，默认版本 1.0.0
-     */
-    @Schema(description = "应用版本")
-    private String version;
-
-    /**
-     * 应用标签
-     */
-    @Schema(description = "应用标签")
+    @Schema(description = "应用标签，多个以逗号分割")
     private List<String> tags;
 
     /**
-     * 应用类别
+     * 应用类别，多个以逗号分割
      */
-    @Schema(description = "应用类别")
+    @Schema(description = "应用类别，多个以逗号分割")
     private List<String> categories;
 
     /**
-     * 应用场景
+     * 应用场景，多个以逗号分割
      */
-    @Schema(description = "应用场景")
+    @Schema(description = "应用类别，多个以逗号分割")
     private List<String> scenes;
 
     /**
-     * 应用详细配置信息, 步骤，变量，场景等
+     * 应用图片，多个以逗号分割
      */
-    @Schema(description = "应用详细配置信息")
-    private AppConfigDTO config;
-
-    /**
-     * 应用聊天配置信息
-     */
-    @Schema(description = "应用聊天配置信息")
-    private AppChatConfigDTO chatConfig;
-
-    /**
-     * 应用图片
-     */
-    @Schema(description = "应用图片")
+    @Schema(description = "应用图片，多个以逗号分割")
     private List<String> images;
 
     /**
@@ -127,9 +95,21 @@ public class AppDTO implements Serializable {
     private String icon;
 
     /**
-     * 应用步骤的图标
+     * 应用详细配置信息, 步骤，变量，场景等
      */
-    @Schema(description = "应用步骤的图标")
+    @Schema(description = "应用详细配置信息, 步骤，变量，场景等")
+    private AppConfigDTO config;
+
+    /**
+     * 应用聊天配置
+     */
+    @Schema(description = "应用聊天配置")
+    private AppChatConfigDTO chatConfig;
+
+    /**
+     * 应用步骤图标、多个以逗号分割
+     */
+    @Schema(description = "应用步骤图标、多个以逗号分割")
     private List<String> stepIcons;
 
     /**
@@ -139,9 +119,21 @@ public class AppDTO implements Serializable {
     private String description;
 
     /**
+     * 应用上传成功后，应用市场 UID
+     */
+    @Schema(description = "应用上传成功后，应用市场 UID")
+    private String uploadUid;
+
+    /**
+     * 应用下载成功后，应用市场 UID
+     */
+    @Schema(description = "应用下载成功后，应用市场 UID")
+    private String downloadUid;
+
+    /**
      * 应用状态，0：启用，1：禁用
      */
-    @Schema(description = "应用状态")
+    @Schema(description = "应用状态，0：启用，1：禁用")
     private Integer status;
 
     /**

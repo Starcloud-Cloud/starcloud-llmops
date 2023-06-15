@@ -7,6 +7,8 @@ import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -19,6 +21,8 @@ import java.util.List;
  * @since 2023-06-05
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用市场对象实体")
 public class AppMarketDTO implements Serializable {
@@ -26,15 +30,15 @@ public class AppMarketDTO implements Serializable {
     private static final long serialVersionUID = 1475037816778901152L;
 
     /**
-     * 模板市场ID
+     * 模板市场 ID
      */
-    @Schema(description = "id")
+    @Schema(description = "模板市场 ID")
     private Long id;
 
     /**
-     * 应用市场 key，我的应用上传到应用市场时候，会生成一个应用市场 key，下载应用的时候，会将该 key 存到此处。
+     * 市场应用 UID
      */
-    @Schema(description = "应用市场 uid")
+    @Schema(description = "市场应用 UID")
     private String uid;
 
     /**
@@ -44,52 +48,16 @@ public class AppMarketDTO implements Serializable {
     private String name;
 
     /**
-     * 应用模型
+     * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
-    @Schema(description = "应用模型")
+    @Schema(description = "应用模型：CHAT：聊天式应用，COMPLETION：生成式应用")
     private String model;
 
     /**
-     * 应用类型, SYSTEM：系统推荐应用，MY_TEMPLATE：我的应用，DOWNLOAD_TEMPLATE：下载应用
+     * 应用版本，默认版本 1
      */
-    @Schema(description = "应用类型")
-    private String type;
-
-    /**
-     * 应用标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
-     */
-    @Schema(description = "应用标识")
-    private String logotype;
-
-    /**
-     * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress ， Chrome插件等
-     */
-    @Schema(description = "应用来源类型")
-    private String sourceType;
-
-    /**
-     * 应用版本，默认版本 1.0.0
-     */
-    @Schema(description = "应用版本")
-    private String version;
-
-    /**
-     * 应用标签，多个以逗号分割
-     */
-    @Schema(description = "应用标签")
-    private List<String> tags;
-
-    /**
-     * 应用类别，多个以逗号分割
-     */
-    @Schema(description = "应用类别")
-    private List<String> categories;
-
-    /**
-     * 应用场景，多个以逗号分割
-     */
-    @Schema(description = "应用场景")
-    private List<String> scenes;
+    @Schema(description = "应用版本，默认版本 1")
+    private Integer version;
 
     /**
      * 应用语言
@@ -98,21 +66,27 @@ public class AppMarketDTO implements Serializable {
     private String language;
 
     /**
-     * 应用详细配置信息, 步骤，变量，场景等
+     * 应用标签，多个以逗号分割
      */
-    @Schema(description = "应用详细配置信息")
-    private AppConfigDTO config;
+    @Schema(description = "应用标签，多个以逗号分割")
+    private List<String> tags;
 
     /**
-     * 应用聊天配置
+     * 应用类别，多个以逗号分割
      */
-    @Schema(description = "应用聊天配置")
-    private AppChatConfigDTO chatConfig;
+    @Schema(description = "应用类别，多个以逗号分割")
+    private List<String> categories;
+
+    /**
+     * 应用场景，多个以逗号分割
+     */
+    @Schema(description = "应用场景，多个以逗号分割")
+    private List<String> scenes;
 
     /**
      * 应用图片，多个以逗号分割
      */
-    @Schema(description = "应用图片")
+    @Schema(description = "应用图片，多个以逗号分割")
     private List<String> images;
 
     /**
@@ -122,28 +96,10 @@ public class AppMarketDTO implements Serializable {
     private String icon;
 
     /**
-     * 应用步骤图标、多个以逗号分割
+     * 应用是否是免费的
      */
-    @Schema(description = "应用步骤图标")
-    private List<String> stepIcons;
-
-    /**
-     * 步骤数量
-     */
-    @Schema(description = "步骤数量")
-    private Integer stepCount;
-
-    /**
-     * 应用描述
-     */
-    @Schema(description = "应用描述")
-    private String description;
-
-    /**
-     * 应用 Prompt详情
-     */
-    @Schema(description = "应用 Prompt详情")
-    private String promptInfo;
+    @Schema(description = "应用是否是免费的")
+    private Integer free;
 
     /**
      * 应用收费数
@@ -158,40 +114,46 @@ public class AppMarketDTO implements Serializable {
     private Integer word;
 
     /**
-     * 应用是否是免费的
+     * 应用点赞数量
      */
-    @Schema(description = "应用是否是免费的")
-    private Boolean free;
-
-    /**
-     * 点赞数量
-     */
-    @Schema(description = "点赞数量")
+    @Schema(description = "应用点赞数量")
     private Integer likeCount;
 
     /**
-     * 查看数量
+     * 应用查看数量
      */
-    @Schema(description = "查看数量")
+    @Schema(description = "应用查看数量")
     private Integer viewCount;
 
     /**
-     * 下载数量
+     * 应用下载数量
      */
-    @Schema(description = "Schema")
+    @Schema(description = "应用下载数量")
     private Integer downloadCount;
 
     /**
-     * 插件版本
+     * 应用详细配置信息, 步骤，变量，场景等
      */
-    @Schema(description = "插件版本")
-    private String pluginVersion;
+    @Schema(description = "应用详细配置信息, 步骤，变量，场景等")
+    private AppConfigDTO config;
 
     /**
-     * 插件级别
+     * 应用聊天配置
      */
-    @Schema(description = "插件级别")
-    private String pluginLevel;
+    @Schema(description = "应用聊天配置")
+    private AppChatConfigDTO chatConfig;
+
+    /**
+     * 应用描述
+     */
+    @Schema(description = "应用描述")
+    private String description;
+
+    /**
+     * 应用example
+     */
+    @Schema(description = "应用example")
+    private String example;
 
     /**
      * 应用审核
@@ -202,7 +164,7 @@ public class AppMarketDTO implements Serializable {
     /**
      * 应用状态，0：启用，1：禁用
      */
-    @Schema(description = "应用状态")
+    @Schema(description = "应用状态，0：启用，1：禁用")
     private Integer status;
 
     /**

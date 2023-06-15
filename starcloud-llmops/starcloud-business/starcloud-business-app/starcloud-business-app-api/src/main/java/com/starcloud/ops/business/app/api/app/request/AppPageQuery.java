@@ -5,6 +5,7 @@ import com.starcloud.ops.framework.common.api.dto.PageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
  * @since 2023-05-26
  */
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用查询类")

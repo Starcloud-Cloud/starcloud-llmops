@@ -34,7 +34,7 @@ public class AppStepEntity {
     /**
      * 步骤版本，默认版本 1.0.0
      */
-    private String version;
+    private Integer version;
 
     /**
      * 步骤标签

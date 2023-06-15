@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.api.app.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -14,6 +16,8 @@ import java.math.BigDecimal;
  * @since 2023-06-13
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "模型价格信息对象")
 public class ModelPrice {

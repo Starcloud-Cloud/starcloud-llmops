@@ -25,14 +25,6 @@ public interface AppMarketService {
     PageResp<AppMarketDTO> page(AppMarketPageQuery query);
 
     /**
-     * 根据应用 ID 获取应用详情
-     *
-     * @param id 应用 ID
-     * @return 应用详情
-     */
-    AppMarketDTO getById(Long id);
-
-    /**
      * 根据应用 uid 和 版本号 获取应用详情
      *
      * @param uid 应用 uid
@@ -54,13 +46,6 @@ public interface AppMarketService {
      * @param request 应用信息
      */
     void modify(AppMarketUpdateRequest request);
-
-    /**
-     * 删除应用市场的应用
-     *
-     * @param id 应用 ID
-     */
-    void delete(Long id);
 
     /**
      * 删除应用市场的应用

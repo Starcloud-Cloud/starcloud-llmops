@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.api.app.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
@@ -15,6 +17,8 @@ import java.util.List;
  * @since 2023-05-18
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用配置DTO")
 public class AppConfigDTO implements Serializable {
@@ -28,45 +32,33 @@ public class AppConfigDTO implements Serializable {
     private String name;
 
     /**
-     * 应用类型, 0：系统推荐应用，1：我的应用，2：下载应用
+     * 应用类型：MYSELF：我的应用，DOWNLOAD：已下载应用
      */
-    @Schema(description = "应用类型")
+    @Schema(description = "应用类型：MYSELF：我的应用，DOWNLOAD：已下载应用")
     private String type;
 
     /**
-     * 应用标识, 区分自定义应用和每一种具体的系统应用，所有的应用的具体类型都基于此标识，不同的标识，应用的具体配置（步骤，变量，场景等）会有所不同。
+     * 应用来源类型：表示应用的是从那个平台创建，或者下载的。
      */
-    @Schema(description = "应用标识")
-    private String logotype;
+    @Schema(description = "应用来源类型：表示应用的是从那个平台创建，或者下载的。")
+    private String source;
 
     /**
-     * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress，Chrome插件等
+     * 应用标签，多个以逗号分割
      */
-    @Schema(description = "应用来源类型")
-    private String sourceType;
-
-    /**
-     * 应用版本，默认版本 1.0.0
-     */
-    @Schema(description = "应用版本")
-    private String version;
-
-    /**
-     * 应用标签
-     */
-    @Schema(description = "应用标签")
+    @Schema(description = "应用标签，多个以逗号分割")
     private List<String> tags;
 
     /**
-     * 应用类别
+     * 应用类别，多个以逗号分割
      */
-    @Schema(description = "应用类别")
+    @Schema(description = "应用类别，多个以逗号分割")
     private List<String> categories;
 
     /**
-     * 应用场景
+     * 应用场景，多个以逗号分割
      */
-    @Schema(description = "应用场景")
+    @Schema(description = "应用类别，多个以逗号分割")
     private List<String> scenes;
 
     /**

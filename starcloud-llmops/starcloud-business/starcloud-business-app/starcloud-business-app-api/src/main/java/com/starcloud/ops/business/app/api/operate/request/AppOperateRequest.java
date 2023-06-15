@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.api.operate.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
@@ -14,7 +15,8 @@ import java.io.Serializable;
  * @since 2023-06-12
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+@EqualsAndHashCode
 @Schema(description = "应用操作管理表请求类")
 public class AppOperateRequest implements Serializable {
 
