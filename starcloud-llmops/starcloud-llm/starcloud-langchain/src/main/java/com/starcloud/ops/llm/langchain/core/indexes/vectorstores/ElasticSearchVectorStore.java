@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "elasticsearch")
+@ConditionalOnProperty(name = "starcloud-llm.vector.store", havingValue = "elasticsearch")
 public class ElasticSearchVectorStore implements BasicVectorStore {
 
     private static final String INDEX_NAME = "vector_index_l2";

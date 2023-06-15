@@ -20,7 +20,7 @@ import java.util.Map;
  * embedding保存在数据库中，在本地内存中做l2向量距离计算
  */
 @Component
-@ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "default")
+@ConditionalOnProperty(name = "starcloud-llm.vector.store", havingValue = "default")
 public class DefaultVectorStore implements BasicVectorStore {
 
     /**

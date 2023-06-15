@@ -25,7 +25,7 @@ import java.util.List;
 public class VectorStoreConfiguration {
 
     @Bean("elasticsearchClient")
-    @ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "elasticsearch")
+    @ConditionalOnProperty(name = "starcloud-llm.vector.store", havingValue = "elasticsearch")
     public ElasticsearchClient initElasticSearchClient(@Value("${starcloud.elasticsearch.uris}") List<String> uris) {
         RestClient restClient = RestClient.builder(toHttpHost(uris)).build();
         ElasticsearchTransport transport = new RestClientTransport(
@@ -35,7 +35,7 @@ public class VectorStoreConfiguration {
     }
 
     @Bean("defaultRepository")
-    @ConditionalOnProperty(name = "starcloud.llm.vector.store", havingValue = "default")
+    @ConditionalOnProperty(name = "starcloud-llm.vector.store", havingValue = "default")
     public DefaultVectorStore.SegmentEmbeddingMapper initDefaultRepository(DataSource dataSource) {
         //事务
         TransactionFactory transactionFactory = new JdbcTransactionFactory();
