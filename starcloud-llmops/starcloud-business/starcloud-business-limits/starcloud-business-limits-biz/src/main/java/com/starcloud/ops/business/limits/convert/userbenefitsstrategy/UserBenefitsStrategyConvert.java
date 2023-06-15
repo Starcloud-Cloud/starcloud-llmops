@@ -27,7 +27,7 @@ public class UserBenefitsStrategyConvert {
 
         UserBenefitsStrategyDO.UserBenefitsStrategyDOBuilder userBenefitsStrategyDO = UserBenefitsStrategyDO.builder();
 
-        userBenefitsStrategyDO.code( bean.getCode() );
+        userBenefitsStrategyDO.code( bean.getCode().toUpperCase() );
         userBenefitsStrategyDO.strategyName( bean.getStrategyName() );
         userBenefitsStrategyDO.strategyDesc( bean.getStrategyDesc() );
         userBenefitsStrategyDO.strategyType( bean.getStrategyType() );
@@ -35,9 +35,11 @@ public class UserBenefitsStrategyConvert {
         userBenefitsStrategyDO.datasetCount( bean.getDatasetCount() );
         userBenefitsStrategyDO.imageCount( bean.getImageCount() );
         userBenefitsStrategyDO.tokenCount( bean.getTokenCount() );
-        userBenefitsStrategyDO.scope( bean.getScope() );
-        userBenefitsStrategyDO.scopeNum( bean.getScopeNum() );
-        userBenefitsStrategyDO.limitUnit( bean.getLimitUnit() );
+        userBenefitsStrategyDO.effectiveNum( bean.getEffectiveNum() );
+        userBenefitsStrategyDO.effectiveUnit( bean.getEffectiveUnit() );
+        userBenefitsStrategyDO.limitNum( bean.getLimitNum() );
+        userBenefitsStrategyDO.limitIntervalNum( bean.getLimitIntervalNum() );
+        userBenefitsStrategyDO.limitIntervalUnit( bean.getLimitIntervalUnit() );
         userBenefitsStrategyDO.enabled( bean.getEnabled() );
 
         return userBenefitsStrategyDO.build();
@@ -51,14 +53,17 @@ public class UserBenefitsStrategyConvert {
         UserBenefitsStrategyDO.UserBenefitsStrategyDOBuilder userBenefitsStrategyDO = UserBenefitsStrategyDO.builder();
 
         userBenefitsStrategyDO.id( bean.getId() );
-        userBenefitsStrategyDO.code( bean.getCode() );
         userBenefitsStrategyDO.strategyName( bean.getStrategyName() );
         userBenefitsStrategyDO.strategyDesc( bean.getStrategyDesc() );
         userBenefitsStrategyDO.appCount( bean.getAppCount() );
         userBenefitsStrategyDO.datasetCount( bean.getDatasetCount() );
         userBenefitsStrategyDO.imageCount( bean.getImageCount() );
         userBenefitsStrategyDO.tokenCount( bean.getTokenCount() );
-        userBenefitsStrategyDO.limitUnit( bean.getLimitUnit() );
+        userBenefitsStrategyDO.effectiveNum( bean.getEffectiveNum() );
+        userBenefitsStrategyDO.effectiveUnit( bean.getEffectiveUnit() );
+        userBenefitsStrategyDO.limitNum( bean.getLimitNum() );
+        userBenefitsStrategyDO.limitIntervalNum( bean.getLimitIntervalNum() );
+        userBenefitsStrategyDO.limitIntervalUnit( bean.getLimitIntervalUnit() );
 
         return userBenefitsStrategyDO.build();
     }
@@ -78,10 +83,11 @@ public class UserBenefitsStrategyConvert {
         userBenefitsStrategyRespVO.setDatasetCount( bean.getDatasetCount() );
         userBenefitsStrategyRespVO.setImageCount( bean.getImageCount() );
         userBenefitsStrategyRespVO.setTokenCount( bean.getTokenCount() );
-        userBenefitsStrategyRespVO.setScope( bean.getScope() );
-        userBenefitsStrategyRespVO.setScopeNum( bean.getScopeNum() );
-        userBenefitsStrategyRespVO.setLimitUnit( bean.getLimitUnit() );
-        userBenefitsStrategyRespVO.setEnabled( bean.getEnabled() );
+        userBenefitsStrategyRespVO.setEffectiveNum( bean.getEffectiveNum() );
+        userBenefitsStrategyRespVO.setEffectiveUnit( bean.getEffectiveUnit() );
+        userBenefitsStrategyRespVO.setLimitNum( bean.getLimitNum() );
+        userBenefitsStrategyRespVO.setLimitIntervalNum( bean.getLimitIntervalNum() );
+        userBenefitsStrategyRespVO.setLimitIntervalUnit( bean.getLimitIntervalUnit() );
         userBenefitsStrategyRespVO.setArchived( bean.getArchived() );
         userBenefitsStrategyRespVO.setArchivedBy( bean.getArchivedBy() );
         userBenefitsStrategyRespVO.setArchivedTime( bean.getArchivedTime() );
@@ -96,7 +102,7 @@ public class UserBenefitsStrategyConvert {
             return null;
         }
 
-        List<UserBenefitsStrategyRespVO> list1 = new ArrayList<UserBenefitsStrategyRespVO>( list.size() );
+        List<UserBenefitsStrategyRespVO> list1 = new ArrayList<>(list.size());
         for ( UserBenefitsStrategyDO userBenefitsStrategyDO : list ) {
             list1.add( convert( userBenefitsStrategyDO ) );
         }
@@ -109,7 +115,7 @@ public class UserBenefitsStrategyConvert {
             return null;
         }
 
-        PageResult<UserBenefitsStrategyRespVO> pageResult = new PageResult<UserBenefitsStrategyRespVO>();
+        PageResult<UserBenefitsStrategyRespVO> pageResult = new PageResult<>();
 
         pageResult.setList( convertList( page.getList() ) );
         pageResult.setTotal( page.getTotal() );

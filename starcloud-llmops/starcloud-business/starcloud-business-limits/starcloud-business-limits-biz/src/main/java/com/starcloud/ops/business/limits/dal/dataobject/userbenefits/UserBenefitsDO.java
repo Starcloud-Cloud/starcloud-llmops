@@ -29,34 +29,53 @@ public class UserBenefitsDO extends TenantBaseDO {
      */
     @TableId
     private Long id;
+
     /**
-     * 编号
+     * 权益编号
      */
     private String uid;
+    /**
+     * 策略ID
+     */
+    private String strategyId;
+
     /**
      * 用户ID
      */
     private String userId;
     /**
-     * 策略编号
-     */
-    private String strategyId;
-    /**
-     * 应用数
+     * 可使用应用数
      */
     private Long appCountUsed;
     /**
-     * 数据集数
+     * 可使用数据集数
      */
     private Long datasetCountUsed;
     /**
-     * 图片数
+     * 可使用图片数
      */
     private Long imageCountUsed;
     /**
-     * 令牌数
+     * 可使用令牌数
      */
     private Long tokenCountUsed;
+    /**
+     * 赠送令牌数
+     */
+    private Long tokenCountInit;
+    /**
+     * 赠送图片数
+     */
+    private Long imageCountInit;
+    /**
+     * 赠送应用数
+     */
+    private Long datasetCountInit;
+    /**
+     * 赠送应用数
+     */
+    private Long appCountInit;
+
     /**
      * 生效时间
      */
@@ -65,11 +84,9 @@ public class UserBenefitsDO extends TenantBaseDO {
      * 过期时间
      */
     private LocalDateTime expirationTime;
-
     /**
      * 是否启用
      */
     private Boolean enabled;
-
 }
 

@@ -3,9 +3,11 @@ package com.starcloud.ops.business.limits.service.userbenefitsusagelog;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.vo.UserBenefitsUsageLogCreateReqVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.vo.UserBenefitsUsageLogPageReqVO;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsusagelog.UserBenefitsUsageLogDO;
+import org.springframework.validation.annotation.Validated;
 
-import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,7 +25,9 @@ public interface UserBenefitsUsageLogService {
      *
      * @return 编号
      */
-    Long createUserBenefitsUsageLog(@Valid UserBenefitsUsageLogCreateReqVO createReqVO);
+    Long createUserBenefitsUsageLog(@Validated UserBenefitsUsageLogCreateReqVO createReqVO);
+
+    Boolean batchCreateUserBenefitsUsageBatchLog(UserBenefitsDO userBenefitsDO, UserBenefitsStrategyDO benefitsStrategy);
 
     /**
      * 获得用户权益使用日志分页
@@ -32,7 +36,7 @@ public interface UserBenefitsUsageLogService {
      *
      * @return 用户权益使用日志分页
      */
-    PageResult<UserBenefitsUsageLogDO> getUserBenefitsUsageLogPage(UserBenefitsUsageLogPageReqVO pageReqVO);
+    PageResult<UserBenefitsUsageLogDO> getUserBenefitsUsageLogPage(@Validated UserBenefitsUsageLogPageReqVO pageReqVO);
 
     /**
      * 根据时间和 Action 获取指定的权益记录

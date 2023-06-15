@@ -17,37 +17,37 @@ public enum BenefitsStrategyTypeEnums {
     /**
      * 普通注册
      */
-    SIGN_IN("SI0", "注册", "Sign In", "SI",1),
+    SIGN_IN("SIGN_IN", "注册", "Sign In", "SI",1),
 
     /**
      * 邀请注册
      */
-    INVITE_TO_REGISTER("SN1", "邀请注册", "Invite to Register", "SN",1),
+    INVITE_TO_REGISTER("INVITE_TO_REGISTER", "邀请注册", "Invite to Register", "SN",1),
 
     /**
      * 邀请
      */
-    USER_INVITE("IN2", "邀请", "Invite", "IN",Integer.MAX_VALUE),
+    USER_INVITE("USER_INVITE", "邀请", "Invite", "IN",Integer.MAX_VALUE),
 
     /**
      * 签到
      */
-    USER_ATTENDANCE("AT3", "签到", "Check In", "AT",1),
+    USER_ATTENDANCE("USER_ATTENDANCE", "签到", "Check In", "AT",1),
 
     /**
      * PLUS套餐
      */
-    PAY_PLUS("PL4", "PLUS套餐", "PLUS Package", "PL",Integer.MAX_VALUE),
+    PAY_PLUS("PAY_PLUS", "PLUS套餐", "PLUS Package", "PL",Integer.MAX_VALUE),
 
     /**
      * PRO套餐
      */
-    PAY_PRO("PR5", "PRO套餐", "PRO Package", "PR",Integer.MAX_VALUE),
+    GIFT("PAY_PRO", "赠送", "PRO Package", "PR",Integer.MAX_VALUE),
     ;
     /**
      * code
      */
-    private final String code;
+    private final String name;
 
     /**
      * 中文名称
@@ -73,6 +73,6 @@ public enum BenefitsStrategyTypeEnums {
 
 
     public static BenefitsStrategyTypeEnums getByCode(String code) {
-        return ArrayUtil.firstMatch(o -> o.getCode().equals(code), values());
+        return ArrayUtil.firstMatch(o -> o.getName().equals(code), values());
     }
 }

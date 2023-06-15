@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.limits.service.userbenefitsstrategy;
 
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -20,6 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
@@ -46,13 +48,21 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
      * @return 编号
      */
     @Override
-    public String generateUniqueCode() {
-        String code = IdUtil.fastSimpleUUID().substring(0, 12);
+    public String generateUniqueCode(String strategyType) {
+        // 权益策略枚举校验
+        BenefitsStrategyTypeEnums strategyTypeEnums = BenefitsStrategyTypeEnums.getByCode(strategyType);
+
+        if (strategyTypeEnums == null) {
+            throw exception(BENEFITS_STRATEGY_TYPE_NOT_EXISTS);
+        }
+        // 生成兑换码 code
+        String code = strategyTypeEnums.getPrefix() + "_" + IdUtil.fastSimpleUUID().substring(0, 12).toUpperCase();
+
         // 创建查询条件
         LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
         wrapper.eq(UserBenefitsStrategyDO::getCode, code);
 
-        // 校验 code 是否存在
+        // 校验 兑换码code 是否存在
         long count = userBenefitsStrategyMapper.selectCount(wrapper);
         while (count > 0) {
             code = IdUtil.fastSimpleUUID().substring(0, 8);
@@ -65,12 +75,18 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
     }
 
     /**
-     * 为用户提供权益 code
+     * 检测权益 code 是否可用
      *
      * @return 编号
      */
     @Override
-    public Boolean checkCode(String code) {
+    public Boolean checkCode(String code, String strategyType) {
+        // 权益策略枚举校验
+        BenefitsStrategyTypeEnums strategyTypeEnums = BenefitsStrategyTypeEnums.getByCode(strategyType);
+
+        if (!strategyTypeEnums.getPrefix().equals(code.substring(0, 2))) {
+            throw exception(BENEFITS_STRATEGY_PREFIX_NO_VALIDITY);
+        }
         // 创建查询条件
         LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
         wrapper.eq(UserBenefitsStrategyDO::getCode, code);
@@ -88,9 +104,29 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
     public Long createUserBenefitsStrategy(UserBenefitsStrategyCreateReqVO createReqVO) {
         // 权益策略枚举校验
         BenefitsStrategyTypeEnums strategyTypeEnums = BenefitsStrategyTypeEnums.getByCode(createReqVO.getStrategyType());
+
         if (strategyTypeEnums == null) {
             throw exception(BENEFITS_STRATEGY_TYPE_NOT_EXISTS);
         }
+
+        // code 合法性检测
+        if (!checkCode(createReqVO.getCode(), createReqVO.getStrategyType())) {
+            throw exception(BENEFITS_STRATEGY_CODE_EXISTS);
+        }
+
+        // 如果是签到、注册、邀请注册或者是邀请等系统类型，禁用租户下其他相同类型配置
+        switch (strategyTypeEnums) {
+            case SIGN_IN:
+            case INVITE_TO_REGISTER:
+            case USER_INVITE:
+            case USER_ATTENDANCE:
+                // 根据枚举类型停用同类型的数据
+                CancelMasterConfigStrategy(strategyTypeEnums.getName());
+            default:
+                break;
+        }
+
+
         // 输入转换
         UserBenefitsStrategyDO userBenefitsStrategy = UserBenefitsStrategyConvert.convert(createReqVO);
         // 设置 code 前缀
@@ -102,20 +138,58 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         return userBenefitsStrategy.getId();
     }
 
+
+    /**
+     * 根据枚举类型停用同类型的数据
+     *
+     * @param strategyType 类型
+     */
+    private void CancelMasterConfigStrategy(String strategyType) {
+        // 创建查询条件
+        LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
+        wrapper.eq(UserBenefitsStrategyDO::getStrategyType, strategyType);
+        wrapper.eq(UserBenefitsStrategyDO::getEnabled, true);
+
+        List<UserBenefitsStrategyDO> userBenefitsStrategyDOS = userBenefitsStrategyMapper.selectList(wrapper);
+
+        List<UserBenefitsStrategyDO> updatedList = userBenefitsStrategyDOS.stream()
+                .peek(strategy -> strategy.setEnabled(false))
+                .collect(Collectors.toList());
+        if (CollUtil.isNotEmpty(updatedList)) {
+            userBenefitsStrategyMapper.updateBatch(updatedList, updatedList.size());
+        }
+
+    }
+
+    /**
+     * @param strategyType 类型
+     */
+    @Override
+    public Boolean hasMasterConfigStrategy(String strategyType) {
+        // 创建查询条件
+        LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
+        wrapper.eq(UserBenefitsStrategyDO::getStrategyType, strategyType);
+        wrapper.eq(UserBenefitsStrategyDO::getEnabled, true);
+
+        List<UserBenefitsStrategyDO> userBenefitsStrategyDOS = userBenefitsStrategyMapper.selectList(wrapper);
+
+        return BooleanUtil.isTrue(userBenefitsStrategyDOS.size() == 0);
+    }
+
+
     /**
      * 更新用户权益策略
      *
      * @param updateReqVO 更新信息
      */
     @Override
-    public void updateUserBenefitsStrategy(UserBenefitsStrategyUpdateReqVO updateReqVO) {
+    public void updateStrategy(UserBenefitsStrategyUpdateReqVO updateReqVO) {
         // 校验数据是否可以修改
         validateCanModify(updateReqVO.getId());
         // 更新
         UserBenefitsStrategyDO updateObj = UserBenefitsStrategyConvert.convert(updateReqVO);
         userBenefitsStrategyMapper.updateById(updateObj);
         log.info("[deleteUserBenefitsStrategy][修改用户权益策略成功。：策略ID({})|用户ID({})", updateReqVO.getId(), getLoginUserId());
-
     }
 
 
@@ -125,7 +199,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
      * @param id 编号
      */
     @Override
-    public void deleteUserBenefitsStrategy(Long id) {
+    public void deleteStrategy(Long id) {
         // 删除
         userBenefitsStrategyMapper.deleteById(id);
         log.info("[deleteUserBenefitsStrategy][删除用户权益策略成功！：策略ID({})|用户ID({})", id, getLoginUserId());
@@ -140,7 +214,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
     /**
      * 通过 code 获取权益信息
      *
-     * @param code     权益码
+     * @param code 权益码
      *
      * @return 编号
      */
@@ -156,6 +230,34 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
             throw exception(BENEFITS_STRATEGY_DATA_NOT_EXISTS);
         }
         return userBenefitsStrategyDO;
+    }
+
+    /**
+     * 通过 code 获取权益信息
+     *
+     * @param strategyType
+     *
+     * @return 编号
+     */
+    @Override
+    public UserBenefitsStrategyDO getMasterConfigStrategyByType(String strategyType) {
+        // 创建查询条件
+        LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
+        wrapper.eq(UserBenefitsStrategyDO::getStrategyType, strategyType);
+        wrapper.eq(UserBenefitsStrategyDO::getEnabled, true);
+
+        List<UserBenefitsStrategyDO> userBenefitsStrategyDOS = userBenefitsStrategyMapper.selectList(wrapper);
+        int size = userBenefitsStrategyDOS.size();
+        if (size == 0) {
+            log.warn("[getMasterConfigStrategyByType][根据类型获取权益策略失败！无相关系统配置：策略类型({})", strategyType);
+            throw exception(BENEFITS_STRATEGY_SYS_DATA_NOT_EXISTS);
+        }
+
+        if (size > 1) {
+            log.warn("[getMasterConfigStrategyByType][根据类型获取权益策略失败！存在多条同类型系统配置：策略类型({})", strategyType);
+        }
+
+        return userBenefitsStrategyDOS.get(0);
     }
 
     @Override
@@ -197,10 +299,25 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         }
         // 停用校验
         if (userBenefitsStrategyDO.getEnabled()) {
-            throw exception(BENEFITS_STRATEGY_CAN_NOT_MODIFY_ENABLE);
+            throw exception(BENEFITS_STRATEGY_CAN_NOT_MODIFY_NO_ENABLE);
+        }
+        // 权益策略枚举校验
+        BenefitsStrategyTypeEnums strategyTypeEnums = BenefitsStrategyTypeEnums.getByCode(userBenefitsStrategyDO.getStrategyType());
+        // 如果是签到、注册、邀请注册或者是邀请等系统类型，禁用租户下其他相同类型配置
+        switch (strategyTypeEnums) {
+            case SIGN_IN:
+            case INVITE_TO_REGISTER:
+            case USER_INVITE:
+            case USER_ATTENDANCE:
+                // 根据枚举类型停用同类型的数据
+                CancelMasterConfigStrategy(strategyTypeEnums.getName());
+            default:
+                break;
         }
 
-        return null;
+        userBenefitsStrategyDO.setEnabled(true);
+        userBenefitsStrategyMapper.updateById(userBenefitsStrategyDO);
+        return true;
     }
 
     /**
@@ -210,7 +327,22 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
      */
     @Override
     public Boolean unEnabledBenefitsStrategy(Long id) {
-        return null;
+        UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsStrategyMapper.selectById(id);
+        // 非空校验
+        if (userBenefitsStrategyDO == null) {
+            throw exception(BENEFITS_STRATEGY_DATA_NOT_EXISTS);
+        }
+        // 归档校验
+        if (userBenefitsStrategyDO.getArchived()) {
+            throw exception(BENEFITS_STRATEGY_CAN_NOT_MODIFY_ARCHIVED);
+        }
+        // 停用校验
+        if (userBenefitsStrategyDO.getEnabled()) {
+            throw exception(BENEFITS_STRATEGY_CAN_NOT_MODIFY_ENABLE);
+        }
+        userBenefitsStrategyDO.setEnabled(false);
+        userBenefitsStrategyMapper.updateById(userBenefitsStrategyDO);
+        return true;
     }
 
     /**
@@ -271,9 +403,6 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
             throw exception(BENEFITS_STRATEGY_TYPE_NOT_EXISTS);
         }
     }
-
-
-
 
 
 }

@@ -12,12 +12,11 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum BenefitsStrategyScopeEnums {
-
+public enum BenefitsStrategyLimitIntervalEnums {
     /**
-     * 长期有效
+     * 仅一次
      */
-    ALWAYS("-1", "长期有效", "Long-term Effective"),
+    ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"),
 
     /**
      * 天
@@ -57,7 +56,7 @@ public enum BenefitsStrategyScopeEnums {
     private final String englishName;
 
 
-    public static BenefitsStrategyScopeEnums getByCode(String code) {
+    public static BenefitsStrategyLimitIntervalEnums getByCode(String code) {
         return ArrayUtil.firstMatch(o -> o.getCode().equals(code), values());
     }
 }
