@@ -33,6 +33,11 @@ public class LogAppConversationDO extends BaseDO {
      * app uid
      */
     private String appUid;
+
+    /**
+     * app name
+     */
+    private String appName;
     /**
      * app 模式
      */

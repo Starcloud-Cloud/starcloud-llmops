@@ -3,10 +3,13 @@ package com.starcloud.ops.business.log.service.conversation;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.log.api.conversation.vo.*;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
+import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,6 +32,9 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
 
     @Resource
     private LogAppConversationMapper appConversationMapper;
+
+    @Resource
+    private LogAppMessageMapper logAppMessageMapper;
 
     @Override
     public Long createAppConversation(LogAppConversationCreateReqVO createReqVO) {
@@ -101,6 +107,22 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     public PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO) {
 
         return appConversationMapper.selectPage(pageReqVO);
+    }
+
+
+    @Override
+    public List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO statisticsListReqVO) {
+
+
+        statisticsListReqVO.getTimeType();
+
+
+        statisticsListReqVO.setStartTime(null);
+        statisticsListReqVO.setEndTime(null);
+
+
+        return logAppMessageMapper.getAppMessageStatisticsList(statisticsListReqVO);
+
     }
 
 

@@ -19,6 +19,10 @@ public class LogAppConversationExportReqVO {
     @Schema(description = "app uid", example = "24921")
     private String appUid;
 
+
+    @Schema(description = "app name", example = "appName")
+    private String appName;
+
     @Schema(description = "app 模式")
     private String appMode;
 
