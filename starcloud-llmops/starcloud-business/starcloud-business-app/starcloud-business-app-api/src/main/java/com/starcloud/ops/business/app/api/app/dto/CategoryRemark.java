@@ -9,6 +9,13 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
+/**
+ * 应用类别 DTO 对象
+ *
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-06-14
+ */
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode

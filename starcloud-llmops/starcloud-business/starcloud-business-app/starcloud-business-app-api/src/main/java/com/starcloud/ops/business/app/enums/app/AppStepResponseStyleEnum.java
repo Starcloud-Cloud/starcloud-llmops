@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
 /**
@@ -9,7 +10,7 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-13
  */
-public enum AppStepResponseStyleEnum {
+public enum AppStepResponseStyleEnum implements IEnumable<Integer> {
 
     /**
      * 输入框样式
@@ -51,16 +52,16 @@ public enum AppStepResponseStyleEnum {
      * 步骤返回样式说明
      */
     @Getter
-    private final String message;
+    private final String label;
 
     /**
      * 构造函数
      *
-     * @param code    步骤返回样式 Code
-     * @param message 步骤返回样式说明
+     * @param code  步骤返回样式 Code
+     * @param label 步骤返回样式说明
      */
-    AppStepResponseStyleEnum(Integer code, String message) {
+    AppStepResponseStyleEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
+        this.label = label;
     }
 }

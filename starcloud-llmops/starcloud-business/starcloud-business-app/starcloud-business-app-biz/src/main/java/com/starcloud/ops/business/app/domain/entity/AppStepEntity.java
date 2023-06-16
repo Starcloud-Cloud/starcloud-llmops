@@ -2,7 +2,10 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -13,8 +16,12 @@ import java.util.List;
  * @since 2023-05-31
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AppStepEntity {
+public class AppStepEntity implements Serializable {
+
+    private static final long serialVersionUID = 9024501399144126063L;
 
     /**
      * 步骤名称
@@ -27,12 +34,17 @@ public class AppStepEntity {
     private String type;
 
     /**
+     * 步骤处理器
+     */
+    private String handler;
+
+    /**
      * 是否自动执行
      */
     private Boolean isAuto;
 
     /**
-     * 步骤版本，默认版本 1.0.0
+     * 步骤版本，默认版本 1
      */
     private Integer version;
 

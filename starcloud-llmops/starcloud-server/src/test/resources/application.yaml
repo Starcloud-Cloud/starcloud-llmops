@@ -55,3 +55,6 @@ kstry:
     tracking:
       log: true # 是否打印回溯log，默认为 false
 #
+starcloud-llm:
+  vector:
+    store=: default

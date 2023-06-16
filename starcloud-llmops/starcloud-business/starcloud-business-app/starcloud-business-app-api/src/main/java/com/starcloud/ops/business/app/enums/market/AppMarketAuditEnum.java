@@ -1,9 +1,7 @@
 package com.starcloud.ops.business.app.enums.market;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * 应用市场审核步骤类型枚举
@@ -13,7 +11,7 @@ import java.util.List;
  * @since 2023-06-14
  */
 @SuppressWarnings("unused")
-public enum AppMarketAuditEnum {
+public enum AppMarketAuditEnum implements IEnumable<Integer> {
 
     /**
      * 未审核
@@ -40,28 +38,17 @@ public enum AppMarketAuditEnum {
      * 步骤类型说明
      */
     @Getter
-    private final String message;
-
-    private static final List<AppMarketAuditEnum> SUPPORTS = Arrays.asList(AppMarketAuditEnum.APPROVED, AppMarketAuditEnum.REJECTED);
+    private final String label;
 
     /**
      * 构造函数
      *
-     * @param code    步骤类型 Code
-     * @param message 步骤类型说明
+     * @param code  步骤类型 Code
+     * @param label 步骤类型说明
      */
-    AppMarketAuditEnum(Integer code, String message) {
+    AppMarketAuditEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
+        this.label = label;
     }
 
-    /**
-     * 判断是否支持
-     *
-     * @param code 步骤类型 Code
-     * @return 是否支持
-     */
-    public static Boolean isSupported(Integer code) {
-        return SUPPORTS.stream().anyMatch(item -> item.getCode().equals(code));
-    }
 }

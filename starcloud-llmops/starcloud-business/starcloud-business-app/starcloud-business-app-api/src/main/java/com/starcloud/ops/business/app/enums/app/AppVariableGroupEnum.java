@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
 /**
@@ -9,7 +10,7 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-13
  */
-public enum AppVariableGroupEnum {
+public enum AppVariableGroupEnum implements IEnumable<Integer> {
 
     /**
      * 变量类型为
@@ -36,16 +37,16 @@ public enum AppVariableGroupEnum {
      * 变量组说明
      */
     @Getter
-    private final String message;
+    private final String label;
 
     /**
      * 构造函数
      *
-     * @param code    变量组 Code
-     * @param message 变量组说明
+     * @param code  变量组 Code
+     * @param label 变量组说明
      */
-    AppVariableGroupEnum(Integer code, String message) {
+    AppVariableGroupEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
+        this.label = label;
     }
 }

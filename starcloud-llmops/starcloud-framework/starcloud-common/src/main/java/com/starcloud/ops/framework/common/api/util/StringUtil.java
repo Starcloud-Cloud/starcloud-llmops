@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class StringUtil {
 
     /**
-     * 将字符串转换成集合, 去重、排序、去空格
+     * 将字符串转换成集合, 去重、去空格
      *
      * @param source 字符串
      * @return 集合
@@ -27,7 +27,6 @@ public class StringUtil {
         }
         return Arrays.stream(source.split(","))
                 .distinct()
-                .sorted()
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.toList());
@@ -42,7 +41,6 @@ public class StringUtil {
     public static List<String> toList(List<String> source) {
         return CollectionUtil.emptyIfNull(source).stream()
                 .distinct()
-                .sorted()
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.toList());
@@ -57,7 +55,6 @@ public class StringUtil {
     public static String toString(List<String> source) {
         return CollectionUtil.emptyIfNull(source).stream()
                 .distinct()
-                .sorted()
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.joining(","));

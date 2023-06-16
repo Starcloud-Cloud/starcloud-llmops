@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
 /**
@@ -9,7 +10,7 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-13
  */
-public enum AppStepSourceEnum {
+public enum AppStepSourceEnum implements IEnumable<Integer> {
 
     /**
      * 原生步骤
@@ -31,16 +32,16 @@ public enum AppStepSourceEnum {
      * 步骤来源型说明
      */
     @Getter
-    private final String message;
+    private final String label;
 
     /**
      * 构造函数
      *
-     * @param code    步骤来源 Code
-     * @param message 步骤来源说明
+     * @param code  步骤来源 Code
+     * @param label 步骤来源说明
      */
-    AppStepSourceEnum(Integer code, String message) {
+    AppStepSourceEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
+        this.label = label;
     }
 }

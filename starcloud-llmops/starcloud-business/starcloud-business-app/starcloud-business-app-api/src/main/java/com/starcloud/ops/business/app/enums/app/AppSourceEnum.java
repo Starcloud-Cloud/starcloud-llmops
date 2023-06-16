@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress ， Chrome插件等
@@ -14,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2023-05-18
  */
 @SuppressWarnings("unused")
-public enum AppSourceEnum {
+public enum AppSourceEnum implements IEnumable<Integer> {
 
     /**
      * Web 管理端
@@ -56,34 +53,17 @@ public enum AppSourceEnum {
      * 应用类型说明
      */
     @Getter
-    private final String message;
-
-    /**
-     * 用 Map 将枚举在初始化时候缓存，方便后续查询
-     */
-    private static final Map<String, AppSourceEnum> TEMPLATE_SOURCE_CACHE = new ConcurrentHashMap<>();
-
-    static {
-        Arrays.stream(AppSourceEnum.values()).forEach(item -> TEMPLATE_SOURCE_CACHE.put(item.name(), item));
-    }
+    private final String label;
 
     /**
      * 构造函数
      *
-     * @param code    应用类型 Code
-     * @param message 应用类型说明
+     * @param code  应用类型 Code
+     * @param label 应用类型说明
      */
-    AppSourceEnum(Integer code, String message) {
+    AppSourceEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
+        this.label = label;
     }
 
-    /**
-     * 枚举缓存
-     *
-     * @return 枚举缓存
-     */
-    public static Map<String, AppSourceEnum> cache() {
-        return TEMPLATE_SOURCE_CACHE;
-    }
 }

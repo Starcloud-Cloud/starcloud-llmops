@@ -3,7 +3,10 @@ package com.starcloud.ops.business.app.domain.entity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -14,8 +17,12 @@ import java.util.List;
  * @since 2023-05-31
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AppVariableEntity {
+public class AppVariableEntity implements Serializable {
+
+    private static final long serialVersionUID = 2925119845050874887L;
 
     /**
      * 变量 label

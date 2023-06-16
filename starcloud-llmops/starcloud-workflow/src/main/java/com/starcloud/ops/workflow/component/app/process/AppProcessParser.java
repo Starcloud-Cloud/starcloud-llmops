@@ -22,7 +22,7 @@ public class AppProcessParser implements ConfigResource {
 
     public AppProcessParser(AppEntity app) {
         this.app = app;
-        this.resourceName = app.getUniqueName();
+        this.resourceName = app.getUid();
     }
 
     public Optional<ProcessLink> getProcessLink() {

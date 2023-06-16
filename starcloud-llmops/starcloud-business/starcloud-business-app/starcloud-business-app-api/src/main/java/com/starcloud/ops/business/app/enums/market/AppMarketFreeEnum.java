@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.enums.market;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
 /**
@@ -10,7 +11,7 @@ import lombok.Getter;
  * @since 2023-06-15
  */
 @SuppressWarnings("unused")
-public enum AppMarketFreeEnum {
+public enum AppMarketFreeEnum implements IEnumable<Integer> {
 
     /**
      * 免费
@@ -32,16 +33,16 @@ public enum AppMarketFreeEnum {
      * 是否免费说明
      */
     @Getter
-    private final String message;
+    private final String label;
 
     /**
      * 构造函数
      *
-     * @param code    是否免费Code
-     * @param message 是否免费说明
+     * @param code  是否免费Code
+     * @param label 是否免费说明
      */
-    AppMarketFreeEnum(Integer code, String message) {
+    AppMarketFreeEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
+        this.label = label;
     }
 }

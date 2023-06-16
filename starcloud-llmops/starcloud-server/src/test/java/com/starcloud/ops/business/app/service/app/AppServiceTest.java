@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.test.core.ut.BaseDbAndRedisUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.Import;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class})
@@ -82,6 +84,12 @@ public class AppServiceTest extends BaseDbAndRedisUnitTest {
 
         log.info("Publish app success");
 
+    }
+
+    @Test
+    public void categoryTest() {
+        List<AppCategoryDTO> categories = appService.categories();
+        log.info("categories:{}", JSON.toJSONString(categories));
     }
 
 

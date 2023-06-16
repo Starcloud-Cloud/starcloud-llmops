@@ -7,14 +7,12 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
-import com.starcloud.ops.business.app.api.app.dto.CategoryRemark;
 import com.starcloud.ops.business.app.api.app.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
 import com.starcloud.ops.business.app.api.app.request.AppRequest;
@@ -38,14 +36,13 @@ import com.starcloud.ops.framework.common.api.enums.SortType;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -89,34 +86,12 @@ public class AppServiceImpl implements AppService {
         if (CollectionUtil.isEmpty(dictDataList)) {
             return Collections.emptyList();
         }
-
-        List<AppCategoryDTO> categoryList = dictDataList.stream().map(dictData -> {
-            String remark = dictData.getRemark();
-            if (StringUtils.isBlank(remark)) {
-                return null;
-            }
-            CategoryRemark categoryRemark = JSON.parseObject(remark, CategoryRemark.class);
-            if (categoryRemark == null) {
-                return null;
-            }
-
-            AppCategoryDTO category = new AppCategoryDTO();
-            category.setCode(dictData.getValue());
-            category.setSort(dictData.getSort());
-            category.setIcon(categoryRemark.getIcon());
-            category.setImage(categoryRemark.getImage());
-            Locale locale = LocaleContextHolder.getLocale();
-            if (locale.equals(Locale.SIMPLIFIED_CHINESE)) {
-                category.setName(categoryRemark.getLabelZh());
-                category.setDescription(categoryRemark.getDescriptionZh());
-            } else {
-                category.setName(categoryRemark.getLabelEn());
-                category.setDescription(categoryRemark.getDescriptionEn());
-            }
-            return category;
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-
-        return categoryList;
+        // 组装并且返回分类列表
+        return CollectionUtil.emptyIfNull(dictDataList).stream()
+                .map(AppConvert::convertCategory)
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(AppCategoryDTO::getSort))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -167,9 +142,9 @@ public class AppServiceImpl implements AppService {
     @Override
     public AppDTO getByUid(String uid) {
         LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper().eq(AppDO::getUid, uid);
-        AppDO templateDO = appMapper.selectOne(wrapper);
-        Assert.notNull(templateDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, uid));
-        return AppConvert.convert(templateDO);
+        AppDO appDO = appMapper.selectOne(wrapper);
+        Assert.notNull(appDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, uid));
+        return AppConvert.convert(appDO);
     }
 
     /**
@@ -184,8 +159,6 @@ public class AppServiceImpl implements AppService {
         // 生成唯一UID
         appDO.setUid(IdUtil.fastSimpleUUID());
         appMapper.insert(appDO);
-        // 如果新增的是系统应用，则需要更新缓存
-        recommendedAppRedisDAO.resetByType(appDO.getType());
     }
 
     /**
@@ -202,8 +175,6 @@ public class AppServiceImpl implements AppService {
         // 生成唯一UID
         appDO.setUid(IdUtil.fastSimpleUUID());
         appMapper.insert(appDO);
-        // 如果新增的是系统应用，则需要更新缓存
-        recommendedAppRedisDAO.resetByType(appDO.getType());
     }
 
     /**
@@ -219,8 +190,6 @@ public class AppServiceImpl implements AppService {
                 .eq(AppDO::getUid, request.getUid())
                 .eq(AppDO::getStatus, StateEnum.ENABLE.getCode());
         appMapper.update(appDO, wrapper);
-        // 如果新增的是系统应用，则需要更新缓存
-        recommendedAppRedisDAO.resetByType(appDO.getType());
     }
 
     /**
@@ -235,8 +204,6 @@ public class AppServiceImpl implements AppService {
         Assert.notNull(appDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, uid));
         // 根据 ID 应用模版
         appMapper.deleteById(appDO.getId());
-        // 如果新增的是系统应用，则需要更新缓存
-        recommendedAppRedisDAO.resetByType(appDO.getType());
     }
 
     /**
@@ -311,11 +278,12 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public Boolean verifyHasDownloaded(String marketUid) {
-        LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper().eq(AppDO::getDownloadUid, marketUid).eq(AppDO::getType, AppTypeEnum.DOWNLOAD.name());
+        LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper()
+                .eq(AppDO::getDownloadUid, marketUid)
+                .eq(AppDO::getType, AppTypeEnum.DOWNLOAD.name());
         Long count = appMapper.selectCount(wrapper);
         return count > 0;
     }
-
 
     /**
      * 应用名称重复校验, 重复抛出异常
@@ -337,7 +305,7 @@ public class AppServiceImpl implements AppService {
      */
     private void duplicateNameVerification(AppRequest request) {
         if (duplicateNameVerification(request.getName())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.TEMPLATE_NAME_DUPLICATE, request.getName());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NAME_DUPLICATE, request.getName());
         }
     }
 

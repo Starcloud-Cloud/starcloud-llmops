@@ -47,7 +47,7 @@ public class AppFactory {
         appEntity.setUid(template.getUid());
         appEntity.setName(template.getName());
         appEntity.setType(template.getType());
-        appEntity.setSourceType(template.getSource());
+        appEntity.setSource(template.getSource());
         appEntity.setTags(template.getTags());
         appEntity.setCategories(template.getCategories());
         appEntity.setScenes(template.getScenes());
@@ -63,12 +63,6 @@ public class AppFactory {
      */
     public static AppConfigEntity transformConfig(AppConfigDTO config) {
         AppConfigEntity appConfigEntity = new AppConfigEntity();
-        appConfigEntity.setName(config.getName());
-        appConfigEntity.setType(config.getType());
-        appConfigEntity.setSourceType(config.getSource());
-        appConfigEntity.setTags(config.getTags());
-        appConfigEntity.setCategories(config.getCategories());
-        appConfigEntity.setScenes(config.getScenes());
         appConfigEntity.setSteps(CollectionUtil.emptyIfNull(config.getSteps()).stream().map(AppFactory::transformStepWrapper).collect(Collectors.toList()));
         appConfigEntity.setVariables(CollectionUtil.emptyIfNull(config.getVariables()).stream().map(AppFactory::transformVariable).collect(Collectors.toList()));
         return appConfigEntity;

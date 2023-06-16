@@ -16,7 +16,7 @@ public class AppProcessRegister implements DynamicProcess {
 
         AppEntity app = AppFactory.factory(appId);
 
-        return Long.parseLong(app.getVersion());
+        return Long.parseLong("");
     }
 
     @Override

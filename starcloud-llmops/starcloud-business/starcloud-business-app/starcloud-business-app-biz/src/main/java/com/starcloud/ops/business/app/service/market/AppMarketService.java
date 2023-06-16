@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
 import com.starcloud.ops.business.app.api.market.request.AppMarketAuditRequest;
 import com.starcloud.ops.business.app.api.market.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
+import com.starcloud.ops.business.app.api.market.request.AppMarketUidVersionRequest;
 import com.starcloud.ops.business.app.api.market.request.AppMarketUpdateRequest;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateRequest;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -28,7 +29,7 @@ public interface AppMarketService {
     /**
      * 根据应用 uid 和 版本号 获取应用详情
      *
-     * @param uid 应用 uid
+     * @param uid     应用 uid
      * @param version 应用版本号
      * @return 应用详情
      */
@@ -51,10 +52,17 @@ public interface AppMarketService {
     /**
      * 删除应用市场的应用
      *
-     * @param uid 应用 uid
+     * @param uid     应用 uid
      * @param version 应用版本号
      */
     void deleteByUid(String uid, Integer version);
+
+    /**
+     * 下载安装应用
+     *
+     * @param request 安装请求
+     */
+    void install(AppMarketUidVersionRequest request);
 
     /**
      * 审核应用

@@ -42,6 +42,7 @@ public class AppMarketServiceTest extends BaseDbUnitTest {
         appMarketService.audit(request);
     }
 
+
     @Test
     public void statisticsCountByCategoryTest() {
         List<AppCategoryDTO> appCategoryDTOS = appMarketMapper.statisticsCountByCategory(Arrays.asList(0, 1,2));
