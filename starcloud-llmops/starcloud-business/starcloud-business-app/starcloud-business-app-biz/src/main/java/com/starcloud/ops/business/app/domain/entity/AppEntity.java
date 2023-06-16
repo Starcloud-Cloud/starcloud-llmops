@@ -137,11 +137,11 @@ public class AppEntity implements Serializable {
         if (AppModelEnum.COMPLETION.name().equals(this.model)) {
             // 生成式应用，必须要有详细配置
             AppValidate.notNull(this.config, ErrorCodeConstants.APP_CONFIG_REQUIRED);
-            // this.config.validate();
+            // this.config.validate(this);
         } else if (AppModelEnum.CHAT.name().equals(this.model)) {
             // 聊天式应用，必须要有聊天配置
             AppValidate.notNull(this.chatConfig, ErrorCodeConstants.APP_CHAT_CONFIG_REQUIRED);
-            // this.chatConfig.validate();
+            // this.chatConfig.validate(this);
         }
 
     }
