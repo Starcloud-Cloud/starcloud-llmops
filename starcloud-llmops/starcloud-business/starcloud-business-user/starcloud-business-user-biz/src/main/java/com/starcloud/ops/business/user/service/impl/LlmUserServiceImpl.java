@@ -128,6 +128,7 @@ public class LlmUserServiceImpl implements LlmUserService {
         userRoleDO.setUserId(userDO.getId());
         userRoleDO.setCreator(userDO.getUsername());
         userRoleDO.setUpdater(userDO.getUpdater());
+        userRoleDO.setTenantId(userDO.getTenantId());
         userRoleMapper.insert(userRoleDO);
 
         registerUserDO.setStatus(1);

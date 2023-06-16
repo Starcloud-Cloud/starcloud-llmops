@@ -71,6 +71,7 @@ public class MigrateUserServiceImpl implements MigrateUserService {
                 userRoleDO.setRoleId(2L);
                 userRoleDO.setCreator(userDO.getUsername());
                 userRoleDO.setUpdater(userDO.getUpdater());
+                userRoleDO.setTenantId(userDO.getTenantId());
                 userRoleMapper.insert(userRoleDO);
                 migrateResults.add(resultDTO);
             } catch (Exception e) {
