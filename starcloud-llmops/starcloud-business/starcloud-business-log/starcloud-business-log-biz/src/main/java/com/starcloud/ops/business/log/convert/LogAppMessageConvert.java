@@ -25,6 +25,8 @@ public interface LogAppMessageConvert {
 
     LogAppMessageRespVO convert(LogAppMessageDO bean);
 
+    LogAppMessageInfoRespVO convertInfo(LogAppMessageDO bean);
+
     List<LogAppMessageRespVO> convertList(List<LogAppMessageDO> list);
 
     PageResult<LogAppMessageRespVO> convertPage(PageResult<LogAppMessageDO> page);

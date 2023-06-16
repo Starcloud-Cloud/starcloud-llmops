@@ -1,9 +1,11 @@
-package com.starcloud.ops.server.workflow.workflow;
+package com.starcloud.ops.business.log;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
+import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
@@ -26,6 +28,9 @@ public class AppLogTest extends BaseDbUnitTest {
 
     @Autowired
     private LogAppConversationService logAppConversationService;
+
+    @Autowired
+    private LogAppApi logAppApi;
 
     @Test
     public void getAppConversationInfoPageTest() {
@@ -52,6 +57,15 @@ public class AppLogTest extends BaseDbUnitTest {
         List<LogAppMessageStatisticsListPO> result = logAppConversationService.getAppMessageStatisticsList(reqVO);
 
         log.info("result: {}", result);
+    }
+
+
+    @Test
+    public void getAppMessageResultTest() {
+
+        LogAppMessageInfoRespVO infoRespVO = logAppApi.getAppMessageResult("b8e8ffaeb0064ea0aede52ef7920626f");
+
+        log.info("result: {}", infoRespVO);
     }
 
 }

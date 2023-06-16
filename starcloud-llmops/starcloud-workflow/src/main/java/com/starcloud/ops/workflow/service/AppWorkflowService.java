@@ -146,9 +146,9 @@ public class AppWorkflowService {
                 this.createAppMessageLog(appContext, nodeTracking);
             });
 
-            List<String> collect = storyTracking.stream()
-                    .map(nt -> GlobalUtil.format("{}({} {} {} {} {} {} {})", nt.getNodeName(), nt.getThreadId(), nt.getNodeId(), nt.getIndex(), nt.getSpendTime(), nt.getNodeName(), nt.getIterateStride(), nt.getNoticeTracking().get(0).getValue())).collect(Collectors.toList());
-            System.out.println("name list: " + String.join(",", collect));
+//            List<String> collect = storyTracking.stream()
+//                    .map(nt -> GlobalUtil.format("{}({} {} {} {} {} {} {})", nt.getNodeName(), nt.getThreadId(), nt.getNodeId(), nt.getIndex(), nt.getSpendTime(), nt.getNodeName(), nt.getIterateStride(), nt.getNoticeTracking().get(0).getValue())).collect(Collectors.toList());
+//            System.out.println("name list: " + String.join(",", collect));
         });
 
         TaskResponse<Void> fire = storyEngine.fire(req);
@@ -177,6 +177,8 @@ public class AppWorkflowService {
 
         logAppConversationCreateReqVO.setUid(appContext.getConversationId());
         logAppConversationCreateReqVO.setAppMode("completion");
+        logAppConversationCreateReqVO.setAppName(appContext.getApp().getName());
+
         logAppConversationCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
 
         logAppConversationCreateReqVO.setAppUid(appContext.getApp().getUid());
@@ -225,6 +227,7 @@ public class AppWorkflowService {
         messageCreateReqVO.setVariables(JSON.toJSONString(variablesMaps));
         messageCreateReqVO.setEndUser(appContext.getEndUser());
         messageCreateReqVO.setFromScene(appContext.getScene());
+        messageCreateReqVO.setCurrency("USD");
 
         if (nodeTracking.getTaskException() == null) {
 

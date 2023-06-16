@@ -64,6 +64,7 @@ public class AppStepResponse {
      */
     private Object stepConfig;
 
+
     private Long messageTokens;
 
     private BigDecimal messageUnitPrice;

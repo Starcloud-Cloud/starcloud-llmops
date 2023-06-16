@@ -1,4 +1,4 @@
-package com.starcloud.ops.server.workflow.workflow;
+package com.starcloud.ops.workflow;
 
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;

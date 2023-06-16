@@ -1,5 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.schema.callbacks;
 
+import cn.hutool.core.lang.Assert;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -17,6 +18,7 @@ public class StreamingStdOutCallbackHandler extends BaseCallbackHandler {
     private ServletOutputStream outputStream;
 
     public StreamingStdOutCallbackHandler(HttpServletResponse httpServletResponse) {
+        Assert.notNull(httpServletResponse, "StreamingStdOutCallbackHandler is fail, httpServletResponse is must");
         this.httpServletResponse = httpServletResponse;
     }
 
