@@ -24,7 +24,6 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -70,11 +69,29 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         // 获取当前策略枚举
         BenefitsStrategyTypeEnums strategyTypeEnums = BenefitsStrategyTypeEnums.getByCode(benefitsStrategy.getStrategyType());
 
-        // 根据枚举中的规则判断当前策略是否可以使用
-        if (isStrategyNotAllowed(userId, strategyTypeEnums)) {
-            log.error("[addUserBenefitsByCode][权益重复领取：用户ID({})｜权益类型({})]", userId, strategyTypeEnums.getName());
-            throw exception(USER_BENEFITS_GET_FAIL_MANY_TIMES);
+        if (benefitsStrategy.getLimitNum() != -1) {
+            // 查询条件-检验是否超过兑换限制
+            LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
+            wrapper.eq(UserBenefitsDO::getStrategyId, benefitsStrategy.getId());
+
+            if (benefitsStrategy.getLimitNum() <= userBenefitsMapper.selectCount(wrapper)) {
+                log.error("[addUserBenefitsByCode][权益超出兑换次数：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
+                throw exception(USER_BENEFITS_CASH_COUNT_EXCEEDED);
+            }
         }
+        // 检测权益使用频率是否合法
+        // 1. LimitIntervalNum 如果不做限制 则表明该权益用户可以一直兑换 ，不校验LimitIntervalUnit
+        // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
+        // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
+        // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
+        // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
+        if (benefitsStrategy.getLimitIntervalNum() > 0) {
+            if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
+                log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
+                throw exception(USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED);
+            }
+        }
+
         // 如果可以使用，使用 userBenefitsMapper新增权益
         UserBenefitsDO userBenefitsDO = createUserBenefits(userId, benefitsStrategy);
         userBenefitsMapper.insert(userBenefitsDO);
@@ -244,57 +261,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     }
 
     /**
-     * 系统 权益校验
-     *
-     * @param userId
-     * @param strategyTypeEnums
-     *
-     * @return
-     */
-    private boolean isStrategyNotAllowed(Long userId, BenefitsStrategyTypeEnums strategyTypeEnums) {
-        switch (strategyTypeEnums) {
-            case USER_ATTENDANCE:
-            case SIGN_IN:
-            case USER_INVITE:
-            case INVITE_TO_REGISTER:
-                throw exception(USER_BENEFITS_ILLEGAL_USE);
-            default:
-                // 其他类型的权益暂不需要进行额外检查
-                break;
-        }
-        return false;
-    }
-
-    /**
-     * 是否存在注册权益
-     *
-     * @param userId
-     * @param benefitsType
-     *
-     * @return
-     */
-    private boolean hasUserClaimedBenefits(Long userId, BenefitsStrategyTypeEnums benefitsType) {
-        // 查询条件-获取当天新增的所有权益
-        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
-        wrapper.eq(UserBenefitsDO::getUserId, userId);
-
-        // 数据查询
-        List<UserBenefitsDO> userBenefitsDOS = userBenefitsMapper.selectList(wrapper);
-        boolean result = false;
-        for (UserBenefitsDO userBenefitsDO : userBenefitsDOS) {
-            UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(userBenefitsDO.getStrategyId());
-
-            if (BenefitsStrategyTypeEnums.SIGN_IN.getName().equals(userBenefitsStrategy.getStrategyType()) ||
-                    BenefitsStrategyTypeEnums.INVITE_TO_REGISTER.getName().equals(userBenefitsStrategy.getStrategyType())) {
-
-                result = true;
-                break;
-            }
-        }
-        return result;
-    }
-
-    /**
      * 根据用户 ID 获取当前用户权益信息
      *
      * @param userId 用户 ID
@@ -303,70 +269,60 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public UserBenefitsInfoResultVO getUserBenefits(Long userId) {
-
         UserBenefitsInfoResultVO userBenefitsInfoResultVO = new UserBenefitsInfoResultVO();
-        // 查询条件 当前用户下启用的权益
-        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
-        wrapper.eq(UserBenefitsDO::getUserId, userId);
-        wrapper.eq(UserBenefitsDO::getEnabled, true);
-        // TODO 暂时缺少定时任务 以实时更新权益是否过期 所以增加时间校验
-        wrapper.le(UserBenefitsDO::getExpirationTime, LocalDateTime.now());
+
+        // 查询条件：当前用户下启用的权益，并且未过期
+        LocalDateTime currentTime = LocalDateTime.now();
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
+                .eq(UserBenefitsDO::getUserId, userId)
+                .eq(UserBenefitsDO::getEnabled, true)
+                // TODO 暂时缺少定时任务 以实时更新权益是否过期 所以增加时间校验
+                .ge(UserBenefitsDO::getExpirationTime, currentTime);
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
-        // 根据 ID 获取不同权益类型的剩余量
-        long totalAppCountUsed = resultList.stream()
-                .mapToLong(UserBenefitsDO::getAppCountUsed)
-                .sum();
 
-        long totalDatasetCountUsed = resultList.stream()
-                .mapToLong(UserBenefitsDO::getDatasetCountUsed)
-                .sum();
+        long totalAppCountUsed = 0;
+        long totalDatasetCountUsed = 0;
+        long totalImageCountUsed = 0;
+        long totalTokenCountUsed = 0;
 
-        long totalImageCountUsed = resultList.stream()
-                .mapToLong(UserBenefitsDO::getImageCountUsed)
-                .sum();
+        long totalAppCount = 0;
+        long totalDatasetCount = 0;
+        long totalImageCount = 0;
+        long totalTokenCount = 0;
 
-        long totalTokenCountUsed = resultList.stream()
-                .mapToLong(UserBenefitsDO::getTokenCountUsed)
-                .sum();
+        for (UserBenefitsDO userBenefits : resultList) {
+            totalAppCountUsed += userBenefits.getAppCountUsed();
+            totalDatasetCountUsed += userBenefits.getDatasetCountUsed();
+            totalImageCountUsed += userBenefits.getImageCountUsed();
+            totalTokenCountUsed += userBenefits.getTokenCountUsed();
+
+            totalAppCount += userBenefits.getAppCountInit();
+            totalDatasetCount += userBenefits.getDatasetCountInit();
+            totalImageCount += userBenefits.getImageCountInit();
+            totalTokenCount += userBenefits.getTokenCountInit();
+        }
 
         userBenefitsInfoResultVO.setAppCountUsed(totalAppCountUsed);
         userBenefitsInfoResultVO.setDatasetCountUsed(totalDatasetCountUsed);
         userBenefitsInfoResultVO.setImageCountUsed(totalImageCountUsed);
         userBenefitsInfoResultVO.setTokenCountUsed(totalTokenCountUsed);
 
-        // 根据 权益ID获取 当前总量
-        Map<String, UserBenefitsStrategyDO> strategyMap = resultList.stream()
-                .collect(Collectors.toMap(UserBenefitsDO::getStrategyId, user -> userBenefitsStrategyService.getUserBenefitsStrategy(Long.parseLong(user.getStrategyId()))));
-
-
-        long totalAppCount = resultList.stream()
-                .mapToLong(userBenefits -> strategyMap.get(userBenefits.getStrategyId()).getAppCount())
-                .sum();
-
-        long totalDatasetCount = resultList.stream()
-                .mapToLong(userBenefits -> strategyMap.get(userBenefits.getStrategyId()).getDatasetCount())
-                .sum();
-
-        long totalImageCount = resultList.stream()
-                .mapToLong(userBenefits -> strategyMap.get(userBenefits.getStrategyId()).getImageCount())
-                .sum();
-
-        long totalTokenCount = resultList.stream()
-                .mapToLong(userBenefits -> strategyMap.get(userBenefits.getStrategyId()).getTokenCount())
-                .sum();
-
         userBenefitsInfoResultVO.setAppTotal(totalAppCount);
         userBenefitsInfoResultVO.setDatasetTotal(totalDatasetCount);
         userBenefitsInfoResultVO.setImageTotal(totalImageCount);
         userBenefitsInfoResultVO.setTokenTotal(totalTokenCount);
-        userBenefitsInfoResultVO.setQueryTime(LocalDateTimeUtil.now());
+        userBenefitsInfoResultVO.setQueryTime(currentTime);
 
         return userBenefitsInfoResultVO;
     }
 
     /**
      * 权益使用
+     * 扣减规则
+     * 1.从第一条数据开始扣除 如果第一条数据满足扣除，不再遍历后面的账户 直接扣除 更新数据
+     * 2.第一条数据不满足扣除，在第一条数据扣除至 0 后 继续从第二条数据开始扣除，直至扣除结束 更新所有扣除的数据记录
+     * 3.如果直到最后一条数据依旧没办法满足扣除，那么允许用户扣除成功，将最后一条数据也设置为 0 更新数据记录
      *
      * @param benefitsTypeCode 权益类型 对应 BenefitsTypeEnums 中的 code 枚举类
      * @param amount           使用数
@@ -389,7 +345,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         wrapper.eq(UserBenefitsDO::getUserId, userId);
         wrapper.eq(UserBenefitsDO::getEnabled, true);
         // TODO 暂时缺少定时任务 以实时更新权益是否过期 所以增加时间校验
-        wrapper.le(UserBenefitsDO::getExpirationTime, LocalDateTime.now());
+        wrapper.ge(UserBenefitsDO::getExpirationTime, LocalDateTime.now());
 
         switch (benefitsType) {
             case APP:
@@ -446,12 +402,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     }
 
     /**
-     * 权益扣减
-     * 扣减规则
-     * 1.从第一条数据开始扣除 如果第一条数据满足扣除，不再遍历后面的账户 直接扣除 更新数据
-     * 2.第一条数据不满足扣除，在第一条数据扣除至 0 后 继续从第二条数据开始扣除，直至扣除结束 更新所有扣除的数据记录
-     * 3.如果直到最后一条数据依旧没办法满足扣除，那么允许用户扣除成功，将最后一条数据也设置为 0 更新数据记录
-     *
      * @param resultList
      * @param getter
      * @param setter

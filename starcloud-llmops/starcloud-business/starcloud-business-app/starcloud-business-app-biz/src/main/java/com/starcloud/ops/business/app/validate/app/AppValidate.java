@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.validate.app;
 
 import cn.hutool.core.lang.Assert;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
@@ -9,6 +10,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -37,7 +39,7 @@ public class AppValidate {
      */
     public static void validateModel(String model) {
         validateNotBlank(model, "model");
-        if (!AppModelEnum.cache().containsKey(model.toUpperCase().trim())) {
+        if (IEnumable.contains(model.toUpperCase().trim(), AppModelEnum.class)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_NOT_SUPPORT, "model", model);
         }
     }
@@ -49,7 +51,7 @@ public class AppValidate {
      */
     public static void validateType(String type) {
         validateNotBlank(type, "type");
-        if (!AppTypeEnum.cache().containsKey(type.toUpperCase().trim())) {
+        if (IEnumable.contains(type.toUpperCase().trim(), AppTypeEnum.class)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_NOT_SUPPORT, "type", type);
         }
     }
@@ -62,7 +64,7 @@ public class AppValidate {
      */
     public static void validateSource(String source) {
         validateNotBlank(source, "source");
-        if (!AppSourceEnum.cache().containsKey(source.toUpperCase().trim())) {
+        if (IEnumable.contains(source.toUpperCase().trim(), AppSourceEnum.class)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_FIELD_NOT_SUPPORT, "source", source);
         }
     }
@@ -107,4 +109,29 @@ public class AppValidate {
     public static void assertNotNull(Object object, String message) {
         Assert.notNull(object, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_DATA_IS_NULL, message));
     }
+
+    public static void isNull(Object object, ErrorCode code, Object... args) {
+        Assert.isNull(object, () -> ServiceExceptionUtil.exception(code, args));
+    }
+
+    public static void notNull(Object object, ErrorCode code, Object... args) {
+        Assert.notNull(object, () -> ServiceExceptionUtil.exception(code, args));
+    }
+
+    public static void notBlank(String str, ErrorCode code, Object... args) {
+        Assert.notBlank(str, () -> ServiceExceptionUtil.exception(code, args));
+    }
+
+    public static void isTrue(boolean expression, ErrorCode code, Object... args) {
+        Assert.isTrue(expression, () -> ServiceExceptionUtil.exception(code, args));
+    }
+
+    public static void isFalse(boolean expression, ErrorCode code, Object... args) {
+        Assert.isFalse(expression, () -> ServiceExceptionUtil.exception(code, args));
+    }
+
+    public static <E, T extends Iterable<E>> void notEmpty(T collection, ErrorCode code, Object... args) {
+        Assert.notEmpty(collection, () -> ServiceExceptionUtil.exception(code, args));
+    }
+
 }

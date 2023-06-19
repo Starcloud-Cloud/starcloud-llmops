@@ -1,4 +1,4 @@
-package com.starcloud.ops.server.workflow.workflow;
+package com.starcloud.ops.workflow;
 
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
@@ -9,7 +9,7 @@ import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppStepEntity;
 import com.starcloud.ops.business.app.domain.entity.AppStepWrapper;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatStepHandler;
+import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatActionHandler;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import com.starcloud.ops.workflow.service.AppWorkflowService;
 import lombok.extern.slf4j.Slf4j;
@@ -91,7 +91,7 @@ public class WorkflowTest extends BaseDbUnitTest {
         AppStepEntity appStepEntity = new AppStepEntity();
 
         appStepEntity.setName("chatgpt api");
-        appStepEntity.setType(OpenAIChatStepHandler.class.getSimpleName());
+        appStepEntity.setType(OpenAIChatActionHandler.class.getSimpleName());
 
         appStepWrapper.setName(title);
         appStepWrapper.setField(title);

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.log.api;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -10,8 +11,11 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfo
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
@@ -69,6 +73,19 @@ public class LogAppApiImpl implements LogAppApi {
     public void createAppMessage(LogAppMessageCreateReqVO logAppMessageCreateReqVO) {
 
         logAppMessageService.createAppMessage(logAppMessageCreateReqVO);
+    }
+
+
+    @Override
+    public LogAppMessageInfoRespVO getAppMessageResult(String appMessageUid) {
+
+        LogAppMessageDO logAppMessageDO = logAppMessageService.getAppMessage(appMessageUid);
+
+        Assert.notNull(logAppMessageDO, "appMessageResult is not found");
+
+        LogAppMessageInfoRespVO info = LogAppMessageConvert.INSTANCE.convertInfo(logAppMessageDO);
+
+        return info;
     }
 
 }

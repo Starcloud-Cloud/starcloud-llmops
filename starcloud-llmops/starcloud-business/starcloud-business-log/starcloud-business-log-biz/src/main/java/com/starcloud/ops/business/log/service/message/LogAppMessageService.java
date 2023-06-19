@@ -45,6 +45,14 @@ public interface LogAppMessageService {
     LogAppMessageDO getAppMessage(Long id);
 
     /**
+     * 获得应用执行日志结果
+     *
+     * @param uid 编号
+     * @return 应用执行日志结果
+     */
+    LogAppMessageDO getAppMessage(String uid);
+
+    /**
      * 获得应用执行日志结果列表
      *
      * @param ids 编号

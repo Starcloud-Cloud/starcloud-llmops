@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.enums.operate;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
 /**
@@ -7,7 +8,7 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-12
  */
-public enum AppOperateTypeEnum {
+public enum AppOperateTypeEnum implements IEnumable<Integer> {
     /**
      * 点赞
      */
@@ -35,26 +36,17 @@ public enum AppOperateTypeEnum {
      * 应用类型说明
      */
     @Getter
-    private final String message;
+    private final String label;
 
     /**
      * 构造函数
      *
-     * @param code    应用操作类型 Code
-     * @param message 应用操作类型说明
+     * @param code  应用操作类型 Code
+     * @param label 应用操作类型说明
      */
-    AppOperateTypeEnum(Integer code, String message) {
+    AppOperateTypeEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
-    }
-
-    public static AppOperateTypeEnum getByName(String name) {
-        for (AppOperateTypeEnum value : AppOperateTypeEnum.values()) {
-            if (value.name().equals(name)) {
-                return value;
-            }
-        }
-        return null;
+        this.label = label;
     }
 
 }

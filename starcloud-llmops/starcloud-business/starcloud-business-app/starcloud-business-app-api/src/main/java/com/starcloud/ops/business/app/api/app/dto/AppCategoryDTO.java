@@ -60,5 +60,4 @@ public class AppCategoryDTO implements Serializable {
     @Schema(description = "类别描述")
     private String description;
 
-
 }

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.enums.market;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
 /**
@@ -10,7 +11,7 @@ import lombok.Getter;
  * @since 2023-06-14
  */
 @SuppressWarnings("unused")
-public enum AppMarketAuditEnum {
+public enum AppMarketAuditEnum implements IEnumable<Integer> {
 
     /**
      * 未审核
@@ -25,7 +26,7 @@ public enum AppMarketAuditEnum {
     /**
      * 审核不通过
      */
-    REJECT(2, "审核不通过");
+    REJECTED(2, "审核不通过");
 
     /**
      * 步骤类型Code
@@ -37,16 +38,17 @@ public enum AppMarketAuditEnum {
      * 步骤类型说明
      */
     @Getter
-    private final String message;
+    private final String label;
 
     /**
      * 构造函数
      *
-     * @param code    步骤类型 Code
-     * @param message 步骤类型说明
+     * @param code  步骤类型 Code
+     * @param label 步骤类型说明
      */
-    AppMarketAuditEnum(Integer code, String message) {
+    AppMarketAuditEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
+        this.label = label;
     }
+
 }

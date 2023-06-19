@@ -1,17 +1,17 @@
-package com.starcloud.ops.business.app.service;
+package com.starcloud.ops.business.app.service.app;
 
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbAndRedisUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
-import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Import;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class})
@@ -83,6 +84,12 @@ public class AppServiceTest extends BaseDbAndRedisUnitTest {
 
         log.info("Publish app success");
 
+    }
+
+    @Test
+    public void categoryTest() {
+        List<AppCategoryDTO> categories = appService.categories();
+        log.info("categories:{}", JSON.toJSONString(categories));
     }
 
 

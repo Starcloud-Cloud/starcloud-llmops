@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
+ * 应用查询类
+ *
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-06-05

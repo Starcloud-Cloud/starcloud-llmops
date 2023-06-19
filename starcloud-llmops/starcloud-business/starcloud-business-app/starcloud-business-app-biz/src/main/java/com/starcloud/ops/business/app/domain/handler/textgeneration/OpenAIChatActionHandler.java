@@ -4,9 +4,9 @@ import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.domain.context.AppContext;
-import com.starcloud.ops.business.app.domain.entity.AppStepResponse;
 import com.starcloud.ops.business.app.domain.entity.AppStepWrapper;
-import com.starcloud.ops.business.app.domain.handler.BaseStepHandler;
+import com.starcloud.ops.business.app.domain.entity2.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.handler.common.FlowStepHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
@@ -14,7 +14,6 @@ import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.schema.callbacks.StreamingStdOutCallbackHandler;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -31,12 +30,14 @@ import java.util.Map;
 @Slf4j
 @TaskComponent(name = "OpenAIChatStepHandler")
 @Component
-public class OpenAIChatStepHandler extends BaseStepHandler {
+public class OpenAIChatActionHandler extends FlowStepHandler {
+
+
 
     @NoticeSta
     @TaskService(name = "OpenAIChatStepHandler", invoke = @Invoke(timeout = 180000))
     @Override
-    public AppStepResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
+    public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
 
 
         AppStepWrapper appStepWrapper = context.getCurrentAppStepWrapper();
@@ -45,7 +46,7 @@ public class OpenAIChatStepHandler extends BaseStepHandler {
 
         Map<String, Object> variablesMaps = appStepWrapper.getContextVariablesMaps();
 
-        AppStepResponse appStepResponse = new AppStepResponse();
+        ActionResponse appStepResponse = new ActionResponse();
         appStepResponse.setSuccess(false);
         appStepResponse.setStepVariables(JSON.toJSONString(variablesMaps));
         appStepResponse.setStepConfig(JSON.toJSONString(variablesMaps));

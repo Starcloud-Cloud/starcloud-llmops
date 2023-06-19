@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 应用类型, 0：系统推荐应用，1：我的应用，2：下载应用
@@ -14,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2023-05-18
  */
 @SuppressWarnings("unused")
-public enum AppTypeEnum {
+public enum AppTypeEnum implements IEnumable<Integer> {
 
     /**
      * 系统应用：系统提供的推荐应用
@@ -43,35 +40,17 @@ public enum AppTypeEnum {
      * 应用类型说明
      */
     @Getter
-    private final String message;
-
-    /**
-     * 用 Map 将枚举在初始化时候缓存，方便后续查询
-     */
-    private static final Map<String, AppTypeEnum> TEMPLATE_TYPE_CACHE = new ConcurrentHashMap<>();
-
-    static {
-        Arrays.stream(AppTypeEnum.values()).forEach(item -> TEMPLATE_TYPE_CACHE.put(item.name(), item));
-    }
+    private final String label;
 
     /**
      * 构造函数
      *
-     * @param code    应用类型 Code
-     * @param message 应用类型说明
+     * @param code  应用类型 Code
+     * @param label 应用类型说明
      */
-    AppTypeEnum(Integer code, String message) {
+    AppTypeEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
-    }
-
-    /**
-     * 枚举缓存
-     *
-     * @return 枚举缓存
-     */
-    public static Map<String, AppTypeEnum> cache() {
-        return TEMPLATE_TYPE_CACHE;
+        this.label = label;
     }
 
 }

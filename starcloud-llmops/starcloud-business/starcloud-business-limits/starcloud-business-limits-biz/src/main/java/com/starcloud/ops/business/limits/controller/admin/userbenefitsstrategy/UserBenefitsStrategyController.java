@@ -60,14 +60,14 @@ public class UserBenefitsStrategyController {
 
 
     @PostMapping("/create")
-    @Operation(summary = "创建用户权益策略 ")
+    @Operation(summary = "创建权益策略 ")
     @PreAuthorize("@ss.hasPermission('starcloud-business-limits:user-benefits-strategy:create')")
     public CommonResult<Long> createUserBenefitsStrategy(@Validated @RequestBody UserBenefitsStrategyCreateReqVO createReqVO) {
         return success(userBenefitsStrategyService.createUserBenefitsStrategy(createReqVO));
     }
 
     @PutMapping("/update")
-    @Operation(summary = "更新用户权益策略 ")
+    @Operation(summary = "更新权益策略 ")
     @PreAuthorize("@ss.hasPermission('starcloud-business-limits:user-benefits-strategy:update')")
     public CommonResult<Boolean> updateUserBenefitsStrategy(@Validated @RequestBody UserBenefitsStrategyUpdateReqVO updateReqVO) {
         userBenefitsStrategyService.updateStrategy(updateReqVO);
@@ -75,7 +75,7 @@ public class UserBenefitsStrategyController {
     }
 
     @DeleteMapping("/delete")
-    @Operation(summary = "删除用户权益策略 ")
+    @Operation(summary = "删除权益策略 ")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('starcloud-business-limits:user-benefits-strategy:delete')")
     public CommonResult<Boolean> deleteUserBenefitsStrategy(@RequestParam("id") Long id) {
@@ -119,7 +119,7 @@ public class UserBenefitsStrategyController {
 
 
     @GetMapping("/page")
-    @Operation(summary = "获得用户权益策略表 分页")
+    @Operation(summary = "获得权益策略表 分页")
     @PreAuthorize("@ss.hasPermission('starcloud-business-limits:user-benefits-strategy:query')")
     public CommonResult<PageResult<UserBenefitsStrategyRespVO>> getUserBenefitsStrategyPage(@Validated UserBenefitsStrategyPageReqVO pageVO) {
         PageResult<UserBenefitsStrategyDO> pageResult = userBenefitsStrategyService.getUserBenefitsStrategyPage(pageVO);

@@ -35,6 +35,6 @@ public class AppMarketUidVersionRequest implements Serializable {
      */
     @Schema(description = "版本号")
     @NotBlank(message = "版本号不能为空")
-    private String version;
+    private Integer version;
 
 }

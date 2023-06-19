@@ -88,6 +88,7 @@ public class UserBenefitsStrategyConvert {
         userBenefitsStrategyRespVO.setLimitNum( bean.getLimitNum() );
         userBenefitsStrategyRespVO.setLimitIntervalNum( bean.getLimitIntervalNum() );
         userBenefitsStrategyRespVO.setLimitIntervalUnit( bean.getLimitIntervalUnit() );
+        userBenefitsStrategyRespVO.setEnabled( bean.getEnabled() );
         userBenefitsStrategyRespVO.setArchived( bean.getArchived() );
         userBenefitsStrategyRespVO.setArchivedBy( bean.getArchivedBy() );
         userBenefitsStrategyRespVO.setArchivedTime( bean.getArchivedTime() );

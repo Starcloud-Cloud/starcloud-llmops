@@ -2,7 +2,10 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +18,12 @@ import java.util.Map;
  * @since 2023-05-31
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AppStepWrapper {
+public class AppStepWrapper implements Serializable {
+
+    private static final long serialVersionUID = 1229003284805228816L;
 
     /**
      * 步骤label
@@ -82,7 +89,7 @@ public class AppStepWrapper {
      */
     public Map<String, Object> getContextVariablesMaps() {
 
-        return new HashMap(){{
+        return new HashMap() {{
             put("test", 1);
             put("test32", 45);
         }};

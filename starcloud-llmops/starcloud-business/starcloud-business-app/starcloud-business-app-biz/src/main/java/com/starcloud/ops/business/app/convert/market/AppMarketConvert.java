@@ -112,10 +112,6 @@ public class AppMarketConvert {
         market.setDeleted(Boolean.FALSE);
         if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
             AppConfigDTO config = request.getConfig();
-            config.setTags(request.getTags());
-            config.setCategories(request.getCategories());
-            config.setScenes(request.getScenes());
-
             market.setConfig(JSON.toJSONString(config));
             market.setWord(AppUtils.buildWord(config));
         } else if (AppModelEnum.CHAT.name().equals(request.getModel())) {
@@ -178,10 +174,6 @@ public class AppMarketConvert {
         market.setDeleted(Boolean.FALSE);
         if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
             AppConfigDTO config = request.getConfig();
-            config.setTags(request.getTags());
-            config.setCategories(request.getCategories());
-            config.setScenes(request.getScenes());
-
             market.setConfig(JSON.toJSONString(config));
             market.setWord(AppUtils.buildWord(config));
         } else if (AppModelEnum.CHAT.name().equals(request.getModel())) {

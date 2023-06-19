@@ -85,6 +85,13 @@ public interface AppService {
     void publicAppToMarket(AppPublishRequest request);
 
     /**
+     * 批量发布应用到应用市场
+     *
+     * @param requestList 应用发布到应用市场请求对象列表
+     */
+    void batchPublicAppToMarket(List<AppPublishRequest> requestList);
+
+    /**
      * 校验应用是否已经下载过
      *
      * @param marketKey 应用市场 UID。

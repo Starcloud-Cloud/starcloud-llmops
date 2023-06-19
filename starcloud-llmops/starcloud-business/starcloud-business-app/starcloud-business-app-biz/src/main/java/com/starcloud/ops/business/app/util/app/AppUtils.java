@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.util.app;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.StepDTO;
@@ -202,5 +203,9 @@ public class AppUtils {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "Un Known Error");
         }
         return Integer.valueOf(split[1]);
+    }
+
+    public static void exception(ErrorCode code) {
+        throw ServiceExceptionUtil.exception(code);
     }
 }

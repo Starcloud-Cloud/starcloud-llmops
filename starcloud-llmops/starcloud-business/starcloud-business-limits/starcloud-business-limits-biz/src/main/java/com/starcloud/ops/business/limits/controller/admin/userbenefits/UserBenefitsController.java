@@ -6,7 +6,6 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsRespVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsUpdateReqVO;
 import com.starcloud.ops.business.limits.convert.userbenefits.UserBenefitsConvert;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -34,19 +33,19 @@ public class UserBenefitsController {
     @Operation(summary = "根据 Code 激活使用权益")
     @PreAuthorize("@ss.hasPermission('llm:user-benefits:create')")
     public CommonResult<Boolean> createUserBenefits(@Validated @RequestParam("code") String code) {
-        return success(userBenefitsService.addUserBenefitsByCode(code,getLoginUserId()));
+        return success(userBenefitsService.addUserBenefitsByCode(code, getLoginUserId()));
     }
 
-    @PutMapping("/info")
+    @PostMapping("/info")
     @Operation(summary = "获取权益信息")
     @PreAuthorize("@ss.hasPermission('llm:user-benefits:info')")
-    public CommonResult<UserBenefitsInfoResultVO> updateUserBenefits(@Validated @RequestBody UserBenefitsUpdateReqVO updateReqVO) {
+    public CommonResult<UserBenefitsInfoResultVO> updateUserBenefits() {
         return success(userBenefitsService.getUserBenefits(getLoginUserId()));
     }
 
 
     @GetMapping("/page")
-    @Operation(summary = "获得用户权益分页")
+    @Operation(summary = "获得用户权益 - 分页")
     @PreAuthorize("@ss.hasPermission('llm:user-benefits:query')")
     public CommonResult<PageResult<UserBenefitsRespVO>> getUserBenefitsPage(@Validated UserBenefitsPageReqVO pageVO) {
         PageResult<UserBenefitsDO> pageResult = userBenefitsService.getUserBenefitsPage(pageVO);

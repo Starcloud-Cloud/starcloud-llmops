@@ -6,10 +6,13 @@ import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
+
 import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.log.enums.ErrorCodeConstants.*;
 
@@ -60,6 +63,11 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     @Override
     public LogAppMessageDO getAppMessage(Long id) {
         return appMessageMapper.selectById(id);
+    }
+
+    @Override
+    public LogAppMessageDO getAppMessage(String uid) {
+        return appMessageMapper.selectOne("uid", uid);
     }
 
     @Override

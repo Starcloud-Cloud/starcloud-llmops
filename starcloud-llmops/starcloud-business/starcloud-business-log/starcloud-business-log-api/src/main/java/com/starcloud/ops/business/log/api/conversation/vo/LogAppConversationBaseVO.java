@@ -20,6 +20,10 @@ public class LogAppConversationBaseVO {
     @NotNull(message = "app uid不能为空")
     private String appUid;
 
+    @Schema(description = "app name", required = true, example = "24921")
+    @NotNull(message = "app name不能为空")
+    private String appName;
+
     @Schema(description = "app 模式", required = true)
     @NotNull(message = "app 模式不能为空")
     private String appMode;

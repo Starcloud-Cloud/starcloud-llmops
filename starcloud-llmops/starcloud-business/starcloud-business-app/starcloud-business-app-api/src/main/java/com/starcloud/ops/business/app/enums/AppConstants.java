@@ -13,4 +13,9 @@ public interface AppConstants {
      * 默认版本
      */
     Integer DEFAULT_VERSION = 1;
+
+    /**
+     * 应用分类字典类型
+     */
+    String APP_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_APP_CATEGORY_TYPE";
 }

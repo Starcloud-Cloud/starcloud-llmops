@@ -4,6 +4,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCrea
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 
 public interface LogAppApi {
@@ -13,4 +14,7 @@ public interface LogAppApi {
     void updateAppConversationStatus(String uid, LogStatusEnum statusEnum);
 
     void createAppMessage(LogAppMessageCreateReqVO logAppMessageCreateReqVO);
+
+
+    LogAppMessageInfoRespVO getAppMessageResult(String appMessageUid);
 }

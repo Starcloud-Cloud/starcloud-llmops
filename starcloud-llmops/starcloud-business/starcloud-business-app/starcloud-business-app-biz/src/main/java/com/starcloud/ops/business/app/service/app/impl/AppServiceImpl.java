@@ -4,6 +4,9 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -38,7 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -62,6 +67,9 @@ public class AppServiceImpl implements AppService {
     @Resource
     private RecommendedAppRedisDAO recommendedAppRedisDAO;
 
+    @Resource
+    private DictDataService dictDataService;
+
     /**
      * 查询应用分类列表
      *
@@ -69,8 +77,21 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<AppCategoryDTO> categories() {
+        // 查询应用分类字典数据
+        DictDataExportReqVO request = new DictDataExportReqVO();
+        request.setDictType(AppConstants.APP_CATEGORY_DICT_TYPE);
+        request.setStatus(StateEnum.ENABLE.getCode());
+        List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
 
-        return null;
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return Collections.emptyList();
+        }
+        // 组装并且返回分类列表
+        return CollectionUtil.emptyIfNull(dictDataList).stream()
+                .map(AppConvert::convertCategory)
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(AppCategoryDTO::getSort))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -121,9 +142,9 @@ public class AppServiceImpl implements AppService {
     @Override
     public AppDTO getByUid(String uid) {
         LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper().eq(AppDO::getUid, uid);
-        AppDO templateDO = appMapper.selectOne(wrapper);
-        Assert.notNull(templateDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, uid));
-        return AppConvert.convert(templateDO);
+        AppDO appDO = appMapper.selectOne(wrapper);
+        Assert.notNull(appDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, uid));
+        return AppConvert.convert(appDO);
     }
 
     /**
@@ -138,8 +159,6 @@ public class AppServiceImpl implements AppService {
         // 生成唯一UID
         appDO.setUid(IdUtil.fastSimpleUUID());
         appMapper.insert(appDO);
-        // 如果新增的是系统应用，则需要更新缓存
-        recommendedAppRedisDAO.resetByType(appDO.getType());
     }
 
     /**
@@ -156,8 +175,6 @@ public class AppServiceImpl implements AppService {
         // 生成唯一UID
         appDO.setUid(IdUtil.fastSimpleUUID());
         appMapper.insert(appDO);
-        // 如果新增的是系统应用，则需要更新缓存
-        recommendedAppRedisDAO.resetByType(appDO.getType());
     }
 
     /**
@@ -173,8 +190,6 @@ public class AppServiceImpl implements AppService {
                 .eq(AppDO::getUid, request.getUid())
                 .eq(AppDO::getStatus, StateEnum.ENABLE.getCode());
         appMapper.update(appDO, wrapper);
-        // 如果新增的是系统应用，则需要更新缓存
-        recommendedAppRedisDAO.resetByType(appDO.getType());
     }
 
     /**
@@ -189,8 +204,6 @@ public class AppServiceImpl implements AppService {
         Assert.notNull(appDO, () -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, uid));
         // 根据 ID 应用模版
         appMapper.deleteById(appDO.getId());
-        // 如果新增的是系统应用，则需要更新缓存
-        recommendedAppRedisDAO.resetByType(appDO.getType());
     }
 
     /**
@@ -245,10 +258,15 @@ public class AppServiceImpl implements AppService {
         appMapper.update(publishApp, Wrappers.lambdaUpdate(AppDO.class)
                 .eq(AppDO::getUid, request.getUid())
                 .eq(AppDO::getStatus, StateEnum.ENABLE.getCode()));
-//        transactionTemplate.executeWithoutResult(status -> {
-//
-//        });
+    }
 
+    /**
+     * 批量发布应用到应用市场
+     *
+     * @param requestList 应用发布到应用市场请求对象列表
+     */
+    @Override
+    public void batchPublicAppToMarket(List<AppPublishRequest> requestList) {
 
     }
 
@@ -260,11 +278,12 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public Boolean verifyHasDownloaded(String marketUid) {
-        LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper().eq(AppDO::getDownloadUid, marketUid).eq(AppDO::getType, AppTypeEnum.DOWNLOAD.name());
+        LambdaQueryWrapper<AppDO> wrapper = buildBaseQueryWrapper()
+                .eq(AppDO::getDownloadUid, marketUid)
+                .eq(AppDO::getType, AppTypeEnum.DOWNLOAD.name());
         Long count = appMapper.selectCount(wrapper);
         return count > 0;
     }
-
 
     /**
      * 应用名称重复校验, 重复抛出异常
@@ -286,7 +305,7 @@ public class AppServiceImpl implements AppService {
      */
     private void duplicateNameVerification(AppRequest request) {
         if (duplicateNameVerification(request.getName())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.TEMPLATE_NAME_DUPLICATE, request.getName());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NAME_DUPLICATE, request.getName());
         }
     }
 
