@@ -19,12 +19,12 @@ import java.util.Map;
  * @since 2023-05-31
  */
 @Slf4j
-@TaskComponent(name = "GoogleSearchActionHandler")
+@TaskComponent(name = "PyAdapterActionHandler")
 @Component
 public class PyAdapterActionHandler extends StepAndFunctionHandler {
 
     @NoticeSta
-    @TaskService(name = "GoogleSearchActionHandler", invoke = @Invoke(timeout = 180000))
+    @TaskService(name = "PyAdapterActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
 
