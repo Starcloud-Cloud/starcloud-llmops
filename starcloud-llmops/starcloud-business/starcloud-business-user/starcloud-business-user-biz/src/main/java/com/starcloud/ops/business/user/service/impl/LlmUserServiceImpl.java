@@ -4,6 +4,8 @@ import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
+import cn.iocoder.yudao.framework.security.core.LoginUser;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -12,6 +14,8 @@ import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataObject.RegisterUserDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
@@ -20,6 +24,9 @@ import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.service.LlmUserService;
+import com.starcloud.ops.business.user.util.EncryptionUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,6 +46,7 @@ import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
 @Service
+@Slf4j
 public class LlmUserServiceImpl implements LlmUserService {
 
     @Autowired
@@ -65,6 +73,10 @@ public class LlmUserServiceImpl implements LlmUserService {
     @Autowired
     private PermissionProducer permissionProducer;
 
+    @Autowired
+    private UserBenefitsService benefitsService;
+
+
     @Override
     public boolean register(RegisterRequest request) {
         validateEmailAndUsername(request.getUsername(), request.getEmail());
@@ -78,8 +90,20 @@ public class LlmUserServiceImpl implements LlmUserService {
                 .registerDate(LocalDateTime.now())
                 .registerIp(ServletUtils.getClientIP()).build();
 
+        if (request.getInviteCode() != null) {
+            String userName = null;
+            try {
+                userName = EncryptionUtils.decryptString(request.getInviteCode());
+                AdminUserDO userDO = adminUserMapper.selectByUsername(userName);
+                if (userDO != null) {
+                    registerUserDO.setInviteUserId(userDO.getId());
+                }
+            } catch (Exception e) {
+                log.warn("计算邀请码异常", e);
+            }
+        }
         String url = getUrl();
-        String activationUrl = url + "/admin-api/llm/auth/activation/" + activationCode + "?redirectUri=" + getReferer() + "login" ;
+        String activationUrl = url + "/admin-api/llm/auth/activation/" + activationCode + "?redirectUri=" + getOrigin() + "/login";
         Map<String, Object> map = new HashMap<>();
         map.put("activationUrl", activationUrl);
         mailSendService.sendSingleMail(request.getEmail(), 1L, UserTypeEnum.ADMIN.getValue(), "register_temp", map);
@@ -87,9 +111,25 @@ public class LlmUserServiceImpl implements LlmUserService {
         return insert > 0;
     }
 
-    private String getReferer() {
+    private String getOrigin() {
         HttpServletRequest servletRequest = ServletUtils.getRequest();
-        return servletRequest.getHeader("Referer");
+        return servletRequest.getHeader("Origin");
+    }
+
+    private void addBenefits(Long currentUserId, Long inviteUserId) {
+        try {
+            if (inviteUserId != null && inviteUserId > 0) {
+                //邀请注册权益 邀请人
+                benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE.getName(), inviteUserId);
+                //被邀请人
+                benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.INVITE_TO_REGISTER.getName(), currentUserId);
+            } else {
+                // 普通注册权益
+                benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.SIGN_IN.getName(), currentUserId);
+            }
+        } catch (Exception e) {
+            log.warn("新增权益失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
+        }
     }
 
     @Override
@@ -133,6 +173,8 @@ public class LlmUserServiceImpl implements LlmUserService {
 
         registerUserDO.setStatus(1);
         registerUserMapper.updateById(registerUserDO);
+
+        addBenefits(userDO.getId(), registerUserDO.getInviteUserId());
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 
             @Override
@@ -166,8 +208,8 @@ public class LlmUserServiceImpl implements LlmUserService {
         }
         validateEmail(request.getEmail());
         String recoverCode = IdUtil.getSnowflakeNextIdStr();
-        String url = getReferer();
-        String recoverUrl = url +  "pages/reset-password/reset-password2?verificationCode=" + recoverCode;
+        String url = getOrigin();
+        String recoverUrl = url + "/pages/reset-password/reset-password2?verificationCode=" + recoverCode;
 
         Map<String, Object> map = new HashMap<>();
         map.put("recoverUrl", recoverUrl);
@@ -185,9 +227,23 @@ public class LlmUserServiceImpl implements LlmUserService {
     }
 
     @Override
+    public String inviteUser() {
+        LoginUser loginUser = SecurityFrameworkUtils.getLoginUser();
+        AdminUserDO userDO = adminUserMapper.selectById(loginUser.getId());
+        String inviteCode = null;
+        try {
+            inviteCode = EncryptionUtils.encryptString(userDO.getUsername());
+        } catch (Exception e) {
+            throw exception(ENCRYPTION_ERROR);
+        }
+        String registerUri = getOrigin() + "/template/templateMarket/list?inviteCode=" + inviteCode;
+        return registerUri;
+    }
+
+    @Override
     public boolean changePassword(ChangePasswordRequest request) {
         RecoverPasswordDO recoverPasswordDO = recoverPasswordMapper.selectByCode(request.getVerificationCode());
-        if (recoverPasswordDO == null) {
+        if (recoverPasswordDO == null || recoverPasswordDO.getStatus() != 0) {
             throw exception(ACTIVATION_CODE);
         }
         if (recoverPasswordDO.getRecoverDate().compareTo(LocalDateTime.now().minusMinutes(30)) < 0) {

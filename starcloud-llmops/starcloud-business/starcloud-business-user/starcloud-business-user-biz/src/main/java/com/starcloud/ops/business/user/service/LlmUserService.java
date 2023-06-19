@@ -37,4 +37,11 @@ public interface LlmUserService {
      */
     boolean changePassword(ChangePasswordRequest request);
 
+    /**
+     * 获取邀请链接
+     * @return
+     */
+    String inviteUser();
+
+
 }

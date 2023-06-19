@@ -12,8 +12,9 @@ public interface ErrorCodeConstant {
 
     ErrorCode IP_CONVERT_ERROR = new ErrorCode(2001000003, "ip地址转换异常");
 
-
     ErrorCode ACTIVATION_CODE = new ErrorCode(2001000004, "无效的修改码");
+
+    ErrorCode ENCRYPTION_ERROR = new ErrorCode(2001000004, "计算邀请码异常");
 
 
 }

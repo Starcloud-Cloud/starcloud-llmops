@@ -75,4 +75,11 @@ public class LlmUserController {
         return CommonResult.success(llmUserService.changePassword(request));
     }
 
+
+    @GetMapping("/invite/url")
+    @Operation(summary = "获取邀请链接", description = "获取邀请链接")
+    @TenantIgnore
+    public CommonResult<String> inviteUser() {
+        return CommonResult.success(llmUserService.inviteUser());
+    }
 }

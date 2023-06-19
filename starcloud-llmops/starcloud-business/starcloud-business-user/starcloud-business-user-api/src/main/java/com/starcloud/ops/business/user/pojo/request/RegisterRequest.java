@@ -24,4 +24,7 @@ public class RegisterRequest {
     @Schema(description = "密码")
     @Length(min = 4, max = 16, message = "密码长度为 4-16 位")
     private String password;
+
+    @Schema(description = "邀请码")
+    private String inviteCode;
 }
