@@ -36,6 +36,17 @@ public class AppConfigEntity implements Serializable {
     private List<AppVariableEntity> variables;
 
 
+
+    /**
+     * 获取 多 action 下的图标
+     * @return
+     */
+    public List<String> getActionsIcon() {
+        return null;
+    }
+
+
+
     /**
      * 模版步骤
      */

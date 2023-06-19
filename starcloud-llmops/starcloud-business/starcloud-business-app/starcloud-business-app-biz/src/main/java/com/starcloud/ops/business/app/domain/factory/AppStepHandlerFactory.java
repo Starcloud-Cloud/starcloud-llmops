@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.domain.factory;
 
 import cn.hutool.core.lang.Assert;
-import com.starcloud.ops.business.app.domain.handler.BaseStepHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseActionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ public class AppStepHandlerFactory implements ApplicationContextAware {
     /**
      * 步骤处理器缓存
      */
-    private static final Map<String, BaseStepHandler> STEP_HANDLER_MAP = new ConcurrentHashMap<>(8);
+    private static final Map<String, BaseActionHandler> STEP_HANDLER_MAP = new ConcurrentHashMap<>(8);
 
     /**
      * 根据步骤类型获取对应的处理器
@@ -35,7 +35,7 @@ public class AppStepHandlerFactory implements ApplicationContextAware {
      * @param type 步骤类型
      * @return 步骤处理器
      */
-    public BaseStepHandler getHandler(String type) {
+    public BaseActionHandler getHandler(String type) {
         Assert.notBlank(type, "The Step Type must not be blank");
 
         type = StringUtils.uncapitalize(type);
@@ -48,7 +48,7 @@ public class AppStepHandlerFactory implements ApplicationContextAware {
     @Override
     public void setApplicationContext(@NotNull ApplicationContext context) throws BeansException {
         // 将所有的步骤处理器放入缓存
-        Map<String, BaseStepHandler> stepHandlerMap = context.getBeansOfType(BaseStepHandler.class);
+        Map<String, BaseActionHandler> stepHandlerMap = context.getBeansOfType(BaseActionHandler.class);
         STEP_HANDLER_MAP.putAll(stepHandlerMap);
         log.info("Load App Step Handle: ");
         STEP_HANDLER_MAP.forEach((key, value) -> log.info("key: {}, value: {}", key, value));
