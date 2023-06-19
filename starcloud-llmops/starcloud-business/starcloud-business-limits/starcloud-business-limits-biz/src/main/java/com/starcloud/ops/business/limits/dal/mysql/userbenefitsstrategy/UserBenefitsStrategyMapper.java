@@ -26,15 +26,6 @@ public interface UserBenefitsStrategyMapper extends BaseMapperX<UserBenefitsStra
                 .likeIfPresent(UserBenefitsStrategyDO::getStrategyName, reqVO.getStrategyName())
                 .eqIfPresent(UserBenefitsStrategyDO::getStrategyDesc, reqVO.getStrategyDesc())
                 .eqIfPresent(UserBenefitsStrategyDO::getStrategyType, reqVO.getStrategyType())
-                // .eqIfPresent(UserBenefitsStrategyDO::getAppCount, reqVO.getAppCount())
-                // .eqIfPresent(UserBenefitsStrategyDO::getDatasetCount, reqVO.getDatasetCount())
-                // .eqIfPresent(UserBenefitsStrategyDO::getImageCount, reqVO.getImageCount())
-                // .eqIfPresent(UserBenefitsStrategyDO::getTokenCount, reqVO.getTokenCount())
-                // .eqIfPresent(UserBenefitsStrategyDO::getEffectiveUnit, reqVO.getEffectiveUnit())
-                // .eqIfPresent(UserBenefitsStrategyDO::getEffectiveNum, reqVO.getEffectiveNum())
-                // .eqIfPresent(UserBenefitsStrategyDO::getLimitNum, reqVO.getLimitNum())
-                // .eqIfPresent(UserBenefitsStrategyDO::getLimitIntervalUnit, reqVO.getLimitIntervalUnit())
-                // .eqIfPresent(UserBenefitsStrategyDO::getLimitIntervalNum, reqVO.getLimitIntervalNum())
                 .eqIfPresent(UserBenefitsStrategyDO::getEnabled, reqVO.getEnabled())
                 .orderByDesc(UserBenefitsStrategyDO::getId));
     }

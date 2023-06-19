@@ -8,6 +8,8 @@ import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBe
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.time.LocalDateTime;
+
 /**
  * 用户权益 Mapper
  *
@@ -28,6 +30,7 @@ public interface UserBenefitsMapper extends BaseMapperX<UserBenefitsDO> {
                 .betweenIfPresent(UserBenefitsDO::getEffectiveTime, reqVO.getEffectiveTime())
                 .betweenIfPresent(UserBenefitsDO::getExpirationTime, reqVO.getExpirationTime())
                 .betweenIfPresent(UserBenefitsDO::getCreateTime, reqVO.getCreateTime())
+                .ge(UserBenefitsDO::getExpirationTime, LocalDateTime.now())
                 .orderByDesc(UserBenefitsDO::getId));
     }
 }
