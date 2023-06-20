@@ -16,6 +16,8 @@ import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
+import com.starcloud.ops.business.user.convert.UserDetailConvert;
 import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataObject.RegisterUserDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
@@ -23,10 +25,9 @@ import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
-import com.starcloud.ops.business.user.service.LlmUserService;
+import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,7 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
 @Service
 @Slf4j
-public class LlmUserServiceImpl implements LlmUserService {
+public class StarUserServiceImpl implements StarUserService {
 
     @Autowired
     private AdminUserMapper adminUserMapper;
@@ -144,10 +145,24 @@ public class LlmUserServiceImpl implements LlmUserService {
             registerUserMapper.updateById(registerUserDO);
             throw exception(OPERATE_TIME_OUT);
         }
+        Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), registerUserDO.getUsername() + "_dept");
+        addBenefits(userId, registerUserDO.getInviteUserId());
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                permissionProducer.sendUserRoleRefreshMessage();
+            }
+
+        });
+        return true;
+    }
+
+    @Override
+    public Long createNewUser(String username, String email, String password, String deptName) {
         DeptDO deptDO = new DeptDO();
         deptDO.setParentId(2L);
-        deptDO.setName(registerUserDO.getUsername() + "_dept");
-        deptDO.setEmail(registerUserDO.getEmail());
+        deptDO.setName(deptName);
+        deptDO.setEmail(email);
         deptDO.setStatus(0);
         deptDO.setTenantId(2L);
         deptMapper.insert(deptDO);
@@ -155,11 +170,11 @@ public class LlmUserServiceImpl implements LlmUserService {
         Long deptId = deptDO.getId();
         AdminUserDO userDO = new AdminUserDO();
         userDO.setDeptId(deptId);
-        userDO.setUsername(registerUserDO.getUsername());
-        userDO.setEmail(registerUserDO.getEmail());
+        userDO.setUsername(username);
+        userDO.setEmail(email);
         userDO.setStatus(0);
-        userDO.setNickname(registerUserDO.getUsername());
-        userDO.setPassword(registerUserDO.getPassword());
+        userDO.setNickname(username);
+        userDO.setPassword(passwordEncoder.encode(password));
         userDO.setTenantId(2L);
         adminUserMapper.insert(userDO);
 
@@ -170,20 +185,7 @@ public class LlmUserServiceImpl implements LlmUserService {
         userRoleDO.setUpdater(userDO.getUpdater());
         userRoleDO.setTenantId(userDO.getTenantId());
         userRoleMapper.insert(userRoleDO);
-
-        registerUserDO.setStatus(1);
-        registerUserMapper.updateById(registerUserDO);
-
-        addBenefits(userDO.getId(), registerUserDO.getInviteUserId());
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-
-            @Override
-            public void afterCommit() {
-                permissionProducer.sendUserRoleRefreshMessage();
-            }
-
-        });
-        return true;
+        return userDO.getId();
     }
 
     @Override
@@ -227,7 +229,7 @@ public class LlmUserServiceImpl implements LlmUserService {
     }
 
     @Override
-    public String inviteUser() {
+    public UserDetailVO userDetail() {
         LoginUser loginUser = SecurityFrameworkUtils.getLoginUser();
         AdminUserDO userDO = adminUserMapper.selectById(loginUser.getId());
         String inviteCode = null;
@@ -236,8 +238,9 @@ public class LlmUserServiceImpl implements LlmUserService {
         } catch (Exception e) {
             throw exception(ENCRYPTION_ERROR);
         }
-        String registerUri = getOrigin() + "/template/templateMarket/list?inviteCode=" + inviteCode;
-        return registerUri;
+        UserDetailVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail(userDO);
+        userDetailVO.setInviteCode(inviteCode);
+        return userDetailVO;
     }
 
     @Override

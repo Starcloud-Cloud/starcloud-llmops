@@ -1,18 +1,14 @@
 package com.starcloud.ops.business.user.service.impl;
 
-import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
-import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
-import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
-import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import com.starcloud.ops.business.user.pojo.dto.WpUserDTO;
 import com.starcloud.ops.business.user.pojo.dto.MigrateResultDTO;
+import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.service.MigrateUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -24,19 +20,13 @@ import java.util.List;
 public class MigrateUserServiceImpl implements MigrateUserService {
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private UserRoleMapper userRoleMapper;
-
-    @Autowired
-    private DeptMapper deptMapper;
-
-    @Autowired
     private AdminUserMapper adminUserMapper;
 
     @Autowired
     private PermissionProducer permissionProducer;
+
+    @Autowired
+    private StarUserService starUserService;
 
     @Override
     public List<MigrateResultDTO> migrateUsers(List<WpUserDTO> wpUserDTOS) {
@@ -48,31 +38,7 @@ public class MigrateUserServiceImpl implements MigrateUserService {
                 continue;
             }
             try {
-                DeptDO deptDO = new DeptDO();
-                deptDO.setParentId(3L);
-                deptDO.setName(wpUserDTO.getUsername() + "_dept_wp");
-                deptDO.setStatus(0);
-                deptDO.setTenantId(2L);
-                deptDO.setEmail(wpUserDTO.getEmail());
-                deptMapper.insert(deptDO);
-
-                AdminUserDO userDO = new AdminUserDO();
-                userDO.setDeptId(deptDO.getId());
-                userDO.setUsername(wpUserDTO.getUsername());
-                userDO.setEmail(wpUserDTO.getEmail());
-                userDO.setStatus(0);
-                userDO.setNickname(wpUserDTO.getNickname());
-                userDO.setTenantId(2L);
-                userDO.setPassword(passwordEncoder.encode("abc123456"));
-                adminUserMapper.insert(userDO);
-
-                UserRoleDO userRoleDO = new UserRoleDO();
-                userRoleDO.setUserId(userDO.getId());
-                userRoleDO.setRoleId(2L);
-                userRoleDO.setCreator(userDO.getUsername());
-                userRoleDO.setUpdater(userDO.getUpdater());
-                userRoleDO.setTenantId(userDO.getTenantId());
-                userRoleMapper.insert(userRoleDO);
+                starUserService.createNewUser(wpUserDTO.getUsername(), wpUserDTO.getEmail(), "abc123456",wpUserDTO.getUsername() + "_dept_wp");
                 migrateResults.add(resultDTO);
             } catch (Exception e) {
                 MigrateResultDTO migrateResultDTO = new MigrateResultDTO();

@@ -3,10 +3,11 @@ package com.starcloud.ops.business.user.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
-import com.starcloud.ops.business.user.service.LlmUserService;
+import com.starcloud.ops.business.user.service.StarUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +21,10 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/llm/auth")
 @Tag(name = "星河云海-用户管理")
-public class LlmUserController {
+public class StarUserController {
 
     @Autowired
-    private LlmUserService llmUserService;
+    private StarUserService llmUserService;
 
 
     @PostMapping("/register")
@@ -76,10 +77,10 @@ public class LlmUserController {
     }
 
 
-    @GetMapping("/invite/url")
-    @Operation(summary = "获取邀请链接", description = "获取邀请链接")
+    @GetMapping("/user/detail")
+    @Operation(summary = "获取用户明细", description = "获取用户明细")
     @TenantIgnore
-    public CommonResult<String> inviteUser() {
-        return CommonResult.success(llmUserService.inviteUser());
+    public CommonResult<UserDetailVO> userDetail() {
+        return CommonResult.success(llmUserService.userDetail());
     }
 }
