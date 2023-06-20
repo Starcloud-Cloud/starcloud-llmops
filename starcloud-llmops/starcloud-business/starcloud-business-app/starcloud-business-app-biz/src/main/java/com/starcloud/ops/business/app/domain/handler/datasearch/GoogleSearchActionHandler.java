@@ -24,7 +24,6 @@ import java.util.Map;
  */
 @Slf4j
 @TaskComponent(name = "GoogleSearchActionHandler")
-@Component
 public class GoogleSearchActionHandler extends StepAndFunctionHandler {
 
     @NoticeSta

@@ -32,13 +32,12 @@ import java.util.Map;
  * @since 2023-05-31
  */
 @Slf4j
-@TaskComponent(name = "OpenAIChatStepHandler")
-@Component
+@TaskComponent(name = "OpenAIChatActionHandler")
 public class OpenAIChatActionHandler extends FlowStepHandler {
 
 
     @NoticeSta
-    @TaskService(name = "OpenAIChatStepHandler", invoke = @Invoke(timeout = 180000))
+    @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
 

@@ -68,6 +68,7 @@ public class WorkflowTest extends BaseDbUnitTest {
         appStepWrappers.add(createAppStep("summarize"));
 
         appConfigEntity.setSteps(appStepWrappers);
+        appEntity.setWorkflowConfig(appConfigEntity);
 
 
         Mockito.mockStatic(AppFactory.class);

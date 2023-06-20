@@ -24,7 +24,6 @@ import java.util.Map;
  */
 @Slf4j
 @TaskComponent(name = "PyAdapterActionHandler")
-@Component
 public class PyAdapterActionHandler extends StepAndFunctionHandler {
 
     @NoticeSta
