@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.validate.market;
 
-import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
 
 /**
@@ -10,7 +10,7 @@ import com.starcloud.ops.business.app.validate.app.AppValidate;
  */
 public class AppMarketValidate {
 
-    public static void validate(AppMarketRequest request) {
+    public static void validate(AppMarketReqVO request) {
         AppValidate.assertNotNull(request, "App Market Request Data");
 
     }

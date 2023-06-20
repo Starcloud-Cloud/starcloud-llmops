@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.domain.context;
 
 import cn.hutool.core.lang.Assert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.AppStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -46,7 +46,7 @@ public class AppContext {
 
     public AppContext(AppEntity app) {
         this.app = app;
-        this.stepId = app.getConfig().getFirstStep().getField();
+        this.stepId = app.getWorkflowConfig().getFirstStep().getField();
     }
 
 
@@ -65,28 +65,30 @@ public class AppContext {
 
     /**
      * 获取当前执行的step
+     *
      * @return
      */
-    public AppStepWrapper getCurrentAppStepWrapper() {
+    public WorkflowStepWrapper getCurrentAppStepWrapper() {
 
         Assert.notBlank(this.getStepId(), "AppContext stepId is not blank");
 
-        AppStepWrapper appStepWrapper = this.app.getConfig().getStep(this.getStepId());
+        WorkflowStepWrapper stepWrapper = this.app.getWorkflowConfig().getStep(this.getStepId());
 
-        return appStepWrapper;
+        return stepWrapper;
     }
 
     /**
      * 获取当前执行的step
+     *
      * @return
      */
-    public AppStepWrapper getCurrentAppStepWrapper(String stepId) {
+    public WorkflowStepWrapper getCurrentAppStepWrapper(String stepId) {
 
         Assert.notBlank(stepId, "AppContext stepId is not blank");
 
-        AppStepWrapper appStepWrapper = this.app.getConfig().getStep(this.getStepId());
+        WorkflowStepWrapper stepWrapper = this.app.getWorkflowConfig().getStep(this.getStepId());
 
-        return appStepWrapper;
+        return stepWrapper;
     }
 
 }

@@ -1,15 +1,11 @@
 package com.starcloud.ops.business.app.dal.redis.app;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.starcloud.ops.business.app.api.app.dto.AppDTO;
-import com.starcloud.ops.business.app.convert.app.AppConvert;
-import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.redis.RedisKeyConstants;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.service.app.impl.AppServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -18,7 +14,6 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -40,7 +35,7 @@ public class RecommendedAppRedisDAO {
      *
      * @return 推荐的模板
      */
-    public List<AppDTO> get() {
+    public List<AppRespVO> get() {
         if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(getKey()))) {
             String rec = stringRedisTemplate.opsForValue().get(getKey());
             if (StringUtils.isNotBlank(rec)) {
@@ -53,17 +48,9 @@ public class RecommendedAppRedisDAO {
     /**
      * 设置推荐的模板
      */
-    public List<AppDTO> set() {
-        LambdaQueryWrapper<AppDO> wrapper = AppServiceImpl.buildPageQueryWrapper()
-                .eq(AppDO::getType, AppTypeEnum.SYSTEM.name())
-                .orderByDesc(AppDO::getUpdateTime);
-        // 查询推荐的模版列表
-        List<AppDO> apps = appMapper.selectList(wrapper);
-        List<AppDTO> appList = CollectionUtil.emptyIfNull(apps).stream().map(AppConvert::convert).collect(Collectors.toList());
-        // 缓存到redis
-        stringRedisTemplate.opsForValue().set(getKey(), JSON.toJSONString(appList));
-
-        return appList;
+    public List<AppRespVO> set() {
+//
+        return null;
     }
 
     /**

@@ -3,10 +3,9 @@ package com.starcloud.ops.business.app.controller.admin.market;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
-import com.starcloud.ops.business.app.api.market.request.AppMarketPageQuery;
-import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
-import com.starcloud.ops.business.app.api.market.request.AppMarketUidVersionRequest;
-import com.starcloud.ops.business.app.api.market.request.AppMarketUpdateRequest;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,7 +54,7 @@ public class AppMarketController {
     @PostMapping("/create")
     @Operation(summary = "创建应用市场应用", description = "创建应用市场应用")
     @ApiOperationSupport(order = 12, author = "nacoyer")
-    public CommonResult<Boolean> create(@Validated @RequestBody AppMarketRequest request) {
+    public CommonResult<Boolean> create(@Validated @RequestBody AppMarketReqVO request) {
         appMarketService.create(request);
         return CommonResult.success(Boolean.TRUE);
     }
@@ -63,7 +62,7 @@ public class AppMarketController {
     @PutMapping("/modify")
     @Operation(summary = "更新应用市场应用", description = "根据 UID 更新应用市场应用")
     @ApiOperationSupport(order = 14, author = "nacoyer")
-    public CommonResult<Boolean> modify(@Validated @RequestBody AppMarketUpdateRequest request) {
+    public CommonResult<Boolean> modify(@Validated @RequestBody AppMarketUpdateReqVO request) {
         appMarketService.modify(request);
         return CommonResult.success(Boolean.TRUE);
     }

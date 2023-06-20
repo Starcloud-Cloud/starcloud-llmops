@@ -3,8 +3,8 @@ package com.starcloud.ops.business.app.service.market;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import com.alibaba.fastjson.JSON;
-import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
-import com.starcloud.ops.business.app.api.market.request.AppMarketAuditRequest;
+import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -35,18 +35,11 @@ public class AppMarketServiceTest extends BaseDbUnitTest {
 
     @Test
     public void auditTest() {
-        AppMarketAuditRequest request = new AppMarketAuditRequest();
+        AppMarketAuditReqVO request = new AppMarketAuditReqVO();
         request.setUid("5ce0bded250f4dcc87c39484d2f10ba6");
         request.setVersion(2);
         request.setAudit(1);
         appMarketService.audit(request);
     }
 
-
-    @Test
-    public void statisticsCountByCategoryTest() {
-        List<AppCategoryDTO> appCategoryDTOS = appMarketMapper.statisticsCountByCategory(Arrays.asList(0, 1,2));
-        log.info("appCategoryDTOS: {}", JSON.toJSONString(appCategoryDTOS));
-
-    }
 }

@@ -3,9 +3,9 @@ package com.starcloud.ops.business.app.validate.app;
 import cn.hutool.core.lang.Assert;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
-import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
-import com.starcloud.ops.business.app.api.app.request.AppRequest;
+import com.starcloud.ops.business.app.api.app.dto.config.ChatConfigDTO;
+import com.starcloud.ops.business.app.api.app.dto.config.WorkflowConfigDTO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
@@ -75,11 +75,11 @@ public class AppValidate {
      * @param config 应用配置
      * @return 应用配置
      */
-    public static void validateConfig(AppConfigDTO config) {
+    public static void validateConfig(WorkflowConfigDTO config) {
         assertNotNull(config, "App Config Data");
     }
 
-    public static void validateChatConfig(AppChatConfigDTO chatConfig) {
+    public static void validateChatConfig(ChatConfigDTO chatConfig) {
         assertNotNull(chatConfig, "App Chat Config Data");
 
     }
@@ -87,16 +87,16 @@ public class AppValidate {
     /**
      * 校验应用的字段信息
      */
-    public static void validate(AppRequest request) {
+    public static void validate(AppReqVO request) {
         assertNotNull(request, "App Request Data");
         validateNotBlank(request.getName(), "name");
         validateModel(request.getModel());
         validateType(request.getType());
         validateSource(request.getSource());
         if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
-            validateConfig(request.getConfig());
+//            validateConfig(request.getConfig());
         } else if (AppModelEnum.CHAT.name().equals(request.getModel())) {
-            validateChatConfig(request.getChatConfig());
+//            validateChatConfig(request.getChatConfig());
         }
     }
 
