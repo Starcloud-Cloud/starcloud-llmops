@@ -2,11 +2,9 @@ package com.starcloud.ops.business.order.controller.admin.order.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.experimental.Accessors;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.awt.*;
 import java.util.Map;
 
 @Schema(description = "管理后台 - 支付订单提交 Request VO")

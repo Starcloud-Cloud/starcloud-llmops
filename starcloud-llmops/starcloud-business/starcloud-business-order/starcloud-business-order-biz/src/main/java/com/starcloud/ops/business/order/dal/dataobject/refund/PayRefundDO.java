@@ -11,6 +11,7 @@ import com.starcloud.ops.business.order.dal.dataobject.merchant.PayChannelDO;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayMerchantDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
 import com.starcloud.ops.business.order.enums.refund.PayRefundStatusEnum;
+import com.starcloud.ops.business.order.enums.refund.PayRefundTypeEnum;
 import lombok.*;
 
 import java.time.LocalDateTime;

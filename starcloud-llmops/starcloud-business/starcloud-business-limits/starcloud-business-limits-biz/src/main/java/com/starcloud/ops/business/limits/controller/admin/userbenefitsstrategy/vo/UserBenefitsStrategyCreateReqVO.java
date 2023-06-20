@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo;
 
-import com.starcloud.ops.business.limits.enums.BenefitsStrategyLimitIntervalEnums;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;

@@ -5,7 +5,7 @@ import lombok.Data;
 
 /**
  * 支付单信息 Response DTO
- *
+ * <p>
  * TODO 芋艿：还没定好字段
  *
  * @author 芋道源码
@@ -19,7 +19,7 @@ public class PayOrderRespDTO {
     private Long id;
     /**
      * 渠道编码
-     *
+     * <p>
      * 枚举 PayChannelEnum
      */
     private String channelCode;
@@ -38,7 +38,7 @@ public class PayOrderRespDTO {
     private Integer amount;
     /**
      * 支付状态
-     *
+     * <p>
      * 枚举 {@link PayOrderStatusEnum}
      */
     private Integer status;

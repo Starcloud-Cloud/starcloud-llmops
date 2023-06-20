@@ -1,12 +1,9 @@
 package com.starcloud.ops.business.limits.service.userbenefits;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsBaseResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
-
-import java.util.List;
 
 /**
  * 用户权益 Service 接口
