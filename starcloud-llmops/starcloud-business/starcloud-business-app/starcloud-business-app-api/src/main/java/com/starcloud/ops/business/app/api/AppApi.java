@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.app.api;
 
-import com.starcloud.ops.business.app.api.app.dto.AppDTO;
-
 /**
  * 应用服务 API
  *

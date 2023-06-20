@@ -1,10 +1,14 @@
 package com.starcloud.ops.business.app.domain.handler.datasearch;
 
-import cn.kstry.framework.core.annotation.*;
+import cn.kstry.framework.core.annotation.Invoke;
+import cn.kstry.framework.core.annotation.NoticeSta;
+import cn.kstry.framework.core.annotation.ReqTaskParam;
+import cn.kstry.framework.core.annotation.TaskComponent;
+import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.starcloud.ops.business.app.domain.context.AppContext;
-import com.starcloud.ops.business.app.domain.entity.AppStepWrapper;
-import com.starcloud.ops.business.app.domain.entity2.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.handler.common.StepAndFunctionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,7 +33,7 @@ public class GoogleSearchActionHandler extends StepAndFunctionHandler {
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
 
 
-        AppStepWrapper appStepWrapper = context.getCurrentAppStepWrapper();
+        WorkflowStepWrapper appStepWrapper = context.getCurrentAppStepWrapper();
 
         String prompt = appStepWrapper.getContextVariablesValue("prompt", "hi, what you name?");
 

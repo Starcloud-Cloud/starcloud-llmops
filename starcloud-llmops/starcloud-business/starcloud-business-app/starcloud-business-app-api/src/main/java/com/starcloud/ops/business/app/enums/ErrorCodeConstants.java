@@ -20,59 +20,14 @@ public interface ErrorCodeConstants {
     ErrorCode APP_NO_EXISTS_UID = new ErrorCode(300200002, "The app is not exists! [UID: {}]");
 
     /**
-     * 应用 UID 为必须的
+     * 应用字段必填错误
      */
-    ErrorCode APP_UID_REQUIRED = new ErrorCode(300100000, "The app uid is required, please check and try again!");
+    ErrorCode APP_FIELD_REQUIRED = new ErrorCode(300100000, "The app {} is required, please check and try again!");
 
     /**
-     * 应用名称为必须的
+     * 应用字段不支持错误
      */
-    ErrorCode APP_NAME_REQUIRED = new ErrorCode(300100001, "The app name is required, please check and try again!");
-
-    /**
-     * 应用模型为必须的
-     */
-    ErrorCode APP_MODEL_REQUIRED = new ErrorCode(300100001, "The app model is required, please check and try again!");
-
-    /**
-     * 应用模型不支持
-     */
-    ErrorCode APP_MODEL_UNSUPPORTED = new ErrorCode(300100001, "The app model({}) is unsupported, please check and try again!");
-
-    /**
-     * 应用类型为必须的
-     */
-    ErrorCode APP_TYPE_REQUIRED = new ErrorCode(300100001, "The app type is required, please check and try again!");
-
-    /**
-     * 应用类型不支持
-     */
-    ErrorCode APP_TYPE_UNSUPPORTED = new ErrorCode(300100001, "The app type({}) is unsupported, please check and try again!");
-
-    /**
-     * 应用来源为必须的
-     */
-    ErrorCode APP_SOURCE_REQUIRED = new ErrorCode(300100001, "The app source is required, please check and try again!");
-
-    /**
-     * 应用来源不支持
-     */
-    ErrorCode APP_SOURCE_UNSUPPORTED = new ErrorCode(300100001, "The app source({}) is unsupported, please check and try again!");
-
-    /**
-     * 应用分类为必须的
-     */
-    ErrorCode APP_CATEGORY_REQUIRED = new ErrorCode(300100001, "The app category is required, please check and try again!");
-
-    /**
-     * 生成式应用配置为必须
-     */
-    ErrorCode APP_CONFIG_REQUIRED = new ErrorCode(300100001, "The app config is required for the app COMPLETION model!");
-
-    /**
-     * 聊天式应用配置为必须
-     */
-    ErrorCode APP_CHAT_CONFIG_REQUIRED = new ErrorCode(300100001, "The app chat config is required for the app CHAT model!");
+    ErrorCode APP_FIELD_UNSUPPORTED = new ErrorCode(300100001, "The app {}({}) is unsupported, please check and try again!");
 
     /**
      * 应用名称重复

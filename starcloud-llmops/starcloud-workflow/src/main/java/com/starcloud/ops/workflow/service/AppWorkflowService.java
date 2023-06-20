@@ -1,7 +1,6 @@
 package com.starcloud.ops.workflow.service;
 
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -11,33 +10,29 @@ import cn.kstry.framework.core.enums.TrackingTypeEnum;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.monitor.NoticeTracking;
-import cn.kstry.framework.core.util.GlobalUtil;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.CaseFormat;
-import com.starcloud.ops.business.app.api.app.dto.AppDTO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.AppStepResponse;
+import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
-import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.workflow.constant.WorkflowConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author df007df
@@ -66,9 +61,9 @@ public class AppWorkflowService {
     }
 
 
-    public void fireByApp(String appId, AppDTO AppDTO) {
+    public void fireByApp(String appId, AppReqVO appRequest) {
 
-        AppEntity app = AppFactory.factory(appId, AppDTO);
+        AppEntity app = AppFactory.factory(appId, appRequest);
 
         log.info("fireByAppUid app: {}", app);
 
@@ -79,9 +74,9 @@ public class AppWorkflowService {
     }
 
 
-    public void fireByApp(String appId, AppDTO appDTO, String stepId) {
+    public void fireByApp(String appId, AppReqVO appRequest, String stepId) {
 
-        AppEntity app = AppFactory.factory(appId, appDTO, stepId);
+        AppEntity app = AppFactory.factory(appId, appRequest, stepId);
 
         log.info("fireByAppUid app: {}", app);
 
@@ -91,9 +86,9 @@ public class AppWorkflowService {
         this.fireByAppContext(appContext);
     }
 
-    public void fireByApp(String appId, AppDTO AppDTO, String stepId, HttpServletResponse httpServletResponse) {
+    public void fireByApp(String appId, AppReqVO appRequest, String stepId, HttpServletResponse httpServletResponse) {
 
-        AppEntity app = AppFactory.factory(appId, AppDTO, stepId);
+        AppEntity app = AppFactory.factory(appId, appRequest, stepId);
 
         log.info("fireByAppUid app: {}", app);
 
@@ -105,9 +100,9 @@ public class AppWorkflowService {
     }
 
 
-    public void fireByApp(String appId, AppDTO appDTO, String stepId, String requestId) {
+    public void fireByApp(String appId, AppReqVO appRequest, String stepId, String requestId) {
 
-        AppEntity app = AppFactory.factory(appId, appDTO, stepId);
+        AppEntity app = AppFactory.factory(appId, appRequest, stepId);
 
         log.info("fireByAppUid app: {}", app);
 
@@ -222,7 +217,8 @@ public class AppWorkflowService {
 
         messageCreateReqVO.setElapsed(nodeTracking.getSpendTime());
 
-        Map<String, Object> variablesMaps = appContext.getCurrentAppStepWrapper(stepId).getContextVariablesMaps();
+//        Map<String, Object> variablesMaps = appContext.getCurrentAppStepWrapper(stepId).getContextVariablesMaps();
+        Map<String, Object> variablesMaps = new HashMap<>();
 
         messageCreateReqVO.setVariables(JSON.toJSONString(variablesMaps));
         messageCreateReqVO.setEndUser(appContext.getEndUser());
@@ -231,20 +227,20 @@ public class AppWorkflowService {
 
         if (nodeTracking.getTaskException() == null) {
 
-            AppStepResponse appStepResponse = this.getTracking(nodeTracking.getNoticeTracking(), AppStepResponse.class);
+            ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
 
-            messageCreateReqVO.setAppConfig(JSON.toJSONString(appStepResponse.getStepConfig()));
+            messageCreateReqVO.setAppConfig(JSON.toJSONString(actionResponse.getStepConfig()));
 
-            messageCreateReqVO.setMessage(appStepResponse.getMessage());
+            messageCreateReqVO.setMessage(actionResponse.getMessage());
 
-            messageCreateReqVO.setMessageTokens(appStepResponse.getMessageTokens().intValue());
-            messageCreateReqVO.setMessageUnitPrice(appStepResponse.getMessageUnitPrice());
+            messageCreateReqVO.setMessageTokens(actionResponse.getMessageTokens().intValue());
+            messageCreateReqVO.setMessageUnitPrice(actionResponse.getMessageUnitPrice());
 
-            messageCreateReqVO.setAnswer(appStepResponse.getAnswer());
-            messageCreateReqVO.setAnswerTokens(appStepResponse.getAnswerTokens().intValue());
-            messageCreateReqVO.setAnswerUnitPrice(appStepResponse.getAnswerUnitPrice());
+            messageCreateReqVO.setAnswer(actionResponse.getAnswer());
+            messageCreateReqVO.setAnswerTokens(actionResponse.getAnswerTokens().intValue());
+            messageCreateReqVO.setAnswerUnitPrice(actionResponse.getAnswerUnitPrice());
 
-            messageCreateReqVO.setTotalPrice(appStepResponse.getTotalPrice());
+            messageCreateReqVO.setTotalPrice(actionResponse.getTotalPrice());
             messageCreateReqVO.setCurrency("USD");
 
             messageCreateReqVO.setStatus(LogStatusEnum.SUCCESS.name());

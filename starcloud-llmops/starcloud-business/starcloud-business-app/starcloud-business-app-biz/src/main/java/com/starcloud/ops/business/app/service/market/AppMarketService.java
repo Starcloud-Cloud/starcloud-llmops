@@ -1,11 +1,11 @@
 package com.starcloud.ops.business.app.service.market;
 
 import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
-import com.starcloud.ops.business.app.api.market.request.AppMarketAuditRequest;
-import com.starcloud.ops.business.app.api.market.request.AppMarketPageQuery;
-import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
-import com.starcloud.ops.business.app.api.market.request.AppMarketUidVersionRequest;
-import com.starcloud.ops.business.app.api.market.request.AppMarketUpdateRequest;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
+import com.starcloud.ops.business.app.api.base.vo.request.UidVersionRequest;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateRequest;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
@@ -40,14 +40,14 @@ public interface AppMarketService {
      *
      * @param request 应用信息
      */
-    void create(AppMarketRequest request);
+    void create(AppMarketReqVO request);
 
     /**
      * 更新应用市场的应用
      *
      * @param request 应用信息
      */
-    void modify(AppMarketUpdateRequest request);
+    void modify(AppMarketUpdateReqVO request);
 
     /**
      * 删除应用市场的应用
@@ -62,14 +62,14 @@ public interface AppMarketService {
      *
      * @param request 安装请求
      */
-    void install(AppMarketUidVersionRequest request);
+    void install(UidVersionRequest request);
 
     /**
      * 审核应用
      *
      * @param request 审核请求
      */
-    void audit(AppMarketAuditRequest request);
+    void audit(AppMarketAuditReqVO request);
 
     /**
      * 应用操作

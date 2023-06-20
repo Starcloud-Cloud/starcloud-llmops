@@ -1,11 +1,15 @@
 package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
-import cn.kstry.framework.core.annotation.*;
+import cn.kstry.framework.core.annotation.Invoke;
+import cn.kstry.framework.core.annotation.NoticeSta;
+import cn.kstry.framework.core.annotation.ReqTaskParam;
+import cn.kstry.framework.core.annotation.TaskComponent;
+import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.domain.context.AppContext;
-import com.starcloud.ops.business.app.domain.entity.AppStepWrapper;
-import com.starcloud.ops.business.app.domain.entity2.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.handler.common.FlowStepHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.HumanMessage;
@@ -33,14 +37,13 @@ import java.util.Map;
 public class OpenAIChatActionHandler extends FlowStepHandler {
 
 
-
     @NoticeSta
     @TaskService(name = "OpenAIChatStepHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
 
 
-        AppStepWrapper appStepWrapper = context.getCurrentAppStepWrapper();
+        WorkflowStepWrapper appStepWrapper = context.getCurrentAppStepWrapper();
 
         String prompt = appStepWrapper.getContextVariablesValue("prompt", "hi, what you name?");
 

@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.api.app.dto;
 
-import cn.iocoder.yudao.framework.common.util.date.DateUtils;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.dto.config.ChatConfigDTO;
+import com.starcloud.ops.business.app.api.app.dto.config.WorkflowConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -98,13 +98,13 @@ public class AppDTO implements Serializable {
      * 应用详细配置信息, 步骤，变量，场景等
      */
     @Schema(description = "应用详细配置信息, 步骤，变量，场景等")
-    private AppConfigDTO config;
+    private WorkflowConfigDTO workflowConfig;
 
     /**
      * 应用聊天配置
      */
     @Schema(description = "应用聊天配置")
-    private AppChatConfigDTO chatConfig;
+    private ChatConfigDTO chatConfig;
 
     /**
      * 应用步骤图标、多个以逗号分割

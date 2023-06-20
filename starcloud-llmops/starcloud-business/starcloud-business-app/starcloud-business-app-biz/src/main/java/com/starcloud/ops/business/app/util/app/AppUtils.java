@@ -1,12 +1,7 @@
 package com.starcloud.ops.business.app.util.app;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
-import com.starcloud.ops.business.app.api.app.dto.StepDTO;
-import com.starcloud.ops.business.app.api.app.dto.StepWrapperDTO;
-import com.starcloud.ops.business.app.api.app.request.AppRequest;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.experimental.UtilityClass;
@@ -14,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -34,35 +28,23 @@ public class AppUtils {
     public static final List<String> DEFAULT_SCENES = Arrays.asList("WEB_ADMIN", "WEB_MARKET");
 
     /**
-     * 处理请求数据
+     * 逗号分隔符拼接字符串
      *
-     * @param request 请求数据
+     * @param list 字符串集合
+     * @return 拼接后的字符串
      */
-    public static void buildRequest(AppRequest request) {
-        request.setName(request.getName().trim());
-        request.setModel(request.getModel().toUpperCase().trim());
-        request.setType(request.getType().toUpperCase().trim());
-        request.setSource(request.getSource().toUpperCase().trim());
-        request.setTags(StringUtil.toList(request.getTags()));
-        request.setCategories(StringUtil.toList(request.getCategories()));
-        request.setScenes(buildScenes(request.getScenes()));
-        request.setImages(StringUtil.toList(request.getImages()));
+    public static String join(List<String> list) {
+        return StringUtil.toString(list);
     }
 
     /**
-     * 将场景集合处理构建成字符串
+     * 字符串分隔符转换成集合
      *
-     * @param sceneList 场景列表
-     * @return 场景字符串
+     * @param str 字符串
+     * @return 集合
      */
-    public static List<String> buildScenes(List<String> sceneList) {
-        // 如果为空，则返回默认场景
-        if (CollectionUtil.isEmpty(sceneList)) {
-            return DEFAULT_SCENES;
-        }
-
-        // 去重排序并且返回字符串
-        return StringUtil.toList(merge(DEFAULT_SCENES, sceneList));
+    public static List<String> split(String str) {
+        return StringUtil.toList(str);
     }
 
     /**
@@ -102,31 +84,6 @@ public class AppUtils {
     }
 
     /**
-     * 构建步骤图标
-     *
-     * @param config 模版配置
-     * @return 图标字符串
-     */
-    public static String buildStepIcons(AppConfigDTO config) {
-        return CollectionUtil.emptyIfNull(config.getSteps()).stream()
-                .map(stepWrapper -> Optional.ofNullable(stepWrapper).map(StepWrapperDTO::getStep).map(StepDTO::getIcon).orElse(StringUtils.EMPTY))
-                .filter(StringUtils::isNotBlank)
-                .map(String::trim)
-                .collect(Collectors.joining(","));
-    }
-
-    /**
-     * 构建步骤word 数量
-     *
-     * @param config 模版配置
-     * @return word 数量
-     */
-    public static Integer buildWord(AppConfigDTO config) {
-
-        return 0;
-    }
-
-    /**
      * 合并两个集合
      *
      * @param source 源集合
@@ -146,25 +103,6 @@ public class AppUtils {
         return target;
     }
 
-    /**
-     * 逗号分隔符拼接字符串
-     *
-     * @param list 字符串集合
-     * @return 拼接后的字符串
-     */
-    public static String join(List<String> list) {
-        return StringUtil.toString(list);
-    }
-
-    /**
-     * 字符串分隔符转换成集合
-     *
-     * @param str 字符串
-     * @return 集合
-     */
-    public static List<String> split(String str) {
-        return StringUtil.toList(str);
-    }
 
     /**
      * 生成uid, 例如：uid-1
@@ -205,7 +143,29 @@ public class AppUtils {
         return Integer.valueOf(split[1]);
     }
 
-    public static void exception(ErrorCode code) {
-        throw ServiceExceptionUtil.exception(code);
+    /**
+     * 获取下一个版本
+     *
+     * @param version 老版本
+     * @return 新版本
+     */
+    public static Integer nextVersion(Integer version) {
+        return version + 1;
+    }
+
+    /**
+     * 将场景集合处理构建成字符串
+     *
+     * @param sceneList 场景列表
+     * @return 场景字符串
+     */
+    public static List<String> buildScenes(List<String> sceneList) {
+        // 如果为空，则返回默认场景
+        if (CollectionUtil.isEmpty(sceneList)) {
+            return DEFAULT_SCENES;
+        }
+
+        // 去重排序并且返回字符串
+        return StringUtil.toList(merge(DEFAULT_SCENES, sceneList));
     }
 }
