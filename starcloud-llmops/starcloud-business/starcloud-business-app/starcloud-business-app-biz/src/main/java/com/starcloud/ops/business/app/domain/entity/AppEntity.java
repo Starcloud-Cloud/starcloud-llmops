@@ -1,18 +1,14 @@
 package com.starcloud.ops.business.app.domain.entity;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.starcloud.ops.business.app.domain.entity.action.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * App 实体类
@@ -130,15 +126,6 @@ public class AppEntity {
         } else if (AppModelEnum.CHAT.name().equals(this.model)) {
             chatConfig.validate();
         }
-    }
-
-    /**
-     * 根据 uid 获取应用
-     *
-     * @return AppEntity
-     */
-    public AppEntity getByUid() {
-        return getAppRepository().getByUid(this.uid);
     }
 
     /**

@@ -4,6 +4,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -133,12 +134,30 @@ public class AppMarketEntity {
     }
 
     /**
-     * 根据 uid 和 version 获取应用市场应用
-     *
-     * @return 应用市场应用
+     * 校验
      */
-    public AppMarketEntity getByUidAndVersion() {
-        return getAppMarketRepository().getByUidAndVersion(this.uid, this.version);
+    public void validate() {
+        if (AppModelEnum.COMPLETION.name().equals(this.model)) {
+            workflowConfig.validate();
+        } else if (AppModelEnum.CHAT.name().equals(this.model)) {
+            chatConfig.validate();
+        }
+    }
+
+    /**
+     * 新增应用
+     */
+    public void insert() {
+        validate();
+        getAppMarketRepository().insert(this);
+    }
+
+    /**
+     * 更新应用
+     */
+    public void update() {
+        validate();
+        getAppMarketRepository().update(this);
     }
 
 
