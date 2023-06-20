@@ -126,11 +126,10 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
                 break;
         }
 
-
         // 输入转换
         UserBenefitsStrategyDO userBenefitsStrategy = UserBenefitsStrategyConvert.convert(createReqVO);
         // 设置 code 前缀
-        userBenefitsStrategy.setCode(strategyTypeEnums.getPrefix() + "_" + userBenefitsStrategy.getCode());
+        userBenefitsStrategy.setCode(userBenefitsStrategy.getCode());
 
         // 数据插入
         userBenefitsStrategyMapper.insert(userBenefitsStrategy);
@@ -227,6 +226,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         // 获取当前租户下的权益策略
         UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsStrategyMapper.selectOne(wrapper);
         if (userBenefitsStrategyDO == null) {
+
             throw exception(BENEFITS_STRATEGY_DATA_NOT_EXISTS);
         }
         return userBenefitsStrategyDO;

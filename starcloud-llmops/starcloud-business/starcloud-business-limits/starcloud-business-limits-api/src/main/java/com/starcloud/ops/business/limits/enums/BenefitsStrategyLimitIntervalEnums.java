@@ -43,7 +43,7 @@ public enum BenefitsStrategyLimitIntervalEnums {
     /**
      * code
      */
-    private final String code;
+    private final String name;
 
     /**
      * 中文名称
@@ -57,6 +57,6 @@ public enum BenefitsStrategyLimitIntervalEnums {
 
 
     public static BenefitsStrategyLimitIntervalEnums getByCode(String code) {
-        return ArrayUtil.firstMatch(o -> o.getCode().equals(code), values());
+        return ArrayUtil.firstMatch(o -> o.getName().equals(code), values());
     }
 }
