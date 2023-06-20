@@ -15,13 +15,13 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
-import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.redis.app.RecommendedAppRedisDAO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
@@ -57,6 +57,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppMapper appMapper;
+
+    @Resource
+    private AppRepository appRepository;
 
     @Resource
     private AppMarketMapper appMarketMapper;
@@ -180,9 +183,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public void deleteByUid(String uid) {
-        AppEntity entity = new AppEntity();
-        entity.setUid(uid);
-        entity.deleteByUid();
+        appRepository.deleteByUid(uid);
     }
 
     /**

@@ -42,11 +42,4 @@ public class AppMarketServiceTest extends BaseDbUnitTest {
         appMarketService.audit(request);
     }
 
-
-    @Test
-    public void statisticsCountByCategoryTest() {
-        List<AppCategoryVO> appCategoryVOS = appMarketMapper.statisticsCountByCategory(Arrays.asList(0, 1,2));
-        log.info("appCategoryVOS: {}", JSON.toJSONString(appCategoryVOS));
-
-    }
 }

@@ -17,7 +17,7 @@ public class AppFactory {
     public static AppEntity factory(String appId) {
         AppEntity app = new AppEntity();
         app.setUid(appId);
-        app = app.entityByUid();
+        app = app.getByUid();
         Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
         return app;
     }

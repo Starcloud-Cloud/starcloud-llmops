@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -112,6 +114,32 @@ public class AppMarketEntity {
      */
     @Schema(description = "应用example")
     private String example;
+
+    /**
+     * 应用市场数据库操作类
+     */
+    private static AppMarketRepository appMarketRepository;
+
+    /**
+     * 获取应用市场数据库操作类
+     *
+     * @return 应用市场数据库操作类
+     */
+    public static AppMarketRepository getAppMarketRepository() {
+        if (appMarketRepository == null) {
+            appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
+        }
+        return appMarketRepository;
+    }
+
+    /**
+     * 根据 uid 和 version 获取应用市场应用
+     *
+     * @return 应用市场应用
+     */
+    public AppMarketEntity getByUidAndVersion() {
+        return getAppMarketRepository().getByUidAndVersion(this.uid, this.version);
+    }
 
 
 }

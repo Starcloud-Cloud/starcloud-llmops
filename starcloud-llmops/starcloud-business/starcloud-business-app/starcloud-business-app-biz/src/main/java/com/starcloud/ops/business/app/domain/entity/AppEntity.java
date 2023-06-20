@@ -137,7 +137,7 @@ public class AppEntity {
      *
      * @return AppEntity
      */
-    public AppEntity entityByUid() {
+    public AppEntity getByUid() {
         return getAppRepository().getByUid(this.uid);
     }
 
@@ -155,25 +155,6 @@ public class AppEntity {
     public void update() {
         validate();
         getAppRepository().update(this);
-    }
-
-    /**
-     * 删除应用
-     */
-    public void deleteByUid() {
-        getAppRepository().deleteByUid(this.uid);
-    }
-
-    /**
-     * 应用步骤图标、多个以逗号分割
-     *
-     * @return List<String>
-     */
-    public List<String> getActionIcons() {
-        return CollectionUtil.emptyIfNull(this.workflowConfig.getSteps()).stream()
-                .map(WorkflowStepWrapper::getFlowStep)
-                .map(WorkflowStepEntity::getIcon)
-                .collect(Collectors.toList());
     }
 
 }

@@ -37,7 +37,7 @@ public class AppMarketRepository {
      * @param uid 应用唯一标识
      * @return 应用实体
      */
-    public AppMarketEntity getByUid(String uid, Integer version) {
+    public AppMarketEntity getByUidAndVersion(String uid, Integer version) {
         LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class)
                 .eq(AppMarketDO::getUid, uid)
                 .eq(AppMarketDO::getVersion, version);
@@ -104,12 +104,13 @@ public class AppMarketRepository {
      *
      * @param uid 应用唯一标识
      */
-    public void deleteByUid(String uid, Integer version) {
+    public void deleteByUidAndVersion(String uid, Integer version) {
         // 判断应用是否存在, 不存在无法删除
-
+        AppValidate.isTrue(isExists(uid, version), ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID_VERSION, uid, version);
         LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
                 .eq(AppMarketDO::getUid, uid)
                 .eq(AppMarketDO::getVersion, version);
+        appMarketMapper.delete(wrapper);
     }
 
     /**
