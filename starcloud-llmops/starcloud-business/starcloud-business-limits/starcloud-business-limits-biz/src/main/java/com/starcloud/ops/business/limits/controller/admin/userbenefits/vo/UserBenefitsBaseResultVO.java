@@ -1,0 +1,27 @@
+package com.starcloud.ops.business.limits.controller.admin.userbenefits.vo;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.ToString;
+
+@Schema(description = "管理后台 - 用户权益余量信息 VO")
+@Data
+@ToString(callSuper = true)
+public class UserBenefitsBaseResultVO {
+
+
+    @Schema(description = "名称")
+    private String name;
+
+    @Schema(description = "类型")
+    private String type;
+
+    @Schema(description = "总量")
+    private Long totalNum;
+
+    @Schema(description = "使用量")
+    private Long usedNum;
+
+    @Schema(description = "权益百分比")
+    private Integer percentage;
+}

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo;
 
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyLimitIntervalEnums;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
@@ -25,31 +26,31 @@ public class UserBenefitsStrategyCreateReqVO {
     @Size(max = 100, message = "策略描述长度不能超过100个字符")
     private String strategyDesc;
 
-    @Schema(description = "权益类型（字典中管理）", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    @Schema(description = "权益类型", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "权益类型（字典中管理）不能为空")
     private String strategyType;
 
-    @Schema(description = "应用数", requiredMode = Schema.RequiredMode.REQUIRED, example = "25436")
+    @Schema(description = "应用数", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "应用数不能为空")
     private Long appCount;
 
-    @Schema(description = "数据集数", requiredMode = Schema.RequiredMode.REQUIRED, example = "9948")
+    @Schema(description = "数据集数", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "数据集数不能为空")
     private Long datasetCount;
 
-    @Schema(description = "图片数", requiredMode = Schema.RequiredMode.REQUIRED, example = "25669")
+    @Schema(description = "图片数", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "图片数不能为空")
     private Long imageCount;
 
-    @Schema(description = "令牌数", requiredMode = Schema.RequiredMode.REQUIRED, example = "28197")
+    @Schema(description = "令牌数", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "令牌数不能为空")
     private Long tokenCount;
 
-    @Schema(description = "有效时间单位范围（-1，不设限制）", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "策略有效时间单位范围（-1，不设限制）", requiredMode = Schema.RequiredMode.REQUIRED, defaultValue = "YEAR")
     @NotNull(message = "有效时间单位范围（-1，不设限制）不能为空")
     private String effectiveUnit;
 
-    @Schema(description = "有效时间数", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "策略有效时间数", requiredMode = Schema.RequiredMode.REQUIRED, defaultValue = "YEAR")
     @NotNull(message = "有效时间数不能为空")
     private Long effectiveNum;
 
@@ -57,15 +58,15 @@ public class UserBenefitsStrategyCreateReqVO {
     @NotNull(message = "限制兑换次数不能为空")
     private Long limitNum;
 
-    @Schema(description = "限制间隔多久可用（-1，不设限制）", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "限制间隔多久可用（-1，不设限制）", requiredMode = Schema.RequiredMode.REQUIRED, defaultValue = "ONCE_ONLY")
     @NotNull(message = "限制间隔多久可用（-1，不设限制）不能为空")
     private String limitIntervalUnit;
 
-    @Schema(description = "限制兑换次数（-1，不设限制）", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "间隔内兑换次数（-1，不设限制）", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "限制兑换次数（-1，不设限制）不能为空")
     private Long limitIntervalNum;
 
-    @Schema(description = "是否启用", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "是否启用", requiredMode = Schema.RequiredMode.REQUIRED, defaultValue = "true")
     @NotNull(message = "是否启用不能为空")
     private Boolean enabled;
 }

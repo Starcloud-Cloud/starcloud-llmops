@@ -8,9 +8,34 @@
         <version>${starcloud.revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
+    <packaging>pom</packaging>
+    <modules>
+        <module>starcloud-business-order-api</module>
+        <module>starcloud-business-order-biz</module>
+    </modules>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>starcloud-business-order</artifactId>
     <version>${starcloud.revision}</version>
 
+
+    <dependencyManagement>
+
+        <dependencies>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-order-api</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-order-biz</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
 </project>

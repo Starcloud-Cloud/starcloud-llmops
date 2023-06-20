@@ -3,11 +3,13 @@ package com.starcloud.ops.business.limits.controller.admin.userbenefits;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsBaseResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsRespVO;
 import com.starcloud.ops.business.limits.convert.userbenefits.UserBenefitsConvert;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,5 +54,18 @@ public class UserBenefitsController {
         return success(UserBenefitsConvert.INSTANCE.convertPage(pageResult));
     }
 
+    @PostMapping("/checkSignIn")
+    @Operation(summary = "判断用户是否签到")
+    @PreAuthorize("@ss.hasPermission('llm:user-benefits:checkSignIn')")
+    public CommonResult<Boolean> checkSignIn() {
+        return success(userBenefitsService.hasSignInBenefitToday(getLoginUserId()));
+    }
+
+    @PostMapping("/signIn")
+    @Operation(summary = "用户签到")
+    @PreAuthorize("@ss.hasPermission('llm:user-benefits:signIn')")
+    public CommonResult<Boolean> signIn() {
+        return success(userBenefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName(), getLoginUserId()));
+    }
 
 }

@@ -48,7 +48,7 @@ public enum BenefitsStrategyEffectiveUnitEnums {
     /**
      * code
      */
-    private final String code;
+    private final String name;
 
     /**
      * 中文名称
@@ -62,6 +62,6 @@ public enum BenefitsStrategyEffectiveUnitEnums {
 
 
     public static BenefitsStrategyEffectiveUnitEnums getByCode(String code) {
-        return ArrayUtil.firstMatch(o -> o.getCode().equals(code), values());
+        return ArrayUtil.firstMatch(o -> o.getName().equals(code), values());
     }
 }
