@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.app.service.market;
 
-import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
-import com.starcloud.ops.business.app.api.base.vo.request.UidVersionRequest;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
-import com.starcloud.ops.business.app.api.operate.request.AppOperateRequest;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 /**
@@ -24,7 +24,7 @@ public interface AppMarketService {
      * @param query 查询条件
      * @return 应用市场列表
      */
-    PageResp<AppMarketDTO> page(AppMarketPageQuery query);
+    PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
 
     /**
      * 根据应用 uid 和 版本号 获取应用详情
@@ -33,7 +33,7 @@ public interface AppMarketService {
      * @param version 应用版本号
      * @return 应用详情
      */
-    AppMarketDTO getByUid(String uid, Integer version);
+    AppMarketRespVO getByUidAndVersion(String uid, Integer version);
 
     /**
      * 创建应用市场的应用
@@ -55,14 +55,14 @@ public interface AppMarketService {
      * @param uid     应用 uid
      * @param version 应用版本号
      */
-    void deleteByUid(String uid, Integer version);
+    void deleteByUidAndVersion(String uid, Integer version);
 
     /**
      * 下载安装应用
      *
      * @param request 安装请求
      */
-    void install(UidVersionRequest request);
+    void install(AppInstallReqVO request);
 
     /**
      * 审核应用
@@ -76,5 +76,5 @@ public interface AppMarketService {
      *
      * @param request 操作请求
      */
-    void operate(AppOperateRequest request);
+    void operate(AppOperateReqVO request);
 }

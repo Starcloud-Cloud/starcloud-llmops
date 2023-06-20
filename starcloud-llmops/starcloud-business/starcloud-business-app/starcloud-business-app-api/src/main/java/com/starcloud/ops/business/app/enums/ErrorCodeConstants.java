@@ -56,15 +56,6 @@ public interface ErrorCodeConstants {
 
 
     // ========== 应用市场错误码 3-002-000-000 ==========
-    /**
-     * 该应用在应用市场不存在
-     */
-    ErrorCode APP_MARKET_NOT_EXISTS = new ErrorCode(300200000, "The App Is Not Exists In The Market! [ID: {}]");
-
-    /**
-     * 应用市场应用不存在
-     */
-    ErrorCode APP_MARKET_NO_EXISTS_UID = new ErrorCode(300200001, "The App Is Not Exists In The Market! [UID: {}]");
 
     /**
      * 应用市场应用不存在
@@ -72,29 +63,31 @@ public interface ErrorCodeConstants {
     ErrorCode APP_MARKET_NO_EXISTS_UID_VERSION = new ErrorCode(300200001, "The App Is Not Exists In The Market! [UID: {}, version: {}]");
 
     /**
-     * 应用市场数据不能为空
-     */
-    ErrorCode APP_MARKET_DATA_IS_NULL = new ErrorCode(300200002, "The {} must can't be null");
-
-    /**
      * 应用市场操作不支持
      */
     ErrorCode APP_MARKET_OPERATE_NOT_SUPPORTED = new ErrorCode(300200003, "The [{}] operate is not supported");
 
     /**
+     * 应用已经下载过
+     */
+    ErrorCode APP_HAS_BEEN_INSTALLED = new ErrorCode(300200006, "The app has been installed, Please check and try again ! ");
+
+    /**
      * 应用市场操作失败
      */
-    ErrorCode APP_MARKET_FAIL = new ErrorCode(300200004, "App Market Fail: {} ");
+    ErrorCode APP_MARKET_FAIL = new ErrorCode(300200004, "App market fail: {} ");
+
+    ErrorCode USER_MAY_NOT_LOGIN = new ErrorCode(300200010, "User may not login");
+
+    /**
+     * 应用市场操作为必须的
+     */
+    ErrorCode APP_OPERATE_IS_REQUIRED = new ErrorCode(300200009, "The app operate is required, Please check and try again ! ");
 
     /**
      * 应用市场版本为必须的
      */
     ErrorCode APP_MARKET_VERSION_REQUIRED = new ErrorCode(300200005, "The App Version Is Required, Please Check And Try Again ! ");
-
-    /**
-     * 应用市场模型未知
-     */
-    ErrorCode APP_MODEL_IS_UNKNOWN = new ErrorCode(300200006, "The App Model Is Unknown, Please Check And Try Again ! [model: {}]");
 
     /**
      * 应用市场审核为必须的
@@ -104,6 +97,6 @@ public interface ErrorCodeConstants {
     /**
      * 应用市场审核不支持
      */
-    ErrorCode APP_MARKET_AUDIT_IS_NOT_SUPPORT = new ErrorCode(300200008, "The App Audit Is Not Support, Please Check And Try Again ! [audit: {}]");
+    ErrorCode APP_MARKET_AUDIT_IS_NOT_SUPPORT = new ErrorCode(300200008, "The app audit is not support, please check and try again! [audit: {}]");
 
 }

@@ -2,10 +2,10 @@ package com.starcloud.ops.business.app.controller.admin.market;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,15 +40,15 @@ public class AppMarketController {
     @GetMapping("/page")
     @Operation(summary = "分页查询应用市场应用列表", description = "分页查询应用市场应用列表")
     @ApiOperationSupport(order = 10, author = "nacoyer")
-    public CommonResult<PageResp<AppMarketDTO>> page(@Validated AppMarketPageQuery query) {
+    public CommonResult<PageResp<AppMarketRespVO>> page(@Validated AppMarketPageQuery query) {
         return CommonResult.success(appMarketService.page(query));
     }
 
     @GetMapping("/get")
     @Operation(summary = "根据 UID 和版本号 获得应用详情", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 11, author = "nacoyer")
-    public CommonResult<AppMarketDTO> get(@RequestParam("uid") String uid, @RequestParam("version") Integer version) {
-        return CommonResult.success(appMarketService.getByUid(uid, version));
+    public CommonResult<AppMarketRespVO> get(@RequestParam("uid") String uid, @RequestParam("version") Integer version) {
+        return CommonResult.success(appMarketService.getByUidAndVersion(uid, version));
     }
 
     @PostMapping("/create")
@@ -71,7 +71,7 @@ public class AppMarketController {
     @Operation(summary = "删除应用市场模版", description = "根据 UID 删除应用市场应用")
     @ApiOperationSupport(order = 15, author = "nacoyer")
     public CommonResult<Boolean> delete(@RequestParam("uid") String uid, @RequestParam("version") Integer version) {
-        appMarketService.deleteByUid(uid, version);
+        appMarketService.deleteByUidAndVersion(uid, version);
         return CommonResult.success(Boolean.TRUE);
     }
 

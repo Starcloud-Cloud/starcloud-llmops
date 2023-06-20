@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.api.market.vo.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
+import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -43,6 +45,7 @@ public class AppMarketAuditReqVO implements Serializable {
      */
     @Schema(description = "审核状态", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "审核状态不能为空")
+    @InEnum(value = AppMarketAuditEnum.class, field = InEnum.EnumField.CODE, message = "审核状态[{value}]必须在: [{values}] 范围内！")
     private Integer audit;
 
 }

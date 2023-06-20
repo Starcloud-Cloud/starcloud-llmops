@@ -9,10 +9,13 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespV
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -102,6 +105,38 @@ public interface AppConvert {
             appEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
         } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
             appEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
+        }
+
+        return appEntity;
+    }
+
+    /**
+     * AppMarketDO 转 AppEntity, 安装应用，更新应用时候使用
+     *
+     * @param appMarket AppMarketDO
+     * @return AppEntity
+     */
+    default AppEntity convert(AppMarketDO appMarket) {
+        AppEntity appEntity = new AppEntity();
+        appEntity.setName(appMarket.getName());
+        appEntity.setModel(appMarket.getModel());
+        appEntity.setType(AppTypeEnum.DOWNLOAD.name());
+        appEntity.setSource(AppSourceEnum.WEB.name());
+        appEntity.setTags(AppUtils.split(appMarket.getTags()));
+        appEntity.setCategories(AppUtils.split(appMarket.getCategories()));
+        appEntity.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
+        appEntity.setImages(AppUtils.split(appMarket.getImages()));
+        appEntity.setIcon(appMarket.getIcon());
+
+        appEntity.setDescription(appMarket.getDescription());
+        appEntity.setUploadUid(null);
+        appEntity.setDownloadUid(AppUtils.generateUid(appMarket.getUid(), appMarket.getVersion()));
+        appEntity.setLastUpload(null);
+
+        if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
+            appEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
+        } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
+            appEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
         }
 
         return appEntity;

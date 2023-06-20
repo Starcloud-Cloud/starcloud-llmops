@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * App Repository
@@ -122,9 +123,11 @@ public class AppMarketRepository {
      */
     public Boolean isExists(String uid, Integer version) {
         LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class)
+                .select(AppMarketDO::getId)
                 .eq(AppMarketDO::getUid, uid)
                 .eq(AppMarketDO::getVersion, version);
-        return appMarketMapper.selectCount(wrapper) > 0;
+        AppMarketDO appMarketDO = appMarketMapper.selectOne(wrapper);
+        return Objects.nonNull(appMarketDO);
     }
 
     /**
@@ -136,5 +139,6 @@ public class AppMarketRepository {
         LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class).eq(AppMarketDO::getName, name);
         return appMarketMapper.selectCount(wrapper) > 0;
     }
+
 
 }
