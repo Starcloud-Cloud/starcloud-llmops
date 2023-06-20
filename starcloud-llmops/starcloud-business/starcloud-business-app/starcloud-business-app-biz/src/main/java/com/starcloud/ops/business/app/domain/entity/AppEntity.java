@@ -1,15 +1,15 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.domain.entity.action.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
-import com.starcloud.ops.business.app.domain.repository.AppRepository;
+import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import lombok.Data;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -104,8 +104,22 @@ public class AppEntity {
      */
     private LocalDateTime lastUpload;
 
-    @Resource
-    private AppRepository appRepository;
+    /**
+     * AppRepository
+     */
+    private static AppRepository appRepository;
+
+    /**
+     * 获取 AppRepository
+     *
+     * @return AppRepository
+     */
+    public static AppRepository getAppRepository() {
+        if (appRepository == null) {
+            appRepository = SpringUtil.getBean(AppRepository.class);
+        }
+        return appRepository;
+    }
 
     /**
      * 校验
@@ -124,7 +138,7 @@ public class AppEntity {
      * @return AppEntity
      */
     public AppEntity entityByUid() {
-        return appRepository.getByUid(this.uid);
+        return getAppRepository().getByUid(this.uid);
     }
 
     /**
@@ -132,7 +146,7 @@ public class AppEntity {
      */
     public void insert() {
         validate();
-        appRepository.insert(this);
+        getAppRepository().insert(this);
     }
 
     /**
@@ -140,14 +154,14 @@ public class AppEntity {
      */
     public void update() {
         validate();
-        appRepository.update(this);
+        getAppRepository().update(this);
     }
 
     /**
      * 删除应用
      */
     public void deleteByUid() {
-        appRepository.deleteByUid(this.uid);
+        getAppRepository().deleteByUid(this.uid);
     }
 
     /**

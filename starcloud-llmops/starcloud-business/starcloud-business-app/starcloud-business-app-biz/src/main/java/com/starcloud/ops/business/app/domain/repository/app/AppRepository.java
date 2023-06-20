@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.domain.repository;
+package com.starcloud.ops.business.app.domain.repository.app;
 
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;

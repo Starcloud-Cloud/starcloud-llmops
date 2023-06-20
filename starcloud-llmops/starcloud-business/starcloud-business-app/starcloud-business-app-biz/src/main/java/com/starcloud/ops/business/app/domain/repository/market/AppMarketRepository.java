@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.domain.repository;
+package com.starcloud.ops.business.app.domain.repository.market;
 
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -105,7 +105,11 @@ public class AppMarketRepository {
      * @param uid 应用唯一标识
      */
     public void deleteByUid(String uid, Integer version) {
+        // 判断应用是否存在, 不存在无法删除
 
+        LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
+                .eq(AppMarketDO::getUid, uid)
+                .eq(AppMarketDO::getVersion, version);
     }
 
     /**
