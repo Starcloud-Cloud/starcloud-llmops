@@ -31,17 +31,17 @@ public class WeChatUnsubscribeHandler implements WxMpMessageHandler {
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信取消关注事件，内容：{}", wxMessage);
-
-        SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
-                .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
-                .eq(SocialUserDO::getOpenid, wxMessage.getFromUser())
-                .eq(SocialUserDO::getDeleted, 0)
-        );
-        if (socialUserDO == null) {
-            return null;
-        }
-        socialUserMapper.deleteById(socialUserDO);
-        socialUserBindMapper.deleteByUserTypeAndSocialUserId(UserTypeEnum.ADMIN.getValue(), socialUserDO.getId());
+//        取消关注解绑
+//        SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
+//                .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
+//                .eq(SocialUserDO::getOpenid, wxMessage.getFromUser())
+//                .eq(SocialUserDO::getDeleted, 0)
+//        );
+//        if (socialUserDO == null) {
+//            return null;
+//        }
+//        socialUserMapper.deleteById(socialUserDO);
+//        socialUserBindMapper.deleteByUserTypeAndSocialUserId(UserTypeEnum.ADMIN.getValue(), socialUserDO.getId());
         return null;
     }
 }

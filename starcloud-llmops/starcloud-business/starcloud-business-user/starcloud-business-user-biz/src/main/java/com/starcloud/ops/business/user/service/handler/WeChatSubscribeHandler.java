@@ -9,6 +9,7 @@ import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.starcloud.ops.business.user.service.StarUserService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -63,7 +64,18 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
         WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
 
-        SocialUserDO socialUserDO = SocialUserDO.builder().code(wxMessage.getTicket())
+        SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
+                .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
+                .eq(SocialUserDO::getOpenid, wxMpUser.getOpenId())
+                .eq(SocialUserDO::getDeleted, 0));
+
+        if (socialUserDO != null) {
+            //取消关注后重新关注 已有帐号
+            redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
+            return null;
+        }
+
+        socialUserDO = SocialUserDO.builder().code(wxMessage.getTicket())
                 .nickname(wxMessage.getFromUser())
                 .type(SocialTypeEnum.WECHAT_MP.getType())
                 .openid(wxMpUser.getOpenId())
