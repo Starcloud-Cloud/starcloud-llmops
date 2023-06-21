@@ -7,11 +7,14 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * App Repository
@@ -47,7 +50,7 @@ public class AppRepository {
         // 校验应用名称是否重复
         AppValidate.isTrue(!duplicateName(appEntity.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
         AppDO app = AppConvert.INSTANCE.convert(appEntity);
-        app.setUid(IdUtil.fastSimpleUUID());
+        app.setUid(AppUtils.generateUid(AppConstants.APP_PREFIX));
         app.setUploadUid(null);
         app.setLastUpload(null);
         app.setDeleted(Boolean.FALSE);
@@ -75,13 +78,24 @@ public class AppRepository {
      */
     public void deleteByUid(String uid) {
         // 校验应用是否存在
-        AppDO app = appMapper.selectOne(Wrappers.lambdaQuery(AppDO.class).eq(AppDO::getUid, uid));
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        AppValidate.isTrue(isExists(uid), ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
 
+        // 删除应用
         LambdaUpdateWrapper<AppDO> wrapper = Wrappers.lambdaUpdate(AppDO.class)
                 .set(AppDO::getDeleted, Boolean.TRUE)
                 .eq(AppDO::getUid, uid);
-        appMapper.update(null, wrapper);
+        appMapper.delete(wrapper);
+    }
+
+    /**
+     * 判断应用是否存在
+     *
+     * @param uid 应用 UID 标识
+     * @return 是否存在: true 存在，false 不存在
+     */
+    public Boolean isExists(String uid) {
+        return Objects.nonNull(appMapper.selectOne(Wrappers.lambdaQuery(AppDO.class)
+                .select(AppDO::getId).eq(AppDO::getUid, uid)));
     }
 
     /**

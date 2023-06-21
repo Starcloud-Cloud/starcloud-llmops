@@ -1,11 +1,12 @@
 package com.starcloud.ops.business.app.service.app;
 
-import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;
@@ -25,6 +26,13 @@ public interface AppService {
      * @return 应用分类列表
      */
     List<AppCategoryVO> categories();
+
+    /**
+     * 查询应用语言列表
+     *
+     * @return 应用语言列表
+     */
+    List<Option> languages();
 
     /**
      * 查询推荐的应用列表
@@ -82,7 +90,7 @@ public interface AppService {
      *
      * @param request 应用发布到应用市场请求对象
      */
-    void publicAppToMarket(AppPublishReqVO request);
+    void publish(AppPublishReqVO request);
 
     /**
      * 批量发布应用到应用市场

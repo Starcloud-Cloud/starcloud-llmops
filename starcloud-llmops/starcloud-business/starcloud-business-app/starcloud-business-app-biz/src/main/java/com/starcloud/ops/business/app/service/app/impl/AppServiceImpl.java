@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
@@ -15,33 +15,38 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.convert.category.CategoryConvert;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.redis.app.RecommendedAppRedisDAO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.app.LanguageEnum;
+import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.dto.SortQuery;
 import com.starcloud.ops.framework.common.api.enums.SortType;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -83,11 +88,34 @@ public class AppServiceImpl implements AppService {
         request.setStatus(StateEnum.ENABLE.getCode());
         List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
 
+        // 未查询到数据，返回空列表
         if (CollectionUtil.isEmpty(dictDataList)) {
             return Collections.emptyList();
         }
-//
-        return null;
+        // 转换为应用分类列表
+        return dictDataList.stream().map(CategoryConvert.INSTANCE::convert)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    /**
+     * 查询应用语言列表
+     *
+     * @return 应用语言列表
+     */
+    @Override
+    public List<Option> languages() {
+        LanguageEnum[] values = LanguageEnum.values();
+        return Arrays.stream(values).map(language -> {
+            Option option = new Option();
+            option.setValue(language.getCode());
+            Locale locale = LocaleContextHolder.getLocale();
+            if (Locale.CHINA.equals(locale)) {
+                option.setLabel(language.getLabel());
+            } else {
+                option.setLabel(language.getLabelEn());
+            }
+            return option;
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -193,50 +221,47 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void publicAppToMarket(AppPublishReqVO request) {
-
-        // 查询应用是否存在，不存在则抛出异常
+    public void publish(AppPublishReqVO request) {
+        // 查询我的应用是否存在，不存在则抛出异常
         AppDO appDO = appMapper.selectOne(Wrappers.lambdaQuery(AppDO.class).eq(AppDO::getUid, request.getUid()));
         AppValidate.notNull(appDO, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getUid());
 
-        AppMarketDO marketDO = null;
-        marketDO.setUid(IdUtil.fastSimpleUUID());
-        if (StringUtils.isBlank(appDO.getUploadUid())) {
-            // 说明没有发布过应用市场。
-            marketDO.setVersion(AppConstants.DEFAULT_VERSION);
-            marketDO.setLikeCount(0);
-            marketDO.setViewCount(0);
-            marketDO.setDownloadCount(0);
-        } else {
-            // 说明已经发布过应用市场。
-            LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class)
-                    .eq(AppMarketDO::getUid, AppUtils.getUid(appDO.getUploadUid()))
-                    .orderByDesc(AppMarketDO::getCreateTime);
-            List<AppMarketDO> appMarketList = appMarketMapper.selectList(wrapper);
+        AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appDO, request);
+        // 判断是否已经发布过应用市场：判断依据：uploadUid 是否为空
+        if (StringUtils.isNotBlank(appDO.getUploadUid())) {
+            // 此时说明该应用已经发布过应用市场，需要先将之前的应用市场记录置为不可用。
+            // 查询之前发布的应用市场记录的所有版本，按照版本号倒序排序。
+            LambdaQueryWrapper<AppMarketDO> marketQueryWrapper = Wrappers.lambdaQuery(AppMarketDO.class)
+                    .select(AppMarketDO::getId, AppMarketDO::getUid, AppMarketDO::getVersion,
+                            AppMarketDO::getLikeCount, AppMarketDO::getVersion, AppMarketDO::getDownloadCount)
+                    .eq(AppMarketDO::getUid, AppUtils.obtainUid(appDO.getUploadUid()))
+                    .orderByDesc(AppMarketDO::getVersion);
+            List<AppMarketDO> appMarketList = appMarketMapper.selectList(marketQueryWrapper);
+
+            // 如果查询结果不为空，则获取最新的一条记录，进行处理: UID 不变，版本号增加, 三数取最新一条记录的数据。
             if (CollectionUtil.isNotEmpty(appMarketList)) {
                 AppMarketDO appMarketDO = appMarketList.get(0);
-                marketDO.setUid(appMarketDO.getUid());
+                // 新增的数据，UID 不变，版本号增加
+                appMarketEntity.setUid(appMarketDO.getUid());
                 // 版本号增加
-                marketDO.setVersion(appMarketDO.getVersion() + 1);
-                marketDO.setLikeCount(Optional.ofNullable(appMarketDO.getLikeCount()).orElse(0));
-                marketDO.setViewCount(Optional.ofNullable(appMarketDO.getViewCount()).orElse(0));
-                marketDO.setDownloadCount(Optional.ofNullable(appMarketDO.getDownloadCount()).orElse(0));
-            } else {
-                // 说明已经发布过应用市场，但是已经被删除了。或者是数据异常。覆盖发布。
-                marketDO.setVersion(AppConstants.DEFAULT_VERSION);
-                marketDO.setLikeCount(0);
-                marketDO.setViewCount(0);
-                marketDO.setDownloadCount(0);
+                appMarketEntity.setVersion(AppUtils.nextVersion(appMarketDO.getVersion()));
+                // 三数取最新一条记录的数据
+                appMarketEntity.setLikeCount(Optional.ofNullable(appMarketDO.getLikeCount()).orElse(0));
+                appMarketEntity.setViewCount(Optional.ofNullable(appMarketDO.getViewCount()).orElse(0));
+                appMarketEntity.setDownloadCount(Optional.ofNullable(appMarketDO.getDownloadCount()).orElse(0));
             }
         }
-//        // 保存到应用市场
-//        appMarketMapper.insert(marketDO);
-//        // 更新我的应用
-//        AppDO publishApp = AppConvert.convertPublish(request);
-//        publishApp.setUploadUid(AppUtils.generateUid(marketDO.getUid(), marketDO.getVersion()));
-//        appMapper.update(publishApp, Wrappers.lambdaUpdate(AppDO.class)
-//                .eq(AppDO::getUid, request.getUid())
-//                .eq(AppDO::getStatus, StateEnum.ENABLE.getCode()));
+        // 校验数据
+        appMarketEntity.validate();
+        AppMarketDO appMarketDO = AppMarketConvert.INSTANCE.convert(appMarketEntity);
+        // 统一设置为待审核状态
+        appMarketDO.setAudit(AppMarketAuditEnum.PENDING.getCode());
+        // 保存到应用市场
+        appMarketMapper.insert(appMarketDO);
+
+        // 更新我的应用
+        appDO.setUploadUid(AppUtils.generateUid(appMarketDO.getUid(), appMarketDO.getVersion()));
+        appMapper.update(appDO, Wrappers.lambdaUpdate(AppDO.class).eq(AppDO::getUid, request.getUid()));
     }
 
     /**
@@ -257,9 +282,14 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public Boolean verifyHasDownloaded(String marketUid) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        if (Objects.isNull(loginUserId)) {
+            return Boolean.FALSE;
+        }
         LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class)
                 .eq(AppDO::getDownloadUid, marketUid)
-                .eq(AppDO::getType, AppTypeEnum.DOWNLOAD.name());
+                .eq(AppDO::getType, AppTypeEnum.DOWNLOAD.name())
+                .eq(AppDO::getCreator, SecurityFrameworkUtils.getLoginUserId());
         Long count = appMapper.selectCount(wrapper);
         return count > 0;
     }

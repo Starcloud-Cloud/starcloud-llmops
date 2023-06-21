@@ -1,18 +1,24 @@
 package com.starcloud.ops.business.app.convert.market;
 
 import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+
+import java.math.BigDecimal;
+import java.util.stream.Collectors;
 
 /**
  * 模版市场转换器
@@ -103,6 +109,41 @@ public interface AppMarketConvert {
             appMarketEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
         }
 
+        return appMarketEntity;
+    }
+
+    /**
+     * AppDO 转 AppMarketEntity <br>
+     * 发布应用到应用市场时使用。首次发布
+     *
+     * @param app AppDO
+     * @return AppMarketEntity
+     */
+    default AppMarketEntity convert(AppDO app, AppPublishReqVO publishRequest) {
+        AppMarketEntity appMarketEntity = new AppMarketEntity();
+        appMarketEntity.setUid(AppUtils.generateUid(AppUtils.generateUid(AppConstants.MARKET_PREFIX)));
+        appMarketEntity.setName(app.getName());
+        appMarketEntity.setModel(app.getModel());
+        appMarketEntity.setVersion(AppConstants.DEFAULT_VERSION);
+        appMarketEntity.setLanguage(publishRequest.getLanguage());
+        appMarketEntity.setTags(AppUtils.split(app.getTags()));
+        appMarketEntity.setCategories(publishRequest.getCategories().stream().map(String::trim).distinct().collect(Collectors.toList()));
+        appMarketEntity.setScenes(AppUtils.splitScenes(app.getScenes()));
+        appMarketEntity.setImages(AppUtils.split(app.getImages()));
+        appMarketEntity.setIcon(app.getIcon());
+        appMarketEntity.setFree(Boolean.TRUE);
+        appMarketEntity.setCost(BigDecimal.ZERO);
+        appMarketEntity.setLikeCount(0);
+        appMarketEntity.setViewCount(0);
+        appMarketEntity.setDownloadCount(0);
+        appMarketEntity.setDescription(app.getDescription());
+        appMarketEntity.setExample(publishRequest.getExample());
+
+        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+            appMarketEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
+        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+            appMarketEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
+        }
         return appMarketEntity;
     }
 

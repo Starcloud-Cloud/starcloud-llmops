@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.repository.market;
 
-import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -55,7 +54,7 @@ public class AppMarketRepository {
     public void insert(AppMarketEntity appMarketEntity) {
         AppMarketDO appMarket = AppMarketConvert.INSTANCE.convert(appMarketEntity);
         // 新增 UID 重新生成
-        appMarket.setUid(IdUtil.fastSimpleUUID());
+        appMarket.setUid(AppUtils.generateUid(AppConstants.MARKET_PREFIX));
         // 新增版本号默认为 1
         appMarket.setVersion(AppConstants.DEFAULT_VERSION);
         // 新增，点赞，查看，下载量为 0
@@ -126,8 +125,7 @@ public class AppMarketRepository {
                 .select(AppMarketDO::getId)
                 .eq(AppMarketDO::getUid, uid)
                 .eq(AppMarketDO::getVersion, version);
-        AppMarketDO appMarketDO = appMarketMapper.selectOne(wrapper);
-        return Objects.nonNull(appMarketDO);
+        return Objects.nonNull(appMarketMapper.selectOne(wrapper));
     }
 
     /**

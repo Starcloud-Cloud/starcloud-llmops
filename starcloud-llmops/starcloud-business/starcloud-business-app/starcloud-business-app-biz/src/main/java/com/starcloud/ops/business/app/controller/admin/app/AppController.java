@@ -2,27 +2,21 @@ package com.starcloud.ops.business.app.controller.admin.app;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -44,9 +38,16 @@ public class AppController {
 
     @GetMapping("/categories")
     @Operation(summary = "查询应用类别列表", description = "查询应用类别列表")
-    @ApiOperationSupport(order = 8, author = "nacoyer")
+    @ApiOperationSupport(order = 6, author = "nacoyer")
     public CommonResult<List<AppCategoryVO>> categories() {
         return CommonResult.success(appService.categories());
+    }
+
+    @GetMapping("/languages")
+    @Operation(summary = "查询应用语言列表", description = "查询语言列表")
+    @ApiOperationSupport(order = 6, author = "nacoyer")
+    public CommonResult<List<Option>> languages() {
+        return CommonResult.success(appService.languages());
     }
 
     @GetMapping("/recommends")
@@ -106,7 +107,7 @@ public class AppController {
     @Operation(summary = "发布应用到应用市场", description = "发布应用到应用市场")
     @ApiOperationSupport(order = 24, author = "nacoyer")
     public CommonResult<Boolean> publish(@Validated @RequestBody AppPublishReqVO request) {
-        appService.publicAppToMarket(request);
+        appService.publish(request);
         return CommonResult.success(Boolean.TRUE);
     }
 
