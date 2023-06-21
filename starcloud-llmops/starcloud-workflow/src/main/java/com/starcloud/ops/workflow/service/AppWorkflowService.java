@@ -13,6 +13,7 @@ import cn.kstry.framework.core.monitor.NoticeTracking;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.ExecuteAppRespVO;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
@@ -110,6 +111,9 @@ public class AppWorkflowService {
         appContext.setHttpServletResponse(httpServletResponse);
 
         this.fireByAppContext(appContext);
+
+        new ExecuteAppRespVO();
+
     }
 
 
