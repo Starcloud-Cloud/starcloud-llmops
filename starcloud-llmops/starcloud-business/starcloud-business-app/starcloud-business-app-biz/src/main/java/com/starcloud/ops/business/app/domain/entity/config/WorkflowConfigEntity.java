@@ -39,8 +39,10 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     /**
      * 模版步骤
      */
-    public WorkflowStepWrapper getStep(String stepId) {
-        return null;
+    public WorkflowStepWrapper getStepWrapper(String stepId) {
+        return Optional.ofNullable(steps).orElse(new ArrayList<>()).stream().filter((wrapper) -> {
+            return wrapper.getField().equals(stepId);
+        }).findFirst().orElse(null);
     }
 
     @Override

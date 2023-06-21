@@ -1,12 +1,13 @@
 package com.starcloud.ops.business.app.domain.context;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.IdUtil;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
@@ -23,7 +24,6 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Validated
 public class AppContext {
 
 
@@ -32,7 +32,9 @@ public class AppContext {
     private String stepId;
 
     @NotNull
-    private String scene;
+    private AppSceneEnum scene;
+
+    private String user;
 
     private String endUser;
 
@@ -44,8 +46,10 @@ public class AppContext {
 
     private HttpServletResponse httpServletResponse;
 
-    public AppContext(AppEntity app) {
+    public AppContext(AppEntity app, AppSceneEnum scene) {
+        this.conversationId = IdUtil.simpleUUID();
         this.app = app;
+        this.scene = scene;
         this.stepId = app.getWorkflowConfig().getFirstStep().getField();
     }
 
@@ -68,13 +72,9 @@ public class AppContext {
      *
      * @return
      */
-    public WorkflowStepWrapper getCurrentAppStepWrapper() {
+    public WorkflowStepWrapper getCurrentStepWrapper() {
 
-        Assert.notBlank(this.getStepId(), "AppContext stepId is not blank");
-
-        WorkflowStepWrapper stepWrapper = this.app.getWorkflowConfig().getStep(this.getStepId());
-
-        return stepWrapper;
+        return this.getStepWrapper(this.getStepId());
     }
 
     /**
@@ -82,11 +82,11 @@ public class AppContext {
      *
      * @return
      */
-    public WorkflowStepWrapper getCurrentAppStepWrapper(String stepId) {
+    public WorkflowStepWrapper getStepWrapper(String stepId) {
 
         Assert.notBlank(stepId, "AppContext stepId is not blank");
 
-        WorkflowStepWrapper stepWrapper = this.app.getWorkflowConfig().getStep(this.getStepId());
+        WorkflowStepWrapper stepWrapper = this.app.getWorkflowConfig().getStepWrapper(stepId);
 
         return stepWrapper;
     }

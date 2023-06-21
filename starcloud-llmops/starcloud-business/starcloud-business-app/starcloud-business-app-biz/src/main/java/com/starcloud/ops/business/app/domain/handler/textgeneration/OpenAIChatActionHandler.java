@@ -18,7 +18,6 @@ import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.schema.callbacks.StreamingStdOutCallbackHandler;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -42,7 +41,7 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
 
 
-        WorkflowStepWrapper appStepWrapper = context.getCurrentAppStepWrapper();
+        WorkflowStepWrapper appStepWrapper = context.getCurrentStepWrapper();
 
         String prompt = appStepWrapper.getContextVariablesValue("prompt", "hi, what you name?");
 

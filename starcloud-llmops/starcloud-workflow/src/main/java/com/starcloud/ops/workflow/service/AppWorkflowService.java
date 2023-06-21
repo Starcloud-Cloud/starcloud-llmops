@@ -13,10 +13,12 @@ import cn.kstry.framework.core.monitor.NoticeTracking;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.ExecuteAppRespVO;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
@@ -25,8 +27,10 @@ import com.starcloud.ops.workflow.constant.WorkflowConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +43,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Component
+@Validated
 public class AppWorkflowService {
 
 
@@ -49,64 +54,76 @@ public class AppWorkflowService {
     @Autowired
     private StoryEngine storyEngine;
 
-    public void fireByAppUid(String appId) {
+    /**
+     * 根据保存的配置直接执行，默认第一个step
+     *
+     * @param appId
+     */
+    public void fireByAppUid(String appId, AppSceneEnum scene) {
 
         AppEntity app = AppFactory.factory(appId);
 
         log.info("fireByAppUid app: {}", app);
 
-        AppContext appContext = new AppContext(app);
+        AppContext appContext = new AppContext(app, scene);
 
         this.fireByAppContext(appContext);
     }
 
 
-    public void fireByApp(String appId, AppReqVO appRequest) {
+    /**
+     * 根据传入的配置 执行
+     *
+     * @param appId
+     * @param scene
+     */
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest) {
 
         AppEntity app = AppFactory.factory(appId, appRequest);
 
         log.info("fireByAppUid app: {}", app);
 
-        AppContext appContext = new AppContext(app);
+        AppContext appContext = new AppContext(app, scene);
 
 
         this.fireByAppContext(appContext);
     }
 
 
-    public void fireByApp(String appId, AppReqVO appRequest, String stepId) {
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId) {
 
         AppEntity app = AppFactory.factory(appId, appRequest, stepId);
 
         log.info("fireByAppUid app: {}", app);
 
-        AppContext appContext = new AppContext(app);
+        AppContext appContext = new AppContext(app, scene);
         appContext.setStepId(stepId);
 
         this.fireByAppContext(appContext);
     }
 
-    public void fireByApp(String appId, AppReqVO appRequest, String stepId, HttpServletResponse httpServletResponse) {
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, HttpServletResponse httpServletResponse) {
 
         AppEntity app = AppFactory.factory(appId, appRequest, stepId);
 
-        log.info("fireByAppUid app: {}", app);
-
-        AppContext appContext = new AppContext(app);
+        AppContext appContext = new AppContext(app, scene);
         appContext.setStepId(stepId);
         appContext.setHttpServletResponse(httpServletResponse);
 
         this.fireByAppContext(appContext);
+
+        new ExecuteAppRespVO();
+
     }
 
 
-    public void fireByApp(String appId, AppReqVO appRequest, String stepId, String requestId) {
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId) {
 
         AppEntity app = AppFactory.factory(appId, appRequest, stepId);
 
         log.info("fireByAppUid app: {}", app);
 
-        AppContext appContext = new AppContext(app);
+        AppContext appContext = new AppContext(app, scene);
         appContext.setStepId(stepId);
         appContext.setConversationId(requestId);
 
@@ -115,7 +132,7 @@ public class AppWorkflowService {
     }
 
 
-    private void fireByAppContext(AppContext appContext) {
+    private void fireByAppContext(@Valid AppContext appContext) {
 
         StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
                 .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
@@ -124,12 +141,7 @@ public class AppWorkflowService {
                 .request(appContext).build();
 
 
-        //@todo
-        appContext.setScene("scene");
-
         LogAppConversationCreateReqVO conversation = this.createAppConversationLog(appContext);
-
-        appContext.setConversationId(conversation.getUid());
 
         req.setRecallStoryHook(recallStory -> {
             MonitorTracking monitorTracking = recallStory.getMonitorTracking();
@@ -171,7 +183,7 @@ public class AppWorkflowService {
         LogAppConversationCreateReqVO logAppConversationCreateReqVO = new LogAppConversationCreateReqVO();
 
         logAppConversationCreateReqVO.setUid(appContext.getConversationId());
-        logAppConversationCreateReqVO.setAppMode("completion");
+        logAppConversationCreateReqVO.setAppMode(appContext.getApp().getModel());
         logAppConversationCreateReqVO.setAppName(appContext.getApp().getName());
 
         logAppConversationCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
@@ -179,7 +191,7 @@ public class AppWorkflowService {
         logAppConversationCreateReqVO.setAppUid(appContext.getApp().getUid());
         logAppConversationCreateReqVO.setAppConfig(JSON.toJSONString(appContext.getApp()));
 
-        logAppConversationCreateReqVO.setFromScene(appContext.getScene());
+        logAppConversationCreateReqVO.setFromScene(appContext.getScene().name());
         logAppConversationCreateReqVO.setEndUser(appContext.getEndUser());
 
         logAppConversationCreateReqVO.setCreateTime(LocalDateTime.now());
@@ -222,7 +234,7 @@ public class AppWorkflowService {
 
         messageCreateReqVO.setVariables(JSON.toJSONString(variablesMaps));
         messageCreateReqVO.setEndUser(appContext.getEndUser());
-        messageCreateReqVO.setFromScene(appContext.getScene());
+        messageCreateReqVO.setFromScene(appContext.getScene().name());
         messageCreateReqVO.setCurrency("USD");
 
         if (nodeTracking.getTaskException() == null) {

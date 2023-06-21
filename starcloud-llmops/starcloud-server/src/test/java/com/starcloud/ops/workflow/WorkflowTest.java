@@ -10,6 +10,8 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatActionHandler;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import com.starcloud.ops.workflow.service.AppWorkflowService;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +59,7 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         appEntity.setUid(appId);
         appEntity.setName("ppId-test name");
+        appEntity.setModel(AppModelEnum.CHAT.name());
 
         WorkflowConfigEntity appConfigEntity = new WorkflowConfigEntity();
 
@@ -103,7 +106,7 @@ public class WorkflowTest extends BaseDbUnitTest {
     public void testRunTest() {
 
 
-        appWorkflowService.fireByAppUid(appId);
+        appWorkflowService.fireByAppUid(appId, AppSceneEnum.WEB_MARKET);
 
     }
 
@@ -112,7 +115,7 @@ public class WorkflowTest extends BaseDbUnitTest {
     public void fireByAppTest() {
 
 
-        appWorkflowService.fireByApp(appId, new AppReqVO());
+        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO());
 
     }
 
@@ -121,7 +124,7 @@ public class WorkflowTest extends BaseDbUnitTest {
         MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
 
-        appWorkflowService.fireByApp(appId, new AppReqVO(), "title");
+        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title");
     }
 
 
@@ -129,7 +132,7 @@ public class WorkflowTest extends BaseDbUnitTest {
     public void fireByAppStepStreamTest() {
         MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
 
-        appWorkflowService.fireByApp(appId, new AppReqVO(), "title", mockHttpServletResponse);
+        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title", mockHttpServletResponse);
 
     }
 
@@ -137,14 +140,14 @@ public class WorkflowTest extends BaseDbUnitTest {
     @Test
     public void fireByAppStepContentTest() {
 
-        appWorkflowService.fireByApp(appId, new AppReqVO(), "content");
+        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "content");
     }
 
 
     @Test
     public void fireByAppStepRequestIdTest() {
 
-        appWorkflowService.fireByApp(appId, new AppReqVO(), "title", "requestId-test");
+        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title", "requestId-test");
     }
 
 }
