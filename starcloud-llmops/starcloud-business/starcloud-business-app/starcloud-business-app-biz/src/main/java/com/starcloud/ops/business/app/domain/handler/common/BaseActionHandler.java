@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.domain.handler.common;
 
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.starcloud.ops.business.app.domain.context.AppContext;
-import com.starcloud.ops.business.app.domain.entity2.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 
 /**
  * @author nacoyer

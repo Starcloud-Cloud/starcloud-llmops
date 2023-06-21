@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.util.market;
 
-import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 
@@ -16,7 +16,7 @@ public class AppMarketUtils {
      *
      * @param request 请求数据
      */
-    public static void buildRequest(AppMarketRequest request) {
+    public static void buildRequest(AppMarketReqVO request) {
         request.setName(request.getName().trim());
         request.setModel(request.getModel().toUpperCase().trim());
         request.setTags(StringUtil.toList(request.getTags()));

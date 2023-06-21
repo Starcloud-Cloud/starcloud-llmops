@@ -1,31 +1,27 @@
 package com.starcloud.ops.business.app.convert.app;
 
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
-import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
-import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
-import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
-import com.starcloud.ops.business.app.api.app.dto.AppDTO;
-import com.starcloud.ops.business.app.api.app.dto.CategoryRemark;
-import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
-import com.starcloud.ops.business.app.api.app.request.AppRequest;
-import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
-import com.starcloud.ops.framework.common.api.enums.StateEnum;
-import com.starcloud.ops.framework.common.api.util.StringUtil;
-import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.i18n.LocaleContextHolder;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-import java.util.Locale;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 我的应用转换类
@@ -34,173 +30,165 @@ import java.util.Locale;
  * @version 1.0.0
  * @since 2023-05-29
  */
-@UtilityClass
-public class AppConvert {
+@Mapper
+public interface AppConvert {
 
     /**
-     * 将 DO 转换为 DTO
-     *
-     * @param appDO 模版 DO
-     * @return 模版 DTO
+     * AppConvert
      */
-    public static AppDTO convert(AppDO appDO) {
-        AppValidate.assertNotNull(appDO, "app Data");
-        AppDTO appDTO = new AppDTO();
-        appDTO.setUid(appDO.getUid());
-        appDTO.setName(appDO.getName());
-        appDTO.setModel(appDO.getModel());
-        appDTO.setType(appDO.getType());
-        appDTO.setSource(appDO.getSource());
-        appDTO.setTags(AppUtils.split(appDO.getTags()));
-        appDTO.setCategories(AppUtils.split(appDO.getCategories()));
-        appDTO.setScenes(AppUtils.splitScenes(appDO.getScenes()));
-        appDTO.setImages(null);
-        appDTO.setIcon(appDO.getIcon());
-        appDTO.setStepIcons(StringUtil.toList(appDO.getStepIcons()));
-        appDTO.setDescription(appDO.getDescription());
-        appDTO.setUploadUid(appDO.getUploadUid());
-        appDTO.setDownloadUid(appDO.getDownloadUid());
-        appDTO.setStatus(appDO.getStatus());
-        appDTO.setDeleted(appDO.getDeleted());
-        appDTO.setCreator(appDO.getCreator());
-        appDTO.setCreateTime(appDO.getCreateTime());
-        appDTO.setUpdater(appDO.getUpdater());
-        appDTO.setUpdateTime(appDO.getUpdateTime());
-        appDTO.setLastUpload(appDO.getLastUpload());
-        appDTO.setTenantId(appDO.getTenantId());
-        // 配置信息处理
-        if (AppModelEnum.COMPLETION.name().equals(appDO.getModel())) {
-            appDTO.setConfig(JSON.parseObject(appDO.getConfig(), AppConfigDTO.class));
-        } else if (AppModelEnum.CHAT.name().equals(appDO.getModel())) {
-            appDTO.setChatConfig(JSON.parseObject(appDO.getConfig(), AppChatConfigDTO.class));
-        } else {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MODEL_IS_UNKNOWN, appDO.getModel());
-        }
-        return appDTO;
-    }
+    AppConvert INSTANCE = Mappers.getMapper(AppConvert.class);
 
     /**
-     * 将请求转换为 DO
+     * AppReqVO 转 AppEntity
      *
-     * @param request 请求
-     * @return 模版 DO
+     * @param appRequest 我的应用请求对象
+     * @return AppEntity
      */
-    public static AppDO convertCreate(AppRequest request) {
-        AppValidate.validate(request);
-        AppUtils.buildRequest(request);
+    AppEntity convert(AppReqVO appRequest);
+
+    /**
+     * AppEntity 转 AppDO
+     *
+     * @param appEntity 我的应用实体
+     * @return AppDO
+     */
+    default AppDO convert(AppEntity appEntity) {
         AppDO appDO = new AppDO();
-        appDO.setName(request.getName());
-        appDO.setType(request.getType());
-        appDO.setSource(request.getSource());
-        appDO.setTags(AppUtils.join(request.getTags()));
-        appDO.setCategories(AppUtils.join(request.getCategories()));
-        appDO.setScenes(AppUtils.joinScenes(request.getScenes()));
-        appDO.setImages(null);
-        appDO.setIcon(request.getIcon());
-        appDO.setDescription(request.getDescription());
-        appDO.setStatus(StateEnum.ENABLE.getCode());
-        appDO.setDeleted(Boolean.FALSE);
-        if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
-            AppConfigDTO config = request.getConfig();
-            appDO.setConfig(JSON.toJSONString(config));
-            appDO.setStepIcons(AppUtils.buildStepIcons(config));
-        } else if (AppModelEnum.CHAT.name().equals(request.getModel())) {
-            AppChatConfigDTO chatConfig = request.getChatConfig();
-            appDO.setConfig(JSON.toJSONString(chatConfig));
-        } else {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MODEL_IS_UNKNOWN, request.getModel());
+        appDO.setUid(appEntity.getUid());
+        appDO.setName(appEntity.getName());
+        appDO.setModel(appEntity.getModel());
+        appDO.setSource(appEntity.getSource());
+        appDO.setTags(AppUtils.join(appEntity.getTags()));
+        appDO.setCategories(AppUtils.join(appEntity.getCategories()));
+        appDO.setScenes(AppUtils.joinScenes(appEntity.getScenes()));
+        appDO.setImages(AppUtils.join(appEntity.getImages()));
+        appDO.setIcon(appEntity.getIcon());
+
+        appDO.setDescription(appEntity.getDescription());
+        appDO.setUploadUid(appEntity.getUploadUid());
+        appDO.setDownloadUid(appEntity.getDownloadUid());
+        appDO.setLastUpload(appEntity.getLastUpload());
+
+        if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
+            appDO.setConfig(JSON.toJSONString(appEntity.getWorkflowConfig()));
+        } else if (AppModelEnum.CHAT.name().equals(appEntity.getModel())) {
+            appDO.setConfig(JSON.toJSONString(appEntity.getChatConfig()));
         }
 
         return appDO;
-
     }
 
     /**
-     * 将更新请求转换为 DO
+     * AppDO 转 AppEntity
      *
-     * @param request 更新请求
-     * @return 模版 DO
+     * @param app AppDO
+     * @return AppEntity
      */
-    public static AppDO convertModify(AppUpdateRequest request) {
-        AppValidate.assertNotNull(request, "App Update Request Data");
-        AppDO appDO = convertCreate(request);
-        appDO.setStatus(null);
-        appDO.setDeleted(null);
-        return appDO;
+    default AppEntity convert(AppDO app) {
+        AppEntity appEntity = new AppEntity();
+        appEntity.setUid(app.getUid());
+        appEntity.setName(app.getName());
+        appEntity.setModel(app.getModel());
+        appEntity.setSource(app.getSource());
+        appEntity.setTags(AppUtils.split(app.getTags()));
+        appEntity.setCategories(AppUtils.split(app.getCategories()));
+        appEntity.setScenes(AppUtils.splitScenes(app.getScenes()));
+        appEntity.setImages(AppUtils.split(app.getImages()));
+        appEntity.setIcon(app.getIcon());
+
+        appEntity.setDescription(app.getDescription());
+        appEntity.setUploadUid(app.getUploadUid());
+        appEntity.setDownloadUid(app.getDownloadUid());
+        appEntity.setLastUpload(app.getLastUpload());
+
+        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+            appEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
+        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+            appEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
+        }
+
+        return appEntity;
     }
 
     /**
-     * 将发布请求转换为 DO
+     * AppMarketDO 转 AppEntity, 安装应用，更新应用时候使用
      *
-     * @param request 发布请求
-     * @return 模版 DO
+     * @param appMarket AppMarketDO
+     * @return AppEntity
      */
-    public static AppDO convertPublish(AppPublishRequest request) {
-        AppValidate.assertNotNull(request, "App Publish Request Data");
-        AppDO appDO = convertCreate(request);
-        appDO.setStatus(null);
-        appDO.setDeleted(null);
-        return appDO;
+    default AppEntity convert(AppMarketDO appMarket) {
+        AppEntity appEntity = new AppEntity();
+        appEntity.setName(appMarket.getName());
+        appEntity.setModel(appMarket.getModel());
+        appEntity.setType(AppTypeEnum.DOWNLOAD.name());
+        appEntity.setSource(AppSourceEnum.WEB.name());
+        appEntity.setTags(AppUtils.split(appMarket.getTags()));
+        appEntity.setCategories(AppUtils.split(appMarket.getCategories()));
+        appEntity.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
+        appEntity.setImages(AppUtils.split(appMarket.getImages()));
+        appEntity.setIcon(appMarket.getIcon());
+
+        appEntity.setDescription(appMarket.getDescription());
+        appEntity.setUploadUid(null);
+        appEntity.setDownloadUid(AppUtils.generateUid(appMarket.getUid(), appMarket.getVersion()));
+        appEntity.setLastUpload(null);
+
+        if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
+            appEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
+        } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
+            appEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
+        }
+
+        return appEntity;
     }
 
     /**
-     * 将 DO 转换为 DTO
+     * AppDO 转 AppRespVO
      *
-     * @param market 应用市场
-     * @return App 请求
+     * @param app AppDO
+     * @return AppRespVO
      */
-    public static AppDO convertInsert(AppMarketDO market) {
-        AppRequest request = new AppRequest();
-        request.setName(market.getName());
-        request.setModel(market.getModel());
-        request.setType(AppTypeEnum.DOWNLOAD.name());
-        request.setSource(AppSourceEnum.WEB.name());
-        request.setTags(AppUtils.split(market.getTags()));
-        request.setCategories(AppUtils.split(market.getCategories()));
-        request.setScenes(AppUtils.splitScenes(market.getScenes()));
-        request.setImages(null);
-        request.setIcon(market.getIcon());
-        request.setDescription(market.getDescription());
-        if (AppModelEnum.COMPLETION.name().equals(market.getModel())) {
-            request.setConfig(JSON.parseObject(market.getConfig(), AppConfigDTO.class));
-        } else if (AppModelEnum.CHAT.name().equals(market.getModel())) {
-            request.setChatConfig(JSON.parseObject(market.getConfig(), AppChatConfigDTO.class));
-        } else {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MODEL_IS_UNKNOWN, market.getModel());
+    default AppRespVO convertResp(AppDO app) {
+        AppRespVO appRespVO = new AppRespVO();
+        appRespVO.setUid(app.getUid());
+        appRespVO.setName(app.getName());
+        appRespVO.setModel(app.getModel());
+        appRespVO.setModel(app.getModel());
+        appRespVO.setSource(app.getSource());
+        appRespVO.setTags(AppUtils.split(app.getTags()));
+        appRespVO.setCategories(AppUtils.split(app.getCategories()));
+        appRespVO.setScenes(AppUtils.splitScenes(app.getScenes()));
+        appRespVO.setImages(AppUtils.split(app.getImages()));
+        appRespVO.setIcon(app.getIcon());
+
+        appRespVO.setDescription(app.getDescription());
+        appRespVO.setUploadUid(app.getUploadUid());
+        appRespVO.setDownloadUid(app.getDownloadUid());
+        appRespVO.setCreateTime(app.getCreateTime());
+        appRespVO.setUpdateTime(app.getUpdateTime());
+        appRespVO.setLastUpload(app.getLastUpload());
+
+        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+            appRespVO.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigRespVO.class));
+            appRespVO.setActionIcons(buildActionIcons(appRespVO.getWorkflowConfig()));
+        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+            appRespVO.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigRespVO.class));
         }
-        return convertCreate(request);
+
+        return appRespVO;
     }
 
     /**
-     * 将 DictDataDO 转换为 AppCategoryDTO
+     * 构建 actionIcons
      *
-     * @param dict 字典数据
-     * @return AppCategoryDTO
+     * @param workflowConfig 工作流配置
+     * @return actionIcons
      */
-    public static AppCategoryDTO convertCategory(DictDataDO dict) {
-        String remark = dict.getRemark();
-        if (StringUtils.isBlank(remark)) {
-            return null;
-        }
-        CategoryRemark categoryRemark = JSON.parseObject(remark, CategoryRemark.class);
-        if (categoryRemark == null) {
-            return null;
-        }
-
-        AppCategoryDTO category = new AppCategoryDTO();
-        category.setCode(dict.getValue());
-        category.setSort(dict.getSort());
-        category.setIcon(categoryRemark.getIcon());
-        category.setImage(categoryRemark.getImage());
-        Locale locale = LocaleContextHolder.getLocale();
-        if (locale.equals(Locale.SIMPLIFIED_CHINESE)) {
-            category.setName(categoryRemark.getLabelZh());
-            category.setDescription(categoryRemark.getDescriptionZh());
-        } else {
-            category.setName(categoryRemark.getLabelEn());
-            category.setDescription(categoryRemark.getDescriptionEn());
-        }
-        return category;
+    default List<String> buildActionIcons(WorkflowConfigRespVO workflowConfig) {
+        return CollectionUtil.emptyIfNull(workflowConfig.getSteps()).stream()
+                .map(WorkflowStepWrapperRespVO::getFlowStep)
+                .map(WorkflowStepRespVO::getIcon)
+                .collect(Collectors.toList());
     }
 
 }

@@ -45,20 +45,20 @@ public class UserBenefitsTest extends BaseDbUnitTest {
         UserBenefitsStrategyCreateReqVO createReqVO =new UserBenefitsStrategyCreateReqVO();
 
         // 创建签到权益 权益限制为一天签到一次，不做兑换次数限制 ，有效期为 1 年
-        String code = userBenefitsStrategyService.generateUniqueCode(BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName());
+        String code = userBenefitsStrategyService.generateUniqueCode(BenefitsStrategyTypeEnums.PAY_PLUS.getName());
         createReqVO.setCode(code);
-        createReqVO.setStrategyName("签到权益");
-        createReqVO.setStrategyDesc("这是一个签到策略");
-        createReqVO.setStrategyType(BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName());
-        createReqVO.setAppCount(10L);
-        createReqVO.setDatasetCount(10L);
-        createReqVO.setImageCount(10L);
-        createReqVO.setTokenCount(999L);
+        createReqVO.setStrategyName("PLUS权益");
+        createReqVO.setStrategyDesc("这是一个PLUS权益");
+        createReqVO.setStrategyType(BenefitsStrategyTypeEnums.PAY_PLUS.getName());
+        createReqVO.setAppCount(1L);
+        createReqVO.setDatasetCount(1L);
+        createReqVO.setImageCount(2L);
+        createReqVO.setTokenCount(2000L);
         createReqVO.setEffectiveNum(1L);
-        createReqVO.setEffectiveUnit(BenefitsStrategyEffectiveUnitEnums.YEAR.getCode());
-        createReqVO.setLimitNum(-1L);
+        createReqVO.setEffectiveUnit(BenefitsStrategyEffectiveUnitEnums.MONTH.getName());
+        createReqVO.setLimitNum(10L);
         createReqVO.setLimitIntervalNum(1L);
-        createReqVO.setLimitIntervalUnit(BenefitsStrategyLimitIntervalEnums.DAY.getCode());
+        createReqVO.setLimitIntervalUnit(BenefitsStrategyLimitIntervalEnums.MONTH.getName());
         createReqVO.setEnabled(true);
 
         // 新增策略

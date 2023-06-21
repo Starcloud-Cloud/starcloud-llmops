@@ -99,19 +99,13 @@ public class AppMarketDO extends TenantBaseDO {
      * 应用是否是免费的
      */
     @TableField("free")
-    private Integer free;
+    private Boolean free;
 
     /**
      * 应用收费数
      */
     @TableField("cost")
     private BigDecimal cost;
-
-    /**
-     * 应用 word
-     */
-    @TableField("word")
-    private Integer word;
 
     /**
      * 应用点赞数量
@@ -154,11 +148,5 @@ public class AppMarketDO extends TenantBaseDO {
      */
     @TableField("audit")
     private Integer audit;
-
-    /**
-     * 应用状态，0：启用，1：禁用
-     */
-    @TableField("status")
-    private Integer status;
 
 }

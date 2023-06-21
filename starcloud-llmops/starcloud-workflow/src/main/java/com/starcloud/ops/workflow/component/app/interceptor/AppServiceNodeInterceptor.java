@@ -1,21 +1,14 @@
 package com.starcloud.ops.workflow.component.app.interceptor;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.TimeInterval;
-import cn.hutool.core.util.IdUtil;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import cn.kstry.framework.core.engine.interceptor.Iter;
 import cn.kstry.framework.core.engine.interceptor.IterData;
 import cn.kstry.framework.core.engine.interceptor.TaskInterceptor;
 import cn.kstry.framework.core.resource.service.ServiceNodeResource;
 import cn.kstry.framework.core.role.Role;
-import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.domain.context.AppContext;
-import com.starcloud.ops.business.app.domain.entity.AppStepResponse;
+import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.log.api.LogAppApi;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
@@ -57,7 +50,7 @@ public class AppServiceNodeInterceptor implements TaskInterceptor {
 //
 //        TimeInterval timer = DateUtil.timer();
 
-        AppStepResponse response = (AppStepResponse) iter.next();
+        ActionResponse response = (ActionResponse) iter.next();
 
 //        Long elapsed = timer.interval();
 //

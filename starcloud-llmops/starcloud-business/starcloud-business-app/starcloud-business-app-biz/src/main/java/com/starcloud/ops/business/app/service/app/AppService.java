@@ -1,11 +1,11 @@
 package com.starcloud.ops.business.app.service.app;
 
-import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
-import com.starcloud.ops.business.app.api.app.dto.AppDTO;
-import com.starcloud.ops.business.app.api.app.request.AppPageQuery;
-import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
-import com.starcloud.ops.business.app.api.app.request.AppRequest;
-import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
+import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
+import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;
@@ -24,14 +24,14 @@ public interface AppService {
      *
      * @return 应用分类列表
      */
-    List<AppCategoryDTO> categories();
+    List<AppCategoryVO> categories();
 
     /**
      * 查询推荐的应用列表
      *
      * @return 模版列表
      */
-    List<AppDTO> listRecommendedApps();
+    List<AppRespVO> listRecommendedApps();
 
     /**
      * 分页查询应用列表
@@ -39,7 +39,7 @@ public interface AppService {
      * @param query 查询条件
      * @return 应用列表
      */
-    PageResp<AppDTO> page(AppPageQuery query);
+    PageResp<AppRespVO> page(AppPageQuery query);
 
     /**
      * 根据应用 UID 获取应用详情
@@ -47,28 +47,28 @@ public interface AppService {
      * @param uid 应用 UID
      * @return 应用详情
      */
-    AppDTO getByUid(String uid);
+    AppRespVO getByUid(String uid);
 
     /**
      * 创建模版
      *
      * @param request 应用请求信息
      */
-    void create(AppRequest request);
+    void create(AppReqVO request);
 
     /**
      * 复制应用
      *
      * @param request 应用请求信息
      */
-    void copy(AppRequest request);
+    void copy(AppReqVO request);
 
     /**
      * 应用模版
      *
      * @param request 应用更新请求信息
      */
-    void modify(AppUpdateRequest request);
+    void modify(AppUpdateReqVO request);
 
     /**
      * 根据应用 UID 删除应用
@@ -82,14 +82,14 @@ public interface AppService {
      *
      * @param request 应用发布到应用市场请求对象
      */
-    void publicAppToMarket(AppPublishRequest request);
+    void publicAppToMarket(AppPublishReqVO request);
 
     /**
      * 批量发布应用到应用市场
      *
      * @param requestList 应用发布到应用市场请求对象列表
      */
-    void batchPublicAppToMarket(List<AppPublishRequest> requestList);
+    void batchPublicAppToMarket(List<AppPublishReqVO> requestList);
 
     /**
      * 校验应用是否已经下载过
@@ -98,13 +98,5 @@ public interface AppService {
      * @return 是否已经下载
      */
     Boolean verifyHasDownloaded(String marketKey);
-
-    /**
-     * 应用名称重复校验
-     *
-     * @param name 应用名称
-     * @return 是否重复
-     */
-    Boolean duplicateNameVerification(String name);
 
 }

@@ -3,23 +3,28 @@ package com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo.UserBenefitsStrategyCreateReqVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo.UserBenefitsStrategyPageReqVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo.UserBenefitsStrategyRespVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo.UserBenefitsStrategyUpdateReqVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo.*;
 import com.starcloud.ops.business.limits.convert.userbenefitsstrategy.UserBenefitsStrategyConvert;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyEffectiveUnitEnums;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyLimitIntervalEnums;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.limits.service.util.BenefitsOperationService;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -124,6 +129,35 @@ public class UserBenefitsStrategyController {
     public CommonResult<PageResult<UserBenefitsStrategyRespVO>> getUserBenefitsStrategyPage(@Validated UserBenefitsStrategyPageReqVO pageVO) {
         PageResult<UserBenefitsStrategyDO> pageResult = userBenefitsStrategyService.getUserBenefitsStrategyPage(pageVO);
         return success(UserBenefitsStrategyConvert.convertPage(pageResult));
+    }
+
+    @GetMapping("/base/strategyType")
+    @Operation(summary = "获得权益策略类型")
+    public ResponseEntity<List<BaseEnumsVO>> getBenefitsStrategy() {
+        List<BaseEnumsVO> strategyList = Arrays.stream(BenefitsStrategyTypeEnums.values())
+                .map(strategy -> new BaseEnumsVO(strategy.getName(), strategy.getChineseName()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(strategyList);
+    }
+
+    @GetMapping("/base/effectiveUnit")
+    @Operation(summary = "获得权益策略有效时间单位")
+    public ResponseEntity<List<BaseEnumsVO>> getBenefitsEffectiveUnit() {
+        List<BaseEnumsVO> strategyList = Arrays.stream(BenefitsStrategyEffectiveUnitEnums.values())
+                .map(strategy -> new BaseEnumsVO(strategy.getName(), strategy.getChineseName()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(strategyList);
+    }
+
+    @GetMapping("/base/limitInterval")
+    @Operation(summary = "获得权益策略时间单位")
+    public ResponseEntity<List<BaseEnumsVO>> getBenefitsLimitInterval() {
+        List<BaseEnumsVO> strategyList = Arrays.stream(BenefitsStrategyLimitIntervalEnums.values())
+                .map(strategy -> new BaseEnumsVO(strategy.getName(), strategy.getChineseName()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(strategyList);
     }
 
 

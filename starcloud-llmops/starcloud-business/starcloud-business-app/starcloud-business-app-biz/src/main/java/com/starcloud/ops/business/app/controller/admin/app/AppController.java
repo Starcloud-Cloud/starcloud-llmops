@@ -2,13 +2,13 @@ package com.starcloud.ops.business.app.controller.admin.app;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.app.dto.AppCategoryDTO;
-import com.starcloud.ops.business.app.api.app.dto.AppDTO;
-import com.starcloud.ops.business.app.api.app.request.AppPageQuery;
-import com.starcloud.ops.business.app.api.app.request.AppPublishRequest;
-import com.starcloud.ops.business.app.api.app.request.AppRequest;
-import com.starcloud.ops.business.app.api.app.request.AppUpdateRequest;
-import com.starcloud.ops.business.app.api.market.request.AppMarketUidRequest;
+import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
+import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,35 +45,35 @@ public class AppController {
     @GetMapping("/categories")
     @Operation(summary = "查询应用类别列表", description = "查询应用类别列表")
     @ApiOperationSupport(order = 8, author = "nacoyer")
-    public CommonResult<List<AppCategoryDTO>> categories() {
+    public CommonResult<List<AppCategoryVO>> categories() {
         return CommonResult.success(appService.categories());
     }
 
     @GetMapping("/recommends")
     @Operation(summary = "查询推荐的应用列表", description = "查询推荐的应用列表")
     @ApiOperationSupport(order = 10, author = "nacoyer")
-    public CommonResult<List<AppDTO>> recommends() {
+    public CommonResult<List<AppRespVO>> recommends() {
         return CommonResult.success(appService.listRecommendedApps());
     }
 
     @GetMapping("/page")
     @Operation(summary = "分页查询我的应用列表", description = "分页查询我的应用列表")
     @ApiOperationSupport(order = 12, author = "nacoyer")
-    public CommonResult<PageResp<AppDTO>> page(@Validated AppPageQuery query) {
+    public CommonResult<PageResp<AppRespVO>> page(@Validated AppPageQuery query) {
         return CommonResult.success(appService.page(query));
     }
 
     @GetMapping("/get")
     @Operation(summary = "根据 UID 获得应用", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 14, author = "nacoyer")
-    public CommonResult<AppDTO> get(@Parameter(name = "uid", description = "应用 UID") @RequestParam("uid") String uid) {
+    public CommonResult<AppRespVO> get(@Parameter(name = "uid", description = "应用 UID") @RequestParam("uid") String uid) {
         return CommonResult.success(appService.getByUid(uid));
     }
 
     @PostMapping("/create")
     @Operation(summary = "创建应用", description = "创建一个新的应用")
     @ApiOperationSupport(order = 16, author = "nacoyer")
-    public CommonResult<Boolean> create(@Validated @RequestBody AppRequest request) {
+    public CommonResult<Boolean> create(@Validated @RequestBody AppReqVO request) {
         appService.create(request);
         return CommonResult.success(Boolean.TRUE);
     }
@@ -81,7 +81,7 @@ public class AppController {
     @PostMapping("/copy")
     @Operation(summary = "复制应用", description = "复制一个应用")
     @ApiOperationSupport(order = 18, author = "nacoyer")
-    public CommonResult<Boolean> copy(@Validated @RequestBody AppRequest request) {
+    public CommonResult<Boolean> copy(@Validated @RequestBody AppReqVO request) {
         appService.copy(request);
         return CommonResult.success(Boolean.TRUE);
     }
@@ -89,7 +89,7 @@ public class AppController {
     @PutMapping("/modify")
     @Operation(summary = "更新应用", description = "根据 UID 更新应用")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<Boolean> modify(@Validated @RequestBody AppUpdateRequest request) {
+    public CommonResult<Boolean> modify(@Validated @RequestBody AppUpdateReqVO request) {
         appService.modify(request);
         return CommonResult.success(Boolean.TRUE);
     }
@@ -105,7 +105,7 @@ public class AppController {
     @PostMapping("/publish")
     @Operation(summary = "发布应用到应用市场", description = "发布应用到应用市场")
     @ApiOperationSupport(order = 24, author = "nacoyer")
-    public CommonResult<Boolean> publish(@Validated @RequestBody AppPublishRequest request) {
+    public CommonResult<Boolean> publish(@Validated @RequestBody AppPublishReqVO request) {
         appService.publicAppToMarket(request);
         return CommonResult.success(Boolean.TRUE);
     }
@@ -113,7 +113,7 @@ public class AppController {
     @PostMapping("/verifyHasDownloaded")
     @Operation(summary = "校验应用是否已经下载过", description = "校验应用是否已经下载过")
     @ApiOperationSupport(order = 26, author = "nacoyer")
-    public CommonResult<Boolean> verifyHasDownloaded(@RequestBody AppMarketUidRequest request) {
+    public CommonResult<Boolean> verifyHasDownloaded(@RequestBody UidRequest request) {
         return CommonResult.success(appService.verifyHasDownloaded(request.getMarketUid()));
     }
 }

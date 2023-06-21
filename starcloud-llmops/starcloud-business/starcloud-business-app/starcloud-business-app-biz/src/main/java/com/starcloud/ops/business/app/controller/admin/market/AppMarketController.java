@@ -2,11 +2,13 @@ package com.starcloud.ops.business.app.controller.admin.market;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.market.dto.AppMarketDTO;
-import com.starcloud.ops.business.app.api.market.request.AppMarketPageQuery;
-import com.starcloud.ops.business.app.api.market.request.AppMarketRequest;
-import com.starcloud.ops.business.app.api.market.request.AppMarketUidVersionRequest;
-import com.starcloud.ops.business.app.api.market.request.AppMarketUpdateRequest;
+import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,21 +43,21 @@ public class AppMarketController {
     @GetMapping("/page")
     @Operation(summary = "分页查询应用市场应用列表", description = "分页查询应用市场应用列表")
     @ApiOperationSupport(order = 10, author = "nacoyer")
-    public CommonResult<PageResp<AppMarketDTO>> page(@Validated AppMarketPageQuery query) {
+    public CommonResult<PageResp<AppMarketRespVO>> page(@Validated AppMarketPageQuery query) {
         return CommonResult.success(appMarketService.page(query));
     }
 
     @GetMapping("/get")
     @Operation(summary = "根据 UID 和版本号 获得应用详情", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 11, author = "nacoyer")
-    public CommonResult<AppMarketDTO> get(@RequestParam("uid") String uid, @RequestParam("version") Integer version) {
-        return CommonResult.success(appMarketService.getByUid(uid, version));
+    public CommonResult<AppMarketRespVO> get(@RequestParam("uid") String uid, @RequestParam("version") Integer version) {
+        return CommonResult.success(appMarketService.getByUidAndVersion(uid, version));
     }
 
     @PostMapping("/create")
     @Operation(summary = "创建应用市场应用", description = "创建应用市场应用")
     @ApiOperationSupport(order = 12, author = "nacoyer")
-    public CommonResult<Boolean> create(@Validated @RequestBody AppMarketRequest request) {
+    public CommonResult<Boolean> create(@Validated @RequestBody AppMarketReqVO request) {
         appMarketService.create(request);
         return CommonResult.success(Boolean.TRUE);
     }
@@ -63,7 +65,7 @@ public class AppMarketController {
     @PutMapping("/modify")
     @Operation(summary = "更新应用市场应用", description = "根据 UID 更新应用市场应用")
     @ApiOperationSupport(order = 14, author = "nacoyer")
-    public CommonResult<Boolean> modify(@Validated @RequestBody AppMarketUpdateRequest request) {
+    public CommonResult<Boolean> modify(@Validated @RequestBody AppMarketUpdateReqVO request) {
         appMarketService.modify(request);
         return CommonResult.success(Boolean.TRUE);
     }
@@ -72,7 +74,31 @@ public class AppMarketController {
     @Operation(summary = "删除应用市场模版", description = "根据 UID 删除应用市场应用")
     @ApiOperationSupport(order = 15, author = "nacoyer")
     public CommonResult<Boolean> delete(@RequestParam("uid") String uid, @RequestParam("version") Integer version) {
-        appMarketService.deleteByUid(uid, version);
+        appMarketService.deleteByUidAndVersion(uid, version);
+        return CommonResult.success(Boolean.TRUE);
+    }
+
+    @PostMapping("/install")
+    @Operation(summary = "安装应用市场应用", description = "安装应用市场应用")
+    @ApiOperationSupport(order = 16, author = "nacoyer")
+    public CommonResult<Boolean> install(@Validated @RequestBody AppInstallReqVO request) {
+        appMarketService.install(request);
+        return CommonResult.success(Boolean.TRUE);
+    }
+
+    @PostMapping("/audit")
+    @Operation(summary = "审核应用市场应用", description = "审核应用市场应用")
+    @ApiOperationSupport(order = 17, author = "nacoyer")
+    public CommonResult<Boolean> audit(@Validated @RequestBody AppMarketAuditReqVO request) {
+        appMarketService.audit(request);
+        return CommonResult.success(Boolean.TRUE);
+    }
+
+    @PostMapping("/operate")
+    @Operation(summary = "操作应用市场应用", description = "操作应用市场应用")
+    @ApiOperationSupport(order = 18, author = "nacoyer")
+    public CommonResult<Boolean> operate(@Validated @RequestBody AppOperateReqVO request) {
+        appMarketService.operate(request);
         return CommonResult.success(Boolean.TRUE);
     }
 

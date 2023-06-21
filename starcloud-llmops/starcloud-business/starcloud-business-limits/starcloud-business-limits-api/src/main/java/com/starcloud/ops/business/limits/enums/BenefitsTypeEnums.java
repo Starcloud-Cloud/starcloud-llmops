@@ -17,22 +17,22 @@ public enum BenefitsTypeEnums {
     /**
      * 应用
      */
-    APP("APP", "应用"),
+    APP("APP", "应用","appCount"),
 
     /**
      * 数据集
      */
-    DATASET("DATASET", "数据集"),
+    DATASET("DATASET", "数据集","datasetCount"),
 
     /**
      * 图片
      */
-    IMAGE("IMAGE", "图片"),
+    IMAGE("IMAGE", "图片","imageCount"),
 
     /**
      * 令牌
      */
-    TOKEN("TOKEN", "令牌"),
+    TOKEN("TOKEN", "令牌","tokenCount"),
 
     ;
 
@@ -45,6 +45,11 @@ public enum BenefitsTypeEnums {
      * 中文名称
      */
     private final String chineseName;
+
+    /**
+     * 数据库字段前缀
+     */
+    private final String dataPrefix;
 
 
     public static BenefitsTypeEnums getByCode(String code) {

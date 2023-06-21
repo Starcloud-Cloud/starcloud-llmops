@@ -1,0 +1,38 @@
+package com.starcloud.ops.business.app.api.app.vo.request.action;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableReqVO;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import javax.validation.Valid;
+
+/**
+ * action 函数实体类
+ *
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-05-31
+ */
+@Valid
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "应用 action 函数请求对象 VO")
+public class LLMFunctionReqVO extends ActionReqVO {
+
+    private static final long serialVersionUID = 8663300889940242607L;
+
+    /**
+     * 模版变量
+     */
+    @Schema(description = "应用变量")
+    @Valid
+    private VariableReqVO variable;
+
+}

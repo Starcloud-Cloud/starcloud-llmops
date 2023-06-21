@@ -32,17 +32,17 @@ public class AppStepHandlerFactory implements ApplicationContextAware {
     /**
      * 根据步骤类型获取对应的处理器
      *
-     * @param type 步骤类型
+     * @param handler 步骤处理器
      * @return 步骤处理器
      */
-    public BaseActionHandler getHandler(String type) {
-        Assert.notBlank(type, "The Step Type must not be blank");
+    public BaseActionHandler getHandler(String handler) {
+        Assert.notBlank(handler, "The Step handler must not be blank");
 
-        type = StringUtils.uncapitalize(type);
-        if (STEP_HANDLER_MAP.containsKey(type)) {
-            return STEP_HANDLER_MAP.get(type);
+        handler = StringUtils.uncapitalize(handler);
+        if (STEP_HANDLER_MAP.containsKey(handler)) {
+            return STEP_HANDLER_MAP.get(handler);
         }
-        throw new IllegalArgumentException("The Step Handler is not exist. type: " + type);
+        throw new IllegalArgumentException("The Step Handler is not exist. handler: " + handler);
     }
 
     @Override

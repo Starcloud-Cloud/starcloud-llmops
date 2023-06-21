@@ -1,10 +1,8 @@
 package com.starcloud.ops.business.app.api.market.dto;
 
-import cn.iocoder.yudao.framework.common.util.date.DateUtils;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.dto.AppChatConfigDTO;
-import com.starcloud.ops.business.app.api.app.dto.AppConfigDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,12 +26,6 @@ import java.util.List;
 public class AppMarketDTO implements Serializable {
 
     private static final long serialVersionUID = 1475037816778901152L;
-
-    /**
-     * 模板市场 ID
-     */
-    @Schema(description = "模板市场 ID")
-    private Long id;
 
     /**
      * 市场应用 UID
@@ -99,19 +91,13 @@ public class AppMarketDTO implements Serializable {
      * 应用是否是免费的
      */
     @Schema(description = "应用是否是免费的")
-    private Integer free;
+    private Boolean free;
 
     /**
      * 应用收费数
      */
     @Schema(description = "应用收费数")
     private BigDecimal cost;
-
-    /**
-     * 应用 word
-     */
-    @Schema(description = "应用 word")
-    private Integer word;
 
     /**
      * 应用点赞数量
@@ -135,13 +121,13 @@ public class AppMarketDTO implements Serializable {
      * 应用详细配置信息, 步骤，变量，场景等
      */
     @Schema(description = "应用详细配置信息, 步骤，变量，场景等")
-    private AppConfigDTO config;
+    private WorkflowConfigRespVO workflowConfig;
 
     /**
      * 应用聊天配置
      */
     @Schema(description = "应用聊天配置")
-    private AppChatConfigDTO chatConfig;
+    private ChatConfigRespVO chatConfig;
 
     /**
      * 应用描述
@@ -156,29 +142,15 @@ public class AppMarketDTO implements Serializable {
     private String example;
 
     /**
-     * 应用审核
-     */
-    @Schema(description = "应用审核")
-    private Integer audit;
-
-    /**
-     * 应用状态，0：启用，1：禁用
-     */
-    @Schema(description = "应用状态，0：启用，1：禁用")
-    private Integer status;
-
-    /**
      * 创建时间
      */
     @Schema(description = "创建时间")
-    @JsonFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, timezone = "GMT+8")
     private LocalDateTime createTime;
 
     /**
      * 最后更新时间
      */
     @Schema(description = "最后更新时间")
-    @JsonFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND, timezone = "GMT+8")
     private LocalDateTime updateTime;
 
     /**
@@ -192,12 +164,6 @@ public class AppMarketDTO implements Serializable {
      */
     @Schema(description = "更新者")
     private String updater;
-
-    /**
-     * 是否删除
-     */
-    @Schema(description = "是否删除")
-    private Boolean deleted;
 
     /**
      * 多租户编号

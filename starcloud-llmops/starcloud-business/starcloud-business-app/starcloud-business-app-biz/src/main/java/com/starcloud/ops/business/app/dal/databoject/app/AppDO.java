@@ -101,12 +101,6 @@ public class AppDO extends TenantBaseDO {
     private String config;
 
     /**
-     * 应用步骤图标、多个以逗号分割
-     */
-    @TableField("step_icons")
-    private String stepIcons;
-
-    /**
      * 应用描述
      */
     @TableField("description")
@@ -123,12 +117,6 @@ public class AppDO extends TenantBaseDO {
      */
     @TableField("download_uid")
     private String downloadUid;
-
-    /**
-     * 应用状态，0：启用，1：禁用
-     */
-    @TableField("status")
-    private Integer status;
 
     /**
      * 最后一次上传到应用市场时间
