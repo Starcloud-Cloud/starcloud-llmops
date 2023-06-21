@@ -11,7 +11,6 @@ import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.handler.common.StepAndFunctionHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
@@ -32,7 +31,7 @@ public class GoogleSearchActionHandler extends StepAndFunctionHandler {
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
 
 
-        WorkflowStepWrapper appStepWrapper = context.getCurrentAppStepWrapper();
+        WorkflowStepWrapper appStepWrapper = context.getCurrentStepWrapper();
 
         String prompt = appStepWrapper.getContextVariablesValue("prompt", "hi, what you name?");
 
