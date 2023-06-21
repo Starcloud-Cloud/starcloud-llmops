@@ -1,8 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowStepWrapperReqVO;
-import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -40,6 +39,6 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
      * 模版变量
      */
     @Schema(description = "模版变量")
-    private VariableReqVO variable;
+    private VariableRespVO variable;
 
 }

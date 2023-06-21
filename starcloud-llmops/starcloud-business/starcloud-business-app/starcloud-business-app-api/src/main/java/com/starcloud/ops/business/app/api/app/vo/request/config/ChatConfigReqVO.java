@@ -25,7 +25,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用 action 函数请求对象")
-public class ChatConfigReqVO extends ConfigReqVO {
+public class ChatConfigReqVO extends BaseConfigReqVO {
 
     private static final long serialVersionUID = -1232191599886098743L;
 

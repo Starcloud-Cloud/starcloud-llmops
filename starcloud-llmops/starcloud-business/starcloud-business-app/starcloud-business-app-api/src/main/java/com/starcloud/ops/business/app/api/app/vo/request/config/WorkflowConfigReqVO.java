@@ -25,7 +25,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用工作流函数请求对象")
-public class WorkflowConfigReqVO extends ConfigReqVO {
+public class WorkflowConfigReqVO extends BaseConfigReqVO {
 
     private static final long serialVersionUID = -5607691388056493709L;
 

@@ -15,12 +15,12 @@ public enum AppStepTypeEnum implements IEnumable<Integer> {
     /**
      * 通用型步骤
      */
-    COMMON(0, "通用型步骤"),
+    WORKFLOW(0, "工作流型步骤"),
 
     /**
      * 适配型步骤
      */
-    ADAPTER(1, "适配型步骤");
+    FUNCTION(1, "函数型步骤");
 
     /**
      * 步骤类型Code

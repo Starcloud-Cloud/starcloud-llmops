@@ -68,6 +68,7 @@ public interface AppMarketConvert {
         appMarket.setDownloadCount(appMarketEntity.getDownloadCount());
         appMarket.setDescription(appMarketEntity.getDescription());
         appMarket.setExample(appMarketEntity.getExample());
+        appMarket.setDeleted(Boolean.FALSE);
 
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
             appMarket.setConfig(JSON.toJSONString(appMarketEntity.getWorkflowConfig()));
@@ -121,7 +122,7 @@ public interface AppMarketConvert {
      */
     default AppMarketEntity convert(AppDO app, AppPublishReqVO publishRequest) {
         AppMarketEntity appMarketEntity = new AppMarketEntity();
-        appMarketEntity.setUid(AppUtils.generateUid(AppUtils.generateUid(AppConstants.MARKET_PREFIX)));
+        appMarketEntity.setUid(AppUtils.generateUid(AppConstants.MARKET_PREFIX));
         appMarketEntity.setName(app.getName());
         appMarketEntity.setModel(app.getModel());
         appMarketEntity.setVersion(AppConstants.DEFAULT_VERSION);

@@ -22,7 +22,7 @@ import java.io.Serializable;
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用请求 action 请求对象")
-public class ConfigReqVO implements Serializable {
+public class BaseConfigReqVO implements Serializable {
 
     private static final long serialVersionUID = -3805698859950168812L;
     

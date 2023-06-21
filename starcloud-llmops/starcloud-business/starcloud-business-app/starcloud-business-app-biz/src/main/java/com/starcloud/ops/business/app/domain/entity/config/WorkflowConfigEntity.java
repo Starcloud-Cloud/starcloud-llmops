@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import lombok.Data;
 
@@ -31,6 +32,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     /**
      * 模版步骤
      */
+    @JSONField(serialize = false)
     public WorkflowStepWrapper getFirstStep() {
 
         return Optional.ofNullable(steps).orElse(new ArrayList<>()).stream().findFirst().orElse(null);
@@ -39,6 +41,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     /**
      * 模版步骤
      */
+    @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapper(String stepId) {
         return Optional.ofNullable(steps).orElse(new ArrayList<>()).stream().filter((wrapper) -> {
             return wrapper.getField().equals(stepId);

@@ -55,6 +55,36 @@ public class ActionResponse {
     private String answer;
 
     /**
+     * 请求 token 使用
+     */
+    private Long messageTokens;
+
+    /**
+     * 请求单价
+     */
+    private BigDecimal messageUnitPrice;
+
+    /**
+     * 响应 token 使用
+     */
+    private Long answerTokens;
+
+    /**
+     * 响应单价
+     */
+    private BigDecimal answerUnitPrice;
+
+    /**
+     * 总 token 数量
+     */
+    private Long totalTokens;
+
+    /**
+     * 总价格
+     */
+    private BigDecimal totalPrice;
+
+    /**
      * step 执行的参数
      */
     private Object stepVariables;
@@ -64,16 +94,5 @@ public class ActionResponse {
      */
     private Object stepConfig;
 
-    private Long messageTokens;
-
-    private BigDecimal messageUnitPrice;
-
-    private Long answerTokens;
-
-    private BigDecimal answerUnitPrice;
-
-    private Long totalTokens;
-
-    private BigDecimal totalPrice;
 
 }

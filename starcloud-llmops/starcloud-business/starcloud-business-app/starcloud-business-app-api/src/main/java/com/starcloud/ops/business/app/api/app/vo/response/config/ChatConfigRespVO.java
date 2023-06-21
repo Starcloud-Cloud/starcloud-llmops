@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.request.action.LLMFunctionReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.action.LLMFunctionRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,6 +37,6 @@ public class ChatConfigRespVO extends BaseConfigRespVO {
      * 挂载的 functions 列表
      */
     @Schema(description = "挂载的 functions 列表")
-    private List<LLMFunctionReqVO> functions;
+    private List<LLMFunctionRespVO> functions;
 
 }

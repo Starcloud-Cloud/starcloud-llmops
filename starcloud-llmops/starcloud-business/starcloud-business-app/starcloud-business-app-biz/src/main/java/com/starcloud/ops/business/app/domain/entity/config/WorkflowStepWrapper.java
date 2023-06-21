@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.action.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
@@ -60,6 +61,7 @@ public class WorkflowStepWrapper {
      * @param type
      * @return
      */
+    @JSONField(serialize = false)
     public List<VariableItemEntity> getVariable(String type) {
         return null;
     }
@@ -70,6 +72,7 @@ public class WorkflowStepWrapper {
      *
      * @return
      */
+    @JSONField(serialize = false)
     public Map<String, String> getContextVariablesKeys() {
 
 
@@ -83,6 +86,7 @@ public class WorkflowStepWrapper {
      *
      * @return
      */
+    @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesMaps() {
 
         return new HashMap() {{
@@ -96,6 +100,7 @@ public class WorkflowStepWrapper {
      *
      * @return
      */
+    @JSONField(serialize = false)
     public <T> T getContextVariablesValue(String key) {
 
         return null;
@@ -106,6 +111,7 @@ public class WorkflowStepWrapper {
      *
      * @return
      */
+    @JSONField(serialize = false)
     public <T> T getContextVariablesValue(String key, T def) {
 
         return def;

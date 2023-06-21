@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,8 +70,8 @@ public class AppServiceImpl implements AppService {
     @Resource
     private AppMarketMapper appMarketMapper;
 
-    @Resource
-    private RecommendedAppRedisDAO recommendedAppRedisDAO;
+//    @Resource
+//    private RecommendedAppRedisDAO recommendedAppRedisDAO;
 
     @Resource
     private DictDataService dictDataService;
@@ -254,6 +255,7 @@ public class AppServiceImpl implements AppService {
         // 校验数据
         appMarketEntity.validate();
         AppMarketDO appMarketDO = AppMarketConvert.INSTANCE.convert(appMarketEntity);
+        appMarketDO.setDeleted(Boolean.FALSE);
         // 统一设置为待审核状态
         appMarketDO.setAudit(AppMarketAuditEnum.PENDING.getCode());
         // 保存到应用市场
@@ -261,6 +263,7 @@ public class AppServiceImpl implements AppService {
 
         // 更新我的应用
         appDO.setUploadUid(AppUtils.generateUid(appMarketDO.getUid(), appMarketDO.getVersion()));
+        appDO.setLastUpload(LocalDateTime.now());
         appMapper.update(appDO, Wrappers.lambdaUpdate(AppDO.class).eq(AppDO::getUid, request.getUid()));
     }
 

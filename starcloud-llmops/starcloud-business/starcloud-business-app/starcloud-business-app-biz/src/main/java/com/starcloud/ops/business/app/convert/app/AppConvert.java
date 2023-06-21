@@ -68,6 +68,7 @@ public interface AppConvert {
         appDO.setUploadUid(appEntity.getUploadUid());
         appDO.setDownloadUid(appEntity.getDownloadUid());
         appDO.setLastUpload(appEntity.getLastUpload());
+        appDO.setDeleted(Boolean.FALSE);
 
         if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
             appDO.setConfig(JSON.toJSONString(appEntity.getWorkflowConfig()));

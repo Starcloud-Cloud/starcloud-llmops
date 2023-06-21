@@ -32,6 +32,7 @@ public interface AppOperateConvert {
         operate.setAppUid(request.getAppUid());
         operate.setVersion(request.getVersion());
         operate.setOperate(request.getOperate());
+        operate.setDeleted(Boolean.FALSE);
         return operate;
     }
 }

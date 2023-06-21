@@ -9,6 +9,7 @@ import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -18,11 +19,11 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@EqualsAndHashCode
+@ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用发布到应用市场请求对象")
-public class AppPublishReqVO extends AppReqVO {
+public class AppPublishReqVO implements Serializable {
 
     private static final long serialVersionUID = -259649117327475212L;
 

@@ -45,5 +45,10 @@ public class WorkflowStepEntity extends ActionEntity {
      */
     private Boolean isAuto;
 
+    /**
+     * 是否是可编辑步骤
+     */
+    private Boolean isCanEditStep;
+
 
 }
