@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * 应用类别。从字典的 remark 中获取到的内容
@@ -34,27 +35,21 @@ public class CategoryRemarkDTO implements Serializable {
     /**
      * 应用类别图片
      */
+    @Schema(description = "类别图片")
     private String image;
 
     /**
-     * 应用类别 Label 英文
+     * 应用类别标签
      */
-    private String labelEn;
+    @Schema(description = "类别名称")
+    private Map<String, String> label;
 
     /**
-     * 应用类别 Label 中文
+     * 应用类别描述
      */
-    private String labelZh;
 
-    /**
-     * 应用类别描述 英文
-     */
-    @JSONField(name = "descEn")
-    private String descriptionEn;
+    @Schema(description = "类别描述")
+    @JSONField(name = "desc")
+    private Map<String, String> description;
 
-    /**
-     * 应用类别描述 中文
-     */
-    @JSONField(name = "descZh")
-    private String descriptionZh;
 }

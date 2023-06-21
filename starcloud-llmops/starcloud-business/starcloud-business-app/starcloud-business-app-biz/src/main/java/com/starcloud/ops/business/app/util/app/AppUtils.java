@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.util.app;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
@@ -84,6 +85,65 @@ public class AppUtils {
     }
 
     /**
+     * 生成uid, 例如：app-uuid
+     *
+     * @param prefix 前缀
+     * @return uid
+     */
+    public static String generateUid(String prefix) {
+        return prefix + "-" + IdUtil.fastSimpleUUID();
+    }
+
+    /**
+     * 生成 uid, 例如：uid-1
+     *
+     * @param uid     uid
+     * @param version 版本号
+     * @return uid
+     */
+    public static String generateUid(String uid, Integer version) {
+        return uid + "," + version;
+    }
+
+    /**
+     * 获取uid, 例如：uid-1
+     *
+     * @param uid uid
+     * @return uid
+     */
+    public static String obtainUid(String uid) {
+        String[] split = uid.split(",");
+        if (split.length != 2) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get downloadUid or uploadUid");
+        }
+        return split[0];
+    }
+
+    /**
+     * 获取版本号, 例如：uid,1
+     *
+     * @param uid uid
+     * @return 版本号
+     */
+    public static Integer obtainVersion(String uid) {
+        String[] split = uid.split(",");
+        if (split.length != 2) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get version");
+        }
+        return Integer.valueOf(split[1]);
+    }
+
+    /**
+     * 获取下一个版本
+     *
+     * @param version 老版本
+     * @return 新版本
+     */
+    public static Integer nextVersion(Integer version) {
+        return version + 1;
+    }
+
+    /**
      * 合并两个集合
      *
      * @param source 源集合
@@ -101,56 +161,6 @@ public class AppUtils {
         }
 
         return target;
-    }
-
-
-    /**
-     * 生成uid, 例如：uid-1
-     *
-     * @param uid     uid
-     * @param version 版本号
-     * @return uid
-     */
-    public static String generateUid(String uid, Integer version) {
-        return uid + "-" + version;
-    }
-
-    /**
-     * 获取uid, 例如：uid-1
-     *
-     * @param uid uid
-     * @return uid
-     */
-    public static String getUid(String uid) {
-        String[] split = uid.split("-");
-        if (split.length != 2) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "Un Known Error");
-        }
-        return split[0];
-    }
-
-    /**
-     * 获取版本号, 例如：uid-1
-     *
-     * @param uid uid
-     * @return 版本号
-     */
-    public static Integer getVersion(String uid) {
-        String[] split = uid.split("-");
-        if (split.length != 2) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "Un Known Error");
-        }
-        return Integer.valueOf(split[1]);
-    }
-
-    /**
-     * 获取下一个版本
-     *
-     * @param version 老版本
-     * @return 新版本
-     */
-    public static Integer nextVersion(Integer version) {
-        return version + 1;
     }
 
     /**

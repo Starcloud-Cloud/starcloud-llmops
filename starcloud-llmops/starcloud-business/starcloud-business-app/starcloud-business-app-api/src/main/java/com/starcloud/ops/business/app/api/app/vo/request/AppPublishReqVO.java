@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -32,11 +34,24 @@ public class AppPublishReqVO extends AppReqVO {
     private String uid;
 
     /**
+     * 应用分类
+     */
+    @Schema(description = "应用分类")
+    @NotEmpty(message = "应用分类不能为空")
+    private List<String> categories;
+
+    /**
      * 应用市场语言
      */
     @Schema(description = "应用市场语言")
     @NotBlank(message = "应用市场语言不能为空")
     private String language;
+
+    /**
+     * 应用市场示例 Example
+     */
+    @Schema(description = "模版市场示例 Example")
+    private String example;
 
 
 }
