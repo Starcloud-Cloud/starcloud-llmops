@@ -145,6 +145,7 @@ public class StarUserServiceImpl implements StarUserService {
             registerUserMapper.updateById(registerUserDO);
             throw exception(OPERATE_TIME_OUT);
         }
+
         Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), registerUserDO.getUsername() + "_dept");
         addBenefits(userId, registerUserDO.getInviteUserId());
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -154,6 +155,8 @@ public class StarUserServiceImpl implements StarUserService {
             }
 
         });
+        registerUserDO.setStatus(1);
+        registerUserMapper.updateById(registerUserDO);
         return true;
     }
 
@@ -174,7 +177,7 @@ public class StarUserServiceImpl implements StarUserService {
         userDO.setEmail(email);
         userDO.setStatus(0);
         userDO.setNickname(username);
-        userDO.setPassword(passwordEncoder.encode(password));
+        userDO.setPassword(password);
         userDO.setTenantId(2L);
         adminUserMapper.insert(userDO);
 

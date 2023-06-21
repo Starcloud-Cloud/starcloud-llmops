@@ -148,6 +148,7 @@ yudao:
       - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，无法携带租户编号
       - /admin-api/llm/auth/**   # llm 注册，找回密码 无法携带租户编号
       - /admin-api/system/auth/login # 登录
+      - /admin-api/llm/wechat/** # 微信回调
     ignore-tables:
       - system_tenant
       - system_tenant_package

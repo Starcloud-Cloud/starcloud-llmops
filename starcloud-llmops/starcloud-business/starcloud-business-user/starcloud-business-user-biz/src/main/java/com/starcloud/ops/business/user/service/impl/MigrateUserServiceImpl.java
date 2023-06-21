@@ -9,6 +9,7 @@ import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.service.MigrateUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -28,6 +29,9 @@ public class MigrateUserServiceImpl implements MigrateUserService {
     @Autowired
     private StarUserService starUserService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public List<MigrateResultDTO> migrateUsers(List<WpUserDTO> wpUserDTOS) {
        List<MigrateResultDTO> migrateResults = new ArrayList<>(wpUserDTOS.size());
@@ -38,7 +42,7 @@ public class MigrateUserServiceImpl implements MigrateUserService {
                 continue;
             }
             try {
-                starUserService.createNewUser(wpUserDTO.getUsername(), wpUserDTO.getEmail(), "abc123456",wpUserDTO.getUsername() + "_dept_wp");
+                starUserService.createNewUser(wpUserDTO.getUsername(), wpUserDTO.getEmail(), passwordEncoder.encode("abc123"),wpUserDTO.getUsername() + "_dept_wp");
                 migrateResults.add(resultDTO);
             } catch (Exception e) {
                 MigrateResultDTO migrateResultDTO = new MigrateResultDTO();
