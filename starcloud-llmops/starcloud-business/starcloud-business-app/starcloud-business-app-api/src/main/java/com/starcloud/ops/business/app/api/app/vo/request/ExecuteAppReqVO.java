@@ -8,4 +8,26 @@ import lombok.Data;
  */
 @Data
 public class ExecuteAppReqVO {
+
+    /**
+     * 应用uid
+     */
+    String appId;
+
+    /**
+     * 执行场景
+     */
+    String scene;
+
+
+    /**
+     * 应用配置
+     */
+    AppReqVO appRequest;
+
+
+    /**
+     * 执行应用的步骤
+     */
+    String stepId;
 }
