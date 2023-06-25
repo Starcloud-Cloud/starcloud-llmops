@@ -18,6 +18,12 @@
 
         <dependency>
             <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-core</artifactId>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
         </dependency>
 
@@ -26,12 +32,12 @@
             <artifactId>starcloud-business-log-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-app-biz</artifactId>
-            <version>${starcloud.revision}</version>
-            <scope>provided</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.starcloud.ops</groupId>-->
+<!--            <artifactId>starcloud-business-app-biz</artifactId>-->
+<!--            <version>${starcloud.revision}</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>cn.iocoder.boot</groupId>

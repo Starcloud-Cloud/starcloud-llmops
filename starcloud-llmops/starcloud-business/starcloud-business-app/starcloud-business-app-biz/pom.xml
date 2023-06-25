@@ -16,6 +16,25 @@
     <dependencies>
 
         <dependency>
+            <groupId>cn.kstry.framework</groupId>
+            <artifactId>kstry-core</artifactId>
+            <version>1.1.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-log-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
+
+        <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
         </dependency>
@@ -25,12 +44,6 @@
             <artifactId>starcloud-business-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>cn.kstry.framework</groupId>
-            <artifactId>kstry-core</artifactId>
-            <version>1.1.5</version>
-            <scope>provided</scope>
-        </dependency>
 
         <dependency>
             <groupId>com.starcloud.ops</groupId>

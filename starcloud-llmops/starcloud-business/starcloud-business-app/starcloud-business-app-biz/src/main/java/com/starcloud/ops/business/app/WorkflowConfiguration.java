@@ -1,4 +1,4 @@
-package com.starcloud.ops.workflow;
+package com.starcloud.ops.business.app;
 
 import cn.kstry.framework.core.annotation.EnableKstry;
 import lombok.extern.slf4j.Slf4j;

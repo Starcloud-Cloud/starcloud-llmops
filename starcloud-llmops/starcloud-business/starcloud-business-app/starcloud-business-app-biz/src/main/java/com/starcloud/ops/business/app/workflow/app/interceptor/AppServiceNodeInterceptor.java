@@ -1,4 +1,4 @@
-package com.starcloud.ops.workflow.component.app.interceptor;
+package com.starcloud.ops.business.app.workflow.app.interceptor;
 
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import cn.kstry.framework.core.engine.interceptor.Iter;

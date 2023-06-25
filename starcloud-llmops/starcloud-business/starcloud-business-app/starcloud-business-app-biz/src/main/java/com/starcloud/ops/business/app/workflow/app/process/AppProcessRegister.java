@@ -1,4 +1,4 @@
-package com.starcloud.ops.workflow.component.app.process;
+package com.starcloud.ops.business.app.workflow.app.process;
 
 import cn.kstry.framework.core.component.bpmn.link.ProcessLink;
 import cn.kstry.framework.core.component.dynamic.creator.DynamicProcess;

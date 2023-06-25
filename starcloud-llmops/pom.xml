@@ -26,7 +26,6 @@
         <module>starcloud-framework</module>
         <module>starcloud-server</module>
         <module>starcloud-adapter-ruoyi-pro</module>
-        <module>starcloud-workflow</module>
     </modules>
 
     <dependencyManagement>
@@ -73,14 +72,6 @@
                 <groupId>com.starcloud.ops</groupId>
                 <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
                 <version>${starcloud.revision}</version>
-            </dependency>
-
-
-            <dependency>
-                <groupId>com.starcloud.ops</groupId>
-                <artifactId>starcloud-workflow</artifactId>
-                <version>${starcloud.revision}</version>
-
             </dependency>
 
         </dependencies>

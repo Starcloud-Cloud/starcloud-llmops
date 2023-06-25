@@ -1,4 +1,4 @@
-package com.starcloud.ops.workflow.component.app.process;
+package com.starcloud.ops.business.app.workflow.app.process;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.kstry.framework.core.component.bpmn.link.ProcessLink;

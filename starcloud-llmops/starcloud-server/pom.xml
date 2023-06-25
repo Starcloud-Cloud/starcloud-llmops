@@ -16,18 +16,6 @@
 
     <dependencies>
 
-<!--        <dependency>-->
-<!--            <groupId>cn.iocoder.boot</groupId>-->
-<!--            <artifactId>yudao-module-infra-biz</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
-
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-workflow</artifactId>
-            <version>${starcloud.revision}</version>
-        </dependency>
-
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-app-biz</artifactId>
