@@ -81,6 +81,11 @@ public interface LogAppConversationService {
     List<LogAppConversationDO> getAppConversationList(LogAppConversationExportReqVO exportReqVO);
 
 
+    /**
+     * 获取 应用执行分页信息
+     * @param pageReqVO
+     * @return
+     */
     PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO);
 
 

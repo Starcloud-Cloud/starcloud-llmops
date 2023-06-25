@@ -24,16 +24,46 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @RestController
-@RequestMapping("/llm/app/execute")
-@Tag(name = "应用执行")
-public class AppExecuteController {
+@RequestMapping("/llm/app/log")
+@Tag(name = "应用执行日志")
+public class AppLogController {
 
+
+    @Resource
+    private LogAppApi logAppApi;
+
+    @Resource
+    private LogAppConversationService appConversationService;
+
+    @GetMapping("/infoPage")
+    @Operation(summary = "获得应用执行日志信息分页")
+    @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
+    public CommonResult<PageResult<LogAppConversationInfoRespVO>> getAppConversationPage(@Valid LogAppConversationInfoPageReqVO pageVO) {
+        PageResult<LogAppConversationInfoPO> pageResult = appConversationService.getAppConversationInfoPage(pageVO);
+        return success(LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult));
+    }
+
+    @GetMapping("/statistics")
+    @Operation(summary = "获得应用执行统计列表")
+    @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
+    public CommonResult<List<LogAppMessageStatisticsListVO>> getAppMessageStatisticsList(@Valid LogAppMessageStatisticsListReqVO pageVO) {
+        List<LogAppMessageStatisticsListPO> pageResult = appConversationService.getAppMessageStatisticsList(pageVO);
+        return success(LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult));
+
+    }
+
+
+    @PostMapping("/getAppMessageResult")
+    @Operation(summary = "获取应用执行日志结果")
+    @PreAuthorize("@ss.hasPermission('log:app-message:getAppMessageResult')")
+    public CommonResult<LogAppMessageInfoRespVO> getAppMessageResult(@NotNull String appMessageUid) {
+        return success(logAppApi.getAppMessageResult(appMessageUid));
+    }
 
 
 }
