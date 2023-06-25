@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import retrofit2.http.Path;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -64,10 +65,10 @@ public class AppController {
         return CommonResult.success(appService.page(query));
     }
 
-    @GetMapping("/get")
+    @GetMapping("/get/{uid}")
     @Operation(summary = "根据 UID 获得应用", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 14, author = "nacoyer")
-    public CommonResult<AppRespVO> get(@Parameter(name = "uid", description = "应用 UID") @RequestParam("uid") String uid) {
+    public CommonResult<AppRespVO> get(@Parameter(name = "uid", description = "应用 UID") @PathVariable("uid") String uid) {
         return CommonResult.success(appService.getByUid(uid));
     }
 
@@ -95,10 +96,10 @@ public class AppController {
         return CommonResult.success(Boolean.TRUE);
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete/{uid}")
     @Operation(summary = "删除应用", description = "根据 UID 删除应用")
     @ApiOperationSupport(order = 22, author = "nacoyer")
-    public CommonResult<Boolean> delete(@Parameter(name = "uid", description = "应用 UID") @RequestParam("uid") String uid) {
+    public CommonResult<Boolean> delete(@Parameter(name = "uid", description = "应用 UID") @PathVariable("uid") String uid) {
         appService.deleteByUid(uid);
         return CommonResult.success(Boolean.TRUE);
     }

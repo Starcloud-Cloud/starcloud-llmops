@@ -21,9 +21,9 @@ import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
-import com.starcloud.ops.business.app.dal.redis.app.RecommendedAppRedisDAO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.recommend.RecommendedAppFactory;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -126,7 +126,8 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<AppRespVO> listRecommendedApps() {
-        return Collections.emptyList();
+//        return Collections.emptyList();
+        return Collections.singletonList(RecommendedAppFactory.defGenerateTextApp());
     }
 
     /**

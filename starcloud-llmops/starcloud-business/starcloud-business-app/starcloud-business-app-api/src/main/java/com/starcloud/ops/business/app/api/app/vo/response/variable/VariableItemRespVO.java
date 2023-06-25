@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.app.vo.response.variable;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -8,6 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -95,4 +98,21 @@ public class VariableItemRespVO implements Serializable {
      */
     @Schema(description = "变量选项")
     private List<Option> options;
+
+    /**
+     * 添加选项
+     *
+     * @param label label
+     * @param value value
+     * @return this
+     */
+    public VariableItemRespVO addOption(String label, Object value) {
+        if (CollectionUtil.isEmpty(this.options)) {
+            this.options = Collections.emptyList();
+        }
+        List<Option> optionList = new ArrayList<>(this.options);
+        optionList.add(Option.of(label, value));
+        this.options = optionList;
+        return this;
+    }
 }

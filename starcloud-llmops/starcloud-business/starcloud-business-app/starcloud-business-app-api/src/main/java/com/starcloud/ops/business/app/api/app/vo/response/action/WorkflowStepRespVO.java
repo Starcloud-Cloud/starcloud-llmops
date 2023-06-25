@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.api.app.vo.response.action;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.request.action.ActionReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -24,7 +23,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用 action 工作流步骤响应对象 VO")
-public class WorkflowStepRespVO extends ActionReqVO {
+public class WorkflowStepRespVO extends ActionRespVO {
 
     private static final long serialVersionUID = 1370359151602184535L;
 

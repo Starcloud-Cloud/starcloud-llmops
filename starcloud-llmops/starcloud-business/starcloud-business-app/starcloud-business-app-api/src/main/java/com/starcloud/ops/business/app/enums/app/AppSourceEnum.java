@@ -19,29 +19,44 @@ public enum AppSourceEnum implements IEnumable<Integer> {
     WEB(0, "Web 管理端"),
 
     /**
-     * Chrome 插件
+     * Web 应用市场
      */
-    CHROME_PLUGIN(1, "Chrome 插件"),
+    MARKET(1, "应用市场"),
+
+    /**
+     * Chrome 插件管理端
+     */
+    CHROME_PLUGIN_ADMIN(2, "Chrome 插件"),
+
+    /**
+     * Chrome 插件模版市场
+     */
+    CHROME_PLUGIN_MARKET(3, "Chrome 插件"),
 
     /**
      * Edge 插件
      */
-    EDGE_PLUGIN(2, "Edge 插件"),
+    EDGE_PLUGIN_ADMIN(4, "Edge 插件"),
 
     /**
-     * Firefox 插件
+     * Edge 插件模版市场
      */
-    FIREFOX_PLUGIN(3, "Firefox 插件"),
+    EDGE_PLUGIN_MARKET(5, "Edge 插件"),
 
     /**
      * WordPress 插件
      */
-    WORDPRESS_PLUGIN(4, "WordPress 插件"),
+    WORDPRESS_PLUGIN_ADMIN(6, "WordPress 插件"),
+
+    /**
+     * WordPress 插件模版市场
+     */
+    WORDPRESS_PLUGIN_MARKET(7, "WordPress 插件"),
 
     /**
      * 未知
      */
-    UNKNOWN(5, "未知");
+    UNKNOWN(8, "未知");
 
     /**
      * 应用类型Code
