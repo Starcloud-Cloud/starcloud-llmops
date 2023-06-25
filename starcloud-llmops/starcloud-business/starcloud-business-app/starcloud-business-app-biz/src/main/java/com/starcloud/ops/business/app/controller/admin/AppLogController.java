@@ -58,7 +58,7 @@ public class AppLogController {
     }
 
 
-    @PostMapping("/getAppMessageResult")
+    @GetMapping("/appMessageResult")
     @Operation(summary = "获取应用执行日志结果")
     @PreAuthorize("@ss.hasPermission('log:app-message:getAppMessageResult')")
     public CommonResult<LogAppMessageInfoRespVO> getAppMessageResult(@NotNull String appMessageUid) {

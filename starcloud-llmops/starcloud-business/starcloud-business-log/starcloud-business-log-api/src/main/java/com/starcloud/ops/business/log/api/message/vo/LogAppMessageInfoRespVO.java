@@ -56,6 +56,10 @@ public class LogAppMessageInfoRespVO {
     @Schema(description = "执行场景", required = true)
     private String fromScene;
 
+
+    @Schema(description = "用户ID")
+    private String user;
+
     @Schema(description = "临时用户ID")
     private String endUser;
 
