@@ -159,7 +159,13 @@ public class AppWorkflowService {
      */
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId, HttpServletResponse httpServletResponse) {
         // 获取 AppEntity
-        AppEntity app = AppFactory.factory(appId, appRequest);
+        AppEntity app = null;
+        if (StringUtils.isNotBlank(appId)) {
+            app = AppFactory.factory(appId);
+        } else {
+            app = AppFactory.factory(appId, appRequest);
+        }
+
         log.info("fireByApp app: {}", JSON.toJSON(app));
 
         // 创建 App 执行上下文
@@ -289,13 +295,10 @@ public class AppWorkflowService {
 
         String stepId = nodeTracking.getNodeName();
 
-
-        nodeTracking.getParamTracking();
-
         messageCreateReqVO.setUid(IdUtil.fastSimpleUUID());
         messageCreateReqVO.setAppConversationUid(appContext.getConversationId());
         messageCreateReqVO.setAppUid(appContext.getApp().getUid());
-        messageCreateReqVO.setAppMode("mode");
+        messageCreateReqVO.setAppMode(appContext.getApp().getModel());
         messageCreateReqVO.setAppStep(appContext.getStepId());
 
         messageCreateReqVO.setCreateTime(nodeTracking.getStartTime());
