@@ -36,7 +36,7 @@ public class CommonResult<T> implements Serializable {
      */
     private String msg;
 
-    private Boolean success = false;
+    private Boolean success;
 
     /**
      * 将传入的 result 对象，转换成另外一个泛型结果的对象

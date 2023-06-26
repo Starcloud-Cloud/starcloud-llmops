@@ -86,21 +86,4 @@ public class LogAppConversationController {
     }
 
 
-    @GetMapping("/infoPage")
-    @Operation(summary = "获得应用执行日志会话分页")
-    @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<PageResult<LogAppConversationInfoRespVO>> getAppConversationPage(@Valid LogAppConversationInfoPageReqVO pageVO) {
-        PageResult<LogAppConversationInfoPO> pageResult = appConversationService.getAppConversationInfoPage(pageVO);
-        return success(LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult));
-    }
-
-    @GetMapping("/statistics")
-    @Operation(summary = "获得应用执行统计列表")
-    @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<List<LogAppMessageStatisticsListVO>> getAppMessageStatisticsList(@Valid LogAppMessageStatisticsListReqVO pageVO) {
-        List<LogAppMessageStatisticsListPO> pageResult = appConversationService.getAppMessageStatisticsList(pageVO);
-        return success(LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult));
-
-    }
-
 }

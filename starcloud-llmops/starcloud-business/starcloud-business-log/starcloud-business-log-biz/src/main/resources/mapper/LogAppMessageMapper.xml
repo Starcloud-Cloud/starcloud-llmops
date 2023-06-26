@@ -11,12 +11,13 @@
 
     <select id="getAppMessageStatisticsList"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
-        SELECT count(ms.id) as total,
-        COUNT(DISTINCT(ms.creator)) as user,
+        SELECT count(ms.id) as messageCount,
+        COUNT(DISTINCT(ms.creator)) as userCount,
         SUM(ms.elapsed) as elapsedTotal,
         AVG(ms.elapsed) as elapsedAvg,
         SUM(message_tokens) as messageTokens,
         SUM(answer_tokens) as answerTokens,
+        SUM(message_tokens + answer_tokens) as tokens,
         date_format(ms.create_time, '%Y-%m-%d') as create_date
         from llm_log_app_message as ms LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
 

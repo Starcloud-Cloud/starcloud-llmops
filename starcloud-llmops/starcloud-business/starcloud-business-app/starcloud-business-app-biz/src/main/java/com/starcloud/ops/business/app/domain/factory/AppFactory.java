@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.factory;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 
@@ -32,16 +33,27 @@ public class AppFactory {
         return appRepository;
     }
 
+    /**
+     * 获取 AppEntity 通过 appId
+     *
+     * @param appId appId
+     * @return AppEntity
+     */
     public static AppEntity factory(String appId) {
         return getAppRepository().getByUid(appId);
     }
 
-
+    /**
+     * 获取 AppEntity, 不通过数据库查询，直接通过请求参数构建。以 appRequest 为准
+     *
+     * @param appId      appId
+     * @param appRequest appRequest
+     * @return AppEntity
+     */
     public static AppEntity factory(String appId, AppReqVO appRequest) {
-
-        AppEntity app = new AppEntity();
+        AppEntity app = AppConvert.INSTANCE.convert(appRequest);
+        app.setUid(appId);
         Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
-
         return app;
     }
 

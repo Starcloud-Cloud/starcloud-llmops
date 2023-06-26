@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +27,7 @@ public class AppUtils {
     /**
      * 默认场景
      */
-    public static final List<String> DEFAULT_SCENES = Arrays.asList("WEB_ADMIN", "WEB_MARKET");
+    public static final List<String> DEFAULT_SCENES = Arrays.asList(AppSceneEnum.WEB_ADMIN.name(), AppSceneEnum.WEB_MARKET.name());
 
     /**
      * 逗号分隔符拼接字符串
@@ -91,7 +92,8 @@ public class AppUtils {
      * @return uid
      */
     public static String generateUid(String prefix) {
-        return prefix + "-" + IdUtil.fastSimpleUUID();
+//        return prefix + "-" + IdUtil.fastSimpleUUID();
+        return IdUtil.fastSimpleUUID();
     }
 
     /**
@@ -102,7 +104,7 @@ public class AppUtils {
      * @return uid
      */
     public static String generateUid(String uid, Integer version) {
-        return uid + "," + version;
+        return uid + "-" + version;
     }
 
     /**
@@ -112,7 +114,7 @@ public class AppUtils {
      * @return uid
      */
     public static String obtainUid(String uid) {
-        String[] split = uid.split(",");
+        String[] split = uid.split("-");
         if (split.length != 2) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get downloadUid or uploadUid");
         }
@@ -126,7 +128,7 @@ public class AppUtils {
      * @return 版本号
      */
     public static Integer obtainVersion(String uid) {
-        String[] split = uid.split(",");
+        String[] split = uid.split("-");
         if (split.length != 2) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get version");
         }
