@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.controller.admin;
+package com.starcloud.ops.business.app.controller.admin.log;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;

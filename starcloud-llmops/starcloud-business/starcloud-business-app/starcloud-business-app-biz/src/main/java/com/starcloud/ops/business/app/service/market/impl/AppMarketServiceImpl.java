@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
@@ -18,6 +19,7 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.operate.AppOperateConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.databoject.operate.AppOperateDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
@@ -195,11 +197,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         appEntity.insert();
 
         // 操作表中插入一条数据
-        AppOperateDO appOperateDO = new AppOperateDO();
-        appOperateDO.setAppUid(appMarket.getUid());
-        appOperateDO.setVersion(appMarket.getVersion());
-        appOperateDO.setOperate(AppOperateTypeEnum.DOWNLOAD.name());
-        appOperateDO.setUser(Long.toString(loginUserId));
+        AppOperateDO appOperateDO = AppOperateConvert.INSTANCE.convert(appMarket.getUid(), appMarket.getVersion(), AppOperateTypeEnum.DOWNLOAD.name());
         appOperateMapper.insert(appOperateDO);
 
         // 6. 更新应用的下载量
@@ -286,8 +284,9 @@ public class AppMarketServiceImpl implements AppMarketService {
      * @return 收藏列表
      */
     @Override
-    public List<AppMarketRespVO> listFavorite(String userId) {
-        return null;
+    public List<AppFavoriteRespVO> listFavorite(String userId) {
+        AppValidate.notBlank(userId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+        return CollectionUtil.emptyIfNull(appFavoritesMapper.listFavorite(userId));
     }
 
     /**
@@ -298,8 +297,10 @@ public class AppMarketServiceImpl implements AppMarketService {
      * @return 收藏应用
      */
     @Override
-    public AppMarketRespVO getFavoriteApp(String userId, String uid) {
-        return null;
+    public AppFavoriteRespVO getFavoriteApp(String userId, String uid) {
+        AppValidate.notBlank(userId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+        AppValidate.notBlank(uid, ErrorCodeConstants.APP_UID_IS_REQUIRED);
+        return appFavoritesMapper.getFavoriteApp(userId, uid);
     }
 
     /**
@@ -309,8 +310,52 @@ public class AppMarketServiceImpl implements AppMarketService {
      * @param uid    应用 uid
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void favorite(String userId, String uid) {
+        // 应用是否已经被收藏了
+        AppFavoriteDO favoriteDO = appFavoritesMapper.selectOne(Wrappers.lambdaQuery(AppFavoriteDO.class)
+                .eq(AppFavoriteDO::getAppUid, uid).eq(AppFavoriteDO::getUser, userId));
+        AppValidate.isNull(favoriteDO, ErrorCodeConstants.APP_HAS_FAVORITE, uid);
+        // 应用是否存在
+        LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class)
+                .select(AppMarketDO::getUid, AppMarketDO::getName, AppMarketDO::getVersion, AppMarketDO::getLikeCount)
+                .eq(AppMarketDO::getUid, uid)
+                .eq(AppMarketDO::getAudit, AppMarketAuditEnum.APPROVED.getCode())
+                .eq(AppMarketDO::getDeleted, Boolean.FALSE)
+                .orderByDesc(AppMarketDO::getCreateTime)
+                .last("LIMIT 1");
+        AppMarketDO appMarketDO = appMarketMapper.selectOne(wrapper);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
 
+        // 插入收藏记录
+        AppFavoriteDO appFavoriteDO = new AppFavoriteDO();
+        appFavoriteDO.setAppUid(uid);
+        appFavoriteDO.setUser(userId);
+        appFavoritesMapper.insert(appFavoriteDO);
+
+        // 更新应用市场的收藏数量
+        appMarketMapper.update(null, Wrappers.lambdaUpdate(AppMarketDO.class)
+                .set(AppMarketDO::getLikeCount, appMarketDO.getLikeCount() + 1)
+                .eq(AppMarketDO::getVersion, appMarketDO.getVersion())
+                .eq(AppMarketDO::getUid, uid));
+    }
+
+    /**
+     * 取消收藏
+     *
+     * @param userId 用户 id
+     * @param uid    应用 uid
+     */
+    @Override
+    public void cancelFavorite(String userId, String uid) {
+        // 应用是否已经被收藏了
+        AppFavoriteDO favoriteDO = appFavoritesMapper.selectOne(Wrappers.lambdaQuery(AppFavoriteDO.class)
+                .eq(AppFavoriteDO::getAppUid, uid).eq(AppFavoriteDO::getUser, userId));
+        AppValidate.notNull(favoriteDO, ErrorCodeConstants.APP_FAVORITE_NOT_EXISTS, uid);
+
+        // 删除收藏记录
+        appFavoritesMapper.delete(Wrappers.lambdaQuery(AppFavoriteDO.class)
+                .eq(AppFavoriteDO::getAppUid, uid).eq(AppFavoriteDO::getUser, userId));
     }
 
     /**
