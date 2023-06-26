@@ -257,6 +257,8 @@ public class StarUserServiceImpl implements StarUserService {
             recoverPasswordMapper.updateById(recoverPasswordDO);
             throw exception(OPERATE_TIME_OUT);
         }
+        recoverPasswordDO.setStatus(1);
+        recoverPasswordMapper.updateById(recoverPasswordDO);
         AdminUserDO userDO = adminUserMapper.selectById(recoverPasswordDO.getUserId());
         userDO.setPassword(passwordEncoder.encode(request.getNewPassword()));
         adminUserMapper.updateById(userDO);
