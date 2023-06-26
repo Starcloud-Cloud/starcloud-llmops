@@ -18,6 +18,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +67,7 @@ public interface AppMarketConvert {
         appMarket.setCost(appMarketEntity.getCost());
         appMarket.setLikeCount(appMarketEntity.getLikeCount());
         appMarket.setViewCount(appMarketEntity.getViewCount());
-        appMarket.setDownloadCount(appMarketEntity.getDownloadCount());
+        appMarket.setInstallCount(appMarketEntity.getInstallCount());
         appMarket.setDescription(appMarketEntity.getDescription());
         appMarket.setExample(appMarketEntity.getExample());
         appMarket.setDeleted(Boolean.FALSE);
@@ -100,7 +102,7 @@ public interface AppMarketConvert {
         appMarketEntity.setCost(appMarket.getCost());
         appMarketEntity.setLikeCount(appMarket.getLikeCount());
         appMarketEntity.setViewCount(appMarket.getViewCount());
-        appMarketEntity.setDownloadCount(appMarket.getDownloadCount());
+        appMarketEntity.setInstallCount(appMarket.getInstallCount());
         appMarketEntity.setDescription(appMarket.getDescription());
         appMarketEntity.setExample(appMarket.getExample());
 
@@ -136,7 +138,7 @@ public interface AppMarketConvert {
         appMarketEntity.setCost(BigDecimal.ZERO);
         appMarketEntity.setLikeCount(0);
         appMarketEntity.setViewCount(0);
-        appMarketEntity.setDownloadCount(0);
+        appMarketEntity.setInstallCount(0);
         appMarketEntity.setDescription(app.getDescription());
         appMarketEntity.setExample(publishRequest.getExample());
 
@@ -170,16 +172,23 @@ public interface AppMarketConvert {
         appMarketResponse.setCost(appMarket.getCost());
         appMarketResponse.setLikeCount(appMarket.getLikeCount());
         appMarketResponse.setViewCount(appMarket.getViewCount());
-        appMarketResponse.setDownloadCount(appMarket.getDownloadCount());
+        appMarketResponse.setInstallCount(appMarket.getInstallCount());
         appMarketResponse.setDescription(appMarket.getDescription());
         appMarketResponse.setExample(appMarket.getExample());
         appMarketResponse.setCreateTime(appMarket.getCreateTime());
         appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
 
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
-            appMarketResponse.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigRespVO.class));
+            WorkflowConfigRespVO config = JSON.parseObject(appMarket.getConfig(), WorkflowConfigRespVO.class);
+            if (config != null) {
+                appMarketResponse.setWorkflowConfig(config);
+                appMarketResponse.setStepCount(Optional.of(config).map(WorkflowConfigRespVO::getSteps).map(List::size).orElse(0));
+            }
         } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
-            appMarketResponse.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigRespVO.class));
+            ChatConfigRespVO config = JSON.parseObject(appMarket.getConfig(), ChatConfigRespVO.class);
+            if (config != null) {
+                appMarketResponse.setChatConfig(config);
+            }
         }
 
         return appMarketResponse;

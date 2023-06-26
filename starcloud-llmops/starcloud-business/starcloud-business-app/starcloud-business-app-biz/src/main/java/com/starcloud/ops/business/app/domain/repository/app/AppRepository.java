@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.repository.app;
 
-import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -51,8 +50,8 @@ public class AppRepository {
         AppValidate.isTrue(!duplicateName(appEntity.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
         AppDO app = AppConvert.INSTANCE.convert(appEntity);
         app.setUid(AppUtils.generateUid(AppConstants.APP_PREFIX));
-        app.setUploadUid(null);
-        app.setLastUpload(null);
+        app.setPublishUid(null);
+        app.setLastPublish(null);
         app.setDeleted(Boolean.FALSE);
         appMapper.insert(app);
     }

@@ -34,7 +34,17 @@ public interface ErrorCodeConstants {
     /**
      * 应用市场应用不存在
      */
-    ErrorCode APP_MARKET_NO_EXISTS_UID_VERSION = new ErrorCode(300200002, "The App Is Not Exists In The Market! [UID: {}, version: {}]");
+    ErrorCode APP_MARKET_NO_EXISTS_UID = new ErrorCode(300200000, "The app is not exists in the market ! [UID: {}]");
+
+    /**
+     * 应用市场应用不存在
+     */
+    ErrorCode APP_MARKET_NO_EXISTS_UID_VERSION = new ErrorCode(300200002, "The app is not exists in the market ! [UID: {}, version: {}]");
+
+    /**
+     * 应用市场应用不能安装
+     */
+    ErrorCode APP_MARKET_CANNOT_INSTALL = new ErrorCode(300200003, "The app is not exists in the market or the audit fails ! [UID: {}, version: {}]");
 
     /**
      * 应用市场操作不支持

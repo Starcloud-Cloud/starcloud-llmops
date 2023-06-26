@@ -63,24 +63,28 @@ public class AppMarketRespVO implements Serializable {
      * 应用标签，多个以逗号分割
      */
     @Schema(description = "应用标签，多个以逗号分割")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> tags;
 
     /**
      * 应用类别，多个以逗号分割
      */
     @Schema(description = "应用类别，多个以逗号分割")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> categories;
 
     /**
      * 应用场景，多个以逗号分割
      */
     @Schema(description = "应用场景，多个以逗号分割")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> scenes;
 
     /**
      * 应用图片，多个以逗号分割
      */
     @Schema(description = "应用图片，多个以逗号分割")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> images;
 
     /**
@@ -114,10 +118,10 @@ public class AppMarketRespVO implements Serializable {
     private Integer viewCount;
 
     /**
-     * 应用下载数量
+     * 应用安装数量
      */
-    @Schema(description = "应用下载数量")
-    private Integer downloadCount;
+    @Schema(description = "应用安装数量")
+    private Integer installCount;
 
     /**
      * 应用详细配置信息, 步骤，变量，场景等
@@ -130,6 +134,12 @@ public class AppMarketRespVO implements Serializable {
      */
     @Schema(description = "应用聊天配置")
     private ChatConfigRespVO chatConfig;
+
+    /**
+     * 应用步骤数量
+     */
+    @Schema(description = "应用步骤数量")
+    private Integer stepCount;
 
     /**
      * 应用描述

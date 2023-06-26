@@ -57,6 +57,7 @@ public interface AppConvert {
         appDO.setUid(appEntity.getUid());
         appDO.setName(appEntity.getName());
         appDO.setModel(appEntity.getModel());
+        appDO.setType(appEntity.getType());
         appDO.setSource(appEntity.getSource());
         appDO.setTags(AppUtils.join(appEntity.getTags()));
         appDO.setCategories(AppUtils.join(appEntity.getCategories()));
@@ -65,9 +66,9 @@ public interface AppConvert {
         appDO.setIcon(appEntity.getIcon());
 
         appDO.setDescription(appEntity.getDescription());
-        appDO.setUploadUid(appEntity.getUploadUid());
-        appDO.setDownloadUid(appEntity.getDownloadUid());
-        appDO.setLastUpload(appEntity.getLastUpload());
+        appDO.setPublishUid(appEntity.getPublishUid());
+        appDO.setInstallUid(appEntity.getInstallUid());
+        appDO.setLastPublish(appEntity.getLastPublish());
         appDO.setDeleted(Boolean.FALSE);
 
         if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
@@ -98,9 +99,9 @@ public interface AppConvert {
         appEntity.setIcon(app.getIcon());
 
         appEntity.setDescription(app.getDescription());
-        appEntity.setUploadUid(app.getUploadUid());
-        appEntity.setDownloadUid(app.getDownloadUid());
-        appEntity.setLastUpload(app.getLastUpload());
+        appEntity.setPublishUid(app.getPublishUid());
+        appEntity.setInstallUid(app.getInstallUid());
+        appEntity.setLastPublish(app.getLastPublish());
 
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
             appEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
@@ -121,7 +122,7 @@ public interface AppConvert {
         AppEntity appEntity = new AppEntity();
         appEntity.setName(appMarket.getName());
         appEntity.setModel(appMarket.getModel());
-        appEntity.setType(AppTypeEnum.DOWNLOAD.name());
+        appEntity.setType(AppTypeEnum.INSTALLED.name());
         appEntity.setSource(AppSourceEnum.WEB.name());
         appEntity.setTags(AppUtils.split(appMarket.getTags()));
         appEntity.setCategories(AppUtils.split(appMarket.getCategories()));
@@ -130,9 +131,9 @@ public interface AppConvert {
         appEntity.setIcon(appMarket.getIcon());
 
         appEntity.setDescription(appMarket.getDescription());
-        appEntity.setUploadUid(null);
-        appEntity.setDownloadUid(AppUtils.generateUid(appMarket.getUid(), appMarket.getVersion()));
-        appEntity.setLastUpload(null);
+        appEntity.setPublishUid(null);
+        appEntity.setInstallUid(AppUtils.generateUid(appMarket.getUid(), appMarket.getVersion()));
+        appEntity.setLastPublish(null);
 
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
             appEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
@@ -163,11 +164,11 @@ public interface AppConvert {
         appRespVO.setIcon(app.getIcon());
 
         appRespVO.setDescription(app.getDescription());
-        appRespVO.setUploadUid(app.getUploadUid());
-        appRespVO.setDownloadUid(app.getDownloadUid());
+        appRespVO.setPublishUid(app.getPublishUid());
+        appRespVO.setInstallUid(app.getInstallUid());
         appRespVO.setCreateTime(app.getCreateTime());
         appRespVO.setUpdateTime(app.getUpdateTime());
-        appRespVO.setLastUpload(app.getLastUpload());
+        appRespVO.setLastPublish(app.getLastPublish());
 
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
             appRespVO.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigRespVO.class));

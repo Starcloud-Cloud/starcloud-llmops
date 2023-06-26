@@ -14,19 +14,19 @@ import lombok.Getter;
 public enum AppTypeEnum implements IEnumable<Integer> {
 
     /**
-     * 系统应用：系统提供的推荐应用
-     */
-    SYSTEM(0, "系统应用：系统提供的推荐应用"),
-
-    /**
      * 我的应用：我创建的应用
      */
-    MYSELF(1, "我的应用：我创建的应用"),
+    MYSELF(0, "我的应用：我创建的应用"),
 
     /**
-     * 下载应用：我已经下载的应用
+     * 下载安装的应用：我已经下载安装的应用
      */
-    DOWNLOAD(2, "下载应用：我已经下载的应用"),
+    INSTALLED(1, "下载应用：我已经下载的应用"),
+
+    /**
+     * 已经发布的应用：已经发布的应用
+     */
+    PUBLISHED(2, "系统应用：系统提供的推荐应用"),
 
     ;
 

@@ -30,6 +30,14 @@ public interface AppMarketService {
     PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
 
     /**
+     * 根据应用 uid 获取应用详情
+     *
+     * @param uid 应用 uid
+     * @return 应用详情
+     */
+    AppMarketRespVO getByUid(String uid);
+
+    /**
      * 根据应用 uid 和 版本号 获取应用详情
      *
      * @param uid     应用 uid

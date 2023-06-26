@@ -97,8 +97,8 @@ public class AppServiceTest extends BaseDbUnitTest {
                 .set(AppMarketDO::getTenantId, 1L)
                 .set(AppMarketDO::getCreateTime, LocalDateTime.now())
                 .set(AppMarketDO::getUpdateTime, LocalDateTime.now())
-                .eq(AppMarketDO::getUid, AppUtils.obtainUid(byUid.getUploadUid()))
-                .eq(AppMarketDO::getVersion, AppUtils.obtainVersion(byUid.getUploadUid()))
+                .eq(AppMarketDO::getUid, AppUtils.obtainUid(byUid.getPublishUid()))
+                .eq(AppMarketDO::getVersion, AppUtils.obtainVersion(byUid.getPublishUid()))
         );
         log.info("Publish app success");
     }

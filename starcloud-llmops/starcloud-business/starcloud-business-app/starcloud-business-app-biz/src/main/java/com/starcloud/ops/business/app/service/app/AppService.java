@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -103,8 +104,9 @@ public interface AppService {
      * 校验应用是否已经下载过
      *
      * @param marketKey 应用市场 UID。
+     * @param isCheckUpdate 是否检查更新
      * @return 是否已经下载
      */
-    Boolean verifyHasDownloaded(String marketKey);
+    InstalledRespVO verifyHasInstalled(String marketKey, boolean isCheckUpdate);
 
 }

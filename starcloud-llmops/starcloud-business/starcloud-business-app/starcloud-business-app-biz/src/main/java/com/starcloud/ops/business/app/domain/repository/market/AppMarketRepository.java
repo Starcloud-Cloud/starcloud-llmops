@@ -42,7 +42,7 @@ public class AppMarketRepository {
                 .eq(AppMarketDO::getUid, uid)
                 .eq(AppMarketDO::getVersion, version);
         AppMarketDO appMarketDO = appMarketMapper.selectOne(wrapper);
-        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID_VERSION, uid, version);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid, version);
         return AppMarketConvert.INSTANCE.convert(appMarketDO);
     }
 
@@ -57,10 +57,10 @@ public class AppMarketRepository {
         appMarket.setUid(AppUtils.generateUid(AppConstants.MARKET_PREFIX));
         // 新增版本号默认为 1
         appMarket.setVersion(AppConstants.DEFAULT_VERSION);
-        // 新增，点赞，查看，下载量为 0
+        // 新增，点赞，查看，安装量为 0
         appMarket.setLikeCount(0);
         appMarket.setViewCount(0);
-        appMarket.setDownloadCount(0);
+        appMarket.setInstallCount(0);
         // 目前模版市场只有免费版
         appMarket.setFree(Boolean.TRUE);
         appMarket.setCost(BigDecimal.ZERO);
@@ -80,7 +80,7 @@ public class AppMarketRepository {
     public void update(AppMarketEntity appMarketEntity) {
         // 判断应用是否存在, 不存在无法修改
         AppValidate.isTrue(isExists(appMarketEntity.getUid(), appMarketEntity.getVersion()),
-                ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID_VERSION, appMarketEntity.getUid(), appMarketEntity.getVersion());
+                ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, appMarketEntity.getUid(), appMarketEntity.getVersion());
         AppMarketDO appMarket = AppMarketConvert.INSTANCE.convert(appMarketEntity);
         // 版本号
         appMarket.setVersion(AppUtils.nextVersion(appMarket.getVersion()));
@@ -106,7 +106,7 @@ public class AppMarketRepository {
      */
     public void deleteByUidAndVersion(String uid, Integer version) {
         // 判断应用是否存在, 不存在无法删除
-        AppValidate.isTrue(isExists(uid, version), ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID_VERSION, uid, version);
+        AppValidate.isTrue(isExists(uid, version), ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid, version);
         LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
                 .eq(AppMarketDO::getUid, uid)
                 .eq(AppMarketDO::getVersion, version);

@@ -115,7 +115,7 @@ public class AppMarketDTO implements Serializable {
      * 应用下载数量
      */
     @Schema(description = "应用下载数量")
-    private Integer downloadCount;
+    private Integer installCount;
 
     /**
      * 应用详细配置信息, 步骤，变量，场景等

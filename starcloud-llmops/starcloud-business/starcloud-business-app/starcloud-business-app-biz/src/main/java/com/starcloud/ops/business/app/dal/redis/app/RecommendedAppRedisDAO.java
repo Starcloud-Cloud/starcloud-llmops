@@ -5,8 +5,6 @@ import com.starcloud.ops.business.app.api.app.dto.AppDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.redis.RedisKeyConstants;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -36,12 +34,7 @@ public class RecommendedAppRedisDAO {
      * @return 推荐的模板
      */
     public List<AppRespVO> get() {
-        if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(getKey()))) {
-            String rec = stringRedisTemplate.opsForValue().get(getKey());
-            if (StringUtils.isNotBlank(rec)) {
-                JSON.parseArray(stringRedisTemplate.opsForValue().get(getKey()), AppDTO.class);
-            }
-        }
+
         return Collections.emptyList();
     }
 
@@ -59,9 +52,7 @@ public class RecommendedAppRedisDAO {
      * @param type 模版类型
      */
     public void resetByType(String type) {
-        if (AppTypeEnum.SYSTEM.name().equals(type)) {
-            set();
-        }
+
     }
 
     /**

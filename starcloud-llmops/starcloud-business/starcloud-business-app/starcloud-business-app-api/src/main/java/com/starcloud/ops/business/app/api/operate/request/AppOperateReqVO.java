@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -35,7 +36,7 @@ public class AppOperateReqVO implements Serializable {
      * 版本号
      */
     @Schema(description = "应用版本号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "应用版本号不能为空")
+    @NotNull(message = "应用版本号不能为空")
     private Integer version;
 
     /**

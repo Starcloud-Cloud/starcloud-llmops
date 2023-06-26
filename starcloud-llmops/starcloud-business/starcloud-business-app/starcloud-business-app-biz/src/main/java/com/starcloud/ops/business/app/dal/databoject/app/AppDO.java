@@ -107,21 +107,21 @@ public class AppDO extends TenantBaseDO {
     private String description;
 
     /**
-     * 应用上传成功后，应用市场 UID
+     * 应用发布成功后，应用市场 uid-version
      */
-    @TableField("upload_uid")
-    private String uploadUid;
+    @TableField("publish_uid")
+    private String publishUid;
 
     /**
-     * 应用下载成功后，应用市场 UID
+     * 应用安装成功后，应用市场 uid-version
      */
-    @TableField("download_uid")
-    private String downloadUid;
+    @TableField("install_uid")
+    private String installUid;
 
     /**
-     * 最后一次上传到应用市场时间
+     * 最后一次发布到应用市场时间
      */
-    @TableField("last_upload")
-    private LocalDateTime lastUpload;
+    @TableField("last_publish")
+    private LocalDateTime lastPublish;
 
 }

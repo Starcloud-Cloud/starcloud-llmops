@@ -20,9 +20,9 @@ public enum AppOperateTypeEnum implements IEnumable<Integer> {
     VIEW(1, "查看"),
 
     /**
-     * 下载
+     * 安装
      */
-    DOWNLOAD(3, "下载"),
+    INSTALLED(3, "下载"),
 
     ;
 

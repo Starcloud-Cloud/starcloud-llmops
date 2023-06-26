@@ -90,9 +90,9 @@ public class AppMarketEntity {
     private Integer viewCount;
 
     /**
-     * 下载数量
+     * 安装数量
      */
-    private Integer downloadCount;
+    private Integer installCount;
 
     /**
      * 应用详细配置信息, 步骤，变量，场景等
