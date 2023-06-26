@@ -3,14 +3,47 @@
 <mapper namespace="com.starcloud.ops.business.app.dal.mysql.favorite.AppFavoriteMapper">
 
     <!-- 查询收藏应用列表 -->
-    <select id="listFavorite" resultType="com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO">
-        SELECT b.uid, b.NAME, b.description, b.categories
+    <select id="listFavorite" resultType="com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO">
+        SELECT b.uid, b.name, b.description, b.categories, a.create_time AS favorite_time
         FROM llm_app_favorite a
                  LEFT JOIN llm_app_market b ON a.app_uid = b.uid
-        WHERE a.USER = #{userId}
+        WHERE a.user = #{userId}
+          AND a.deleted = 0
+          AND b.audit = 1
+          AND b.deleted = 0
+        ORDER BY a.create_time DESC;
+    </select>
+
+    <!-- 根据用户 ID 和应用 UID 获取应用详情 -->
+    <select id="getFavoriteApp" resultType="com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO">
+        SELECT b.uid,
+               b.name,
+               b.model,
+               b.version,
+               b.language,
+               b.tags,
+               b.categories,
+               b.scenes,
+               b.images,
+               b.icon,
+               b.free,
+               b.cost,
+               b.like_count,
+               b.view_count,
+               b.download_count,
+               b.config,
+               b.create_time,
+               b.example,
+               b.create_time,
+               a.create_time AS favorite_time
+        FROM llm_app_favorite a
+                 LEFT JOIN llm_app_market b ON a.app_uid = b.uid
+        WHERE a.user = #{userId}
+          AND a.app_uid = #{appUid}
           AND a.deleted = 0
           AND b.audit = 1
           AND b.deleted = 0
         ORDER BY a.create_time DESC
+        LIMIT 1;
     </select>
 </mapper>
