@@ -36,7 +36,6 @@ public class AppOperateReqVO implements Serializable {
      * 版本号
      */
     @Schema(description = "应用版本号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "应用版本号不能为空")
     private Integer version;
 
     /**

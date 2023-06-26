@@ -100,13 +100,4 @@ public interface AppService {
      */
     void batchPublicAppToMarket(List<AppPublishReqVO> requestList);
 
-    /**
-     * 校验应用是否已经下载过
-     *
-     * @param marketKey 应用市场 UID。
-     * @param isCheckUpdate 是否检查更新
-     * @return 是否已经下载
-     */
-    InstalledRespVO verifyHasInstalled(String marketKey, boolean isCheckUpdate);
-
 }

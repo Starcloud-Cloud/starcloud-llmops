@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
@@ -14,7 +12,6 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
@@ -28,19 +25,12 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.recommend.RecommendedAppFactory;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.LanguageEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
-import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.app.AppUtils;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
-import com.starcloud.ops.framework.common.api.dto.SortQuery;
-import com.starcloud.ops.framework.common.api.enums.SortType;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -99,8 +89,7 @@ public class AppServiceImpl implements AppService {
             return Collections.emptyList();
         }
         // 转换为应用分类列表
-        return dictDataList.stream().map(CategoryConvert.INSTANCE::convert)
-                .filter(Objects::nonNull).collect(Collectors.toList());
+        return dictDataList.stream().map(CategoryConvert.INSTANCE::convert).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     /**
@@ -131,7 +120,6 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<AppRespVO> listRecommendedApps() {
-//        return Collections.emptyList();
         return Collections.singletonList(RecommendedAppFactory.defGenerateTextApp());
     }
 
@@ -143,22 +131,9 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public PageResp<AppRespVO> page(AppPageQuery query) {
-        // 默认按照更新时间倒序
-        query.setSorts(Collections.singletonList(SortQuery.of("update_time", SortType.DESC.name())));
-
-        // 构建查询条件
-        LambdaQueryWrapper<AppDO> wrapper = buildPageQueryWrapper()
-                .likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
-
-        // 执行分页查询
-        Page<AppDO> page = appMapper.selectPage(PageUtil.page(query), wrapper);
+        Page<AppDO> page = appMapper.page(query);
         List<AppRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppConvert.INSTANCE::convertResp)
-                .peek(item -> {
-                    item.setWorkflowConfig(null);
-                    item.setChatConfig(null);
-                })
-                .collect(Collectors.toList());
+                .map(AppConvert.INSTANCE::convertResp).collect(Collectors.toList());
         return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
@@ -170,9 +145,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO getByUid(String uid) {
-        AppDO appDO = appMapper.selectOne(Wrappers.lambdaQuery(AppDO.class).eq(AppDO::getUid, uid));
-        AppValidate.notNull(appDO, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return AppConvert.INSTANCE.convertResp(appDO);
+        return AppConvert.INSTANCE.convertResp(appMapper.getByUid(uid, Boolean.FALSE));
     }
 
     /**
@@ -229,13 +202,11 @@ public class AppServiceImpl implements AppService {
     @Transactional(rollbackFor = Exception.class)
     public void publish(AppPublishReqVO request) {
         // 查询我的应用是否存在，不存在则抛出异常
-        AppDO appDO = appMapper.selectOne(Wrappers.lambdaQuery(AppDO.class).eq(AppDO::getUid, request.getUid()));
-        AppValidate.notNull(appDO, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getUid());
-
+        AppDO appDO = appMapper.getByUid(request.getUid(), Boolean.TRUE);
+        // 转换为应用市场对象
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appDO, request);
-        // 判断是否已经发布过应用市场：判断依据：publishUid 是否为空
+        // 判断是否已经发布过应用市场：判断依据：publishUid 是否为空, 如果为空则说明没有发布过应用市场。
         if (StringUtils.isNotBlank(appDO.getPublishUid())) {
-            // 此时说明该应用已经发布过应用市场，需要先将之前的应用市场记录置为不可用。
             // 查询之前发布的应用市场记录的所有版本，按照版本号倒序排序。
             LambdaQueryWrapper<AppMarketDO> marketQueryWrapper = Wrappers.lambdaQuery(AppMarketDO.class)
                     .select(AppMarketDO::getId, AppMarketDO::getUid, AppMarketDO::getVersion,
@@ -267,11 +238,6 @@ public class AppServiceImpl implements AppService {
         appMarketMapper.insert(appMarketDO);
 
         // 更新我的应用
-        // 更新 installUid, 防止发布的应用可以再次下载
-        appDO.setInstallUid(AppUtils.generateUid(appMarketDO.getUid(), appMarketDO.getVersion()));
-        // 更新应用的类型为已发布的类型
-        appDO.setType(AppTypeEnum.PUBLISHED.name());
-        // 生成上传 UID 和 时间
         appDO.setPublishUid(AppUtils.generateUid(appMarketDO.getUid(), appMarketDO.getVersion()));
         appDO.setLastPublish(LocalDateTime.now());
         appMapper.update(appDO, Wrappers.lambdaUpdate(AppDO.class).eq(AppDO::getUid, request.getUid()));
@@ -285,78 +251,5 @@ public class AppServiceImpl implements AppService {
     @Override
     public void batchPublicAppToMarket(List<AppPublishReqVO> requestList) {
 
-    }
-
-    /**
-     * 校验应用是否已经下载过
-     *
-     * @param marketUid     应用市场 UID。
-     * @param isCheckUpdate 是否检查更新
-     * @return 是否已经下载, true: 已经下载, false: 未下载
-     */
-    @Override
-    public InstalledRespVO verifyHasInstalled(String marketUid, boolean isCheckUpdate) {
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        if (Objects.isNull(loginUserId)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
-        }
-
-        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class)
-                .select(AppDO::getUid, AppDO::getInstallUid)
-                .eq(AppDO::getInstallUid, marketUid)
-                .in(AppDO::getType, AppTypeEnum.INSTALLED.name(), AppTypeEnum.PUBLISHED.name())
-                .eq(AppDO::getCreator, SecurityFrameworkUtils.getLoginUserId());
-
-        AppDO appDO = appMapper.selectOne(wrapper);
-        if (Objects.isNull(appDO)) {
-            return InstalledRespVO.of(AppInstallStatusEnum.UNINSTALLED.name(), null, null);
-        }
-        // 如果是检查更新，则需要判断是否需要更新
-        if (isCheckUpdate) {
-            LambdaQueryWrapper<AppMarketDO> marketWrapper = Wrappers.lambdaQuery(AppMarketDO.class)
-                    .select(AppMarketDO::getUid, AppMarketDO::getVersion)
-                    .eq(AppMarketDO::getUid, marketUid)
-                    .eq(AppMarketDO::getAudit, AppMarketAuditEnum.APPROVED.name())
-                    .orderByDesc(AppMarketDO::getVersion);
-            List<AppMarketDO> appMarketList = appMarketMapper.selectList(marketWrapper);
-            if (CollectionUtil.isEmpty(appMarketList)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, marketUid);
-            }
-            AppMarketDO appMarketDO = appMarketList.get(0);
-            // 如果应用市场的版本号大于当前应用的版本号，则需要更新
-            if (appMarketDO.getVersion() > AppUtils.obtainVersion(appDO.getInstallUid())) {
-                return InstalledRespVO.of(AppInstallStatusEnum.UPDATE.name(), AppUtils.obtainVersion(appDO.getInstallUid()), appMarketDO.getVersion());
-            }
-
-        }
-
-        return InstalledRespVO.of(AppInstallStatusEnum.INSTALLED.name(), AppUtils.obtainVersion(appDO.getInstallUid()), null);
-    }
-
-    /**
-     * 构建分页查询条件, 仅查询指定字段
-     *
-     * @return 查询条件
-     */
-    public static LambdaQueryWrapper<AppDO> buildPageQueryWrapper() {
-        return Wrappers.lambdaQuery(AppDO.class).select(
-                AppDO::getUid,
-                AppDO::getName,
-                AppDO::getType,
-                AppDO::getModel,
-                AppDO::getSource,
-                AppDO::getTags,
-                AppDO::getCategories,
-                AppDO::getScenes,
-                AppDO::getIcon,
-                AppDO::getConfig,
-                AppDO::getDescription,
-                AppDO::getPublishUid,
-                AppDO::getInstallUid,
-                AppDO::getCreator,
-                AppDO::getUpdater,
-                AppDO::getCreateTime,
-                AppDO::getUpdateTime
-        );
     }
 }
