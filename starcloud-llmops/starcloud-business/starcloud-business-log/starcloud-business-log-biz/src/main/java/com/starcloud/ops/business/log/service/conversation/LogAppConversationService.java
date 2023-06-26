@@ -1,14 +1,21 @@
 package com.starcloud.ops.business.log.service.conversation;
 
-import java.util.*;
-import javax.validation.*;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.log.api.conversation.vo.*;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 应用执行日志会话 Service 接口
@@ -31,6 +38,14 @@ public interface LogAppConversationService {
      * @param updateReqVO 更新信息
      */
     void updateAppConversation(@Valid LogAppConversationUpdateReqVO updateReqVO);
+
+    /**
+     * 更新应用执行日志会话状态
+     *
+     * @param uid    编号
+     * @param status 状态
+     */
+    void updateAppConversationStatus(@NotEmpty String uid, @NotEmpty String status);
 
     /**
      * 删除应用执行日志会话

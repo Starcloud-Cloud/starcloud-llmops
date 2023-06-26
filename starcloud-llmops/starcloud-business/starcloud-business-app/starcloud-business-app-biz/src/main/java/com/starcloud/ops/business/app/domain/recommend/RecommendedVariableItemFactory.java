@@ -15,12 +15,13 @@ import com.starcloud.ops.business.app.util.MessageUtil;
  */
 public class RecommendedVariableItemFactory {
 
+    // Open AI Chat Completion Variable Item ---------------------------------------------------------------------------
+
     /**
      * Open AI Chat Completion 最大token变量
      * Open AI Chat Completion Max Token Variable
      *
      * @return VariableItemRespVO
-     * @link <a href="https://platform.openai.com/docs/api-reference/completions/create#completions/create-max_tokens">https://platform.openai.com/docs/api-reference/completions/create#completions/create-max_tokens</a>
      */
     public static VariableItemRespVO defMaxTokenVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
@@ -42,7 +43,6 @@ public class RecommendedVariableItemFactory {
      * Open AI Chat Completion Temperature Variable
      *
      * @return VariableItemRespVO
-     * @link <a href="https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature">https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature</a>
      */
     public static VariableItemRespVO defTemperatureVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
@@ -64,7 +64,6 @@ public class RecommendedVariableItemFactory {
      * Open AI Chat Completion n Variable
      *
      * @return VariableItemRespVO
-     * @link <a href="https://platform.openai.com/docs/api-reference/completions/create#completions/create-n">https://platform.openai.com/docs/api-reference/completions/create#completions/create-n</a>
      */
     public static VariableItemRespVO defNumVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
@@ -96,7 +95,6 @@ public class RecommendedVariableItemFactory {
      * Open AI Chat Completion prompt Variable
      *
      * @return VariableItemRespVO
-     * @link <a href="https://platform.openai.com/docs/api-reference/completions/create#completions/create-prompt">https://platform.openai.com/docs/api-reference/completions/create#completions/create-prompt</a>
      */
     public static VariableItemRespVO defPromptVariable(String defaultPrompt) {
         return defPromptVariable(defaultPrompt, Boolean.FALSE);
@@ -107,7 +105,6 @@ public class RecommendedVariableItemFactory {
      * Open AI Chat Completion prompt Variable
      *
      * @return VariableItemRespVO
-     * @link <a href="https://platform.openai.com/docs/api-reference/completions/create#completions/create-prompt">https://platform.openai.com/docs/api-reference/completions/create#completions/create-prompt</a>
      */
     public static VariableItemRespVO defPromptVariable(String defaultPrompt, Boolean isShow) {
         VariableItemRespVO variableItem = new VariableItemRespVO();
@@ -123,5 +120,7 @@ public class RecommendedVariableItemFactory {
         variableItem.setIsShow(isShow);
         return variableItem;
     }
+
+    // Open AI Chat Completion Variable Item ---------------------------------------------------------------------------
 
 }

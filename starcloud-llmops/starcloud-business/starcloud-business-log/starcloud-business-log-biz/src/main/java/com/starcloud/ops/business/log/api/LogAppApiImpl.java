@@ -4,7 +4,6 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
@@ -51,12 +50,7 @@ public class LogAppApiImpl implements LogAppApi {
 
     @Override
     public void updateAppConversationStatus(String uid, LogStatusEnum statusEnum) {
-
-        LogAppConversationUpdateReqVO updateReqVO = new LogAppConversationUpdateReqVO();
-
-        updateReqVO.setUid(uid);
-        updateReqVO.setStatus(statusEnum.name());
-        logAppConversationService.updateAppConversation(updateReqVO);
+        logAppConversationService.updateAppConversationStatus(uid, statusEnum.name());
     }
 
 

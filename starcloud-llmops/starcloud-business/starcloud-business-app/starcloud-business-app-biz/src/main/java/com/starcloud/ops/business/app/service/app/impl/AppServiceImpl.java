@@ -70,9 +70,6 @@ public class AppServiceImpl implements AppService {
     @Resource
     private AppMarketMapper appMarketMapper;
 
-//    @Resource
-//    private RecommendedAppRedisDAO recommendedAppRedisDAO;
-
     @Resource
     private DictDataService dictDataService;
 
