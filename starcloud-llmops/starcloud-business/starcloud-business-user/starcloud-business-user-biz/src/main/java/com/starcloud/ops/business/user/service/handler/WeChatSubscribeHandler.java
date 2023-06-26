@@ -84,7 +84,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         socialUserMapper.insert(socialUserDO);
         String password = RandomUtil.randomString(10);
         String username = userName(wxMessage.getFromUser());
-        Long userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), username + "_wx");
+        Long userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L);
         SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
                 .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                 .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();

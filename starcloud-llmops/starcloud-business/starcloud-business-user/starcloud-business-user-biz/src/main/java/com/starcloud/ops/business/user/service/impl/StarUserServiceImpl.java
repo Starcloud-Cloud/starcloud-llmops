@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
@@ -8,9 +9,11 @@ import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
+import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
@@ -18,6 +21,7 @@ import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
+import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
 import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataObject.RegisterUserDO;
@@ -26,10 +30,12 @@ import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
+import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,6 +83,15 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Autowired
     private UserBenefitsService benefitsService;
+
+    @Autowired
+    private RoleMapper roleMapper;
+
+    @Value("${starcloud-llm.role.code:common}")
+    private String roleCode;
+
+    @Value("${starcloud-llm.tenant.id:2}")
+    private Long tenantId;
 
 
     @Override
@@ -147,7 +162,7 @@ public class StarUserServiceImpl implements StarUserService {
             throw exception(OPERATE_TIME_OUT);
         }
 
-        Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), registerUserDO.getUsername() + "_dept");
+        Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), 2L);
         TenantContextHolder.setTenantId(2L);
         addBenefits(userId, registerUserDO.getInviteUserId());
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -163,13 +178,13 @@ public class StarUserServiceImpl implements StarUserService {
     }
 
     @Override
-    public Long createNewUser(String username, String email, String password, String deptName) {
+    public Long createNewUser(String username, String email, String password, Long parentDeptId) {
         DeptDO deptDO = new DeptDO();
-        deptDO.setParentId(2L);
-        deptDO.setName(deptName);
+        deptDO.setParentId(parentDeptId);
+        deptDO.setName(username + "_space");
         deptDO.setEmail(email);
         deptDO.setStatus(0);
-        deptDO.setTenantId(2L);
+        deptDO.setTenantId(tenantId);
         deptMapper.insert(deptDO);
 
         Long deptId = deptDO.getId();
@@ -180,17 +195,100 @@ public class StarUserServiceImpl implements StarUserService {
         userDO.setStatus(0);
         userDO.setNickname(username);
         userDO.setPassword(password);
-        userDO.setTenantId(2L);
+        userDO.setTenantId(tenantId);
         adminUserMapper.insert(userDO);
 
+        RoleDO roleDO = roleMapper.selectByCode(roleCode);
         UserRoleDO userRoleDO = new UserRoleDO();
-        userRoleDO.setRoleId(2L);
+        userRoleDO.setRoleId(roleDO.getId());
         userRoleDO.setUserId(userDO.getId());
         userRoleDO.setCreator(userDO.getUsername());
         userRoleDO.setUpdater(userDO.getUpdater());
         userRoleDO.setTenantId(userDO.getTenantId());
         userRoleMapper.insert(userRoleDO);
         return userDO.getId();
+    }
+
+    @Override
+    public Boolean updateUserProfile(UserProfileUpdateRequest request) {
+        Long userId = SecurityFrameworkUtils.getLoginUserId();
+        if (userId == null) {
+            throw exception(AUTH_TOKEN_EXPIRED);
+        }
+        int length = request.getUsername().length();
+        if (4 > length || length > 16 ) {
+            throw exception(USERNAME_SIZE_ERROR);
+        }
+
+        DataPermissionUtils.executeIgnore(() ->{
+            validateUserExists(userId);
+            validateUserNameUnique(userId, request.getUsername());
+            validateEmailUnique(userId, request.getEmail());
+            validateMobileUnique(userId, request.getMobile());
+        });
+        adminUserMapper.updateById(UserConvert.INSTANCE.convert(request).setId(userId));
+        return true;
+    }
+
+    void validateUserNameUnique(Long id, String username) {
+        if (StrUtil.isBlank(username)) {
+            return;
+        }
+        AdminUserDO user = adminUserMapper.selectByUsername(username);
+        if (user == null) {
+            return;
+        }
+        // 如果 id 为空，说明不用比较是否为相同 id 的用户
+        if (id == null) {
+            throw exception(USER_USERNAME_EXISTS);
+        }
+        if (!user.getId().equals(id)) {
+            throw exception(USER_USERNAME_EXISTS);
+        }
+    }
+
+    void validateEmailUnique(Long id, String email) {
+        if (StrUtil.isBlank(email)) {
+            return;
+        }
+        AdminUserDO user = adminUserMapper.selectByEmail(email);
+        if (user == null) {
+            return;
+        }
+        // 如果 id 为空，说明不用比较是否为相同 id 的用户
+        if (id == null) {
+            throw exception(USER_EMAIL_EXISTS);
+        }
+        if (!user.getId().equals(id)) {
+            throw exception(USER_EMAIL_EXISTS);
+        }
+    }
+
+    void validateUserExists(Long id) {
+        if (id == null) {
+            return;
+        }
+        AdminUserDO user = adminUserMapper.selectById(id);
+        if (user == null) {
+            throw exception(USER_NOT_EXISTS);
+        }
+    }
+
+    void validateMobileUnique(Long id, String mobile) {
+        if (StrUtil.isBlank(mobile)) {
+            return;
+        }
+        AdminUserDO user = adminUserMapper.selectByMobile(mobile);
+        if (user == null) {
+            return;
+        }
+        // 如果 id 为空，说明不用比较是否为相同 id 的用户
+        if (id == null) {
+            throw exception(USER_MOBILE_EXISTS);
+        }
+        if (!user.getId().equals(id)) {
+            throw exception(USER_MOBILE_EXISTS);
+        }
     }
 
     @Override

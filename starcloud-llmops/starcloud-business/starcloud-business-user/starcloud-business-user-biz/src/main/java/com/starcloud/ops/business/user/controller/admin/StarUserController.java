@@ -7,6 +7,7 @@ import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
+import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.StarUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -79,8 +80,15 @@ public class StarUserController {
 
     @GetMapping("/user/detail")
     @Operation(summary = "获取用户明细", description = "获取用户明细")
-    @TenantIgnore
     public CommonResult<UserDetailVO> userDetail() {
         return CommonResult.success(llmUserService.userDetail());
     }
+
+    @PutMapping("/user/update")
+    @Operation(summary = "修改用户个人信息", description = "修改用户个人信息")
+    @TenantIgnore
+    public CommonResult<Boolean> updateUserProfile(@RequestBody @Valid UserProfileUpdateRequest request) {
+        return CommonResult.success(llmUserService.updateUserProfile(request));
+    }
+
 }

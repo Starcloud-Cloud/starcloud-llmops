@@ -42,7 +42,7 @@ public class MigrateUserServiceImpl implements MigrateUserService {
                 continue;
             }
             try {
-                starUserService.createNewUser(wpUserDTO.getUsername(), wpUserDTO.getEmail(), passwordEncoder.encode("abc123"),wpUserDTO.getUsername() + "_dept_wp");
+                starUserService.createNewUser(wpUserDTO.getUsername(), wpUserDTO.getEmail(), passwordEncoder.encode("abc123"),3L);
                 migrateResults.add(resultDTO);
             } catch (Exception e) {
                 MigrateResultDTO migrateResultDTO = new MigrateResultDTO();

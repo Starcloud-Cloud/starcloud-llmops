@@ -20,6 +20,8 @@ public interface ErrorCodeConstant {
 
     ErrorCode UN_AUTH_ERROR = new ErrorCode(2000100007, "请扫描二维码授权");
 
+    ErrorCode USERNAME_SIZE_ERROR = new ErrorCode(2000100008, "账号长度为 4-16 位");
+
 
 
 }
