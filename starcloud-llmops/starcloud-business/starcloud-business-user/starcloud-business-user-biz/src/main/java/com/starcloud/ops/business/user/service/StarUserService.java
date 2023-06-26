@@ -4,6 +4,7 @@ import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
+import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 
 public interface StarUserService {
 
@@ -56,7 +57,13 @@ public interface StarUserService {
      * @param password
      * @return
      */
-    Long createNewUser(String username, String email, String password, String deptName);
+    Long createNewUser(String username, String email, String password, Long parentDeptId);
 
 
+    /**
+     * 修改用户个人信息
+     * @param request
+     * @return
+     */
+    Boolean updateUserProfile(UserProfileUpdateRequest request);
 }
