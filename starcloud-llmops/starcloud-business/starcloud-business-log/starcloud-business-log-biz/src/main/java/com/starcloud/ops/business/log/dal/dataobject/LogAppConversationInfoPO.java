@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -27,13 +28,24 @@ public class LogAppConversationInfoPO {
 
     private String fromScene;
 
+    /**
+     * 总消耗token数
+     */
+    private Integer totalMessageTokens = 0;
 
-    private Integer messageCount;
+    /**
+     * 总消耗token数
+     */
+    private Integer totalAnswerTokens = 0;
 
-    private Integer feedbacksCount;
 
+    private Integer messageCount = 0;
 
-    private Long elapsedTotal;
+    private Integer feedbacksCount = 0;
+
+    private Long totalElapsed = 0L;
+
+    private BigDecimal totalPrice = BigDecimal.ZERO;
 
 
     private String status;

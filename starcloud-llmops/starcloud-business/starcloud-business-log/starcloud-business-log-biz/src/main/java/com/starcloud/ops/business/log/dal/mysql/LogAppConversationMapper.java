@@ -60,26 +60,30 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
 
         MPJLambdaWrapperX<LogAppConversationDO> lambdaWrapperX = (MPJLambdaWrapperX<LogAppConversationDO>) new MPJLambdaWrapperX<LogAppConversationDO>()
 
-                .select(LogAppConversationDO::getUid, LogAppConversationDO::getAppUid, LogAppConversationDO::getAppName, LogAppConversationDO::getAppMode)
+                .select(LogAppConversationDO::getUid, LogAppConversationDO::getAppUid, LogAppConversationDO::getAppName, LogAppConversationDO::getAppMode, LogAppConversationDO::getFromScene,
+                        LogAppConversationDO::getStatus, LogAppConversationDO::getCreator, LogAppConversationDO::getEndUser, LogAppConversationDO::getCreateTime)
 
                 .selectCount(LogAppMessageDO::getId, LogAppConversationInfoPO::getMessageCount)
                 .selectCount(LogAppMessageFeedbacksDO::getId, LogAppConversationInfoPO::getFeedbacksCount)
-                .selectSum(LogAppMessageDO::getElapsed, LogAppConversationInfoPO::getElapsedTotal)
+                .selectSum(LogAppMessageDO::getElapsed, LogAppConversationInfoPO::getTotalElapsed)
+                .selectSum(LogAppMessageDO::getTotalPrice, LogAppConversationInfoPO::getTotalPrice)
+
+                .selectSum(LogAppMessageDO::getMessageTokens, LogAppConversationInfoPO::getTotalMessageTokens)
+                .selectSum(LogAppMessageDO::getAnswerTokens, LogAppConversationInfoPO::getTotalAnswerTokens)
 
                 .leftJoin(LogAppMessageDO.class, LogAppMessageDO::getAppConversationUid, LogAppConversationDO::getUid)
                 .leftJoin(LogAppMessageFeedbacksDO.class, LogAppMessageFeedbacksDO::getAppMessageUid, LogAppMessageDO::getUid)
 
-                .eq(ObjectUtil.isNotEmpty(reqVO.getUid()), LogAppConversationDO::getUid, reqVO.getUid())
                 .eq(ObjectUtil.isNotEmpty(reqVO.getAppUid()), LogAppConversationDO::getAppUid, reqVO.getAppUid())
                 .eq(ObjectUtil.isNotEmpty(reqVO.getAppName()), LogAppConversationDO::getAppName, reqVO.getAppName())
 
-                .eq(ObjectUtil.isNotEmpty(reqVO.getAppMode()), LogAppConversationDO::getAppMode, reqVO.getAppMode())
                 .eq(ObjectUtil.isNotEmpty(reqVO.getStatus()), LogAppConversationDO::getStatus, reqVO.getStatus())
                 .eq(ObjectUtil.isNotEmpty(reqVO.getFromScene()), LogAppConversationDO::getFromScene, reqVO.getFromScene())
+                .eq(ObjectUtil.isNotEmpty(reqVO.getUser()), LogAppConversationDO::getCreator, reqVO.getUser())
                 .eq(ObjectUtil.isNotEmpty(reqVO.getEndUser()), LogAppConversationDO::getEndUser, reqVO.getEndUser());
 
-                lambdaWrapperX.betweenIfPresent(LogAppConversationDO::getCreateTime, reqVO.getStartTime(), reqVO.getEndTime())
-
+        lambdaWrapperX.betweenIfPresent(LogAppConversationDO::getCreateTime, reqVO.getStartTime(), reqVO.getEndTime())
+                .orderByDesc(LogAppConversationDO::getId)
                 .groupBy(LogAppConversationDO::getId);
 
         IPage<LogAppConversationInfoPO> mpPage = this.selectJoinPage(new Page<>(reqVO.getPageNo(), reqVO.getPageSize()), LogAppConversationInfoPO.class, lambdaWrapperX);

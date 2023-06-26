@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.log.service.annotations;
 
 import com.starcloud.ops.business.log.api.annotations.vo.*;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageAnnotationsConvert;
 import com.starcloud.ops.business.log.dal.dataobject.*;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageAnnotationsMapper;

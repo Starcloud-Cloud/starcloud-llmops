@@ -82,20 +82,21 @@ public interface LogAppConversationService {
 
 
     /**
-     * 获取 应用执行分页信息
-     * @param pageReqVO
-     * @return
-     */
-    PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO);
-
-
-    /**
      * app message 统计列表数据
      *
      * @param statisticsListReqVO
      * @return
      */
     List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO statisticsListReqVO);
+
+
+    /**
+     * 获取 应用执行分页信息
+     *
+     * @param pageReqVO
+     * @return
+     */
+    PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO);
 
 
 }

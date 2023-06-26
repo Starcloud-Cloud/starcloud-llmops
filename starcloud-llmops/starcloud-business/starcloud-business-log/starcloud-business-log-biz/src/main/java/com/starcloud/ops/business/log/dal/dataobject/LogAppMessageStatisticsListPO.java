@@ -40,16 +40,6 @@ public class LogAppMessageStatisticsListPO {
 
     private Integer tokens;
 
-
-    private String status;
-
-
-    private String creator;
-
-
-    private String endUser;
-
-
     private String createDate;
 
 }
