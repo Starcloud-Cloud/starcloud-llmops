@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -147,6 +148,7 @@ public class StarUserServiceImpl implements StarUserService {
         }
 
         Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), registerUserDO.getUsername() + "_dept");
+        TenantContextHolder.setTenantId(2L);
         addBenefits(userId, registerUserDO.getInviteUserId());
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
