@@ -65,7 +65,7 @@ public class AppWorkflowService {
 
         AppEntity app = AppFactory.factory(appId);
 
-        log.info("fireByAppUid app: {}", app);
+        log.info("fireByAppUid app: {}", JSON.toJSON(app));
 
         AppContext appContext = new AppContext(app, scene);
 
@@ -146,6 +146,36 @@ public class AppWorkflowService {
         this.fireByAppContext(appContext);
 
         new ExecuteAppRespVO();
+    }
+
+    /**
+     * 根据传入的配置 执行
+     *
+     * @param appId               应用 UID
+     * @param scene               场景
+     * @param appRequest          请求参数
+     * @param stepId              步骤 ID
+     * @param httpServletResponse Http 响应
+     */
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId, HttpServletResponse httpServletResponse) {
+        // 获取 AppEntity
+        AppEntity app = AppFactory.factory(appId, appRequest);
+        log.info("fireByApp app: {}", JSON.toJSON(app));
+
+        // 创建 App 执行上下文
+        AppContext appContext = new AppContext(app, scene);
+
+        if (StringUtils.isNotBlank(stepId)) {
+            appContext.setStepId(stepId);
+        }
+        appContext.setHttpServletResponse(httpServletResponse);
+
+        if (StringUtils.isNotBlank(requestId)) {
+            appContext.setConversationId(requestId);
+        }
+
+        // 执行该应用
+        this.fireByAppContext(appContext);
     }
 
     /**
