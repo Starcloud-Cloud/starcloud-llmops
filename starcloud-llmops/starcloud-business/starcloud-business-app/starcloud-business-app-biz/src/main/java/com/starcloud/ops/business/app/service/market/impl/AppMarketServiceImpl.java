@@ -21,6 +21,7 @@ import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.databoject.operate.AppOperateDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
+import com.starcloud.ops.business.app.dal.mysql.favorite.AppFavoriteMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
@@ -67,6 +68,9 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Resource
     private AppOperateMapper appOperateMapper;
 
+    @Resource
+    private AppFavoriteMapper appFavoritesMapper;
+
     /**
      * 分页查询应用市场列表
      *
@@ -78,7 +82,8 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 构建查询条件
         LambdaQueryWrapper<AppMarketDO> wrapper = buildPageQueryWrapper()
                 .likeLeft(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName())
-                .eq(AppMarketDO::getDeleted, Boolean.FALSE);
+                .eq(AppMarketDO::getDeleted, Boolean.FALSE)
+                .orderByDesc(AppMarketDO::getCreateTime);
 
         // 分页查询
         Page<AppMarketDO> page = appMarketMapper.selectPage(PageUtil.page(query), wrapper);
@@ -272,6 +277,40 @@ public class AppMarketServiceImpl implements AppMarketService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_OPERATE_NOT_SUPPORTED, request.getOperate());
         }
         appMarketMapper.update(appMarketDO, updateWrapper);
+    }
+
+    /**
+     * 应用市场应用收藏列表
+     *
+     * @param userId 用户 uid
+     * @return 收藏列表
+     */
+    @Override
+    public List<AppMarketRespVO> listFavorite(String userId) {
+        return null;
+    }
+
+    /**
+     * 获取用户收藏的应用的详情
+     *
+     * @param userId 用户 id
+     * @param uid    应用 uid
+     * @return 收藏应用
+     */
+    @Override
+    public AppMarketRespVO getFavoriteApp(String userId, String uid) {
+        return null;
+    }
+
+    /**
+     * 将应用加入到收藏夹
+     *
+     * @param userId 用户 id
+     * @param uid    应用 uid
+     */
+    @Override
+    public void favorite(String userId, String uid) {
+
     }
 
     /**

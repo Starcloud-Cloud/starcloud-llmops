@@ -2,7 +2,11 @@ package com.starcloud.ops.business.log.service.conversation;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.log.api.conversation.vo.*;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -11,15 +15,14 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsList
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
-
 import org.springframework.validation.annotation.Validated;
 
-import java.util.*;
+import javax.annotation.Resource;
+import java.util.Collection;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.log.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.log.enums.ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS;
 
 /**
  * 应用执行日志会话 Service 实现类
@@ -54,6 +57,17 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
 
         appConversationMapper.update(updateObj, Wrappers.lambdaQuery(LogAppConversationDO.class).eq(LogAppConversationDO::getUid, updateReqVO.getUid()));
 
+    }
+
+    /**
+     * 更新应用执行日志会话状态
+     *
+     * @param uid    编号
+     * @param status 状态
+     */
+    @Override
+    public void updateAppConversationStatus(String uid, String status) {
+        appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class).eq(LogAppConversationDO::getUid, uid).set(LogAppConversationDO::getStatus, status));
     }
 
     @Override

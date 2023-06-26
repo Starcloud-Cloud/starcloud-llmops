@@ -25,6 +25,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCrea
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -32,16 +33,21 @@ import org.springframework.validation.annotation.Validated;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
+ * App 工作流服务, 执行应用
+ *
  * @author df007df
  */
 @Slf4j
 @Component
 @Validated
 public class AppWorkflowService {
-
 
     @Autowired
     private LogAppApi logAppApi;
@@ -51,9 +57,9 @@ public class AppWorkflowService {
     private StoryEngine storyEngine;
 
     /**
-     * 根据保存的配置直接执行，默认第一个step
+     * 根据保存的配置直接执行，默认执行第一个步骤
      *
-     * @param appId
+     * @param appId 应用 UID
      */
     public void fireByAppUid(String appId, AppSceneEnum scene) {
 
@@ -66,68 +72,87 @@ public class AppWorkflowService {
         this.fireByAppContext(appContext);
     }
 
+    /**
+     * 根据传入的配置 执行
+     *
+     * @param appId 应用 UID
+     * @param scene 场景
+     */
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest) {
+        fireByApp(appId, scene, appRequest, StringUtils.EMPTY);
+    }
 
     /**
      * 根据传入的配置 执行
      *
-     * @param appId
-     * @param scene
+     * @param appId      应用 UID
+     * @param scene      场景
+     * @param appRequest 请求参数
+     * @param stepId     步骤 ID
      */
-    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest) {
-
-        AppEntity app = AppFactory.factory(appId, appRequest);
-
-        log.info("fireByAppUid app: {}", app);
-
-        AppContext appContext = new AppContext(app, scene);
-
-
-        this.fireByAppContext(appContext);
-    }
-
-
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId) {
+        fireByApp(appId, scene, appRequest, stepId, StringUtils.EMPTY);
+    }
 
-        AppEntity app = AppFactory.factory(appId, appRequest, stepId);
+    /**
+     * 根据传入的配置 执行
+     *
+     * @param appId      应用 UID
+     * @param scene      场景
+     * @param appRequest 请求参数
+     * @param stepId     步骤 ID
+     * @param requestId  请求 ID
+     */
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId) {
+        // 获取 AppEntity
+        AppEntity app = AppFactory.factory(appId, appRequest);
+        log.info("fireByApp app: {}", app);
 
-        log.info("fireByAppUid app: {}", app);
-
+        // 创建 App 执行上下文
         AppContext appContext = new AppContext(app, scene);
-        appContext.setStepId(stepId);
+        if (StringUtils.isNotBlank(stepId)) {
+            appContext.setStepId(stepId);
+        }
+        if (StringUtils.isNotBlank(requestId)) {
+            appContext.setConversationId(requestId);
+        }
 
+        // 执行该应用
         this.fireByAppContext(appContext);
     }
 
+    /**
+     * 根据传入的配置 执行
+     *
+     * @param appId               应用 UID
+     * @param scene               场景
+     * @param appRequest          请求参数
+     * @param stepId              步骤 ID
+     * @param httpServletResponse Http 响应
+     */
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, HttpServletResponse httpServletResponse) {
+        // 获取 AppEntity
+        AppEntity app = AppFactory.factory(appId, appRequest);
+        log.info("fireByApp app: {}", app);
 
-        AppEntity app = AppFactory.factory(appId, appRequest, stepId);
-
+        // 创建 App 执行上下文
         AppContext appContext = new AppContext(app, scene);
-        appContext.setStepId(stepId);
+        if (StringUtils.isNotBlank(stepId)) {
+            appContext.setStepId(stepId);
+        }
         appContext.setHttpServletResponse(httpServletResponse);
 
+        // 执行该应用
         this.fireByAppContext(appContext);
 
         new ExecuteAppRespVO();
-
     }
 
-
-    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId) {
-
-        AppEntity app = AppFactory.factory(appId, appRequest, stepId);
-
-        log.info("fireByAppUid app: {}", app);
-
-        AppContext appContext = new AppContext(app, scene);
-        appContext.setStepId(stepId);
-        appContext.setConversationId(requestId);
-
-        this.fireByAppContext(appContext);
-
-    }
-
-
+    /**
+     * 执行应用
+     *
+     * @param appContext 执行应用上下文
+     */
     private void fireByAppContext(@Valid AppContext appContext) {
 
         StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
@@ -135,7 +160,6 @@ public class AppWorkflowService {
                 .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
                 .startId(appContext.getApp().getUid())
                 .request(appContext).build();
-
 
         LogAppConversationCreateReqVO conversation = this.createAppConversationLog(appContext);
 
@@ -162,6 +186,14 @@ public class AppWorkflowService {
 
     }
 
+    /**
+     * 获取追踪
+     *
+     * @param noticeTrackings 追踪列表
+     * @param cls             类
+     * @param <T>             类型
+     * @return 追踪
+     */
     private <T> T getTracking(List<NoticeTracking> noticeTrackings, Class<T> cls) {
 
         String clsName = cls.getSimpleName();
@@ -173,6 +205,12 @@ public class AppWorkflowService {
         }).findFirst().orElse(null);
     }
 
+    /**
+     * 创建应用对话日志
+     *
+     * @param appContext 应用上下文
+     * @return 应用对话日志
+     */
     private LogAppConversationCreateReqVO createAppConversationLog(AppContext appContext) {
 
 
@@ -196,14 +234,24 @@ public class AppWorkflowService {
 
     }
 
-
+    /**
+     * 更新应用消息日志
+     *
+     * @param uid    应用消息日志 UID
+     * @param status 状态
+     */
     private void updateAppConversationLog(String uid, Boolean status) {
 
         logAppApi.updateAppConversationStatus(uid, status ? LogStatusEnum.SUCCESS : LogStatusEnum.ERROR);
 
     }
 
-
+    /**
+     * 创建应用消息日志
+     *
+     * @param appContext   应用上下文
+     * @param nodeTracking 节点跟踪
+     */
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
 
 
