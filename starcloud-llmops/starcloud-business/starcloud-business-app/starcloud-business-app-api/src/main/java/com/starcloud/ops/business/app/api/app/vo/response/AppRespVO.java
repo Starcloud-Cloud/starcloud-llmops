@@ -111,16 +111,16 @@ public class AppRespVO implements Serializable {
     private String description;
 
     /**
-     * 应用上传成功后，应用市场 UID
+     * 应用发布成功后，应用市场 uid-version
      */
-    @Schema(description = "应用上传成功后，应用市场 UID")
-    private String uploadUid;
+    @Schema(description = "应用发布成功后，应用市场 uid-version")
+    private String publishUid;
 
     /**
-     * 应用下载成功后，应用市场 UID
+     * 应用安装成功后，应用市场 uid-version
      */
-    @Schema(description = "应用下载成功后，应用市场 UID")
-    private String downloadUid;
+    @Schema(description = "应用安装成功后，应用市场 uid-version")
+    private String installUid;
 
     /**
      * 应用创建者
@@ -150,6 +150,6 @@ public class AppRespVO implements Serializable {
      * 最后一次上传到应用市场时间
      */
     @Schema(description = "最后一次上传到应用市场时间")
-    private LocalDateTime lastUpload;
+    private LocalDateTime lastPublish;
 
 }

@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * 安装应用请求实体
@@ -33,6 +34,6 @@ public class AppInstallReqVO {
      * 版本号
      */
     @Schema(description = "版本号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "版本号不能为空")
+    @NotNull(message = "版本号不能为空")
     private Integer version;
 }

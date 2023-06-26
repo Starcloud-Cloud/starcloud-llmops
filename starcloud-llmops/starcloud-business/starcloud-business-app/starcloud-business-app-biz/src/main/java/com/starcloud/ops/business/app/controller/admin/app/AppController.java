@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -114,7 +115,7 @@ public class AppController {
     @PostMapping("/verifyHasDownloaded")
     @Operation(summary = "校验应用是否已经下载过", description = "校验应用是否已经下载过")
     @ApiOperationSupport(order = 26, author = "nacoyer")
-    public CommonResult<Boolean> verifyHasDownloaded(@RequestBody UidRequest request) {
-        return CommonResult.success(appService.verifyHasDownloaded(request.getMarketUid()));
+    public CommonResult<InstalledRespVO> verifyHasDownloaded(@RequestBody UidRequest request) {
+        return CommonResult.success(appService.verifyHasInstalled(request.getMarketUid(), true));
     }
 }

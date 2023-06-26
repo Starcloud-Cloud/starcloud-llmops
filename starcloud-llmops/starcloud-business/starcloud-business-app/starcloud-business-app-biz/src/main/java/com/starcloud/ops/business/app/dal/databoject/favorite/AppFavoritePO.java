@@ -1,152 +1,141 @@
-package com.starcloud.ops.business.app.dal.databoject.market;
+package com.starcloud.ops.business.app.dal.databoject.favorite;
 
-import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
- * <p>
- * 应用市场表
- * </p>
+ * 应用操作管理表DO，operate 表示操作类型，LIKE 标识喜欢，VIEW 标识查看，DOWNLOAD 标识下载
  *
  * @author admin
- * @since 2023-06-05
+ * @since 2023-06-12
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 @ToString(callSuper = true)
-@TableName("llm_app_market")
-@KeySequence("llm_app_market_seq")
-public class AppMarketDO extends TenantBaseDO {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AppFavoritePO implements Serializable {
 
-    private static final long serialVersionUID = -7392992852206247688L;
-
-    /**
-     * 模板市场ID
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    private static final long serialVersionUID = -5991599861845320973L;
 
     /**
      * 市场应用 UID
      */
-    @TableField("uid")
     private String uid;
 
     /**
      * 应用名称
      */
-    @TableField("name")
     private String name;
 
     /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
-    @TableField("model")
     private String model;
 
     /**
      * 应用版本，默认版本 1
      */
-    @TableField("version")
     private Integer version;
 
     /**
      * 应用语言
      */
-    @TableField("language")
     private String language;
 
     /**
      * 应用标签，多个以逗号分割
      */
-    @TableField("tags")
     private String tags;
 
     /**
      * 应用类别，多个以逗号分割
      */
-    @TableField("categories")
     private String categories;
 
     /**
      * 应用场景，多个以逗号分割
      */
-    @TableField("scenes")
     private String scenes;
 
     /**
      * 应用图片，多个以逗号分割
      */
-    @TableField("images")
     private String images;
 
     /**
      * 应用图标
      */
-    @TableField("icon")
     private String icon;
 
     /**
      * 应用是否是免费的
      */
-    @TableField("free")
     private Boolean free;
 
     /**
      * 应用收费数
      */
-    @TableField("cost")
     private BigDecimal cost;
 
     /**
      * 应用点赞数量
      */
-    @TableField("like_count")
     private Integer likeCount;
 
     /**
      * 应用查看数量
      */
-    @TableField("view_count")
     private Integer viewCount;
 
     /**
      * 应用安装数量
      */
-    @TableField("install_count")
     private Integer installCount;
 
     /**
-     * 应用详细配置信息, 步骤，变量，场景等
+     * 应用配置
      */
-    @TableField("config")
     private String config;
 
     /**
      * 应用描述
      */
-    @TableField("description")
     private String description;
 
     /**
      * 应用example
      */
-    @TableField("example")
     private String example;
 
     /**
-     * 应用审核
+     * 创建时间
      */
-    @TableField("audit")
-    private Integer audit;
+    private LocalDateTime createTime;
+
+    /**
+     * 最后更新时间
+     */
+    private LocalDateTime updateTime;
+
+    /**
+     * 应用收藏时间
+     */
+    private LocalDateTime favoriteTime;
+
+    /**
+     * 创建者
+     */
+    private String creator;
+
+    /**
+     * 更新者，
+     */
+    private String updater;
 
 }

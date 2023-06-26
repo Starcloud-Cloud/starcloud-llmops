@@ -86,19 +86,19 @@ public class AppEntity {
     private String description;
 
     /**
-     * 应用上传成功后，应用市场 UID
+     * 应用发布成功后，应用市场 uid-version
      */
-    private String uploadUid;
+    private String publishUid;
 
     /**
-     * 应用下载成功后，应用市场 UID
+     * 应用安装成功后，应用市场 uid-version
      */
-    private String downloadUid;
+    private String installUid;
 
     /**
-     * 最后一次上传到应用市场时间
+     * 最后一次发布到应用市场时间
      */
-    private LocalDateTime lastUpload;
+    private LocalDateTime lastPublish;
 
     /**
      * AppRepository

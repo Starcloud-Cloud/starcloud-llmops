@@ -105,10 +105,10 @@ public class AppMarketReqVO implements Serializable {
     private Integer viewCount;
 
     /**
-     * 下载数量
+     * 安装数量
      */
-    @Schema(description = "下载数量")
-    private Integer downloadCount;
+    @Schema(description = "安装数量")
+    private Integer installCount;
 
     /**
      * 应用详细配置信息, 步骤，变量，场景等

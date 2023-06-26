@@ -36,7 +36,7 @@ public class AppMarketUpdateReqVO extends AppMarketReqVO {
      * 应用市场应用版本号
      */
     @Schema(description = "应用市场应用版本号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "应用市场应用版本号不能为空")
+    @NotNull(message = "应用市场应用版本号不能为空")
     private Integer version;
 
 }

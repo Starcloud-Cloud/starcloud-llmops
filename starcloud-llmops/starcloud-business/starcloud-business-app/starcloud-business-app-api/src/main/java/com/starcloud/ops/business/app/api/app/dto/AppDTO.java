@@ -119,16 +119,16 @@ public class AppDTO implements Serializable {
     private String description;
 
     /**
-     * 应用上传成功后，应用市场 UID
+     * 应用发布成功后，应用市场 uid-version
      */
     @Schema(description = "应用上传成功后，应用市场 UID")
-    private String uploadUid;
+    private String publishUid;
 
     /**
-     * 应用下载成功后，应用市场 UID
+     * 应用安装成功后，应用市场 uid-version
      */
     @Schema(description = "应用下载成功后，应用市场 UID")
-    private String downloadUid;
+    private String installUid;
 
     /**
      * 应用状态，0：启用，1：禁用
@@ -170,7 +170,7 @@ public class AppDTO implements Serializable {
      * 最后一次上传到应用市场时间
      */
     @Schema(description = "最后一次上传到应用市场时间")
-    private LocalDateTime lastUpload;
+    private LocalDateTime lastPublish;
 
     /**
      * 租户编号

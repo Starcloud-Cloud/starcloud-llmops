@@ -3,8 +3,8 @@
 <mapper namespace="com.starcloud.ops.business.app.dal.mysql.favorite.AppFavoriteMapper">
 
     <!-- 查询收藏应用列表 -->
-    <select id="listFavorite" resultType="com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO">
-        SELECT b.uid, b.name, b.description, b.categories, a.create_time AS favorite_time
+    <select id="listFavorite" resultType="com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO">
+        SELECT b.uid, b.name, b.description, b.categories, b.scenes, a.create_time AS favorite_time
         FROM llm_app_favorite a
                  LEFT JOIN llm_app_market b ON a.app_uid = b.uid
         WHERE a.user = #{userId}
@@ -15,7 +15,7 @@
     </select>
 
     <!-- 根据用户 ID 和应用 UID 获取应用详情 -->
-    <select id="getFavoriteApp" resultType="com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO">
+    <select id="getFavoriteApp" resultType="com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO">
         SELECT b.uid,
                b.name,
                b.model,

@@ -116,7 +116,7 @@ public class AppUtils {
     public static String obtainUid(String uid) {
         String[] split = uid.split("-");
         if (split.length != 2) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get downloadUid or uploadUid");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get installUid or publishUid");
         }
         return split[0];
     }
