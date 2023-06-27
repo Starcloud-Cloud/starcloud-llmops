@@ -161,7 +161,7 @@ public class AppWorkflowService {
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId, HttpServletResponse httpServletResponse) {
         // 获取 AppEntity
         AppEntity app = null;
-        if (StringUtils.isNotBlank(appId)) {
+        if (appRequest == null) {
             app = AppFactory.factory(appId);
         } else {
             app = AppFactory.factory(appId, appRequest);
