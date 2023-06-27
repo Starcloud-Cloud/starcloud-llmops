@@ -68,10 +68,12 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
                 .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
                 .eq(SocialUserDO::getOpenid, wxMpUser.getOpenId())
-                .eq(SocialUserDO::getDeleted, 0));
+                .eq(SocialUserDO::getDeleted, false)
+                .orderByDesc(SocialUserDO::getId)
+                .last("limit 1"));
 
         if (socialUserDO != null) {
-            //取消关注后重新关注 已有帐号
+            //已有帐号
             redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
             return null;
         }
@@ -86,7 +88,18 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         socialUserMapper.insert(socialUserDO);
         String password = RandomUtil.randomString(10);
         String username = userName(wxMessage.getFromUser());
-        Long userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L);
+
+        Long userId = existUserId(wxMessage.getOpenId());
+        if (userId != null) {
+            // 已存在用户 增加绑定关系
+            SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
+                    .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
+                    .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
+            socialUserBindMapper.insert(socialUserBind);
+            redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
+            return null;
+        }
+        userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L);
         SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
                 .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                 .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
@@ -101,6 +114,27 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         });
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
         return null;
+    }
+
+    private Long existUserId(String openId) {
+        SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
+                .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
+                .eq(SocialUserDO::getOpenid, openId)
+                .orderByDesc(SocialUserDO::getId)
+                .last("limit 1"));
+        if (socialUserDO == null) {
+            return null;
+        }
+        SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectOne(new LambdaQueryWrapper<SocialUserBindDO>()
+                .eq(SocialUserBindDO::getSocialUserId,socialUserDO.getId())
+                .eq(SocialUserBindDO::getSocialType,SocialTypeEnum.WECHAT_MP.getType())
+                .eq(SocialUserBindDO::getDeleted,false)
+                .orderByDesc(SocialUserBindDO::getUserId)
+                .last("limit 1"));
+        if (socialUserBindDO == null) {
+            return null;
+        }
+        return socialUserBindDO.getUserId();
     }
 
     private String userName(String fromUser) {
