@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.market.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -176,5 +177,8 @@ public class AppMarketRespVO implements Serializable {
      */
     @Schema(description = "更新者")
     private String updater;
+
+    @Schema(description = "应用安装状态")
+    private InstalledRespVO installStatus;
 
 }

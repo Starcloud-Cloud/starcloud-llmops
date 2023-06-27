@@ -49,14 +49,28 @@ public class AppMarketController {
     @Operation(summary = "分页查询应用市场应用列表", description = "分页查询应用市场应用列表")
     @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<PageResp<AppMarketRespVO>> page(@Validated AppMarketPageQuery query) {
-        return CommonResult.success(appMarketService.page(query));
+        return CommonResult.success(appMarketService.page(query, false));
     }
 
-    @GetMapping("/get/{uid}/{version}")
+    @GetMapping("/pageAdmin")
+    @Operation(summary = "分页查询应用市场应用列表", description = "分页查询应用市场应用列表")
+    @ApiOperationSupport(order = 11, author = "nacoyer")
+    public CommonResult<PageResp<AppMarketRespVO>> pageAdmin(@Validated AppMarketPageQuery query) {
+        return CommonResult.success(appMarketService.page(query, true));
+    }
+
+    @GetMapping("/getByUid/{uid}")
+    @Operation(summary = "根据 UID 和版本号 获得应用详情", description = "根据 UID 获取应用详情")
+    @ApiOperationSupport(order = 12, author = "nacoyer")
+    public CommonResult<AppMarketRespVO> getByUid(@PathVariable("uid") String uid) {
+        return CommonResult.success(appMarketService.get(uid, null));
+    }
+
+    @GetMapping("/getByUidAndVersion/{uid}/{version}")
     @Operation(summary = "根据 UID 和版本号 获得应用详情", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 15, author = "nacoyer")
-    public CommonResult<AppMarketRespVO> get(@PathVariable("uid") String uid, @PathVariable("version") Integer version) {
-        return CommonResult.success(appMarketService.getByUidAndVersion(uid, version));
+    public CommonResult<AppMarketRespVO> getByUidAndVersion(@PathVariable("uid") String uid, @PathVariable("version") Integer version) {
+        return CommonResult.success(appMarketService.get(uid, version));
     }
 
     @GetMapping("/listFavorite")

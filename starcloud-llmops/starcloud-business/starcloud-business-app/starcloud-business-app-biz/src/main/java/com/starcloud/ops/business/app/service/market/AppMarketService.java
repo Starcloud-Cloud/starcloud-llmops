@@ -27,24 +27,16 @@ public interface AppMarketService {
      * @param query 查询条件
      * @return 应用市场列表
      */
-    PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
+    PageResp<AppMarketRespVO> page(AppMarketPageQuery query, boolean isAdmin);
 
     /**
-     * 根据应用 uid 获取应用详情
-     *
-     * @param uid 应用 uid
-     * @return 应用详情
-     */
-    AppMarketRespVO getByUid(String uid);
-
-    /**
-     * 根据应用 uid 和 版本号 获取应用详情
+     * 获取应用详情
      *
      * @param uid     应用 uid
-     * @param version 应用版本号
+     * @param version 应用版本号, 非必填
      * @return 应用详情
      */
-    AppMarketRespVO getByUidAndVersion(String uid, Integer version);
+    AppMarketRespVO get(String uid, Integer version);
 
     /**
      * 创建应用市场的应用
