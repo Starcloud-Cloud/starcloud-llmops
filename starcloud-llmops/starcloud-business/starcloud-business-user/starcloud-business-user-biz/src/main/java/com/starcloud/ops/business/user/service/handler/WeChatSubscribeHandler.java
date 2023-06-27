@@ -34,6 +34,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.Character.MAX_RADIX;
+
 @Component
 @Slf4j
 public class WeChatSubscribeHandler implements WxMpMessageHandler {
@@ -106,17 +108,17 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            return fromUser.replaceAll("[^a-zA-Z0-9]", "").substring(0, 16);
+            return fromUser.replaceAll("[^a-zA-Z0-9]", "").substring(0, 10);
         }
         byte[] hashBytes = md.digest(fromUser.getBytes());
         BigInteger hashInt = new BigInteger(1, hashBytes);
-        String compressedString = hashInt.toString(16);
+        String compressedString = hashInt.toString(MAX_RADIX);
 
-        while (compressedString.length() < 32) {
-            compressedString = "0" + compressedString;
+        if (compressedString.length() <= 10) {
+            return compressedString;
         }
-        // 只取前16位
-        return compressedString.substring(0, 16);
+        // 只取前10位
+        return compressedString.substring(0, 10);
 
     }
 
