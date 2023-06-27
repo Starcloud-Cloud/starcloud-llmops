@@ -34,7 +34,6 @@ import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +42,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -99,18 +97,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<Option> languages() {
-        LanguageEnum[] values = LanguageEnum.values();
-        return Arrays.stream(values).map(language -> {
-            Option option = new Option();
-            option.setValue(language.getCode());
-            Locale locale = LocaleContextHolder.getLocale();
-            if (Locale.CHINA.equals(locale)) {
-                option.setLabel(language.getLabel());
-            } else {
-                option.setLabel(language.getLabelEn());
-            }
-            return option;
-        }).collect(Collectors.toList());
+        return LanguageEnum.languageList();
     }
 
     /**
@@ -120,7 +107,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<AppRespVO> listRecommendedApps() {
-        return Collections.singletonList(RecommendedAppFactory.defGenerateTextApp());
+        return Arrays.asList(RecommendedAppFactory.defGenerateTextApp(), RecommendedAppFactory.defGenerateArticleApp());
     }
 
     /**

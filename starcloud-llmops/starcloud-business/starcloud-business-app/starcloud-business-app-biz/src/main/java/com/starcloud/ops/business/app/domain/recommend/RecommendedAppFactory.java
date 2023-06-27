@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.MessageUtil;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,10 +34,31 @@ public class RecommendedAppFactory {
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Text"));
         app.setCategories(Collections.singletonList("Writing"));
-        app.setScenes(Arrays.asList(AppSceneEnum.WEB_ADMIN.name(), AppSceneEnum.WEB_MARKET.name()));
+        app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(null);
         app.setIcon("post");
         app.setWorkflowConfig(RecommendedConfigFactory.defGenerateTextConfig());
+        return app;
+    }
+
+    /**
+     * 生成文章应用
+     *
+     * @return AppRespVO
+     */
+    public static AppRespVO defGenerateArticleApp() {
+        AppRespVO app = new AppRespVO();
+        app.setName(MessageUtil.getMessage("GENERATE_ARTICLE_APP_NAME"));
+        app.setDescription(MessageUtil.getMessage("GENERATE_ARTICLE_APP_DESCRIPTION"));
+        app.setModel(AppModelEnum.COMPLETION.name());
+        app.setType(AppTypeEnum.MYSELF.name());
+        app.setSource(AppSourceEnum.WEB.name());
+        app.setTags(Collections.singletonList("Generate Article"));
+        app.setCategories(Collections.singletonList("Writing"));
+        app.setScenes(AppUtils.DEFAULT_SCENES);
+        app.setImages(null);
+        app.setIcon("file-document-outline");
+        app.setWorkflowConfig(RecommendedConfigFactory.defGenerateArticleConfig());
         return app;
     }
 }

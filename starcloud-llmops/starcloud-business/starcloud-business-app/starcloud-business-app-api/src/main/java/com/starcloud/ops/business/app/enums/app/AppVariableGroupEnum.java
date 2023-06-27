@@ -15,7 +15,7 @@ public enum AppVariableGroupEnum implements IEnumable<Integer> {
     /**
      * 变量类型为
      */
-    SYSTEM(0, "系统"),
+    SYSTEM(0, "应用内全局参数"),
 
     /**
      * 参数变量
@@ -25,7 +25,7 @@ public enum AppVariableGroupEnum implements IEnumable<Integer> {
     /**
      * 模型变量
      */
-    MODEL(2, "模型");
+    MODEL(2, "具体步骤模型参数");
 
     /**
      * 变量组Code

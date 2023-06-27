@@ -25,4 +25,17 @@ public class RecommendedResponseFactory {
         response.setIsShow(Boolean.TRUE);
         return response;
     }
+
+    /**
+     * 默认文本响应
+     *
+     * @return ActionResponseRespVO
+     */
+    public static ActionResponseRespVO defInputResponse() {
+        ActionResponseRespVO response = new ActionResponseRespVO();
+        response.setType(AppStepResponseTypeEnum.TEXT.name());
+        response.setStyle(AppStepResponseStyleEnum.INPUT.name());
+        response.setIsShow(Boolean.TRUE);
+        return response;
+    }
 }
