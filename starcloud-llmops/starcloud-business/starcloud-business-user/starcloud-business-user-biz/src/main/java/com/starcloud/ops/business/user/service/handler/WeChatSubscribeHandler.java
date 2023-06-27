@@ -117,13 +117,12 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     }
 
     private Long existUserId(String openId) {
-        SocialUserDO socialUserDO = socialUserMapper.selectDeleteDO(openId,SocialTypeEnum.WECHAT_MP.getType());
+        SocialUserDO socialUserDO = socialUserMapper.selectDeleteDO(openId, SocialTypeEnum.WECHAT_MP.getType());
         if (socialUserDO == null) {
             return null;
         }
 
-
-        SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectDeleteDO(socialUserDO.getId(),SocialTypeEnum.WECHAT_MP.getType());
+        SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectDeleteDO(socialUserDO.getId(), UserTypeEnum.ADMIN.getValue());
         if (socialUserBindDO == null) {
             return null;
         }
