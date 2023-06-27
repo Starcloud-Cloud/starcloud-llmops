@@ -23,6 +23,13 @@ public interface AdminUserApi {
     AdminUserRespDTO getUser(Long id);
 
     /**
+     * 查询租户id
+     * @param id
+     * @return
+     */
+    Long getTenantId(Long id);
+
+    /**
      * 通过用户 ID 查询用户们
      *
      * @param ids 用户 ID 们
