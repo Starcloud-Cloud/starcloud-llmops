@@ -107,6 +107,12 @@ public class MailSendServiceImpl implements MailSendService {
         MailAccount mailAccount  = MailAccountConvert.INSTANCE.convert(account, message.getNickname());
         // 2. 发送邮件
         try {
+            if ("passAuth".equalsIgnoreCase(mailAccount.getUser())) {
+                mailAccount.setAuth(true);
+                mailAccount.setStarttlsEnable(true);
+                mailAccount.setUser(null);
+            }
+
             String messageId = MailUtil.send(mailAccount, message.getMail(),
                     message.getTitle(), message.getContent(),true);
             // 3. 更新结果（成功）
