@@ -33,11 +33,11 @@ public class AdminUserApiImpl implements AdminUserApi {
     @Override
     @TenantIgnore
     public Long getTenantId(Long id) {
-        AtomicReference<Long> userId = new AtomicReference<>();
+        AtomicReference<Long> tenantId = new AtomicReference<>();
         DataPermissionUtils.executeIgnore(() -> {
-            userId.set(userService.getUser(id).getTenantId());
+            tenantId.set(userService.getUser(id).getTenantId());
         });
-        return userId.get();
+        return tenantId.get();
     }
 
     @Override
