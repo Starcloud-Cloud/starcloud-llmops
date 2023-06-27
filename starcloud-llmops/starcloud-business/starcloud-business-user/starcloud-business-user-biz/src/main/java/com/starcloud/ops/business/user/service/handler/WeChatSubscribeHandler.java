@@ -120,15 +120,16 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
                 .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
                 .eq(SocialUserDO::getOpenid, openId)
+                .eq(SocialUserDO::getDeleted, true)
                 .orderByDesc(SocialUserDO::getId)
                 .last("limit 1"));
         if (socialUserDO == null) {
             return null;
         }
         SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectOne(new LambdaQueryWrapper<SocialUserBindDO>()
-                .eq(SocialUserBindDO::getSocialUserId,socialUserDO.getId())
-                .eq(SocialUserBindDO::getSocialType,SocialTypeEnum.WECHAT_MP.getType())
-                .eq(SocialUserBindDO::getDeleted,false)
+                .eq(SocialUserBindDO::getSocialUserId, socialUserDO.getId())
+                .eq(SocialUserBindDO::getSocialType, SocialTypeEnum.WECHAT_MP.getType())
+                .eq(SocialUserBindDO::getDeleted, false)
                 .orderByDesc(SocialUserBindDO::getUserId)
                 .last("limit 1"));
         if (socialUserBindDO == null) {
