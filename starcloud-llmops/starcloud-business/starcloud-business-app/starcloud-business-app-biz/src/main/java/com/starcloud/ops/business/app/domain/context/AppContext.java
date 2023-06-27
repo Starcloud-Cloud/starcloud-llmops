@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.context;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -26,7 +27,6 @@ import java.util.Map;
 @NoArgsConstructor
 public class AppContext {
 
-
     private String conversationId;
 
     private String stepId;
@@ -44,6 +44,8 @@ public class AppContext {
     @NotNull
     private AppEntity app;
 
+
+    @JSONField(serialize = false)
     private HttpServletResponse httpServletResponse;
 
     public AppContext(AppEntity app, AppSceneEnum scene) {

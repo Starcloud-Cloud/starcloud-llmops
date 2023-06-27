@@ -13,14 +13,14 @@ import javax.validation.constraints.*;
 @ToString(callSuper = true)
 public class LogAppConversationCreateReqVO extends LogAppConversationBaseVO {
 
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 最后更新时间
-     */
-    private LocalDateTime updateTime;
+//    /**
+//     * 创建时间
+//     */
+//    private LocalDateTime createTime;
+//
+//    /**
+//     * 最后更新时间
+//     */
+//    private LocalDateTime updateTime;
 
 }

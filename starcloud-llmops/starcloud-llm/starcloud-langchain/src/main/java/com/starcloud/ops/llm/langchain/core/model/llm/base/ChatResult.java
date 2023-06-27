@@ -1,10 +1,7 @@
 package com.starcloud.ops.llm.langchain.core.model.llm.base;
 
 import cn.hutool.core.util.StrUtil;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +13,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@ToString
 public class ChatResult<R> {
 
     private List<ChatGeneration<R>> chatGenerations;

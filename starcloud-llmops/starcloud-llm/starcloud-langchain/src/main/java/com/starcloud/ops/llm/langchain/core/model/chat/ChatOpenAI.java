@@ -11,15 +11,19 @@ import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMess
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.schema.callbacks.LLMCallbackManager;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.theokanning.openai.Usage;
+import com.theokanning.openai.completion.chat.ChatCompletionChunk;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
+import io.reactivex.FlowableSubscriber;
 import io.reactivex.functions.Action;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Subscription;
 
 import javax.servlet.ServletOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -77,27 +81,71 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
             ChatResult chatResult = new ChatResult();
 
+            Long requestToken = this.getNumTokensFromMessages(messages);
+            BaseLLMUsage baseLLMUsage = BaseLLMUsage.builder().promptTokens(requestToken).build();
+            chatResult.setUsage(baseLLMUsage);
+
             StringBuffer sb = new StringBuffer();
 
-            Long requestToken = this.getNumTokensFromMessages(messages);
-
-            this.getCallbackManager().onLLMStart(this.getClass().getSimpleName(), chatCompletionRequest, requestToken);
+            ChatOpenAI chatOpenAI = this;
 
             openAiService.streamChatCompletion(chatCompletionRequest)
+//                    .subscribe(new FlowableSubscriber<ChatCompletionChunk>() {
+//
+//                        @Override
+//                        public void onSubscribe(Subscription s) {
+//
+//                        }
+//
+//                        @Override
+//                        public void onNext(ChatCompletionChunk t) {
+//
+//                            String msg = t.getChoices().get(0).getMessage().getContent();
+//                            if (msg != null) {
+//                                sb.append(msg);
+//                                chatOpenAI.getCallbackManager().onLLMNewToken(msg);
+//                            }
+//                            if ("stop".equals(t.getChoices().get(0).getFinishReason())) {
+//
+//                                String endString = "&end&";
+//
+//                                chatOpenAI.getCallbackManager().onLLMNewToken(endString);
+//
+////                            this.getCallbackManager().onLLMEnd("stop");
+//
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onError(Throwable e) {
+//
+//                            log.error("chat stream error:", e);
+//
+//                            chatOpenAI.getCallbackManager().onLLMError(e.getMessage(), e);
+//                        }
+//
+//                        @Override
+//                        public void onComplete() {
+//
+//                            String resultMsg = sb.toString();
+//
+//                            Long resultToke = chatOpenAI.getNumTokens(resultMsg);
+//                            Long totalTokens = resultToke + requestToken;
+//
+//                            //todo usage
+//                            baseLLMUsage.setCompletionTokens(resultToke).setTotalTokens(totalTokens);
+//
+//                            chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
+//                            chatResult.setUsage(baseLLMUsage);
+//
+//                            chatOpenAI.getCallbackManager().onLLMEnd("complete", resultMsg, totalTokens);
+//                        }
+//                    });
                     .doOnError(e -> {
-                        if (e.getMessage() != null && e.getMessage().contains("timeout")) {
 
-                            this.getCallbackManager().onLLMError("[timeout]" + e.getCause().getMessage(), e);
+                        log.error("openAiService doOnError: {}", e.getMessage(), e);
 
-                        } else {
-
-                            this.getCallbackManager().onLLMError(e.getMessage(), e);
-                        }
-
-                        log.error("chat stream error:", e);
-                        String error = "&error&" + e.getMessage();
-
-                        this.getCallbackManager().onLLMNewToken(error);
+                        //this.getCallbackManager().onLLMError(e.getMessage(), e);
 
                     })
                     .doOnComplete(() -> {
@@ -108,12 +156,12 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                         Long totalTokens = resultToke + requestToken;
 
                         //todo usage
-                        BaseLLMUsage baseLLMUsage = BaseLLMUsage.builder().promptTokens(requestToken).completionTokens(resultToke).totalTokens(totalTokens).build();
+                        baseLLMUsage.setCompletionTokens(resultToke).setTotalTokens(totalTokens);
 
-                        chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
+                        chatResult.setChatGenerations(Arrays.asList(ChatGeneration.<ChatCompletionResult>builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
                         chatResult.setUsage(baseLLMUsage);
 
-                        this.getCallbackManager().onLLMEnd("complete", resultMsg, totalTokens);
+                        //this.getCallbackManager().onLLMEnd("complete", resultMsg, totalTokens);
                     })
                     .doFinally(() -> {
 
@@ -125,9 +173,9 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                             Long totalTokens = resultToke + requestToken;
 
                             //todo usage
-                            BaseLLMUsage baseLLMUsage = BaseLLMUsage.builder().promptTokens(requestToken).completionTokens(resultToke).totalTokens(totalTokens).build();
+                            baseLLMUsage.setCompletionTokens(resultToke).setTotalTokens(totalTokens);
 
-                            chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
+                            chatResult.setChatGenerations(Arrays.asList(ChatGeneration.<ChatCompletionResult>builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
                             chatResult.setUsage(baseLLMUsage);
                         }
 

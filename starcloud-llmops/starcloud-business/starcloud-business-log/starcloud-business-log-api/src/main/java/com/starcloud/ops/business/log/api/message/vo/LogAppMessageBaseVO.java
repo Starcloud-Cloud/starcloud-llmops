@@ -67,7 +67,6 @@ public class LogAppMessageBaseVO {
     private BigDecimal messageUnitPrice;
 
     @Schema(description = "返回内容", required = true)
-    @NotNull(message = "返回内容不能为空")
     private String answer;
 
     @Schema(description = "消耗token数", required = true)

@@ -7,6 +7,7 @@ import cn.kstry.framework.core.engine.facade.ReqBuilder;
 import cn.kstry.framework.core.engine.facade.StoryRequest;
 import cn.kstry.framework.core.engine.facade.TaskResponse;
 import cn.kstry.framework.core.enums.TrackingTypeEnum;
+import cn.kstry.framework.core.exception.KstryException;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.monitor.NoticeTracking;
@@ -264,7 +265,7 @@ public class AppWorkflowService {
         logAppConversationCreateReqVO.setFromScene(appContext.getScene().name());
         logAppConversationCreateReqVO.setEndUser(appContext.getEndUser());
 
-        logAppConversationCreateReqVO.setCreateTime(LocalDateTime.now());
+        //logAppConversationCreateReqVO.setCreateTime(LocalDateTime.now());
 
         return logAppApi.createAppConversation(logAppConversationCreateReqVO);
 
@@ -314,9 +315,11 @@ public class AppWorkflowService {
         messageCreateReqVO.setFromScene(appContext.getScene().name());
         messageCreateReqVO.setCurrency("USD");
 
-        if (nodeTracking.getTaskException() == null) {
+        ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
 
-            ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
+        if (actionResponse != null) {
+
+            messageCreateReqVO.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
 
             messageCreateReqVO.setAppConfig(JSON.toJSONString(actionResponse.getStepConfig()));
 
@@ -332,14 +335,19 @@ public class AppWorkflowService {
             messageCreateReqVO.setTotalPrice(actionResponse.getTotalPrice());
             messageCreateReqVO.setCurrency("USD");
 
-            messageCreateReqVO.setStatus(LogStatusEnum.SUCCESS.name());
+            messageCreateReqVO.setErrorCode(actionResponse.getErrorCode());
+            messageCreateReqVO.setErrorMsg(actionResponse.getErrorMsg());
+        }
 
-        } else {
+        if (nodeTracking.getTaskException() != null) {
 
             messageCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
-
-            //messageCreateReqVO.setErrorCode();
             messageCreateReqVO.setErrorMsg(nodeTracking.getTaskException().getMessage());
+            messageCreateReqVO.setErrorCode("010");
+
+            if (nodeTracking.getTaskException() instanceof KstryException) {
+                messageCreateReqVO.setErrorCode(((KstryException) nodeTracking.getTaskException()).getErrorCode());
+            }
         }
 
 

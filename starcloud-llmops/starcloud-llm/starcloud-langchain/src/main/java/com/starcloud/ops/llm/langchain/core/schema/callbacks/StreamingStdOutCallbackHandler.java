@@ -22,7 +22,7 @@ public class StreamingStdOutCallbackHandler extends BaseCallbackHandler {
         this.httpServletResponse = httpServletResponse;
     }
 
-    private ServletOutputStream initOutputStream() {
+    protected ServletOutputStream initOutputStream() {
 
         try {
             if (this.outputStream == null) {
@@ -41,7 +41,7 @@ public class StreamingStdOutCallbackHandler extends BaseCallbackHandler {
 
         try {
 
-            this.initOutputStream().write("&start& ".getBytes(StandardCharsets.UTF_8));
+            this.initOutputStream().write("&start&".getBytes(StandardCharsets.UTF_8));
             this.initOutputStream().flush();
 
         } catch (Exception e) {
@@ -69,12 +69,36 @@ public class StreamingStdOutCallbackHandler extends BaseCallbackHandler {
 
         try {
 
-            this.initOutputStream().write(String.valueOf(objects[0]).getBytes(StandardCharsets.UTF_8));
+            this.initOutputStream().write("&end&".getBytes(StandardCharsets.UTF_8));
             this.initOutputStream().flush();
 
         } catch (Exception e) {
 
         }
+
+    }
+
+    @Override
+    public void onLLMError(String message, Throwable throwable) {
+
+
+        if (message != null && message.contains("timeout")) {
+
+            message = "[Timeout] " + throwable.getMessage();
+
+        } else if (message != null && message.contains("Incorrect API key")) {
+
+            message = "[Incorrect Key]";
+
+        } else {
+
+            message = "[Other] Please try again later";
+        }
+
+
+        String error = "&error&" + message;
+
+        this.onLLMNewToken(error);
 
     }
 
