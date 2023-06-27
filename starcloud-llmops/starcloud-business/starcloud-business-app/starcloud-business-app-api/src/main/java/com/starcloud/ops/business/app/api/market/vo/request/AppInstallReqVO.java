@@ -30,10 +30,4 @@ public class AppInstallReqVO {
     @NotBlank(message = "应用市场应用 UID 不能为空")
     private String uid;
 
-    /**
-     * 版本号
-     */
-    @Schema(description = "版本号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "版本号不能为空")
-    private Integer version;
 }

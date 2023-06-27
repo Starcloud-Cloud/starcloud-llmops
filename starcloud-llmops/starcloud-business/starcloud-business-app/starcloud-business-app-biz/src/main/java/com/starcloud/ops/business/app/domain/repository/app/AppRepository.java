@@ -13,7 +13,6 @@ import com.starcloud.ops.business.app.validate.app.AppValidate;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
-import java.util.Objects;
 
 /**
  * App Repository
@@ -35,9 +34,7 @@ public class AppRepository {
      * @return 应用实体
      */
     public AppEntity getByUid(String uid) {
-        AppDO app = appMapper.selectOne(Wrappers.lambdaQuery(AppDO.class).eq(AppDO::getUid, uid));
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return AppConvert.INSTANCE.convert(app);
+        return AppConvert.INSTANCE.convert(appMapper.getByUid(uid, Boolean.FALSE));
     }
 
     /**
@@ -76,25 +73,8 @@ public class AppRepository {
      * @param uid 应用唯一标识
      */
     public void deleteByUid(String uid) {
-        // 校验应用是否存在
-        AppValidate.isTrue(isExists(uid), ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-
-        // 删除应用
-        LambdaUpdateWrapper<AppDO> wrapper = Wrappers.lambdaUpdate(AppDO.class)
-                .set(AppDO::getDeleted, Boolean.TRUE)
-                .eq(AppDO::getUid, uid);
-        appMapper.delete(wrapper);
-    }
-
-    /**
-     * 判断应用是否存在
-     *
-     * @param uid 应用 UID 标识
-     * @return 是否存在: true 存在，false 不存在
-     */
-    public Boolean isExists(String uid) {
-        return Objects.nonNull(appMapper.selectOne(Wrappers.lambdaQuery(AppDO.class)
-                .select(AppDO::getId).eq(AppDO::getUid, uid)));
+        AppDO app = appMapper.getByUid(uid, Boolean.TRUE);
+        appMapper.deleteById(app.getId());
     }
 
     /**
@@ -103,7 +83,7 @@ public class AppRepository {
      * @param name 应用名称
      */
     public Boolean duplicateName(String name) {
-        return appMapper.selectCount(Wrappers.lambdaQuery(AppDO.class).eq(AppDO::getName, name)) > 0;
+        return appMapper.duplicateName(name);
     }
 
 }

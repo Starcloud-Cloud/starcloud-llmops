@@ -74,12 +74,17 @@ public interface ErrorCodeConstants {
     /**
      * 应用市场版本为必须的
      */
-    ErrorCode APP_MARKET_VERSION_REQUIRED = new ErrorCode(300200014, "The App Version Is Required, Please Check And Try Again ! ");
+    ErrorCode APP_MARKET_UID_REQUIRED = new ErrorCode(300200014, "The app uid is required, please check and try again ! ");
+
+    /**
+     * 应用市场版本为必须的
+     */
+    ErrorCode APP_MARKET_VERSION_REQUIRED = new ErrorCode(300200014, "The app version is required, please check and try again ! ");
 
     /**
      * 应用市场审核为必须的
      */
-    ErrorCode APP_MARKET_AUDIT_IS_REQUIRED = new ErrorCode(300200016, "The App Audit Is Required, Please Check And Try Again ! ");
+    ErrorCode APP_MARKET_AUDIT_IS_REQUIRED = new ErrorCode(300200016, "The app audit is required, please check and try again ! ");
 
     /**
      * 应用市场审核不支持

@@ -112,10 +112,4 @@ public class AppController {
         return CommonResult.success(Boolean.TRUE);
     }
 
-    @PostMapping("/verifyHasDownloaded")
-    @Operation(summary = "校验应用是否已经下载过", description = "校验应用是否已经下载过")
-    @ApiOperationSupport(order = 26, author = "nacoyer")
-    public CommonResult<InstalledRespVO> verifyHasDownloaded(@RequestBody UidRequest request) {
-        return CommonResult.success(appService.verifyHasInstalled(request.getMarketUid(), true));
-    }
 }
