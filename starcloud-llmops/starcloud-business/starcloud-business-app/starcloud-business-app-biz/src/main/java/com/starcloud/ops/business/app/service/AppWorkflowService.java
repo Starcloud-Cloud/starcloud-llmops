@@ -333,7 +333,6 @@ public class AppWorkflowService {
             messageCreateReqVO.setAnswerUnitPrice(actionResponse.getAnswerUnitPrice());
 
             messageCreateReqVO.setTotalPrice(actionResponse.getTotalPrice());
-            messageCreateReqVO.setCurrency("USD");
 
             messageCreateReqVO.setErrorCode(actionResponse.getErrorCode());
             messageCreateReqVO.setErrorMsg(actionResponse.getErrorMsg());

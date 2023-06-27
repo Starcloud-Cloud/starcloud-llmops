@@ -3,6 +3,7 @@ package com.starcloud.ops.llm.langchain.core.model.chat;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSON;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.BaseChatModel;
@@ -13,19 +14,27 @@ import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.schema.callbacks.LLMCallbackManager;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
+import com.theokanning.openai.OpenAiApi;
 import com.theokanning.openai.Usage;
 import com.theokanning.openai.completion.chat.ChatCompletionChunk;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
+
+import static com.theokanning.openai.service.OpenAiService.*;
+
 import io.reactivex.FlowableSubscriber;
 import io.reactivex.functions.Action;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.reactivestreams.Subscription;
+import retrofit2.Retrofit;
 
 import javax.servlet.ServletOutputStream;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -62,12 +71,34 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
     private Double frequencyPenalty = 0d;
 
 
+    protected OpenAiService addProxy(OpenAIConfig openAIConfig) {
+
+        ObjectMapper mapper = defaultObjectMapper();
+        String host = openAIConfig.getProxyHost();
+        int port = openAIConfig.getProxyPort();
+
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+
+        OkHttpClient client = defaultClient(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()))
+                .newBuilder()
+                .proxy(proxy)
+                .build();
+        Retrofit retrofit = defaultRetrofit(client, mapper);
+
+        OpenAiApi api = retrofit.create(OpenAiApi.class);
+
+        return new OpenAiService(api, client.dispatcher().executorService());
+    }
+
+
     @Override
     public ChatResult<ChatCompletionResult> _generate(List<BaseChatMessage> messages) {
 
         OpenAIConfig openAIConfig = SpringUtil.getBean(OpenAIConfig.class);
 
-        OpenAiService openAiService = new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()));
+        //OpenAiService openAiService = new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()));
+
+        OpenAiService openAiService = addProxy(openAIConfig);
 
         ChatCompletionRequest chatCompletionRequest = BeanUtil.toBean(this, ChatCompletionRequest.class);
 
@@ -179,6 +210,8 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                             chatResult.setUsage(baseLLMUsage);
                         }
 
+                        openAiService.shutdownExecutor();
+
                         //this.getCallbackManager().onLLMEnd("finally", resultMsg, totalTokens);
                     })
                     .blockingForEach(t -> {
@@ -191,14 +224,12 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                             String endString = "&end&";
 
-                            this.getCallbackManager().onLLMNewToken(endString);
+                            //this.getCallbackManager().onLLMNewToken(endString);
 
-//                            this.getCallbackManager().onLLMEnd("stop");
+                            this.getCallbackManager().onLLMEnd("stop");
 
                         }
                     });
-
-            openAiService.shutdownExecutor();
 
             return chatResult;
 
