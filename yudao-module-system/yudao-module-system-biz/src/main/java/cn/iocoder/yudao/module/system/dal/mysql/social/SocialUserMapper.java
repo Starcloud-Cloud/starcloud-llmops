@@ -21,7 +21,11 @@ public interface SocialUserMapper extends BaseMapperX<SocialUserDO> {
                 .eq(SocialUserDO::getState, state));
     }
 
-    @Select("select * from system_social_user where type = #{type} AND openid = #{openId} order by id desc limit 1")
+    @Select(
+            "<script> "
+            + " select * from system_social_user where type = #{type} AND openid = #{openId} order by id desc limit 1"
+            + "</script>"
+    )
     SocialUserDO selectDeleteDO(@Param("openId") String openId, @Param("type")Integer type);
 
     default SocialUserDO selectByTypeAndOpenid(Integer type, String openid) {
