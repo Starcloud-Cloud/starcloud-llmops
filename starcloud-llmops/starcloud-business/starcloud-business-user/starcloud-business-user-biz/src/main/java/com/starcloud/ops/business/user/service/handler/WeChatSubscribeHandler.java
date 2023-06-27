@@ -89,7 +89,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         String password = RandomUtil.randomString(10);
         String username = userName(wxMessage.getFromUser());
 
-        Long userId = existUserId(wxMessage.getOpenId());
+        Long userId = existUserId(wxMpUser.getOpenId());
         if (userId != null) {
             // 已存在用户 增加绑定关系
             SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
