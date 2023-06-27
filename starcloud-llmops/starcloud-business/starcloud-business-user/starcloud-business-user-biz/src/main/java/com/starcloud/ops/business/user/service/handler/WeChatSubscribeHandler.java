@@ -96,6 +96,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
                     .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                     .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
             socialUserBindMapper.insert(socialUserBind);
+            redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
             return null;
         }
         userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L);
