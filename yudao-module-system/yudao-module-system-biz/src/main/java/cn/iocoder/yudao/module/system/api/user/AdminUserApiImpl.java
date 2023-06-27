@@ -35,7 +35,7 @@ public class AdminUserApiImpl implements AdminUserApi {
     public Long getTenantId(Long id) {
         AtomicReference<Long> userId = new AtomicReference<>();
         DataPermissionUtils.executeIgnore(() -> {
-            userId.set(userService.getUser(id).getId());
+            userId.set(userService.getUser(id).getTenantId());
         });
         return userId.get();
     }
