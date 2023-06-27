@@ -149,7 +149,7 @@ yudao:
       - /admin-api/llm/auth/**   # llm 注册，找回密码 无法携带租户编号
       - /admin-api/system/auth/login # 登录
       - /admin-api/llm/wechat/** # 微信回调
-      - /admin-api/system/auth/get-permission-info
+      - /admin-api/system/**
     ignore-tables:
       - system_tenant
       - system_tenant_package
