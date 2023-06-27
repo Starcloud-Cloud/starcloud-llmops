@@ -2,6 +2,7 @@ package com.starcloud.ops.llm.langchain.core.model.chat.base;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.model.llm.LLMUtils;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.*;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Data
@@ -59,7 +61,7 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
     public ChatResult<R> generate(List<List<BaseChatMessage>> chatMessages) {
 
-        this.getCallbackManager().onLLMStart("BaseChatModel.generate", chatMessages);
+        this.getCallbackManager().onLLMStart("BaseChatModel.generate.start", chatMessages);
 
         try {
 
@@ -72,7 +74,7 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
             log.debug("BaseChatModel.generate result: {}", chatResults);
 
-            this.getCallbackManager().onLLMEnd("BaseChatModel.generate", chatResults);
+            this.getCallbackManager().onLLMEnd("BaseChatModel.generate.end", chatResults);
 
             return this.combineLLMOutputs(chatResults);
 
@@ -105,7 +107,7 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
         List<BaseLLMUsage> baseLLMUsageList = Optional.ofNullable(chatResults).orElse(new ArrayList<>()).stream().map(ChatResult::getUsage).collect(Collectors.toList());
         BaseLLMUsage baseLLMUsage = LLMUtils.combineBaseLLMUsage(baseLLMUsageList);
 
-        List<ChatGeneration<R>> generations = Optional.ofNullable(chatResults).orElse(new ArrayList<>()).stream().flatMap((baseLLMResult) -> baseLLMResult.getChatGenerations().stream()).collect(Collectors.toList());
+        List<ChatGeneration<R>> generations = Optional.ofNullable(chatResults).orElse(new ArrayList<>()).stream().filter((chatResult) -> CollectionUtil.isNotEmpty(chatResult.getChatGenerations())).flatMap((chatResult) -> chatResult.getChatGenerations().stream()).collect(Collectors.toList());
 
         return ChatResult.data(generations, baseLLMUsage);
 

@@ -33,7 +33,7 @@ public class StdOutCallbackHandler extends BaseCallbackHandler {
 
     @Override
     public void onLLMError(String message, Throwable throwable) {
-        log.info("onLLMError:{}", message, throwable);
+        log.error("onLLMError:{}", message, throwable);
     }
 
 }

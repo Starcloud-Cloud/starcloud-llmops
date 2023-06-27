@@ -60,7 +60,7 @@ public abstract class BaseLLM<R> extends BaseLanguageModel<R> {
 
         logger.debug("BaseLLM.generate: {}", prompts);
 
-        this.getCallbackManager().onLLMStart();
+        this.getCallbackManager().onLLMStart("BaseLLM.generate", prompts);
 
         if (!this.isLLMCache()) {
 

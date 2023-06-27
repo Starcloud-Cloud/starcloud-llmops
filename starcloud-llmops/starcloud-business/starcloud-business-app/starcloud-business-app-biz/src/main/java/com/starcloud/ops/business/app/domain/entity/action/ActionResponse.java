@@ -57,32 +57,32 @@ public class ActionResponse {
     /**
      * 请求 token 使用
      */
-    private Long messageTokens;
+    private Long messageTokens = 0L;
 
     /**
      * 请求单价
      */
-    private BigDecimal messageUnitPrice;
+    private BigDecimal messageUnitPrice = BigDecimal.ZERO;
 
     /**
      * 响应 token 使用
      */
-    private Long answerTokens;
+    private Long answerTokens = 0L;
 
     /**
      * 响应单价
      */
-    private BigDecimal answerUnitPrice;
+    private BigDecimal answerUnitPrice = BigDecimal.ZERO;
 
     /**
      * 总 token 数量
      */
-    private Long totalTokens;
+    private Long totalTokens = 0L;
 
     /**
      * 总价格
      */
-    private BigDecimal totalPrice;
+    private BigDecimal totalPrice = BigDecimal.ZERO;
 
     /**
      * step 执行的参数

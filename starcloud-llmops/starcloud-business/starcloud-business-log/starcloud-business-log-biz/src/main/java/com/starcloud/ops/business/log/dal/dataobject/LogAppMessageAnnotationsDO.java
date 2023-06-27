@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.log.dal.dataobject;
 
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import lombok.*;
 import com.baomidou.mybatisplus.annotation.*;
 
