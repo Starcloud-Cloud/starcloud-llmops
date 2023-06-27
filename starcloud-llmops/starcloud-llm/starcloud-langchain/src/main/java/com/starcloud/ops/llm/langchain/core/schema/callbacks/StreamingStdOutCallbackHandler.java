@@ -29,7 +29,7 @@ public class StreamingStdOutCallbackHandler extends BaseCallbackHandler {
                 this.outputStream = this.httpServletResponse.getOutputStream();
             }
         } catch (Exception e) {
-            log.error("e: {}", e.getMessage(), e);
+            log.error("StreamingStdOutCallbackHandler initOutputStream is fail: {}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
 
@@ -69,7 +69,10 @@ public class StreamingStdOutCallbackHandler extends BaseCallbackHandler {
 
         try {
 
-            this.initOutputStream().write("&end&".getBytes(StandardCharsets.UTF_8));
+            if ("stop".equals(String.valueOf(objects[0]))) {
+                this.initOutputStream().write("&end&".getBytes(StandardCharsets.UTF_8));
+            }
+
             this.initOutputStream().flush();
 
         } catch (Exception e) {

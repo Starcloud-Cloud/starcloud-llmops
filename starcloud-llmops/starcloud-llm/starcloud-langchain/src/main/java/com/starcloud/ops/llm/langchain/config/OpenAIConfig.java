@@ -17,6 +17,11 @@ public class OpenAIConfig {
     private String apiKey;
 
     private Long timeOut;
+
+    private String proxyHost;
+
+    private int proxyPort;
+
 //
 //
 //    public void setApiKey(String apiKey) {
