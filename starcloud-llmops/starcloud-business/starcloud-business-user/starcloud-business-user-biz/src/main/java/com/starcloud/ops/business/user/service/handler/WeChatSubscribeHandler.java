@@ -89,7 +89,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         String password = RandomUtil.randomString(10);
         String username = userName(wxMessage.getFromUser());
 
-        Long userId = existUserId(wxMessage.getOpenId());
+        Long userId = existUserId(wxMpUser.getOpenId());
         if (userId != null) {
             // 已存在用户 增加绑定关系
             SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
@@ -117,20 +117,12 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     }
 
     private Long existUserId(String openId) {
-        SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
-                .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
-                .eq(SocialUserDO::getOpenid, openId)
-                .orderByDesc(SocialUserDO::getId)
-                .last("limit 1"));
+        SocialUserDO socialUserDO = socialUserMapper.selectDeleteDO(openId, SocialTypeEnum.WECHAT_MP.getType());
         if (socialUserDO == null) {
             return null;
         }
-        SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectOne(new LambdaQueryWrapper<SocialUserBindDO>()
-                .eq(SocialUserBindDO::getSocialUserId,socialUserDO.getId())
-                .eq(SocialUserBindDO::getSocialType,SocialTypeEnum.WECHAT_MP.getType())
-                .eq(SocialUserBindDO::getDeleted,false)
-                .orderByDesc(SocialUserBindDO::getUserId)
-                .last("limit 1"));
+
+        SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectDeleteDO(socialUserDO.getId(), UserTypeEnum.ADMIN.getValue());
         if (socialUserBindDO == null) {
             return null;
         }

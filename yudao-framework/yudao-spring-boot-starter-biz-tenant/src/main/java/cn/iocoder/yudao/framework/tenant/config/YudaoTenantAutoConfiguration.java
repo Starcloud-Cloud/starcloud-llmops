@@ -17,6 +17,7 @@ import cn.iocoder.yudao.framework.tenant.core.web.TenantContextWebFilter;
 import cn.iocoder.yudao.framework.web.config.WebProperties;
 import cn.iocoder.yudao.framework.web.core.handler.GlobalExceptionHandler;
 import cn.iocoder.yudao.module.system.api.tenant.TenantApi;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,13 +83,14 @@ public class YudaoTenantAutoConfiguration {
     public FilterRegistrationBean<TenantSecurityWebFilter> tenantSecurityWebFilter(TenantProperties tenantProperties,
                                                                                    WebProperties webProperties,
                                                                                    GlobalExceptionHandler globalExceptionHandler,
-                                                                                   TenantFrameworkService tenantFrameworkService) {
+                                                                                   TenantFrameworkService tenantFrameworkService,
+                                                                                   AdminUserApi adminUserApi) {
 
 
         log.info("====tenantProperties:" + tenantProperties);
         FilterRegistrationBean<TenantSecurityWebFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new TenantSecurityWebFilter(tenantProperties, webProperties,
-                globalExceptionHandler, tenantFrameworkService));
+                globalExceptionHandler, tenantFrameworkService,adminUserApi));
         registrationBean.setOrder(WebFilterOrderEnum.TENANT_SECURITY_FILTER);
         return registrationBean;
     }
