@@ -169,7 +169,6 @@ public class StarUserServiceImpl implements StarUserService {
         addBenefits(userId, registerUserDO.getInviteUserId());
         TenantContextHolder.setIgnore(true);
 
-        addBenefits(userId, registerUserDO.getInviteUserId());
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
