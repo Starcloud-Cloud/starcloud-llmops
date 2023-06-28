@@ -22,9 +22,9 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
 import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_CHANNEL_CLIENT_NOT_FOUND;
 
-@Tag(name = "管理后台 - 支付通知")
+@Tag(name = "星河云海 - 支付通知")
 @RestController
-@RequestMapping("/pay/notify")
+@RequestMapping("/llm/pay/notify")
 @Validated
 @Slf4j
 public class PayNotifyController {

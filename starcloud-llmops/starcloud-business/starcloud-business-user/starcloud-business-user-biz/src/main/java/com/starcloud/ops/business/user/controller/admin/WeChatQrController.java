@@ -41,7 +41,7 @@ public class WeChatQrController {
         if (userId == null || userId <= 0) {
             return CommonResult.error(UN_AUTH_ERROR);
         }
-        return CommonResult.success(weChatService.createTokenAfterLoginSuccess(userId));
+        return CommonResult.success(weChatService.createTokenAfterLoginSuccess(userId, request.getInviteCode()));
     }
 
 }

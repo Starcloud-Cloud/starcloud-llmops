@@ -32,11 +32,15 @@ import java.util.Map;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
 
-@Tag(name = "管理后台 - 支付订单")
+@Tag(name = "星河云海 - 支付订单")
 @RestController
-@RequestMapping("/pay/order")
+@RequestMapping("/llm/pay/order")
 @Validated
 public class PayOrderController {
+
+
+    @Resource
+    private PayOrderService orderService;
 
     @Resource
     private PayOrderService payOrderService;
@@ -84,12 +88,6 @@ public class PayOrderController {
         return success(respVO);
     }
 
-    @PostMapping("/submit")
-    @Operation(summary = "提交支付订单")
-    public CommonResult<PayOrderSubmitRespVO> submitPayOrder(@RequestBody PayOrderSubmitReqVO reqVO) {
-        PayOrderSubmitRespVO respVO = payOrderService.submitPayOrder(reqVO, getClientIP());
-        return success(respVO);
-    }
 
     @GetMapping("/page")
     @Operation(summary = "获得支付订单分页")
@@ -120,6 +118,23 @@ public class PayOrderController {
             pageList.add(orderItem);
         });
         return success(new PageResult<>(pageList, pageResult.getTotal()));
+    }
+
+
+
+
+//    @PostMapping("/submit")
+//    @Operation(summary = "提交支付订单")
+//    public CommonResult<AppPayOrderSubmitRespVO> submitPayOrder(@RequestBody AppPayOrderSubmitReqVO reqVO) {
+//        PayOrderSubmitRespVO respVO = orderService.submitPayOrder(reqVO, getClientIP());
+//        return success(PayOrderConvert.INSTANCE.convert3(respVO));
+//    }
+
+    @PostMapping("/submit")
+    @Operation(summary = "提交支付订单")
+    public CommonResult<PayOrderSubmitRespVO> submitPayOrder(@RequestBody PayOrder2ReqVO reqVO) {
+        PayOrderSubmitRespVO respVO = payOrderService.submitPayOrder(reqVO, getClientIP());
+        return success(respVO);
     }
 
 

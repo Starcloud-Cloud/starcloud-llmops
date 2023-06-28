@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.order.service.order;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -12,11 +13,9 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespD
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
+import com.starcloud.ops.business.limits.enums.SetMealInfoEnum;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
-import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderExportReqVO;
-import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderPageReqVO;
-import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderSubmitReqVO;
-import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderSubmitRespVO;
+import com.starcloud.ops.business.order.controller.admin.order.vo.*;
 import com.starcloud.ops.business.order.convert.order.PayOrderConvert;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayAppDO;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayChannelDO;
@@ -32,6 +31,7 @@ import com.starcloud.ops.business.order.service.merchant.PayAppService;
 import com.starcloud.ops.business.order.service.merchant.PayChannelService;
 import com.starcloud.ops.business.order.service.notify.PayNotifyService;
 import com.starcloud.ops.business.order.service.notify.dto.PayNotifyTaskCreateReqDTO;
+import com.starcloud.ops.business.order.util.PaySeqUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +55,7 @@ import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString
 @Slf4j
 public class PayOrderServiceImpl implements PayOrderService {
 
+
     @Resource
     private PayProperties payProperties;
 
@@ -72,6 +73,11 @@ public class PayOrderServiceImpl implements PayOrderService {
     private PayChannelService channelService;
     @Resource
     private PayNotifyService notifyService;
+
+
+    private static final Long PAY_APP_ID = 7L;
+    private static final String CHANNEL_CODE = "alipay_pc";
+
 
     @Override
     public PayOrderDO getOrder(Long id) {
@@ -126,25 +132,44 @@ public class PayOrderServiceImpl implements PayOrderService {
     }
 
     @Override
-    public PayOrderSubmitRespVO submitPayOrder(PayOrderSubmitReqVO reqVO, String userIp) {
+    public PayOrderSubmitRespVO submitPayOrder(PayOrder2ReqVO reqVO, String userIp) {
+        log.info("支付宝统一下单接收到请求,下单用户ip ：{}", userIp);
+
+        PayOrderCreateReqDTO payOrderCreateReqDTO = new PayOrderCreateReqDTO();
+
+        SetMealInfoEnum SetMealInfo = SetMealInfoEnum.getByCode(reqVO.getCode());
+
+        payOrderCreateReqDTO.setAppId(PAY_APP_ID);
+
+        payOrderCreateReqDTO.setUserIp(userIp);
+        // 商户订单编号
+        String sMerchantOrderId = PaySeqUtils.genMerchantOrderNo();
+        payOrderCreateReqDTO.setMerchantOrderId(sMerchantOrderId);
+        payOrderCreateReqDTO.setSubject(SetMealInfo.getName());
+        payOrderCreateReqDTO.setBody(SetMealInfo.getDescription());
+        payOrderCreateReqDTO.setAmount(SetMealInfo.getPrice());
+        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtil.endOfDay(LocalDateTime.now()));
+        // 创建订单
+        Long payOrderId = createPayOrder(payOrderCreateReqDTO);
         // 1. 获得 PayOrderDO ，并校验其是否存在
-        PayOrderDO order = validatePayOrderCanSubmit(reqVO.getId());
+        PayOrderDO order = validatePayOrderCanSubmit(payOrderId);
         // 1.2 校验支付渠道是否有效
-        PayChannelDO channel = validatePayChannelCanSubmit(order.getAppId(), reqVO.getChannelCode());
+        PayChannelDO channel = validatePayChannelCanSubmit(order.getAppId(), CHANNEL_CODE);
         PayClient client = payClientFactory.getPayClient(channel.getId());
 
         // 2. 插入 PayOrderExtensionDO
-        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp)
-                .setOrderId(order.getId()).setNo(generateOrderExtensionNo())
-                .setChannelId(channel.getId()).setChannelCode(channel.getCode())
-                .setStatus(PayOrderStatusEnum.WAITING.getStatus());
-        orderExtensionMapper.insert(orderExtension);
+        // PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp)
+        //         .setOrderId(order.getId()).setNo(generateOrderExtensionNo())
+        //         .setChannelId(channel.getId()).setChannelCode(channel.getCode())
+        //         .setStatus(PayOrderStatusEnum.WAITING.getStatus());
+        // orderExtensionMapper.insert(orderExtension);
 
         // 3. 调用三方接口
-        PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(reqVO)
+        PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert4(reqVO)
                 // 商户相关的字段
-                .setMerchantOrderId(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
-                .setSubject(order.getSubject()).setBody(order.getBody())
+                .setMerchantOrderId(sMerchantOrderId) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
+                .setSubject(order.getSubject())
+                .setBody(order.getBody())
                 .setNotifyUrl(genChannelPayNotifyUrl(channel))
                 .setReturnUrl(genChannelReturnUrl(channel))
                 // 订单相关字段
@@ -152,6 +177,8 @@ public class PayOrderServiceImpl implements PayOrderService {
         PayOrderUnifiedRespDTO unifiedOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
 
         // TODO 轮询三方接口，是否已经支付的任务
+
+
         // 返回成功
         return PayOrderConvert.INSTANCE.convert(unifiedOrderRespDTO);
     }
@@ -184,6 +211,7 @@ public class PayOrderServiceImpl implements PayOrderService {
 
     /**
      * 根据支付渠道的编码，生成支付渠道的返回地址
+     *
      * @param channel 支付渠道
      * @return 支付成功返回的地址。 配置地址 + "/" + channel id
      */
@@ -240,7 +268,7 @@ public class PayOrderServiceImpl implements PayOrderService {
     /**
      * 更新 PayOrderExtensionDO 支付成功
      *
-     * @param no 支付订单号（支付模块）
+     * @param no        支付订单号（支付模块）
      * @param rawNotify 通知数据
      * @return PayOrderExtensionDO 对象
      */
@@ -268,9 +296,9 @@ public class PayOrderServiceImpl implements PayOrderService {
     /**
      * 更新 PayOrderDO 支付成功
      *
-     * @param channel 支付渠道
+     * @param channel        支付渠道
      * @param orderExtension 支付拓展单
-     * @param notify 通知回调
+     * @param notify         通知回调
      * @return PayOrderDO 对象
      */
     private PayOrderDO updatePayOrderSuccess(PayChannelDO channel, PayOrderExtensionDO orderExtension,

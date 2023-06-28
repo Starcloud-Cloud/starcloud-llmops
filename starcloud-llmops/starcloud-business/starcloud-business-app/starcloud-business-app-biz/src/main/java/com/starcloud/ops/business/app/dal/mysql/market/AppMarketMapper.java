@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.LanguageEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
@@ -14,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.List;
 
@@ -38,11 +40,13 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     default Page<AppMarketDO> page(AppMarketPageQuery query, boolean isAdmin) {
         // 构建查询条件
         LambdaQueryWrapper<AppMarketDO> wrapper = pageQueryMapper()
-                .likeLeft(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName())
-                .orderByDesc(AppMarketDO::getCreateTime);
+                .likeLeft(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
         if (!isAdmin) {
             wrapper.eq(AppMarketDO::getAudit, AppMarketAuditEnum.APPROVED.getCode());
         }
+        String local = LocaleContextHolder.getLocale().toString();
+        String language = LanguageEnum.ZH_CN.getCode().equals(local) ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
+        wrapper.last("ORDER BY CASE WHEN language = '" + language + "' THEN 0 ELSE 1 END, create_time DESC");
         // 分页查询
         return this.selectPage(PageUtil.page(query), wrapper);
     }

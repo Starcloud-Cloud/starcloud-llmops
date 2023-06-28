@@ -22,6 +22,8 @@ public interface ErrorCodeConstant {
 
     ErrorCode USERNAME_SIZE_ERROR = new ErrorCode(2000100008, "账号长度为 4-16 位");
 
+    ErrorCode ROLE_NOT_EXIST = new ErrorCode(2000100009, "角色不存在");
+
 
 
 }

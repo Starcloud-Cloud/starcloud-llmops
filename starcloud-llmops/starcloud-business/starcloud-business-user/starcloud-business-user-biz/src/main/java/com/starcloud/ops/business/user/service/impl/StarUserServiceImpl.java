@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
@@ -87,7 +88,7 @@ public class StarUserServiceImpl implements StarUserService {
     @Autowired
     private RoleMapper roleMapper;
 
-    @Value("${starcloud-llm.role.code:common}")
+    @Value("${starcloud-llm.role.code:mofaai_free}")
     private String roleCode;
 
     @Value("${starcloud-llm.tenant.id:2}")
@@ -133,7 +134,7 @@ public class StarUserServiceImpl implements StarUserService {
         return servletRequest.getHeader("Origin");
     }
 
-    private void addBenefits(Long currentUserId, Long inviteUserId) {
+    public void addBenefits(Long currentUserId, Long inviteUserId) {
         try {
             if (inviteUserId != null && inviteUserId > 0) {
                 //邀请注册权益 邀请人
@@ -163,8 +164,11 @@ public class StarUserServiceImpl implements StarUserService {
         }
 
         Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), 2L);
-        TenantContextHolder.setTenantId(2L);
+        TenantContextHolder.setTenantId(tenantId);
+        TenantContextHolder.setIgnore(false);
         addBenefits(userId, registerUserDO.getInviteUserId());
+        TenantContextHolder.setIgnore(true);
+
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -198,7 +202,11 @@ public class StarUserServiceImpl implements StarUserService {
         userDO.setTenantId(tenantId);
         adminUserMapper.insert(userDO);
 
-        RoleDO roleDO = roleMapper.selectByCode(roleCode);
+        RoleDO roleDO = roleMapper.selectByCode(roleCode,tenantId);
+        if (roleDO == null) {
+            throw exception(ROLE_NOT_EXIST);
+        }
+
         UserRoleDO userRoleDO = new UserRoleDO();
         userRoleDO.setRoleId(roleDO.getId());
         userRoleDO.setUserId(userDO.getId());

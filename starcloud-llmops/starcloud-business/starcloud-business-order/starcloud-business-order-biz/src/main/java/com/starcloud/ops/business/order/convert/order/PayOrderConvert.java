@@ -53,8 +53,10 @@ public interface PayOrderConvert {
 
     PayOrderUnifiedReqDTO convert2(PayOrderSubmitReqVO reqVO);
 
+    PayOrderUnifiedReqDTO convert4(PayOrder2ReqVO reqVO);
+
     PayOrderSubmitRespVO convert(PayOrderUnifiedRespDTO bean);
 
-    // AppPayOrderSubmitRespVO convert3(PayOrderSubmitRespVO bean);
+//    AppPayOrderSubmitRespVO convert3(PayOrderSubmitRespVO bean);
 
 }

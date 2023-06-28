@@ -5,7 +5,9 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
+import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 
 /**
  * 获取步骤处理器工厂类
@@ -21,6 +23,8 @@ public class AppFactory {
      */
     private static AppRepository appRepository;
 
+    private static AppMarketRepository appMarketRepository;
+
     /**
      * 获取 AppRepository
      *
@@ -33,6 +37,13 @@ public class AppFactory {
         return appRepository;
     }
 
+    public static AppMarketRepository getAppMarketRepository() {
+        if (appMarketRepository == null) {
+            appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
+        }
+        return appMarketRepository;
+    }
+
     /**
      * 获取 AppEntity 通过 appId
      *
@@ -41,6 +52,17 @@ public class AppFactory {
      */
     public static AppEntity factory(String appId) {
         return getAppRepository().getByUid(appId);
+    }
+
+    /**
+     * 通过模版市场 uid 获取 AppEntity
+     *
+     * @param appId appId
+     * @return AppEntity
+     */
+    public static AppEntity factoryMarket(String appId) {
+        AppMarketEntity appMarketEntity = getAppMarketRepository().get(appId);
+        return AppConvert.INSTANCE.convert(appMarketEntity);
     }
 
     /**

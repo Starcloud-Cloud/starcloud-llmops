@@ -162,7 +162,11 @@ public class AppWorkflowService {
         // 获取 AppEntity
         AppEntity app = null;
         if (appRequest == null) {
-            app = AppFactory.factory(appId);
+            if (AppSceneEnum.WEB_MARKET.equals(scene)) {
+                app = AppFactory.factoryMarket(appId);
+            } else {
+                app = AppFactory.factory(appId);
+            }
         } else {
             app = AppFactory.factory(appId, appRequest);
         }

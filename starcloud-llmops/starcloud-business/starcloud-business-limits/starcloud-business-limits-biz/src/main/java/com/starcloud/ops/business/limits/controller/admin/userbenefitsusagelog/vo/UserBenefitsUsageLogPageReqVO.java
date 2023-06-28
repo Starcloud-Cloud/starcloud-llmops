@@ -33,7 +33,7 @@ public class UserBenefitsUsageLogPageReqVO extends PageParam {
     private Long amount;
 
     @Schema(description = "应用程序ID或者数据集ID")
-    private Long outId;
+    private String outId;
 
     @Schema(description = "用户权益编号（单条权益不够，扣除其他策略下）")
     private String benefitsIds;

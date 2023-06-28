@@ -25,6 +25,13 @@ public interface StarUserService {
     boolean activation(String activationCode);
 
     /**
+     * 增加权限
+     * @param currentUserId
+     * @param inviteUserId
+     */
+    public void addBenefits(Long currentUserId, Long inviteUserId);
+
+    /**
      * 找回密码
      *
      * @param request
