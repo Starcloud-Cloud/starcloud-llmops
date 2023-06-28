@@ -324,11 +324,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         // 根据用户权限判断用户等级
         if (securityFrameworkService.hasRole("MOFAAI_PRO")) {
-            userBenefitsInfoResultVO.setUserLevel("Pro");
+            userBenefitsInfoResultVO.setUserLevel("pro");
         } else if (securityFrameworkService.hasRole("MOFAAI_PLUS")) {
-            userBenefitsInfoResultVO.setUserLevel("Plus");
+            userBenefitsInfoResultVO.setUserLevel("plus");
         } else {
-            userBenefitsInfoResultVO.setUserLevel("Free");
+            userBenefitsInfoResultVO.setUserLevel("free");
         }
 
 
