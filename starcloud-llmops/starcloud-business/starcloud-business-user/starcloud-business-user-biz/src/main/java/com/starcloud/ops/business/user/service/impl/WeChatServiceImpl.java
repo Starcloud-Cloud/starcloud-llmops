@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
@@ -115,6 +116,7 @@ public class WeChatServiceImpl implements WeChatService {
     @Override
     public AuthLoginRespVO createTokenAfterLoginSuccess(Long userId) {
         AdminUserDO userDO = userMapper.selectById(userId);
+        TenantContextHolder.setTenantId(userDO.getTenantId());
         createLoginLog(userId, userDO.getUsername(), LoginLogTypeEnum.LOGIN_SOCIAL, LoginResultEnum.SUCCESS);
         OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.createAccessToken(userId, UserTypeEnum.ADMIN.getValue(),
                 OAuth2ClientConstants.CLIENT_ID_DEFAULT, null);
