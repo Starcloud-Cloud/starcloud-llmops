@@ -95,7 +95,9 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
             appStepResponse.setTotalTokens(baseLLMUsage.getTotalTokens());
             appStepResponse.setTotalPrice(messagePrice.add(answerPrice));
 
-            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), appStepResponse.getTotalTokens(), Long.valueOf(context.getUser()));
+
+            //权益记录
+            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), appStepResponse.getTotalTokens(), Long.valueOf(context.getUser()), context.getConversationId());
 
 
         } catch (OpenAiHttpException exc) {
