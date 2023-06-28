@@ -4,6 +4,7 @@ package com.starcloud.ops.business.limits.controller.admin.userbenefits;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPagInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsRespVO;
 import com.starcloud.ops.business.limits.convert.userbenefits.UserBenefitsConvert;
@@ -44,9 +45,9 @@ public class UserBenefitsController {
 
     @GetMapping("/page")
     @Operation(summary = "获得用户权益 - 分页")
-    public CommonResult<PageResult<UserBenefitsRespVO>> getUserBenefitsPage(@Validated UserBenefitsPageReqVO pageVO) {
-        PageResult<UserBenefitsDO> pageResult = userBenefitsService.getUserBenefitsPage(pageVO);
-        return success(UserBenefitsConvert.INSTANCE.convertPage(pageResult));
+    public CommonResult<PageResult<UserBenefitsPagInfoResultVO>> getUserBenefitsPage(@Validated UserBenefitsPageReqVO pageVO) {
+        PageResult<UserBenefitsPagInfoResultVO> pageResult = userBenefitsService.getUserBenefitsPage(pageVO);
+        return success(pageResult);
     }
 
 
