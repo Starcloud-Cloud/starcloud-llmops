@@ -62,57 +62,60 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     @Transactional(rollbackFor = Exception.class)
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信关注事件，内容：{}", wxMessage);
+        try {
+            WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
 
-        WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
+            SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
+                    .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
+                    .eq(SocialUserDO::getOpenid, wxMpUser.getOpenId())
+                    .eq(SocialUserDO::getDeleted, false)
+                    .orderByDesc(SocialUserDO::getId)
+                    .last("limit 1"));
 
-        SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
-                .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
-                .eq(SocialUserDO::getOpenid, wxMpUser.getOpenId())
-                .eq(SocialUserDO::getDeleted, false)
-                .orderByDesc(SocialUserDO::getId)
-                .last("limit 1"));
+            if (socialUserDO != null) {
+                //已有帐号
+                redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
+                return null;
+            }
 
-        if (socialUserDO != null) {
-            //已有帐号
-            redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
-            return null;
-        }
+            socialUserDO = SocialUserDO.builder().code(wxMessage.getTicket())
+                    .nickname(wxMessage.getFromUser())
+                    .type(SocialTypeEnum.WECHAT_MP.getType())
+                    .openid(wxMpUser.getOpenId())
+                    .rawTokenInfo(JSON.toJSONString(wxMessage))
+                    .rawUserInfo(JSON.toJSONString(wxMpUser)).build();
 
-        socialUserDO = SocialUserDO.builder().code(wxMessage.getTicket())
-                .nickname(wxMessage.getFromUser())
-                .type(SocialTypeEnum.WECHAT_MP.getType())
-                .openid(wxMpUser.getOpenId())
-                .rawTokenInfo(JSON.toJSONString(wxMessage))
-                .rawUserInfo(JSON.toJSONString(wxMpUser)).build();
+            socialUserMapper.insert(socialUserDO);
+            String password = RandomUtil.randomString(10);
+            String username = userName(wxMessage.getFromUser());
 
-        socialUserMapper.insert(socialUserDO);
-        String password = RandomUtil.randomString(10);
-        String username = userName(wxMessage.getFromUser());
-
-        Long userId = existUserId(wxMpUser.getOpenId());
-        if (userId != null) {
-            // 已存在用户 增加绑定关系
+            Long userId = existUserId(wxMpUser.getOpenId());
+            if (userId != null) {
+                // 已存在用户 增加绑定关系
+                SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
+                        .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
+                        .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
+                socialUserBindMapper.insert(socialUserBind);
+                redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
+                return null;
+            }
+            userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L);
             SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
                     .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                     .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
             socialUserBindMapper.insert(socialUserBind);
+
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    permissionProducer.sendUserRoleRefreshMessage();
+                }
+
+            });
             redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
-            return null;
+        } catch (Exception e) {
+            redisTemplate.boundValueOps(wxMessage.getTicket()+ "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
         }
-        userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L);
-        SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
-                .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
-                .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
-        socialUserBindMapper.insert(socialUserBind);
-
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                permissionProducer.sendUserRoleRefreshMessage();
-            }
-
-        });
-        redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
         return null;
     }
 
