@@ -115,9 +115,6 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             String msg = String.format("欢迎使用magicAi，您的用户名登录用户明是：%s  登录密码是：%s", username, password);
 
             WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
-            TenantContextHolder.setTenantId(tenantId);
-            TenantContextHolder.setIgnore(false);
-            benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.SIGN_IN.getName(), userId);
             return outTextMessage;
         } catch (Exception e) {
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
