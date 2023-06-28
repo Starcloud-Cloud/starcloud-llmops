@@ -134,7 +134,7 @@ public class StarUserServiceImpl implements StarUserService {
         return servletRequest.getHeader("Origin");
     }
 
-    private void addBenefits(Long currentUserId, Long inviteUserId) {
+    public void addBenefits(Long currentUserId, Long inviteUserId) {
         try {
             if (inviteUserId != null && inviteUserId > 0) {
                 //邀请注册权益 邀请人

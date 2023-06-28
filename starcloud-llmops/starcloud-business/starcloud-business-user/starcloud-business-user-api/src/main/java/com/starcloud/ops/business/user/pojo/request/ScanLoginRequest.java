@@ -13,4 +13,6 @@ public class ScanLoginRequest {
     @NotBlank(message = "凭证不能为空")
     private String ticket;
 
+    @Schema(description = "邀请码")
+    private String inviteCode;
 }

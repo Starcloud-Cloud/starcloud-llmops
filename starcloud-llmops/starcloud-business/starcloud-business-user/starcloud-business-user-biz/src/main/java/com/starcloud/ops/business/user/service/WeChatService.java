@@ -8,14 +8,13 @@ public interface WeChatService {
 
     /**
      * 获取公共号二维码
-     * @param inviteCode
      * @return
      */
     QrCodeTicketVO qrCodeCreate();
 
     /**
      * 获取授权用户Id
-     * @param ticket
+     * @param
      * @return
      */
     Long authUser(ScanLoginRequest request);
@@ -24,5 +23,5 @@ public interface WeChatService {
      * 创建 Token 令牌，记录登录日志
      * @return
      */
-    AuthLoginRespVO createTokenAfterLoginSuccess(Long userId);
+    AuthLoginRespVO createTokenAfterLoginSuccess(Long userId,String inviteCode);
 }

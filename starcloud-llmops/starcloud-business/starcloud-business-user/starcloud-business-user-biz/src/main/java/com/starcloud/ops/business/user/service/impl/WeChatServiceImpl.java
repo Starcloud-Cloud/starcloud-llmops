@@ -26,7 +26,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.starcloud.ops.business.user.controller.admin.vo.QrCodeTicketVO;
 import com.starcloud.ops.business.user.convert.QrCodeConvert;
 import com.starcloud.ops.business.user.pojo.request.ScanLoginRequest;
+import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.service.WeChatService;
+import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -71,6 +73,12 @@ public class WeChatServiceImpl implements WeChatService {
     @Autowired
     private SocialUserMapper socialUserMapper;
 
+    @Autowired
+    private StarUserService starUserService;
+
+    @Autowired
+    private AdminUserMapper adminUserMapper;
+
 
     @Override
     public QrCodeTicketVO qrCodeCreate() {
@@ -81,7 +89,7 @@ public class WeChatServiceImpl implements WeChatService {
             ticketVO.setUrl(url);
             return ticketVO;
         } catch (WxErrorException e) {
-            log.error("获取微信二维码异常",e);
+            log.error("获取微信二维码异常", e);
             throw exception(CREATE_QR_ERROR);
         }
     }
@@ -90,7 +98,7 @@ public class WeChatServiceImpl implements WeChatService {
     public Long authUser(ScanLoginRequest request) {
         String error = redisTemplate.boundValueOps(request.getTicket() + "_error").get();
         if (StringUtils.isNotBlank(error)) {
-            throw new ServiceException(500,error);
+            throw new ServiceException(500, error);
         }
 
         String openId = redisTemplate.boundValueOps(request.getTicket()).get();
@@ -114,12 +122,21 @@ public class WeChatServiceImpl implements WeChatService {
     }
 
     @Override
-    public AuthLoginRespVO createTokenAfterLoginSuccess(Long userId) {
+    public AuthLoginRespVO createTokenAfterLoginSuccess(Long userId, String inviteCode) {
         AdminUserDO userDO = userMapper.selectById(userId);
         TenantContextHolder.setTenantId(userDO.getTenantId());
         createLoginLog(userId, userDO.getUsername(), LoginLogTypeEnum.LOGIN_SOCIAL, LoginResultEnum.SUCCESS);
         OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.createAccessToken(userId, UserTypeEnum.ADMIN.getValue(),
                 OAuth2ClientConstants.CLIENT_ID_DEFAULT, null);
+        String inviteUserName = null;
+        try {
+            inviteUserName = EncryptionUtils.decryptString(inviteCode);
+            AdminUserDO inviteUser = adminUserMapper.selectByUsername(inviteUserName);
+            TenantContextHolder.setIgnore(false);
+            starUserService.addBenefits(userDO.getId(), inviteUser.getId());
+        } catch (Exception e) {
+            log.warn("新增权益失败，currentUser={},inviteUserName={}", userDO.getId(), inviteUserName, e);
+        }
         return AuthConvert.INSTANCE.convert(accessTokenDO);
     }
 
