@@ -29,8 +29,8 @@ public class WeChatQrController {
     @Operation(summary = "获取公共号二维码")
     @GetMapping("/qr")
     @PermitAll
-    public CommonResult<QrCodeTicketVO> qrCodeCreate() {
-        return CommonResult.success(weChatService.qrCodeCreate());
+    public CommonResult<QrCodeTicketVO> qrCodeCreate(@RequestParam(value = "inviteCode",required = false) String inviteCode) {
+        return CommonResult.success(weChatService.qrCodeCreate(inviteCode));
     }
 
     @Operation(summary = "获取公共号二维码")
@@ -41,7 +41,7 @@ public class WeChatQrController {
         if (userId == null || userId <= 0) {
             return CommonResult.error(UN_AUTH_ERROR);
         }
-        return CommonResult.success(weChatService.createTokenAfterLoginSuccess(userId, request.getInviteCode()));
+        return CommonResult.success(weChatService.createTokenAfterLoginSuccess(userId));
     }
 
 }

@@ -73,20 +73,15 @@ public class WeChatServiceImpl implements WeChatService {
     @Autowired
     private SocialUserMapper socialUserMapper;
 
-    @Autowired
-    private StarUserService starUserService;
-
-    @Autowired
-    private AdminUserMapper adminUserMapper;
-
 
     @Override
-    public QrCodeTicketVO qrCodeCreate() {
+    public QrCodeTicketVO qrCodeCreate(String inviteCode) {
         try {
             WxMpQrCodeTicket wxMpQrCodeTicket = wxMpService.getQrcodeService().qrCodeCreateTmpTicket("login", 60 * 5);
             String url = wxMpService.getQrcodeService().qrCodePictureUrl(wxMpQrCodeTicket.getTicket());
             QrCodeTicketVO ticketVO = QrCodeConvert.INSTANCE.toVO(wxMpQrCodeTicket);
             ticketVO.setUrl(url);
+            redisTemplate.boundValueOps(ticketVO.getTicket() + "_inviteCode").set(inviteCode);
             return ticketVO;
         } catch (WxErrorException e) {
             log.error("获取微信二维码异常", e);
@@ -122,21 +117,12 @@ public class WeChatServiceImpl implements WeChatService {
     }
 
     @Override
-    public AuthLoginRespVO createTokenAfterLoginSuccess(Long userId, String inviteCode) {
+    public AuthLoginRespVO createTokenAfterLoginSuccess(Long userId) {
         AdminUserDO userDO = userMapper.selectById(userId);
         TenantContextHolder.setTenantId(userDO.getTenantId());
         createLoginLog(userId, userDO.getUsername(), LoginLogTypeEnum.LOGIN_SOCIAL, LoginResultEnum.SUCCESS);
         OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.createAccessToken(userId, UserTypeEnum.ADMIN.getValue(),
                 OAuth2ClientConstants.CLIENT_ID_DEFAULT, null);
-        String inviteUserName = null;
-        try {
-            inviteUserName = EncryptionUtils.decryptString(inviteCode);
-            AdminUserDO inviteUser = adminUserMapper.selectByUsername(inviteUserName);
-            TenantContextHolder.setIgnore(false);
-            starUserService.addBenefits(userDO.getId(), inviteUser.getId());
-        } catch (Exception e) {
-            log.warn("新增权益失败，currentUser={},inviteUserName={}", userDO.getId(), inviteUserName, e);
-        }
         return AuthConvert.INSTANCE.convert(accessTokenDO);
     }
 

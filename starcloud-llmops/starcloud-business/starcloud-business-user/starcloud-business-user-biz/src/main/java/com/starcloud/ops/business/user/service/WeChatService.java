@@ -10,7 +10,7 @@ public interface WeChatService {
      * 获取公共号二维码
      * @return
      */
-    QrCodeTicketVO qrCodeCreate();
+    QrCodeTicketVO qrCodeCreate(String inviteCode);
 
     /**
      * 获取授权用户Id
@@ -23,5 +23,5 @@ public interface WeChatService {
      * 创建 Token 令牌，记录登录日志
      * @return
      */
-    AuthLoginRespVO createTokenAfterLoginSuccess(Long userId,String inviteCode);
+    AuthLoginRespVO createTokenAfterLoginSuccess(Long userId);
 }

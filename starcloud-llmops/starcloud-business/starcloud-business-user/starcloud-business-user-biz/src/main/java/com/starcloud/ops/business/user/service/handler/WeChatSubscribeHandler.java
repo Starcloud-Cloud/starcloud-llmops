@@ -5,8 +5,10 @@ import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;
+import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import com.alibaba.fastjson.JSON;
@@ -14,6 +16,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.service.StarUserService;
+import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.session.WxSessionManager;
@@ -63,11 +66,11 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserBenefitsService benefitsService;
-
     @Value("${starcloud-llm.tenant.id:2}")
     private Long tenantId;
+
+    @Autowired
+    private AdminUserMapper adminUserMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -111,7 +114,20 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
             });
             redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
-
+            Long inviteUserid = null;
+            try {
+                String inviteCode = redisTemplate.boundValueOps(wxMessage.getTicket() + "_inviteCode").get();
+                if (StringUtils.isNotBlank(inviteCode)) {
+                    String inviteUserName = EncryptionUtils.decryptString(inviteCode);
+                    AdminUserDO inviteUser = adminUserMapper.selectByUsername(inviteUserName);
+                    inviteUserid = inviteUser.getId();
+                }
+            } catch (Exception e) {
+                log.warn("新增权益失败，currentUser={},inviteUserid={}", userId, inviteUserid, e);
+            }
+            TenantContextHolder.setTenantId(tenantId);
+            TenantContextHolder.setIgnore(false);
+            starUserService.addBenefits(userId, inviteUserid);
             String msg = String.format("欢迎使用magicAi，您的用户名登录用户明是：%s  登录密码是：%s", username, password);
 
             WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
