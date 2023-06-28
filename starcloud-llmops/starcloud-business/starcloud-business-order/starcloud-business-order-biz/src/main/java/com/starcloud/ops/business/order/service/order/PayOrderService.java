@@ -5,10 +5,7 @@ import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
-import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderExportReqVO;
-import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderPageReqVO;
-import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderSubmitReqVO;
-import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderSubmitRespVO;
+import com.starcloud.ops.business.order.controller.admin.order.vo.*;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
 
 import javax.validation.Valid;
@@ -87,7 +84,7 @@ public interface PayOrderService {
      * @param userIp 提交 IP
      * @return 提交结果
      */
-    PayOrderSubmitRespVO submitPayOrder(@Valid PayOrderSubmitReqVO reqVO,
+    PayOrderSubmitRespVO submitPayOrder(@Valid PayOrder2ReqVO reqVO,
                                         @NotEmpty(message = "提交 IP 不能为空") String userIp);
 
     /**

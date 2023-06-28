@@ -20,6 +20,7 @@ import com.starcloud.ops.business.order.dal.mysql.refund.PayRefundMapper;
 import com.starcloud.ops.business.order.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.order.enums.order.PayOrderStatusEnum;
 import com.starcloud.ops.business.order.enums.refund.PayRefundStatusEnum;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -41,7 +42,7 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_APP_
 public class PayAppServiceImpl implements PayAppService {
 
     @Resource
-    private PayAppMapper appMapper;
+    private PayAppMapper payAppMapper;
     // TODO @aquan：使用对方的 Service。模块与模块之间，避免直接调用对方的 mapper
     @Resource
     private PayMerchantMapper merchantMapper;
@@ -54,7 +55,7 @@ public class PayAppServiceImpl implements PayAppService {
     public Long createApp(PayAppCreateReqVO createReqVO) {
         // 插入
         PayAppDO app = PayAppConvert.INSTANCE.convert(createReqVO);
-        appMapper.insert(app);
+        payAppMapper.insert(app);
         // 返回
         return app.getId();
     }
@@ -65,7 +66,7 @@ public class PayAppServiceImpl implements PayAppService {
         this.validateAppExists(updateReqVO.getId());
         // 更新
         PayAppDO updateObj = PayAppConvert.INSTANCE.convert(updateReqVO);
-        appMapper.updateById(updateObj);
+        payAppMapper.updateById(updateObj);
     }
 
     @Override
@@ -75,23 +76,23 @@ public class PayAppServiceImpl implements PayAppService {
         this.validateOrderTransactionExist(id);
 
         // 删除
-        appMapper.deleteById(id);
+        payAppMapper.deleteById(id);
     }
 
     private void validateAppExists(Long id) {
-        if (appMapper.selectById(id) == null) {
+        if (payAppMapper.selectById(id) == null) {
             throw exception(PAY_APP_NOT_FOUND);
         }
     }
 
     @Override
     public PayAppDO getApp(Long id) {
-        return appMapper.selectById(id);
+        return payAppMapper.selectById(id);
     }
 
     @Override
     public List<PayAppDO> getAppList(Collection<Long> ids) {
-        return appMapper.selectBatchIds(ids);
+        return payAppMapper.selectBatchIds(ids);
     }
 
     @Override
@@ -100,7 +101,7 @@ public class PayAppServiceImpl implements PayAppService {
         if (StrUtil.isNotBlank(pageReqVO.getMerchantName()) && CollectionUtil.isEmpty(merchantIdList)) {
             return new PageResult<>();
         }
-        return appMapper.selectPage(pageReqVO, merchantIdList);
+        return payAppMapper.selectPage(pageReqVO, merchantIdList);
     }
 
     @Override
@@ -109,7 +110,7 @@ public class PayAppServiceImpl implements PayAppService {
         if (StrUtil.isNotBlank(exportReqVO.getMerchantName()) && CollectionUtil.isEmpty(merchantIdList)) {
             return new ArrayList<>();
         }
-        return appMapper.selectList(exportReqVO, merchantIdList);
+        return payAppMapper.selectList(exportReqVO, merchantIdList);
     }
 
     /**
@@ -133,12 +134,12 @@ public class PayAppServiceImpl implements PayAppService {
         PayAppDO app = new PayAppDO();
         app.setId(id);
         app.setStatus(status);
-        appMapper.updateById(app);
+        payAppMapper.updateById(app);
     }
 
     @Override
     public List<PayAppDO> getListByMerchantId(Long merchantId) {
-        return appMapper.getListByMerchantId(merchantId);
+        return payAppMapper.getListByMerchantId(merchantId);
     }
 
     /**
@@ -151,7 +152,7 @@ public class PayAppServiceImpl implements PayAppService {
         if (id == null) {
             return;
         }
-        PayAppDO payApp = appMapper.selectById(id);
+        PayAppDO payApp = payAppMapper.selectById(id);
         if (payApp == null) {
             throw exception(PAY_APP_NOT_FOUND);
         }
@@ -175,7 +176,7 @@ public class PayAppServiceImpl implements PayAppService {
 
     @Override
     public PayAppDO validPayApp(Long id) {
-        PayAppDO app = appMapper.selectById(id);
+        PayAppDO app = payAppMapper.selectById(id);
         // 校验是否存在
         if (app == null) {
             throw ServiceExceptionUtil.exception(PAY_APP_NOT_FOUND);

@@ -75,8 +75,8 @@ public class PayNotifyServiceImpl implements PayNotifyService {
     @Resource
     private PayNotifyLogMapper payNotifyLogMapper;
 
-    @Resource(name = NOTIFY_THREAD_POOL_TASK_EXECUTOR)
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+//    @Resource(name = NOTIFY_THREAD_POOL_TASK_EXECUTOR)
+//    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Resource
     private PayNotifyLockRedisDAO payNotifyLockCoreRedisDAO;
@@ -119,13 +119,13 @@ public class PayNotifyServiceImpl implements PayNotifyService {
 
         // 遍历，逐个通知
         CountDownLatch latch = new CountDownLatch(tasks.size());
-        tasks.forEach(task -> threadPoolTaskExecutor.execute(() -> {
-            try {
-                executeNotifySync(task);
-            } finally {
-                latch.countDown();
-            }
-        }));
+//        tasks.forEach(task -> threadPoolTaskExecutor.execute(() -> {
+//            try {
+//                executeNotifySync(task);
+//            } finally {
+//                latch.countDown();
+//            }
+//        }));
         // 等待完成
         awaitExecuteNotify(latch);
         // 返回执行完成的任务数（成功 + 失败)

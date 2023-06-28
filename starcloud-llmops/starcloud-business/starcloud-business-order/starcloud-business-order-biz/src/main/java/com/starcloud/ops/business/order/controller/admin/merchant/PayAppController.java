@@ -28,9 +28,9 @@ import java.util.*;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Slf4j
-@Tag(name = "管理后台 - 支付应用信息")
+@Tag(name = "星河云海 - 支付应用信息")
 @RestController
-@RequestMapping("/pay/app")
+@RequestMapping("/llm/pay/app")
 @Validated
 public class PayAppController {
 

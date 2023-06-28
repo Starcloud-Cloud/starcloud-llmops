@@ -95,7 +95,10 @@
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-spring-boot-starter-biz-dict</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-limits-biz</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

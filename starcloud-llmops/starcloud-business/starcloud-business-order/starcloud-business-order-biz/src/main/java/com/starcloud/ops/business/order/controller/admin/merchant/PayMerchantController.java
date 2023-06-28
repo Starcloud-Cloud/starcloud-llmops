@@ -20,9 +20,9 @@ import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
-@Tag(name = "支付商户信息")
+@Tag(name = "星河云海 - 支付商户信息")
 @RestController
-@RequestMapping("/pay/merchant")
+@RequestMapping("/llm/pay/merchant")
 @Validated
 public class PayMerchantController {
 

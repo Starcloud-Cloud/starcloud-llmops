@@ -65,7 +65,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      *
      * @param code   权益 code
      * @param userId 用户 ID
-     *
      * @return 编号
      */
     @Override
@@ -113,7 +112,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      *
      * @param strategyType 权益类型
      * @param userId       用户 ID
-     *
      * @return Boolean
      */
     public Boolean addUserBenefitsByStrategyType(String strategyType, Long userId) {
@@ -163,7 +161,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      *
      * @param benefitsStrategy 权益数据
      * @param userId           用户 ID
-     *
      * @return boolean
      */
     private Boolean checkBenefitsUsageFrequency(UserBenefitsStrategyDO benefitsStrategy, Long userId) {
@@ -194,7 +191,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         // 构建查询条件
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.<UserBenefitsDO>lambdaQuery()
                 .eq(UserBenefitsDO::getUserId, userId)
-                .eq(UserBenefitsDO::getStrategyId,benefitsStrategy.getId())
+                .eq(UserBenefitsDO::getStrategyId, benefitsStrategy.getId())
                 .lt(UserBenefitsDO::getCreateTime, startTime);
 
         if (endTime != null) {
@@ -213,7 +210,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      *
      * @param userId           用户 ID
      * @param benefitsStrategy 权益数据
-     *
      * @return UserBenefitsDO
      */
     private UserBenefitsDO createUserBenefits(Long userId, UserBenefitsStrategyDO benefitsStrategy) {
@@ -248,7 +244,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param now           当前时间
      * @param effectiveUnit 权益有效时间单位
      * @param effectiveNum  权益有效时间单位
-     *
      * @return ExpirationTime
      */
     private LocalDateTime calculateExpirationTime(LocalDateTime now, BenefitsStrategyEffectiveUnitEnums effectiveUnit, Long effectiveNum) {
@@ -277,7 +272,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * 根据用户 ID 获取当前用户权益信息
      *
      * @param userId 用户 ID
-     *
      * @return UserBenefitsInfoResultVO
      */
     @Override
@@ -322,10 +316,14 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         userBenefitsInfoResultVO.setUserLevel("free");
 
         List<UserBenefitsBaseResultVO> benefitsList = new ArrayList<>();
-        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.APP, totalAppCountUsed, totalAppCount));
-        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.DATASET, totalDatasetCountUsed, totalDatasetCount));
-        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.IMAGE, totalImageCountUsed, totalImageCount));
+        // TODO: 2023/6/26
+        //  1.暂时取消应用和数据集显示
+        //  2.显示顺序 令牌>图片>应用>数据集
+
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.TOKEN, totalTokenCountUsed, totalTokenCount));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.IMAGE, totalImageCountUsed, totalImageCount));
+//        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.APP, totalAppCountUsed, totalAppCount));
+//        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.DATASET, totalDatasetCountUsed, totalDatasetCount));
 
         userBenefitsInfoResultVO.setBenefits(benefitsList);
 
@@ -468,7 +466,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * 根据策略 ID 检测测罗是否被使用
      *
      * @param strategyId 策略编号
-     *
      * @return Boolean
      */
     @Override
