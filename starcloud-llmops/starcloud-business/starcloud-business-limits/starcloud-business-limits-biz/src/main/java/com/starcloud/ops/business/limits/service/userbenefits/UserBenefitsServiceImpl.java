@@ -17,10 +17,8 @@ import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.v
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.dal.mysql.userbenefits.UserBenefitsMapper;
-import com.starcloud.ops.business.limits.enums.BenefitsActionEnums;
-import com.starcloud.ops.business.limits.enums.BenefitsStrategyEffectiveUnitEnums;
-import com.starcloud.ops.business.limits.enums.BenefitsStrategyLimitIntervalEnums;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.dal.mysql.userbenefitsstrategy.UserBenefitsStrategyMapper;
+import com.starcloud.ops.business.limits.enums.*;
 import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.limits.service.userbenefitsusagelog.UserBenefitsUsageLogService;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +66,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     private UserBenefitsMapper userBenefitsMapper;
 
 
+    @Resource
+    private UserBenefitsStrategyMapper userBenefitsStrategyMapper;
     /**
      * 新增用户权益
      *
@@ -507,20 +507,23 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public Boolean hasSignInBenefitToday(Long userId) {
-
         // 当天的凌晨
         LocalDateTime startDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
         // 当天的深夜
         LocalDateTime endDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
-        // 查询条件：当天用户是否有签到的权益
+        // 查询条件：当天用户权益
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
         wrapper.eq(UserBenefitsDO::getUserId, userId);
         wrapper.eq(UserBenefitsDO::getEnabled, true);
         wrapper.between(UserBenefitsDO::getCreateTime, startDateTime, endDateTime);
 
-        Long count = userBenefitsMapper.selectCount(wrapper);
-
-        return count > 0;
+        List<UserBenefitsDO> userBenefitsDOS = userBenefitsMapper.selectList(wrapper);
+        List<String> strategyIds = userBenefitsDOS.stream().map(UserBenefitsDO::getStrategyId).collect(Collectors.toList());
+        // 当天新增的是否有签到的权益
+        LambdaQueryWrapper<UserBenefitsStrategyDO> userBenefitsStrategyDOLambdaQueryWrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
+        userBenefitsStrategyDOLambdaQueryWrapper.in(UserBenefitsStrategyDO::getId, strategyIds);
+        userBenefitsStrategyDOLambdaQueryWrapper.eq(UserBenefitsStrategyDO::getStrategyType, BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName());
+        return userBenefitsStrategyMapper.selectCount(userBenefitsStrategyDOLambdaQueryWrapper) > 0;
     }
 
 
