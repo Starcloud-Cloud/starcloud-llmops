@@ -376,7 +376,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public void expendBenefits(String benefitsTypeCode, Long amount, Long userId) {
-
+        log.error("[expendBenefits][权益执行扣减操作：用户ID({})｜权益类型({})|数量({})", userId, benefitsTypeCode, amount);
         // 校验权益类型是否合法
         BenefitsTypeEnums benefitsType = BenefitsTypeEnums.getByCode(benefitsTypeCode);
         if (benefitsType == null) {
