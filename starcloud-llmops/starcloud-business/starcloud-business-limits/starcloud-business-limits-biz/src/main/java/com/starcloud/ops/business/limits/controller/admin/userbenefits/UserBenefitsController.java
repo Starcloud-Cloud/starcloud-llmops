@@ -12,7 +12,6 @@ import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,14 +31,12 @@ public class UserBenefitsController {
 
     @PostMapping("/code")
     @Operation(summary = "根据 Code 激活使用权益")
-    @PreAuthorize("@ss.hasPermission('llm:user-benefits:create')")
     public CommonResult<Boolean> createUserBenefits(@Validated @RequestParam("code") String code) {
         return success(userBenefitsService.addUserBenefitsByCode(code, getLoginUserId()));
     }
 
     @PostMapping("/info")
     @Operation(summary = "获取权益信息")
-    @PreAuthorize("@ss.hasPermission('llm:user-benefits:info')")
     public CommonResult<UserBenefitsInfoResultVO> updateUserBenefits() {
         return success(userBenefitsService.getUserBenefits(getLoginUserId()));
     }
@@ -47,22 +44,20 @@ public class UserBenefitsController {
 
     @GetMapping("/page")
     @Operation(summary = "获得用户权益 - 分页")
-    @PreAuthorize("@ss.hasPermission('llm:user-benefits:query')")
     public CommonResult<PageResult<UserBenefitsRespVO>> getUserBenefitsPage(@Validated UserBenefitsPageReqVO pageVO) {
         PageResult<UserBenefitsDO> pageResult = userBenefitsService.getUserBenefitsPage(pageVO);
         return success(UserBenefitsConvert.INSTANCE.convertPage(pageResult));
     }
 
+
     @PostMapping("/checkSignIn")
     @Operation(summary = "判断用户是否签到")
-    @PreAuthorize("@ss.hasPermission('llm:user-benefits:checkSignIn')")
     public CommonResult<Boolean> checkSignIn() {
         return success(userBenefitsService.hasSignInBenefitToday(getLoginUserId()));
     }
 
     @PostMapping("/signIn")
     @Operation(summary = "用户签到")
-    @PreAuthorize("@ss.hasPermission('llm:user-benefits:signIn')")
     public CommonResult<Boolean> signIn() {
         return success(userBenefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName(), getLoginUserId()));
     }

@@ -87,7 +87,7 @@ public class StarUserServiceImpl implements StarUserService {
     @Autowired
     private RoleMapper roleMapper;
 
-    @Value("${starcloud-llm.role.code:common}")
+    @Value("${starcloud-llm.role.code:mofaai_free}")
     private String roleCode;
 
     @Value("${starcloud-llm.tenant.id:2}")
@@ -163,7 +163,7 @@ public class StarUserServiceImpl implements StarUserService {
         }
 
         Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), 2L);
-        TenantContextHolder.setTenantId(2L);
+        TenantContextHolder.setTenantId(tenantId);
         addBenefits(userId, registerUserDO.getInviteUserId());
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -198,7 +198,11 @@ public class StarUserServiceImpl implements StarUserService {
         userDO.setTenantId(tenantId);
         adminUserMapper.insert(userDO);
 
-        RoleDO roleDO = roleMapper.selectByCode(roleCode);
+        RoleDO roleDO = roleMapper.selectByCode(roleCode,tenantId);
+        if (roleDO == null) {
+            throw exception(ROLE_NOT_EXIST);
+        }
+
         UserRoleDO userRoleDO = new UserRoleDO();
         userRoleDO.setRoleId(roleDO.getId());
         userRoleDO.setUserId(userDO.getId());

@@ -6,6 +6,7 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -16,7 +17,10 @@ import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.v
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.dal.mysql.userbenefits.UserBenefitsMapper;
-import com.starcloud.ops.business.limits.enums.*;
+import com.starcloud.ops.business.limits.enums.BenefitsActionEnums;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyEffectiveUnitEnums;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyLimitIntervalEnums;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.limits.service.userbenefitsusagelog.UserBenefitsUsageLogService;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +40,7 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.*;
 
 /**
@@ -55,6 +60,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     @Resource
     private UserBenefitsUsageLogService userBenefitsUsageLogService;
 
+    @Resource
+    private SecurityFrameworkService securityFrameworkService;
+
 
     @Resource
     private UserBenefitsMapper userBenefitsMapper;
@@ -65,11 +73,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      *
      * @param code   权益 code
      * @param userId 用户 ID
-     *
      * @return 编号
      */
     @Override
     public Boolean addUserBenefitsByCode(String code, Long userId) {
+        log.info("[addUserBenefitsByCode][1.准备通过 权益code增加权益：用户ID({})|租户 ID({})｜权益代码({})]", userId, getTenantId(), code);
         // 根据 code 获取权益策略
         UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(code);
         // 获取当前策略枚举
@@ -86,11 +94,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             }
         }
         // 检测权益使用频率是否合法
-        // 1. LimitIntervalNum 如果不做限制 则表明该权益用户可以一直兑换 ，不校验LimitIntervalUnit
-        // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
-        // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
-        // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
-        // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
         if (benefitsStrategy.getLimitIntervalNum() > 0) {
             if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
                 log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
@@ -104,7 +107,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         // 增加记录
         userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
-
+        log.info("[addUserBenefitsByCode][1.增加权益成功：用户ID({})｜权益代码({})]", userId, code);
         return true;
     }
 
@@ -113,12 +116,13 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      *
      * @param strategyType 权益类型
      * @param userId       用户 ID
-     *
      * @return Boolean
      */
     public Boolean addUserBenefitsByStrategyType(String strategyType, Long userId) {
+        log.info("[addUserBenefitsByCode][1.准备增加权益，根据权益类型获取权益配置：用户ID({})|租户 ID({})｜权益类型({})]", userId, getTenantId(), strategyType);
+        // 获取租户
+
         try {
-            log.info("[addUserBenefitsByCode][1.准备增加权益，根据权益类型获取权益配置：用户ID({})｜权益类型({})]", userId, strategyType);
             // 根据 code 获取权益策略
             UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getMasterConfigStrategyByType(strategyType);
             log.info("[addUserBenefitsByCode][2.获取权益配置成功：用户ID({})｜权益类型({})｜权益数据为({})]", userId, strategyType, JSONObject.toJSONString(benefitsStrategy));
@@ -133,11 +137,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 }
             }
             // 检测权益使用频率是否合法
-            // 1. LimitIntervalNum 如果不做限制 则表明该权益用户可以一直兑换 ，不校验LimitIntervalUnit
-            // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
-            // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
-            // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
-            // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
             if (benefitsStrategy.getLimitIntervalNum() > 0) {
                 if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
                     log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, strategyType);
@@ -153,8 +152,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
 
         } catch (RuntimeException e) {
-            log.info("[addUserBenefitsByCode][1.增加权益失败：用户ID({})｜权益类型({})]", userId, strategyType);
+            log.error("[addUserBenefitsByCode][1.增加权益失败：用户ID({})｜权益类型({})]", userId, strategyType);
         }
+        log.info("[addUserBenefitsByCode][1.增加权益成功：用户ID({})｜权益类型({})]", userId, strategyType);
         return true;
     }
 
@@ -163,8 +163,12 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      *
      * @param benefitsStrategy 权益数据
      * @param userId           用户 ID
-     *
      * @return boolean
+     * // 1. LimitIntervalNum 如果不做限制 则表明该权益用户可以一直兑换 ，不校验LimitIntervalUnit
+     * // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
+     * // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
+     * // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
+     * // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
      */
     private Boolean checkBenefitsUsageFrequency(UserBenefitsStrategyDO benefitsStrategy, Long userId) {
         LocalDateTime startTime = LocalDateTime.now();
@@ -194,7 +198,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         // 构建查询条件
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.<UserBenefitsDO>lambdaQuery()
                 .eq(UserBenefitsDO::getUserId, userId)
-                .eq(UserBenefitsDO::getStrategyId,benefitsStrategy.getId())
+                .eq(UserBenefitsDO::getStrategyId, benefitsStrategy.getId())
                 .lt(UserBenefitsDO::getCreateTime, startTime);
 
         if (endTime != null) {
@@ -213,7 +217,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      *
      * @param userId           用户 ID
      * @param benefitsStrategy 权益数据
-     *
      * @return UserBenefitsDO
      */
     private UserBenefitsDO createUserBenefits(Long userId, UserBenefitsStrategyDO benefitsStrategy) {
@@ -248,7 +251,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param now           当前时间
      * @param effectiveUnit 权益有效时间单位
      * @param effectiveNum  权益有效时间单位
-     *
      * @return ExpirationTime
      */
     private LocalDateTime calculateExpirationTime(LocalDateTime now, BenefitsStrategyEffectiveUnitEnums effectiveUnit, Long effectiveNum) {
@@ -277,7 +279,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * 根据用户 ID 获取当前用户权益信息
      *
      * @param userId 用户 ID
-     *
      * @return UserBenefitsInfoResultVO
      */
     @Override
@@ -296,15 +297,16 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
 
-        long totalAppCountUsed = 0;
-        long totalDatasetCountUsed = 0;
         long totalImageCountUsed = 0;
         long totalTokenCountUsed = 0;
+        long totalAppCountUsed = 0;
+        long totalDatasetCountUsed = 0;
 
-        long totalAppCount = 0;
-        long totalDatasetCount = 0;
+
         long totalImageCount = 0;
         long totalTokenCount = 0;
+        long totalAppCount = 0;
+        long totalDatasetCount = 0;
 
         for (UserBenefitsDO userBenefits : resultList) {
             totalAppCountUsed += userBenefits.getAppCountUsed();
@@ -318,14 +320,26 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             totalTokenCount += userBenefits.getTokenCountInit();
         }
         userBenefitsInfoResultVO.setQueryTime(currentTime);
-        // 设置用户等级
-        userBenefitsInfoResultVO.setUserLevel("free");
+
+        // 根据用户权限判断用户等级
+        if (securityFrameworkService.hasRole("MOFAAI_PRO")) {
+            userBenefitsInfoResultVO.setUserLevel("Pro");
+        } else if (securityFrameworkService.hasRole("MOFAAI_PLUS")) {
+            userBenefitsInfoResultVO.setUserLevel("Plus");
+        } else {
+            userBenefitsInfoResultVO.setUserLevel("Free");
+        }
+
 
         List<UserBenefitsBaseResultVO> benefitsList = new ArrayList<>();
-        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.APP, totalAppCountUsed, totalAppCount));
-        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.DATASET, totalDatasetCountUsed, totalDatasetCount));
-        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.IMAGE, totalImageCountUsed, totalImageCount));
+        // TODO: 2023/6/26
+        //  1.暂时取消应用和数据集显示
+        //  2.显示顺序 令牌>图片>应用>数据集
+
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.TOKEN, totalTokenCountUsed, totalTokenCount));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.IMAGE, totalImageCountUsed, totalImageCount));
+//        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.APP, totalAppCountUsed, totalAppCount));
+//        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.DATASET, totalDatasetCountUsed, totalDatasetCount));
 
         userBenefitsInfoResultVO.setBenefits(benefitsList);
 
@@ -336,9 +350,16 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserBenefitsBaseResultVO resultVO = new UserBenefitsBaseResultVO();
         resultVO.setName(benefitsType.getChineseName());
         resultVO.setType(benefitsType.getCode());
-        resultVO.setUsedNum(totalNum - usedNum);
-        resultVO.setTotalNum(totalNum);
-        resultVO.setPercentage(NumberUtil.round(NumberUtil.mul(NumberUtil.div(totalNum - usedNum, totalNum), 100), 0).intValue());
+        if (totalNum != 0) {
+            resultVO.setUsedNum(totalNum - usedNum);
+            resultVO.setTotalNum(totalNum);
+            resultVO.setPercentage(NumberUtil.round(NumberUtil.mul(NumberUtil.div(totalNum - usedNum, totalNum), 100), 0).intValue());
+        } else {
+            resultVO.setUsedNum(0L);
+            resultVO.setTotalNum(0L);
+            resultVO.setPercentage(0);
+        }
+
         return resultVO;
     }
 
@@ -468,7 +489,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * 根据策略 ID 检测测罗是否被使用
      *
      * @param strategyId 策略编号
-     *
      * @return Boolean
      */
     @Override

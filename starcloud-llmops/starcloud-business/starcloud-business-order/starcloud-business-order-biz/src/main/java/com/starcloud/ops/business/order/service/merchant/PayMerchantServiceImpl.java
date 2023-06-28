@@ -38,7 +38,7 @@ public class PayMerchantServiceImpl implements PayMerchantService {
     private PayMerchantMapper merchantMapper;
 
     @Resource
-    private PayAppMapper appMapper;
+    private PayAppMapper payAppMapper;
 
     @Override
     public Long createMerchant(PayMerchantCreateReqVO createReqVO) {
@@ -132,7 +132,7 @@ public class PayMerchantServiceImpl implements PayMerchantService {
      * @param id 商户ID
      */
     private void validateAppExists(Long id) {
-        if (appMapper.selectCount(id) > 0) {
+        if (payAppMapper.selectCount(id) > 0) {
             throw exception(PAY_MERCHANT_EXIST_APP_CANT_DELETE);
         }
     }

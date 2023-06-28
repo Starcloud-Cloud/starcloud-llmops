@@ -35,6 +35,13 @@
             <version>${starcloud.revision}</version>
         </dependency>
 
+        <!-- 订单  -->
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-order-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-user-biz</artifactId>

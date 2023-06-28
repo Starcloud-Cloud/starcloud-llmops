@@ -39,7 +39,6 @@ public class StarUserController {
     @GetMapping("/activation/{activationCode}")
     @PermitAll
     @Operation(summary = "激活链接", description = "激活链接")
-    @TenantIgnore
     public void activation(@PathVariable String activationCode,
                            @RequestParam("redirectUri") String redirectUri,
                            HttpServletResponse resp) {
