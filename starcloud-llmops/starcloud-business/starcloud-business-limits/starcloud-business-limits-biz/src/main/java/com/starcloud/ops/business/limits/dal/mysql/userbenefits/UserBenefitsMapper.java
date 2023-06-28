@@ -20,17 +20,8 @@ public interface UserBenefitsMapper extends BaseMapperX<UserBenefitsDO> {
 
     default PageResult<UserBenefitsDO> selectPage(UserBenefitsPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<UserBenefitsDO>()
-                .eqIfPresent(UserBenefitsDO::getUid, reqVO.getUid())
                 .eqIfPresent(UserBenefitsDO::getUserId, reqVO.getUserId())
-                .eqIfPresent(UserBenefitsDO::getStrategyId, reqVO.getStrategyId())
-                .eqIfPresent(UserBenefitsDO::getAppCountUsed, reqVO.getAppCountUsed())
-                .eqIfPresent(UserBenefitsDO::getDatasetCountUsed, reqVO.getDatasetCountUsed())
-                .eqIfPresent(UserBenefitsDO::getImageCountUsed, reqVO.getImageCountUsed())
-                .eqIfPresent(UserBenefitsDO::getTokenCountUsed, reqVO.getTokenCountUsed())
-                .betweenIfPresent(UserBenefitsDO::getEffectiveTime, reqVO.getEffectiveTime())
-                .betweenIfPresent(UserBenefitsDO::getExpirationTime, reqVO.getExpirationTime())
-                .betweenIfPresent(UserBenefitsDO::getCreateTime, reqVO.getCreateTime())
-                .ge(UserBenefitsDO::getExpirationTime, LocalDateTime.now())
+                // .ge(UserBenefitsDO::getExpirationTime, LocalDateTime.now())
                 .orderByDesc(UserBenefitsDO::getId));
     }
 }
