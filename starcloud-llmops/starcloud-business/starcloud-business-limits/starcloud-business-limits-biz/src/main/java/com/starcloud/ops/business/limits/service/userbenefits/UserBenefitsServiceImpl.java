@@ -437,6 +437,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         userBenefitsUsageLogCreateReqVO.setBenefitsType(benefitsTypeCode);
         userBenefitsUsageLogCreateReqVO.setAction(BenefitsActionEnums.USED.getCode());
         userBenefitsUsageLogCreateReqVO.setAmount(amount);
+        userBenefitsUsageLogCreateReqVO.setUsageTime(LocalDateTime.now());
 
         if (StrUtil.isNotBlank(outId)){
             userBenefitsUsageLogCreateReqVO.setOutId(outId);
