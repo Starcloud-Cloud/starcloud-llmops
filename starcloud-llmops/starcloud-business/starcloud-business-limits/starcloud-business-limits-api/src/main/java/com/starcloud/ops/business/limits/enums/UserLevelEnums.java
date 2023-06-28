@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.enums;
+package com.starcloud.ops.business.limits.enums;
 
 public enum UserLevelEnums {
     FREE("FREE","普通用户"),
@@ -7,6 +7,10 @@ public enum UserLevelEnums {
 
     private String code;
     private String msg;
+
+    //TODO 增加角色code 关联角色
+    // 1.提供查询用户等级接口 入参 用户 ID
+
 
     UserLevelEnums(String code, String msg) {
         this.code = code;

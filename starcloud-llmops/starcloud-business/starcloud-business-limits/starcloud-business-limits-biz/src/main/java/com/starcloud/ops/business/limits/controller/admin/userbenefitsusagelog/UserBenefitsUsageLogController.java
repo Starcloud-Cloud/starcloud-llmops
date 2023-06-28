@@ -40,7 +40,6 @@ public class UserBenefitsUsageLogController {
 
     @GetMapping("/page")
     @Operation(summary = "获得用户权益使用日志分页")
-    @PreAuthorize("@ss.hasPermission('llm:user-benefits-usage-log:query')")
     public CommonResult<PageResult<UserBenefitsUsageLogRespVO>> getUserBenefitsUsageLogPage(@Valid UserBenefitsUsageLogPageReqVO pageVO) {
         PageResult<UserBenefitsUsageLogDO> pageResult = userBenefitsUsageLogService.getUserBenefitsUsageLogPage(pageVO);
         return success(UserBenefitsUsageLogConvert.INSTANCE.convertPage(pageResult));

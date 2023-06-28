@@ -25,9 +25,9 @@ import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
-@Tag(name = "管理后台 - 支付渠道")
+@Tag(name = "星河云海 - 支付渠道")
 @RestController
-@RequestMapping("/pay/channel")
+@RequestMapping("/llm/pay/channel")
 @Validated
 public class PayChannelController {
 

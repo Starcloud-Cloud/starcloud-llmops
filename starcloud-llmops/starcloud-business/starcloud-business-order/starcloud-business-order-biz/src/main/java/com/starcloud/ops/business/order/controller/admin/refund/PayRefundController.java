@@ -36,9 +36,9 @@ import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
-@Tag(name = "管理后台 - 退款订单")
+@Tag(name = "星河云海 - 退款订单")
 @RestController
-@RequestMapping("/pay/refund")
+@RequestMapping("/llm/pay/refund")
 @Validated
 public class PayRefundController {
 

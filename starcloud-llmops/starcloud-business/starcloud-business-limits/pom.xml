@@ -19,7 +19,6 @@
     <version>${starcloud.revision}</version>
 
 
-
     <dependencyManagement>
 
         <dependencies>
