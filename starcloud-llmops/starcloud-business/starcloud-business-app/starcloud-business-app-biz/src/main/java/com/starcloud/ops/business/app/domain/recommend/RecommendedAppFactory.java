@@ -1,14 +1,13 @@
 package com.starcloud.ops.business.app.domain.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -33,10 +32,10 @@ public class RecommendedAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Text"));
-        app.setCategories(Collections.singletonList("Writing"));
+        app.setCategories(Collections.singletonList("SEO_WRITING"));
         app.setScenes(AppUtils.DEFAULT_SCENES);
-        app.setImages(null);
-        app.setIcon("post");
+        app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
+        app.setIcon("seo");
         app.setWorkflowConfig(RecommendedConfigFactory.defGenerateTextConfig());
         return app;
     }
@@ -54,10 +53,10 @@ public class RecommendedAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Article"));
-        app.setCategories(Collections.singletonList("Writing"));
+        app.setCategories(Collections.singletonList("SEO_WRITING"));
         app.setScenes(AppUtils.DEFAULT_SCENES);
-        app.setImages(null);
-        app.setIcon("file-document-outline");
+        app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
+        app.setIcon("seo");
         app.setWorkflowConfig(RecommendedConfigFactory.defGenerateArticleConfig());
         return app;
     }
