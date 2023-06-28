@@ -6,6 +6,7 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -16,7 +17,10 @@ import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.v
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.dal.mysql.userbenefits.UserBenefitsMapper;
-import com.starcloud.ops.business.limits.enums.*;
+import com.starcloud.ops.business.limits.enums.BenefitsActionEnums;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyEffectiveUnitEnums;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyLimitIntervalEnums;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.limits.service.userbenefitsusagelog.UserBenefitsUsageLogService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +58,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
     @Resource
     private UserBenefitsUsageLogService userBenefitsUsageLogService;
+
+    @Resource
+    private SecurityFrameworkService securityFrameworkService;
 
 
     @Resource
@@ -290,15 +297,16 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
 
-        long totalAppCountUsed = 0;
-        long totalDatasetCountUsed = 0;
         long totalImageCountUsed = 0;
         long totalTokenCountUsed = 0;
+        long totalAppCountUsed = 0;
+        long totalDatasetCountUsed = 0;
 
-        long totalAppCount = 0;
-        long totalDatasetCount = 0;
+
         long totalImageCount = 0;
         long totalTokenCount = 0;
+        long totalAppCount = 0;
+        long totalDatasetCount = 0;
 
         for (UserBenefitsDO userBenefits : resultList) {
             totalAppCountUsed += userBenefits.getAppCountUsed();
@@ -312,8 +320,16 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             totalTokenCount += userBenefits.getTokenCountInit();
         }
         userBenefitsInfoResultVO.setQueryTime(currentTime);
-        // 设置用户等级
-        userBenefitsInfoResultVO.setUserLevel("free");
+
+        // 根据用户权限判断用户等级
+        if (securityFrameworkService.hasRole("MOFAAI_PRO")) {
+            userBenefitsInfoResultVO.setUserLevel("Pro");
+        } else if (securityFrameworkService.hasRole("MOFAAI_PLUS")) {
+            userBenefitsInfoResultVO.setUserLevel("Plus");
+        } else {
+            userBenefitsInfoResultVO.setUserLevel("Free");
+        }
+
 
         List<UserBenefitsBaseResultVO> benefitsList = new ArrayList<>();
         // TODO: 2023/6/26

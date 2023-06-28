@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.limits.enums;
 
 import cn.hutool.core.util.ArrayUtil;
-import com.starcloud.ops.business.user.enums.UserLevelEnums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -14,8 +13,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SetMealInfoEnum {
 
-    AI_PLUS("000001", "产品 1",100,"这是产品1","http://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",UserLevelEnums.PLUS),
-    AI_PRO("000002", "产品 2",200,"这是产品2","http://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",UserLevelEnums.PRO),
+    AI_PLUS("000001", "魔法 AI Plus",100,"魔法 AI Plus","http://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",UserLevelEnums.PLUS),
+    AI_PRO("000002", "魔法 AI Pro",200,"魔法 AI Pro","http://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",UserLevelEnums.PRO),
     ;
 
     /**

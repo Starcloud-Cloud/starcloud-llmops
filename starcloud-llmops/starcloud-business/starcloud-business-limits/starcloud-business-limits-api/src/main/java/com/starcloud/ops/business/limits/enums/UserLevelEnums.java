@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.enums;
+package com.starcloud.ops.business.limits.enums;
 
 public enum UserLevelEnums {
     FREE("FREE","普通用户"),
