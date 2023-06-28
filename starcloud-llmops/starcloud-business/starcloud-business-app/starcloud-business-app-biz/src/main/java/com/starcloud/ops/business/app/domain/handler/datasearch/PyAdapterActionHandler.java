@@ -35,7 +35,6 @@ public class PyAdapterActionHandler extends StepAndFunctionHandler {
 
         String prompt = appStepWrapper.getContextVariablesValue("prompt", "hi, what you name?");
 
-        Map<String, Object> variablesMaps = appStepWrapper.getContextVariablesMaps();
 
         ActionResponse appStepResponse = new ActionResponse();
         appStepResponse.setSuccess(false);

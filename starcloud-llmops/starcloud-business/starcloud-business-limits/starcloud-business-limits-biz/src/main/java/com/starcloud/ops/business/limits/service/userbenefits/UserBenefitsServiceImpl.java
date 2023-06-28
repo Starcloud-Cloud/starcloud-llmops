@@ -5,14 +5,13 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsBaseResultVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.*;
 import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.vo.UserBenefitsUsageLogCreateReqVO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
@@ -32,6 +31,7 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -68,6 +68,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
     @Resource
     private UserBenefitsStrategyMapper userBenefitsStrategyMapper;
+
     /**
      * 新增用户权益
      *
@@ -375,8 +376,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param userId           用户 ID
      */
     @Override
-    public void expendBenefits(String benefitsTypeCode, Long amount, Long userId) {
-        log.error("[expendBenefits][权益执行扣减操作：用户ID({})｜权益类型({})|数量({})", userId, benefitsTypeCode, amount);
+    public void expendBenefits(String benefitsTypeCode, Long amount, Long userId, String outId) {
+        log.error("[expendBenefits][权益执行扣减操作：用户ID({})｜权益类型({})|数量({})|外键ID({})", userId, benefitsTypeCode, amount,outId);
         // 校验权益类型是否合法
         BenefitsTypeEnums benefitsType = BenefitsTypeEnums.getByCode(benefitsTypeCode);
         if (benefitsType == null) {
@@ -436,6 +437,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         userBenefitsUsageLogCreateReqVO.setBenefitsType(benefitsTypeCode);
         userBenefitsUsageLogCreateReqVO.setAction(BenefitsActionEnums.USED.getCode());
         userBenefitsUsageLogCreateReqVO.setAmount(amount);
+        userBenefitsUsageLogCreateReqVO.setUsageTime(LocalDateTime.now());
+
+        if (StrUtil.isNotBlank(outId)){
+            userBenefitsUsageLogCreateReqVO.setOutId(outId);
+        }
 
         List<Long> benefitsIds = resultList.stream()
                 .map(UserBenefitsDO::getId)
@@ -481,12 +487,51 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     }
 
     @Override
-    public PageResult<UserBenefitsDO> getUserBenefitsPage(UserBenefitsPageReqVO pageReqVO) {
-        return userBenefitsMapper.selectPage(pageReqVO);
+    public PageResult<UserBenefitsPagInfoResultVO> getUserBenefitsPage(UserBenefitsPageReqVO pageReqVO) {
+        PageResult<UserBenefitsPagInfoResultVO> userBenefitsPagInfoResultVOPageResult = new PageResult<>();
+
+        // 获取当前用户权益分页
+        pageReqVO.setUserId(Objects.requireNonNull(getLoginUserId()).toString());
+        PageResult<UserBenefitsDO> userBenefitsDOPageResult = userBenefitsMapper.selectPage(pageReqVO);
+
+        List<UserBenefitsPagInfoResultVO> resultList = new ArrayList<>();
+
+        for (UserBenefitsDO userBenefitsDO : userBenefitsDOPageResult.getList()) {
+            UserBenefitsPagInfoResultVO userBenefitsPagInfoResultVO = new UserBenefitsPagInfoResultVO();
+            // 1. 查询权益信息，获取权益类型信息
+            // 根据userBenefitsDO的strategyId查询权益信息，获取相应的权益类型信息
+            UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(Long.valueOf(userBenefitsDO.getStrategyId()));
+            userBenefitsPagInfoResultVO.setBenefitsName(userBenefitsStrategy.getStrategyName());
+            userBenefitsPagInfoResultVO.setValidity(userBenefitsStrategy.getEffectiveNum());
+            userBenefitsPagInfoResultVO.setValidityUnit(userBenefitsStrategy.getEffectiveUnit());
+            userBenefitsPagInfoResultVO.setEffectiveTime(userBenefitsDO.getEffectiveTime());
+            userBenefitsPagInfoResultVO.setExpirationTime(userBenefitsDO.getExpirationTime());
+            userBenefitsPagInfoResultVO.setEnabled(userBenefitsDO.getEnabled());
+            if ("-1".equals(userBenefitsStrategy.getEffectiveUnit())) {
+                userBenefitsPagInfoResultVO.setValidityUnit("Year");
+            }
+
+            // 权益查询逻辑
+
+            // 2. 创建UserBenefitsListResultVO对象并添加到结果列表
+            List<UserBenefitsListResultVO> userBenefitsListResultVOS = new ArrayList<>();
+            // 设置listResultVO的属性
+            userBenefitsListResultVOS.add(new UserBenefitsListResultVO(BenefitsTypeEnums.TOKEN.getChineseName(), BenefitsTypeEnums.TOKEN.getCode(), userBenefitsDO.getTokenCountInit()));
+            userBenefitsListResultVOS.add(new UserBenefitsListResultVO(BenefitsTypeEnums.IMAGE.getChineseName(), BenefitsTypeEnums.IMAGE.getCode(), userBenefitsDO.getImageCountInit()));
+            // ...
+
+            userBenefitsPagInfoResultVO.setBenefitsList(userBenefitsListResultVOS);
+            resultList.add(userBenefitsPagInfoResultVO);
+        }
+
+        // 设置UserBenefitsPagInfoResultVO的属性
+        userBenefitsPagInfoResultVOPageResult.setTotal(userBenefitsDOPageResult.getTotal());
+        userBenefitsPagInfoResultVOPageResult.setList(resultList);
+        return userBenefitsPagInfoResultVOPageResult;
     }
 
     /**
-     * 根据策略 ID 检测测罗是否被使用
+     * 根据策略 ID 检测权益是否被使用
      *
      * @param strategyId 策略编号
      * @return Boolean

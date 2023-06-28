@@ -51,7 +51,7 @@ public class UserBenefitsUsageLogDO extends TenantBaseDO {
     /**
      * 应用程序ID或者数据集ID
      */
-    private Long outId;
+    private String outId;
     /**
      * 用户权益编号（单条权益不够，扣除其他策略下）
      */

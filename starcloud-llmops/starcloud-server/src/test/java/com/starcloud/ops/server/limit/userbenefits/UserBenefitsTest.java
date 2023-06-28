@@ -99,7 +99,7 @@ public class UserBenefitsTest extends BaseDbUnitTest {
     @Test
     public void expendBenefits() {
         // 使用系统权益
-        userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), 1L,1L);
+        userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), 1L,1L,"");
     }
 
 

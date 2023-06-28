@@ -10,6 +10,8 @@ import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.BaseChatModel;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
+import com.starcloud.ops.llm.langchain.core.model.llm.azure.AuthenticationInterceptor;
+import com.starcloud.ops.llm.langchain.core.model.llm.azure.AzureAiApi;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
@@ -29,9 +31,12 @@ import io.reactivex.FlowableSubscriber;
 import io.reactivex.functions.Action;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import org.reactivestreams.Subscription;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import javax.servlet.ServletOutputStream;
 import java.net.InetSocketAddress;
@@ -42,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -80,13 +86,51 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
 
-        OkHttpClient client = defaultClient(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()))
+        OkHttpClient client = defaultAzureClient(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()))
                 .newBuilder()
                 .proxy(proxy)
                 .build();
         Retrofit retrofit = defaultRetrofit(client, mapper);
 
+        //Retrofit retrofit = defaultAzureRetrofit(client, mapper);
+
+
         OpenAiApi api = retrofit.create(OpenAiApi.class);
+
+        return new OpenAiService(api, client.dispatcher().executorService());
+    }
+
+    private static OkHttpClient defaultAzureClient(String token, Duration timeout) {
+
+        return new OkHttpClient.Builder()
+                .addInterceptor(new AuthenticationInterceptor(token))
+                .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
+                .readTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
+                .build();
+    }
+
+    private static OpenAiService azureAiService(OpenAIConfig openAIConfig) {
+
+        String token = openAIConfig.getAzureKey();
+        Duration timeout = Duration.ofSeconds(openAIConfig.getTimeOut());
+
+        ObjectMapper mapper = defaultObjectMapper();
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new AuthenticationInterceptor(token))
+                .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
+                .readTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
+                .build();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://moredeal.openai.azure.com/openai/deployments/mofaai/")
+                //.baseUrl("https://api.openai.com/")
+                .client(client)
+                .addConverterFactory(JacksonConverterFactory.create(mapper))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build();
+
+        AzureAiApi api = retrofit.create(AzureAiApi.class);
 
         return new OpenAiService(api, client.dispatcher().executorService());
     }
@@ -101,6 +145,8 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         if (StrUtil.isNotBlank(openAIConfig.getProxyHost())) {
             openAiService = addProxy(openAIConfig);
+        } else if (openAIConfig.getAzure()) {
+            openAiService = azureAiService(openAIConfig);
         } else {
             openAiService = new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()));
         }

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.action;
 
+import cn.hutool.core.util.ObjectUtil;
 import lombok.Data;
 
 /**
@@ -36,5 +37,10 @@ public class ActionEntity {
      * 动作执行结果
      */
     private ActionResponse response;
+
+
+    public Object getValue() {
+        return ObjectUtil.isNotEmpty(this.response) ? this.response.getAnswer() : null;
+    }
 
 }

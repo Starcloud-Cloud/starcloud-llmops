@@ -22,6 +22,10 @@ public class OpenAIConfig {
 
     private int proxyPort;
 
+    private Boolean azure;
+
+    private String azureKey;
+
 //
 //
 //    public void setApiKey(String apiKey) {
