@@ -10,6 +10,8 @@ import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -59,6 +61,9 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserBenefitsService benefitsService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
@@ -105,6 +110,8 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             String msg = String.format("欢迎使用magicAi，您的用户名登录用户明是：%s  登录密码是：%s", username, password);
 
             WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
+            benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.SIGN_IN.getName(), userId);
+
             return outTextMessage;
         } catch (Exception e) {
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
