@@ -76,6 +76,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public Boolean addUserBenefitsByCode(String code, Long userId) {
+        log.info("[addUserBenefitsByCode][1.准备通过 权益code增加权益：用户ID({})｜权益代码({})]", userId, code);
         // 根据 code 获取权益策略
         UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(code);
         // 获取当前策略枚举
@@ -92,11 +93,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             }
         }
         // 检测权益使用频率是否合法
-        // 1. LimitIntervalNum 如果不做限制 则表明该权益用户可以一直兑换 ，不校验LimitIntervalUnit
-        // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
-        // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
-        // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
-        // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
         if (benefitsStrategy.getLimitIntervalNum() > 0) {
             if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
                 log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
@@ -110,7 +106,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         // 增加记录
         userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
-
+        log.info("[addUserBenefitsByCode][1.增加权益成功：用户ID({})｜权益代码({})]", userId, code);
         return true;
     }
 
@@ -122,8 +118,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return Boolean
      */
     public Boolean addUserBenefitsByStrategyType(String strategyType, Long userId) {
+        log.info("[addUserBenefitsByCode][1.准备增加权益，根据权益类型获取权益配置：用户ID({})｜权益类型({})]", userId, strategyType);
         try {
-            log.info("[addUserBenefitsByCode][1.准备增加权益，根据权益类型获取权益配置：用户ID({})｜权益类型({})]", userId, strategyType);
             // 根据 code 获取权益策略
             UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getMasterConfigStrategyByType(strategyType);
             log.info("[addUserBenefitsByCode][2.获取权益配置成功：用户ID({})｜权益类型({})｜权益数据为({})]", userId, strategyType, JSONObject.toJSONString(benefitsStrategy));
@@ -138,11 +134,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 }
             }
             // 检测权益使用频率是否合法
-            // 1. LimitIntervalNum 如果不做限制 则表明该权益用户可以一直兑换 ，不校验LimitIntervalUnit
-            // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
-            // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
-            // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
-            // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
             if (benefitsStrategy.getLimitIntervalNum() > 0) {
                 if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
                     log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, strategyType);
@@ -158,8 +149,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
 
         } catch (RuntimeException e) {
-            log.info("[addUserBenefitsByCode][1.增加权益失败：用户ID({})｜权益类型({})]", userId, strategyType);
+            log.error("[addUserBenefitsByCode][1.增加权益失败：用户ID({})｜权益类型({})]", userId, strategyType);
         }
+        log.info("[addUserBenefitsByCode][1.增加权益成功：用户ID({})｜权益类型({})]", userId, strategyType);
         return true;
     }
 
@@ -169,6 +161,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param benefitsStrategy 权益数据
      * @param userId           用户 ID
      * @return boolean
+     * // 1. LimitIntervalNum 如果不做限制 则表明该权益用户可以一直兑换 ，不校验LimitIntervalUnit
+     *         // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
+     *         // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
+     *         // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
+     *         // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
      */
     private Boolean checkBenefitsUsageFrequency(UserBenefitsStrategyDO benefitsStrategy, Long userId) {
         LocalDateTime startTime = LocalDateTime.now();
