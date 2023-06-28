@@ -33,8 +33,8 @@ public class AppMarketRepository {
      * @param uid 应用唯一标识
      * @return 应用实体
      */
-    public AppMarketEntity get(String uid, Integer version) {
-        AppMarketDO appMarketDO = appMarketMapper.get(uid, version, Boolean.FALSE);
+    public AppMarketEntity get(String uid) {
+        AppMarketDO appMarketDO = appMarketMapper.get(uid, null, Boolean.FALSE);
         return AppMarketConvert.INSTANCE.convert(appMarketDO);
     }
 

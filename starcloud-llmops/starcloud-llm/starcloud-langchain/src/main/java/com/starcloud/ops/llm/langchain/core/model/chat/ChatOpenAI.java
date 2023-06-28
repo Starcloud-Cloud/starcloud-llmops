@@ -1,6 +1,7 @@
 package com.starcloud.ops.llm.langchain.core.model.chat;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -96,9 +97,13 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         OpenAIConfig openAIConfig = SpringUtil.getBean(OpenAIConfig.class);
 
-        //OpenAiService openAiService = new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()));
+        OpenAiService openAiService;
 
-        OpenAiService openAiService = addProxy(openAIConfig);
+        if (StrUtil.isNotBlank(openAIConfig.getProxyHost())) {
+            openAiService = addProxy(openAIConfig);
+        } else {
+            openAiService = new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()));
+        }
 
         ChatCompletionRequest chatCompletionRequest = BeanUtil.toBean(this, ChatCompletionRequest.class);
 

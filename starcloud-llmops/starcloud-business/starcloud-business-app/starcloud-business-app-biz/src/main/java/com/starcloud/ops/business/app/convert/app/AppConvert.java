@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -45,6 +46,8 @@ public interface AppConvert {
      * @return AppEntity
      */
     AppEntity convert(AppReqVO appRequest);
+
+    AppEntity convert(AppMarketEntity entity);
 
     /**
      * AppEntity 转 AppDO
@@ -170,12 +173,12 @@ public interface AppConvert {
         appRespVO.setUpdateTime(app.getUpdateTime());
         appRespVO.setLastPublish(app.getLastPublish());
 
-        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            appRespVO.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigRespVO.class));
-            appRespVO.setActionIcons(buildActionIcons(appRespVO.getWorkflowConfig()));
-        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-            appRespVO.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigRespVO.class));
-        }
+//        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+//            appRespVO.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigRespVO.class));
+//            appRespVO.setActionIcons(buildActionIcons(appRespVO.getWorkflowConfig()));
+//        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+//            appRespVO.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigRespVO.class));
+//        }
 
         return appRespVO;
     }

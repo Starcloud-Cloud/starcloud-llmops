@@ -1,7 +1,14 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
+import org.springframework.context.i18n.LocaleContextHolder;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -114,5 +121,39 @@ public enum LanguageEnum implements IEnumable<String> {
         this.code = code;
         this.label = label;
         this.labelEn = labelEn;
+    }
+
+    /**
+     * 获取语言列表,使用 code 作为 value 值
+     *
+     * @return 语言列表
+     */
+    public static List<Option> languageList() {
+        return languageList(false);
+    }
+
+    /**
+     * 获取语言列表
+     *
+     * @param isUseLabelEnAsOptionValue 是否使用英文标签作为选项的 value 值，true 为使用，false 为使用 code 作为 value 值
+     * @return 语言列表
+     */
+    public static List<Option> languageList(boolean isUseLabelEnAsOptionValue) {
+        LanguageEnum[] values = LanguageEnum.values();
+        return Arrays.stream(values).map(language -> {
+            Option option = new Option();
+            if (isUseLabelEnAsOptionValue) {
+                option.setValue(language.getLabelEn());
+            } else {
+                option.setValue(language.getCode());
+            }
+            Locale locale = LocaleContextHolder.getLocale();
+            if (Locale.CHINA.equals(locale)) {
+                option.setLabel(language.getLabel());
+            } else {
+                option.setLabel(language.getLabelEn());
+            }
+            return option;
+        }).collect(Collectors.toList());
     }
 }
