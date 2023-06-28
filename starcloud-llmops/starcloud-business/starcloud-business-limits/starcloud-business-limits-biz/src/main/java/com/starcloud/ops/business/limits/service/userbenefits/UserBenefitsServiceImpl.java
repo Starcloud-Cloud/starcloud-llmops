@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.*;
 
 /**
@@ -76,7 +77,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public Boolean addUserBenefitsByCode(String code, Long userId) {
-        log.info("[addUserBenefitsByCode][1.准备通过 权益code增加权益：用户ID({})｜权益代码({})]", userId, code);
+        log.info("[addUserBenefitsByCode][1.准备通过 权益code增加权益：用户ID({})|租户 ID({})｜权益代码({})]", userId, getTenantId(), code);
         // 根据 code 获取权益策略
         UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(code);
         // 获取当前策略枚举
@@ -118,7 +119,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return Boolean
      */
     public Boolean addUserBenefitsByStrategyType(String strategyType, Long userId) {
-        log.info("[addUserBenefitsByCode][1.准备增加权益，根据权益类型获取权益配置：用户ID({})｜权益类型({})]", userId, strategyType);
+        log.info("[addUserBenefitsByCode][1.准备增加权益，根据权益类型获取权益配置：用户ID({})|租户 ID({})｜权益类型({})]", userId, getTenantId(), strategyType);
+        // 获取租户
+
         try {
             // 根据 code 获取权益策略
             UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getMasterConfigStrategyByType(strategyType);
@@ -162,10 +165,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param userId           用户 ID
      * @return boolean
      * // 1. LimitIntervalNum 如果不做限制 则表明该权益用户可以一直兑换 ，不校验LimitIntervalUnit
-     *         // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
-     *         // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
-     *         // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
-     *         // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
+     * // 2. 如果 LimitIntervalNum 大于 0 则根据LimitIntervalUnit开始校验
+     * // 3. LimitIntervalUnit 值为枚举 ONCE_ONLY("ONCE_ONLY", " 仅一次", "Once Only"), DAY("DAY", "天", "DAY"),WEEK("WEEK", "周", "WEEK"),MONTH("MONTH", "月", "MONTH"), YEAR("YEAR", "年", "YEAR"),
+     * // 4. 如果    LimitIntervalUnit 为 NEVER 表明当前策略仅可以使用一次，否则就报错
+     * // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
      */
     private Boolean checkBenefitsUsageFrequency(UserBenefitsStrategyDO benefitsStrategy, Long userId) {
         LocalDateTime startTime = LocalDateTime.now();
@@ -347,9 +350,16 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserBenefitsBaseResultVO resultVO = new UserBenefitsBaseResultVO();
         resultVO.setName(benefitsType.getChineseName());
         resultVO.setType(benefitsType.getCode());
-        resultVO.setUsedNum(totalNum - usedNum);
-        resultVO.setTotalNum(totalNum);
-        resultVO.setPercentage(NumberUtil.round(NumberUtil.mul(NumberUtil.div(totalNum - usedNum, totalNum), 100), 0).intValue());
+        if (totalNum != 0) {
+            resultVO.setUsedNum(totalNum - usedNum);
+            resultVO.setTotalNum(totalNum);
+            resultVO.setPercentage(NumberUtil.round(NumberUtil.mul(NumberUtil.div(totalNum - usedNum, totalNum), 100), 0).intValue());
+        } else {
+            resultVO.setUsedNum(0L);
+            resultVO.setTotalNum(0L);
+            resultVO.setPercentage(0);
+        }
+
         return resultVO;
     }
 
