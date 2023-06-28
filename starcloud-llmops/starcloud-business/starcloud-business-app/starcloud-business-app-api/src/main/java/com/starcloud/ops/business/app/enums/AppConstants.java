@@ -28,4 +28,9 @@ public interface AppConstants {
      * 应用分类字典类型
      */
     String APP_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_APP_CATEGORY_TYPE";
+
+    /**
+     * 应用市场应用默认图片
+     */
+    String APP_MARKET_DEFAULT_IMAGE = "https://download.hotsalecloud.com/mofaai/images/category/seo.jpg";
 }

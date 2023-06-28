@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -189,9 +190,11 @@ public class AppServiceImpl implements AppService {
     @Transactional(rollbackFor = Exception.class)
     public void publish(AppPublishReqVO request) {
         // 查询我的应用是否存在，不存在则抛出异常
-        AppDO appDO = appMapper.getByUid(request.getUid(), Boolean.TRUE);
+        AppDO appDO = appMapper.getByUid(request.getUid(), Boolean.FALSE);
         // 转换为应用市场对象
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appDO, request);
+        // 图片根据分类从应用市场中获取
+        appMarketEntity.setImages(buildImages(appMarketEntity.getCategories(), request.getImages()));
         // 判断是否已经发布过应用市场：判断依据：publishUid 是否为空, 如果为空则说明没有发布过应用市场。
         if (StringUtils.isNotBlank(appDO.getPublishUid())) {
             // 查询之前发布的应用市场记录的所有版本，按照版本号倒序排序。
@@ -238,5 +241,35 @@ public class AppServiceImpl implements AppService {
     @Override
     public void batchPublicAppToMarket(List<AppPublishReqVO> requestList) {
 
+    }
+
+    /**
+     * 构建上传应用的图片
+     *
+     * @param categories    分类
+     * @param requestImages 用户上传的图片
+     * @return 图片列表
+     */
+    private List<String> buildImages(List<String> categories, List<String> requestImages) {
+
+        // 如果用户自己上传了图片，则使用用户上传的图片
+        if (CollectionUtil.isNotEmpty(requestImages)) {
+            return requestImages;
+        }
+
+        // 如果用户没有上传图片，则使用默认类别对应的图片
+        List<AppCategoryVO> categoryList = this.categories();
+        // 从 categoryList 中获取对应的图片
+        List<String> images = CollectionUtil.emptyIfNull(categoryList).stream()
+                .filter(category -> categories.contains(category.getCode()))
+                .map(AppCategoryVO::getImage)
+                .filter(StringUtils::isNotBlank)
+                .map(String::trim)
+                .collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(images)) {
+            return images;
+        }
+
+        return Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE);
     }
 }
