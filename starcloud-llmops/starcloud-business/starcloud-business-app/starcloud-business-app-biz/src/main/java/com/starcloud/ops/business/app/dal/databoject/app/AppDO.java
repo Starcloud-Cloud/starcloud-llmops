@@ -124,4 +124,7 @@ public class AppDO extends TenantBaseDO {
     @TableField("last_publish")
     private LocalDateTime lastPublish;
 
+    @TableField("example")
+    private String example;
+
 }

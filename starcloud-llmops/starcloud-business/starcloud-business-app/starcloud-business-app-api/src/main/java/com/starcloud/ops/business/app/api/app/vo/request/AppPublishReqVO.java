@@ -49,6 +49,12 @@ public class AppPublishReqVO implements Serializable {
     private String language;
 
     /**
+     * 应用市场图片
+     */
+    @Schema(description = "应用市场图片")
+    private List<String> images;
+
+    /**
      * 应用市场示例 Example
      */
     @Schema(description = "模版市场示例 Example")
