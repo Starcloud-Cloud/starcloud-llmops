@@ -18,6 +18,7 @@ import me.chanjar.weixin.mp.api.WxMpMessageHandler;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
+import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,8 +102,12 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             });
             redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
 
+            String msg = String.format("欢迎使用magicAi，您的用户名登录用户明是：%s  登录密码是：%s", username, password);
+
+            WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
+            return outTextMessage;
         } catch (Exception e) {
-            redisTemplate.boundValueOps(wxMessage.getTicket()+ "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
+            redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
         }
         return null;
     }
