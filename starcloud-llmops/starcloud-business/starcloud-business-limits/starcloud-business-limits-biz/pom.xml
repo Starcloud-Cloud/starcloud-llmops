@@ -64,6 +64,11 @@
             <artifactId>yudao-spring-boot-starter-biz-tenant</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-user</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>
