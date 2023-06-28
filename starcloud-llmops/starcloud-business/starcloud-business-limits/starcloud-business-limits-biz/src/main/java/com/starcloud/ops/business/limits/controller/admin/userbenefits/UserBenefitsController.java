@@ -63,4 +63,12 @@ public class UserBenefitsController {
         return success(userBenefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName(), getLoginUserId()));
     }
 
+    @PostMapping("/expendBenefits")
+    @Operation(summary = "权益扣减测试")
+    public CommonResult<Boolean> expendBenefits(String benefitsType, Long amount, Long userId, String outId) {
+        userBenefitsService.expendBenefits(benefitsType, amount, userId, outId);
+        return success(true);
+    }
+
+
 }

@@ -54,6 +54,7 @@ public class UserBenefitsUsageLogServiceImpl implements UserBenefitsUsageLogServ
         validateActionTypeExists(createReqVO.getAction());
         // 权益类型校验
         validateBenefitsTypeExists(createReqVO.getBenefitsType());
+
         // 插入
         UserBenefitsUsageLogDO userBenefitsUsageLog = UserBenefitsUsageLogConvert.INSTANCE.convert(createReqVO);
         userBenefitsUsageLogMapper.insert(userBenefitsUsageLog);
