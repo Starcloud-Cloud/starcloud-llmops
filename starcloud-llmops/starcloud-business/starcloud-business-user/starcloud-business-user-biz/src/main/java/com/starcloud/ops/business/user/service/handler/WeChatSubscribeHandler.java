@@ -68,12 +68,10 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
                     .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
                     .eq(SocialUserDO::getOpenid, wxMpUser.getOpenId())
-                    .eq(SocialUserDO::getDeleted, false)
-                    .orderByDesc(SocialUserDO::getId)
-                    .last("limit 1"));
+                    .eq(SocialUserDO::getDeleted, 0));
 
             if (socialUserDO != null) {
-                //已有帐号
+                //取消关注后重新关注 已有帐号
                 redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
                 return null;
             }
@@ -88,18 +86,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             socialUserMapper.insert(socialUserDO);
             String password = RandomUtil.randomString(10);
             String username = userName(wxMessage.getFromUser());
-
-            Long userId = existUserId(wxMpUser.getOpenId());
-            if (userId != null) {
-                // 已存在用户 增加绑定关系
-                SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
-                        .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
-                        .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
-                socialUserBindMapper.insert(socialUserBind);
-                redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
-                return null;
-            }
-            userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L);
+            Long userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L);
             SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
                     .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                     .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
@@ -113,6 +100,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
             });
             redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
+
         } catch (Exception e) {
             redisTemplate.boundValueOps(wxMessage.getTicket()+ "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
         }
