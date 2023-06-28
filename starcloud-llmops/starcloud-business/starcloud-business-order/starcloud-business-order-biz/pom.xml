@@ -97,7 +97,7 @@
         </dependency>
         <dependency>
             <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-limits-biz</artifactId>
+            <artifactId>starcloud-business-limits</artifactId>
         </dependency>
     </dependencies>
 
