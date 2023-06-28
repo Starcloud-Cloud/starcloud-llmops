@@ -15,7 +15,7 @@ import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+//@Component
 public class AppServiceNodeInterceptor implements TaskInterceptor {
 
     @Autowired

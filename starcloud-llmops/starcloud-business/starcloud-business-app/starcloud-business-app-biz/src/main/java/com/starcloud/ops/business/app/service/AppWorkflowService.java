@@ -195,7 +195,7 @@ public class AppWorkflowService {
         StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
                 .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
                 .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
-                .startId(appContext.getApp().getUid())
+                .startId(appContext.getConversationId())
                 .request(appContext).build();
 
         LogAppConversationCreateReqVO conversation = this.createAppConversationLog(appContext);

@@ -48,6 +48,28 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         }).findFirst().orElse(null);
     }
 
+
+    /**
+     * 获取指定步骤之前的所有步骤
+     */
+    @JSONField(serialize = false)
+    public List<WorkflowStepWrapper> getPreStepWrappers(String stepId) {
+
+        List<WorkflowStepWrapper> preWorkflowStepWrappers = new ArrayList<>();
+
+        for (WorkflowStepWrapper wrapper : steps) {
+
+            if (!wrapper.getField().equals(stepId)) {
+                preWorkflowStepWrappers.add(wrapper);
+            } else {
+                preWorkflowStepWrappers.add(wrapper);
+                break;
+            }
+        }
+
+        return preWorkflowStepWrappers;
+    }
+
     @Override
     public void validate() {
 

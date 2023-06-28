@@ -11,6 +11,8 @@ import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.handler.common.FlowStepHandler;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.HumanMessage;
@@ -20,6 +22,7 @@ import com.starcloud.ops.llm.langchain.core.schema.callbacks.StreamingStdOutCall
 import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -38,6 +41,10 @@ import java.util.Map;
 public class OpenAIChatActionHandler extends FlowStepHandler {
 
 
+    @Autowired
+    private UserBenefitsService userBenefitsService;
+
+
     @NoticeSta
     @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
@@ -45,10 +52,10 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
 
 
         WorkflowStepWrapper appStepWrapper = context.getCurrentStepWrapper();
+        String prompt = context.getContextVariablesValue("prompt", "hi, what you name?");
+        //prompt = "hi, what you name?";
 
-        String prompt = appStepWrapper.getContextVariablesValue("prompt", "hi, what you name?");
-
-        Map<String, Object> variablesMaps = appStepWrapper.getContextVariablesMaps();
+        Map<String, Object> variablesMaps = appStepWrapper.getContextVariablesValues(null);
 
         ActionResponse appStepResponse = new ActionResponse();
         appStepResponse.setSuccess(false);
@@ -87,6 +94,10 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
 
             appStepResponse.setTotalTokens(baseLLMUsage.getTotalTokens());
             appStepResponse.setTotalPrice(messagePrice.add(answerPrice));
+
+
+            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), appStepResponse.getTotalTokens(), );
+
 
         } catch (OpenAiHttpException exc) {
 
