@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service.handler;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
@@ -24,6 +25,7 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -63,6 +65,9 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
     @Autowired
     private UserBenefitsService benefitsService;
+
+    @Value("${starcloud-llm.tenant.id:2}")
+    private Long tenantId;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -110,8 +115,8 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             String msg = String.format("欢迎使用magicAi，您的用户名登录用户明是：%s  登录密码是：%s", username, password);
 
             WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
+            TenantContextHolder.setTenantId(tenantId);
             benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.SIGN_IN.getName(), userId);
-
             return outTextMessage;
         } catch (Exception e) {
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);

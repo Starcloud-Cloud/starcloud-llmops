@@ -163,7 +163,7 @@ public class StarUserServiceImpl implements StarUserService {
         }
 
         Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), 2L);
-        TenantContextHolder.setTenantId(2L);
+        TenantContextHolder.setTenantId(tenantId);
         addBenefits(userId, registerUserDO.getInviteUserId());
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
