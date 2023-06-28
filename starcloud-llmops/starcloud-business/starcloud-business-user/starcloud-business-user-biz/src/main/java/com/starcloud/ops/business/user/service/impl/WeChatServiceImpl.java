@@ -81,7 +81,9 @@ public class WeChatServiceImpl implements WeChatService {
             String url = wxMpService.getQrcodeService().qrCodePictureUrl(wxMpQrCodeTicket.getTicket());
             QrCodeTicketVO ticketVO = QrCodeConvert.INSTANCE.toVO(wxMpQrCodeTicket);
             ticketVO.setUrl(url);
-            redisTemplate.boundValueOps(ticketVO.getTicket() + "_inviteCode").set(inviteCode);
+            if (StringUtils.isNotBlank(inviteCode)) {
+                redisTemplate.boundValueOps(ticketVO.getTicket() + "_inviteCode").set(inviteCode);
+            }
             return ticketVO;
         } catch (WxErrorException e) {
             log.error("获取微信二维码异常", e);
