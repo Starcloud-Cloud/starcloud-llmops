@@ -116,6 +116,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
             WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
             TenantContextHolder.setTenantId(tenantId);
+            TenantContextHolder.setIgnore(false);
             benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.SIGN_IN.getName(), userId);
             return outTextMessage;
         } catch (Exception e) {
