@@ -26,6 +26,7 @@ public interface StarUserService {
 
     /**
      * 增加权限
+     *
      * @param currentUserId
      * @param inviteUserId
      */
@@ -64,11 +65,12 @@ public interface StarUserService {
      * @param password
      * @return
      */
-    Long createNewUser(String username, String email, String password, Long parentDeptId);
+    Long createNewUser(String username, String email, String password, Long parentDeptId, Integer userStatus);
 
 
     /**
      * 修改用户个人信息
+     *
      * @param request
      * @return
      */

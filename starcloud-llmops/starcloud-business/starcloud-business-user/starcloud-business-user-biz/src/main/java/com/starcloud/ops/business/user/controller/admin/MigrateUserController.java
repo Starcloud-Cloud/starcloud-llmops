@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.starcloud.ops.business.user.pojo.dto.WpUserDTO;
 import com.starcloud.ops.business.user.pojo.dto.MigrateResultDTO;
@@ -30,6 +31,7 @@ public class MigrateUserController {
     @Operation(summary = "导入用户")
     @PreAuthorize("@ss.hasRole('super_admin')")
     @TenantIgnore
+    @OperateLog(enable = false)
     public CommonResult<List<MigrateResultDTO>> importExcel(@RequestParam("file") MultipartFile file) throws Exception {
 
         List<WpUserDTO> wpUserDTOS = ExcelUtils.read(file, WpUserDTO.class);

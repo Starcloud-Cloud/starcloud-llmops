@@ -24,6 +24,7 @@ public interface ErrorCodeConstant {
 
     ErrorCode ROLE_NOT_EXIST = new ErrorCode(2000100009, "角色不存在");
 
+    ErrorCode ACTIVATION_USER_ERROR = new ErrorCode(2000100010, "激活用户失败，请联系管理员激活");
 
 
 }

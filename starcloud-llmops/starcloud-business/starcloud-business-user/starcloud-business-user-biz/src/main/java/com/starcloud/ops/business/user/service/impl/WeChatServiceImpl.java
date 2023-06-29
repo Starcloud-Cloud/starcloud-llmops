@@ -39,6 +39,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.CREATE_QR_ERROR;
@@ -82,7 +83,7 @@ public class WeChatServiceImpl implements WeChatService {
             QrCodeTicketVO ticketVO = QrCodeConvert.INSTANCE.toVO(wxMpQrCodeTicket);
             ticketVO.setUrl(url);
             if (StringUtils.isNotBlank(inviteCode)) {
-                redisTemplate.boundValueOps(ticketVO.getTicket() + "_inviteCode").set(inviteCode);
+                redisTemplate.boundValueOps(ticketVO.getTicket() + "_inviteCode").set(inviteCode, 10, TimeUnit.MINUTES);
             }
             return ticketVO;
         } catch (WxErrorException e) {

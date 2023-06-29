@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.service.handler;
 
 import cn.hutool.core.util.RandomUtil;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
@@ -86,6 +87,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
             if (socialUserDO != null) {
                 //取消关注后重新关注 已有帐号
+                log.info("已存在用户，直接登录");
                 redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
                 return null;
             }
@@ -100,7 +102,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             socialUserMapper.insert(socialUserDO);
             String password = RandomUtil.randomString(10);
             String username = userName(wxMessage.getFromUser());
-            Long userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L);
+            Long userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L, CommonStatusEnum.ENABLE.getStatus());
             SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
                     .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                     .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
@@ -118,17 +120,15 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             try {
                 String inviteCode = redisTemplate.boundValueOps(wxMessage.getTicket() + "_inviteCode").get();
                 if (StringUtils.isNotBlank(inviteCode)) {
-                    String inviteUserName = EncryptionUtils.decryptString(inviteCode);
-                    AdminUserDO inviteUser = adminUserMapper.selectByUsername(inviteUserName);
-                    inviteUserid = inviteUser.getId();
+                    inviteUserid = EncryptionUtils.decrypt(inviteCode);
                 }
             } catch (Exception e) {
-                log.warn("新增权益失败，currentUser={},inviteUserid={}", userId, inviteUserid, e);
+                log.warn("获取邀请用户失败，currentUser={}", userId, e);
             }
             TenantContextHolder.setTenantId(tenantId);
             TenantContextHolder.setIgnore(false);
             starUserService.addBenefits(userId, inviteUserid);
-            String msg = String.format("欢迎使用magicAi，您的用户名登录用户明是：%s  登录密码是：%s", username, password);
+            String msg = String.format("欢迎使用magicAi，您的用户名登录用户名是：%s  登录密码是：%s", username, password);
 
             WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
             return outTextMessage;
