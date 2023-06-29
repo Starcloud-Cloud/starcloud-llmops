@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.request.action;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,7 +36,6 @@ public class ActionResponseReqVO implements Serializable {
      * 响应状态
      */
     @Schema(description = "响应状态", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "响应状态不能为空")
     private Boolean success;
 
     /**
@@ -63,7 +63,7 @@ public class ActionResponseReqVO implements Serializable {
      */
     @Schema(description = "响应样式", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "响应样式不能为空")
-    @InEnum(value = AppStepResponseTypeEnum.class, message = "响应样式[{value}]必须属于: {values}")
+    @InEnum(value = AppStepResponseStyleEnum.class, message = "响应样式[{value}]必须属于: {values}")
     private String style;
 
     /**

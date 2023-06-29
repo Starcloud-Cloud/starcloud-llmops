@@ -5,7 +5,6 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -41,6 +40,14 @@ public interface AppService {
      * @return 模版列表
      */
     List<AppRespVO> listRecommendedApps();
+
+    /**
+     * 查询推荐的应用详情
+     *
+     * @param recommend 推荐应用唯一标识
+     * @return 应用详情
+     */
+    AppRespVO getRecommendApp(String recommend);
 
     /**
      * 分页查询应用列表

@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.request.variable;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -66,7 +67,7 @@ public class VariableItemReqVO implements Serializable {
      */
     @Schema(description = "变量分组", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "变量分组不能为空")
-    @InEnum(value = AppVariableStyleEnum.class, message = "变量分组[{value}]必须属于: {values}")
+    @InEnum(value = AppVariableGroupEnum.class, message = "变量分组[{value}]必须属于: {values}")
     private String group;
 
     /**

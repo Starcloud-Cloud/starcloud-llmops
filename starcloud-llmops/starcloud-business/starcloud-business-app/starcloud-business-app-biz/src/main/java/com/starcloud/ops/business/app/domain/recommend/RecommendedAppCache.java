@@ -2,11 +2,14 @@ package com.starcloud.ops.business.app.domain.recommend;
 
 import cn.hutool.cache.Cache;
 import cn.hutool.cache.CacheUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 项目推荐应用缓存，将项目推荐应用缓存到本地缓存中
@@ -40,6 +43,20 @@ public class RecommendedAppCache {
         List<AppRespVO> apps = initRecommendedApps();
         RECOMMENDED_APPS_CACHE.put(CACHE_KEY, apps);
         return apps;
+    }
+
+    /**
+     * 获取推荐应用详情
+     *
+     * @param code 应用uid
+     * @return 应用详情
+     */
+    public static AppRespVO getRecommendApp(String code) {
+        Optional<AppRespVO> appOptional = get().stream().filter(app -> app.getRecommend().equals(code)).findFirst();
+        if (appOptional.isPresent()) {
+            return appOptional.get();
+        }
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, code);
     }
 
     /**
