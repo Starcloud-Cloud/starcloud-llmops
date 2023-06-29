@@ -33,7 +33,6 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class})
@@ -87,10 +86,8 @@ public class AppServiceTest extends BaseDbUnitTest {
         appPageQuery.setPageNo(1);
         appPageQuery.setPageSize(1000);
         PageResp<AppRespVO> page = appService.page(appPageQuery);
-
         List<AppRespVO> list = page.getList();
         CollectionUtil.emptyIfNull(list).forEach(item -> {
-
             AppPublishReqVO request = new AppPublishReqVO();
             request.setUid(item.getUid());
             String name = item.getName();
@@ -133,6 +130,7 @@ public class AppServiceTest extends BaseDbUnitTest {
         log.info("Publish app success");
     }
 
+
     public static String detectLanguage(String input) {
         boolean containsChinese = false;
 
@@ -148,17 +146,6 @@ public class AppServiceTest extends BaseDbUnitTest {
         } else {
             return LanguageEnum.EN_US.getCode();
         }
-    }
-
-    public static void main(String[] args) {
-        String input1 = "ffff 你好 word";
-        String input2 = "Hello world";
-
-        String language1 = detectLanguage(input1);
-        String language2 = detectLanguage(input2);
-
-        System.out.println("Input 1 language: " + language1);
-        System.out.println("Input 2 language: " + language2);
     }
 
 }

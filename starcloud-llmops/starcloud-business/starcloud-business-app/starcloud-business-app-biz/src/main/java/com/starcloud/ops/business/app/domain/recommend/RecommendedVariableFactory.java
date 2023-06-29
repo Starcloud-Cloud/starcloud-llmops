@@ -42,9 +42,7 @@ public class RecommendedVariableFactory {
                 RecommendedVariableItemFactory.defArticleTopicVariable(),
                 RecommendedVariableItemFactory.defLanguageVariable(),
                 RecommendedVariableItemFactory.defWritingStyleVariable(),
-                RecommendedVariableItemFactory.defWritingToneVariable(),
-                RecommendedVariableItemFactory.defTemperatureVariable(),
-                RecommendedVariableItemFactory.defMaxTokenVariable()
+                RecommendedVariableItemFactory.defWritingToneVariable()
         ));
         return variable;
     }

@@ -9,7 +9,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 
 /**
@@ -33,6 +35,7 @@ public class WorkflowStepWrapperReqVO implements Serializable {
      * 步骤 field
      */
     @Schema(description = "步骤 field")
+    @NotBlank(message = "步骤 field 不能为空")
     private String field;
 
     /**

@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -23,7 +22,7 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
-import com.starcloud.ops.business.app.domain.recommend.RecommendedAppFactory;
+import com.starcloud.ops.business.app.domain.recommend.RecommendedAppCache;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.LanguageEnum;
@@ -40,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -108,7 +106,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<AppRespVO> listRecommendedApps() {
-        return Arrays.asList(RecommendedAppFactory.defGenerateTextApp(), RecommendedAppFactory.defGenerateArticleApp());
+        return RecommendedAppCache.get();
     }
 
     /**
