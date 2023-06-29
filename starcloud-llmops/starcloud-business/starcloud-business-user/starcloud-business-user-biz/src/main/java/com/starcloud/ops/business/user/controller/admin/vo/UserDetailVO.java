@@ -39,6 +39,11 @@ public class UserDetailVO {
     @Schema(description = "用户头像", example = "https://www.iocoder.cn/xxx.png")
     private String avatar;
 
-    @Schema
+    @Schema(description = "邀请码")
     private String inviteCode;
+
+    @Schema(description = "邀请链接")
+    private String inviteUrl;
+
+
 }

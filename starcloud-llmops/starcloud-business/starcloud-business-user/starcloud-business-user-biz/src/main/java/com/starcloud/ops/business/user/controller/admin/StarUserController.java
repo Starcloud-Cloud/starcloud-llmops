@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.controller.admin;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
@@ -32,6 +33,7 @@ public class StarUserController {
     @PermitAll
     @Operation(summary = "邮箱注册帐号", description = "邮箱注册帐号")
     @TenantIgnore
+    @OperateLog(enable = false)
     public CommonResult<Boolean> register(@RequestBody @Valid RegisterRequest request) {
         return CommonResult.success(llmUserService.register(request));
     }
@@ -40,6 +42,7 @@ public class StarUserController {
     @PermitAll
     @Operation(summary = "激活链接", description = "激活链接")
     @TenantIgnore
+    @OperateLog(enable = false)
     public void activation(@PathVariable String activationCode,
                            @RequestParam("redirectUri") String redirectUri,
                            HttpServletResponse resp) {
@@ -57,6 +60,7 @@ public class StarUserController {
     @PermitAll
     @Operation(summary = "忘记密码邮箱修改", description = "忘记密码邮箱修改")
     @TenantIgnore
+    @OperateLog(enable = false)
     public CommonResult<Boolean> recoverPassword(@RequestBody @Valid RecoverPasswordRequest request) {
         return CommonResult.success(llmUserService.recoverPassword(request));
     }
@@ -65,6 +69,7 @@ public class StarUserController {
     @PermitAll
     @Operation(summary = "验证code是否过期", description = "验证code是否过期")
     @TenantIgnore
+    @OperateLog(enable = false)
     public CommonResult<Boolean> checkCode(@PathVariable("verificationCode") String verificationCode) {
         return CommonResult.success(llmUserService.checkCode(verificationCode));
     }
@@ -73,6 +78,7 @@ public class StarUserController {
     @PermitAll
     @Operation(summary = "修改密码", description = "修改密码")
     @TenantIgnore
+    @OperateLog(enable = false)
     public CommonResult<Boolean> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
         return CommonResult.success(llmUserService.changePassword(request));
     }

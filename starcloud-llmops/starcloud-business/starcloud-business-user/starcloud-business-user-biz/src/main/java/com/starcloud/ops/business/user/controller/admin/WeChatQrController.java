@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.controller.admin;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.QrCodeTicketVO;
 import com.starcloud.ops.business.user.pojo.request.ScanLoginRequest;
@@ -29,6 +30,7 @@ public class WeChatQrController {
     @Operation(summary = "获取公共号二维码")
     @GetMapping("/qr")
     @PermitAll
+    @OperateLog(enable = false)
     public CommonResult<QrCodeTicketVO> qrCodeCreate(@RequestParam(value = "inviteCode",required = false) String inviteCode) {
         return CommonResult.success(weChatService.qrCodeCreate(inviteCode));
     }
@@ -36,6 +38,7 @@ public class WeChatQrController {
     @Operation(summary = "获取公共号二维码")
     @PostMapping("/qr/login")
     @PermitAll
+    @OperateLog(enable = false)
     public CommonResult<AuthLoginRespVO> qrLogin(@RequestBody @Valid ScanLoginRequest request) {
         Long userId = weChatService.authUser(request);
         if (userId == null || userId <= 0) {

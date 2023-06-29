@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
@@ -96,6 +97,7 @@ public class StarUserServiceImpl implements StarUserService {
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean register(RegisterRequest request) {
         validateEmailAndUsername(request.getUsername(), request.getEmail());
         String activationCode = IdUtil.getSnowflakeNextIdStr();
@@ -109,13 +111,15 @@ public class StarUserServiceImpl implements StarUserService {
                 .registerIp(ServletUtils.getClientIP()).build();
 
         if (request.getInviteCode() != null) {
-            String userName = null;
+//            String userName = null;
             try {
-                userName = EncryptionUtils.decryptString(request.getInviteCode());
-                AdminUserDO userDO = adminUserMapper.selectByUsername(userName);
-                if (userDO != null) {
-                    registerUserDO.setInviteUserId(userDO.getId());
-                }
+//                userName = EncryptionUtils.decryptString(request.getInviteCode());
+                Long inviteUserId = EncryptionUtils.decrypt(request.getInviteCode());
+                registerUserDO.setInviteUserId(inviteUserId);
+//                AdminUserDO userDO = adminUserMapper.selectByUsername(userName);
+//                if (userDO != null) {
+//                    registerUserDO.setInviteUserId(userDO.getId());
+//                }
             } catch (Exception e) {
                 log.warn("计算邀请码异常", e);
             }
@@ -124,8 +128,18 @@ public class StarUserServiceImpl implements StarUserService {
         String activationUrl = url + "/admin-api/llm/auth/activation/" + activationCode + "?redirectUri=" + getOrigin() + "/login";
         Map<String, Object> map = new HashMap<>();
         map.put("activationUrl", activationUrl);
+        // 创建未激活用户
+        Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), 2L, CommonStatusEnum.DISABLE.getStatus());
+        registerUserDO.setUserId(userId);
         mailSendService.sendSingleMail(request.getEmail(), 1L, UserTypeEnum.ADMIN.getValue(), "register_temp", map);
         int insert = registerUserMapper.insert(registerUserDO);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                permissionProducer.sendUserRoleRefreshMessage();
+            }
+
+        });
         return insert > 0;
     }
 
@@ -163,26 +177,22 @@ public class StarUserServiceImpl implements StarUserService {
             throw exception(OPERATE_TIME_OUT);
         }
 
-        Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), 2L);
+        AdminUserDO userDO = new AdminUserDO().setId(registerUserDO.getUserId()).setStatus(CommonStatusEnum.ENABLE.getStatus());
+        int i = adminUserMapper.updateById(userDO);
+        if (i <= 0) {
+            throw exception(ACTIVATION_USER_ERROR);
+        }
         TenantContextHolder.setTenantId(tenantId);
         TenantContextHolder.setIgnore(false);
-        addBenefits(userId, registerUserDO.getInviteUserId());
+        addBenefits(registerUserDO.getUserId(), registerUserDO.getInviteUserId());
         TenantContextHolder.setIgnore(true);
-
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                permissionProducer.sendUserRoleRefreshMessage();
-            }
-
-        });
         registerUserDO.setStatus(1);
         registerUserMapper.updateById(registerUserDO);
         return true;
     }
 
     @Override
-    public Long createNewUser(String username, String email, String password, Long parentDeptId) {
+    public Long createNewUser(String username, String email, String password, Long parentDeptId, Integer userStatus) {
         DeptDO deptDO = new DeptDO();
         deptDO.setParentId(parentDeptId);
         deptDO.setName(username + "_space");
@@ -196,13 +206,13 @@ public class StarUserServiceImpl implements StarUserService {
         userDO.setDeptId(deptId);
         userDO.setUsername(username);
         userDO.setEmail(email);
-        userDO.setStatus(0);
+        userDO.setStatus(userStatus);
         userDO.setNickname(username);
         userDO.setPassword(password);
         userDO.setTenantId(tenantId);
         adminUserMapper.insert(userDO);
 
-        RoleDO roleDO = roleMapper.selectByCode(roleCode,tenantId);
+        RoleDO roleDO = roleMapper.selectByCode(roleCode, tenantId);
         if (roleDO == null) {
             throw exception(ROLE_NOT_EXIST);
         }
@@ -224,11 +234,11 @@ public class StarUserServiceImpl implements StarUserService {
             throw exception(AUTH_TOKEN_EXPIRED);
         }
         int length = request.getUsername().length();
-        if (4 > length || length > 16 ) {
+        if (4 > length || length > 16) {
             throw exception(USERNAME_SIZE_ERROR);
         }
 
-        DataPermissionUtils.executeIgnore(() ->{
+        DataPermissionUtils.executeIgnore(() -> {
             validateUserExists(userId);
             validateUserNameUnique(userId, request.getUsername());
             validateEmailUnique(userId, request.getEmail());
@@ -345,12 +355,14 @@ public class StarUserServiceImpl implements StarUserService {
         AdminUserDO userDO = adminUserMapper.selectById(loginUser.getId());
         String inviteCode = null;
         try {
-            inviteCode = EncryptionUtils.encryptString(userDO.getUsername());
+            inviteCode = EncryptionUtils.encrypt(userDO.getId()).toString();
         } catch (Exception e) {
             throw exception(ENCRYPTION_ERROR);
         }
         UserDetailVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail(userDO);
         userDetailVO.setInviteCode(inviteCode);
+        String inviteUrl = getOrigin() + "/login?inviteCode=" + inviteCode;
+        userDetailVO.setInviteUrl(inviteUrl);
         return userDetailVO;
     }
 

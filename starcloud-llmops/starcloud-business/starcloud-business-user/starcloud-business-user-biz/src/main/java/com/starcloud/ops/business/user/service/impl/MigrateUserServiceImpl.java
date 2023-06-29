@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.user.service.impl;
 
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -33,6 +35,7 @@ public class MigrateUserServiceImpl implements MigrateUserService {
     private PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public List<MigrateResultDTO> migrateUsers(List<WpUserDTO> wpUserDTOS) {
        List<MigrateResultDTO> migrateResults = new ArrayList<>(wpUserDTOS.size());
         for (WpUserDTO wpUserDTO : wpUserDTOS) {
@@ -42,7 +45,7 @@ public class MigrateUserServiceImpl implements MigrateUserService {
                 continue;
             }
             try {
-                starUserService.createNewUser(wpUserDTO.getUsername(), wpUserDTO.getEmail(), passwordEncoder.encode("abc123"),3L);
+                starUserService.createNewUser(wpUserDTO.getUsername(), wpUserDTO.getEmail(), passwordEncoder.encode("abc123"),3L, CommonStatusEnum.ENABLE.getStatus());
                 migrateResults.add(resultDTO);
             } catch (Exception e) {
                 MigrateResultDTO migrateResultDTO = new MigrateResultDTO();

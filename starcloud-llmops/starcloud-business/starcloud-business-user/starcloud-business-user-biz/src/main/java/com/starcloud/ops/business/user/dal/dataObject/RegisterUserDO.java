@@ -33,6 +33,8 @@ public class RegisterUserDO {
 
     private LocalDateTime registerDate;
 
+    private Long userId;
+
     private Long inviteUserId;
 
 }

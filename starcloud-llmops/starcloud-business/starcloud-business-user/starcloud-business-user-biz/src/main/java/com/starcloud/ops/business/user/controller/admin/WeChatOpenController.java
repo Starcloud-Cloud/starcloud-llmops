@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.controller.admin;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -30,6 +31,7 @@ public class WeChatOpenController {
     @Operation(summary = "校验签名")
     @GetMapping("/callback")
     @PermitAll
+    @OperateLog(enable = false)
     public String test(@RequestParam(name = "signature", required = false) String signature,
                        @RequestParam(name = "timestamp", required = false) String timestamp,
                        @RequestParam(name = "nonce", required = false) String nonce,
@@ -43,6 +45,7 @@ public class WeChatOpenController {
 
     @PostMapping("/callback")
     @PermitAll
+    @OperateLog(enable = false)
     public String token(@RequestBody String content,
                         @RequestParam(name = "signature", required = false) String signature,
                         @RequestParam(name = "timestamp", required = false) String timestamp,
