@@ -46,6 +46,9 @@ public interface PayOrderConvert {
     PayOrderPageItemRespVO pageConvertItemPage(PayOrderDO bean);
 
 
+    PageResult<AppPayOrderDetailsRespVO> convertAppPage(PageResult<PayOrderDO> page);
+
+
     PayOrderDO convert(PayOrderCreateReqDTO bean);
 
     @Mapping(target = "id", ignore = true)
