@@ -23,6 +23,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +49,12 @@ public interface AppConvert {
      */
     AppEntity convert(AppReqVO appRequest);
 
+    /**
+     * AppMarketEntity 转 AppEntity
+     *
+     * @param entity AppMarketEntity
+     * @return AppEntity
+     */
     AppEntity convert(AppMarketEntity entity);
 
     /**
@@ -68,19 +75,23 @@ public interface AppConvert {
         appDO.setScenes(AppUtils.joinScenes(appEntity.getScenes()));
         appDO.setImages(AppUtils.join(appEntity.getImages()));
         appDO.setIcon(appEntity.getIcon());
-
         appDO.setDescription(appEntity.getDescription());
         appDO.setPublishUid(appEntity.getPublishUid());
         appDO.setInstallUid(appEntity.getInstallUid());
         appDO.setLastPublish(appEntity.getLastPublish());
         appDO.setDeleted(Boolean.FALSE);
-
+        // 处理配置
         if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
-            appDO.setConfig(JSON.toJSONString(appEntity.getWorkflowConfig()));
+            WorkflowConfigEntity config = appEntity.getWorkflowConfig();
+            if (Objects.nonNull(config)) {
+                appDO.setConfig(JSON.toJSONString(config));
+            }
         } else if (AppModelEnum.CHAT.name().equals(appEntity.getModel())) {
-            appDO.setConfig(JSON.toJSONString(appEntity.getChatConfig()));
+            ChatConfigEntity config = appEntity.getChatConfig();
+            if (Objects.nonNull(config)) {
+                appDO.setConfig(JSON.toJSONString(config));
+            }
         }
-
         return appDO;
     }
 
@@ -101,18 +112,18 @@ public interface AppConvert {
         appEntity.setScenes(AppUtils.splitScenes(app.getScenes()));
         appEntity.setImages(AppUtils.split(app.getImages()));
         appEntity.setIcon(app.getIcon());
-
         appEntity.setDescription(app.getDescription());
         appEntity.setPublishUid(app.getPublishUid());
         appEntity.setInstallUid(app.getInstallUid());
         appEntity.setLastPublish(app.getLastPublish());
-
-        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            appEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
-        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-            appEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
+        // 处理配置
+        if (StringUtils.isNotBlank(app.getConfig())) {
+            if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+                appEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
+            } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+                appEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
+            }
         }
-
         return appEntity;
     }
 
@@ -133,18 +144,18 @@ public interface AppConvert {
         appEntity.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
         appEntity.setImages(AppUtils.split(appMarket.getImages()));
         appEntity.setIcon(appMarket.getIcon());
-
         appEntity.setDescription(appMarket.getDescription());
         appEntity.setPublishUid(null);
         appEntity.setInstallUid(AppUtils.generateUid(appMarket.getUid(), appMarket.getVersion()));
         appEntity.setLastPublish(null);
-
-        if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
-            appEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
-        } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
-            appEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
+        // 处理配置
+        if (StringUtils.isNotBlank(appMarket.getConfig())) {
+            if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
+                appEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
+            } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
+                appEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
+            }
         }
-
         return appEntity;
     }
 
@@ -166,14 +177,13 @@ public interface AppConvert {
         appRespVO.setScenes(AppUtils.splitScenes(app.getScenes()));
         appRespVO.setImages(AppUtils.split(app.getImages()));
         appRespVO.setIcon(app.getIcon());
-
         appRespVO.setDescription(app.getDescription());
         appRespVO.setPublishUid(app.getPublishUid());
         appRespVO.setInstallUid(app.getInstallUid());
         appRespVO.setCreateTime(app.getCreateTime());
         appRespVO.setUpdateTime(app.getUpdateTime());
         appRespVO.setLastPublish(app.getLastPublish());
-
+        // 处理配置
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
                 appRespVO.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigRespVO.class));
