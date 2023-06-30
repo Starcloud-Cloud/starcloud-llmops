@@ -89,7 +89,8 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
                 //取消关注后重新关注 已有帐号
                 log.info("已存在用户，直接登录");
                 redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
-                return null;
+                WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("欢迎回到 magicAi").build();
+                return outTextMessage;
             }
 
             socialUserDO = SocialUserDO.builder().code(wxMessage.getTicket())
