@@ -77,6 +77,11 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     @Transactional(rollbackFor = Exception.class)
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信关注事件，内容：{}", wxMessage);
+        if (StringUtils.isBlank(wxMessage.getTicket())) {
+            // 关注公共号 不处理
+            WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("欢迎关注 magicAi").build();
+            return outTextMessage;
+        }
         try {
             WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
 
@@ -93,7 +98,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
                 return outTextMessage;
             }
 
-            socialUserDO = SocialUserDO.builder().code(wxMessage.getTicket())
+            socialUserDO = SocialUserDO.builder().code(wxMpUser.getOpenId())
                     .nickname(wxMessage.getFromUser())
                     .type(SocialTypeEnum.WECHAT_MP.getType())
                     .openid(wxMpUser.getOpenId())
@@ -134,6 +139,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
             return outTextMessage;
         } catch (Exception e) {
+            log.error("新增用户失败",e);
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
         }
         return null;
