@@ -63,6 +63,14 @@ public class AppController {
         return CommonResult.success(appService.listRecommendedApps());
     }
 
+    @GetMapping("/getRecommendApp/{recommend}")
+    @Operation(summary = "根据推荐应用唯一标识获得推荐应用详情", description = "根据 推荐应用唯一标识 获得推荐应用详情")
+    @ApiOperationSupport(order = 11, author = "nacoyer")
+    public CommonResult<AppRespVO> getRecommendApp(@Parameter(name = "recommend", description = "推荐应用唯一标识")
+                                                   @PathVariable("recommend") String recommend) {
+        return CommonResult.success(appService.getRecommendApp(recommend));
+    }
+
     @GetMapping("/page")
     @Operation(summary = "分页查询我的应用列表", description = "分页查询我的应用列表")
     @ApiOperationSupport(order = 12, author = "nacoyer")

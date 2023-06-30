@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -173,12 +174,14 @@ public interface AppConvert {
         appRespVO.setUpdateTime(app.getUpdateTime());
         appRespVO.setLastPublish(app.getLastPublish());
 
-//        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-//            appRespVO.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigRespVO.class));
-//            appRespVO.setActionIcons(buildActionIcons(appRespVO.getWorkflowConfig()));
-//        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-//            appRespVO.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigRespVO.class));
-//        }
+        if (StringUtils.isNotBlank(app.getConfig())) {
+            if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+                appRespVO.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigRespVO.class));
+                appRespVO.setActionIcons(buildActionIcons(appRespVO.getWorkflowConfig()));
+            } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+                appRespVO.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigRespVO.class));
+            }
+        }
 
         return appRespVO;
     }

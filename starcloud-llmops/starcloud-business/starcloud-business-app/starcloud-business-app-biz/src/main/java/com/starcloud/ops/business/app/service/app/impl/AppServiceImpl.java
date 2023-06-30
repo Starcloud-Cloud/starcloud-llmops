@@ -110,6 +110,17 @@ public class AppServiceImpl implements AppService {
     }
 
     /**
+     * 查询推荐的应用详情
+     *
+     * @param recommend 推荐应用唯一标识
+     * @return 应用详情
+     */
+    @Override
+    public AppRespVO getRecommendApp(String recommend) {
+        return RecommendedAppCache.getRecommendApp(recommend);
+    }
+
+    /**
      * 分页查询应用列表
      *
      * @param query 查询条件
