@@ -31,6 +31,8 @@ import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
+import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
 
 @Tag(name = "星河云海 - 支付订单")
 @RestController
@@ -136,6 +138,15 @@ public class PayOrderController {
         PayOrderSubmitRespVO respVO = payOrderService.submitPayOrder(reqVO, getClientIP());
         return success(respVO);
     }
+
+
+    @PostMapping("/user/page")
+    @Operation(summary = "提交支付订单")
+    public CommonResult<PageResult<AppPayOrderDetailsRespVO>> submitPayOrder(@RequestBody PayOrderAppPageReqVO pageReqVO) {
+        PageResult<AppPayOrderDetailsRespVO>  respVO = payOrderService.getAppOrderPage(pageReqVO, getLoginUser().getId(),getTenantId());
+        return success(respVO);
+    }
+
 
 
 }

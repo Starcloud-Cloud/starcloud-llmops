@@ -96,4 +96,16 @@ public interface PayOrderService {
      */
     void notifyPayOrder(Long channelId, PayOrderNotifyRespDTO notify, PayNotifyReqDTO rawNotify);
 
+
+    /**
+     * 用户获得订单记录
+     * 分页
+     *
+     * @param userId 分页查询
+     * @param tenantId 分页查询
+     * @return 支付订单
+     * 分页
+     */
+    PageResult<AppPayOrderDetailsRespVO> getAppOrderPage(PayOrderAppPageReqVO pageReqVO,Long userId, Long tenantId);
+
 }
