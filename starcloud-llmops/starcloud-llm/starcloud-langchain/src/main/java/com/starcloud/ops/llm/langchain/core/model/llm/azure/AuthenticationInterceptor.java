@@ -26,7 +26,7 @@ public class AuthenticationInterceptor implements Interceptor {
                 .newBuilder()
                 .header("Authorization", "Bearer " + token)
                 .header("api-key", token)
-                //.header("OpenAI-Version", "2023-05-15")
+                .header("OpenAI-Version", "2023-03-15-preview")
                 .build();
         return chain.proceed(request);
     }

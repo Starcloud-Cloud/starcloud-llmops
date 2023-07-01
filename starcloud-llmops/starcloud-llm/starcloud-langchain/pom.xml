@@ -27,8 +27,7 @@
             <version>0.12.0</version>
         </dependency>
 
-
-<!--        azure-->
+        <!-- azure-->
 <!--        <dependency>-->
 <!--            <groupId>com.azure</groupId>-->
 <!--            <artifactId>azure-ai-openai</artifactId>-->

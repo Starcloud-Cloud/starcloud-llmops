@@ -37,10 +37,11 @@ import org.reactivestreams.Subscription;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import sun.net.spi.DefaultProxySelector;
 
 import javax.servlet.ServletOutputStream;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
+import java.io.IOException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -76,64 +77,6 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
     private Double presencePenalty = 0d;
 
     private Double frequencyPenalty = 0d;
-
-
-    protected OpenAiService addProxy(OpenAIConfig openAIConfig) {
-
-        ObjectMapper mapper = defaultObjectMapper();
-        String host = openAIConfig.getProxyHost();
-        int port = openAIConfig.getProxyPort();
-
-        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
-
-        OkHttpClient client = defaultAzureClient(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()))
-                .newBuilder()
-                .proxy(proxy)
-                .build();
-        Retrofit retrofit = defaultRetrofit(client, mapper);
-
-        //Retrofit retrofit = defaultAzureRetrofit(client, mapper);
-
-
-        OpenAiApi api = retrofit.create(OpenAiApi.class);
-
-        return new OpenAiService(api, client.dispatcher().executorService());
-    }
-
-    private static OkHttpClient defaultAzureClient(String token, Duration timeout) {
-
-        return new OkHttpClient.Builder()
-                .addInterceptor(new AuthenticationInterceptor(token))
-                .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
-                .readTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
-                .build();
-    }
-
-    private static OpenAiService azureAiService(OpenAIConfig openAIConfig) {
-
-        String token = openAIConfig.getAzureKey();
-        Duration timeout = Duration.ofSeconds(openAIConfig.getTimeOut());
-
-        ObjectMapper mapper = defaultObjectMapper();
-
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new AuthenticationInterceptor(token))
-                .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
-                .readTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
-                .build();
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://moredeal.openai.azure.com/openai/deployments/mofaai/")
-                //.baseUrl("https://api.openai.com/")
-                .client(client)
-                .addConverterFactory(JacksonConverterFactory.create(mapper))
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build();
-
-        AzureAiApi api = retrofit.create(AzureAiApi.class);
-
-        return new OpenAiService(api, client.dispatcher().executorService());
-    }
 
 
     @Override
@@ -303,7 +246,75 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
             return ChatResult.data(Arrays.asList(chatGeneration), chatCompletionResult, baseLLMUsage);
 
         }
-
     }
+
+
+    protected OpenAiService addProxy(OpenAIConfig openAIConfig) {
+
+        ObjectMapper mapper = defaultObjectMapper();
+
+        OkHttpClient client = defaultClient(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()))
+                .newBuilder()
+                //.proxy(proxy)
+                .proxySelector(new ProxySelector() {
+
+                    @Override
+                    public List<Proxy> select(URI uri) {
+                        List<Proxy> result = new ArrayList<>();
+                        result.add(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(openAIConfig.getProxyHost(), openAIConfig.getProxyPort())));
+                        return result;
+                    }
+
+                    @Override
+                    public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+                        log.error("gpt proxy is fail: {} ", ioe.getMessage(), ioe);
+                    }
+                })
+                .build();
+        Retrofit retrofit = defaultRetrofit(client, mapper);
+
+        //Retrofit retrofit = defaultAzureRetrofit(client, mapper);
+
+
+        OpenAiApi api = retrofit.create(OpenAiApi.class);
+
+        return new OpenAiService(api, client.dispatcher().executorService());
+    }
+
+    private static OkHttpClient defaultAzureClient(String token, Duration timeout) {
+
+        return new OkHttpClient.Builder()
+                .addInterceptor(new AuthenticationInterceptor(token))
+                .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
+                .readTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
+                .build();
+    }
+
+    private static OpenAiService azureAiService(OpenAIConfig openAIConfig) {
+
+        String token = openAIConfig.getAzureKey();
+        Duration timeout = Duration.ofSeconds(openAIConfig.getTimeOut());
+
+        ObjectMapper mapper = defaultObjectMapper();
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new AuthenticationInterceptor(token))
+                .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
+                .readTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
+                .build();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://moredeal.openai.azure.com/openai/deployments/mofaai/")
+                //.baseUrl("https://api.openai.com/")
+                .client(client)
+                .addConverterFactory(JacksonConverterFactory.create(mapper))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build();
+
+        AzureAiApi api = retrofit.create(AzureAiApi.class);
+
+        return new OpenAiService(api, client.dispatcher().executorService());
+    }
+
 
 }
