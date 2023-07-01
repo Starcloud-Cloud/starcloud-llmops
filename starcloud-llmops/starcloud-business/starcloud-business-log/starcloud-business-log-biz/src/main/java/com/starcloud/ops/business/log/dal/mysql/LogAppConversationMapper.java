@@ -17,6 +17,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPage
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.*;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 
 /**
@@ -92,5 +93,8 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
         return new PageResult<>(mpPage.getRecords(), mpPage.getTotal());
 
     }
+
+
+    IPage<LogAppConversationInfoPO> selectSqlPage(@Param("req") LogAppConversationInfoPageReqVO reqVO, IPage<LogAppConversationDO> page);
 
 }

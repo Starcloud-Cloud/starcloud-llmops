@@ -1,11 +1,11 @@
 package com.starcloud.ops.business.order.api.order.dto;
 
 import lombok.Data;
-import org.apache.poi.hpsf.Decimal;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -49,7 +49,7 @@ public class PayOrderCreateReqNewDTO implements Serializable {
      */
     @NotNull(message = "支付金额不能为空")
     @DecimalMin(value = "0", inclusive = false, message = "支付金额必须大于零")
-    private Decimal amount;
+    private BigDecimal amount;
 
     /**
      * 支付过期时间
