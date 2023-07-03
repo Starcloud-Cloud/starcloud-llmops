@@ -4,7 +4,6 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPagInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
-import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 
 /**
  * 用户权益 Service 接口
@@ -38,6 +37,15 @@ public interface UserBenefitsService {
      * @return UserBenefitsInfoResultVO
      */
     UserBenefitsInfoResultVO getUserBenefits(Long userId);
+
+    /**
+     * 检测是否存在可扣除的权益
+     * @param benefitsType 权益类型 对应 BenefitsTypeEnums 枚举类
+     * @param userId 用户 ID
+     * @return true 可以扣除 false 不可以扣除
+     */
+
+    Boolean allowExpendBenefits(String benefitsType, Long userId);
 
     /**
      * 权益使用
