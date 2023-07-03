@@ -26,6 +26,12 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     @Schema(description = "消息总数", example = "10286")
     private Integer messageCount;
 
+    @Schema(description = "消息成功总数", example = "10286")
+    private Integer successCount;
+
+    @Schema(description = "消息失败总数", example = "10286")
+    private Integer errorCount;
+
     @Schema(description = "用户总数", example = "10286")
     private Integer userCount;
 

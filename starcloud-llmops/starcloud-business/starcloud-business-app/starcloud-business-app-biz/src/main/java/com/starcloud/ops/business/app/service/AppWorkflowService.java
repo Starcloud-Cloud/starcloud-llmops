@@ -208,7 +208,7 @@ public class AppWorkflowService {
             MonitorTracking monitorTracking = recallStory.getMonitorTracking();
             List<NodeTracking> storyTracking = monitorTracking.getStoryTracking();
 
-            log.info("recallStory: {} {} {} {}", recallStory.getBusinessId(), recallStory.getStartId(), recallStory.getResult(), recallStory.getReq());
+            log.info("recallStory: {} {} {} {}", recallStory.getBusinessId(), recallStory.getStartId(), recallStory.getResult().isPresent(), recallStory.getReq());
 
             storyTracking.stream().filter((nodeTracking) -> BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())).forEach(nodeTracking -> {
                 this.createAppMessageLog(appContext, nodeTracking);

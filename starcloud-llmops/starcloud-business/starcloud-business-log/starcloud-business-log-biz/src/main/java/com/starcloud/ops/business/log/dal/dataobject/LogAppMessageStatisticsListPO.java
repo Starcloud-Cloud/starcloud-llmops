@@ -26,6 +26,10 @@ public class LogAppMessageStatisticsListPO {
 
     private Integer messageCount;
 
+    private Integer successCount;
+
+    private Integer errorCount;
+
     private Integer userCount;
 
     private BigDecimal elapsedTotal;

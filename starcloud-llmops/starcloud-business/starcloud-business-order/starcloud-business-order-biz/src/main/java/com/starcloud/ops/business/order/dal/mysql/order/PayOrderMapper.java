@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.QueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderAppPageReqVO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderExportReqVO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderPageReqVO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
@@ -28,6 +29,15 @@ public interface PayOrderMapper extends BaseMapperX<PayOrderDO> {
                 .eqIfPresent("refund_status", reqVO.getRefundStatus())
                 .likeIfPresent("channel_order_no", reqVO.getChannelOrderNo())
                 .betweenIfPresent("create_time", reqVO.getCreateTime())
+                .orderByDesc("id"));
+    }
+    default PageResult<PayOrderDO> selectAppPage(PayOrderAppPageReqVO reqVO, Long userId, Long tenantId) {
+        return selectPage(reqVO, new QueryWrapperX<PayOrderDO>()
+                .likeIfPresent("merchant_order_id", reqVO.getMerchantOrderId())
+                .eqIfPresent("status", reqVO.getStatus())
+                .eqIfPresent("refund_status", reqVO.getRefundStatus())
+                .eqIfPresent("creator", userId)
+                .eqIfPresent("tenant_id", tenantId)
                 .orderByDesc("id"));
     }
 

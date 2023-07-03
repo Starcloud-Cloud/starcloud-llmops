@@ -143,11 +143,13 @@ yudao:
       - /admin-api/system/captcha/check # 校验图片验证码，和租户无关
       - /admin-api/infra/file/*/get/** # 获取图片，和租户无关
       - /admin-api/system/sms/callback/* # 短信回调接口，无法带上租户编号
-      - /admin-api/pay/notify/callback/* # 支付回调通知，不携带租户编号
+      - /admin-api/llm/pay/notify/callback/* # 支付回调通知，不携带租户编号
+      - /admin-api/llm/pay/notify/return/* # 支付回调通知，不携带租户编号
       - /jmreport/* # 积木报表，无法携带租户编号
       - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，无法携带租户编号
       - /admin-api/llm/auth/**   # llm 注册，找回密码 无法携带租户编号
       - /admin-api/system/auth/login # 登录
+      - /admin-api/system/auth/refresh-token # 刷新缓存
       - /admin-api/llm/wechat/** # 微信回调
     ignore-tables:
       - system_tenant

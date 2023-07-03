@@ -43,7 +43,7 @@ public class LogAppConversationInfoRespVO implements Serializable {
 
 
     @Schema(description = "执行总耗时")
-    private Long totalElapsed;
+    private BigDecimal totalElapsed;
 
     @Schema(description = "执行总花费")
     private BigDecimal totalPrice;
