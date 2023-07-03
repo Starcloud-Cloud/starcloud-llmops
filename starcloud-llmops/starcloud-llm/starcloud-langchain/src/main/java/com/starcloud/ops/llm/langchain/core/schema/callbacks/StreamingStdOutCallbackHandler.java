@@ -41,6 +41,9 @@ public class StreamingStdOutCallbackHandler extends BaseCallbackHandler {
 
         try {
 
+            this.httpServletResponse.setContentType("text/plain;charset=utf-8");
+            this.httpServletResponse.setCharacterEncoding("UTF-8");
+
             this.initOutputStream().write("&start&".getBytes(StandardCharsets.UTF_8));
             this.initOutputStream().flush();
 

@@ -39,14 +39,14 @@ public class LogAppConversationInfoPageReqVO extends PageParam {
     /**
      * 创建时间
      */
-    @DateTimeFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    //@DateTimeFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     @Schema(description = "数据开始时间")
     private LocalDateTime startTime;
 
     /**
      * 创建时间
      */
-    @DateTimeFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    //@DateTimeFormat(pattern = DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     @Schema(description = "数据结束时间")
     private LocalDateTime endTime;
 

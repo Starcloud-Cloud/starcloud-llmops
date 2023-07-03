@@ -43,7 +43,7 @@ public class LogAppConversationInfoPO {
 
     private Integer feedbacksCount = 0;
 
-    private Long totalElapsed = 0L;
+    private BigDecimal totalElapsed = BigDecimal.ZERO;
 
     private BigDecimal totalPrice = BigDecimal.ZERO;
 

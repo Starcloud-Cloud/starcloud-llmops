@@ -80,7 +80,13 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     public Boolean addUserBenefitsByCode(String code, Long userId) {
         log.info("[addUserBenefitsByCode][1.准备通过 权益code增加权益：用户ID({})|租户 ID({})｜权益代码({})]", userId, getTenantId(), code);
         // 根据 code 获取权益策略
-        UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(code);
+        UserBenefitsStrategyDO benefitsStrategy;
+        try {
+            benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(code);
+        }catch (RuntimeException e){
+            throw exception(USER_BENEFITS_USELESS_INTEREST);
+        }
+
         // 获取当前策略枚举
         // BenefitsStrategyTypeEnums strategyTypeEnums = BenefitsStrategyTypeEnums.getByCode(benefitsStrategy.getStrategyType());
 
@@ -347,6 +353,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         return userBenefitsInfoResultVO;
     }
 
+
+
     private UserBenefitsBaseResultVO createUserBenefitsBaseResultVO(BenefitsTypeEnums benefitsType, long usedNum, long totalNum) {
         UserBenefitsBaseResultVO resultVO = new UserBenefitsBaseResultVO();
         resultVO.setName(benefitsType.getChineseName());
@@ -365,6 +373,57 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     }
 
     /**
+     * 检测是否存在可扣除的权益
+     *
+     * @param benefitsType 权益类型 对应 BenefitsTypeEnums 枚举类
+     * @param userId       用户 ID
+     * @return true 可以扣除 false 不可以扣除
+     */
+    @Override
+    public Boolean allowExpendBenefits(String benefitsType, Long userId) {
+        // TODO 根据角色判断
+        log.info("[allowExpendBenefits][检测是否存在可扣除的权益：用户ID({})｜权益类型({})", userId, benefitsType);
+        // 校验权益类型是否合法
+        BenefitsTypeEnums benefitsTypeEnums = BenefitsTypeEnums.getByCode(benefitsType);
+        if (benefitsTypeEnums == null) {
+            log.error("[allowExpendBenefits][检测是否存在可扣除的权益失败，权益类型不存在：用户ID({})｜权益类型({})", userId, benefitsType);
+            return false;
+            // throw exception(BENEFITS_TYPE_NOT_EXISTS);
+        }
+
+        // 查询条件：当前用户下启用且未过期且权益值大于0的数据
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
+        wrapper.eq(UserBenefitsDO::getUserId, userId);
+        wrapper.eq(UserBenefitsDO::getEnabled, true);
+        // TODO 暂时缺少定时任务 以实时更新权益是否过期 所以增加时间校验
+        wrapper.ge(UserBenefitsDO::getExpirationTime, LocalDateTime.now());
+
+        switch (benefitsTypeEnums) {
+            case APP:
+                wrapper.gt(UserBenefitsDO::getAppCountUsed, 0L);
+                break;
+            case DATASET:
+                wrapper.gt(UserBenefitsDO::getDatasetCountUsed, 0L);
+                break;
+            case IMAGE:
+                wrapper.gt(UserBenefitsDO::getImageCountUsed, 0L);
+                break;
+            case TOKEN:
+                wrapper.gt(UserBenefitsDO::getTokenCountUsed, 0L);
+                break;
+        }
+        // 查询数据
+        List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
+        if (CollUtil.isEmpty(resultList)) {
+            log.error("[allowExpendBenefits][不存在可扣除的权益，用户所使用权益为 0：用户ID({})｜权益类型({})", userId, benefitsType);
+            return false;
+            // throw exception(USER_BENEFITS_USELESS_INTEREST);
+        }
+        log.info("[allowExpendBenefits][存在可扣除的权益：用户ID({})｜权益类型({})", userId, benefitsType);
+        return true;
+    }
+
+    /**
      * 权益使用
      * 扣减规则
      * 1.从第一条数据开始扣除 如果第一条数据满足扣除，不再遍历后面的账户 直接扣除 更新数据
@@ -377,7 +436,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public void expendBenefits(String benefitsTypeCode, Long amount, Long userId, String outId) {
-        log.error("[expendBenefits][权益执行扣减操作：用户ID({})｜权益类型({})|数量({})|外键ID({})", userId, benefitsTypeCode, amount,outId);
+        // TODO 根据角色判断
+        log.info("[expendBenefits][权益执行扣减操作：用户ID({})｜权益类型({})|数量({})|外键ID({})", userId, benefitsTypeCode, amount,outId);
         // 校验权益类型是否合法
         BenefitsTypeEnums benefitsType = BenefitsTypeEnums.getByCode(benefitsTypeCode);
         if (benefitsType == null) {
@@ -410,7 +470,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
         if (CollUtil.isEmpty(resultList)) {
             log.error("[expendBenefits][权益扣减失败，用户所使用权益为 0：用户ID({})｜权益类型({})|扣除数量({})", userId, benefitsTypeCode, amount);
-            throw exception(USER_BENEFITS_USELESS_INTEREST);
+            // throw exception(USER_BENEFITS_USELESS_INTEREST);
         }
 
         switch (benefitsType) {

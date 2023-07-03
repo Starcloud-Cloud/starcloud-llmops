@@ -12,8 +12,18 @@ public interface AzureAiApi extends com.theokanning.openai.OpenAiApi {
 
     @Override
     @Streaming
-    @POST("/chat/completions?api-version=2023-05-15")
+    @POST("/chat/completions?api-version=2023-03-15-preview")
     Call<ResponseBody> createChatCompletionStream(@Body ChatCompletionRequest request);
 
 
+    default void test() {
+//
+//        OpenAIClient client = new OpenAIClientBuilder()
+//                .credential(new AzureKeyCredential("{key}"))
+//                .endpoint("{endpoint}")
+//                .buildClient();
+//
+
+
+    }
 }

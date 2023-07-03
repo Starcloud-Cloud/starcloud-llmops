@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.order.service.order;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -27,6 +26,7 @@ import com.starcloud.ops.business.order.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.order.enums.notify.PayNotifyTypeEnum;
 import com.starcloud.ops.business.order.enums.order.PayOrderNotifyStatusEnum;
 import com.starcloud.ops.business.order.enums.order.PayOrderStatusEnum;
+import com.starcloud.ops.business.order.enums.refund.PayRefundTypeEnum;
 import com.starcloud.ops.business.order.service.merchant.PayAppService;
 import com.starcloud.ops.business.order.service.merchant.PayChannelService;
 import com.starcloud.ops.business.order.service.notify.PayNotifyService;
@@ -44,6 +44,7 @@ import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
 
 /**
  * 支付订单 Service 实现类
@@ -102,7 +103,7 @@ public class PayOrderServiceImpl implements PayOrderService {
 
     @Override
     public Long createPayOrder(PayOrderCreateReqDTO reqDTO) {
-        // 校验 App
+        // 校验 支付应用App
         PayAppDO app = appService.validPayApp(reqDTO.getAppId());
 
         // 查询对应的支付交易单是否已经存在。如果是，则直接返回
@@ -123,8 +124,8 @@ public class PayOrderServiceImpl implements PayOrderService {
         // 订单相关字段
         order.setStatus(PayOrderStatusEnum.WAITING.getStatus());
         // 退款相关字段
-        // todo @芋艿 创建支付的订单的退款状态枚举是不是有问题，应该是 PayRefundTypeEnum 吧 您这填写的是 PayOrderNotifyStatusEnum 回调状态枚举
-        order.setRefundStatus(PayOrderNotifyStatusEnum.NO.getStatus())
+        // 退款状态枚举是不是有问题
+        order.setRefundStatus(PayRefundTypeEnum.NO.getStatus())
                 .setRefundTimes(0).setRefundAmount(0L);
         orderMapper.insert(order);
         // 最终返回
@@ -133,22 +134,23 @@ public class PayOrderServiceImpl implements PayOrderService {
 
     @Override
     public PayOrderSubmitRespVO submitPayOrder(PayOrder2ReqVO reqVO, String userIp) {
-        log.info("支付宝统一下单接收到请求,下单用户ip ：{}", userIp);
+        log.info("[submitPayOrder][0.支付宝统一下单接收到请求：用户ID({})|产品 code({})｜用户 IP({})]", getLoginUser(), reqVO.getCode(), userIp);
+        // 商户订单编号
+        String sMerchantOrderId = PaySeqUtils.genMerchantOrderNo();
+        // 0.根据商品 code 获取产品参数
+        SetMealInfoEnum SetMealInfo = SetMealInfoEnum.getByCode(reqVO.getCode());
 
         PayOrderCreateReqDTO payOrderCreateReqDTO = new PayOrderCreateReqDTO();
-
-        SetMealInfoEnum SetMealInfo = SetMealInfoEnum.getByCode(reqVO.getCode());
 
         payOrderCreateReqDTO.setAppId(PAY_APP_ID);
 
         payOrderCreateReqDTO.setUserIp(userIp);
-        // 商户订单编号
-        String sMerchantOrderId = PaySeqUtils.genMerchantOrderNo();
         payOrderCreateReqDTO.setMerchantOrderId(sMerchantOrderId);
         payOrderCreateReqDTO.setSubject(SetMealInfo.getName());
         payOrderCreateReqDTO.setBody(SetMealInfo.getDescription());
         payOrderCreateReqDTO.setAmount(SetMealInfo.getPrice());
-        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtil.endOfDay(LocalDateTime.now()));
+        // 支付过期时间设置为 1 天
+        payOrderCreateReqDTO.setExpireTime(LocalDateTime.now().plusHours(1));
         // 创建订单
         Long payOrderId = createPayOrder(payOrderCreateReqDTO);
         // 1. 获得 PayOrderDO ，并校验其是否存在
@@ -157,31 +159,69 @@ public class PayOrderServiceImpl implements PayOrderService {
         PayChannelDO channel = validatePayChannelCanSubmit(order.getAppId(), CHANNEL_CODE);
         PayClient client = payClientFactory.getPayClient(channel.getId());
 
+        PayOrderSubmitReqVO payOrderSubmitReqVO = new PayOrderSubmitReqVO();
+        payOrderSubmitReqVO.setId(payOrderId);
+        payOrderSubmitReqVO.setChannelCode(CHANNEL_CODE);
+
         // 2. 插入 PayOrderExtensionDO
-        // PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp)
-        //         .setOrderId(order.getId()).setNo(generateOrderExtensionNo())
-        //         .setChannelId(channel.getId()).setChannelCode(channel.getCode())
-        //         .setStatus(PayOrderStatusEnum.WAITING.getStatus());
-        // orderExtensionMapper.insert(orderExtension);
+        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(payOrderSubmitReqVO, userIp)
+                .setOrderId(order.getId())
+                .setNo(generateOrderExtensionNo())
+                .setChannelId(channel.getId())
+                .setChannelCode(channel.getCode())
+                .setStatus(PayOrderStatusEnum.WAITING.getStatus());
+        orderExtensionMapper.insert(orderExtension);
 
         // 3. 调用三方接口
-        PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert4(reqVO)
+        PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(payOrderSubmitReqVO)
                 // 商户相关的字段
-                .setMerchantOrderId(sMerchantOrderId) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
+                .setMerchantOrderId(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
                 .setSubject(order.getSubject())
                 .setBody(order.getBody())
                 .setNotifyUrl(genChannelPayNotifyUrl(channel))
                 .setReturnUrl(genChannelReturnUrl(channel))
                 // 订单相关字段
-                .setAmount(order.getAmount()).setExpireTime(order.getExpireTime());
+                // .setAmount(new BigDecimal(order.getAmount()).movePointLeft(2))
+                .setAmount(order.getAmount())
+                .setExpireTime(order.getExpireTime());
         PayOrderUnifiedRespDTO unifiedOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
-
-        // TODO 轮询三方接口，是否已经支付的任务
-
 
         // 返回成功
         return PayOrderConvert.INSTANCE.convert(unifiedOrderRespDTO);
     }
+
+    @Deprecated
+    public Long createPayOrder(SetMealInfoEnum product,String userIP) {
+
+        PayOrderDO order = new PayOrderDO();
+        // ========订单相关字段=========
+        // 生成订单编号
+        String sMerchantOrderId = PaySeqUtils.genMerchantOrderNo();
+        // 设置订单编号
+        order.setMerchantOrderId(sMerchantOrderId);
+        // 订单相关状态
+        order.setAmount(product.getPrice());
+        // 通知商户支付结果的回调状态
+        order.setNotifyStatus(PayOrderNotifyStatusEnum.NO.getStatus());
+        // 订单相关状态
+        order.setStatus(PayOrderStatusEnum.WAITING.getStatus());
+
+        // ========商品相关字段=========
+        // 设置商品名称
+        order.setSubject(product.getName());
+        // 设置商品描述
+        order.setBody(product.getDescription());
+
+        // ========退款相关字段=========
+        // 创建支付的订单的退款状态枚举
+        order.setRefundStatus(PayRefundTypeEnum.NO.getStatus());
+        order.setRefundTimes(0).setRefundAmount(0L);
+        order.setRefundAmount(0L);
+        orderMapper.insert(order);
+        // 最终返回
+        return order.getId();
+    }
+
 
     private PayOrderDO validatePayOrderCanSubmit(Long id) {
         PayOrderDO order = orderMapper.selectById(id);
@@ -263,6 +303,24 @@ public class PayOrderServiceImpl implements PayOrderService {
             notifyService.createPayNotifyTask(PayNotifyTaskCreateReqDTO.builder()
                     .type(PayNotifyTypeEnum.ORDER.getType()).dataId(order.getId()).build());
         });
+    }
+
+    /**
+     * 用户获得订单记录
+     * 分页
+     *
+     * @param userId   分页查询
+     * @param tenantId 分页查询
+     * @return 支付订单
+     * 分页
+     */
+    @Override
+    public PageResult<AppPayOrderDetailsRespVO> getAppOrderPage(PayOrderAppPageReqVO pageReqVO,Long userId, Long tenantId) {
+
+        PageResult<PayOrderDO> payOrderDOPageResult = orderMapper.selectAppPage(pageReqVO, userId, tenantId);
+
+        return PayOrderConvert.INSTANCE.convertAppPage(payOrderDOPageResult);
+
     }
 
     /**

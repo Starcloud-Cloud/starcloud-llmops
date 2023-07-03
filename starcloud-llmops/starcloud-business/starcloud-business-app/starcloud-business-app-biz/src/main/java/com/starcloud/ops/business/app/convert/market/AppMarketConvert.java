@@ -14,11 +14,13 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -71,11 +73,17 @@ public interface AppMarketConvert {
         appMarket.setDescription(appMarketEntity.getDescription());
         appMarket.setExample(appMarketEntity.getExample());
         appMarket.setDeleted(Boolean.FALSE);
-
+        // 处理配置信息
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
-            appMarket.setConfig(JSON.toJSONString(appMarketEntity.getWorkflowConfig()));
+            WorkflowConfigEntity config = appMarketEntity.getWorkflowConfig();
+            if (Objects.nonNull(config)) {
+                appMarket.setConfig(JSON.toJSONString(config));
+            }
         } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
-            appMarket.setConfig(JSON.toJSONString(appMarketEntity.getChatConfig()));
+            ChatConfigEntity config = appMarketEntity.getChatConfig();
+            if (Objects.nonNull(config)) {
+                appMarket.setConfig(JSON.toJSONString(config));
+            }
         }
         return appMarket;
     }
@@ -105,13 +113,14 @@ public interface AppMarketConvert {
         appMarketEntity.setInstallCount(appMarket.getInstallCount());
         appMarketEntity.setDescription(appMarket.getDescription());
         appMarketEntity.setExample(appMarket.getExample());
-
-        if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
-            appMarketEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
-        } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
-            appMarketEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
+        // 处理配置信息
+        if (StringUtils.isNotBlank(appMarket.getConfig())) {
+            if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
+                appMarketEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
+            } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
+                appMarketEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
+            }
         }
-
         return appMarketEntity;
     }
 
@@ -141,11 +150,13 @@ public interface AppMarketConvert {
         appMarketEntity.setInstallCount(0);
         appMarketEntity.setDescription(app.getDescription());
         appMarketEntity.setExample(publishRequest.getExample());
-
-        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            appMarketEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
-        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-            appMarketEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
+        // 处理配置信息
+        if (StringUtils.isNotBlank(app.getConfig())) {
+            if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+                appMarketEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
+            } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+                appMarketEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
+            }
         }
         return appMarketEntity;
     }
@@ -177,16 +188,16 @@ public interface AppMarketConvert {
         appMarketResponse.setExample(appMarket.getExample());
         appMarketResponse.setCreateTime(appMarket.getCreateTime());
         appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
-
+        // 处理配置信息
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
             WorkflowConfigRespVO config = JSON.parseObject(appMarket.getConfig(), WorkflowConfigRespVO.class);
-            if (config != null) {
+            if (Objects.nonNull(config)) {
                 appMarketResponse.setWorkflowConfig(config);
                 appMarketResponse.setStepCount(Optional.of(config).map(WorkflowConfigRespVO::getSteps).map(List::size).orElse(0));
             }
         } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
             ChatConfigRespVO config = JSON.parseObject(appMarket.getConfig(), ChatConfigRespVO.class);
-            if (config != null) {
+            if (Objects.nonNull(config)) {
                 appMarketResponse.setChatConfig(config);
             }
         }

@@ -9,4 +9,48 @@
         文档可见：https://www.iocoder.cn/MyBatis/x-plugins/
      -->
 
+    <select id="selectSqlPage"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO">
+
+        SELECT t.uid, t.app_uid, t.app_name, t.app_mode, t.from_scene, t.status, t.creator, t.end_user, t.create_time,
+        COUNT(t1.id) AS messageCount,
+        COUNT(t2.id) AS feedbacksCount,
+        SUM(t1.elapsed) AS totalElapsed,
+        SUM(t1.total_price) AS totalPrice,
+        SUM(t1.message_tokens) AS totalMessageTokens,
+        SUM(t1.answer_tokens) AS totalAnswerTokens
+        FROM llm_log_app_conversation t
+        LEFT JOIN llm_log_app_message t1 ON (t1.app_conversation_uid = t.uid)
+        LEFT JOIN llm_log_app_message_feedbacks t2 ON (t2.app_message_uid = t1.uid)
+
+        <where>
+
+            <if test="req.appName !=null and req.appName!=''">
+                <bind name="appName" value="req.appName+'%'"/>
+                AND t.app_name LIKE #{appName}
+            </if>
+
+            <if test="req.appUid !=null and req.appUid!=''">
+                AND t.app_uid = #{req.appUid}
+            </if>
+
+            <if test="req.fromScene !=null and req.fromScene!=''">
+                AND t.from_scene = #{req.fromScene}
+            </if>
+
+            <if test="req.status !=null and req.status!=''">
+                AND t.status = #{req.status}
+            </if>
+
+            <if test="req.startTime !=null and req.startTime!='' and req.endTime !=null and req.endTime!=''">
+                AND t.create_time between #{req.startTime} and #{req.endTime}
+            </if>
+
+        </where>
+
+        GROUP BY t.id ORDER BY t.id DESC
+
+    </select>
+
+
 </mapper>

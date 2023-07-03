@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.log.service.conversation;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
@@ -120,7 +122,11 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     @Override
     public PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO) {
 
-        return appConversationMapper.selectPage(pageReqVO);
+        //appConversationMapper.selectPage(pageReqVO);
+
+        IPage<LogAppConversationInfoPO> infoPOIPage = appConversationMapper.selectSqlPage(pageReqVO, new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize()));
+
+        return new PageResult<>(infoPOIPage.getRecords(), infoPOIPage.getTotal());
     }
 
 
