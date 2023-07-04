@@ -42,10 +42,9 @@ public interface UserBenefitsService {
      * 检测是否存在可扣除的权益
      * @param benefitsType 权益类型 对应 BenefitsTypeEnums 枚举类
      * @param userId 用户 ID
-     * @return true 可以扣除 false 不可以扣除
      */
 
-    Boolean allowExpendBenefits(String benefitsType, Long userId);
+    void allowExpendBenefits(String benefitsType, Long userId);
 
     /**
      * 权益使用

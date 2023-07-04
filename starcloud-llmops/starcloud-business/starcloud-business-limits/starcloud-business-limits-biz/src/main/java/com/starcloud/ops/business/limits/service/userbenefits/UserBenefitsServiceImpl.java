@@ -380,15 +380,14 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return true 可以扣除 false 不可以扣除
      */
     @Override
-    public Boolean allowExpendBenefits(String benefitsType, Long userId) {
+    public void allowExpendBenefits(String benefitsType, Long userId) {
         // TODO 根据角色判断
         log.info("[allowExpendBenefits][检测是否存在可扣除的权益：用户ID({})｜权益类型({})", userId, benefitsType);
         // 校验权益类型是否合法
         BenefitsTypeEnums benefitsTypeEnums = BenefitsTypeEnums.getByCode(benefitsType);
         if (benefitsTypeEnums == null) {
             log.error("[allowExpendBenefits][检测是否存在可扣除的权益失败，权益类型不存在：用户ID({})｜权益类型({})", userId, benefitsType);
-            return false;
-            // throw exception(BENEFITS_TYPE_NOT_EXISTS);
+            throw exception(USER_BENEFITS_USELESS_INTEREST);
         }
 
         // 查询条件：当前用户下启用且未过期且权益值大于0的数据
@@ -416,11 +415,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
         if (CollUtil.isEmpty(resultList)) {
             log.error("[allowExpendBenefits][不存在可扣除的权益，用户所使用权益为 0：用户ID({})｜权益类型({})", userId, benefitsType);
-            return false;
-            // throw exception(USER_BENEFITS_USELESS_INTEREST);
+            throw exception(USER_BENEFITS_USELESS_INSUFFICIENT);
         }
         log.info("[allowExpendBenefits][存在可扣除的权益：用户ID({})｜权益类型({})", userId, benefitsType);
-        return true;
     }
 
     /**
