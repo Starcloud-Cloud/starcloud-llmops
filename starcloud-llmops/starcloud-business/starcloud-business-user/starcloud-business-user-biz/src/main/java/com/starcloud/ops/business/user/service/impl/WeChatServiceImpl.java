@@ -88,7 +88,7 @@ public class WeChatServiceImpl implements WeChatService {
             return ticketVO;
         } catch (WxErrorException e) {
             log.error("获取微信二维码异常", e);
-            throw new ServiceException(500, e.getMessage());
+            throw exception(CREATE_QR_ERROR);
         }
     }
 
