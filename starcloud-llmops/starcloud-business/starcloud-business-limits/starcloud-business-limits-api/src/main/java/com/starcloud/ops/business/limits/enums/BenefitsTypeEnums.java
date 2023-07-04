@@ -17,22 +17,22 @@ public enum BenefitsTypeEnums {
     /**
      * 应用
      */
-    APP("APP", "应用","appCount"),
+    APP("APP", "应用","app"),
 
     /**
      * 数据集
      */
-    DATASET("DATASET", "数据集","datasetCount"),
+    DATASET("DATASET", "数据集","dataset"),
 
     /**
      * 图片
      */
-    IMAGE("IMAGE", "图片","imageCount"),
+    IMAGE("IMAGE", "图片","image"),
 
     /**
      * 令牌
      */
-    TOKEN("TOKEN", "令牌","tokenCount"),
+    TOKEN("TOKEN", "令牌","token"),
 
     ;
 

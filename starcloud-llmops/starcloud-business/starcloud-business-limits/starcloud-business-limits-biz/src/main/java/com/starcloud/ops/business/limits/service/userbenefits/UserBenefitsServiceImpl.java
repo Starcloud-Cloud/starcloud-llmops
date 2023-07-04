@@ -21,6 +21,7 @@ import com.starcloud.ops.business.limits.enums.*;
 import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.limits.service.userbenefitsusagelog.UserBenefitsUsageLogService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -31,6 +32,7 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -414,7 +416,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
         if (CollUtil.isEmpty(resultList)) {
             log.error("[allowExpendBenefits][不存在可扣除的权益，用户所使用权益为 0：用户ID({})｜权益类型({})", userId, benefitsType);
-            throw exception(USER_BENEFITS_USELESS_INSUFFICIENT);
+            String name = benefitsTypeEnums.getDataPrefix();
+            if (Locale.CHINA.equals(LocaleContextHolder.getLocale())){
+                name  =  benefitsTypeEnums.getChineseName();
+            }
+            throw exception(USER_BENEFITS_USELESS_INSUFFICIENT,name);
         }
         log.info("[allowExpendBenefits][存在可扣除的权益：用户ID({})｜权益类型({})", userId, benefitsType);
     }
