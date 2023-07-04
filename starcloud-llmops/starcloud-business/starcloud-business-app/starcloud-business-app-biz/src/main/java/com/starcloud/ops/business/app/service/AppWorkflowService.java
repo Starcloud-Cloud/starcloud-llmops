@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service;
 
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -21,6 +22,8 @@ import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
@@ -56,6 +59,9 @@ public class AppWorkflowService {
 
     @Autowired
     private StoryEngine storyEngine;
+
+    @Autowired
+    private UserBenefitsService userBenefitsService;
 
     /**
      * 根据保存的配置直接执行，默认执行第一个步骤
@@ -170,6 +176,8 @@ public class AppWorkflowService {
         } else {
             app = AppFactory.factory(appId, appRequest);
         }
+
+        userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), SecurityFrameworkUtils.getLoginUserId());
 
         log.info("fireByApp app: {}", JSON.toJSON(app));
 

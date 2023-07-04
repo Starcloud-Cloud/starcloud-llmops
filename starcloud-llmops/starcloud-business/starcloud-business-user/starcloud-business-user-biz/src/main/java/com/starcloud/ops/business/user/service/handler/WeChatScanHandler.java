@@ -28,7 +28,7 @@ public class WeChatScanHandler implements WxMpMessageHandler {
         log.info("接收到微信扫描事件，内容：{}", wxMessage);
         WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
-        WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("欢迎回到 magicAi").build();
+        WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("欢迎回到魔法AI").build();
         return outTextMessage;
     }
 }
