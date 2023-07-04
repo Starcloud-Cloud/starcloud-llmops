@@ -17,8 +17,6 @@
             WHEN ms.status = "SUCCESS"
             THEN
                 1
-            ELSE
-                NULL
             END
         ) AS successCount,
         COUNT(
@@ -26,8 +24,6 @@
             WHEN ms.status != "SUCCESS"
             THEN
                 1
-            ELSE
-                NULL
             END
         ) AS errorCount,
         COUNT(DISTINCT(ms.creator)) as userCount,
@@ -57,12 +53,12 @@
                 AND ms.status = #{req.status}
             </if>
 
-            <if test="req.startTime !=null and req.startTime!='' and req.endTime !=null and req.endTime!=''">
+            <if test="req.startTime !=null and req.endTime !=null">
                 AND ms.create_time between #{req.startTime} and #{req.endTime}
             </if>
         </where>
 
-        GROUP BY date_format(ms.create_time, '%Y-%m-%d') ORDER BY create_date ASC ;
+        GROUP BY date_format(ms.create_time, '%Y-%m-%d') ORDER BY create_date ;
 
     </select>
 

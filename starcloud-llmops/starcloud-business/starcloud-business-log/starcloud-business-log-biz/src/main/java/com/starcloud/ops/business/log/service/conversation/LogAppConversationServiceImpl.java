@@ -16,6 +16,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
+import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -123,8 +124,8 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     public PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO) {
 
         //appConversationMapper.selectPage(pageReqVO);
-
-        IPage<LogAppConversationInfoPO> infoPOIPage = appConversationMapper.selectSqlPage(pageReqVO, new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize()));
+        Page<LogAppConversationDO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
+        IPage<LogAppConversationInfoPO> infoPOIPage = appConversationMapper.selectSqlPage(page, pageReqVO);
 
         return new PageResult<>(infoPOIPage.getRecords(), infoPOIPage.getTotal());
     }
@@ -133,17 +134,11 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     @Override
     public List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO statisticsListReqVO) {
 
-
-        statisticsListReqVO.getTimeType();
-
-
-        statisticsListReqVO.setStartTime(null);
-        statisticsListReqVO.setEndTime(null);
-
+        String timeType = statisticsListReqVO.getTimeType();
+        statisticsListReqVO.setStartTime(LogTimeTypeEnum.getStartTimeByType(timeType));
+        statisticsListReqVO.setEndTime(LogTimeTypeEnum.getEndTimeByType(timeType));
 
         return logAppMessageMapper.getAppMessageStatisticsList(statisticsListReqVO);
 
     }
-
-
 }

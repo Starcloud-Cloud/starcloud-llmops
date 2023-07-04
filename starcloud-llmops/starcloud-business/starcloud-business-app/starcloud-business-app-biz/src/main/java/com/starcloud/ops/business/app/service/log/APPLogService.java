@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.service.log;
 
-public interface APPLogService {
+public interface AppLogService {
 
     String generateAPPRequestUid();
 

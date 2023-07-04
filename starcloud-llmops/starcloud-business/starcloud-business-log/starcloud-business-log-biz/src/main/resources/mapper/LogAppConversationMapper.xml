@@ -42,7 +42,7 @@
                 AND t.status = #{req.status}
             </if>
 
-            <if test="req.startTime !=null and req.startTime!='' and req.endTime !=null and req.endTime!=''">
+            <if test="req.startTime !=null and req.endTime !=null ">
                 AND t.create_time between #{req.startTime} and #{req.endTime}
             </if>
 

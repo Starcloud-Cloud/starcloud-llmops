@@ -95,6 +95,6 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
     }
 
 
-    IPage<LogAppConversationInfoPO> selectSqlPage(@Param("req") LogAppConversationInfoPageReqVO reqVO, IPage<LogAppConversationDO> page);
+    IPage<LogAppConversationInfoPO> selectSqlPage(IPage<LogAppConversationDO> page, @Param("req") LogAppConversationInfoPageReqVO reqVO);
 
 }
