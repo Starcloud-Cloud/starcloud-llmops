@@ -58,7 +58,7 @@ public interface ErrorCodeConstants {
     ErrorCode USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED = new ErrorCode(2008002005, "权益使用频率超出限制");
 
     ErrorCode USER_BENEFITS_USELESS_INTEREST = new ErrorCode(2008002006, "无可用权益");
-    ErrorCode USER_BENEFITS_USELESS_INSUFFICIENT = new ErrorCode(2008002007, "当前使用的{}不足，请充值");
+    ErrorCode USER_BENEFITS_USELESS_INSUFFICIENT = new ErrorCode(2008002007, "当前使用的{}不足");
 
 
 

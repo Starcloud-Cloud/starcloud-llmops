@@ -3,6 +3,9 @@ package com.starcloud.ops.business.limits.enums;
 import cn.hutool.core.util.ArrayUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.context.i18n.LocaleContextHolder;
+
+import java.util.Locale;
 
 /**
  * 用户权益 - 策略类型的枚举
@@ -49,10 +52,18 @@ public enum BenefitsTypeEnums {
     /**
      * 数据库字段前缀
      */
-    private final String dataPrefix;
+    private final String englishName;
 
 
     public static BenefitsTypeEnums getByCode(String code) {
         return ArrayUtil.firstMatch(o -> o.getCode().equals(code), values());
+    }
+
+    public String getDisplayName(Locale locale) {
+
+        if (Locale.CHINA.equals(locale)) {
+            return this.getChineseName();
+        }
+        return this.englishName;
     }
 }
