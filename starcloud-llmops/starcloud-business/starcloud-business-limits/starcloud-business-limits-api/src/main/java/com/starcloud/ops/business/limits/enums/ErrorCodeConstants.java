@@ -49,7 +49,7 @@ public interface ErrorCodeConstants {
     ErrorCode BENEFITS_STRATEGY_PREFIX_NO_VALIDITY = new ErrorCode(2008001002, "权益码不合法，请勿修改权益码前缀");
 
     //======================================用户权益==========================================
-    ErrorCode USER_BENEFITS_NOT_EXISTS = new ErrorCode(2008002001, "用户权益不存在");
+    ErrorCode USER_BENEFITS_NOT_EXISTS = new ErrorCode(2008002001, "权益不存在，请重新输入");
     ErrorCode USER_BENEFITS_GET_FAIL_MANY_TIMES = new ErrorCode(2008002002, "权益重复领取");
 
     ErrorCode USER_BENEFITS_ILLEGAL_USE = new ErrorCode(2008002003, "权益非法使用方式");
@@ -58,6 +58,7 @@ public interface ErrorCodeConstants {
     ErrorCode USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED = new ErrorCode(2008002005, "权益使用频率超出限制");
 
     ErrorCode USER_BENEFITS_USELESS_INTEREST = new ErrorCode(2008002006, "无可用权益");
+    ErrorCode USER_BENEFITS_USELESS_INSUFFICIENT = new ErrorCode(2008002007, "当前使用的{}不足");
 
 
 
