@@ -151,6 +151,7 @@ yudao:
       - /admin-api/system/auth/login # 登录
       - /admin-api/system/auth/refresh-token # 刷新缓存
       - /admin-api/llm/wechat/** # 微信回调
+      - /admin-api/system/auth/logout # 登出
     ignore-tables:
       - system_tenant
       - system_tenant_package
