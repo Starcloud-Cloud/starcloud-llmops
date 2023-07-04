@@ -377,7 +377,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      *
      * @param benefitsType 权益类型 对应 BenefitsTypeEnums 枚举类
      * @param userId       用户 ID
-     * @return true 可以扣除 false 不可以扣除
      */
     @Override
     public void allowExpendBenefits(String benefitsType, Long userId) {
