@@ -614,6 +614,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public Boolean hasSignInBenefitToday(Long userId) {
+        log.warn("[hasSignInBenefitToday][用户签到检测：用户ID({})", userId);
+
         // 当天的凌晨
         LocalDateTime startDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
         // 当天的深夜
@@ -625,6 +627,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         wrapper.between(UserBenefitsDO::getCreateTime, startDateTime, endDateTime);
 
         List<UserBenefitsDO> userBenefitsDOS = userBenefitsMapper.selectList(wrapper);
+
+        if (CollUtil.isEmpty(userBenefitsDOS)) {
+            return false;
+        }
         List<String> strategyIds = userBenefitsDOS.stream().map(UserBenefitsDO::getStrategyId).collect(Collectors.toList());
         // 当天新增的是否有签到的权益
         LambdaQueryWrapper<UserBenefitsStrategyDO> userBenefitsStrategyDOLambdaQueryWrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
