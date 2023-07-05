@@ -68,9 +68,9 @@ public class AppLogController {
     @Operation(summary = "获得应用执行统计列表")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<List<LogAppMessageStatisticsListVO>> getAppMessageStatisticsList(@Valid @RequestBody LogAppMessageStatisticsListReqVO pageVO) {
-        List<LogAppMessageStatisticsListPO> pageResult = appConversationService.getAppMessageStatisticsList(pageVO);
         // 默认查询应用市场统计数据
         pageVO.setFromScene(AppSceneEnum.WEB_MARKET.name());
+        List<LogAppMessageStatisticsListPO> pageResult = appConversationService.getAppMessageStatisticsList(pageVO);
         return success(LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult));
 
     }

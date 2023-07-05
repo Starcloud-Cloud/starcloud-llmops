@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 
@@ -137,8 +140,30 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         String timeType = statisticsListReqVO.getTimeType();
         statisticsListReqVO.setStartTime(LogTimeTypeEnum.getStartTimeByType(timeType));
         statisticsListReqVO.setEndTime(LogTimeTypeEnum.getEndTimeByType(timeType));
+        List<LogAppMessageStatisticsListPO> statisticsList = logAppMessageMapper.getAppMessageStatisticsList(statisticsListReqVO);
+        LogAppMessageStatisticsListPO logAppMessageStatisticsListPO = statisticsList.get(statisticsList.size() - 1);
+        String nowDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        // 如果最后一条数据不是今天的数据，就添加一条今天的数据
+        if (!nowDate.equals(logAppMessageStatisticsListPO.getCreateDate())) {
+            LogAppMessageStatisticsListPO nowStatistics = new LogAppMessageStatisticsListPO();
+            nowStatistics.setAppUid(logAppMessageStatisticsListPO.getAppUid());
+            nowStatistics.setAppMode(logAppMessageStatisticsListPO.getAppMode());
+            nowStatistics.setAppName(logAppMessageStatisticsListPO.getAppName());
+            nowStatistics.setFromScene(logAppMessageStatisticsListPO.getFromScene());
+            nowStatistics.setMessageCount(0);
+            nowStatistics.setSuccessCount(0);
+            nowStatistics.setErrorCount(0);
+            nowStatistics.setUserCount(0);
+            nowStatistics.setElapsedTotal(new BigDecimal("0"));
+            nowStatistics.setElapsedAvg(new BigDecimal("0"));
+            nowStatistics.setMessageTokens(0);
+            nowStatistics.setAnswerTokens(0);
+            nowStatistics.setTokens(0);
+            nowStatistics.setCreateDate(nowDate);
+            statisticsList.add(nowStatistics);
+        }
 
-        return logAppMessageMapper.getAppMessageStatisticsList(statisticsListReqVO);
+        return statisticsList;
 
     }
 }
