@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -30,15 +31,21 @@ public class AppExecuteController {
 
     @PostMapping("/app")
     @Operation(summary = "执行应用")
-    public void execute(@RequestBody @Valid AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
-        appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_ADMIN, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(), httpServletResponse);
+    public SseEmitter execute(@RequestBody @Valid AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
+        SseEmitter emitter = new SseEmitter(60000L);
+        appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_ADMIN, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(),
+                httpServletResponse,emitter);
+        return emitter;
     }
 
 
     @PostMapping("/market")
     @Operation(summary = "执行应用市场")
-    public void executeMarket(@RequestBody @Valid AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
-        appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_MARKET, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(), httpServletResponse);
+    public SseEmitter executeMarket(@RequestBody @Valid AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
+        SseEmitter emitter = new SseEmitter(60000L);
+        appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_MARKET, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(),
+                httpServletResponse,emitter);
+        return emitter;
     }
 
 

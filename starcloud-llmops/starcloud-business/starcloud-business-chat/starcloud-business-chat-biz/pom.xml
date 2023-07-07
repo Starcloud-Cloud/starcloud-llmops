@@ -2,19 +2,34 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>starcloud-llmops</artifactId>
         <groupId>com.starcloud.ops</groupId>
+        <artifactId>starcloud-business-chat</artifactId>
         <version>${starcloud.revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>starcloud-server</artifactId>
+    <artifactId>starcloud-business-chat-biz</artifactId>
     <version>${starcloud.revision}</version>
 
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.starcloud.ops</groupId>
@@ -22,51 +37,22 @@
             <version>${starcloud.revision}</version>
         </dependency>
 
-        <!--数据集  -->
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-log-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-chat-api</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-dataset-biz</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
-        <!--限制  -->
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-limits-biz</artifactId>
-            <version>${starcloud.revision}</version>
-        </dependency>
-
-        <!-- 订单  -->
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-order-biz</artifactId>
-            <version>${starcloud.revision}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-user-biz</artifactId>
-            <version>${starcloud.revision}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-chat-biz</artifactId>
-            <version>${starcloud.revision}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-
-
-        <!-- Test 测试相关 -->
-        <dependency>
-            <groupId>cn.iocoder.boot</groupId>
-            <artifactId>yudao-spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
 </project>

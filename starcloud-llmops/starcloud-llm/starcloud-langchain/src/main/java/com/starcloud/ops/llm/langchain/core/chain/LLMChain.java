@@ -89,7 +89,7 @@ public class LLMChain<R> extends BaseChain<R> {
         return this.apply(baseVariables);
     }
 
-    public String run(Map<String, Object> maps) {
+    public BaseLLMResult<R> run(Map<String, Object> maps) {
 
         List<BaseVariable> variables = new ArrayList<>();
         maps.forEach((key, value) -> {
@@ -99,7 +99,7 @@ public class LLMChain<R> extends BaseChain<R> {
                     .build());
         });
 
-        return this.apply(variables).getText();
+        return this.apply(variables);
     }
 
 

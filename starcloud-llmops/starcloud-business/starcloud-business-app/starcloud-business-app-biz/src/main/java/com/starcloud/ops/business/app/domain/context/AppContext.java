@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
@@ -50,6 +51,10 @@ public class AppContext {
 
     @JSONField(serialize = false)
     private HttpServletResponse httpServletResponse;
+
+
+    @JSONField(serialize = false)
+    private SseEmitter sseEmitter;
 
     public AppContext(AppEntity app, AppSceneEnum scene) {
         this.conversationId = IdUtil.simpleUUID();

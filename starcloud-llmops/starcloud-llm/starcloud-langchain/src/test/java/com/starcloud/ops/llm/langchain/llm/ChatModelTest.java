@@ -119,7 +119,7 @@ public class ChatModelTest extends SpringBootTests {
             put("input_language", "English");
             put("output_language", "French");
             put("text", "I love programming.");
-        }});
+        }}).getText();
 
         log.info("LLMChain: {}", msg);
 
