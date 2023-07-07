@@ -14,6 +14,7 @@ import com.github.xiaoymin.knife4j.core.util.Assert;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
 import com.starcloud.ops.business.dataset.convert.segment.DocumentSegmentConvert;
+import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.SegmentsEmbeddingsDO;
@@ -30,6 +31,7 @@ import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchTestResponse;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
+import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
@@ -65,6 +67,7 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_EMBEDDING_ERROR;
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_NOT_EXIST_ERROR;
 
 @Service
 @Slf4j
@@ -84,6 +87,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
     @Autowired
     private DatasetStorageService datasetStorageService;
+
+    @Autowired
+    private DatasetsService datasetsService;
 
     @Autowired
     private SplitRulesMapper splitRulesMapper;
@@ -119,10 +125,14 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         log.info("start embedding index,datasetId={},documentId={}", datasetId, documentId);
         long start = System.currentTimeMillis();
         validateTenantId(documentId);
+        DatasetsDO datasets = datasetsService.getDatasets(datasetId);
+        if (datasets == null) {
+            throw exception(DATASETS_NOT_EXIST_ERROR);
+        }
         try {
             List<DocumentSegmentDTO> segments = new ArrayList<>(splitText.size());
             Long tenantId = TenantContextHolder.getTenantId();
-            String creator = WebFrameworkUtils.getLoginUserId().toString();
+            String creator = datasets.getCreator();
             for (int i = 0; i < splitText.size(); i++) {
                 String segmentId = IdUtil.getSnowflakeNextIdStr();
                 String split = splitText.get(i);

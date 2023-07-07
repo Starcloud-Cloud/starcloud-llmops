@@ -21,6 +21,8 @@ public interface ErrorCodeConstants {
 
     ErrorCode DATASETS_EMBEDDING_ERROR = new ErrorCode(1003001010, "embedding索引异常");
 
+    ErrorCode DATASETS_NOT_EXIST_ERROR = new ErrorCode(1003001011, "dataset不存在");
+
 
 
     //======================================数据集源数据======================================
