@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 @Mapper
 public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
 
-    default List<DocumentSegmentDO> selectByDatasetId(String datasetId) {
+    default List<DocumentSegmentDO> selectByDatasetIds(List<String> datasetIds) {
         LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDeleted, false)
-                .eq(DocumentSegmentDO::getDatasetId, datasetId)
+                .in(DocumentSegmentDO::getDatasetId,datasetIds)
                 .orderByAsc(DocumentSegmentDO::getCreateTime);
         return this.selectList(queryWrapper);
     }
