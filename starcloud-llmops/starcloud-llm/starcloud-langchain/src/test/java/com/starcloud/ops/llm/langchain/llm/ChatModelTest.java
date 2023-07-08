@@ -3,12 +3,16 @@ package com.starcloud.ops.llm.langchain.llm;
 import com.starcloud.ops.llm.langchain.SpringBootTests;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.HumanMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.SystemMessage;
+
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
+import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.*;
 import com.starcloud.ops.llm.langchain.core.schema.callbacks.StreamingStdOutCallbackHandler;
+import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -32,7 +36,7 @@ public class ChatModelTest extends SpringBootTests {
         chatOpenAI.setVerbose(true);
 
 
-        chatOpenAI.call(Arrays.asList(HumanMessage.builder().content("hi, what you name?").build()));
+        chatOpenAI.call(Arrays.asList(new HumanMessage("hi, what you name?")), null);
 
 
     }
@@ -48,7 +52,7 @@ public class ChatModelTest extends SpringBootTests {
         chatOpenAI.setVerbose(true);
         chatOpenAI.addCallbackHandler(new StreamingStdOutCallbackHandler(mockHttpServletResponse));
 
-        String msg = chatOpenAI.call(Arrays.asList(HumanMessage.builder().content("hi, what you name?").build()));
+        String msg = chatOpenAI.call(Arrays.asList(new HumanMessage("hi, what you name?")), null);
 
         log.info("msg: {}", msg);
     }
@@ -61,10 +65,10 @@ public class ChatModelTest extends SpringBootTests {
         chatOpenAI.setVerbose(true);
 
         ChatResult chatResult = chatOpenAI.generate(Arrays.asList(
-                Arrays.asList(SystemMessage.builder().content("You are a helpful assistant that translates English to French.").build(), HumanMessage.builder().content("I love programming.").build()),
+                Arrays.asList(new SystemMessage("You are a helpful assistant that translates English to French."), new HumanMessage("I love programming.")),
 
-                Arrays.asList(SystemMessage.builder().content("You are a helpful assistant that translates English to Chinese.").build(), HumanMessage.builder().content("I love artificial intelligence.").build())
-        ));
+                Arrays.asList(new SystemMessage("You are a helpful assistant that translates English to Chinese."), new HumanMessage("I love artificial intelligence."))
+        ), null);
 
         log.info("chatResult: {}", chatResult);
 
@@ -77,10 +81,10 @@ public class ChatModelTest extends SpringBootTests {
 
         ChatPromptTemplate chatPromptTemplate = ChatPromptTemplate.fromMessages(Arrays.asList(
 
-                SystemMessagePromptTemplate.fromTemplate(BasePromptTemplate.of("You are a helpful assistant that translates {input_language} to {output_language}.", "input_language", "output_language")),
+                SystemMessagePromptTemplate.fromTemplate("You are a helpful assistant that translates {input_language} to {output_language}.", "input_language", "output_language"),
 
 
-                HumanMessagePromptTemplate.fromTemplate(BasePromptTemplate.of("{text}", "text"))
+                HumanMessagePromptTemplate.fromTemplate("{text}", "text")
 
         ));
 
@@ -101,10 +105,10 @@ public class ChatModelTest extends SpringBootTests {
 
         ChatPromptTemplate chatPromptTemplate = ChatPromptTemplate.fromMessages(Arrays.asList(
 
-                SystemMessagePromptTemplate.fromTemplate(BasePromptTemplate.of("You are a helpful assistant that translates {input_language} to {output_language}.", "input_language", "output_language")),
+                SystemMessagePromptTemplate.fromTemplate("You are a helpful assistant that translates {input_language} to {output_language}.", "input_language", "output_language"),
 
 
-                HumanMessagePromptTemplate.fromTemplate(BasePromptTemplate.of("{text}", "text"))
+                HumanMessagePromptTemplate.fromTemplate("{text}", "text")
 
         ));
 

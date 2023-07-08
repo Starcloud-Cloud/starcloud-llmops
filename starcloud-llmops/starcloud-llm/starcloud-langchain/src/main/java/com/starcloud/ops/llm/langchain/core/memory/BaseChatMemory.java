@@ -1,9 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.memory;
 
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.AIMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.HumanMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.SystemMessage;
+import com.starcloud.ops.llm.langchain.core.model.chat.base.message.*;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.Data;
@@ -27,24 +24,6 @@ public abstract class BaseChatMemory extends BaseMemory {
 
     public BaseChatMemory() {
         this.setChatHistory(new ChatMessageHistory());
-    }
-
-
-    public String getBufferString(List<BaseChatMessage> messages) {
-        return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(message -> {
-
-            String role = "Human";
-            if (message instanceof HumanMessage) {
-                role = "Human";
-            } else if (message instanceof AIMessage) {
-                role = "AI";
-            } else if (message instanceof SystemMessage) {
-                role = "System";
-            } else {
-                role = "Human";
-            }
-            return role + ": " + message.getContent();
-        }).collect(Collectors.joining("\n"));
     }
 
     protected BaseVariable getPromptInputKey(List<BaseVariable> baseVariables) {

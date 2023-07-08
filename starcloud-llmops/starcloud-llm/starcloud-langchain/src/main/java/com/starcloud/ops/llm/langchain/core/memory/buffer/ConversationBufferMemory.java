@@ -22,7 +22,7 @@ public class ConversationBufferMemory extends BaseChatMemory {
         List<BaseChatMessage> messages = getChatHistory().getMessages();
         return Collections.singletonList(BaseVariable.builder()
                 .field(MEMORY_KEY)
-                .value(getBufferString(messages))
+                .value(BaseChatMessage.getBufferString(messages))
                 .build());
     }
 

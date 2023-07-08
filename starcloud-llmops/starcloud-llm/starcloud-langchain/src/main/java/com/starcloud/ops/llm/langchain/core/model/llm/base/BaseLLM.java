@@ -2,10 +2,11 @@ package com.starcloud.ops.llm.langchain.core.model.llm.base;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
 import com.starcloud.ops.llm.langchain.core.schema.callbacks.LLMCallbackManager;
+import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Data
-public abstract class BaseLLM<R> extends BaseLanguageModel<R> {
+public abstract class BaseLLM<R> extends BaseLanguageModel<R, LLMCallbackManager> {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseLLM.class);
 
@@ -49,6 +50,7 @@ public abstract class BaseLLM<R> extends BaseLanguageModel<R> {
 
 
     protected abstract BaseLLMResult<R> _generate(List<String> texts);
+
 
     protected BaseLLMResult<R> _agenerate(List<String> texts) {
         return null;
@@ -111,8 +113,29 @@ public abstract class BaseLLM<R> extends BaseLanguageModel<R> {
         return this.generate(Optional.ofNullable(promptValues).orElse(new ArrayList<>()).stream().map(PromptValue::toStr).collect(Collectors.toList()));
     }
 
-    public String call(String text) {
-        BaseLLMResult<R> baseLLMResult = this._generate(Arrays.asList(text));
+    @Override
+    public String predict(String text, List<String> stops) {
+        return this._call(text);
+    }
+
+    @Override
+    public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops) {
+
+        String content = this.predict(BaseMessage.getBufferString(baseMessages), stops);
+
+        return new AIMessage(content);
+    }
+
+    @Override
+    public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, LLMCallbackManager callbackManager) {
+
+        this.setCallbackManager(callbackManager);
+        return this.predictMessages(baseMessages, stops);
+    }
+
+
+    public String _call(String text) {
+        BaseLLMResult<R> baseLLMResult = this.generate(Arrays.asList(text));
         return baseLLMResult.getGenerations().get(0).getText();
     }
 

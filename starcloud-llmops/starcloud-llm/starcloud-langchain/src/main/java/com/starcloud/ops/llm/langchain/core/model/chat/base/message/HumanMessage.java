@@ -7,6 +7,7 @@ import lombok.experimental.SuperBuilder;
 
 @Data
 @SuperBuilder
+@Deprecated
 public class HumanMessage extends BaseChatMessage {
 
     @Builder.Default

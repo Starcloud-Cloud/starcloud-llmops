@@ -34,7 +34,7 @@ public class ConversationBufferWindowMemory extends BaseChatMemory {
         messages = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().skip(CollectionUtil.size(messages) - this.k * 2).collect(Collectors.toList());
         return Arrays.asList(BaseVariable.builder()
                 .field(MEMORY_KEY)
-                .value(getBufferString(messages))
+                .value(BaseChatMessage.getBufferString(messages))
                 .build());
     }
 

@@ -56,7 +56,7 @@ public class ConversationSummaryBufferMemory extends SummarizerMixin {
         } else {
             return Arrays.asList(BaseVariable.builder()
                     .field(MEMORY_KEY)
-                    .value(getBufferString(messages))
+                    .value(BaseChatMessage.getBufferString(messages))
                     .build());
 
         }

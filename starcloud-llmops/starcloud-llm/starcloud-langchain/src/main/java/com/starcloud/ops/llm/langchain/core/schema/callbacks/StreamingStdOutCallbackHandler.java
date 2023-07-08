@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Data
-public class StreamingStdOutCallbackHandler extends BaseCallbackHandler {
+public class StreamingStdOutCallbackHandler implements BaseCallbackHandler {
 
     private HttpServletResponse httpServletResponse;
 

@@ -46,7 +46,7 @@ public class ConversationTokenBufferMemory extends BaseChatMemory {
 
             return Collections.singletonList(BaseVariable.builder()
                     .field(MEMORY_KEY)
-                    .value(getBufferString(this.getChatHistory().getMessages()))
+                    .value(BaseChatMessage.getBufferString(this.getChatHistory().getMessages()))
                     .build());
         }
 

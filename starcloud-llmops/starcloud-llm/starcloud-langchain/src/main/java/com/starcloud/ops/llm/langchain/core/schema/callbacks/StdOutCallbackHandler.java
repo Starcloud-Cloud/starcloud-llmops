@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
-public class StdOutCallbackHandler extends BaseCallbackHandler {
+public class StdOutCallbackHandler implements BaseCallbackHandler {
 
 
     @Override

@@ -4,8 +4,9 @@ import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.memory.BaseMemory;
 import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLM;
-import com.starcloud.ops.llm.langchain.core.prompt.base.template.BasePromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.prompt.BasePromptTemplate;
 import lombok.EqualsAndHashCode;
 
 import java.util.Arrays;
@@ -24,7 +25,7 @@ public class ConversationChain<R> extends LLMChain<R> {
             "Human: {input}\n" +
             "AI:";
 
-    public static BasePromptTemplate basePromptTemplate = new BasePromptTemplate(DEFAULT_TEMPLATE, Arrays.asList(BaseVariable.newString("history"), BaseVariable.newString("input")));
+    public static BasePromptTemplate basePromptTemplate = new PromptTemplate(DEFAULT_TEMPLATE, Arrays.asList(BaseVariable.newString("history"), BaseVariable.newString("input")));
 
 
     public ConversationChain(BaseLLM<R> llm) {

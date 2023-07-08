@@ -1,8 +1,7 @@
 package com.starcloud.ops.llm.langchain.core.prompt.base;
 
-
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.HumanMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import lombok.Data;
 
 import java.util.Arrays;
@@ -24,7 +23,7 @@ public class StringPromptValue extends PromptValue {
     }
 
     @Override
-    public List<BaseChatMessage> toMessage() {
-        return Arrays.asList(HumanMessage.builder().content(this.str).build());
+    public List<BaseMessage> toMessage() {
+        return Arrays.asList(new HumanMessage(this.str));
     }
 }

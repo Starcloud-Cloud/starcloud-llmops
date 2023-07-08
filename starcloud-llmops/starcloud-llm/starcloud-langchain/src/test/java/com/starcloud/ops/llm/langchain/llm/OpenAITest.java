@@ -30,7 +30,7 @@ public class OpenAITest extends SpringBootTests {
 
         OpenAI llm = new OpenAI();
 
-        log.info("result : {}", llm.call("Hi there! what you name?"));
+        log.info("result : {}", llm._call("Hi there! what you name?"));
 
     }
 
