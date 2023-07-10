@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.enums;
+package com.starcloud.ops.business.app.enums;
 
 /**
  * @author starcloud

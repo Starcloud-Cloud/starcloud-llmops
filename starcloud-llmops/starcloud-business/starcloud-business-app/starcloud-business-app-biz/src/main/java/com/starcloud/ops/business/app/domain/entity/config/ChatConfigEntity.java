@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
 import com.starcloud.ops.business.app.domain.entity.action.LLMFunctionEntity;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import lombok.Data;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private String prePrompt;
 
-    private List<UserInputFromEntity> userInputForm;
+    private VariableEntity variable;
 
     private ModelConfigEntity modelConfig;
 

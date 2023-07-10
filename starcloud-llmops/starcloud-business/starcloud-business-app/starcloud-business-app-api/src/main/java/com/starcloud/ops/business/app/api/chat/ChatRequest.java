@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.request;
+package com.starcloud.ops.business.app.api.chat;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;

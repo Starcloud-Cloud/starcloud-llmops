@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.dal.dataObject;
+package com.starcloud.ops.business.app.convert.chat;
 
 
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;

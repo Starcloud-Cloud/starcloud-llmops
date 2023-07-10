@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.service.impl;
+package com.starcloud.ops.business.app.service.chat.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -6,22 +6,25 @@ import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.chat.ChatRequest;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.UserInputFromEntity;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
+import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.chat.enums.PromptTempletEnum;
-import com.starcloud.ops.business.chat.request.ChatRequest;
-import com.starcloud.ops.business.chat.service.ChatService;
+import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
+import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
@@ -35,8 +38,11 @@ import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
@@ -58,10 +64,16 @@ public class ChatServiceImpl implements ChatService {
     private LogAppMessageMapper messageMapper;
 
     @Resource
+    private LogAppMessageService logAppMessageDO;
+
+    @Resource
     private DocumentSegmentsService documentSegmentsService;
 
     @Resource
     private UserBenefitsService benefitsService;
+
+    @Resource(name = "CHAT_POOL_TASK_EXECUTOR")
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Override
     public List<LogAppMessageDO> chatHistory(String conversationUid) {
@@ -80,7 +92,7 @@ public class ChatServiceImpl implements ChatService {
         AppEntity appEntity = JSON.parseObject(conversationDO.getAppConfig(), AppEntity.class);
         ChatConfigEntity chatConfig = appEntity.getChatConfig();
         // 从表单配置中筛选输入变量，处理必填字段、默认值和选项值
-        Map<String, String> cleanInputs = getCleanInputs(request.getInputs(), chatConfig.getUserInputForm());
+        Map<String, Object> cleanInputs = getVariableItem(chatConfig.getVariable().getVariables());
         ChatMessageHistory history = preHistory(conversationDO.getUid(), AppModelEnum.CHAT.name());
         StringJoiner messageTemp = new StringJoiner(StringUtils.LF);
 
@@ -119,38 +131,39 @@ public class ChatServiceImpl implements ChatService {
 
         SseEmitter emitter = new SseEmitter(60000L);
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = buildLlm(history, chatConfig, chatPromptTemplate, emitter);
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
 
-        Thread thread = new Thread(() -> {
-            BaseLLMResult<ChatCompletionResult> run = llmChain.run(humanInput);
-            emitter.complete();
+        threadPoolTaskExecutor.execute(() -> {
+            RequestContextHolder.setRequestAttributes(requestAttributes);
+            BaseLLMResult<ChatCompletionResult> result = llmChain.run(humanInput);
+
             long end = System.currentTimeMillis();
-            BigDecimal totalPrice = BigDecimal.valueOf(run.getUsage().getTotalTokens()).multiply(new BigDecimal("0.0200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
-            LogAppMessageDO logAppMessageDO = LogAppMessageDO.builder()
-                    .uid(IdUtil.getSnowflakeNextIdStr())
-                    .message(request.getQuery())
-                    .messageTokens(Math.toIntExact(run.getUsage().getPromptTokens()))
-                    .messageUnitPrice(new BigDecimal("0.0200"))
-                    .appConfig(JSON.toJSONString(appEntity))
-                    .variables("{}")
-                    .appUid(conversationDO.getAppUid())
-                    .appStep("")
-                    .appMode(AppModelEnum.CHAT.name())
-                    .appConversationUid(conversationDO.getUid())
-                    .answer(run.getText())
-                    .answerTokens(Math.toIntExact(run.getUsage().getCompletionTokens()))
-                    .answerUnitPrice(new BigDecimal("0.0200"))
-                    .elapsed(end - start)
-                    .totalPrice(totalPrice)
-                    .currency("USD")
-                    .fromScene("")
-                    .status("SUCCESS")
-                    .build();
-            logAppMessageDO.setCreator(userId.toString());
-            messageMapper.insert(logAppMessageDO);
-            benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), run.getUsage().getTotalTokens(), userId, logAppMessageDO.getUid());
+            BigDecimal totalPrice = BigDecimal.valueOf(result.getUsage().getTotalTokens()).multiply(new BigDecimal("0.0200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+
+            LogAppMessageCreateReqVO messageCreateReqVO = new LogAppMessageCreateReqVO();
+            messageCreateReqVO.setUid(IdUtil.getSnowflakeNextIdStr());
+            messageCreateReqVO.setMessage(request.getQuery());
+            messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
+            messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.0200"));
+            messageCreateReqVO.setAppConfig(JSON.toJSONString(appEntity));
+            messageCreateReqVO.setVariables(JSON.toJSONString(chatConfig.getVariable()));
+            messageCreateReqVO.setAppUid(conversationDO.getAppUid());
+            messageCreateReqVO.setAppStep("");
+            messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
+            messageCreateReqVO.setAppConversationUid(conversationDO.getUid());
+            messageCreateReqVO.setAnswer(result.getText());
+            messageCreateReqVO.setAnswerTokens(Math.toIntExact(result.getUsage().getCompletionTokens()));
+            messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.0200"));
+            messageCreateReqVO.setElapsed(end - start);
+            messageCreateReqVO.setTotalPrice(totalPrice);
+            messageCreateReqVO.setCurrency("USD");
+            messageCreateReqVO.setFromScene("");
+            messageCreateReqVO.setStatus("SUCCESS");
+            logAppMessageDO.createAppMessage(messageCreateReqVO);
+            benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, messageCreateReqVO.getUid());
+            emitter.complete();
             log.info("chat end , Response time: {} ms", end - start);
         });
-        thread.start();
         return emitter;
     }
 
@@ -172,14 +185,32 @@ public class ChatServiceImpl implements ChatService {
         return history;
     }
 
+
+    private Map<String, Object> getVariableItem(List<VariableItemEntity> variables) {
+        Map<String, Object> filteredInputs = new HashMap<>();
+        if (CollectionUtils.isEmpty(variables)) {
+            return filteredInputs;
+        }
+        for (VariableItemEntity item : variables) {
+            Object value = item.getValue();
+            if (value != null) {
+                filteredInputs.put(item.getField(), value);
+            } else {
+                filteredInputs.put(item.getField(), item.getDefaultValue());
+            }
+
+        }
+        return filteredInputs;
+    }
+
     private Map<String, String> getCleanInputs(Map<String, String> inputs, List<UserInputFromEntity> userInputForms) {
-        Map<String, String> filteredInputs = new HashMap<>(userInputForms.size());
+        Map<String, String> filteredInputs = new HashMap<>();
         if (CollectionUtils.isEmpty(userInputForms)) {
             return filteredInputs;
         }
         for (UserInputFromEntity userInputFrom : userInputForms) {
             String variable = userInputFrom.getVariable();
-            if (inputs ==null || !inputs.containsKey(variable) || inputs.get(variable) == null) {
+            if (inputs == null || !inputs.containsKey(variable) || inputs.get(variable) == null) {
                 if (BooleanUtils.isNotFalse(userInputFrom.getRequired())) {
                     throw new ServiceException(500, variable + " is required in input form!");
                 } else {

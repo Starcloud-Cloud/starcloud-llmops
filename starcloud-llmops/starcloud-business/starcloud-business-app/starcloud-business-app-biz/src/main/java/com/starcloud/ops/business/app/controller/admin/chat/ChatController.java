@@ -1,9 +1,9 @@
-package com.starcloud.ops.business.chat.controller.admin;
+package com.starcloud.ops.business.app.controller.admin.chat;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.chat.request.ChatRequest;
-import com.starcloud.ops.business.chat.service.ChatService;
+import com.starcloud.ops.business.app.api.chat.ChatRequest;
+import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
