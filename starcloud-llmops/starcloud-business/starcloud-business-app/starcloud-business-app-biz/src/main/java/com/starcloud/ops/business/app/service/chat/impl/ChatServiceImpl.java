@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.api.chat.ChatRequest;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.config.UserInputFromEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
@@ -49,6 +50,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author starcloud
@@ -102,10 +104,14 @@ public class ChatServiceImpl implements ChatService {
         }
 
         // 数据集
+
+        List<String> datasetUid = Optional.ofNullable(chatConfig.getDatesetEntities()).orElse(new ArrayList<>())
+                .stream().filter(DatesetEntity::getEnabled).map(DatesetEntity::getDatasetUid).collect(Collectors.toList());
+
         SimilarQueryRequest similarQueryRequest = new SimilarQueryRequest();
         similarQueryRequest.setQuery(request.getQuery());
         similarQueryRequest.setK(2L);
-        similarQueryRequest.setDatasetUid(chatConfig.getDatasetUid());
+        similarQueryRequest.setDatasetUid(datasetUid);
         List<String> context = documentSegmentsService.similarQuery(similarQueryRequest);
         Map<String, Object> humanInput = new HashMap<>(cleanInputs);
         if (!CollectionUtils.isEmpty(context)) {

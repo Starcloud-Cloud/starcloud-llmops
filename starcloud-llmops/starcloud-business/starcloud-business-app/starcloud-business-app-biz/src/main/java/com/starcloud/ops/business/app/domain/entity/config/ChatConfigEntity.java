@@ -25,9 +25,9 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private ModelConfigEntity modelConfig;
 
-    private Map<String,Object> inputs;
+    private List<DatesetEntity> datesetEntities;
 
-    private List<String> datasetUid;
+    private SuggestedQuestionEntity suggestedQuestion;
 
     /**
      * 挂载的 functions 列表

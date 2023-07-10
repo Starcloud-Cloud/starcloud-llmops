@@ -363,6 +363,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Override
     public List<String> similarQuery(SimilarQueryRequest request) {
         List<String> similarSegment = new ArrayList<>();
+        if (CollectionUtils.isEmpty(request.getDatasetUid())) {
+            return similarSegment;
+        }
         List<DocumentSegmentDO> docSegments = segmentMapper.selectByDatasetIds(request.getDatasetUid());
         if (CollectionUtils.isEmpty(docSegments)) {
             return similarSegment;
