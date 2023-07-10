@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -24,7 +25,9 @@ public class ChatController {
 
     @Operation(summary = "聊天")
     @PostMapping("/completions")
-    public SseEmitter conversation(@RequestBody @Valid ChatRequest request) {
+    public SseEmitter conversation(@RequestBody @Valid ChatRequest request, HttpServletResponse httpServletResponse) {
+        httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
+        httpServletResponse.setHeader("X-Accel-Buffering", "no");
         return chatService.chat(request);
     }
 

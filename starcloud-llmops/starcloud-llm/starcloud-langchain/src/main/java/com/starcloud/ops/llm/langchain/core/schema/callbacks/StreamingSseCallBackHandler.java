@@ -63,7 +63,7 @@ public class StreamingSseCallBackHandler extends BaseCallbackHandler {
         } else {
             emitter.send(new StreamResult(500, "[Other] Please try again later"));
         }
-
+        emitter.complete();
 
     }
 
