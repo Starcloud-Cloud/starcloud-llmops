@@ -20,6 +20,7 @@ import com.starcloud.ops.business.order.dal.mysql.refund.PayRefundMapper;
 import com.starcloud.ops.business.order.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.order.enums.order.PayOrderStatusEnum;
 import com.starcloud.ops.business.order.enums.refund.PayRefundStatusEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -36,6 +37,7 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_APP_
  *
  * @author aquan
  */
+@Slf4j
 @Service
 @Validated
 public class PayAppServiceImpl implements PayAppService {
@@ -185,6 +187,21 @@ public class PayAppServiceImpl implements PayAppService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_APP_IS_DISABLE);
         }
         return app;
+    }
+
+    /**
+     * 获取当前商户信息
+     *
+     * @return 支付应用信息列表
+     */
+    @Override
+    public PayAppDO getAppInfo() {
+        List<PayAppDO> payAppDOS = payAppMapper.selectList();
+        if (payAppDOS.size() > 1) {
+            log.error("存在多条应用配置，请立刻删除无用的数据");
+        }
+
+        return payAppDOS.get(0);
     }
 
 }

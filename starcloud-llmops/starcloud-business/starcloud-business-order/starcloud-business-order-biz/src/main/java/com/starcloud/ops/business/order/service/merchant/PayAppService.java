@@ -113,4 +113,12 @@ public interface PayAppService {
      */
     PayAppDO validPayApp(Long id);
 
+
+    /**
+     * 获取当前商户信息
+     *
+     * @return 支付应用信息列表
+     */
+    PayAppDO getAppInfo();
+
 }

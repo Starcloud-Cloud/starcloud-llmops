@@ -1,19 +1,32 @@
 package com.starcloud.ops.business.limits.enums;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum UserLevelEnums {
-    FREE("FREE","普通用户"),
-    PRO("PRO","PRO用户"),
-    PLUS("PLUS","PRO用户");
+    FREE("FREE","普通用户","MOFAAI_FREE"),
 
-    private String code;
-    private String msg;
+    PLUS("PLUS","PLUS用户","MOFAAI_PLUS"),
 
-    //TODO 增加角色code 关联角色
-    // 1.提供查询用户等级接口 入参 用户 ID
+    PRO("PRO","PRO用户","MOFAAI_PRO"),
+    ;
+
+    private final String code;
+
+    private final String msg;
+
+    private final String roleCode;
 
 
-    UserLevelEnums(String code, String msg) {
-        this.code = code;
-        this.msg = msg;
+    public static String getRoleCodeByLevel(UserLevelEnums level) {
+        for (UserLevelEnums userLevel : UserLevelEnums.values()) {
+            if (userLevel == level) {
+                return userLevel.getRoleCode();
+            }
+        }
+        // 返回FREE对应的roleCode作为默认值
+        return UserLevelEnums.FREE.getRoleCode();
     }
 }

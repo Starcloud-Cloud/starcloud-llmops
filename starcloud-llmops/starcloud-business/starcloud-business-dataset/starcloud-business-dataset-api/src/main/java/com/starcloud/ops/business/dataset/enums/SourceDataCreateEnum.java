@@ -14,7 +14,6 @@ public enum SourceDataCreateEnum {
 
     BROWSER_INTERFACE("Browser Interface"),
     EXTERNAL_API("External API");
-    ;
 
     /**
      * 存储器

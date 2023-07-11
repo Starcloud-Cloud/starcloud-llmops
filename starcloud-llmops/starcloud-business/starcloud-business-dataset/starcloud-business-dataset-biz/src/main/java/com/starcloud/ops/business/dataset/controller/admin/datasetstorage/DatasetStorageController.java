@@ -2,7 +2,7 @@ package com.starcloud.ops.business.dataset.controller.admin.datasetstorage;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageRespVO;
-import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
+import com.starcloud.ops.business.dataset.service.DataSetServicesImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +25,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 public class DatasetStorageController {
 
     @Resource
-    private DatasetStorageService datasetStorageService;
+    private DataSetServicesImpl dataSetServices;
 
     @PostMapping(value = "/upload")
     @Operation(summary = "创建数据集源数据存储")
@@ -33,6 +33,6 @@ public class DatasetStorageController {
         DatasetStorageRespVO datasetStorageRespVO = new DatasetStorageRespVO();
         datasetStorageRespVO.setFile(file);
         datasetStorageRespVO.setPath(path);
-        return success(datasetStorageService.uploadSourceData(datasetStorageRespVO));
+        return success(dataSetServices.uploadSourceData(datasetStorageRespVO));
     }
 }

@@ -1,18 +1,17 @@
 package com.starcloud.ops.business.dataset.service.datasets;
 
-import java.util.*;
-import javax.validation.*;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsCreateReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsExportReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsUpdateReqVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 
+import javax.validation.Valid;
+
 /**
  * 数据集 Service 接口
  *
- * @author 芋道源码
+ * @author Alan Cusack
  */
 public interface DatasetsService {
 
@@ -71,6 +70,10 @@ public interface DatasetsService {
 
 
 
+    void validateDatasetsExists(String UID);
+
+
+    DatasetsDO getDataSetBaseDo(String UID);
 
 
 

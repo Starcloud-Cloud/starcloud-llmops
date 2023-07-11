@@ -40,8 +40,9 @@ public interface UserBenefitsService {
 
     /**
      * 检测是否存在可扣除的权益
+     *
      * @param benefitsType 权益类型 对应 BenefitsTypeEnums 枚举类
-     * @param userId 用户 ID
+     * @param userId       用户 ID
      */
 
     void allowExpendBenefits(String benefitsType, Long userId);
@@ -79,5 +80,16 @@ public interface UserBenefitsService {
      * @return Boolean
      */
     Boolean hasSignInBenefitToday(Long userId);
+
+
+    /**
+     * 新增用户权益
+     *
+     * @param benefitsType 权益 type
+     * @param userId       用户 ID
+     * @param roleCode     角色 code
+     * @return 编号
+     */
+    Boolean addBenefitsAndRole(String benefitsType, Long userId, String roleCode);
 
 }

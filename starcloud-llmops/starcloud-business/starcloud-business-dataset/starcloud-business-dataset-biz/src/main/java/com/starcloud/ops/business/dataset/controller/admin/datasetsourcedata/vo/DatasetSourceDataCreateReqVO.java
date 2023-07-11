@@ -11,7 +11,7 @@ import lombok.ToString;
 public class DatasetSourceDataCreateReqVO {
 
     @Schema(description = "文件ID", required = true)
-    private String filed;
+    private String filedId;
 
     @Schema(description = "数据集ID", required = true)
     private String datasetId;

@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
-import java.util.*;
-import javax.validation.*;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataCreateReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataUpdateReqVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
+
+import javax.validation.Valid;
 
 /**
  * 数据集源数据 Service 接口
@@ -59,6 +59,13 @@ public interface DatasetSourceDataService {
      * @param uid 数据集源数据编号
      */
     void unArchivedDatasetSourceData( String uid);
+
+    /**
+     * 取消归档数据集源数据
+     *
+     * @param uid 数据集源数据编号
+     */
+    void updateDatasourceStatus( String uid,Integer status);
 
 
 }

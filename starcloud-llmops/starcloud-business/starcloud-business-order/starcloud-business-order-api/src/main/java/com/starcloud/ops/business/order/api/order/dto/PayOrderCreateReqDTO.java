@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
  */
 @Data
 public class PayOrderCreateReqDTO implements Serializable {
-
     /**
      * 应用编号
      */
@@ -39,6 +38,12 @@ public class PayOrderCreateReqDTO implements Serializable {
     @NotEmpty(message = "商品标题不能为空")
     @Length(max = 32, message = "商品标题不能超过 32")
     private String subject;
+
+    /**
+     * 商品code
+     */
+    @NotEmpty(message = "商品Code不能为空")
+    private String productCode;
     /**
      * 商品描述
      */
