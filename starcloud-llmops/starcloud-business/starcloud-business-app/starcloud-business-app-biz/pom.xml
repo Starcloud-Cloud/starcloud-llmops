@@ -15,6 +15,26 @@
 
     <dependencies>
 
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-openfeign</artifactId>-->
+<!--            <version>4.0.3</version>-->
+<!--&lt;!&ndash;            <version>3.1.9-SNAPSHOT</version>&ndash;&gt;-->
+<!--        </dependency>-->
+
+        <!--        &lt;!&ndash;openfeign底层使用ApacheHttpClient调用&ndash;&gt;-->
+        <!--        <dependency>-->
+        <!--            <groupId>io.github.openfeign</groupId>-->
+        <!--            <artifactId>feign-httpclient</artifactId>-->
+        <!--            <version>11.10</version>-->
+        <!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.springframework</groupId>-->
+<!--            <artifactId>spring-beans</artifactId>-->
+<!--        </dependency>-->
+
+
         <dependency>
             <groupId>cn.kstry.framework</groupId>
             <artifactId>kstry-core</artifactId>
