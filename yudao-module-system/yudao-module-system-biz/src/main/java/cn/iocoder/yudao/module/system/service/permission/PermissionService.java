@@ -145,6 +145,6 @@ public interface PermissionService {
      * 新增用户角色
      *
      */
-    void addUserRole(Long roleId, String role);
+    void addUserRole(Long userId, String role);
 
 }

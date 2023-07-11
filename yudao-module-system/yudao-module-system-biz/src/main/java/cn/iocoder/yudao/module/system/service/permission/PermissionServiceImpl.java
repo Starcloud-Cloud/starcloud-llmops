@@ -437,7 +437,7 @@ public class PermissionServiceImpl implements PermissionService {
 
 
     @Override
-    public void addUserRole(Long roleId, String role) {
+    public void addUserRole(Long userId, String role) {
 
     }
 }
