@@ -32,7 +32,7 @@ public class ChatController {
     }
 
 
-    @Operation(summary = "聊天")
+    @Operation(summary = "聊天历史")
     @GetMapping("/history/{conversationUid}")
     public CommonResult<List<LogAppMessageDO>> history(@PathVariable("conversationUid") String conversationUid) {
         return CommonResult.success(chatService.chatHistory(conversationUid));

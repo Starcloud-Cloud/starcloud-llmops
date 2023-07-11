@@ -39,7 +39,6 @@ import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.RequestAttributes;
@@ -50,6 +49,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -74,8 +74,8 @@ public class ChatServiceImpl implements ChatService {
     @Resource
     private UserBenefitsService benefitsService;
 
-    @Resource(name = "CHAT_POOL_TASK_EXECUTOR")
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    @Resource(name = "CHAT_POOL_EXECUTOR")
+    private ThreadPoolExecutor threadPoolExecutor;
 
     @Override
     public List<LogAppMessageDO> chatHistory(String conversationUid) {
@@ -139,7 +139,7 @@ public class ChatServiceImpl implements ChatService {
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = buildLlm(history, chatConfig, chatPromptTemplate, emitter);
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
 
-        threadPoolTaskExecutor.execute(() -> {
+        threadPoolExecutor.execute(() -> {
             RequestContextHolder.setRequestAttributes(requestAttributes);
             BaseLLMResult<ChatCompletionResult> result = llmChain.run(humanInput);
 
