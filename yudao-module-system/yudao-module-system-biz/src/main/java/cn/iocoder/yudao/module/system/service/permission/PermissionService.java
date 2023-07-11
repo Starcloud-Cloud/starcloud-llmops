@@ -139,4 +139,12 @@ public interface PermissionService {
      */
     DeptDataPermissionRespDTO getDeptDataPermission(Long userId);
 
+
+
+    /**
+     * 新增用户角色
+     *
+     */
+    void addUserRole(Long roleId, String role);
+
 }
