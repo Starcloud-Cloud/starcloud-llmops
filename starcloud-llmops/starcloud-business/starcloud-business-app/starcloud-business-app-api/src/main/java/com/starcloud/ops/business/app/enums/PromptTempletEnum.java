@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.enums;
+package com.starcloud.ops.business.app.enums;
 
 /**
  * @author starcloud
@@ -6,7 +6,7 @@ package com.starcloud.ops.business.chat.enums;
 
 public enum PromptTempletEnum {
 
-    DATASET_CONTEXT("context","Use the following CONTEXT as your learned knowledge:\n" +
+    DATASET_CONTEXT("context", "Use the following CONTEXT as your learned knowledge:\n" +
             "[CONTEXT]\n" +
             "{context}\n" +
             "[END CONTEXT]\n" +
@@ -15,10 +15,18 @@ public enum PromptTempletEnum {
             "- If you don't know when you are not sure, ask for clarification. \n" +
             "Avoid mentioning that you obtained the information from the context. \n"),
 
-    HISTORY_TEMP("history","{history}"),
+    HISTORY_TEMP("history", "{history}"),
 
-    INPUT_TEMP("input","Human: {input}\nAI: ")
-    ;
+    INPUT_TEMP("input", "Human: {input}\nAI: "),
+
+    SUGGESTED_QUESTIONS("histories", "{histories}\n" +
+            "Please help me predict the three most likely questions that human would ask, " +
+            "and keeping each question under 20 characters.\n" +
+            "The output must be in JSON format following the specified schema:\n" +
+            "[\"question1\",\"question2\",\"question3\"]\n" +
+            "questions:\n"
+
+    );
 
     private String key;
 

@@ -1,6 +1,6 @@
-package com.starcloud.ops.business.chat.service;
+package com.starcloud.ops.business.app.service.chat;
 
-import com.starcloud.ops.business.chat.request.ChatRequest;
+import com.starcloud.ops.business.app.api.chat.ChatRequest;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 

@@ -34,7 +34,6 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
     @SneakyThrows
     public void onLLMNewToken(Object... objects) {
         StreamResult streamResult = new StreamResult(200, objects[0].toString());
-//        emitter.send(event().name("success").data(streamResult));
         emitter.send(streamResult);
     }
 
@@ -48,7 +47,7 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
     @Override
     @SneakyThrows
     public void onLLMError(String message) {
-        emitter.send(event().name("error").data(new StreamResult(500, message)));
+        emitter.send(new StreamResult(500, message));
     }
 
 
@@ -58,14 +57,14 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
 
         if (message != null && message.contains("timeout")) {
 
-            emitter.send(event().name("error").data(new StreamResult(500, "[Timeout] " + throwable.getMessage())));
+            emitter.send(new StreamResult(500, "[Timeout] " + throwable.getMessage()));
 
         } else if (message != null && message.contains("Incorrect API key")) {
-            emitter.send(event().name("error").data(new StreamResult(500, "[Incorrect Key]")));
+            emitter.send(new StreamResult(500, "[Incorrect Key]"));
         } else {
-            emitter.send(event().name("error").data(new StreamResult(500, "[Other] Please try again later")));
+            emitter.send(new StreamResult(500, "[Other] Please try again later"));
         }
-
+        emitter.complete();
 
     }
 
