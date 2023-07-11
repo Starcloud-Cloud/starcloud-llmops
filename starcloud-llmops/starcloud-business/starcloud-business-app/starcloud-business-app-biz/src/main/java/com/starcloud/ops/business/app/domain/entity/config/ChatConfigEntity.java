@@ -29,6 +29,8 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private SuggestedQuestionEntity suggestedQuestion;
 
+    private OpeningStatementEntity openingStatement;
+
     /**
      * 挂载的 functions 列表
      */

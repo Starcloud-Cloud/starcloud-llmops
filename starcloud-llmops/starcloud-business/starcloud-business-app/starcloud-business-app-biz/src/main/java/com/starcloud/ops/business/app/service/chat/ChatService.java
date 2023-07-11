@@ -24,4 +24,10 @@ public interface ChatService {
      * @return
      */
     List<LogAppMessageDO> chatHistory(String conversationUid);
+
+    /**
+     * 会话建议
+     */
+    List<String> chatSuggestion(String conversationUid);
+
 }

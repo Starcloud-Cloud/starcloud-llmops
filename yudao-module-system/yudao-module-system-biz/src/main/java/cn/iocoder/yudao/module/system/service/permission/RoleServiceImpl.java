@@ -208,6 +208,13 @@ public class RoleServiceImpl implements RoleService {
         return roleMapper.selectList(reqVO);
     }
 
+
+    @Override
+    public RoleDO getRoleByCode(String code) {
+        return roleMapper.selectByCode(code);
+    }
+
+
     /**
      * 校验角色的唯一字段是否重复
      *
