@@ -6,6 +6,7 @@ import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLM;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseOpenAI;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
@@ -36,7 +37,7 @@ public class ConversationSummaryMemory extends SummarizerMixin {
 
         super.saveContext(baseVariables, result);
 
-        List<BaseChatMessage> messages = this.getChatHistory().limitMessage(-2);
+        List<BaseMessage> messages = this.getChatHistory().limitMessage(-2);
 
         if (CollectionUtil.isNotEmpty(messages)) {
             BaseLLMResult baseLLMResult = this.predictNewSummary(messages, this.getBuffer());
@@ -50,8 +51,7 @@ public class ConversationSummaryMemory extends SummarizerMixin {
 
         if (this.getReturnMessages()) {
 
-            Class c = Class.forName(this.getSummaryMessageCls().getName());
-            BaseChatMessage message = (BaseChatMessage) c.getDeclaredConstructor(new Class[]{String.class}).newInstance(this.buffer);
+            BaseMessage message = this.createSummaryMessage(this.buffer);
 
             return Collections.singletonList(BaseVariable.builder()
                     .field(MEMORY_KEY)

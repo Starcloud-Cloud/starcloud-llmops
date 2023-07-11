@@ -5,6 +5,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
 import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.completion.CompletionResult;
 import com.theokanning.openai.service.OpenAiService;
@@ -63,7 +64,7 @@ public class BaseOpenAI extends BaseLLM<CompletionResult> {
 
 
     @Override
-    protected BaseLLMResult<CompletionResult> _generate(List<String> texts) {
+    protected BaseLLMResult<CompletionResult> _generate(List<String> texts, CallbackManagerForLLMRun callbackManager) {
 
         if (this.stream) {
 

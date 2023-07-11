@@ -1,6 +1,8 @@
 package com.starcloud.ops.llm.langchain.core.tools.base;
 
-import com.starcloud.ops.llm.langchain.core.schema.callbacks.LLMCallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForToolRun;
 import lombok.Data;
 
 @Data
@@ -12,23 +14,30 @@ public abstract class BaseTool {
 
     private Boolean verbose;
 
-    private LLMCallbackManager callbackManager = new LLMCallbackManager();
+    private BaseCallbackManager callbackManager = new CallbackManager();
 
     protected abstract String _run(String input);
 
     public String run(String input, Boolean verbose) {
 
-        this.callbackManager.onToolStart(this.name, this.description, input, verbose);
+        CallbackManagerForToolRun toolRun = this.callbackManager.onToolStart(this.name, this.description, input, verbose);
 
         String result = null;
+
         try {
+
             result = this._run(input);
+
+            toolRun.onToolEnd(this.getClass().getSimpleName(), result);
+
         } catch (Exception e) {
-            this.callbackManager.onToolError(e.getMessage(), e);
+
+            toolRun.onToolError(e.getMessage(), e);
+
             throw e;
         }
 
-        this.callbackManager.onToolEnd(this.name, this.description, input, verbose);
+        toolRun.onToolEnd(this.name, this.description, input, verbose);
 
         return result;
     }

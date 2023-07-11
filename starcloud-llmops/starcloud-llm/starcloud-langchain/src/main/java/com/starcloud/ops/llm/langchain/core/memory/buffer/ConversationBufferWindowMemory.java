@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,11 +31,11 @@ public class ConversationBufferWindowMemory extends BaseChatMemory {
     @Override
     public List<BaseVariable> loadMemoryVariables() {
 
-        List<BaseChatMessage> messages = getChatHistory().getMessages();
+        List<BaseMessage> messages = getChatHistory().getMessages();
         messages = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().skip(CollectionUtil.size(messages) - this.k * 2).collect(Collectors.toList());
         return Arrays.asList(BaseVariable.builder()
                 .field(MEMORY_KEY)
-                .value(BaseChatMessage.getBufferString(messages))
+                .value(BaseMessage.getBufferString(messages))
                 .build());
     }
 

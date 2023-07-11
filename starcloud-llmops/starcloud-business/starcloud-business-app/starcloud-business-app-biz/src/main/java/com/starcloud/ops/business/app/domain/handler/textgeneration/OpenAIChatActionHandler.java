@@ -14,11 +14,11 @@ import com.starcloud.ops.business.app.domain.handler.common.FlowStepHandler;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
-import com.starcloud.ops.llm.langchain.core.schema.callbacks.StreamingStdOutCallbackHandler;
+import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.extern.slf4j.Slf4j;
@@ -70,16 +70,17 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
             ChatOpenAI chatOpenAI = new ChatOpenAI();
             chatOpenAI.setStream(true);
             //chatOpenAI.setVerbose(true);
-            chatOpenAI.addCallbackHandler(new StreamingStdOutCallbackHandler(context.getHttpServletResponse()));
+            chatOpenAI.addCallbackHandler(new StreamingSseCallBackHandler(context.getSseEmitter()));
 
-            List<List<BaseChatMessage>> chatMessages = Arrays.asList(
-                    Arrays.asList(HumanMessage.builder().content(prompt).build())
+            List<List<BaseMessage>> chatMessages = Arrays.asList(
+                    Arrays.asList(new HumanMessage(prompt))
             );
 
             appStepResponse.setStepConfig(chatOpenAI);
 
             ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
 
+            context.getSseEmitter().complete();
             BaseLLMUsage baseLLMUsage = chatResult.getUsage();
             String msg = chatResult.getText();
 
@@ -104,11 +105,12 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
 
             appStepResponse.setErrorCode(exc.code);
             appStepResponse.setErrorMsg(exc.getMessage());
-
+            context.getSseEmitter().completeWithError(exc);
         } catch (Exception exc) {
 
             appStepResponse.setErrorCode("001");
             appStepResponse.setErrorMsg(exc.getMessage());
+            context.getSseEmitter().completeWithError(exc);
         }
 
 

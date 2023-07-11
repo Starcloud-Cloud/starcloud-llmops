@@ -35,12 +35,11 @@ public abstract class BasePromptTemplate implements Serializable {
     public abstract PromptValue formatPrompt(List<BaseVariable> variables);
 
     public PromptValue formatPrompt(Map<String, Object> maps) {
+       return this.formatPrompt(BaseVariable.fromMap(maps));
+    }
 
+    public void save() {
 
-        //@todo
-
-
-        return null;
     }
 
 //

@@ -6,11 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.io.Serializable;
+
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class BaseGeneration<R> {
+public class BaseGeneration<R> implements Serializable {
 
     private String text;
 

@@ -1,18 +1,15 @@
 package com.starcloud.ops.llm.langchain.core.agent.base;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONParser;
 import cn.hutool.json.JSONUtil;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentAction;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.SystemMessage;
-import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
-import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
-import com.starcloud.ops.llm.langchain.core.schema.callbacks.BaseCallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
-import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -24,22 +21,21 @@ public abstract class BaseSingleActionAgent {
 
     private List<String> returnValues;
 
-
     public List<String> getAllowedTools() {
         return new ArrayList<>();
     }
 
-    public abstract AgentAction plan(List<AgentAction> intermediateSteps, BaseCallbackManager callbackManager, List<BaseVariable> variables);
+    public abstract List<AgentAction> plan(List<AgentAction> intermediateSteps, BaseCallbackManager callbackManager, List<BaseVariable> variables);
 
 
     public AgentFinish returnStoppedResponse() {
 
         return null;
     }
-
-    public static BaseSingleActionAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools, BaseCallbackManager callbackManager, List<BaseMessagePromptTemplate> extraPromptMessages, SystemMessage systemMessage) {
-        return null;
-    }
+//
+//    public static BaseSingleActionAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools, BaseCallbackManager callbackManager, List<BaseMessagePromptTemplate> extraPromptMessages, SystemMessage systemMessage) {
+//        return null;
+//    }
 
     public String agentType() {
         return this.getClass().getSimpleName();

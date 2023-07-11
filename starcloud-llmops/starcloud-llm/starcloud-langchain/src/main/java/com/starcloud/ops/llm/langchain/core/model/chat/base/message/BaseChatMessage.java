@@ -31,6 +31,7 @@ public class BaseChatMessage implements Serializable {
     }
 
 
+    @Deprecated
     public static BaseChatMessage ofRole(String role) {
 
         switch (role) {
@@ -46,6 +47,7 @@ public class BaseChatMessage implements Serializable {
                 return SystemMessage.builder().build();
         }
     }
+
 
     @Deprecated
     public static String getBufferString(List<BaseChatMessage> messages) {

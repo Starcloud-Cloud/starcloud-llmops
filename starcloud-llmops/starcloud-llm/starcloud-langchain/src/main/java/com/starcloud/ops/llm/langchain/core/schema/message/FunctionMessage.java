@@ -8,6 +8,10 @@ public class FunctionMessage extends BaseMessage {
         super(content, additionalArgs);
     }
 
+    public FunctionMessage(String content) {
+        super(content);
+    }
+
     @Override
     public String getType() {
 

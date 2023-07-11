@@ -2,6 +2,7 @@ package com.starcloud.ops.business.log.service.conversation;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
@@ -141,29 +142,29 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         statisticsListReqVO.setStartTime(LogTimeTypeEnum.getStartTimeByType(timeType));
         statisticsListReqVO.setEndTime(LogTimeTypeEnum.getEndTimeByType(timeType));
         List<LogAppMessageStatisticsListPO> statisticsList = logAppMessageMapper.getAppMessageStatisticsList(statisticsListReqVO);
-        LogAppMessageStatisticsListPO logAppMessageStatisticsListPO = statisticsList.get(statisticsList.size() - 1);
-        String nowDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        // 如果最后一条数据不是今天的数据，就添加一条今天的数据
-        if (!nowDate.equals(logAppMessageStatisticsListPO.getCreateDate())) {
-            LogAppMessageStatisticsListPO nowStatistics = new LogAppMessageStatisticsListPO();
-            nowStatistics.setAppUid(logAppMessageStatisticsListPO.getAppUid());
-            nowStatistics.setAppMode(logAppMessageStatisticsListPO.getAppMode());
-            nowStatistics.setAppName(logAppMessageStatisticsListPO.getAppName());
-            nowStatistics.setFromScene(logAppMessageStatisticsListPO.getFromScene());
-            nowStatistics.setMessageCount(0);
-            nowStatistics.setSuccessCount(0);
-            nowStatistics.setErrorCount(0);
-            nowStatistics.setUserCount(0);
-            nowStatistics.setElapsedTotal(new BigDecimal("0"));
-            nowStatistics.setElapsedAvg(new BigDecimal("0"));
-            nowStatistics.setMessageTokens(0);
-            nowStatistics.setAnswerTokens(0);
-            nowStatistics.setTokens(0);
-            nowStatistics.setCreateDate(nowDate);
-            statisticsList.add(nowStatistics);
+        if (CollectionUtils.isNotEmpty(statisticsList)) {
+            LogAppMessageStatisticsListPO logAppMessageStatisticsListPO = statisticsList.get(statisticsList.size() - 1);
+            String nowDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            // 如果最后一条数据不是今天的数据，就添加一条今天的数据
+            if (!nowDate.equals(logAppMessageStatisticsListPO.getCreateDate())) {
+                LogAppMessageStatisticsListPO nowStatistics = new LogAppMessageStatisticsListPO();
+                nowStatistics.setAppUid(logAppMessageStatisticsListPO.getAppUid());
+                nowStatistics.setAppMode(logAppMessageStatisticsListPO.getAppMode());
+                nowStatistics.setAppName(logAppMessageStatisticsListPO.getAppName());
+                nowStatistics.setFromScene(logAppMessageStatisticsListPO.getFromScene());
+                nowStatistics.setMessageCount(0);
+                nowStatistics.setSuccessCount(0);
+                nowStatistics.setErrorCount(0);
+                nowStatistics.setUserCount(0);
+                nowStatistics.setElapsedTotal(new BigDecimal("0"));
+                nowStatistics.setElapsedAvg(new BigDecimal("0"));
+                nowStatistics.setMessageTokens(0);
+                nowStatistics.setAnswerTokens(0);
+                nowStatistics.setTokens(0);
+                nowStatistics.setCreateDate(nowDate);
+                statisticsList.add(nowStatistics);
+            }
         }
-
         return statisticsList;
-
     }
 }

@@ -5,6 +5,8 @@ import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMess
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLM;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.utils.MessageConvert;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
@@ -31,7 +33,7 @@ public class ConversationSummaryBufferMemory extends SummarizerMixin {
     }
 
 
-    protected List<BaseChatMessage> getBuffer() {
+    protected List<BaseMessage> getBuffer() {
         return this.getChatHistory().getMessages();
     }
 
@@ -40,10 +42,10 @@ public class ConversationSummaryBufferMemory extends SummarizerMixin {
     @Override
     public List<BaseVariable> loadMemoryVariables() {
 
-        List<BaseChatMessage> messages = this.getBuffer();
+        List<BaseMessage> messages = this.getBuffer();
 
         if (StrUtil.isNotBlank(this.movingSummaryBuffer)) {
-            BaseChatMessage firstMessages = this.createSummaryMessage(this.movingSummaryBuffer);
+            BaseMessage firstMessages = this.createSummaryMessage(this.movingSummaryBuffer);
             messages.add(0, firstMessages);
         }
 
@@ -56,7 +58,7 @@ public class ConversationSummaryBufferMemory extends SummarizerMixin {
         } else {
             return Arrays.asList(BaseVariable.builder()
                     .field(MEMORY_KEY)
-                    .value(BaseChatMessage.getBufferString(messages))
+                    .value(BaseMessage.getBufferString(messages))
                     .build());
 
         }
@@ -67,19 +69,20 @@ public class ConversationSummaryBufferMemory extends SummarizerMixin {
 
         super.saveContext(baseVariables, result);
 
-        List<BaseChatMessage> messages = this.getBuffer();
+        List<BaseMessage> messages = this.getBuffer();
 
         Long sum = this.getLlm().getNumTokensFromMessages(messages);
 
         if (sum > this.maxTokenLimit) {
 
-            List<BaseChatMessage> prunedMemory = new ArrayList<>();
+            List<BaseMessage> prunedMemory = new ArrayList<>();
 
             while (sum > this.maxTokenLimit) {
-                BaseChatMessage firstMessage = this.getBuffer().remove(0);
 
-                prunedMemory.add(firstMessage);
+                //一次取两个，保证一次对话内容
                 prunedMemory.add(this.getBuffer().remove(0));
+                prunedMemory.add(this.getBuffer().remove(0));
+
                 sum = this.getLlm().getNumTokensFromMessages(this.getBuffer());
             }
 

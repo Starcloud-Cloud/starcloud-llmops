@@ -1,5 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.prompt.base.template;
 
+import com.starcloud.ops.llm.langchain.core.prompt.base.AIMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
@@ -15,7 +16,6 @@ public class ChatMessagePromptTemplate extends BaseStringMessagePromptTemplate {
         super(promptTemplate);
         this.role = role;
     }
-
 
     @Override
     public BaseMessage format(List<BaseVariable> variables) {

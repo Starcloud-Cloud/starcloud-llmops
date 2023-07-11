@@ -1,13 +1,16 @@
 package com.starcloud.ops.llm.langchain.core.memory.summary;
 
+import cn.hutool.core.util.ClassUtil;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.SystemMessage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLM;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import com.starcloud.ops.llm.langchain.core.schema.prompt.BasePromptTemplate;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,9 +26,9 @@ public abstract class SummarizerMixin extends BaseChatMemory {
 
     private String aiPrefix;
 
-    private BaseLLM llm;
+    private BaseLanguageModel llm;
 
-    private Class<? extends BaseChatMessage> summaryMessageCls = SystemMessage.class;
+    private Class<? extends BaseMessage> summaryMessageCls = SystemMessage.class;
 
     private static final String DEFAULT_SUMMARIZER_TEMPLATE = "Progressively summarize the lines of conversation provided, adding onto the previous summary returning a new summary." +
             "\n" +
@@ -55,6 +58,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
 
     public SummarizerMixin() {
 
+        super();
         this.prompt = new PromptTemplate(DEFAULT_SUMMARIZER_TEMPLATE, Arrays.asList(
                 BaseVariable.newString("summary"),
                 BaseVariable.newString("new_lines")
@@ -63,7 +67,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
     }
 
     public SummarizerMixin(BaseLLM llm) {
-
+        super();
         this.prompt = new PromptTemplate(DEFAULT_SUMMARIZER_TEMPLATE, Arrays.asList(
                 BaseVariable.newString("summary"),
                 BaseVariable.newString("new_lines")
@@ -73,20 +77,20 @@ public abstract class SummarizerMixin extends BaseChatMemory {
     }
 
     @SneakyThrows
-    protected BaseChatMessage createSummaryMessage(String text) {
+    protected BaseMessage createSummaryMessage(String text) {
         Class c = Class.forName(this.summaryMessageCls.getName());
-        BaseChatMessage message = (BaseChatMessage) c.getConstructor().newInstance();
-        message.setContent(text);
+        BaseMessage message = (BaseMessage) c.getConstructor(String.class).newInstance(text);
+
         return message;
     }
 
-    protected BaseLLMResult predictNewSummary(List<BaseChatMessage> messages, String existingSummary) {
+    protected BaseLLMResult predictNewSummary(List<BaseMessage> messages, String existingSummary) {
 
-        String newLines = BaseChatMessage.getBufferString(messages);
+        String newLines = BaseMessage.getBufferString(messages);
 
         LLMChain llmChain = new LLMChain(this.llm, this.prompt);
 
-        return llmChain.predict(Arrays.asList(
+        return llmChain.call(Arrays.asList(
                 BaseVariable.newString("new_lines", newLines),
                 BaseVariable.newString("summary", existingSummary)
         ));

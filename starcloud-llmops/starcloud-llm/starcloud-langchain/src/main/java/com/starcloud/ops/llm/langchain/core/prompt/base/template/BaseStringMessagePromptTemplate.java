@@ -37,38 +37,8 @@ public abstract class BaseStringMessagePromptTemplate extends BaseMessagePromptT
         return Arrays.asList(this.format(variables));
     }
 
-    public static BaseStringMessagePromptTemplate fromTemplate(String text) {
-
-        PromptTemplate promptTemplate = PromptTemplate.fromTemplate(text);
-        return fromTemplate(promptTemplate);
+    private String getCallingMethodName() {
+        return Thread.currentThread().getStackTrace()[3].getMethodName();
     }
-
-    public static BaseMessagePromptTemplate fromTemplate(String text, String... params) {
-
-        List<BaseVariable> variables = Arrays.stream(Optional.ofNullable(params).orElse(new String[]{})).map(BaseVariable::newString).collect(Collectors.toList());
-        StringPromptTemplate promptTemplate = new PromptTemplate(text, variables);
-        return fromTemplate(promptTemplate);
-    }
-
-    @Deprecated
-    private static BaseStringMessagePromptTemplate fromTemplate(StringPromptTemplate promptTemplate) {
-
-        try {
-            String clazzName = new Object() {
-                public String getClassName() {
-                    String clazzName = this.getClass().getName();
-                    return clazzName.substring(1, clazzName.lastIndexOf('$'));
-                }
-            }.getClassName();
-
-            return ReflectUtil.newInstance((Class<BaseStringMessagePromptTemplate>) Class.forName(clazzName), promptTemplate);
-        } catch (Exception e) {
-
-            log.error("fromTemplate is fail: {}", e.getMessage(), e);
-        }
-
-        return null;
-    }
-
 
 }

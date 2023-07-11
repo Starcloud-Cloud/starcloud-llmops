@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.BaseChatModel;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
@@ -13,6 +14,8 @@ import com.starcloud.ops.llm.langchain.core.model.llm.azure.AzureAiApi;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.utils.MessageConvert;
 import com.theokanning.openai.OpenAiApi;
 import com.theokanning.openai.Usage;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
@@ -21,6 +24,7 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 
 import static com.theokanning.openai.service.OpenAiService.*;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
@@ -28,6 +32,7 @@ import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+
 import java.io.IOException;
 import java.net.*;
 import java.time.Duration;
@@ -67,7 +72,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
 
     @Override
-    public ChatResult<ChatCompletionResult> _generate(List<BaseChatMessage> messages) {
+    public ChatResult<ChatCompletionResult> _generate(List<BaseMessage> messages, CallbackManagerForLLMRun callbackManagerForLLMRun) {
 
         OpenAIConfig openAIConfig = SpringUtil.getBean(OpenAIConfig.class);
 
@@ -75,7 +80,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         if (StrUtil.isNotBlank(openAIConfig.getProxyHost())) {
             openAiService = addProxy(openAIConfig);
-        } else if (openAIConfig.getAzure()) {
+        } else if (Boolean.TRUE.equals(openAIConfig.getAzure())) {
             openAiService = azureAiService(openAIConfig);
         } else {
             openAiService = new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()));
@@ -83,9 +88,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         ChatCompletionRequest chatCompletionRequest = BeanUtil.toBean(this, ChatCompletionRequest.class);
 
-        List<ChatMessage> chatMessages = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(message -> {
-            return new ChatMessage(message.getRole(), message.getContent());
-        }).collect(Collectors.toList());
+        List<ChatMessage> chatMessages = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(MessageConvert::OpenAIMessage).collect(Collectors.toList());
 
         chatCompletionRequest.setMessages(chatMessages);
 
@@ -199,7 +202,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                         String msg = t.getChoices().get(0).getMessage().getContent();
                         if (msg != null) {
                             sb.append(msg);
-                            this.getCallbackManager().onLLMNewToken(msg);
+                            callbackManagerForLLMRun.onLLMNewToken(msg);
                         }
                         if ("stop".equals(t.getChoices().get(0).getFinishReason())) {
 
@@ -207,7 +210,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                             //this.getCallbackManager().onLLMNewToken(endString);
 
-                            this.getCallbackManager().onLLMEnd("stop");
+                            callbackManagerForLLMRun.onLLMEnd("stop");
 
                         }
                     });

@@ -1,9 +1,10 @@
 package com.starcloud.ops.llm.langchain.core.memory;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.HumanMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -17,18 +18,22 @@ import java.util.stream.Collectors;
 @Data
 public class ChatMessageHistory {
 
-    private List<BaseChatMessage> messages = new ArrayList<>();
+    private List<BaseMessage> messages = new ArrayList<>();
+
+    public void addMessage(BaseMessage baseMessage) {
+        this.messages.add(baseMessage);
+    }
 
     public void addUserMessage(String content) {
-        this.messages.add(HumanMessage.builder().content(content).build());
+        this.messages.add(new HumanMessage(content));
     }
 
     public void addAiMessage(String content) {
 
-        this.messages.add(AIMessage.builder().content(content).build());
+        this.messages.add(new AIMessage(content));
     }
 
-    public List<BaseChatMessage> limitMessage(long limit) {
+    public List<BaseMessage> limitMessage(long limit) {
 
         if (limit >= 0) {
             return Optional.ofNullable(this.messages).orElse(new ArrayList<>()).stream().limit(limit).collect(Collectors.toList());

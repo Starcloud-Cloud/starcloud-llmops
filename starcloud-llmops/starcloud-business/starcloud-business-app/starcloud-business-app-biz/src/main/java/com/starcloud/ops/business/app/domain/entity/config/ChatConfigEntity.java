@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.domain.entity.action.LLMFunctionEntity;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 聊天应用配置实体
@@ -16,6 +17,16 @@ import java.util.List;
 public class ChatConfigEntity extends BaseConfigEntity {
 
     private String code;
+
+    private String prePrompt;
+
+    private List<UserInputFromEntity> userInputForm;
+
+    private ModelConfigEntity modelConfig;
+
+    private Map<String,Object> inputs;
+
+    private List<String> datasetUid;
 
     /**
      * 挂载的 functions 列表

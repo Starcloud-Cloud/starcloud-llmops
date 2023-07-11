@@ -4,8 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.SetUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Builder
 @NoArgsConstructor
@@ -41,6 +45,15 @@ public class BaseVariable {
 
     public static BaseVariable newArray(String field) {
         return BaseVariable.builder().type(VariableTypeEnum.ARRAY).field(field).build();
+    }
+
+    public static List<BaseVariable> fromMap(Map<String, Object> maps) {
+
+        List<BaseVariable> all = new ArrayList<>();
+        for (Map.Entry entry : maps.entrySet()) {
+            all.add(BaseVariable.builder().field(entry.getKey().toString()).value(entry.getValue()).build());
+        }
+        return all;
     }
 
     public static BaseVariable copy(BaseVariable variable) {

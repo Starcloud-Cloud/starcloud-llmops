@@ -3,6 +3,7 @@ package com.starcloud.ops.business.dataset.service.segment;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
 import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
+import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchTestResponse;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
@@ -43,8 +44,25 @@ public interface DocumentSegmentsService {
 
     /**
      * 文本向量匹配测试
+     *
      * @param request
      * @return
      */
     public MatchTestResponse matchTest(MatchTestRequest request);
+
+    /**
+     * 相似查询
+     *
+     * @param request
+     * @return
+     */
+    List<String> similarQuery(SimilarQueryRequest request);
+
+    /**
+     * 创建embedding索引
+     * @param datasetId
+     * @param documentId
+     * @param splitText
+     */
+    void indexDoc(String datasetId, String documentId, List<String> splitText);
 }

@@ -1,12 +1,13 @@
 package com.starcloud.ops.llm.langchain.core.agent;
 
 import cn.hutool.core.lang.Assert;
-import com.starcloud.ops.llm.langchain.core.agent.base.AgentAction;
-import com.starcloud.ops.llm.langchain.core.agent.base.AgentFinish;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
 import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.SystemMessage;
+
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.MessagesPlaceholder;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
@@ -14,8 +15,9 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTempl
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.*;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
-import com.starcloud.ops.llm.langchain.core.schema.callbacks.BaseCallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import com.starcloud.ops.llm.langchain.core.schema.prompt.BasePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.ConvertToOpenaiUtils;
@@ -35,15 +37,31 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
     private BasePromptTemplate promptTemplate;
 
-    public OpenAIFunctionsAgent(BaseLanguageModel llm, List<BaseTool> tools, BasePromptTemplate promptTemplate) {
+    private BaseCallbackManager callbackManager;
+
+    private OpenAIFunctionsAgent(BaseLanguageModel llm, List<BaseTool> tools, BasePromptTemplate promptTemplate) {
         super();
         this.llm = llm;
         this.tools = tools;
         this.promptTemplate = promptTemplate;
     }
 
+    public static OpenAIFunctionsAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools) {
+
+        return fromLLMAndTools(llm, tools, new CallbackManager(), null, new SystemMessage("You are a helpful AI assistant."));
+    }
+
+
+    public static OpenAIFunctionsAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools, BaseCallbackManager callbackManager, List<BaseMessagePromptTemplate> extraPromptMessages, SystemMessage systemMessage) {
+
+        Assert.isInstanceOf(ChatOpenAI.class, llm, "Only supported with ChatOpenAI models.");
+
+        return new OpenAIFunctionsAgent(llm, tools, createPrompt(systemMessage, extraPromptMessages));
+    }
+
+
     @Override
-    public AgentAction plan(List<AgentAction> intermediateSteps, BaseCallbackManager callbackManager, List<BaseVariable> variables) {
+    public List<AgentAction> plan(List<AgentAction> intermediateSteps, BaseCallbackManager callbackManager, List<BaseVariable> variables) {
 
         List<BaseChatMessage> chatMessages = this.formatIntermediateSteps(intermediateSteps);
 
@@ -57,7 +75,7 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
         AgentAction agentAction = this.parseAiMessage(predictedMessage);
 
-        return agentAction;
+        return Arrays.asList(agentAction);
     }
 
     @Override
@@ -69,14 +87,6 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
     public List<Object> getFunctions() {
 
         return Optional.ofNullable(tools).orElse(new ArrayList<>()).stream().map(ConvertToOpenaiUtils::convert).collect(Collectors.toList());
-    }
-
-
-    public static BaseSingleActionAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools, BaseCallbackManager callbackManager, List<BaseMessagePromptTemplate> extraPromptMessages, SystemMessage systemMessage) {
-
-        Assert.isInstanceOf(ChatOpenAI.class, llm, "Only supported with ChatOpenAI models.");
-
-        return new OpenAIFunctionsAgent(llm, tools, createPrompt(systemMessage, extraPromptMessages));
     }
 
 

@@ -1,9 +1,8 @@
-package com.starcloud.ops.llm.langchain.core.schema.callbacks;
+package com.starcloud.ops.llm.langchain.core.callbacks;
 
 import cn.hutool.core.lang.Assert;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mock.web.MockHttpServletResponse;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -37,7 +36,7 @@ public class StreamingStdOutCallbackHandler implements BaseCallbackHandler {
     }
 
     @Override
-    public void onLLMStart(Object... objects) {
+    public Void onLLMStart(Object... objects) {
 
         try {
 
@@ -50,6 +49,8 @@ public class StreamingStdOutCallbackHandler implements BaseCallbackHandler {
         } catch (Exception e) {
 
         }
+
+        return null;
     }
 
     @Override
@@ -108,4 +109,13 @@ public class StreamingStdOutCallbackHandler implements BaseCallbackHandler {
 
     }
 
+    @Override
+    public <T> T onChainStart(Object... objects) {
+        return null;
+    }
+
+    @Override
+    public <T> T onToolStart(Object... objects) {
+        return null;
+    }
 }

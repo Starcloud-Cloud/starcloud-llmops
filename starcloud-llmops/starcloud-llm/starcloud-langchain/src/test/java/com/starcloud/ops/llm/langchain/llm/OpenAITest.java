@@ -43,9 +43,9 @@ public class OpenAITest extends SpringBootTests {
         ConversationChain conversationChain = new ConversationChain(llm);
         conversationChain.setVerbose(true);
 
-        BaseLLMResult baseLLMResult = conversationChain.predict(Arrays.asList(BaseVariable.newString("input", "Hi there! what you name?")));
+        BaseLLMResult baseLLMResult = conversationChain.call(Arrays.asList(BaseVariable.newString("input", "Hi there! what you name?")));
 
-        baseLLMResult = conversationChain.predict(Arrays.asList(BaseVariable.newString("input", "I'm doing well! Just having a conversation with an AI.")));
+        baseLLMResult = conversationChain.call(Arrays.asList(BaseVariable.newString("input", "I'm doing well! Just having a conversation with an AI.")));
 
     }
 
@@ -96,23 +96,23 @@ public class OpenAITest extends SpringBootTests {
         OpenAI llm = new OpenAI();
 
         ConversationChain conversationChain = new ConversationChain(llm, new ConversationSummaryMemory(new OpenAI()));
-        conversationChain.setVerbose(true);
+        conversationChain.setVerbose(false);
 
-        BaseLLMResult result = conversationChain.predict(Arrays.asList(
-                BaseVariable.newString("input", "Hi, what's up?")
+        BaseLLMResult result = conversationChain.call(Arrays.asList(
+                BaseVariable.newString("input", "你们好，你是否能做数学计算？")
         ));
 
         log.info("baseLLMResult1: {}", result);
 
-        result = conversationChain.predict(Arrays.asList(
-                BaseVariable.newString("input", "Tell me more about it!")
+        result = conversationChain.call(Arrays.asList(
+                BaseVariable.newString("input", "告诉我1+1是多少？")
         ));
 
         log.info("baseLLMResult2: {}", result);
 
 
-        result = conversationChain.predict(Arrays.asList(
-                BaseVariable.newString("input", "Very cool -- what is the scope of the project?")
+        result = conversationChain.call(Arrays.asList(
+                BaseVariable.newString("input", "告诉我答案在加10等于多少？")
         ));
 
         log.info("baseLLMResult3: {}", result);
@@ -124,7 +124,7 @@ public class OpenAITest extends SpringBootTests {
 
         OpenAI llm = new OpenAI();
 
-        ConversationTokenBufferMemory memory = new ConversationTokenBufferMemory(llm, 20);
+        ConversationTokenBufferMemory memory = new ConversationTokenBufferMemory(llm, 12);
 
         memory.saveContext(Arrays.asList(
                 BaseVariable.newString("input", "hi")
@@ -133,6 +133,10 @@ public class OpenAITest extends SpringBootTests {
         memory.saveContext(Arrays.asList(
                 BaseVariable.newString("input", "not much you")
         ), BaseLLMResult.data("not much"));
+
+        memory.saveContext(Arrays.asList(
+                BaseVariable.newString("input", "what you name")
+        ), BaseLLMResult.data("my name df"));
 
         log.info("baseLLMResult3: {}", memory.loadMemoryVariables());
     }
@@ -149,27 +153,27 @@ public class OpenAITest extends SpringBootTests {
         conversationChain.setVerbose(true);
 
 
-        BaseLLMResult result = conversationChain.predict(Arrays.asList(
+        BaseLLMResult result = conversationChain.call(Arrays.asList(
                 BaseVariable.newString("input", "Hi, what's up?")
         ));
 
         log.info("baseLLMResult1: {}", result);
 
-        result = conversationChain.predict(Arrays.asList(
+        result = conversationChain.call(Arrays.asList(
                 BaseVariable.newString("input", "Just working on writing some documentation!")
         ));
 
         log.info("baseLLMResult2: {}", result);
 
 
-        result = conversationChain.predict(Arrays.asList(
+        result = conversationChain.call(Arrays.asList(
                 BaseVariable.newString("input", "For LangChain! Have you heard of it?")
         ));
 
         log.info("baseLLMResult3: {}", result);
 
 
-        result = conversationChain.predict(Arrays.asList(
+        result = conversationChain.call(Arrays.asList(
                 BaseVariable.newString("input", "Haha nope, although a lot of people confuse it for that")
         ));
 
@@ -183,32 +187,32 @@ public class OpenAITest extends SpringBootTests {
 
         OpenAI llm = new OpenAI();
 
-        ConversationSummaryBufferMemory memory = new ConversationSummaryBufferMemory(new OpenAI(), 90);
+        ConversationSummaryBufferMemory memory = new ConversationSummaryBufferMemory(new OpenAI(), 80);
 
         ConversationChain conversationChain = new ConversationChain(llm, memory);
-        conversationChain.setVerbose(true);
+        conversationChain.setVerbose(false);
 
-        BaseLLMResult result = conversationChain.predict(Arrays.asList(
+        BaseLLMResult result = conversationChain.call(Arrays.asList(
                 BaseVariable.newString("input", "Hi, what's up?")
         ));
 
         log.info("baseLLMResult1: {}", result);
 
-        result = conversationChain.predict(Arrays.asList(
+        result = conversationChain.call(Arrays.asList(
                 BaseVariable.newString("input", "Just working on writing some documentation!")
         ));
 
         log.info("baseLLMResult2: {}", result);
 
 
-        result = conversationChain.predict(Arrays.asList(
+        result = conversationChain.call(Arrays.asList(
                 BaseVariable.newString("input", "For LangChain! Have you heard of it?")
         ));
 
         log.info("baseLLMResult3: {}", result);
 
 
-        result = conversationChain.predict(Arrays.asList(
+        result = conversationChain.call(Arrays.asList(
                 BaseVariable.newString("input", "Haha nope, although a lot of people confuse it for that")
         ));
 

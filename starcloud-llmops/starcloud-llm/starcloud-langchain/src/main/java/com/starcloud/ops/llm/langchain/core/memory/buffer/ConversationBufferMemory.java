@@ -3,6 +3,7 @@ package com.starcloud.ops.llm.langchain.core.memory.buffer;
 import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -19,10 +20,10 @@ public class ConversationBufferMemory extends BaseChatMemory {
     @Override
     public List<BaseVariable> loadMemoryVariables() {
 
-        List<BaseChatMessage> messages = getChatHistory().getMessages();
+        List<BaseMessage> messages = getChatHistory().getMessages();
         return Collections.singletonList(BaseVariable.builder()
                 .field(MEMORY_KEY)
-                .value(BaseChatMessage.getBufferString(messages))
+                .value(BaseMessage.getBufferString(messages))
                 .build());
     }
 

@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -164,7 +165,8 @@ public class AppWorkflowService {
      * @param stepId              步骤 ID
      * @param httpServletResponse Http 响应
      */
-    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId, HttpServletResponse httpServletResponse) {
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId,
+                          HttpServletResponse httpServletResponse, SseEmitter sseEmitter) {
         // 获取 AppEntity
         AppEntity app = null;
         if (appRequest == null) {
@@ -188,13 +190,15 @@ public class AppWorkflowService {
             appContext.setStepId(stepId);
         }
         appContext.setHttpServletResponse(httpServletResponse);
-
+        appContext.setSseEmitter(sseEmitter);
         if (StringUtils.isNotBlank(requestId)) {
             appContext.setConversationId(requestId);
         }
 
         // 执行该应用
-        this.fireByAppContext(appContext);
+        new Thread(() -> {
+            this.fireByAppContext(appContext);
+        }).start();
     }
 
     /**

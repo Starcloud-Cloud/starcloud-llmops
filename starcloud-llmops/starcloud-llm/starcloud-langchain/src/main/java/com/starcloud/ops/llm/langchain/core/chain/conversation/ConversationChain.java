@@ -35,6 +35,6 @@ public class ConversationChain<R> extends LLMChain<R> {
 
     public ConversationChain(BaseLLM<R> llm, BaseMemory baseMemory) {
         super(llm, basePromptTemplate);
-        this.setMemory(Optional.ofNullable(baseMemory).orElse(new ConversationBufferMemory()));
+        this.setMemory(Optional.ofNullable(baseMemory).orElse(null));
     }
 }

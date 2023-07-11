@@ -2,9 +2,12 @@ package com.starcloud.ops.llm.langchain.core.model.llm.base;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import cn.hutool.core.collection.CollectionUtil;
+import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
-import com.starcloud.ops.llm.langchain.core.schema.callbacks.LLMCallbackManager;
 import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import lombok.Data;
@@ -18,19 +21,19 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Data
-public abstract class BaseLLM<R> extends BaseLanguageModel<R, LLMCallbackManager> {
+public abstract class BaseLLM<R> extends BaseLanguageModel<R> {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseLLM.class);
 
     private Boolean cache;
 
-    private LLMCallbackManager callbackManager = new LLMCallbackManager();
+    private BaseCallbackManager callbackManager = new CallbackManager();
 
-    public LLMCallbackManager getCallbackManager() {
+    public BaseCallbackManager getCallbackManager() {
         return callbackManager;
     }
 
-    public void setCallbackManager(LLMCallbackManager callbackManager) {
+    public void setCallbackManager(BaseCallbackManager callbackManager) {
         this.callbackManager = callbackManager;
     }
 
@@ -49,7 +52,7 @@ public abstract class BaseLLM<R> extends BaseLanguageModel<R, LLMCallbackManager
     }
 
 
-    protected abstract BaseLLMResult<R> _generate(List<String> texts);
+    protected abstract BaseLLMResult<R> _generate(List<String> texts, CallbackManagerForLLMRun callbackManager);
 
 
     protected BaseLLMResult<R> _agenerate(List<String> texts) {
@@ -57,61 +60,43 @@ public abstract class BaseLLM<R> extends BaseLanguageModel<R, LLMCallbackManager
     }
 
 
-    public BaseLLMResult<R> generate(List<String> prompts) {
-
-
-        logger.debug("BaseLLM.generate: {}", prompts);
-
-        this.getCallbackManager().onLLMStart("BaseLLM.generate", prompts);
-
-        if (!this.isLLMCache()) {
-
-            try {
-
-                BaseLLMResult<R> baseLLMResult = this._generate(prompts);
-
-                logger.debug("BaseLLM.generate result: {}", baseLLMResult);
-
-                this.getCallbackManager().onLLMEnd();
-
-                return baseLLMResult;
-
-            } catch (Exception exc) {
-
-                this.getCallbackManager().onLLMError(exc.getMessage(), exc);
-            }
-
-        } else {
-
-            Map<String, List<BaseGeneration<R>>> cachePrompts = getCachePrompts(prompts);
-
-            try {
-
-                BaseLLMResult<R> baseLLMResult = this._generate(prompts);
-
-                logger.debug("BaseLLM.generate result: {}", baseLLMResult);
-
-                this.getCallbackManager().onLLMEnd();
-
-                Map llmOutput = updatePromptsCache(prompts, baseLLMResult);
-
-                return BaseLLMResult.data(baseLLMResult.getGenerations(), llmOutput);
-
-            } catch (Exception exc) {
-
-                this.getCallbackManager().onLLMError(exc.getMessage(), exc);
-            }
-        }
-
-
-        return null;
-    }
-
     @Override
     public BaseLLMResult<R> generatePrompt(List<PromptValue> promptValues) {
 
         return this.generate(Optional.ofNullable(promptValues).orElse(new ArrayList<>()).stream().map(PromptValue::toStr).collect(Collectors.toList()));
     }
+
+
+    public BaseLLMResult<R> generate(List<String> prompts) {
+
+        logger.debug("BaseLLM.generate: {}", prompts);
+
+        List<CallbackManagerForLLMRun> llmRuns = this.getCallbackManager().onLLMStart(this.getClass().getSimpleName(), prompts);
+
+        List<BaseLLMResult<R>> chatResults = new ArrayList<>();
+
+        for (int i = 0; i < CollectionUtil.size(prompts); i++) {
+
+            CallbackManagerForLLMRun llmRun = llmRuns.get(i);
+
+            try {
+                //this.isLLMCache()
+
+                chatResults.add(this._generate(Arrays.asList(prompts.get(i)), llmRun));
+
+                llmRun.onLLMEnd(this.getClass().getSimpleName(), chatResults.get(0));
+
+            } catch (Exception e) {
+
+                llmRun.onLLMError(e.getMessage(), e);
+
+            }
+        }
+
+
+        return chatResults.get(0);
+    }
+
 
     @Override
     public String predict(String text, List<String> stops) {
@@ -127,7 +112,7 @@ public abstract class BaseLLM<R> extends BaseLanguageModel<R, LLMCallbackManager
     }
 
     @Override
-    public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, LLMCallbackManager callbackManager) {
+    public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, BaseCallbackManager callbackManager) {
 
         this.setCallbackManager(callbackManager);
         return this.predictMessages(baseMessages, stops);

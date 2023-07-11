@@ -1,14 +1,12 @@
 package com.starcloud.ops.llm.langchain.core.schema.message;
 
 import cn.hutool.core.util.StrUtil;
+import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -18,7 +16,7 @@ public abstract class BaseMessage implements Serializable {
 
     private String content;
 
-    private Map<String, Object> additionalArgs;
+    private Map<String, Object> additionalArgs = new HashMap<>();
 
     public abstract String getType();
 
@@ -31,7 +29,6 @@ public abstract class BaseMessage implements Serializable {
         this.content = content;
         this.additionalArgs = additionalArgs;
     }
-
 
     public static String getBufferString(List<BaseMessage> messages) {
         return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(message -> {

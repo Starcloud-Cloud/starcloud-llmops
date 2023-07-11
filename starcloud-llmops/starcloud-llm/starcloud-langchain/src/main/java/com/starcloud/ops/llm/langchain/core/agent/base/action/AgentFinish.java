@@ -1,5 +1,6 @@
-package com.starcloud.ops.llm.langchain.core.agent.base;
+package com.starcloud.ops.llm.langchain.core.agent.base.action;
 
+import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import lombok.Data;
 
 @Data

@@ -5,6 +5,7 @@ import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMess
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseOpenAI;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -28,7 +29,7 @@ public class ConversationTokenBufferMemory extends BaseChatMemory {
         this.llm = llm;
     }
 
-    protected List<BaseChatMessage> getBuffer() {
+    protected List<BaseMessage> getBuffer() {
         return this.getChatHistory().getMessages();
     }
 
@@ -46,7 +47,7 @@ public class ConversationTokenBufferMemory extends BaseChatMemory {
 
             return Collections.singletonList(BaseVariable.builder()
                     .field(MEMORY_KEY)
-                    .value(BaseChatMessage.getBufferString(this.getChatHistory().getMessages()))
+                    .value(BaseMessage.getBufferString(this.getBuffer()))
                     .build());
         }
 
@@ -57,13 +58,13 @@ public class ConversationTokenBufferMemory extends BaseChatMemory {
 
         super.saveContext(baseVariables, result);
 
-        List<BaseChatMessage> messages = this.getBuffer();
+        List<BaseMessage> messages = this.getBuffer();
 
         Long sum = this.llm.getNumTokensFromMessages(messages);
 
         if (sum > this.maxTokenLimit) {
 
-            List<BaseChatMessage> prunedMemory = new ArrayList<>();
+            List<BaseMessage> prunedMemory = new ArrayList<>();
 
             while (sum > this.maxTokenLimit) {
                 prunedMemory.add(this.getBuffer().remove(0));

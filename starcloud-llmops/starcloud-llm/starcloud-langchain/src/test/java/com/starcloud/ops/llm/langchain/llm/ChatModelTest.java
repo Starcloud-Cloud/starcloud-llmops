@@ -7,10 +7,9 @@ import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
-import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.*;
-import com.starcloud.ops.llm.langchain.core.schema.callbacks.StreamingStdOutCallbackHandler;
+import com.starcloud.ops.llm.langchain.core.callbacks.StreamingStdOutCallbackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -35,10 +34,7 @@ public class ChatModelTest extends SpringBootTests {
         ChatOpenAI chatOpenAI = new ChatOpenAI();
         chatOpenAI.setVerbose(true);
 
-
-        chatOpenAI.call(Arrays.asList(new HumanMessage("hi, what you name?")), null);
-
-
+        chatOpenAI._call(Arrays.asList(new HumanMessage("hi, what you name?")));
     }
 
 
@@ -49,10 +45,10 @@ public class ChatModelTest extends SpringBootTests {
 
         ChatOpenAI chatOpenAI = new ChatOpenAI();
         chatOpenAI.setStream(true);
-        chatOpenAI.setVerbose(true);
+        chatOpenAI.setVerbose(false);
         chatOpenAI.addCallbackHandler(new StreamingStdOutCallbackHandler(mockHttpServletResponse));
 
-        String msg = chatOpenAI.call(Arrays.asList(new HumanMessage("hi, what you name?")), null);
+        String msg = chatOpenAI._call(Arrays.asList(new HumanMessage("hi, what you name?")), null);
 
         log.info("msg: {}", msg);
     }
@@ -119,11 +115,11 @@ public class ChatModelTest extends SpringBootTests {
 
         llmChain.setVerbose(true);
 
-        String msg = llmChain.run(new HashMap() {{
+        String msg = llmChain.call(new HashMap() {{
             put("input_language", "English");
             put("output_language", "French");
             put("text", "I love programming.");
-        }});
+        }}).getText();
 
         log.info("LLMChain: {}", msg);
 

@@ -3,20 +3,17 @@ package com.starcloud.ops.llm.langchain.core.chain.base;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
-import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
+import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForChainRun;
 import com.starcloud.ops.llm.langchain.core.memory.BaseMemory;
-import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLM;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
-import com.starcloud.ops.llm.langchain.core.schema.callbacks.LLMCallbackManager;
 import lombok.Data;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -24,19 +21,19 @@ import java.util.stream.Collectors;
  * @author df007df
  */
 @Data
-public abstract class BaseChain<R> {
+public abstract class Chain<R> {
 
-    private BaseLanguageModel<R, LLMCallbackManager> llm;
+    private BaseLanguageModel<R> llm;
 
     private BaseMemory memory;
 
-    private LLMCallbackManager callbackManager = new LLMCallbackManager();
+    private BaseCallbackManager callbackManager = new CallbackManager();
 
-    public LLMCallbackManager getCallbackManager() {
+    public BaseCallbackManager getCallbackManager() {
         return callbackManager;
     }
 
-    public void setCallbackManager(LLMCallbackManager callbackManager) {
+    public void setCallbackManager(CallbackManager callbackManager) {
         this.callbackManager = callbackManager;
     }
 
@@ -48,11 +45,11 @@ public abstract class BaseChain<R> {
 
     public void setVerbose(Boolean verbose) {
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        loggerContext.getLogger(BaseChain.class).setLevel(Level.DEBUG);
+        loggerContext.getLogger(Chain.class).setLevel(Level.DEBUG);
         this.verbose = verbose;
     }
 
-    protected abstract BaseLLMResult<R> _call(List<BaseVariable> baseVariables);
+    protected abstract BaseLLMResult<R> _call(List<BaseVariable> baseVariables, CallbackManagerForChainRun chainRun);
 
 
     public void _validateInputs(List<BaseVariable> baseVariables) {
@@ -93,19 +90,19 @@ public abstract class BaseChain<R> {
 
         this.prepInputs(baseVariables);
 
-        this.getCallbackManager().onChainStart(this.getClass(), baseVariables, this.verbose);
+        CallbackManagerForChainRun chainRun =  this.getCallbackManager().onChainStart(this.getClass(), baseVariables, this.verbose);
 
         BaseLLMResult<R> baseLLMResult = null;
 
         try {
 
-            baseLLMResult = this._call(baseVariables);
+            baseLLMResult = this._call(baseVariables, chainRun);
         } catch (Exception e) {
 
-            this.getCallbackManager().onChainError(e.getMessage(), e);
+            chainRun.onChainError(e.getMessage(), e);
         }
 
-        this.getCallbackManager().onChainEnd(this.getClass(), baseVariables, this.verbose);
+        chainRun.onChainEnd(this.getClass(), baseLLMResult);
 
         this.prepOutputs(baseVariables, baseLLMResult);
 
@@ -113,13 +110,7 @@ public abstract class BaseChain<R> {
     }
 
 
-    public BaseLLMResult<R> run(List<BaseVariable> baseVariables) {
-
-        return this._call(baseVariables);
-    }
-
-
-    public String run(Map<String, Object> maps) {
+    public BaseLLMResult<R> call(Map<String, Object> maps) {
 
         List<BaseVariable> variables = new ArrayList<>();
         maps.forEach((key, value) -> {
@@ -129,7 +120,18 @@ public abstract class BaseChain<R> {
                     .build());
         });
 
-        return this._call(variables).getText();
+        return this.call(variables);
+    }
+
+
+    public String run(List<BaseVariable> baseVariables) {
+
+        return this.call(baseVariables).getText();
+    }
+
+    public String run(String text) {
+
+        return this.call(Arrays.asList(BaseVariable.newString(text))).getText();
     }
 
     public void save() {

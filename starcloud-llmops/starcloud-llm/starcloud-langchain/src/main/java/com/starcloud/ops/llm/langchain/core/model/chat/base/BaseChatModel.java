@@ -3,17 +3,14 @@ package com.starcloud.ops.llm.langchain.core.model.chat.base;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import cn.hutool.core.collection.CollectionUtil;
-import co.elastic.clients.elasticsearch.xpack.usage.Base;
+import com.starcloud.ops.llm.langchain.core.callbacks.*;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.model.llm.LLMUtils;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.*;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
-import com.starcloud.ops.llm.langchain.core.schema.callbacks.BaseCallbackHandler;
-import com.starcloud.ops.llm.langchain.core.schema.callbacks.LLMCallbackManager;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
-import com.starcloud.ops.llm.langchain.core.utils.MessageConvert;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -24,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Data
-public abstract class BaseChatModel<R> extends BaseLanguageModel<R, LLMCallbackManager> {
+public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseChatModel.class);
 
@@ -45,7 +42,7 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R, LLMCallbackM
     public String predict(String text, List<String> stops) {
 
         HumanMessage message = new HumanMessage(text);
-        return this.call(Arrays.asList(message), stops);
+        return this._call(Arrays.asList(message), stops);
     }
 
     @Override
@@ -54,24 +51,25 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R, LLMCallbackM
     }
 
     @Override
-    public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, LLMCallbackManager callbackManager) {
+    public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, BaseCallbackManager callbackManager) {
         return null;
     }
 
     private Boolean cache;
 
-    private LLMCallbackManager callbackManager = new LLMCallbackManager();
+    private BaseCallbackManager callbackManager = new CallbackManager();
 
     public void addCallbackHandler(BaseCallbackHandler callbackHandler) {
         this.callbackManager.addCallbackHandler(callbackHandler);
     }
 
-    public LLMCallbackManager getCallbackManager() {
+    public BaseCallbackManager getCallbackManager() {
         return callbackManager;
     }
 
 
-    protected abstract ChatResult<R> _generate(List<BaseChatMessage> chatMessages);
+    protected abstract ChatResult<R> _generate(List<BaseMessage> chatMessages, CallbackManagerForLLMRun callbackManager);
+
 
     protected ChatResult<R> _agenerate(List<BaseChatMessage> chatMessages) {
         return null;
@@ -80,67 +78,88 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R, LLMCallbackM
 
     public ChatResult<R> generate(List<List<BaseMessage>> chatMessages, List<String> stops) {
 
-        return this.generate(null);
+        return this.generate(chatMessages);
     }
 
-    @Deprecated
-    public ChatResult<R> generate(List<List<BaseChatMessage>> chatMessages) {
+    public ChatResult<R> generate(List<List<BaseMessage>> chatMessages) {
 
-        this.getCallbackManager().onLLMStart("BaseChatModel.generate.start", chatMessages);
 
-        try {
+        List<CallbackManagerForLLMRun> llmRuns = this.getCallbackManager().onChatModelStart(this.getClass(), chatMessages);
 
-            log.debug("BaseChatModel.generate: {}", chatMessages);
+        log.debug("BaseChatModel.generate: {}", chatMessages);
 
-            List<ChatResult<R>> chatResults = Optional.ofNullable(chatMessages).orElse(new ArrayList<>()).stream().map((chatMessageList -> {
+        List<ChatResult<R>> chatResults = new ArrayList<>();
 
-                return this._generate(chatMessageList);
-            })).collect(Collectors.toList());
+        for (int i = 0; i < CollectionUtil.size(chatMessages); i++) {
 
-            log.debug("BaseChatModel.generate result: {}", chatResults);
+            CallbackManagerForLLMRun llmRun = llmRuns.get(i);
 
-            this.getCallbackManager().onLLMEnd("BaseChatModel.generate.end", chatResults);
+            try {
 
-            return this.combineLLMOutputs(chatResults);
+                chatResults.add(this._generate(chatMessages.get(i), llmRun));
 
-        } catch (Exception e) {
+                //llmRun.onLLMEnd();
 
-            this.getCallbackManager().onLLMError(e.getMessage(), e);
+            } catch (Exception e) {
 
-            throw e;
+                llmRun.onLLMError(e.getMessage(), e);
+
+            }
         }
+
+        log.debug("BaseChatModel.generate result: {}", chatResults);
+
+        //this.getCallbackManager().onChatModelEnd(this.getClass(), chatResults);
+
+        return this.combineLLMOutputs(chatResults);
     }
+
+
+//    @Deprecated
+//    public ChatResult<R> generate(List<List<BaseChatMessage>> chatMessages) {
+//
+//        this.getCallbackManager().onLLMStart("BaseChatModel.generate.start", chatMessages);
+//
+//        try {
+//
+//            log.debug("BaseChatModel.generate: {}", chatMessages);
+//
+//            List<ChatResult<R>> chatResults = Optional.ofNullable(chatMessages).orElse(new ArrayList<>()).stream().map((chatMessageList -> {
+//
+//                return this._generate(chatMessageList);
+//            })).collect(Collectors.toList());
+//
+//            log.debug("BaseChatModel.generate result: {}", chatResults);
+//
+//            this.getCallbackManager().onLLMEnd("BaseChatModel.generate.end", chatResults);
+//
+//            return this.combineLLMOutputs(chatResults);
+//
+//        } catch (Exception e) {
+//
+//            this.getCallbackManager().onLLMError(e.getMessage(), e);
+//
+//            throw e;
+//        }
+//    }
 
     @Override
     public BaseLLMResult<R> generatePrompt(List<PromptValue> promptValues) {
 
         //@todo 结构不对多余的转换
-        List<List<BaseChatMessage>> baseMessages = Optional.ofNullable(promptValues).orElse(new ArrayList<>()).stream().map((promptValue -> {
+        List<List<BaseMessage>> baseMessages = Optional.ofNullable(promptValues).orElse(new ArrayList<>()).stream().map((PromptValue::toMessage)).collect(Collectors.toList());
 
-            List<BaseChatMessage> baseChatMessages = Optional.ofNullable(promptValue.toMessage()).orElse(new ArrayList<>()).stream().map(baseMessage -> {
-
-                BaseChatMessage baseChatMessage = BaseChatMessage.ofRole(baseMessage.getType());
-                baseChatMessage.setContent(baseMessage.getContent());
-
-                return baseChatMessage;
-
-            }).collect(Collectors.toList());
-
-            return baseChatMessages;
-
-        })).collect(Collectors.toList());
-
-        ChatResult<R> chatResult = this.generate(baseMessages);
+        ChatResult<R> chatResult = this.generate(baseMessages, null);
 
         return BaseLLMResult.data(chatResult.getChatGenerations(), chatResult.getUsage());
     }
 
-    public String call(List<BaseChatMessage> chatMessages) {
-        ChatResult<R> chatResult = this.generate(Arrays.asList(chatMessages));
+    public String _call(List<BaseMessage> chatMessages) {
+        ChatResult<R> chatResult = this.generate(Arrays.asList(chatMessages), null);
         return chatResult.getChatGenerations().get(0).getText();
     }
 
-    public String call(List<BaseMessage> chatMessages, List<String> stops) {
+    public String _call(List<BaseMessage> chatMessages, List<String> stops) {
         ChatResult<R> chatResult = this.generate(Arrays.asList(chatMessages), stops);
         return chatResult.getChatGenerations().get(0).getText();
     }

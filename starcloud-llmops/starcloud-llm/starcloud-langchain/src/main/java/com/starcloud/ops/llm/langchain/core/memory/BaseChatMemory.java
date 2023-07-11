@@ -1,15 +1,12 @@
 package com.starcloud.ops.llm.langchain.core.memory;
 
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.*;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Data
 public abstract class BaseChatMemory extends BaseMemory {
