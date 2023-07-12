@@ -42,6 +42,7 @@ import java.util.TimeZone;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
 
 @Tag(name = "星河云海 - 支付订单")
@@ -138,7 +139,7 @@ public class PayOrderController {
     @Operation(summary = "创建订单")
     public CommonResult<Long> submitPayOrder(@RequestBody PayOrderCreateReq2DTO req2DTO) {
 
-        log.info("1.开始创建订单，准备封装订单参数，订单入参为:{}", JSONObject.toJSONString(req2DTO));
+        log.info("1.开始创建订单，准备封装订单参数，订单入参为:({})|用户ID({})|租户 ID({})", JSONObject.toJSONString(req2DTO),getLoginUserId(),getTenantId());
         PayOrderCreateReqDTO payOrderCreateReqDTO = new PayOrderCreateReqDTO();
 
         // 获取当前唯一 APPID
