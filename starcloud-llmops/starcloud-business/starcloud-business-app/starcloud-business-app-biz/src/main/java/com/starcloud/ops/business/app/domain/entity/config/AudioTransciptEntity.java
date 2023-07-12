@@ -3,9 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.config;
 import lombok.Data;
 
 @Data
-public class OpeningStatementEntity {
+public class AudioTransciptEntity {
 
     private Boolean enabled;
-
-    private String statement;
 }

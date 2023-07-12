@@ -25,7 +25,74 @@ public enum PromptTempletEnum {
             "The output must be in JSON format following the specified schema:\n" +
             "[\"question1\",\"question2\",\"question3\"]\n"
 
-    );
+    ),
+
+
+
+    RULE_GENERATE("","Given MY INTENDED AUDIENCES and HOPING TO SOLVE using a language model, please select the model prompt that best suits the input. \n" +
+            "You will be provided with the prompt, variables, and an opening statement. \n" +
+            "Only the content enclosed in curly braces, such as {{variable}}, in the prompt can be considered as a variable; \\\n" +
+            "otherwise, it cannot exist as a variable in the variables.\n" +
+            "If you believe revising the original input will result in a better response from the language model, you may \\\n" +
+            "suggest revisions.\n" +
+            "\n" +
+            "<< FORMATTING >>\n" +
+            "Return a JSON object formatted to look like, \\\n" +
+            "no any other string out of JSON code snippet:\n" +
+//            "```json\n" +
+            "{{{{\n" +
+            "    \"prompt\": string \\\\ generated prompt\n" +
+            "    \"variables\": list of string \\\\ variables\n" +
+            "    \"opening_statement\": string \\\\ an opening statement to guide users on how to ask questions with generated prompt \\\n" +
+            "and fill in variables, with a welcome sentence, and keep TLDR.\n" +
+            "}}}}\n" +
+//            "```\n" +
+            "\n" +
+            "<< EXAMPLES >>\n" +
+            "[EXAMPLE A]\n" +
+//            "```json\n" +
+            "{\n" +
+            "  \"prompt\": \"Write a letter about love\",\n" +
+            "  \"variables\": [],\n" +
+            "  \"opening_statement\": \"Hi! I'm your love letter writer AI.\"\n" +
+            "}\n" +
+//            "```\n" +
+            "\n" +
+            "[EXAMPLE B]\n" +
+//            "```json\n" +
+            "{\n" +
+            "  \"prompt\": \"Translate from {{lanA}} to {{lanB}}\",\n" +
+            "  \"variables\": [\"lanA\", \"lanB\"],\n" +
+            "  \"opening_statement\": \"Welcome to use translate app\"\n" +
+            "}\n" +
+//            "```\n" +
+            "\n" +
+            "[EXAMPLE C]\n" +
+//            "```json\n" +
+            "{\n" +
+            "  \"prompt\": \"Write a story about {{topic}}\",\n" +
+            "  \"variables\": [\"topic\"],\n" +
+            "  \"opening_statement\": \"I'm your story writer\"\n" +
+            "}\n" +
+//            "```\n" +
+            "\n" +
+            "<< MY INTENDED AUDIENCES >>\n" +
+            "{audiences} \n" +
+            "\n" +
+            "<< HOPING TO SOLVE >>\n" +
+            "{hoping_to_solve} \n" +
+            "\n" +
+            "<< OUTPUT >>"),
+
+    AUDIENCES("audiences","" ),
+
+    HOPING_TO_SOLVE("hoping_to_solve","")
+
+    ;
+
+
+
+
 
     private String key;
 

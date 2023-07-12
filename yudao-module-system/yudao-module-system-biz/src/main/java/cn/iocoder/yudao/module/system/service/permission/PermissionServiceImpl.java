@@ -453,5 +453,13 @@ public class PermissionServiceImpl implements PermissionService {
         entity.setUserId(userId);
         entity.setRoleId(roleByCode.getId());
         userRoleMapper.insert(entity);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                permissionProducer.sendUserRoleRefreshMessage();
+            }
+
+        });
     }
 }
