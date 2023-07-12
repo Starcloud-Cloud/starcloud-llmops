@@ -30,9 +30,11 @@ public class OpenAITest extends SpringBootTests {
 
         OpenAI llm = new OpenAI();
 
-        log.info("result : {}", llm._call("Hi there! what you name?"));
+        log.info("result : {}", llm.call("Hi there! what you name?"));
 
     }
+
+
 
 
     @Test
@@ -40,7 +42,7 @@ public class OpenAITest extends SpringBootTests {
 
         OpenAI llm = new OpenAI();
 
-        ConversationChain conversationChain = new ConversationChain(llm);
+        ConversationChain<BaseLLMResult> conversationChain = new ConversationChain(llm);
         conversationChain.setVerbose(true);
 
         BaseLLMResult baseLLMResult = conversationChain.call(Arrays.asList(BaseVariable.newString("input", "Hi there! what you name?")));
@@ -95,7 +97,7 @@ public class OpenAITest extends SpringBootTests {
 
         OpenAI llm = new OpenAI();
 
-        ConversationChain conversationChain = new ConversationChain(llm, new ConversationSummaryMemory(new OpenAI()));
+        ConversationChain<BaseLLMResult> conversationChain = new ConversationChain(llm, new ConversationSummaryMemory(new OpenAI()));
         conversationChain.setVerbose(false);
 
         BaseLLMResult result = conversationChain.call(Arrays.asList(
@@ -149,7 +151,7 @@ public class OpenAITest extends SpringBootTests {
 
         ConversationTokenBufferMemory memory = new ConversationTokenBufferMemory(new OpenAI(), 60);
 
-        ConversationChain conversationChain = new ConversationChain(llm, memory);
+        ConversationChain<BaseLLMResult> conversationChain = new ConversationChain(llm, memory);
         conversationChain.setVerbose(true);
 
 
@@ -189,7 +191,7 @@ public class OpenAITest extends SpringBootTests {
 
         ConversationSummaryBufferMemory memory = new ConversationSummaryBufferMemory(new OpenAI(), 80);
 
-        ConversationChain conversationChain = new ConversationChain(llm, memory);
+        ConversationChain<BaseLLMResult> conversationChain = new ConversationChain(llm, memory);
         conversationChain.setVerbose(false);
 
         BaseLLMResult result = conversationChain.call(Arrays.asList(

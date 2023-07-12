@@ -1,12 +1,13 @@
 package com.starcloud.ops.llm.langchain.core.tools.base;
 
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
-import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForToolRun;
+import kotlin.jvm.Transient;
 import lombok.Data;
+import java.util.Map;
 
 @Data
-public abstract class BaseTool {
+public abstract class BaseTool<Q, R> {
 
     private String name;
 
@@ -14,15 +15,18 @@ public abstract class BaseTool {
 
     private Boolean verbose;
 
-    private BaseCallbackManager callbackManager = new CallbackManager();
+    private Boolean returnDirect = false;
 
-    protected abstract String _run(String input);
+    @Transient
+    private BaseCallbackManager callbackManager;
 
-    public String run(String input, Boolean verbose) {
+    protected abstract R _run(Object input);
+
+    public R run(Object input, Boolean verbose, Map<String, Object> toolRunKwargs) {
 
         CallbackManagerForToolRun toolRun = this.callbackManager.onToolStart(this.name, this.description, input, verbose);
 
-        String result = null;
+        R result = null;
 
         try {
 
@@ -42,4 +46,11 @@ public abstract class BaseTool {
         return result;
     }
 
+    public Object getArgsSchema() {
+        return null;
+    }
+
+    public Object getArgsSchemaRequired() {
+        return null;
+    }
 }

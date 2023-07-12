@@ -4,7 +4,10 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseMessageProm
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 public class MessagesPlaceholder extends BaseMessagePromptTemplate {
@@ -17,6 +20,12 @@ public class MessagesPlaceholder extends BaseMessagePromptTemplate {
 
     @Override
     public List<BaseMessage> formatMessages(List<BaseVariable> variables) {
-        return null;
+
+        List<BaseVariable> variablesMessage = Optional.ofNullable(variables).orElse(new ArrayList<>()).stream().filter(variable -> {
+            return variable.getField().equals(this.variableName);
+        }).collect(Collectors.toList());
+
+
+        return new ArrayList<>();
     }
 }

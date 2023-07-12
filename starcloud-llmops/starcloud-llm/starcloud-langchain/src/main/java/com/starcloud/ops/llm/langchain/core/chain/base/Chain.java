@@ -7,9 +7,7 @@ import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForChainRun;
 import com.starcloud.ops.llm.langchain.core.memory.BaseMemory;
-import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
-import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
 import lombok.Data;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +20,6 @@ import java.util.stream.Collectors;
  */
 @Data
 public abstract class Chain<R> {
-
-    private BaseLanguageModel<R> llm;
 
     private BaseMemory memory;
 
@@ -49,17 +45,15 @@ public abstract class Chain<R> {
         this.verbose = verbose;
     }
 
-    protected abstract BaseLLMResult<R> _call(List<BaseVariable> baseVariables, CallbackManagerForChainRun chainRun);
-
+    protected abstract R _call(List<BaseVariable> baseVariables);
 
     public void _validateInputs(List<BaseVariable> baseVariables) {
 
     }
 
-    public void _validateOutputs(BaseLLMResult<R> result) {
+    public void _validateOutputs(R result) {
 
     }
-
 
     protected List<BaseVariable> prepInputs(List<BaseVariable> baseVariables) {
 
@@ -75,7 +69,7 @@ public abstract class Chain<R> {
         return baseVariables;
     }
 
-    protected BaseLLMResult<R> prepOutputs(List<BaseVariable> baseVariables, BaseLLMResult<R> result) {
+    protected R prepOutputs(List<BaseVariable> baseVariables, R result) {
 
         this._validateOutputs(result);
 
@@ -86,31 +80,36 @@ public abstract class Chain<R> {
     }
 
 
-    public BaseLLMResult<R> call(List<BaseVariable> baseVariables) {
+    public R call(List<BaseVariable> baseVariables) {
 
         this.prepInputs(baseVariables);
 
-        CallbackManagerForChainRun chainRun =  this.getCallbackManager().onChainStart(this.getClass(), baseVariables, this.verbose);
+        CallbackManagerForChainRun chainRun = this.getCallbackManager().onChainStart(this.getClass(), baseVariables, this.verbose);
 
-        BaseLLMResult<R> baseLLMResult = null;
+        R result = null;
 
         try {
 
-            baseLLMResult = this._call(baseVariables, chainRun);
+            result = this._call(baseVariables);
+
         } catch (Exception e) {
 
-            chainRun.onChainError(e.getMessage(), e);
+            //chainRun.onChainError(e.getMessage(), e);
+
+            this.getCallbackManager().onChainError(e.getMessage(), e);
         }
 
-        chainRun.onChainEnd(this.getClass(), baseLLMResult);
+        //chainRun.onChainEnd(this.getClass(), baseLLMResult);
 
-        this.prepOutputs(baseVariables, baseLLMResult);
+        this.getCallbackManager().onChainEnd(this.getClass(), result);
 
-        return baseLLMResult;
+        this.prepOutputs(baseVariables, result);
+
+        return result;
     }
 
 
-    public BaseLLMResult<R> call(Map<String, Object> maps) {
+    public R call(Map<String, Object> maps) {
 
         List<BaseVariable> variables = new ArrayList<>();
         maps.forEach((key, value) -> {
@@ -123,16 +122,9 @@ public abstract class Chain<R> {
         return this.call(variables);
     }
 
+    public abstract String run(List<BaseVariable> baseVariables);
 
-    public String run(List<BaseVariable> baseVariables) {
-
-        return this.call(baseVariables).getText();
-    }
-
-    public String run(String text) {
-
-        return this.call(Arrays.asList(BaseVariable.newString(text))).getText();
-    }
+    public abstract String run(String text);
 
     public void save() {
         return;

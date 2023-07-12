@@ -4,6 +4,7 @@ import com.starcloud.ops.llm.langchain.SpringBootTests;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
@@ -34,7 +35,7 @@ public class ChatModelTest extends SpringBootTests {
         ChatOpenAI chatOpenAI = new ChatOpenAI();
         chatOpenAI.setVerbose(true);
 
-        chatOpenAI._call(Arrays.asList(new HumanMessage("hi, what you name?")));
+        chatOpenAI.call(Arrays.asList(new HumanMessage("hi, what you name?")));
     }
 
 
@@ -48,7 +49,7 @@ public class ChatModelTest extends SpringBootTests {
         chatOpenAI.setVerbose(false);
         chatOpenAI.addCallbackHandler(new StreamingStdOutCallbackHandler(mockHttpServletResponse));
 
-        String msg = chatOpenAI._call(Arrays.asList(new HumanMessage("hi, what you name?")), null);
+        String msg = chatOpenAI.call(Arrays.asList(new HumanMessage("hi, what you name?")), null);
 
         log.info("msg: {}", msg);
     }
@@ -111,7 +112,7 @@ public class ChatModelTest extends SpringBootTests {
 
         ChatOpenAI chatOpenAI = new ChatOpenAI();
 
-        LLMChain llmChain = new LLMChain(chatOpenAI, chatPromptTemplate);
+        LLMChain<BaseLLMResult> llmChain = new LLMChain(chatOpenAI, chatPromptTemplate);
 
         llmChain.setVerbose(true);
 

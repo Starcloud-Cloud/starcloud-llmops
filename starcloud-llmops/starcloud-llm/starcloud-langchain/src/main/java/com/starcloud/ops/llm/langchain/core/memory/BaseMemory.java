@@ -7,9 +7,9 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public abstract class BaseMemory {
+public abstract class BaseMemory<R> {
 
     public abstract List<BaseVariable> loadMemoryVariables();
 
-    public abstract void saveContext(List<BaseVariable> baseVariables, BaseLLMResult result);
+    public abstract void saveContext(List<BaseVariable> baseVariables, R result);
 }

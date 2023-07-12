@@ -19,8 +19,14 @@ public class BaseAgent extends BaseSingleActionAgent {
 
     private List<String> allowedTools = new ArrayList<>();
 
+
     @Override
-    public List<AgentAction> plan(List<AgentAction> intermediateSteps, BaseCallbackManager callbackManager, List<BaseVariable> variables) {
+    public List<AgentAction> plan(List<AgentAction> intermediateSteps, List<BaseVariable> variables, BaseCallbackManager callbackManager) {
+        return null;
+    }
+
+    @Override
+    public List<String> inputKeys() {
         return null;
     }
 }

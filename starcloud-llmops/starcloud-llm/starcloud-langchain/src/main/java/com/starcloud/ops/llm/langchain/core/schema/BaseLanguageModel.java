@@ -6,6 +6,8 @@ import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
+import com.starcloud.ops.llm.langchain.core.tools.utils.ConvertToOpenaiUtils;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,8 @@ public abstract class BaseLanguageModel<R> {
     public abstract BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops);
 
     public abstract BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, BaseCallbackManager callbackManager);
+
+    public abstract BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, List<FunctionDescription> functionDescriptions, BaseCallbackManager callbackManager);
 
 }
 

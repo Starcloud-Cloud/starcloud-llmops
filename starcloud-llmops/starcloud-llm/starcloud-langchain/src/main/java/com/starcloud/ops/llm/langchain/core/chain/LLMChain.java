@@ -18,7 +18,9 @@ import java.util.*;
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class LLMChain<R> extends Chain<R> {
+public class LLMChain<R> extends Chain<BaseLLMResult<R>> {
+
+    private BaseLanguageModel<R> llm;
 
     private static final Logger logger = LoggerFactory.getLogger(LLMChain.class);
 
@@ -31,11 +33,31 @@ public class LLMChain<R> extends Chain<R> {
 
 
     @Override
-    protected BaseLLMResult<R> _call(List<BaseVariable> baseVariables, CallbackManagerForChainRun chainRun) {
+    protected BaseLLMResult<R> _call(List<BaseVariable> baseVariables) {
+
         PromptValue promptValue = this.promptTemplate.formatPrompt(baseVariables);
 
         this.getLlm().setVerbose(this.getVerbose());
         return this.getLlm().generatePrompt(Arrays.asList(promptValue));
     }
+
+    @Override
+    public String run(List<BaseVariable> baseVariables) {
+
+        return this.call(baseVariables).getText();
+    }
+
+    @Override
+    public String run(String text) {
+
+        return this.call(Arrays.asList(BaseVariable.newString(text))).getText();
+    }
+//
+//    protected BaseLLMResult<R> _call(List<BaseVariable> baseVariables, CallbackManagerForChainRun chainRun) {
+//        PromptValue promptValue = this.promptTemplate.formatPrompt(baseVariables);
+//
+//        this.getLlm().setVerbose(this.getVerbose());
+//        return this.getLlm().generatePrompt(Arrays.asList(promptValue));
+//    }
 
 }

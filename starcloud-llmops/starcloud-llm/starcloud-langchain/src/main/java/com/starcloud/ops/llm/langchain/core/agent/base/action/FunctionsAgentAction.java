@@ -14,10 +14,9 @@ public class FunctionsAgentAction extends AgentAction {
         this.messagesLog = messagesLog;
     }
 
-    public FunctionsAgentAction(String tool, String toolInput, String log, List<BaseMessage> messagesLog) {
+    public FunctionsAgentAction(String tool, Object toolInput, String log, List<BaseMessage> messagesLog) {
 
-        super();
-        this.setTools(tool);
+        this.setTool(tool);
         this.setToolInput(toolInput);
         this.setLog(log);
         this.messagesLog = messagesLog;

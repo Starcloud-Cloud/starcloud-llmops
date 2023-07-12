@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.SetUtils;
+import org.apache.ibatis.ognl.ObjectElementsAccessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,10 @@ public class BaseVariable {
     private Object value;
 
     private Map<String, String> options;
+
+    public static BaseVariable newObject(String field, Object value) {
+        return BaseVariable.builder().field(field).value(value).build();
+    }
 
     public static BaseVariable newString(String field, String value) {
         return BaseVariable.builder().type(VariableTypeEnum.STR).field(field).value(value).build();

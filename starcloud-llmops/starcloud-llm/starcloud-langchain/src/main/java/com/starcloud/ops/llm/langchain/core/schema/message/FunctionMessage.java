@@ -1,15 +1,20 @@
 package com.starcloud.ops.llm.langchain.core.schema.message;
 
-import java.util.Map;
+import lombok.Data;
 
-public class FunctionMessage extends BaseMessage {
+import java.util.HashMap;
 
-    public FunctionMessage(String content, Map<String, Object> additionalArgs) {
-        super(content, additionalArgs);
-    }
+@Data
+public class FunctionMessage extends AIMessage {
 
-    public FunctionMessage(String content) {
-        super(content);
+    private String name;
+
+    public FunctionMessage(String name, Object arguments) {
+        super("");
+        this.name = name;
+        this.setAdditionalArgs(new HashMap() {{
+            put("arguments", arguments);
+        }});
     }
 
     @Override

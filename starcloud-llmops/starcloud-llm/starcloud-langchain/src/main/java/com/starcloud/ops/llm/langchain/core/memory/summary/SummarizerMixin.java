@@ -88,7 +88,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
 
         String newLines = BaseMessage.getBufferString(messages);
 
-        LLMChain llmChain = new LLMChain(this.llm, this.prompt);
+        LLMChain<BaseLLMResult> llmChain = new LLMChain(this.llm, this.prompt);
 
         return llmChain.call(Arrays.asList(
                 BaseVariable.newString("new_lines", newLines),

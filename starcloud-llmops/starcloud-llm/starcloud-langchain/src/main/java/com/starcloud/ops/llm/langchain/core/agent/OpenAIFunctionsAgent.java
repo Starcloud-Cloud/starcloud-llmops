@@ -1,10 +1,16 @@
 package com.starcloud.ops.llm.langchain.core.agent;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
 import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentAction;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.StdOutCallbackHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 
@@ -16,9 +22,12 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.template.*;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
+import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.FunctionMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import com.starcloud.ops.llm.langchain.core.schema.prompt.BasePromptTemplate;
+import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.ConvertToOpenaiUtils;
 import lombok.Data;
@@ -48,7 +57,7 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
     public static OpenAIFunctionsAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools) {
 
-        return fromLLMAndTools(llm, tools, new CallbackManager(), null, new SystemMessage("You are a helpful AI assistant."));
+        return fromLLMAndTools(llm, tools, new CallbackManager().addCallbackHandler(new StdOutCallbackHandler()), new ArrayList<>(), new SystemMessage("You are a helpful AI assistant."));
     }
 
 
@@ -56,37 +65,47 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
         Assert.isInstanceOf(ChatOpenAI.class, llm, "Only supported with ChatOpenAI models.");
 
-        return new OpenAIFunctionsAgent(llm, tools, createPrompt(systemMessage, extraPromptMessages));
+        OpenAIFunctionsAgent agent = new OpenAIFunctionsAgent(llm, tools, createPrompt(systemMessage, extraPromptMessages));
+        agent.setCallbackManager(callbackManager);
+
+        return agent;
     }
 
 
     @Override
-    public List<AgentAction> plan(List<AgentAction> intermediateSteps, BaseCallbackManager callbackManager, List<BaseVariable> variables) {
+    public List<AgentAction> plan(List<AgentAction> intermediateSteps, List<BaseVariable> variables, BaseCallbackManager callbackManager) {
 
-        List<BaseChatMessage> chatMessages = this.formatIntermediateSteps(intermediateSteps);
+        List<BaseMessage> chatMessages = this.formatIntermediateSteps(intermediateSteps);
 
         List<BaseVariable> selectedInputs = Optional.ofNullable(variables).orElse(new ArrayList<>()).stream().filter(baseVariable -> !baseVariable.getField().equals(TEMP_VARIABLE_SCRATCHPAD)).collect(Collectors.toList());
+
+        selectedInputs.add(BaseVariable.newObject(TEMP_VARIABLE_SCRATCHPAD, chatMessages));
 
         PromptValue promptValue = this.promptTemplate.formatPrompt(selectedInputs);
 
         List<BaseMessage> messages = promptValue.toMessage();
 
-        BaseMessage predictedMessage = this.llm.predictMessages(messages, this.getFunctions(), callbackManager);
+        BaseMessage predictedMessage = this.llm.predictMessages(messages, null, this.getFunctions(), callbackManager);
 
-        AgentAction agentAction = this.parseAiMessage(predictedMessage);
+        AgentAction agentAction = parseAiMessage(predictedMessage);
 
         return Arrays.asList(agentAction);
     }
 
     @Override
+    public List<String> inputKeys() {
+        return Arrays.asList("input");
+    }
+
+    @Override
     public List<String> getAllowedTools() {
-        return Optional.ofNullable(tools).orElse(new ArrayList<>()).stream().map(BaseTool::getName).collect(Collectors.toList());
+        return Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().map(BaseTool::getName).collect(Collectors.toList());
     }
 
 
-    public List<Object> getFunctions() {
+    public List<FunctionDescription> getFunctions() {
 
-        return Optional.ofNullable(tools).orElse(new ArrayList<>()).stream().map(ConvertToOpenaiUtils::convert).collect(Collectors.toList());
+        return (List<FunctionDescription>) Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().map(FunctionDescription::convert).collect(Collectors.toList());
     }
 
 
@@ -104,17 +123,54 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
     }
 
 
-    public static AgentAction parseAIMessage(BaseMessage baseMessage) {
+    protected List<BaseMessage> formatIntermediateSteps(List<AgentAction> intermediateSteps) {
 
-        String functionCall = (String) baseMessage.getAdditionalArgs().getOrDefault("function_call", "{}");
+        List<BaseMessage> messages = new ArrayList<>();
+        Optional.ofNullable(intermediateSteps).orElse(new ArrayList<>()).forEach(agentAction -> {
+            messages.addAll(convertAgentActionToMessages(agentAction, agentAction.getObservation()));
+        });
 
+        return messages;
+    }
 
-        if (functionCall != null) {
+    protected <R> List<BaseMessage> convertAgentActionToMessages(AgentAction agentAction, R observation) {
 
-            return null;
+        List<BaseMessage> messages = new ArrayList<>();
+        if (agentAction instanceof FunctionsAgentAction) {
+            List<BaseMessage> history = ((FunctionsAgentAction) agentAction).getMessagesLog();
+            messages.addAll(history);
+            messages.add(createFunctionMessage(agentAction, observation.toString()));
+        } else {
+            messages = Arrays.asList(new AIMessage(agentAction.getLog()));
+        }
+
+        return messages;
+    }
+
+    protected FunctionMessage createFunctionMessage(AgentAction agentAction, String observation) {
+
+        return new FunctionMessage(agentAction.getTool(), observation);
+    }
+
+    protected static AgentAction parseAiMessage(BaseMessage baseMessage) {
+
+        Assert.isInstanceOf(AIMessage.class, baseMessage, "Expected an AI message got");
+
+        if (baseMessage instanceof FunctionMessage) {
+
+            String functionName = ((FunctionMessage) baseMessage).getName();
+            ObjectNode toolInput = (ObjectNode) ((FunctionMessage) baseMessage).getAdditionalArgs().getOrDefault("arguments", null);
+
+            String contentMsg = StrUtil.isNotBlank(baseMessage.getContent()) ? "responded: " + baseMessage.getContent() + "\n" : "";
+            String log = "\nInvoking: `" + functionName + "` with `" + toolInput + "`\n" + contentMsg + "\n";
+
+            FunctionsAgentAction functionsAgentAction = new FunctionsAgentAction(functionName, toolInput, log, Arrays.asList(baseMessage));
+
+            return functionsAgentAction;
+
         } else {
 
-            return new AgentFinish("rrrrr", baseMessage.getContent());
+            return new AgentFinish(BaseVariable.newString("output", baseMessage.getContent()), baseMessage.getContent());
         }
 
     }

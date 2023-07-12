@@ -1,10 +1,9 @@
 package com.starcloud.ops.llm.langchain.core.agent.base.action;
 
-import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import lombok.Data;
 
 @Data
-public class AgentFinish extends AgentAction {
+public class AgentFinish extends AgentAction<Object> {
 
     private Object returnValues;
 

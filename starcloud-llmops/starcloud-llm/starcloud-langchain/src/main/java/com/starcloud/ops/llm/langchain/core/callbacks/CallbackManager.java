@@ -1,7 +1,9 @@
 package com.starcloud.ops.llm.langchain.core.callbacks;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class CallbackManager extends BaseCallbackManager {
 
@@ -38,6 +40,14 @@ public class CallbackManager extends BaseCallbackManager {
         return chainRun;
 
     }
+
+    @Override
+    public void onChainError(String message, Throwable throwable) {
+        Optional.ofNullable(this.getHandlers()).orElse(new ArrayList<>()).forEach((callbackHandler -> {
+            callbackHandler.onChainError(message, throwable);
+        }));
+    }
+
 
     @Override
     public CallbackManagerForToolRun onToolStart(Object... objects) {

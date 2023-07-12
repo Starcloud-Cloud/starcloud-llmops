@@ -9,7 +9,7 @@ import java.util.function.Function;
  * 回调类型工具
  */
 @Data
-public class FunTool extends BaseTool {
+public class FunTool extends BaseTool<String, String> {
 
     private final Function<String, String> function;
 
@@ -20,7 +20,7 @@ public class FunTool extends BaseTool {
     }
 
     @Override
-    protected String _run(String input) {
-        return function.apply(input);
+    protected String _run(Object input) {
+        return function.apply(input.toString());
     }
 }

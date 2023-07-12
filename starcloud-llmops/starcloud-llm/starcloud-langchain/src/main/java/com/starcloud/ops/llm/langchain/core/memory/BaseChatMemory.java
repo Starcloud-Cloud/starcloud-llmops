@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Data
-public abstract class BaseChatMemory extends BaseMemory {
+public abstract class BaseChatMemory extends BaseMemory<BaseLLMResult> {
 
     private Boolean returnMessages = false;
 

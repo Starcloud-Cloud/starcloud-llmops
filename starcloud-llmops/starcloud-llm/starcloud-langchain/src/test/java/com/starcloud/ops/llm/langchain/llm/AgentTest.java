@@ -1,11 +1,14 @@
 package com.starcloud.ops.llm.langchain.llm;
 
+import cn.hutool.json.JSONConfig;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.llm.langchain.SpringBootTests;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
+import com.starcloud.ops.llm.langchain.core.model.llm.OpenAI;
+import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.tools.LoadTools;
 import com.starcloud.ops.llm.langchain.core.tools.RequestsGetTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
@@ -26,13 +29,25 @@ public class AgentTest extends SpringBootTests {
 
 
     @Test
+    public void generateToolTest() {
+
+        ChatOpenAI chatOpenAI = new ChatOpenAI();
+
+        chatOpenAI.setModel("gpt-3.5-turbo-0613");
+
+        String out = chatOpenAI.call(Arrays.asList(new HumanMessage("hi, what you name?")));
+
+        log.info("out: {}", out);
+    }
+
+    @Test
     public void loadToolsTest() {
 
         ChatOpenAI chatOpenAI = new ChatOpenAI();
 
         List<BaseTool> tools = LoadTools.loadTools(Arrays.asList(RequestsGetTool.class), chatOpenAI);
 
-        log.info("tools: {}", JSONUtil.parse(tools).toStringPretty());
+        log.info("tools: {}", JSONUtil.parse(tools, JSONConfig.create()).toStringPretty());
 
     }
 
@@ -44,9 +59,9 @@ public class AgentTest extends SpringBootTests {
 
         List<BaseTool> tools = LoadTools.loadTools(Arrays.asList(RequestsGetTool.class), chatOpenAI);
 
-        BaseSingleActionAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools);
+        OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools);
 
-        AgentExecutor agentExecutor = AgentExecutor.initializeAgent(tools, chatOpenAI, baseSingleActionAgent);
+        AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(tools, chatOpenAI, baseSingleActionAgent, baseSingleActionAgent.getCallbackManager());
 
         agentExecutor.run("Who is Leo DiCaprio's girlfriend? What is her current age raised to the 0.43 power?");
 

@@ -1,25 +1,27 @@
 package com.starcloud.ops.llm.langchain.core.model.chat;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.BaseChatModel;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.model.llm.azure.AuthenticationInterceptor;
 import com.starcloud.ops.llm.langchain.core.model.llm.azure.AzureAiApi;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
-import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.*;
+import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import com.starcloud.ops.llm.langchain.core.utils.MessageConvert;
 import com.theokanning.openai.OpenAiApi;
 import com.theokanning.openai.Usage;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
+import com.theokanning.openai.completion.chat.ChatFunction;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 
@@ -70,9 +72,11 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
     private Double frequencyPenalty = 0d;
 
+    private List<ChatFunction> functions;
+
 
     @Override
-    public ChatResult<ChatCompletionResult> _generate(List<BaseMessage> messages, CallbackManagerForLLMRun callbackManagerForLLMRun) {
+    public ChatResult<ChatCompletionResult> _generate(List<BaseMessage> messages, List<String> tops, List<FunctionDescription> functions, CallbackManagerForLLMRun callbackManagerForLLMRun) {
 
         OpenAIConfig openAIConfig = SpringUtil.getBean(OpenAIConfig.class);
 
@@ -173,7 +177,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                         //todo usage
                         baseLLMUsage.setCompletionTokens(resultToke).setTotalTokens(totalTokens);
 
-                        chatResult.setChatGenerations(Arrays.asList(ChatGeneration.<ChatCompletionResult>builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
+                        chatResult.setChatGenerations(Arrays.asList(ChatGeneration.<ChatCompletionResult>builder().chatMessage(new AIMessage(resultMsg)).usage(baseLLMUsage).build()));
                         chatResult.setUsage(baseLLMUsage);
 
                         //this.getCallbackManager().onLLMEnd("complete", resultMsg, totalTokens);
@@ -190,7 +194,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                             //todo usage
                             baseLLMUsage.setCompletionTokens(resultToke).setTotalTokens(totalTokens);
 
-                            chatResult.setChatGenerations(Arrays.asList(ChatGeneration.<ChatCompletionResult>builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
+                            chatResult.setChatGenerations(Arrays.asList(ChatGeneration.<ChatCompletionResult>builder().chatMessage(new AIMessage(resultMsg)).usage(baseLLMUsage).build()));
                             chatResult.setUsage(baseLLMUsage);
                         }
 
@@ -219,6 +223,20 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         } else {
 
+            if (CollectionUtil.isNotEmpty(functions)) {
+
+                List<ChatFunction> chatFunctions = Optional.ofNullable(functions).orElse(new ArrayList<>()).stream().map(functionDescription -> {
+
+                    return ChatFunction.builder()
+                            .name(functionDescription.getName())
+                            .description(functionDescription.getDescription())
+                            .executor(functionDescription.getParameters(), null).build();
+
+                }).collect(Collectors.toList());
+
+                chatCompletionRequest.setFunctions(chatFunctions);
+            }
+
             ChatCompletionResult chatCompletionResult = openAiService.createChatCompletion(chatCompletionRequest);
 
             ChatMessage chatMessage = chatCompletionResult.getChoices().get(0).getMessage();
@@ -230,8 +248,8 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                     .totalTokens(usage.getTotalTokens())
                     .build();
 
-            BaseChatMessage baseChatMessage = BaseChatMessage.ofRole(chatMessage.getRole()).setContent(chatMessage.getContent());
-            ChatGeneration chatGeneration = ChatGeneration.builder().generationInfo(chatCompletionResult).usage(baseLLMUsage).chatMessage(baseChatMessage).text(baseChatMessage.getContent()).build();
+            BaseMessage baseMessage = this.convertToMessage(chatMessage);
+            ChatGeneration chatGeneration = ChatGeneration.builder().generationInfo(chatCompletionResult).usage(baseLLMUsage).chatMessage(baseMessage).text(baseMessage.getContent()).build();
 
             return ChatResult.data(Arrays.asList(chatGeneration), chatCompletionResult, baseLLMUsage);
 
@@ -306,5 +324,26 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
         return new OpenAiService(api, client.dispatcher().executorService());
     }
 
+
+    private BaseMessage convertToMessage(ChatMessage chatMessage) {
+
+        switch (chatMessage.getRole()) {
+
+            case "user":
+                return new HumanMessage(chatMessage.getContent());
+            case "assistant":
+                if (chatMessage.getFunctionCall() != null) {
+                    return new FunctionMessage(chatMessage.getFunctionCall().getName(), chatMessage.getFunctionCall().getArguments());
+                }
+                return new AIMessage(chatMessage.getContent());
+            case "system":
+                return new SystemMessage(chatMessage.getContent());
+            case "function":
+                return new FunctionMessage(chatMessage.getFunctionCall().getName(), chatMessage.getFunctionCall().getArguments());
+            default:
+                return new com.starcloud.ops.llm.langchain.core.schema.message.ChatMessage(chatMessage.getContent(), chatMessage.getRole());
+
+        }
+    }
 
 }

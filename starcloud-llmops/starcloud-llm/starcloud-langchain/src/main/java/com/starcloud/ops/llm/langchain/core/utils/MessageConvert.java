@@ -33,7 +33,7 @@ public class MessageConvert {
             case "human":
                 return new HumanMessage(content);
             case "function":
-                return new FunctionMessage(content);
+                throw new RuntimeException("nonsupport");
             default:
                 return new SystemMessage(content);
         }

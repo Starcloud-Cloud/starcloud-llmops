@@ -10,6 +10,7 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
 import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -66,7 +67,6 @@ public abstract class BaseLLM<R> extends BaseLanguageModel<R> {
         return this.generate(Optional.ofNullable(promptValues).orElse(new ArrayList<>()).stream().map(PromptValue::toStr).collect(Collectors.toList()));
     }
 
-
     public BaseLLMResult<R> generate(List<String> prompts) {
 
         logger.debug("BaseLLM.generate: {}", prompts);
@@ -100,26 +100,35 @@ public abstract class BaseLLM<R> extends BaseLanguageModel<R> {
 
     @Override
     public String predict(String text, List<String> stops) {
-        return this._call(text);
+        return this.call(text);
     }
 
     @Override
     public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops) {
+        return this.predictMessages(baseMessages, stops, null, null);
+    }
+
+    @Override
+    public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, BaseCallbackManager callbackManager) {
+
+        return this.predictMessages(baseMessages, stops, null, null);
+    }
+
+
+    @Override
+    public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, List<FunctionDescription> functionDescriptions, BaseCallbackManager callbackManager) {
+
+        if (callbackManager != null) {
+            this.setCallbackManager(callbackManager);
+        }
 
         String content = this.predict(BaseMessage.getBufferString(baseMessages), stops);
 
         return new AIMessage(content);
     }
 
-    @Override
-    public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, BaseCallbackManager callbackManager) {
 
-        this.setCallbackManager(callbackManager);
-        return this.predictMessages(baseMessages, stops);
-    }
-
-
-    public String _call(String text) {
+    public String call(String text) {
         BaseLLMResult<R> baseLLMResult = this.generate(Arrays.asList(text));
         return baseLLMResult.getGenerations().get(0).getText();
     }

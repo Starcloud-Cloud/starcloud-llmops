@@ -1,5 +1,7 @@
 package com.starcloud.ops.llm.langchain.core.agent.base;
 
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -9,12 +11,12 @@ import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentActi
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
+import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.FunctionMessage;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Data
 public abstract class BaseSingleActionAgent {
@@ -25,17 +27,19 @@ public abstract class BaseSingleActionAgent {
         return new ArrayList<>();
     }
 
-    public abstract List<AgentAction> plan(List<AgentAction> intermediateSteps, BaseCallbackManager callbackManager, List<BaseVariable> variables);
+    public abstract List<AgentAction> plan(List<AgentAction> intermediateSteps, List<BaseVariable> variables, BaseCallbackManager callbackManager);
 
+    public AgentFinish returnStoppedResponse(String earlyStoppingMethod, List<AgentAction> intermediateSteps, List<BaseVariable> variables) {
 
-    public AgentFinish returnStoppedResponse() {
-
-        return null;
+        Assert.equals("force", earlyStoppingMethod, "Got unsupported early_stopping_method " + earlyStoppingMethod);
+        return new AgentFinish("Agent stopped due to iteration limit or time limit.", "");
     }
 //
 //    public static BaseSingleActionAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools, BaseCallbackManager callbackManager, List<BaseMessagePromptTemplate> extraPromptMessages, SystemMessage systemMessage) {
 //        return null;
 //    }
+
+    public abstract List<String> inputKeys();
 
     public String agentType() {
         return this.getClass().getSimpleName();
@@ -46,31 +50,7 @@ public abstract class BaseSingleActionAgent {
 
     }
 
-
-    protected List<BaseChatMessage> formatIntermediateSteps(List<AgentAction> intermediateSteps) {
-
-        return null;
-    }
-
-    protected AgentAction parseAiMessage(BaseMessage baseMessage) {
-
-        String callStr = (String) baseMessage.getAdditionalArgs().getOrDefault("function_call", "");
-
-        if (StrUtil.isNotBlank(callStr)) {
-
-            JSONObject toolInput = JSONUtil.parseObj(callStr);
-
-            String functionName = "";
-            String contentMsg = StrUtil.isNotBlank(baseMessage.getContent()) ? "responded: " + baseMessage.getContent() + "\\n" : "\n";
-            String log = "\nInvoking: `" + functionName + "` with `" + toolInput + "`\n{content_msg}\n";
-
-            FunctionsAgentAction functionsAgentAction = new FunctionsAgentAction(functionName, toolInput.toString(), log, Arrays.asList(baseMessage));
-
-            return functionsAgentAction;
-        } else {
-
-            return new AgentFinish(BaseVariable.newString("output", baseMessage.getContent()), baseMessage.getContent());
-        }
-
+    protected Map<String, Object> toolRunLoggingKwargs() {
+        return MapUtil.newHashMap();
     }
 }
