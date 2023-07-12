@@ -47,7 +47,7 @@ public class PayOrderCreateReqDTO implements Serializable {
     /**
      * 商品描述
      */
-//    @NotEmpty(message = "商品描述信息不能为空")
+    @NotEmpty(message = "商品描述信息不能为空")
     @Length(max = 128, message = "商品描述信息长度不能超过128")
     private String body;
 

@@ -5,7 +5,9 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReq2DTO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
@@ -23,11 +25,13 @@ import com.starcloud.ops.business.order.util.PaySeqUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +46,7 @@ import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder
 @RestController
 @RequestMapping("/llm/pay/order")
 @Validated
+@Slf4j
 public class PayOrderController {
 
 
@@ -131,6 +136,7 @@ public class PayOrderController {
     @Operation(summary = "创建订单")
     public CommonResult<Long> submitPayOrder(@RequestBody PayOrderCreateReq2DTO req2DTO) {
 
+        log.info("1.开始创建订单，准备封装订单参数，订单入参为:{}", JSONObject.toJSONString(req2DTO));
         PayOrderCreateReqDTO payOrderCreateReqDTO = new PayOrderCreateReqDTO();
 
         // 获取当前唯一 APPID
@@ -147,12 +153,12 @@ public class PayOrderController {
         // 设置商品价格
         payOrderCreateReqDTO.setAmount(productEnum.getPrice());
         // 设置过期时间
-        payOrderCreateReqDTO.setExpireTime(LocalDateTime.now().plusHours(1));
+        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtils.addTime(Duration.ofHours(1L)));
         // 设置当前用户 IP
         payOrderCreateReqDTO.setUserIp(getClientIP());
 
         payOrderCreateReqDTO.setProductCode(req2DTO.getProductCode());
-
+        log.info("2.订单参数封装完成，订单参数为:{}", JSONObject.toJSONString(payOrderCreateReqDTO));
         return success(payOrderService.createPayOrder(payOrderCreateReqDTO));
     }
 

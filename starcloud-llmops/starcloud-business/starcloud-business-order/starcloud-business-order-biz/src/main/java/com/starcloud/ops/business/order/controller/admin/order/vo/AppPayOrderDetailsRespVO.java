@@ -10,6 +10,9 @@ import lombok.ToString;
 public class AppPayOrderDetailsRespVO {
 
 
+    @Schema(description = "订单编号")
+    private String id;
+
     @Schema(description = "商户订单编号")
     private String merchantOrderId;
 
