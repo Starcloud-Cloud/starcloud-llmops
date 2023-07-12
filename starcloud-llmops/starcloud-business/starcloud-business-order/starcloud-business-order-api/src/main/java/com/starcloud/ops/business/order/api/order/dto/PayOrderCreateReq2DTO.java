@@ -23,4 +23,11 @@ public class PayOrderCreateReq2DTO implements Serializable {
     @NotEmpty(message = "时间戳不能为空")
     private Long timestamp;
 
+    /**
+     * 时区
+     */
+    @NotEmpty(message = "时间戳不能为空")
+    private String timeZone;
+
+
 }
