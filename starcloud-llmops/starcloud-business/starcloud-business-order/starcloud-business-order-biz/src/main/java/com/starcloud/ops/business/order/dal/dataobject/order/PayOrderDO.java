@@ -74,6 +74,10 @@ public class PayOrderDO extends BaseDO {
      */
     private String body;
     /**
+     * 商品code
+     */
+    private String productCode;
+    /**
      * 异步通知地址
      */
     private String notifyUrl;

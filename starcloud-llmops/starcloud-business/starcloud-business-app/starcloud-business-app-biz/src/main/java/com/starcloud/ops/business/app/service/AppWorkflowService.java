@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
@@ -43,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * App 工作流服务, 执行应用
@@ -63,6 +65,10 @@ public class AppWorkflowService {
 
     @Autowired
     private UserBenefitsService userBenefitsService;
+
+    @Resource(name = "APP_POOL_EXECUTOR")
+    private ThreadPoolExecutor threadPoolExecutor;
+
 
     /**
      * 根据保存的配置直接执行，默认执行第一个步骤
@@ -196,9 +202,10 @@ public class AppWorkflowService {
         }
 
         // 执行该应用
-        new Thread(() -> {
+
+        threadPoolExecutor.execute(() -> {
             this.fireByAppContext(appContext);
-        }).start();
+        });
     }
 
     /**

@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.app.vo.response.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.action.LLMFunctionRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,6 +33,24 @@ public class ChatConfigRespVO extends BaseConfigRespVO {
      */
     @Schema(description = "code")
     private String code;
+
+    @Schema(description = "对话提示词")
+    private String prePrompt;
+
+    @Schema(description = "模版变量")
+    private VariableRespVO variable;
+
+    @Schema(description = "聊天模型参数配置")
+    private ModelConfigRespVO modelConfig;
+
+    @Schema(description = "绑定数据集")
+    private List<DatesetRespVO> datesetEntities;
+
+    @Schema(description = "聊天建议")
+    private SuggestedQuestionRespVO suggestedQuestion;
+
+    @Schema(description = "聊天开场白")
+    private OpeningStatementRespVO openingStatement;
 
     /**
      * 挂载的 functions 列表

@@ -8,6 +8,7 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
+import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -32,7 +33,6 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -62,6 +62,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
     @Resource
     private SecurityFrameworkService securityFrameworkService;
+
+    @Resource
+    private PermissionService permissionService;
 
 
     @Resource
@@ -128,8 +131,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return Boolean
      */
     public Boolean addUserBenefitsByStrategyType(String strategyType, Long userId) {
+
         log.info("[addUserBenefitsByCode][1.准备增加权益，根据权益类型获取权益配置：用户ID({})|租户 ID({})｜权益类型({})]", userId, getTenantId(), strategyType);
-        // 获取租户
 
         try {
             // 根据 code 获取权益策略
@@ -637,6 +640,23 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         userBenefitsStrategyDOLambdaQueryWrapper.in(UserBenefitsStrategyDO::getId, strategyIds);
         userBenefitsStrategyDOLambdaQueryWrapper.eq(UserBenefitsStrategyDO::getStrategyType, BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName());
         return userBenefitsStrategyMapper.selectCount(userBenefitsStrategyDOLambdaQueryWrapper) > 0;
+    }
+
+    /**
+     * 新增用户权益
+     *
+     * @param benefitsType 权益 type
+     * @param userId       用户 ID
+     * @return 编号
+     */
+    @Override
+    public Boolean addBenefitsAndRole(String benefitsType, Long userId, String roleCode) {
+        // 增加用户等级
+        this.addUserBenefitsByStrategyType(benefitsType,userId);
+        // 设置用户角色
+        permissionService.addUserRole(userId,roleCode);
+
+        return Boolean.TRUE;
     }
 
 

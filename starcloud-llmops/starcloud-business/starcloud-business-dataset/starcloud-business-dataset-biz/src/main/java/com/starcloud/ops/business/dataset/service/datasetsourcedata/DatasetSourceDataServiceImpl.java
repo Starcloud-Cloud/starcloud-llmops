@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
-import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -10,20 +8,15 @@ import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataUpdateReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
-import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
-import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
-import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
+import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataCleanProducer;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.Tika;
-import org.apache.tika.exception.TikaException;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -36,10 +29,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
 
 
@@ -61,12 +52,16 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Resource
     private DatasetSourceDataMapper datasetSourceDataMapper;
 
+    @Resource
+    private DatasetSourceDataCleanProducer dataSetProducer;
+
     @Override
     public void createDatasetSourceData(DatasetSourceDataCreateReqVO createReqVO) {
+
         //根据文件ID获取文件信息
-        DatasetStorageUpLoadRespVO datasetStorageUpLoadRespVO = datasetStorageService.getDatasetStorageByUID(createReqVO.getFiled());
+        DatasetStorageUpLoadRespVO datasetStorageUpLoadRespVO = datasetStorageService.getDatasetStorageByUID(createReqVO.getFiledId());
         //数据校验
-        validateDatasetSourceDataExists(createReqVO.getFiled(), createReqVO.getDatasetId());
+        validateDatasetSourceDataExists(createReqVO.getFiledId(), createReqVO.getDatasetId());
 
         //获取字符数
         int wordCount = getFileCharacterCountFromURL(datasetStorageUpLoadRespVO.getStorageKey());
@@ -76,19 +71,21 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         //获取当前文件位置
         Long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
 
-        //异步分段和创建索引
-        //executeSplitAndIndex(createReqVO.getSplitRule(),createReqVO.getFiled(),createReqVO.getDatasetId(),datasetStorageUpLoadRespVO.getStorageKey());
         //插入
-        DatasetSourceDataDO.DatasetSourceDataDOBuilder datasetSourceDataDO = DatasetSourceDataDO.builder();
+        DatasetSourceDataDO datasetSourceDataDO = new DatasetSourceDataDO();
+        datasetSourceDataDO.setUid(DatasetUID.getDatasetUID());
+        datasetSourceDataDO.setName(datasetStorageUpLoadRespVO.getName());
+        datasetSourceDataDO.setStorageId(createReqVO.getFiledId());
+        datasetSourceDataDO.setPosition(position.intValue());
+        datasetSourceDataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
+        datasetSourceDataDO.setWordCount(Long.valueOf(wordCount));
+        datasetSourceDataDO.setDatasetId(createReqVO.getDatasetId());
+        datasetSourceDataMapper.insert(datasetSourceDataDO);
+        dataSetProducer.sendCleanDatasetsSendMessage( createReqVO.getDatasetId(),createReqVO.getFiledId(),createReqVO.getSplitRule(),datasetStorageUpLoadRespVO.getStorageKey());
 
-        datasetSourceDataDO.uid(DatasetUID.getDatasetUID());
-        datasetSourceDataDO.name(datasetStorageUpLoadRespVO.getName());
-        datasetSourceDataDO.storageId(createReqVO.getFiled());
-        datasetSourceDataDO.position(position.intValue());
-        datasetSourceDataDO.createdFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
-        datasetSourceDataDO.wordCount(Long.valueOf(wordCount));
-        datasetSourceDataDO.datasetId(createReqVO.getDatasetId());
-        datasetSourceDataMapper.insert(datasetSourceDataDO.build());
+        executeSplitAndIndex(createReqVO.getSplitRule(),createReqVO.getFiledId(),createReqVO.getDatasetId(),datasetStorageUpLoadRespVO.getStorageKey());
+
+
     }
 
     /**
@@ -170,6 +167,21 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         } else {
             throw exception(DATASET_SOURCE_DATA_UNARCHIVED);
         }
+    }
+
+    /**
+     * 更新据集源数据状态
+     *
+     * @param uid    数据集源数据编号
+     * @param status
+     */
+    @Override
+    public void updateDatasourceStatus(String uid, Integer status) {
+        //更新数据
+        LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
+        wrapper.eq(DatasetSourceDataDO::getUid, uid);
+        wrapper.set(DatasetSourceDataDO::getStatus, status);
+        datasetSourceDataMapper.update(null, wrapper);
     }
 
     private Boolean archivedStatus(String uid) {

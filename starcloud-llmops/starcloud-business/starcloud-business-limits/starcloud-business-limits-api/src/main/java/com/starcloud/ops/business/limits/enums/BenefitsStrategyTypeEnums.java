@@ -17,32 +17,45 @@ public enum BenefitsStrategyTypeEnums {
     /**
      * 普通注册
      */
-    SIGN_IN("SIGN_IN", "注册", "Sign In", "SI",1),
+    SIGN_IN("SIGN_IN", "注册", "Sign In", "SI"),
 
     /**
      * 邀请注册
      */
-    INVITE_TO_REGISTER("INVITE_TO_REGISTER", "邀请注册", "Invite to Register", "SN",1),
+    INVITE_TO_REGISTER("INVITE_TO_REGISTER", "邀请注册", "Invite to Register", "SN"),
 
     /**
      * 邀请
      */
-    USER_INVITE("USER_INVITE", "邀请", "Invite", "IN",Integer.MAX_VALUE),
+    USER_INVITE("USER_INVITE", "邀请", "Invite", "IN"),
 
     /**
      * 签到
      */
-    USER_ATTENDANCE("USER_ATTENDANCE", "签到", "Check In", "AT",1),
+    USER_ATTENDANCE("USER_ATTENDANCE", "签到", "Check In", "AT"),
 
     /**
      * PLUS套餐
      */
-    PAY_PLUS("PAY_PLUS", "PLUS套餐", "PLUS Package", "PL",Integer.MAX_VALUE),
+    PAY_PLUS_MONTH("PAY_PLUS_MONTH", "PLUS套餐", "PLUS Package", "PL"),
+
+    /**
+     * PLUS套餐
+     */
+    PAY_PLUS_YEAR("PAY_PLUS_YEAR", "PLUS套餐", "PLUS Package", "PL"),
+    /**
+     * PRO套餐
+     */
+    PAY_PRO_MONTH("PAY_PRO_MONTH", "PLUS套餐", "PRO Package", "PR"),
+    /**
+     * PRO套餐
+     */
+    PAY_PRO_YEAR("PAY_PRO_YEAR", "PLUS套餐", "PRO Package", "PR"),
 
     /**
      * PRO套餐
      */
-    GIFT("PAY_PRO", "赠送", "PRO Package", "PR",Integer.MAX_VALUE),
+    GIFT("GIFT", "赠送", "gift", "GI"),
     ;
     /**
      * code
@@ -63,11 +76,6 @@ public enum BenefitsStrategyTypeEnums {
      * 配置类
      */
     private final String prefix;
-
-    /**
-     * 最大使用次数
-     */
-    private final int maxUsageCount;
 
 
 

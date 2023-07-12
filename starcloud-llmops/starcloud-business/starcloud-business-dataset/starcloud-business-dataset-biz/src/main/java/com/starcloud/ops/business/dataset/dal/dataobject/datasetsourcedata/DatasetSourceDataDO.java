@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -164,5 +165,12 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      * 归档时间
      */
     private LocalDateTime archivedTime;
+    /**
+     * 支付状态
+     *
+     * 枚举 {@link DataSetSourceDataStatusEnum}
+     * 注意，只包含上述枚举的 WAITING 和 SUCCESS
+     */
+    private Integer status;
 
 }

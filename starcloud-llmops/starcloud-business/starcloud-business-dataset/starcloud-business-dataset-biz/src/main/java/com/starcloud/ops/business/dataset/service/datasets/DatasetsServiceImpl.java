@@ -3,24 +3,19 @@ package com.starcloud.ops.business.dataset.service.datasets;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsCreateReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsExportReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsUpdateReqVO;
 import com.starcloud.ops.business.dataset.convert.datasets.DatasetsConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
-import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
@@ -121,14 +116,27 @@ public class DatasetsServiceImpl implements DatasetsService {
         return datasetsMapper.selectPage(pageReqVO);
     }
 
+
+
     /**
      * 数据存在校验
      * @param uid
      */
-    private void validateDatasetsExists(String uid) {
+    @Override
+    public void validateDatasetsExists(String uid) {
 
         if (datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid,uid)) == null) {
             throw exception(DATASETS_NOT_EXISTS);
         }
+    }
+
+    /**
+     * @param UID
+     * @return
+     */
+    @Override
+    public DatasetsDO getDataSetBaseDo(String UID) {
+        this.validateDatasetsExists(UID);
+        return datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid,UID));
     }
 }

@@ -19,12 +19,11 @@ public enum PromptTempletEnum {
 
     INPUT_TEMP("input", "Human: {input}\nAI: "),
 
-    SUGGESTED_QUESTIONS("histories", "{histories}\n" +
+    SUGGESTED_QUESTIONS("history", "{history}\n" +
             "Please help me predict the three most likely questions that human would ask, " +
             "and keeping each question under 20 characters.\n" +
             "The output must be in JSON format following the specified schema:\n" +
-            "[\"question1\",\"question2\",\"question3\"]\n" +
-            "questions:\n"
+            "[\"question1\",\"question2\",\"question3\"]\n"
 
     );
 

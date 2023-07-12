@@ -132,6 +132,13 @@ public interface RoleService {
     List<RoleDO> getRoleList(RoleExportReqVO reqVO);
 
     /**
+     *
+     * @param code
+     * @return
+     */
+    RoleDO getRoleByCode(String code);
+
+    /**
      * 校验角色们是否有效。如下情况，视为无效：
      * 1. 角色编号不存在
      * 2. 角色被禁用

@@ -11,17 +11,17 @@ import java.util.Map;
 @Data
 public class PayOrderSubmitReqVO {
 
-    @Schema(description = "支付单编号", required = true, example = "1024")
+    @Schema(description = "支付单编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
     @NotNull(message = "支付单编号不能为空")
     private Long id;
 
-    @Schema(description = "支付渠道", required = true, example = "wx_pub")
+    @Schema(description = "支付渠道", requiredMode = Schema.RequiredMode.REQUIRED, example = "alipay_pc")
     @NotEmpty(message = "支付渠道不能为空")
     private String channelCode;
 
     @Schema(description = "支付渠道的额外参数，例如说，微信公众号需要传递 openid 参数")
     private Map<String, String> channelExtras;
 
-    @Schema(description = "展示模式", example = "url") // 参见 {@link PayDisplayModeEnum} 枚举。如果不传递，则每个支付渠道使用默认的方式
+    @Schema(description = "展示模式", example = "qr_code", defaultValue ="qr_code" ) // 参见 {@link PayDisplayModeEnum} 枚举。如果不传递，则每个支付渠道使用默认的方式
     private String displayMode;
 }

@@ -1,11 +1,17 @@
 package com.starcloud.ops.business.order.controller.admin.order;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.limits.enums.ProductEnum;
+import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReq2DTO;
+import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
 import com.starcloud.ops.business.order.convert.order.PayOrderConvert;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayAppDO;
@@ -16,18 +22,22 @@ import com.starcloud.ops.business.order.service.merchant.PayAppService;
 import com.starcloud.ops.business.order.service.merchant.PayMerchantService;
 import com.starcloud.ops.business.order.service.order.PayOrderExtensionService;
 import com.starcloud.ops.business.order.service.order.PayOrderService;
+import com.starcloud.ops.business.order.util.PaySeqUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.validation.Valid;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
@@ -38,6 +48,7 @@ import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder
 @RestController
 @RequestMapping("/llm/pay/order")
 @Validated
+@Slf4j
 public class PayOrderController {
 
 
@@ -94,7 +105,7 @@ public class PayOrderController {
     @GetMapping("/page")
     @Operation(summary = "获得支付订单分页")
     @PreAuthorize("@ss.hasPermission('pay:order:query')")
-    public CommonResult<PageResult<PayOrderPageItemRespVO>> getOrderPage(@Valid PayOrderPageReqVO pageVO) {
+    public CommonResult<PageResult<PayOrderPageItemRespVO>> getOrderPage(@Validated PayOrderPageReqVO pageVO) {
         PageResult<PayOrderDO> pageResult = payOrderService.getOrderPage(pageVO);
         if (CollectionUtil.isEmpty(pageResult.getList())) {
             return success(new PageResult<>(pageResult.getTotal()));
@@ -123,28 +134,54 @@ public class PayOrderController {
     }
 
 
+    @PostMapping("/create")
+    @Operation(summary = "创建订单")
+    public CommonResult<Long> submitPayOrder(@RequestBody PayOrderCreateReq2DTO req2DTO) {
 
+        log.info("1.开始创建订单，准备封装订单参数，订单入参为:{}", JSONObject.toJSONString(req2DTO));
+        PayOrderCreateReqDTO payOrderCreateReqDTO = new PayOrderCreateReqDTO();
 
-//    @PostMapping("/submit")
-//    @Operation(summary = "提交支付订单")
-//    public CommonResult<AppPayOrderSubmitRespVO> submitPayOrder(@RequestBody AppPayOrderSubmitReqVO reqVO) {
-//        PayOrderSubmitRespVO respVO = orderService.submitPayOrder(reqVO, getClientIP());
-//        return success(PayOrderConvert.INSTANCE.convert3(respVO));
-//    }
+        // 获取当前唯一 APPID
+        PayAppDO appInfo = appService.getAppInfo();
+        payOrderCreateReqDTO.setAppId(appInfo.getId());
+        // 生成 merchantOrderId 商户订单编号
+        String merchantOrderNo = PaySeqUtils.genMerchantOrderNo();
+        payOrderCreateReqDTO.setMerchantOrderId(merchantOrderNo);
+        ProductEnum productEnum = ProductEnum.getByCode(req2DTO.getProductCode());
+        // 设置商品标题
+        payOrderCreateReqDTO.setBody(productEnum.getName());
+        // 设置商品描述
+        payOrderCreateReqDTO.setSubject(productEnum.getDescription());
+        // 设置商品价格
+        payOrderCreateReqDTO.setAmount(productEnum.getPrice());
+        // 设置过期时间
+        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtil.of(req2DTO.getTimestamp(), TimeZone.getTimeZone("Asia/Shanghai")).plusMinutes(10));
+        // 设置当前用户 IP
+        payOrderCreateReqDTO.setUserIp(getClientIP());
+
+        payOrderCreateReqDTO.setProductCode(req2DTO.getProductCode());
+        log.info("2.订单参数封装完成，订单参数为:{}", JSONObject.toJSONString(payOrderCreateReqDTO));
+        return success(payOrderService.createPayOrder(payOrderCreateReqDTO));
+    }
 
     @PostMapping("/submit")
     @Operation(summary = "提交支付订单")
-    public CommonResult<PayOrderSubmitRespVO> submitPayOrder(@RequestBody PayOrder2ReqVO reqVO) {
+    public CommonResult<PayOrderSubmitRespVO> submitPayOrder(@RequestBody PayOrderSubmitReqVO reqVO) {
         PayOrderSubmitRespVO respVO = payOrderService.submitPayOrder(reqVO, getClientIP());
         return success(respVO);
     }
 
-
     @PostMapping("/user/page")
-    @Operation(summary = "提交支付订单")
+    @Operation(summary = "用户获取订单分页")
     public CommonResult<PageResult<AppPayOrderDetailsRespVO>> submitPayOrder(@RequestBody PayOrderAppPageReqVO pageReqVO) {
         PageResult<AppPayOrderDetailsRespVO>  respVO = payOrderService.getAppOrderPage(pageReqVO, getLoginUser().getId(),getTenantId());
         return success(respVO);
+    }
+
+    @PostMapping("/product/list")
+    @Operation(summary = "获取商品列表")
+    public CommonResult<Map<String, List<AppPayProductDetailsRespVO>>> getProductList() {
+        return success( payOrderService.getAppProductList());
     }
 
 

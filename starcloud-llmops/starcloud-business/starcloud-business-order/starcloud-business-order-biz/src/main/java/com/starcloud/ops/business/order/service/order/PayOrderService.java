@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespD
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -74,7 +75,7 @@ public interface PayOrderService {
      * @param reqDTO 创建请求
      * @return 支付单编号
      */
-    Long createPayOrder(@Valid PayOrderCreateReqDTO reqDTO);
+    Long createPayOrder(@Validated PayOrderCreateReqDTO reqDTO);
 
     /**
      * 提交支付
@@ -84,7 +85,7 @@ public interface PayOrderService {
      * @param userIp 提交 IP
      * @return 提交结果
      */
-    PayOrderSubmitRespVO submitPayOrder(@Valid PayOrder2ReqVO reqVO,
+    PayOrderSubmitRespVO submitPayOrder(@Valid PayOrderSubmitReqVO reqVO,
                                         @NotEmpty(message = "提交 IP 不能为空") String userIp);
 
     /**
@@ -107,5 +108,14 @@ public interface PayOrderService {
      * 分页
      */
     PageResult<AppPayOrderDetailsRespVO> getAppOrderPage(PayOrderAppPageReqVO pageReqVO,Long userId, Long tenantId);
+
+
+    /**
+     * 获取商品列表
+     * 分页
+     * @return 支付订单
+     * 分页
+     */
+    Map<String, List<AppPayProductDetailsRespVO>> getAppProductList();
 
 }

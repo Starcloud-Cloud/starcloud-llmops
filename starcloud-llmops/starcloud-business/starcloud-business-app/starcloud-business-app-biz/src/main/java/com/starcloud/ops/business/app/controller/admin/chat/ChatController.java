@@ -38,4 +38,10 @@ public class ChatController {
         return CommonResult.success(chatService.chatHistory(conversationUid));
     }
 
+    @Operation(summary = "聊天建议")
+    @PostMapping("/suggestion/{conversationUid}")
+    public CommonResult<List<String>> suggestion(@PathVariable("conversationUid") String conversationUid) {
+        return CommonResult.success(chatService.chatSuggestion(conversationUid));
+    }
+
 }

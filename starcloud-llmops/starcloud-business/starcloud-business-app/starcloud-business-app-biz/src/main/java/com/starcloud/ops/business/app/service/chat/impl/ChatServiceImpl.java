@@ -31,8 +31,10 @@ import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
+import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +77,35 @@ public class ChatServiceImpl implements ChatService {
 
     @Resource(name = "CHAT_POOL_EXECUTOR")
     private ThreadPoolExecutor threadPoolExecutor;
+
+
+    @Override
+    public List<String> chatSuggestion(String conversationUid) {
+        List<String> suggestion = new ArrayList<>();
+        String resultText = StringUtils.EMPTY;
+        try {
+            Long userId = WebFrameworkUtils.getLoginUserId();
+            benefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
+            ChatMessageHistory history = preHistory(conversationUid, AppModelEnum.CHAT.name());
+            String messageTemp = PromptTempletEnum.SUGGESTED_QUESTIONS.getTemp();
+            ChatPromptTemplate chatPromptTemplate = ChatPromptTemplate.fromMessages(Collections.singletonList(
+                            HumanMessagePromptTemplate.fromTemplate(messageTemp)
+                    )
+            );
+            ChatOpenAI chatOpenAi = new ChatOpenAI();
+            ConversationBufferMemory memory = new ConversationBufferMemory();
+            memory.setChatHistory(history);
+            List<BaseVariable> variables = memory.loadMemoryVariables();
+            PromptValue promptValue = chatPromptTemplate.formatPrompt(variables);
+            BaseLLMResult<ChatCompletionResult> result = chatOpenAi.generatePrompt(Collections.singletonList(promptValue));
+            resultText = result.getText();
+            benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, conversationUid);
+            return JSON.parseArray(resultText, String.class);
+        } catch (Exception e) {
+            log.error("suggestion error, openai result: {}.", resultText, e);
+            return suggestion;
+        }
+    }
 
     @Override
     public List<LogAppMessageDO> chatHistory(String conversationUid) {

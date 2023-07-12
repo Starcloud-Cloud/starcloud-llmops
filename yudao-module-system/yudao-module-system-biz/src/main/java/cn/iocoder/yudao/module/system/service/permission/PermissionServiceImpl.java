@@ -11,6 +11,7 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
+import cn.iocoder.yudao.module.system.controller.admin.permission.vo.role.RoleExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.MenuDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
@@ -438,6 +439,19 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public void addUserRole(Long userId, String role) {
+        if (hasAnyRoles(userId, role)) {
+            log.warn("{} 用户已存在角色 {}", userId, role);
+            return;
+        }
 
+        RoleDO roleByCode = roleService.getRoleByCode(role);
+        if (roleByCode != null) {
+            log.warn("角色不存在 {}", role);
+            return;
+        }
+        UserRoleDO entity = new UserRoleDO();
+        entity.setUserId(userId);
+        entity.setRoleId(roleByCode.getId());
+        userRoleMapper.insert(entity);
     }
 }
