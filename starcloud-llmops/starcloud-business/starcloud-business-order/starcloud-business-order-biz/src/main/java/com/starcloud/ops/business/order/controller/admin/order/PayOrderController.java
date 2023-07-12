@@ -155,7 +155,7 @@ public class PayOrderController {
         // 设置商品价格
         payOrderCreateReqDTO.setAmount(productEnum.getPrice());
         // 设置过期时间
-        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtil.of(req2DTO.getTimestamp(), TimeZone.getTimeZone(req2DTO.getTimeZone())).plusMinutes(10));
+        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtil.of(req2DTO.getTimestamp(), TimeZone.getTimeZone("Asia/Shanghai")).plusMinutes(10));
         // 设置当前用户 IP
         payOrderCreateReqDTO.setUserIp(getClientIP());
 
