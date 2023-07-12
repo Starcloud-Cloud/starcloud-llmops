@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.order.controller.admin.order;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -153,7 +154,7 @@ public class PayOrderController {
         // 设置商品价格
         payOrderCreateReqDTO.setAmount(productEnum.getPrice());
         // 设置过期时间
-        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtils.addTime(Duration.ofHours(1L)));
+        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtil.of(req2DTO.getTimestamp()).plusMinutes(10));
         // 设置当前用户 IP
         payOrderCreateReqDTO.setUserIp(getClientIP());
 

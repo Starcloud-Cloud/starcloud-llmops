@@ -17,4 +17,10 @@ public class PayOrderCreateReq2DTO implements Serializable {
     @NotEmpty(message = "商品code不能为空")
     private String productCode;
 
+    /**
+     * 时间戳
+     */
+    @NotEmpty(message = "时间戳不能为空")
+    private Long timestamp;
+
 }
