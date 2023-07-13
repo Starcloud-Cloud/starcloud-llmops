@@ -46,7 +46,8 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         }
         String local = LocaleContextHolder.getLocale().toString();
         String language = LanguageEnum.ZH_CN.getCode().equals(local) ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
-        wrapper.last("ORDER BY CASE WHEN language = '" + language + "' THEN 0 ELSE 1 END, create_time DESC");
+        // 先按照语言排序，再按照使用量排序
+        wrapper.last("ORDER BY CASE WHEN language = '" + language + "' THEN 0 ELSE 1 END, usage_count DESC, view_count Desc, create_time DESC");
         // 分页查询
         return this.selectPage(PageUtil.page(query), wrapper);
     }
@@ -88,6 +89,26 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     void approvedAuditByUidAndVersion(@Param("uid") String uid, @Param("version") Integer version);
 
     /**
+     * 判断应用名称是否重复
+     *
+     * @param name 应用名称
+     */
+    default Boolean duplicateName(String name) {
+        return this.selectCount(Wrappers.lambdaQuery(AppMarketDO.class).eq(AppMarketDO::getName, name)) > 0;
+    }
+
+    /**
+     * 判断应用名称是否重复
+     *
+     * @param name    应用名称
+     * @param version 版本号
+     * @return 是否重复
+     */
+    default Boolean duplicateName(String name, Integer version) {
+        return this.selectCount(Wrappers.lambdaQuery(AppMarketDO.class).eq(AppMarketDO::getName, name).eq(AppMarketDO::getVersion, version)) > 0;
+    }
+
+    /**
      * 查询部分字段查询包装器
      *
      * @return 查询包装器
@@ -104,6 +125,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getImages,
                 AppMarketDO::getFree,
                 AppMarketDO::getCost,
+                AppMarketDO::getUsageCount,
                 AppMarketDO::getViewCount,
                 AppMarketDO::getLikeCount,
                 AppMarketDO::getInstallCount
@@ -130,6 +152,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getFree,
                 AppMarketDO::getCost,
                 AppMarketDO::getDescription,
+                AppMarketDO::getUsageCount,
                 AppMarketDO::getViewCount,
                 AppMarketDO::getLikeCount,
                 AppMarketDO::getInstallCount,

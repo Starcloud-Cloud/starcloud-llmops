@@ -17,12 +17,16 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.ExecuteAppRespVO;
+import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.LogAppApi;
@@ -68,6 +72,9 @@ public class AppWorkflowService {
 
     @Autowired
     private UserBenefitsService userBenefitsService;
+
+    @Resource
+    private AppMarketService appMarketService;
 
     @Resource(name = "APP_POOL_EXECUTOR")
     private ThreadPoolExecutor threadPoolExecutor;
@@ -245,6 +252,15 @@ public class AppWorkflowService {
         });
 
         TaskResponse<Void> fire = storyEngine.fire(req);
+
+        // 使用量加一
+        if (AppSceneEnum.WEB_MARKET.equals(appContext.getScene())) {
+            AppOperateReqVO appOperateReqVO = new AppOperateReqVO();
+            appOperateReqVO.setAppUid(appContext.getApp().getUid());
+            appOperateReqVO.setVersion(AppConstants.DEFAULT_VERSION);
+            appOperateReqVO.setOperate(AppOperateTypeEnum.USAGE.name());
+            appMarketService.operate(appOperateReqVO);
+        }
 
         this.updateAppConversationLog(conversation.getUid(), fire.isSuccess());
         appContext.getSseEmitter().complete();

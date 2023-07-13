@@ -26,7 +26,7 @@ public enum AppTypeEnum implements IEnumable<Integer> {
     /**
      * 已经发布的应用：已经发布的应用
      */
-    PUBLISHED(2, "系统应用：系统提供的推荐应用"),
+    PUBLISHED(2, "已经发布的应用：已经发布的应用"),
 
     ;
 

@@ -54,9 +54,14 @@ public enum AppSourceEnum implements IEnumable<Integer> {
     WORDPRESS_PLUGIN_MARKET(7, "WordPress 插件"),
 
     /**
+     * 图片页面
+     */
+    IMAGE_PAGE(8, "图片页面"),
+
+    /**
      * 未知
      */
-    UNKNOWN(8, "未知");
+    UNKNOWN(9, "未知");
 
     /**
      * 应用类型Code

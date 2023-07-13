@@ -111,4 +111,9 @@ public interface ErrorCodeConstants {
      */
     ErrorCode AUDIO_TRANSCRIPT_ERROR = new ErrorCode(300200024,"audio transcript error, {}");
 
+    // ========== 图片生成服务错误 3-003-000-00 ==========
+    /**
+     * 生成图片失败，请重试或者联系管理员
+     */
+    ErrorCode GENERATE_IMAGE_FAIL = new ErrorCode(300300000, "Generate image fail, please try again or contact the administrator !");
 }

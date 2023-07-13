@@ -15,26 +15,6 @@
 
     <dependencies>
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-openfeign</artifactId>-->
-<!--            <version>4.0.3</version>-->
-<!--&lt;!&ndash;            <version>3.1.9-SNAPSHOT</version>&ndash;&gt;-->
-<!--        </dependency>-->
-
-        <!--        &lt;!&ndash;openfeign底层使用ApacheHttpClient调用&ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>io.github.openfeign</groupId>-->
-        <!--            <artifactId>feign-httpclient</artifactId>-->
-        <!--            <version>11.10</version>-->
-        <!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>org.springframework</groupId>-->
-<!--            <artifactId>spring-beans</artifactId>-->
-<!--        </dependency>-->
-
-
         <dependency>
             <groupId>cn.kstry.framework</groupId>
             <artifactId>kstry-core</artifactId>
@@ -69,7 +49,6 @@
             <artifactId>starcloud-business-core</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-app-api</artifactId>
@@ -99,6 +78,31 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>2021.0.5</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>

@@ -84,6 +84,11 @@ public class AppFavoritePO implements Serializable {
     private BigDecimal cost;
 
     /**
+     * 使用数量
+     */
+    private Integer usageCount;
+
+    /**
      * 应用点赞数量
      */
     private Integer likeCount;

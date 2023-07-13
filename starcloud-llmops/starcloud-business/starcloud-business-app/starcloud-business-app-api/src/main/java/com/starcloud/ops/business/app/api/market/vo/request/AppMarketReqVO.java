@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.market.vo.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ChatConfigReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.ImageConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowConfigReqVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -93,6 +94,12 @@ public class AppMarketReqVO implements Serializable {
     private BigDecimal cost;
 
     /**
+     * 使用数量
+     */
+    @Schema(description = "使用数量")
+    private Integer usageCount;
+
+    /**
      * 点赞数量
      */
     @Schema(description = "点赞数量")
@@ -121,6 +128,12 @@ public class AppMarketReqVO implements Serializable {
      */
     @Schema(description = "应用聊天配置")
     private ChatConfigReqVO chatConfig;
+
+    /**
+     * 应用图片配置
+     */
+    @Schema(description = "应用图片配置")
+    private ImageConfigReqVO imageConfig;
 
     /**
      * 应用描述

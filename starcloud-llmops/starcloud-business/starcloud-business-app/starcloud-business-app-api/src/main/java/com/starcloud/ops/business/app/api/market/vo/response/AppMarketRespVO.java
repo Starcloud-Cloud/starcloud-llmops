@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.api.market.vo.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -107,6 +108,12 @@ public class AppMarketRespVO implements Serializable {
     private BigDecimal cost;
 
     /**
+     * 使用数量
+     */
+    @Schema(description = "使用数量")
+    private Integer usageCount;
+
+    /**
      * 应用点赞数量
      */
     @Schema(description = "应用点赞数量")
@@ -135,6 +142,12 @@ public class AppMarketRespVO implements Serializable {
      */
     @Schema(description = "应用聊天配置")
     private ChatConfigRespVO chatConfig;
+
+    /**
+     * 应用图片配置
+     */
+    @Schema(description = "应用图片配置")
+    private ImageConfigRespVO imageConfig;
 
     /**
      * 应用步骤数量

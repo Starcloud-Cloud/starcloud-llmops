@@ -24,11 +24,14 @@ import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.recommend.RecommendedAppCache;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
+import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.LanguageEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.validate.app.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
@@ -64,6 +67,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppMarketMapper appMarketMapper;
+
+    @Resource
+    private AppMarketRepository appMarketRepository;
 
     @Resource
     private DictDataService dictDataService;
@@ -207,25 +213,29 @@ public class AppServiceImpl implements AppService {
         // 判断是否已经发布过应用市场：判断依据：publishUid 是否为空, 如果为空则说明没有发布过应用市场。
         if (StringUtils.isNotBlank(appDO.getPublishUid())) {
             // 查询之前发布的应用市场记录的所有版本，按照版本号倒序排序。
-            LambdaQueryWrapper<AppMarketDO> marketQueryWrapper = Wrappers.lambdaQuery(AppMarketDO.class)
-                    .select(AppMarketDO::getId, AppMarketDO::getUid, AppMarketDO::getVersion,
-                            AppMarketDO::getLikeCount, AppMarketDO::getVersion, AppMarketDO::getInstallCount)
-                    .eq(AppMarketDO::getUid, AppUtils.obtainUid(appDO.getPublishUid()))
-                    .orderByDesc(AppMarketDO::getVersion);
-            List<AppMarketDO> appMarketList = appMarketMapper.selectList(marketQueryWrapper);
-
+            List<AppMarketDO> appMarketList = getAppMarketListOrderByVersionDesc(appDO);
             // 如果查询结果不为空，则获取最新的一条记录，进行处理: UID 不变，版本号增加, 三数取最新一条记录的数据。
             if (CollectionUtil.isNotEmpty(appMarketList)) {
                 AppMarketDO appMarketDO = appMarketList.get(0);
                 // 新增的数据，UID 不变，版本号增加
                 appMarketEntity.setUid(appMarketDO.getUid());
                 // 版本号增加
-                appMarketEntity.setVersion(AppUtils.nextVersion(appMarketDO.getVersion()));
-                // 三数取最新一条记录的数据
+                Integer nextVersion = AppUtils.nextVersion(appMarketDO.getVersion());
+                // 校验名称是否重复
+                AppValidate.isFalse(appMarketRepository.duplicateName(appMarketEntity.getName(), appMarketDO.getName(), nextVersion),
+                        ErrorCodeConstants.APP_NAME_DUPLICATE);
+
+                appMarketEntity.setVersion(nextVersion);
+                // 四数取最新一条记录的数据
+                appMarketEntity.setUsageCount(Optional.ofNullable(appMarketDO.getUsageCount()).orElse(0));
                 appMarketEntity.setLikeCount(Optional.ofNullable(appMarketDO.getLikeCount()).orElse(0));
                 appMarketEntity.setViewCount(Optional.ofNullable(appMarketDO.getViewCount()).orElse(0));
                 appMarketEntity.setInstallCount(Optional.ofNullable(appMarketDO.getInstallCount()).orElse(0));
             }
+        } else {
+            // 校验名称是否重复
+            AppValidate.isFalse(appMarketRepository.duplicateName(appMarketEntity.getName()),
+                    ErrorCodeConstants.APP_NAME_DUPLICATE);
         }
         // 校验数据
         appMarketEntity.validate();
@@ -242,6 +252,7 @@ public class AppServiceImpl implements AppService {
         appMapper.update(appDO, Wrappers.lambdaUpdate(AppDO.class).eq(AppDO::getUid, request.getUid()));
     }
 
+
     /**
      * 批量发布应用到应用市场
      *
@@ -250,6 +261,28 @@ public class AppServiceImpl implements AppService {
     @Override
     public void batchPublicAppToMarket(List<AppPublishReqVO> requestList) {
 
+    }
+
+    /**
+     * 查询之前发布的应用市场记录的所有版本，按照版本号倒序排序
+     *
+     * @param appDO 应用信息
+     * @return 应用市场列表
+     */
+    private List<AppMarketDO> getAppMarketListOrderByVersionDesc(AppDO appDO) {
+        LambdaQueryWrapper<AppMarketDO> marketQueryWrapper = Wrappers.lambdaQuery(AppMarketDO.class)
+                .select(AppMarketDO::getName,
+                        AppMarketDO::getId,
+                        AppMarketDO::getUid,
+                        AppMarketDO::getVersion,
+                        AppMarketDO::getUsageCount,
+                        AppMarketDO::getLikeCount,
+                        AppMarketDO::getViewCount,
+                        AppMarketDO::getInstallCount
+                )
+                .eq(AppMarketDO::getUid, AppUtils.obtainUid(appDO.getPublishUid()))
+                .orderByDesc(AppMarketDO::getVersion);
+        return appMarketMapper.selectList(marketQueryWrapper);
     }
 
     /**

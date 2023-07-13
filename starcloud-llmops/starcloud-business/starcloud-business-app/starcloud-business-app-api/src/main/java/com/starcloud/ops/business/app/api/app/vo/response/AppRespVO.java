@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.app.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -103,6 +104,12 @@ public class AppRespVO implements Serializable {
      */
     @Schema(description = "应用聊天配置")
     private ChatConfigRespVO chatConfig;
+
+    /**
+     * 应用生成图片配置
+     */
+    @Schema(description = "生成图片配置")
+    private ImageConfigRespVO imageConfig;
 
     /**
      * 应用步骤图标、多个以逗号分割
