@@ -82,7 +82,6 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
 
             ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
 
-            context.getSseEmitter().complete();
             BaseLLMUsage baseLLMUsage = chatResult.getUsage();
             String msg = chatResult.getText();
 

@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -33,6 +34,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
@@ -202,8 +205,11 @@ public class AppWorkflowService {
         }
 
         // 执行该应用
-
+        Long tenantId = TenantContextHolder.getTenantId();
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         threadPoolExecutor.execute(() -> {
+            RequestContextHolder.setRequestAttributes(requestAttributes);
+            TenantContextHolder.setTenantId(tenantId);
             this.fireByAppContext(appContext);
         });
     }
@@ -241,6 +247,7 @@ public class AppWorkflowService {
         TaskResponse<Void> fire = storyEngine.fire(req);
 
         this.updateAppConversationLog(conversation.getUid(), fire.isSuccess());
+        appContext.getSseEmitter().complete();
 
         log.info("{}, {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc(), fire.getResult());
 
