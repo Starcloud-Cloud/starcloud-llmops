@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.service.image;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.request.TextToImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.TextToImageRequest;
 import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
 

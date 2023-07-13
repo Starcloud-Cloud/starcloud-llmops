@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.image.request;
+package com.starcloud.ops.business.app.api.image.vo.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

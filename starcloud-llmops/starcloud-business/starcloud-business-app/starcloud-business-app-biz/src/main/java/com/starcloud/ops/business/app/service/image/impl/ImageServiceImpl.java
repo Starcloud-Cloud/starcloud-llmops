@@ -5,8 +5,9 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.request.ImageReqVO;
-import com.starcloud.ops.business.app.api.image.request.TextToImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.ImageReqVO;
+import com.starcloud.ops.business.app.api.image.vo.request.TextToImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.image.ImageService;
@@ -42,6 +43,16 @@ public class ImageServiceImpl implements ImageService {
 
     @Resource
     private VSearchImageService vSearchImageService;
+
+    /**
+     * 查询历史图片列表
+     *
+     * @return 图片列表
+     */
+    @Override
+    public ImageRespVO historyGenerateImages() {
+        return null;
+    }
 
     /**
      * 文字生成图片

@@ -8,7 +8,7 @@ package com.starcloud.ops.business.app.controller.admin.image;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.image.request.ImageReqVO;
+import com.starcloud.ops.business.app.api.image.vo.request.ImageReqVO;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.convert.image;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.request.TextToImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.TextToImageRequest;
 import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
 import org.mapstruct.Mapper;

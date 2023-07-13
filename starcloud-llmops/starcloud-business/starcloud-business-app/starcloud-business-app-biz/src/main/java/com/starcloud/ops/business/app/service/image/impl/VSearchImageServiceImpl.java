@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.request.TextToImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.TextToImageRequest;
 import com.starcloud.ops.business.app.convert.image.VSearchConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.VSearchClient;
