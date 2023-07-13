@@ -92,7 +92,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         ChatCompletionRequest chatCompletionRequest = BeanUtil.toBean(this, ChatCompletionRequest.class);
 
-        List<ChatMessage> chatMessages = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(MessageConvert::OpenAIMessage).collect(Collectors.toList());
+        List<ChatMessage> chatMessages = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(MessageConvert::BaseMessage2ChatMessage).collect(Collectors.toList());
 
         chatCompletionRequest.setMessages(chatMessages);
 
@@ -332,10 +332,14 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
             case "user":
                 return new HumanMessage(chatMessage.getContent());
             case "assistant":
+//                if (chatMessage.getFunctionCall() != null) {
+//                    return new FunctionMessage(chatMessage.getFunctionCall().getName(), chatMessage.getFunctionCall().getArguments());
+//                }
+                AIMessage aiMessage =  new AIMessage(chatMessage.getContent());
                 if (chatMessage.getFunctionCall() != null) {
-                    return new FunctionMessage(chatMessage.getFunctionCall().getName(), chatMessage.getFunctionCall().getArguments());
+                    aiMessage.getAdditionalArgs().put("function_call", chatMessage.getFunctionCall());
                 }
-                return new AIMessage(chatMessage.getContent());
+                return aiMessage;
             case "system":
                 return new SystemMessage(chatMessage.getContent());
             case "function":

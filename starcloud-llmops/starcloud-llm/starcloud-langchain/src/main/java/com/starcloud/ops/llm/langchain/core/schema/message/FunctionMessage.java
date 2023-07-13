@@ -5,9 +5,14 @@ import lombok.Data;
 import java.util.HashMap;
 
 @Data
-public class FunctionMessage extends AIMessage {
+public class FunctionMessage extends BaseMessage {
 
     private String name;
+
+    public FunctionMessage(String name, String content) {
+        super(content);
+        this.name = name;
+    }
 
     public FunctionMessage(String name, Object arguments) {
         super("");

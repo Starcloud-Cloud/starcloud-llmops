@@ -1,9 +1,11 @@
 package com.starcloud.ops.llm.langchain.core.agent;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
@@ -30,6 +32,7 @@ import com.starcloud.ops.llm.langchain.core.schema.prompt.BasePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.ConvertToOpenaiUtils;
+import com.theokanning.openai.completion.chat.ChatFunctionCall;
 import lombok.Data;
 
 import java.util.*;
@@ -139,7 +142,7 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
         if (agentAction instanceof FunctionsAgentAction) {
             List<BaseMessage> history = ((FunctionsAgentAction) agentAction).getMessagesLog();
             messages.addAll(history);
-            messages.add(createFunctionMessage(agentAction, observation.toString()));
+            messages.add(createFunctionMessage(agentAction, observation));
         } else {
             messages = Arrays.asList(new AIMessage(agentAction.getLog()));
         }
@@ -147,19 +150,21 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
         return messages;
     }
 
-    protected FunctionMessage createFunctionMessage(AgentAction agentAction, String observation) {
+    protected FunctionMessage createFunctionMessage(AgentAction agentAction, Object observation) {
 
-        return new FunctionMessage(agentAction.getTool(), observation);
+        return new FunctionMessage(agentAction.getTool(), observation.toString());
     }
 
     protected static AgentAction parseAiMessage(BaseMessage baseMessage) {
 
         Assert.isInstanceOf(AIMessage.class, baseMessage, "Expected an AI message got");
 
-        if (baseMessage instanceof FunctionMessage) {
+        ChatFunctionCall functionCall = (ChatFunctionCall) baseMessage.getAdditionalArgs().getOrDefault("function_call", null);
 
-            String functionName = ((FunctionMessage) baseMessage).getName();
-            ObjectNode toolInput = (ObjectNode) ((FunctionMessage) baseMessage).getAdditionalArgs().getOrDefault("arguments", null);
+        if (functionCall != null) {
+
+            String functionName = functionCall.getName();
+            JsonNode toolInput = functionCall.getArguments();
 
             String contentMsg = StrUtil.isNotBlank(baseMessage.getContent()) ? "responded: " + baseMessage.getContent() + "\n" : "";
             String log = "\nInvoking: `" + functionName + "` with `" + toolInput + "`\n" + contentMsg + "\n";
@@ -170,7 +175,7 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
         } else {
 
-            return new AgentFinish(BaseVariable.newString("output", baseMessage.getContent()), baseMessage.getContent());
+            return new AgentFinish(baseMessage.getContent(), baseMessage.getContent());
         }
 
     }

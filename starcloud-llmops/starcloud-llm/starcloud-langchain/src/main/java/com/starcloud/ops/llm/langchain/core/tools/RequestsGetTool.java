@@ -15,7 +15,9 @@ import lombok.Data;
  * http get 请求工具
  */
 @Data
-public class RequestsGetTool extends BaseTool<RequestsGetTool.Request, String> implements BaseRequestsTool {
+public class RequestsGetTool extends BaseTool<RequestsGetTool.Request, String> {
+
+    private int timeOut = 1000 * 10;
 
     private String name = "requests_get";
 
@@ -26,7 +28,7 @@ public class RequestsGetTool extends BaseTool<RequestsGetTool.Request, String> i
 
         Request request = JSONUtil.toBean(input.toString(), Request.class);
 
-        return HttpUtil.get(request.getUrl(), 10000);
+        return HttpUtil.get(request.getUrl(), this.timeOut);
     }
 
     @Data

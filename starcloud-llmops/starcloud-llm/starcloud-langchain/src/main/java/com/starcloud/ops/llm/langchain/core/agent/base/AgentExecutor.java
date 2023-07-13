@@ -40,9 +40,9 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
     private Boolean returnIntermediateSteps = false;
 
-    private int maxIterations = 15;
+    private int maxIterations = 6;
 
-    private float maxExecutionTime;
+    private float maxExecutionTime = 1000 * 60 * 5;
 
     private String earlyStoppingMethod = "force";
 
@@ -86,7 +86,7 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
         List<AgentAction> intermediateSteps = new ArrayList<>();
 
         int iterations = 0;
-        long timeElapsed = 0L;
+        long timeElapsed = 0;
         TimeInterval timer = DateUtil.timer();
 
         Map<String, BaseTool> toolMap = this.getToolMaps();
@@ -128,6 +128,18 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
     }
 
     @Override
+    protected Map<String, Object> prepOutputs(List<BaseVariable> baseVariables, Map<String, Object> result) {
+
+        this._validateOutputs(result);
+
+        if (this.getMemory() != null) {
+            this.getMemory().saveContext(baseVariables, BaseLLMResult.builder().text((String) result.getOrDefault("output", "")).build());
+        }
+        return result;
+    }
+
+
+    @Override
     public String run(String text) {
 
         return this.run(Arrays.asList(BaseVariable.newString("input", text)));
@@ -135,6 +147,16 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
 
     protected Boolean _shouldContinue(Integer iterations, long timeElapsed) {
+        if (iterations > this.getMaxIterations()) {
+            log.info("_shouldContinue is skip, more MaxIterations");
+            return false;
+        }
+
+        if (timeElapsed > this.getMaxExecutionTime()) {
+
+            log.info("_shouldContinue is skip, more tMaxExecutionTime");
+            return false;
+        }
 
         return true;
     }
@@ -157,13 +179,27 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
     private List<AgentAction> _takeNextStep(Map<String, BaseTool> toolMap, List<BaseVariable> variables, List<AgentAction> intermediateSteps) {
 
-        List<AgentAction> agentActions = this.getActionAgent().plan(intermediateSteps, variables, this.callbackManager);
+        List<AgentAction> agentActions = new ArrayList<>();
+
+        try {
+
+            agentActions = this.getActionAgent().plan(intermediateSteps, variables, this.callbackManager);
+
+        } catch (OutputParserException e) {
+
+            log.error("plan is fail: {}", e.getMessage(), e);
+
+            return Arrays.asList(new AgentFinish(new HashMap() {{
+                put("error", e.getMessage());
+            }}, ""));
+        }
 
         //todo multistep AgentAction
         if (CollectionUtil.size(agentActions) == 1) {
 
-        } else {
-
+            if (agentActions.get(0) instanceof AgentFinish) {
+                return agentActions;
+            }
         }
 
         List<AgentAction> result = new ArrayList<>();
@@ -192,7 +228,9 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
                 observation = new InvalidTool().run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
             }
 
-            result.add(agentAction.copyObservation(observation));
+            agentAction.setObservation(observation);
+
+            result.add(agentAction);
         }
 
         return result;
@@ -219,7 +257,7 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
             if (toolMap.get(nextStepAction.getTool()).getReturnDirect()) {
 
-                return new AgentFinish(nextStepAction.getObservation(), "");
+                return new AgentFinish(nextStepAction.getObservation(), nextStepAction.getLog());
             }
         }
 
@@ -230,12 +268,13 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
         this.callbackManager.onAgentFinish(this.getClass(), agentFinish);
 
-        agentFinish.getReturnValues();
+        Map<String, Object> returnValue = agentFinish.getReturnValues();
 
         if (this.returnIntermediateSteps) {
-
+            returnValue.put("intermediate_steps", agentActions);
+            //set agentActions
         }
 
-        return MapUtil.newHashMap();
+        return returnValue;
     }
 }

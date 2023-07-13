@@ -16,7 +16,7 @@ import java.util.Optional;
 public class LoadTools {
 
 
-    private final static List<Class<? extends BaseTool>> BASE_TOOLS = Arrays.asList(RequestsGetTool.class);
+    private final static List<Class<? extends BaseTool>> BASE_TOOLS = Arrays.asList(RequestsGetTool.class, SerpapiXXTool.class);
 
     private final static List<Class<? extends BaseTool>> LLM_TOOLS = Arrays.asList(RequestsGetTool.class);
 

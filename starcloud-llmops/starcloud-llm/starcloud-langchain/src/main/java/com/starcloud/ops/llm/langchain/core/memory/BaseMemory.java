@@ -1,6 +1,5 @@
 package com.starcloud.ops.llm.langchain.core.memory;
 
-import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.Data;
 

@@ -8,10 +8,11 @@ import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Data
-public class BaseAgent extends BaseSingleActionAgent {
+public abstract class BaseAgent extends BaseSingleActionAgent {
 
     private LLMChain llmChain;
 
@@ -28,5 +29,19 @@ public class BaseAgent extends BaseSingleActionAgent {
     @Override
     public List<String> inputKeys() {
         return null;
+    }
+
+    public abstract String observationPrefix();
+
+    public abstract String llmPrefix();
+
+
+    public List<String> returnValues() {
+
+        return Arrays.asList("output");
+    }
+
+    public List<String> stop() {
+        return Arrays.asList("\n" + this.observationPrefix(), "\n\t" + this.observationPrefix());
     }
 }
