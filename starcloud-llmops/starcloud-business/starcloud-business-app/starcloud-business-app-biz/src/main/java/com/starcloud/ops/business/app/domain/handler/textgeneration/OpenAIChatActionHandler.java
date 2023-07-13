@@ -69,6 +69,8 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
 
             ChatOpenAI chatOpenAI = new ChatOpenAI();
             chatOpenAI.setStream(true);
+            chatOpenAI.setMaxTokens(Integer.valueOf(context.getContextVariablesValue("max_tokens","1000")));
+            chatOpenAI.setTemperature(Double.valueOf(context.getContextVariablesValue("temperature","0.7")));
             //chatOpenAI.setVerbose(true);
             chatOpenAI.addCallbackHandler(new StreamingSseCallBackHandler(context.getSseEmitter()));
 
