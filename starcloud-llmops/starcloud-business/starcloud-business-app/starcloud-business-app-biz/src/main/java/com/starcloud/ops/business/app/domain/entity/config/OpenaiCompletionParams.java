@@ -17,7 +17,7 @@ public class OpenaiCompletionParams {
 
     private Integer n = 1;
 
-    private Boolean stream ;
+    private Boolean stream = true;
 
 
 }
