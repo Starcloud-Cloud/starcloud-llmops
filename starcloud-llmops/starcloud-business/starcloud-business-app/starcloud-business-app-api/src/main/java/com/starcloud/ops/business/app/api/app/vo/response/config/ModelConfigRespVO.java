@@ -14,12 +14,6 @@ public class ModelConfigRespVO {
     private String provider;
 
     /**
-     * 模型  ：gpt-3.5-turbo
-     */
-    @Schema(description = "语言模型",example = "gpt-3.5-turbo")
-    private String modelName;
-
-    /**
      * 模型配置
      */
     @Schema(description = "模型配置",example = "gpt-3.5-turbo")

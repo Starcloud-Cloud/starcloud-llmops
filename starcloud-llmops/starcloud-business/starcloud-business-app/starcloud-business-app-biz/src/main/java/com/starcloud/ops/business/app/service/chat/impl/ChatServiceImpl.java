@@ -121,8 +121,10 @@ public class ChatServiceImpl implements ChatService {
         Long userId = WebFrameworkUtils.getLoginUserId();
         SseEmitter emitter = new SseEmitter(60000L);
         Long tenantId = TenantContextHolder.getTenantId();
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         threadPoolExecutor.execute(() -> {
             try {
+                RequestContextHolder.setRequestAttributes(requestAttributes);
                 TenantContextHolder.setTenantId(tenantId);
                 execute(request, userId, emitter);
                 emitter.complete();
