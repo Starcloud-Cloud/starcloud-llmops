@@ -197,7 +197,9 @@ public class PayAppServiceImpl implements PayAppService {
     @Override
     public PayAppDO getAppInfo() {
         List<PayAppDO> payAppDOS = payAppMapper.selectList();
-        if (payAppDOS.size() > 1) {
+        if (payAppDOS.size() < 1) {
+            throw ServiceExceptionUtil.exception(PAY_APP_NOT_FOUND);
+        } else if (payAppDOS.size() > 1) {
             log.error("存在多条应用配置，请立刻删除无用的数据");
         }
 

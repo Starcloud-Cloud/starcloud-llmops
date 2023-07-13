@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.chat.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -118,6 +119,24 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public SseEmitter chat(ChatRequest request) {
         Long userId = WebFrameworkUtils.getLoginUserId();
+        SseEmitter emitter = new SseEmitter(60000L);
+        Long tenantId = TenantContextHolder.getTenantId();
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        threadPoolExecutor.execute(() -> {
+            try {
+                RequestContextHolder.setRequestAttributes(requestAttributes);
+                TenantContextHolder.setTenantId(tenantId);
+                execute(request, userId, emitter);
+                emitter.complete();
+            } catch (Exception e) {
+                log.error("chat error:", e);
+                emitter.complete();
+            }
+        });
+        return emitter;
+    }
+
+    public void execute(ChatRequest request, Long userId, SseEmitter emitter) {
         benefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
         long start = System.currentTimeMillis();
         LogAppConversationDO conversationDO = appConversationMapper.selectOne(LogAppConversationDO::getUid, request.getConversationId());
@@ -134,7 +153,6 @@ public class ChatServiceImpl implements ChatService {
         }
 
         // 数据集
-
         List<String> datasetUid = Optional.ofNullable(chatConfig.getDatesetEntities()).orElse(new ArrayList<>())
                 .stream().filter(DatesetEntity::getEnabled).map(DatesetEntity::getDatasetUid).collect(Collectors.toList());
 
@@ -165,41 +183,33 @@ public class ChatServiceImpl implements ChatService {
                 )
         );
 
-        SseEmitter emitter = new SseEmitter(60000L);
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = buildLlm(history, chatConfig, chatPromptTemplate, emitter);
-        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
 
-        threadPoolExecutor.execute(() -> {
-            RequestContextHolder.setRequestAttributes(requestAttributes);
-            BaseLLMResult<ChatCompletionResult> result = llmChain.call(humanInput);
-            long end = System.currentTimeMillis();
-            BigDecimal totalPrice = BigDecimal.valueOf(result.getUsage().getTotalTokens()).multiply(new BigDecimal("0.0200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
-
-            LogAppMessageCreateReqVO messageCreateReqVO = new LogAppMessageCreateReqVO();
-            messageCreateReqVO.setUid(IdUtil.getSnowflakeNextIdStr());
-            messageCreateReqVO.setMessage(request.getQuery());
-            messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
-            messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.0200"));
-            messageCreateReqVO.setAppConfig(JSON.toJSONString(appEntity));
-            messageCreateReqVO.setVariables(JSON.toJSONString(chatConfig.getVariable()));
-            messageCreateReqVO.setAppUid(conversationDO.getAppUid());
-            messageCreateReqVO.setAppStep("");
-            messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
-            messageCreateReqVO.setAppConversationUid(conversationDO.getUid());
-            messageCreateReqVO.setAnswer(result.getText());
-            messageCreateReqVO.setAnswerTokens(Math.toIntExact(result.getUsage().getCompletionTokens()));
-            messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.0200"));
-            messageCreateReqVO.setElapsed(end - start);
-            messageCreateReqVO.setTotalPrice(totalPrice);
-            messageCreateReqVO.setCurrency("USD");
-            messageCreateReqVO.setFromScene("");
-            messageCreateReqVO.setStatus("SUCCESS");
-            logAppMessageDO.createAppMessage(messageCreateReqVO);
-            benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, messageCreateReqVO.getUid());
-            emitter.complete();
-            log.info("chat end , Response time: {} ms", end - start);
-        });
-        return emitter;
+        BaseLLMResult<ChatCompletionResult> result = llmChain.call(humanInput);
+        long end = System.currentTimeMillis();
+        BigDecimal totalPrice = BigDecimal.valueOf(result.getUsage().getTotalTokens()).multiply(new BigDecimal("0.0200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+        LogAppMessageCreateReqVO messageCreateReqVO = new LogAppMessageCreateReqVO();
+        messageCreateReqVO.setUid(IdUtil.getSnowflakeNextIdStr());
+        messageCreateReqVO.setMessage(request.getQuery());
+        messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
+        messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.0200"));
+        messageCreateReqVO.setAppConfig(JSON.toJSONString(appEntity));
+        messageCreateReqVO.setVariables(JSON.toJSONString(chatConfig.getVariable()));
+        messageCreateReqVO.setAppUid(conversationDO.getAppUid());
+        messageCreateReqVO.setAppStep("");
+        messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
+        messageCreateReqVO.setAppConversationUid(conversationDO.getUid());
+        messageCreateReqVO.setAnswer(result.getText());
+        messageCreateReqVO.setAnswerTokens(Math.toIntExact(result.getUsage().getCompletionTokens()));
+        messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.0200"));
+        messageCreateReqVO.setElapsed(end - start);
+        messageCreateReqVO.setTotalPrice(totalPrice);
+        messageCreateReqVO.setCurrency("USD");
+        messageCreateReqVO.setFromScene("");
+        messageCreateReqVO.setStatus("SUCCESS");
+        logAppMessageDO.createAppMessage(messageCreateReqVO);
+        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, messageCreateReqVO.getUid());
+        log.info("chat end , Response time: {} ms", end - start);
     }
 
     private ChatMessageHistory preHistory(String conversationId, String appMode) {

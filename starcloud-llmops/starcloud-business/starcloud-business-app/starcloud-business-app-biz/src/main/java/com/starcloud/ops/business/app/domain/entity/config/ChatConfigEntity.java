@@ -31,6 +31,8 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private OpeningStatementEntity openingStatement;
 
+    private AudioTransciptEntity audioTransciptEntity;
+
     /**
      * 挂载的 functions 列表
      */

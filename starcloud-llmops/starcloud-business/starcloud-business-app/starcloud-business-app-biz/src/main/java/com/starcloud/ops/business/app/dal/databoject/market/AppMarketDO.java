@@ -1,11 +1,7 @@
 package com.starcloud.ops.business.app.dal.databoject.market;
 
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -106,6 +102,12 @@ public class AppMarketDO extends TenantBaseDO {
      */
     @TableField("cost")
     private BigDecimal cost;
+
+    /**
+     * 应用使用数量
+     */
+    @TableField("usage_count")
+    private Integer usageCount;
 
     /**
      * 应用点赞数量

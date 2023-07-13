@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -16,12 +17,16 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.ExecuteAppRespVO;
+import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.LogAppApi;
@@ -33,6 +38,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
@@ -65,6 +72,9 @@ public class AppWorkflowService {
 
     @Autowired
     private UserBenefitsService userBenefitsService;
+
+    @Resource
+    private AppMarketService appMarketService;
 
     @Resource(name = "APP_POOL_EXECUTOR")
     private ThreadPoolExecutor threadPoolExecutor;
@@ -202,8 +212,11 @@ public class AppWorkflowService {
         }
 
         // 执行该应用
-
+        Long tenantId = TenantContextHolder.getTenantId();
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         threadPoolExecutor.execute(() -> {
+            RequestContextHolder.setRequestAttributes(requestAttributes);
+            TenantContextHolder.setTenantId(tenantId);
             this.fireByAppContext(appContext);
         });
     }
@@ -240,7 +253,17 @@ public class AppWorkflowService {
 
         TaskResponse<Void> fire = storyEngine.fire(req);
 
+        // 使用量加一
+        if (AppSceneEnum.WEB_MARKET.equals(appContext.getScene())) {
+            AppOperateReqVO appOperateReqVO = new AppOperateReqVO();
+            appOperateReqVO.setAppUid(appContext.getApp().getUid());
+            appOperateReqVO.setVersion(AppConstants.DEFAULT_VERSION);
+            appOperateReqVO.setOperate(AppOperateTypeEnum.USAGE.name());
+            appMarketService.operate(appOperateReqVO);
+        }
+
         this.updateAppConversationLog(conversation.getUid(), fire.isSuccess());
+        appContext.getSseEmitter().complete();
 
         log.info("{}, {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc(), fire.getResult());
 

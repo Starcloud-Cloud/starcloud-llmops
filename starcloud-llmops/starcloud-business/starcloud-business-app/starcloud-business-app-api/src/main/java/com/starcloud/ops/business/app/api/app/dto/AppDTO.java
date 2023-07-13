@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.app.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.dto.config.ChatConfigDTO;
+import com.starcloud.ops.business.app.api.app.dto.config.ImageConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.config.WorkflowConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -105,6 +106,12 @@ public class AppDTO implements Serializable {
      */
     @Schema(description = "应用聊天配置")
     private ChatConfigDTO chatConfig;
+
+    /**
+     * 应用图片配置
+     */
+    @Schema(description = "应用图片配置")
+    private ImageConfigDTO imageConfig;
 
     /**
      * 应用步骤图标、多个以逗号分割

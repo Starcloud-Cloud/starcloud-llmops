@@ -7,6 +7,9 @@ import lombok.Data;
 @Schema(description = "openai参数配置")
 public class OpenaiCompletionRespVo {
 
+    @Schema(description = "语言模型",example = "gpt-3.5-turbo")
+    private String modelName;
+
     @Schema(description = "返回内容的令牌最大数量")
     private Integer maxTokens;
 

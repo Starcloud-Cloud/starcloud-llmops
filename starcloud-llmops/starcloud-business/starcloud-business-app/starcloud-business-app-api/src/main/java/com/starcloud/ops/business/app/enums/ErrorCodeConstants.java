@@ -101,4 +101,19 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_FAVORITE_NOT_EXISTS = new ErrorCode(300200022, "The app favorite not exists ! [uid: {}]");
 
+    /**
+     * 聊天应用自动编排异常
+     */
+    ErrorCode CHAT_ROLE_GENERATE_ERROR = new ErrorCode(300200023,"please provide a new target audience and provide a detailed description of the problem to be address");
+
+    /**
+     * 语音转文字异常
+     */
+    ErrorCode AUDIO_TRANSCRIPT_ERROR = new ErrorCode(300200024,"audio transcript error, {}");
+
+    // ========== 图片生成服务错误 3-003-000-00 ==========
+    /**
+     * 生成图片失败，请重试或者联系管理员
+     */
+    ErrorCode GENERATE_IMAGE_FAIL = new ErrorCode(300300000, "Generate image fail, please try again or contact the administrator !");
 }

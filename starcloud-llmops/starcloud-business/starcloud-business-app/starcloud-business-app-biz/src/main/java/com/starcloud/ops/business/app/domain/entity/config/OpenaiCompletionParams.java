@@ -5,6 +5,11 @@ import lombok.Data;
 @Data
 public class OpenaiCompletionParams {
 
+    /**
+     * 模型  ：gpt-3.5-turbo
+     */
+    private String model;
+
     private Integer maxTokens;
 
     private Double temperature;
@@ -17,7 +22,7 @@ public class OpenaiCompletionParams {
 
     private Integer n = 1;
 
-    private Boolean stream ;
+    private Boolean stream = true;
 
 
 }

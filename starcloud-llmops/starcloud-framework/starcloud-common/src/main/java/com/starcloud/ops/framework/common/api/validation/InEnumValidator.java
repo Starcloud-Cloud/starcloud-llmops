@@ -6,6 +6,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -49,15 +50,15 @@ public class InEnumValidator implements ConstraintValidator<InEnum, Object> {
         // 遍历枚举值，如果有一个匹配，返回 true
         boolean result = Arrays.stream(values).anyMatch(enumValue -> {
             Object compareValue = (field == InEnum.EnumField.CODE) ? enumValue.getCode() : enumValue.toString();
-            return Objects.equals(value, compareValue);
+            return Objects.equals(value, compareValue.toString());
         });
 
         if (!result) {
             // 校验不通过，自定义提示语句（因为，注解上的 value 是枚举类，无法获得枚举类的实际值）
             String message = context.getDefaultConstraintMessageTemplate()
-                    .replaceAll("\\{value}", value.toString())
-                    .replaceAll("\\{values}", (field == InEnum.EnumField.CODE) ?
-                            Arrays.stream(values).map(IEnumable::getCode).toString() : Arrays.toString(values)
+                    .replace("{value}", value.toString())
+                    .replace("{values}", (field == InEnum.EnumField.CODE) ?
+                            Arrays.stream(values).map(IEnumable::getCode).collect(Collectors.toList()).toString() : Arrays.toString(values)
                     );
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(message).addConstraintViolation();

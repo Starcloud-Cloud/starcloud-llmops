@@ -19,8 +19,8 @@ public class ChatRequest {
     @NotNull(message = "会话id 不能为空")
     private String conversationId;
 
-    @Schema(description = "聊天参数")
-    private Map<String,String> inputs;
+//    @Schema(description = "聊天参数")
+//    private Map<String,String> inputs;
 
     @Schema(description = "聊天内容")
     @NotBlank(message = "聊天内容 不能为空")
