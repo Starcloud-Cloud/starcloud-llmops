@@ -16,13 +16,13 @@ import java.util.List;
 @AllArgsConstructor
 public enum ProductEnum {
 
-    AI_PLUS_MONTH("plus_month", "魔法 AI Plus",100,"魔法 AI Plus","http://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
+    AI_PLUS_MONTH("plus_month", "魔法 AI Plus",9900,"魔法 AI Plus", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.PLUS, ProductTimeEnum.MONTH,BenefitsStrategyTypeEnums.PAY_PLUS_MONTH),
-    AI_PRO_MONTH("pro_month", "魔法 AI Pro",200,"魔法 AI Plus","http://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
+    AI_PRO_MONTH("pro_month", "魔法 AI Pro",49900,"魔法 AI Plus", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.PLUS, ProductTimeEnum.MONTH,BenefitsStrategyTypeEnums.PAY_PRO_MONTH),
-    AI_PLUS_YEAR("plus_year", "魔法 AI Plus",400,"魔法 AI Pro","http://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
+    AI_PLUS_YEAR("plus_year", "魔法 AI Plus",99900,"魔法 AI Pro", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.PRO, ProductTimeEnum.YEAR,BenefitsStrategyTypeEnums.PAY_PLUS_YEAR),
-    AI_PRO_YEAR("pro_year", "魔法 AI Pro",500,"魔法 AI Pro","http://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
+    AI_PRO_YEAR("pro_year", "魔法 AI Pro",499900,"魔法 AI Pro", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.PRO, ProductTimeEnum.YEAR,BenefitsStrategyTypeEnums.PAY_PRO_YEAR),
     ;
 
