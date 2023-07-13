@@ -9,6 +9,7 @@ import lombok.Getter;
  * @since 2023-06-12
  */
 public enum AppOperateTypeEnum implements IEnumable<Integer> {
+
     /**
      * 点赞
      */
@@ -23,6 +24,11 @@ public enum AppOperateTypeEnum implements IEnumable<Integer> {
      * 安装
      */
     INSTALLED(3, "下载"),
+
+    /**
+     * 使用
+     */
+    USAGE(4, "使用"),
 
     ;
 

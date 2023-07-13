@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.app.vo.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ChatConfigReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.ImageConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowConfigReqVO;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
@@ -107,6 +108,13 @@ public class AppReqVO implements Serializable {
     @Schema(description = "应用聊天配置信息")
     @Valid
     private ChatConfigReqVO chatConfig;
+
+    /**
+     * 生成图片配置信息
+     */
+    @Schema(description = "生成图片配置信息")
+    @Valid
+    private ImageConfigReqVO imageConfig;
 
     /**
      * 应用描述

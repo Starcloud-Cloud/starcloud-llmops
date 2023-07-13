@@ -8,11 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.*;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -178,11 +174,11 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppValidate.isTrue(!AppInstallStatusEnum.UNINSTALLED.name().equals(installed.getInstallStatus()),
                 ErrorCodeConstants.APP_HAS_BEEN_INSTALLED);
 
-        // 4.说明没有安装过，需要安装
+        // 4. 说明没有安装过，需要安装
         AppEntity appEntity = AppConvert.INSTANCE.convert(appMarket);
         appEntity.insert();
 
-        // 操作表中插入一条数据
+        // 5. 操作表中插入一条数据
         AppOperateDO appOperateDO = AppOperateConvert.INSTANCE.convert(appMarket.getUid(), appMarket.getVersion(),
                 AppOperateTypeEnum.INSTALLED.name());
         appOperateMapper.insert(appOperateDO);
@@ -249,11 +245,15 @@ public class AppMarketServiceImpl implements AppMarketService {
         LambdaUpdateWrapper<AppMarketDO> updateWrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
                 .eq(AppMarketDO::getUid, request.getAppUid())
                 .eq(AppMarketDO::getVersion, appMarketDO.getVersion());
-        // 此处不支持安装操作
+
         if (AppOperateTypeEnum.LIKE.name().equals(operate)) {
             updateWrapper.set(AppMarketDO::getLikeCount, appMarketDO.getLikeCount() + 1);
         } else if (AppOperateTypeEnum.INSTALLED.name().equals(operate)) {
             updateWrapper.set(AppMarketDO::getInstallCount, appMarketDO.getInstallCount() + 1);
+        } else if (AppOperateTypeEnum.VIEW.name().equals(operate)) {
+            updateWrapper.set(AppMarketDO::getViewCount, appMarketDO.getViewCount() + 1);
+        } else if (AppOperateTypeEnum.USAGE.name().equals(operate)) {
+            updateWrapper.set(AppMarketDO::getUsageCount, appMarketDO.getUsageCount() + 1);
         } else {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_OPERATE_NOT_SUPPORTED, request.getOperate());
         }

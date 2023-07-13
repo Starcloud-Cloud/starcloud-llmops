@@ -40,7 +40,6 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         LambdaQueryWrapper<AppDO> wrapper = pageQueryWrapper()
                 .likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName())
                 .orderByDesc(AppDO::getCreateTime);
-        // TODO 查询当前用户有权限的应用
         return this.selectPage(PageUtil.page(query), wrapper);
     }
 

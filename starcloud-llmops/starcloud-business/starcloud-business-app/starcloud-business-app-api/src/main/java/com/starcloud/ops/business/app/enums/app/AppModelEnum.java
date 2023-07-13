@@ -18,7 +18,12 @@ public enum AppModelEnum implements IEnumable<Integer> {
     /**
      * 聊天应用
      */
-    CHAT(2, "聊天式应用");
+    CHAT(2, "聊天式应用"),
+
+    /**
+     * 图片应用
+     */
+    IMAGE(3, "图片式应用");
 
     /**
      * 应用类型Code

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.convert.market;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -10,6 +11,7 @@ import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -67,6 +69,7 @@ public interface AppMarketConvert {
         appMarket.setIcon(appMarketEntity.getIcon());
         appMarket.setFree(appMarketEntity.getFree());
         appMarket.setCost(appMarketEntity.getCost());
+        appMarket.setUsageCount(appMarketEntity.getUsageCount());
         appMarket.setLikeCount(appMarketEntity.getLikeCount());
         appMarket.setViewCount(appMarketEntity.getViewCount());
         appMarket.setInstallCount(appMarketEntity.getInstallCount());
@@ -81,6 +84,11 @@ public interface AppMarketConvert {
             }
         } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
             ChatConfigEntity config = appMarketEntity.getChatConfig();
+            if (Objects.nonNull(config)) {
+                appMarket.setConfig(JSON.toJSONString(config));
+            }
+        } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
+            ImageConfigEntity config = appMarketEntity.getImageConfig();
             if (Objects.nonNull(config)) {
                 appMarket.setConfig(JSON.toJSONString(config));
             }
@@ -108,6 +116,7 @@ public interface AppMarketConvert {
         appMarketEntity.setIcon(appMarket.getIcon());
         appMarketEntity.setFree(appMarket.getFree());
         appMarketEntity.setCost(appMarket.getCost());
+        appMarketEntity.setUsageCount(appMarket.getUsageCount());
         appMarketEntity.setLikeCount(appMarket.getLikeCount());
         appMarketEntity.setViewCount(appMarket.getViewCount());
         appMarketEntity.setInstallCount(appMarket.getInstallCount());
@@ -119,6 +128,8 @@ public interface AppMarketConvert {
                 appMarketEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
                 appMarketEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
+            } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
+                appMarketEntity.setImageConfig(JSON.parseObject(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
         return appMarketEntity;
@@ -145,6 +156,7 @@ public interface AppMarketConvert {
         appMarketEntity.setIcon(app.getIcon());
         appMarketEntity.setFree(Boolean.TRUE);
         appMarketEntity.setCost(BigDecimal.ZERO);
+        appMarketEntity.setUsageCount(0);
         appMarketEntity.setLikeCount(0);
         appMarketEntity.setViewCount(0);
         appMarketEntity.setInstallCount(0);
@@ -156,6 +168,8 @@ public interface AppMarketConvert {
                 appMarketEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
                 appMarketEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
+            } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
+                appMarketEntity.setImageConfig(JSON.parseObject(app.getConfig(), ImageConfigEntity.class));
             }
         }
         return appMarketEntity;
@@ -181,6 +195,7 @@ public interface AppMarketConvert {
         appMarketResponse.setIcon(appMarket.getIcon());
         appMarketResponse.setFree(appMarket.getFree());
         appMarketResponse.setCost(appMarket.getCost());
+        appMarketResponse.setUsageCount(appMarket.getUsageCount());
         appMarketResponse.setLikeCount(appMarket.getLikeCount());
         appMarketResponse.setViewCount(appMarket.getViewCount());
         appMarketResponse.setInstallCount(appMarket.getInstallCount());
@@ -199,6 +214,11 @@ public interface AppMarketConvert {
             ChatConfigRespVO config = JSON.parseObject(appMarket.getConfig(), ChatConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setChatConfig(config);
+            }
+        } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
+            ImageConfigRespVO config = JSON.parseObject(appMarket.getConfig(), ImageConfigRespVO.class);
+            if (Objects.nonNull(config)) {
+                appMarketResponse.setImageConfig(config);
             }
         }
 

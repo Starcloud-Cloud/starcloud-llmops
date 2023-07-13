@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -79,6 +80,11 @@ public class AppEntity {
      * 应用聊天配置
      */
     private ChatConfigEntity chatConfig;
+
+    /**
+     * 应用图片配置
+     */
+    private ImageConfigEntity imageConfig;
 
     /**
      * 应用描述

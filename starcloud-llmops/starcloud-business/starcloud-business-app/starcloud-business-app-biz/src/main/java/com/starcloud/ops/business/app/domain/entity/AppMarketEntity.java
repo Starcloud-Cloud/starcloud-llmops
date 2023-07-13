@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -80,6 +81,11 @@ public class AppMarketEntity {
     private BigDecimal cost;
 
     /**
+     * 使用数量
+     */
+    private Integer usageCount;
+
+    /**
      * 点赞数量
      */
     private Integer likeCount;
@@ -103,6 +109,11 @@ public class AppMarketEntity {
      * 应用聊天配置
      */
     private ChatConfigEntity chatConfig;
+
+    /**
+     * 应用图片配置
+     */
+    private ImageConfigEntity imageConfig;
 
     /**
      * 应用描述
