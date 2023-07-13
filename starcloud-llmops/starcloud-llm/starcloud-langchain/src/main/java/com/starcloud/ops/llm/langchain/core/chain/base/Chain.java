@@ -88,7 +88,7 @@ public abstract class Chain<R> {
 
     public BaseLLMResult<R> call(List<BaseVariable> baseVariables) {
 
-        this.prepInputs(baseVariables);
+        baseVariables = this.prepInputs(baseVariables);
 
         CallbackManagerForChainRun chainRun =  this.getCallbackManager().onChainStart(this.getClass(), baseVariables, this.verbose);
 
