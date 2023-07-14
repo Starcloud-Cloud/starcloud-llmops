@@ -15,7 +15,7 @@ public enum SamplerEnum implements IEnumable<Integer> {
     /**
      * ddim
      */
-    DDIM(0, "SAMPLER_DDPM_LABEL", "SAMPLER_DDPM_DESCRIPTION", ""),
+    DDIM(0, "SAMPLER_DDIM_LABEL", "SAMPLER_DDIM_DESCRIPTION", ""),
 
     /**
      * ddpm

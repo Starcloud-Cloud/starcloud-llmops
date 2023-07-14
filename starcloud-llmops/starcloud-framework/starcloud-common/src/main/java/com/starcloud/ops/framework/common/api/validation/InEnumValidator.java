@@ -50,7 +50,7 @@ public class InEnumValidator implements ConstraintValidator<InEnum, Object> {
         // 遍历枚举值，如果有一个匹配，返回 true
         boolean result = Arrays.stream(values).anyMatch(enumValue -> {
             Object compareValue = (field == InEnum.EnumField.CODE) ? enumValue.getCode() : enumValue.toString();
-            return Objects.equals(value, compareValue.toString());
+            return Objects.equals(value, compareValue);
         });
 
         if (!result) {

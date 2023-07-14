@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.convert.image;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.TextToImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
 import org.mapstruct.Mapper;
@@ -52,7 +52,7 @@ public interface VSearchConvert {
      * @param request 请求参数
      * @return VSearchImageRequest
      */
-    default VSearchImageRequest convert(TextToImageRequest request) {
+    default VSearchImageRequest convert(ImageRequest request) {
         VSearchImageRequest vSearchImageRequest = new VSearchImageRequest();
         vSearchImageRequest.setEngine(request.getEngine());
         vSearchImageRequest.setPrompts(Collections.singletonList(request.getPrompt()));

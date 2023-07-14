@@ -60,4 +60,8 @@ public class StringUtil {
                 .collect(Collectors.joining(","));
     }
 
+    public static Boolean isBlank(String source) {
+        return StringUtils.isBlank(source);
+    }
+
 }

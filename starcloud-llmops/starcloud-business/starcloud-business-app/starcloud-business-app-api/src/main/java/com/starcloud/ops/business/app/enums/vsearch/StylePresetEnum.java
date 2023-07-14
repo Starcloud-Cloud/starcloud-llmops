@@ -119,6 +119,7 @@ public enum StylePresetEnum implements IEnumable<String> {
     /**
      * 图片
      */
+    @Getter
     private final String image;
 
     StylePresetEnum(String code, String label, String description, String image) {

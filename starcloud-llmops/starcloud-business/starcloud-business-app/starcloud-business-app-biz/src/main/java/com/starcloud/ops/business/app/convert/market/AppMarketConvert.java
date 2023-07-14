@@ -87,7 +87,7 @@ public interface AppMarketConvert {
             if (Objects.nonNull(config)) {
                 appMarket.setConfig(JSON.toJSONString(config));
             }
-        } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
+        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
             ImageConfigEntity config = appMarketEntity.getImageConfig();
             if (Objects.nonNull(config)) {
                 appMarket.setConfig(JSON.toJSONString(config));
@@ -128,7 +128,7 @@ public interface AppMarketConvert {
                 appMarketEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
                 appMarketEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
+            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
                 appMarketEntity.setImageConfig(JSON.parseObject(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -168,7 +168,7 @@ public interface AppMarketConvert {
                 appMarketEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
                 appMarketEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
+            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
                 appMarketEntity.setImageConfig(JSON.parseObject(app.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -215,7 +215,7 @@ public interface AppMarketConvert {
             if (Objects.nonNull(config)) {
                 appMarketResponse.setChatConfig(config);
             }
-        } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
+        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
             ImageConfigRespVO config = JSON.parseObject(appMarket.getConfig(), ImageConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setImageConfig(config);

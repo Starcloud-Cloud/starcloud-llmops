@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.TextToImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.convert.image.VSearchConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.VSearchClient;
@@ -55,7 +55,7 @@ public class VSearchImageServiceImpl implements VSearchImageService {
      * @return 图片列表
      */
     @Override
-    public List<ImageDTO> textToImage(TextToImageRequest request) {
+    public List<ImageDTO> textToImage(ImageRequest request) {
         // 生成图片
         VSearchImageRequest imageRequest = VSearchConvert.INSTANCE.convert(request);
         List<VSearchImage> imageList = this.generate(imageRequest);

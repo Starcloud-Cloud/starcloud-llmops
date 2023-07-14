@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -59,7 +60,12 @@ public class AppRepository {
      * @param appEntity 应用实体
      */
     public void update(AppEntity appEntity) {
-        AppValidate.isTrue(!duplicateName(appEntity.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        // 判断应用是否存在
+        AppDO appDO = appMapper.getByUid(appEntity.getUid(), Boolean.TRUE);
+        // 名称修改的话，需要判断名称是否重复
+        if (!StringUtils.equals(appDO.getName(), appEntity.getName())) {
+            AppValidate.isTrue(!duplicateName(appEntity.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        }
         AppDO app = AppConvert.INSTANCE.convert(appEntity);
         // deleted 不允许修改
         app.setDeleted(Boolean.FALSE);

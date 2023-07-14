@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -21,5 +22,16 @@ import java.io.Serializable;
 public class ImageRespVO implements Serializable {
 
     private static final long serialVersionUID = -3225734608186743394L;
+
+    /**
+     * 会话 ID
+     */
+    @Schema(description = "会话 ID")
+    private String conversationId;
+
+    /**
+     * 图片生成的记录
+     */
+    private List<ImageMessageRespVO> messages;
 
 }
