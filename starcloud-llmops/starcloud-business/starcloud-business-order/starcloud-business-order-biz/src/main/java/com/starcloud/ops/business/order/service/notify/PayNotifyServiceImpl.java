@@ -144,9 +144,9 @@ public class PayNotifyServiceImpl implements PayNotifyService {
             if (latch.await(1L, TimeUnit.SECONDS)) {
                 return;
             }
-            log.info("[awaitExecuteNotify][任务处理中， 总任务数({}) 剩余任务数({})]", size, latch.getCount());
+            // log.info("[awaitExecuteNotify][任务处理中， 总任务数({}) 剩余任务数({})]", size, latch.getCount());
         }
-        log.error("[awaitExecuteNotify][任务未处理完，总任务数({}) 剩余任务数({})]", size, latch.getCount());
+        // log.error("[awaitExecuteNotify][任务未处理完，总任务数({}) 剩余任务数({})]", size, latch.getCount());
     }
 
     /**

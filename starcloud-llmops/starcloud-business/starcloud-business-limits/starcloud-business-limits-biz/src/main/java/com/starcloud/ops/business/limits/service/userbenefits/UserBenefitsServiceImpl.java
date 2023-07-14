@@ -27,10 +27,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -83,7 +85,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public Boolean addUserBenefitsByCode(String code, Long userId) {
-        log.info("[addUserBenefitsByCode][1.准备通过 权益code增加权益：用户ID({})|租户 ID({})｜权益代码({})]", userId, getTenantId(), code);
+        log.info("[addUserBenefitsByCode][准备通过 权益code增加权益：用户ID({})|租户 ID({})｜权益代码({})]", userId, getTenantId(), code);
         // 根据 code 获取权益策略
         UserBenefitsStrategyDO benefitsStrategy;
         try {
@@ -119,7 +121,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         // 增加记录
         userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
-        log.info("[addUserBenefitsByCode][1.增加权益成功：用户ID({})｜权益代码({})]", userId, code);
+        log.info("[addUserBenefitsByCode][增加权益结束：用户ID({})｜权益代码({})]", userId, code);
         return true;
     }
 
@@ -193,9 +195,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             // 增加记录
             userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
         } catch (RuntimeException e) {
-            log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]", userId, strategyType);
+            log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]｜错误为({})", userId, strategyType, e.getMessage());
+            return false;
         }
-        log.info("[addUserBenefitsByCode][4.增加权益结束：用户ID({})｜权益类型({})]", userId, strategyType);
+        log.info("[addUserBenefitsByCode][3.增加权益结束：用户ID({})｜权益类型({})]", userId, strategyType);
         return true;
     }
 
@@ -212,42 +215,62 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * // 5. 如果    LimitIntervalUnit 为 DAY、WEEK、MONTH、YEAR 表明 该策略在，LimitIntervalUnit 单位下 仅可以使用LimitIntervalNum 次 比如 LimitIntervalUnit 为 DAY  LimitIntervalNum 为 1 表明这条策略 一天可以使用一次否则就报错
      */
     private Boolean checkBenefitsUsageFrequency(UserBenefitsStrategyDO benefitsStrategy, Long userId) {
-        LocalDateTime startTime = LocalDateTime.now();
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startTime;
         LocalDateTime endTime;
 
         BenefitsStrategyLimitIntervalEnums limitIntervalUnit = BenefitsStrategyLimitIntervalEnums.getByCode(benefitsStrategy.getLimitIntervalUnit());
 
         switch (limitIntervalUnit) {
             case DAY:
-                endTime = startTime.minus(benefitsStrategy.getLimitIntervalNum(), ChronoUnit.DAYS);
+                // 一天的开始时间 到一天的结束时间
+                startTime = LocalDateTimeUtil.beginOfDay(now);
+                endTime = LocalDateTimeUtil.endOfDay(now);
                 break;
             case WEEK:
-                endTime = startTime.minus(benefitsStrategy.getLimitIntervalNum(), ChronoUnit.WEEKS);
+                // 周一
+                LocalDateTime monday = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                // 周日
+                LocalDateTime sunday = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+                // 本周开始时间
+                startTime = LocalDateTimeUtil.beginOfDay(monday);
+                // 本周结束时间
+                endTime = LocalDateTimeUtil.endOfDay(sunday);
                 break;
             case YEAR:
-                endTime = startTime.minus(benefitsStrategy.getLimitIntervalNum(), ChronoUnit.YEARS);
+                // 年第一天
+                startTime = now.with(TemporalAdjusters.firstDayOfYear());
+                endTime = now.with(TemporalAdjusters.lastDayOfYear());
                 break;
             case ONCE_ONLY:
-                endTime = startTime.minus(100, ChronoUnit.YEARS);
+                startTime = now.plusYears(50);
+                endTime = now.minus(50, ChronoUnit.YEARS);
                 break;
             case MONTH:
             default:
-                endTime = startTime.minus(benefitsStrategy.getLimitIntervalNum(), ChronoUnit.MONTHS);
+                // 本月1号
+                LocalDateTime firstDayOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
+                // 本月最后一天
+                LocalDateTime lastDayOfMonth = now.with(TemporalAdjusters.lastDayOfMonth());
+                // 本月开始时间
+                startTime = LocalDateTimeUtil.beginOfDay(firstDayOfMonth);
+                // 本月结束时间
+                endTime = LocalDateTimeUtil.endOfDay(lastDayOfMonth);
                 break;
         }
         // 构建查询条件
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.<UserBenefitsDO>lambdaQuery()
                 .eq(UserBenefitsDO::getUserId, userId)
                 .eq(UserBenefitsDO::getStrategyId, benefitsStrategy.getId())
-                .lt(UserBenefitsDO::getCreateTime, startTime)
-                .gt(UserBenefitsDO::getCreateTime, endTime);
+                .between(UserBenefitsDO::getCreateTime, startTime, endTime);
 
         // 查询符合条件的权益数
         long usageCount = userBenefitsMapper.selectCount(wrapper);
 
         Long limitCount = benefitsStrategy.getLimitIntervalNum();
         // 判断是否存在不限制情况
-        if (-1 ==limitCount) {
+        if (-1 == limitCount) {
             limitCount = Long.MAX_VALUE;
         }
 
@@ -648,7 +671,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public Boolean hasSignInBenefitToday(Long userId) {
-        log.warn("[hasSignInBenefitToday][用户签到检测：用户ID({})", userId);
+        log.info("[hasSignInBenefitToday][用户签到检测：用户ID({})", userId);
 
         // 当天的凌晨
         LocalDateTime startDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
@@ -670,7 +693,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         LambdaQueryWrapper<UserBenefitsStrategyDO> userBenefitsStrategyDOLambdaQueryWrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
         userBenefitsStrategyDOLambdaQueryWrapper.in(UserBenefitsStrategyDO::getId, strategyIds);
         userBenefitsStrategyDOLambdaQueryWrapper.eq(UserBenefitsStrategyDO::getStrategyType, BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName());
-        return userBenefitsStrategyMapper.selectCount(userBenefitsStrategyDOLambdaQueryWrapper) > 0;
+        boolean result = BooleanUtil.isTrue(userBenefitsStrategyMapper.selectCount(userBenefitsStrategyDOLambdaQueryWrapper) > 0);
+        log.info("[hasSignInBenefitToday][用户签到检测结果：用户ID({})｜当天是否已经签到({})", userId, result);
+        return result;
     }
 
     /**

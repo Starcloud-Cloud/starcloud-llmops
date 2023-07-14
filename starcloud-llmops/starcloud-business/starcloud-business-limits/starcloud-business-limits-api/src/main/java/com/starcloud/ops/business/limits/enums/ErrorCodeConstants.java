@@ -61,6 +61,9 @@ public interface ErrorCodeConstants {
     ErrorCode USER_BENEFITS_USELESS_INSUFFICIENT = new ErrorCode(2008002007, "当前使用的{}不足");
 
 
+    ErrorCode USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL = new ErrorCode(2008002008, "签到失败！今日已经签到。请明天再试。");
+
+
 
     //======================================用户权益使用记录======================================
     ErrorCode BENEFITS_USAGE_LOG_NOT_EXISTS = new ErrorCode(2008003001, "用户权益使用日志不存在");
