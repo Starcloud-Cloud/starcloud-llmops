@@ -57,12 +57,12 @@ public interface ErrorCodeConstants {
     ErrorCode PAY_MERCHANT_EXIST_APP_CANT_DELETE = new ErrorCode(1007004001, "支付商户存在支付应用,无法删除");
 
     // ========== 示例订单 1-007-900-000 ==========
-    ErrorCode PAY_DEMO_ORDER_NOT_FOUND = new ErrorCode(100790000, "示例订单不存在");
-    ErrorCode PAY_DEMO_ORDER_UPDATE_PAID_STATUS_NOT_UNPAID = new ErrorCode(100790001, "示例订单更新支付状态失败，订单不是【未支付】状态");
-    ErrorCode PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_ORDER_ID_ERROR = new ErrorCode(100790002, "示例订单更新支付状态失败，支付单编号不匹配");
-    ErrorCode PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_ORDER_STATUS_NOT_SUCCESS = new ErrorCode(100790003, "示例订单更新支付状态失败，支付单状态不是【支付成功】状态");
-    ErrorCode PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_PRICE_NOT_MATCH = new ErrorCode(100790004, "示例订单更新支付状态失败，支付单金额不匹配");
-    ErrorCode PAY_DEMO_ORDER_REFUND_FAIL_NOT_PAID = new ErrorCode(100790005, "发起退款失败，示例订单未支付");
+    ErrorCode PAY_DEMO_ORDER_NOT_FOUND = new ErrorCode(100790000, "订单不存在");
+    ErrorCode PAY_DEMO_ORDER_UPDATE_PAID_STATUS_NOT_UNPAID = new ErrorCode(100790001, "订单更新支付状态失败，订单不是【未支付】状态");
+    ErrorCode PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_ORDER_ID_ERROR = new ErrorCode(100790002, "订单更新支付状态失败，支付单编号不匹配");
+    ErrorCode PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_ORDER_STATUS_NOT_SUCCESS = new ErrorCode(100790003, "订单更新支付状态失败，支付单状态不是【支付成功】状态");
+    ErrorCode PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_PRICE_NOT_MATCH = new ErrorCode(100790004, "订单更新支付状态失败，支付单金额不匹配");
+    ErrorCode PAY_DEMO_ORDER_REFUND_FAIL_NOT_PAID = new ErrorCode(100790005, "退款失败，示例订单未支付");
     ErrorCode PAY_DEMO_ORDER_REFUND_FAIL_REFUNDED = new ErrorCode(100790006, "发起退款失败，示例订单已退款");
     ErrorCode PAY_DEMO_ORDER_REFUND_FAIL_REFUND_NOT_FOUND = new ErrorCode(100790007, "发起退款失败，退款订单不存在");
     ErrorCode PAY_DEMO_ORDER_REFUND_FAIL_REFUND_NOT_SUCCESS = new ErrorCode(100790008, "发起退款失败，退款订单未退款成功");

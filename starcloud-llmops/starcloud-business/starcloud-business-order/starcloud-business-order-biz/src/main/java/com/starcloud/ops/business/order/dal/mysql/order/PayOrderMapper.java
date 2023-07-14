@@ -79,10 +79,24 @@ public interface PayOrderMapper extends BaseMapperX<PayOrderDO> {
         return selectOne(new QueryWrapper<PayOrderDO>().eq("app_id", appId)
                 .eq("merchant_order_id", merchantOrderId));
     }
+    default PayOrderDO selectByMerchantOrderId(String merchantOrderId) {
+        return selectOne(new QueryWrapper<PayOrderDO>()
+                .eq("merchant_order_id", merchantOrderId));
+    }
 
     default int updateByIdAndStatus(Long id, Integer status, PayOrderDO update) {
         return update(update, new QueryWrapper<PayOrderDO>()
                 .eq("id", id).eq("status", status));
     }
+
+    default PayOrderDO selectNoPayByProductCode(String productCode,Integer orderStatus,Long userId,Long tenantId) {
+        return selectOne(new QueryWrapper<PayOrderDO>()
+                .eq("product_code", productCode)
+                .eq("status",orderStatus)
+                .eq("creator", userId)
+                .eq("tenant_id", tenantId)
+        );
+    }
+
 
 }

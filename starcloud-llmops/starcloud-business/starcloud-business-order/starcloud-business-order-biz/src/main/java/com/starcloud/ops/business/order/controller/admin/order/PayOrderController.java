@@ -6,10 +6,11 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
-import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
+import com.starcloud.ops.business.order.api.notify.dto.PayOrderNotifyReqDTO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReq2DTO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
@@ -32,8 +33,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.time.Duration;
-import java.time.LocalDateTime;
+import javax.annotation.security.PermitAll;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,10 +51,6 @@ import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder
 @Validated
 @Slf4j
 public class PayOrderController {
-
-
-    @Resource
-    private PayOrderService orderService;
 
     @Resource
     private PayOrderService payOrderService;
@@ -137,7 +133,7 @@ public class PayOrderController {
 
     @PostMapping("/create")
     @Operation(summary = "创建订单")
-    public CommonResult<Long> submitPayOrder(@RequestBody PayOrderCreateReq2DTO req2DTO) {
+    public CommonResult<String> submitPayOrder(@RequestBody PayOrderCreateReq2DTO req2DTO) {
 
         log.info("1.开始创建订单，准备封装订单参数，订单入参为:({})|用户ID({})|租户 ID({})", JSONObject.toJSONString(req2DTO),getLoginUserId(),getTenantId());
         PayOrderCreateReqDTO payOrderCreateReqDTO = new PayOrderCreateReqDTO();
@@ -175,7 +171,7 @@ public class PayOrderController {
     @PostMapping("/user/page")
     @Operation(summary = "用户获取订单分页")
     public CommonResult<PageResult<AppPayOrderDetailsRespVO>> submitPayOrder(@RequestBody PayOrderAppPageReqVO pageReqVO) {
-        PageResult<AppPayOrderDetailsRespVO>  respVO = payOrderService.getAppOrderPage(pageReqVO, getLoginUser().getId(),getTenantId());
+        PageResult<AppPayOrderDetailsRespVO>  respVO = payOrderService.getAppOrderPage(pageReqVO, getLoginUserId(),getTenantId());
         return success(respVO);
     }
 
@@ -185,6 +181,22 @@ public class PayOrderController {
         return success( payOrderService.getAppProductList());
     }
 
+
+    // @PostMapping("/update-paid")
+    // @Operation(summary = "更新示例订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob
+    // @PermitAll // 无需登录，安全由 PayDemoOrderService 内部校验实现
+    // @OperateLog(enable = false) // 禁用操作日志，因为没有操作人
+    // public CommonResult<Boolean> updateDemoOrderPaid(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {
+    //     payOrderService.updateDemoOrderPaid(Long.valueOf(notifyReqDTO.getMerchantOrderId()),
+    //             notifyReqDTO.getPayOrderId());
+    //     return success(true);
+    // }
+
+    @PostMapping("/is-success")
+    @Operation(summary = "判断订单状态是否支付成功")
+    public CommonResult<Boolean> updateDemoOrderPaid(@RequestBody PayOrderSuccessReqVO reqVO) {
+        return success(payOrderService.notifyUSerOrderPaid(reqVO.getOrderId()));
+    }
 
 
 }

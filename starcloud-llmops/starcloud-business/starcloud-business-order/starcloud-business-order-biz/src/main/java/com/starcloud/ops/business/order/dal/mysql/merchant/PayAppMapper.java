@@ -46,6 +46,8 @@ public interface PayAppMapper extends BaseMapperX<PayAppDO> {
                 .eq(PayAppDO::getMerchantId, merchantId));
     }
 
+
+
     // TODO @aquan：方法名补充 ByMerchantId
     default Long selectCount(Long merchantId) {
         return selectCount(new LambdaQueryWrapper<PayAppDO>().eq(PayAppDO::getMerchantId, merchantId));
