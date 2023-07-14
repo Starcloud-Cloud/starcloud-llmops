@@ -187,7 +187,7 @@ public class PayOrderServiceImpl implements PayOrderService {
                 .setMerchantOrderId(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
                 .setSubject(order.getSubject()).setBody(order.getBody())
                 .setNotifyUrl(genChannelPayNotifyUrl(channel))
-                .setReturnUrl(genChannelReturnUrl(channel))
+                // .setReturnUrl(genChannelReturnUrl(channel))
                 // 订单相关字段
                 .setAmount(order.getAmount()).setExpireTime(order.getExpireTime());
         PayOrderUnifiedRespDTO unifiedOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
