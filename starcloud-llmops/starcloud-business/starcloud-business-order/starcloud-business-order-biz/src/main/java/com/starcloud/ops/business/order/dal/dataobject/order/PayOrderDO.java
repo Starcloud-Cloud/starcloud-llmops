@@ -165,4 +165,9 @@ public class PayOrderDO extends BaseDO {
      */
     private String channelOrderNo;
 
+    /**
+     * 多租户编号
+     */
+    private Long tenantId;
+
 }

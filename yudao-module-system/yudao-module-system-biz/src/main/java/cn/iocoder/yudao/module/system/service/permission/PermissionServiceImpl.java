@@ -445,7 +445,7 @@ public class PermissionServiceImpl implements PermissionService {
         }
 
         RoleDO roleByCode = roleService.getRoleByCode(role);
-        if (roleByCode != null) {
+        if (roleByCode == null) {
             log.warn("角色不存在 {}", role);
             return;
         }

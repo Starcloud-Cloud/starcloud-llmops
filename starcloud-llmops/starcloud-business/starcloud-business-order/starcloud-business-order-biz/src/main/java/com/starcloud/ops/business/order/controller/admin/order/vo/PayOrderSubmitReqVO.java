@@ -13,7 +13,7 @@ public class PayOrderSubmitReqVO {
 
     @Schema(description = "支付单编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
     @NotNull(message = "支付单编号不能为空")
-    private Long id;
+    private String orderId;
 
     @Schema(description = "支付渠道", requiredMode = Schema.RequiredMode.REQUIRED, example = "alipay_pc")
     @NotEmpty(message = "支付渠道不能为空")

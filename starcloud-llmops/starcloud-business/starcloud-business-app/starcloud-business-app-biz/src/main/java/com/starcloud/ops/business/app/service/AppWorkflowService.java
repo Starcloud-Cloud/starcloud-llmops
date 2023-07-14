@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -26,6 +25,7 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
+import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -38,20 +38,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * App 工作流服务, 执行应用
@@ -76,8 +72,8 @@ public class AppWorkflowService {
     @Resource
     private AppMarketService appMarketService;
 
-    @Resource(name = "APP_POOL_EXECUTOR")
-    private ThreadPoolExecutor threadPoolExecutor;
+    @Resource
+    private ThreadWithContext threadExecutor;
 
 
     /**
@@ -212,11 +208,7 @@ public class AppWorkflowService {
         }
 
         // 执行该应用
-        Long tenantId = TenantContextHolder.getTenantId();
-        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        threadPoolExecutor.execute(() -> {
-            RequestContextHolder.setRequestAttributes(requestAttributes);
-            TenantContextHolder.setTenantId(tenantId);
+        threadExecutor.asyncExecute(() -> {
             this.fireByAppContext(appContext);
         });
     }

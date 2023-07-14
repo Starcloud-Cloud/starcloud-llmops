@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.order.service.order;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.pay.config.PayProperties;
@@ -11,7 +10,9 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
+import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductTimeEnum;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -47,9 +48,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.util.ObjectUtil.notEqual;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
+import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_ORDER_NOT_FOUND;
 
 /**
  * 支付订单 Service 实现类
@@ -84,9 +89,8 @@ public class PayOrderServiceImpl implements PayOrderService {
     @Resource
     private UserBenefitsService userBenefitsService;
 
-
-    private static final Long PAY_APP_ID = 7L;
-    private static final String CHANNEL_CODE = "alipay_pc";
+    // @Resource
+    // private PayOrderApi payOrderApi;
 
 
     @Override
@@ -111,7 +115,21 @@ public class PayOrderServiceImpl implements PayOrderService {
     }
 
     @Override
-    public Long createPayOrder(PayOrderCreateReqDTO reqDTO) {
+    public String createPayOrder(PayOrderCreateReqDTO reqDTO) {
+        log.info("[createPayOrder],用户[userId({})｜租户[({})｜开始创建订单({})]", getLoginUserId(), getTenantId(), reqDTO.getMerchantOrderId());
+
+        // 检验是否有历史未支付订单
+        PayOrderDO noPayOrder = orderMapper.selectNoPayByProductCode(
+                reqDTO.getProductCode(), PayOrderStatusEnum.WAITING.getStatus(), getLoginUserId(), getTenantId());
+
+        if (noPayOrder != null) {
+            log.info("[createPayOrder],用户[userId({}) 已经存在未支付的支付单({})]", getLoginUserId(), noPayOrder.getMerchantOrderId());
+            // 重新设置订单过期时间
+            orderMapper.updateByIdAndStatus(noPayOrder.getId(), PayOrderStatusEnum.WAITING.getStatus(), noPayOrder.setExpireTime(reqDTO.getExpireTime()));
+
+            return noPayOrder.getMerchantOrderId();
+        }
+        log.info("[createPayOrder],用户[userId({}) 不存在未支付的支付单，开始创建新的订单]", getLoginUserId());
         // 校验 App
         PayAppDO app = appService.validPayApp(reqDTO.getAppId());
 
@@ -122,7 +140,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         if (order != null) {
             log.warn("[createPayOrder][appId({}) merchantOrderId({}) 已经存在对应的支付单({})]", order.getAppId(),
                     order.getMerchantOrderId(), toJsonString(order)); // 理论来说，不会出现这个情况
-            return order.getId();
+            return order.getMerchantOrderId();
         }
 
         // 创建支付交易单
@@ -139,38 +157,43 @@ public class PayOrderServiceImpl implements PayOrderService {
         order.setRefundStatus(PayRefundTypeEnum.NO.getStatus())
                 .setRefundTimes(0).setRefundAmount(0L);
         orderMapper.insert(order);
-        // 最终返回
-        return order.getId();
+        log.info("[createPayOrder],用户[userId({}) 创建新的订单结束，订单编号为({})]", getLoginUserId(), order.getMerchantOrderId());
+        return order.getMerchantOrderId();
+
     }
 
     @Override
     public PayOrderSubmitRespVO submitPayOrder(PayOrderSubmitReqVO reqVO, String userIp) {
-        log.info("[submitPayOrder][0.支付宝统一下单接收到请求：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), reqVO.getId(), userIp);
+        log.info("[submitPayOrder][0.支付宝统一下单接收到请求：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), reqVO.getOrderId(), userIp);
         // 1. 获得 PayOrderDO ，并校验其是否存在
-        PayOrderDO order = validatePayOrderCanSubmit(reqVO.getId());
+        PayOrderDO order = validatePayOrderCanSubmit(reqVO.getOrderId());
         // 1.2 校验支付渠道是否有效
         PayChannelDO channel = validatePayChannelCanSubmit(order.getAppId(), reqVO.getChannelCode());
         PayClient client = payClientFactory.getPayClient(channel.getId());
-
+        log.info("[submitPayOrder][1.支付渠道有效：用户ID({})|渠道 ID({})｜用户 IP({})]", getLoginUser(), channel.getId(), userIp);
         // 2. 插入 PayOrderExtensionDO
-        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp)
-                .setOrderId(order.getId()).setNo(generateOrderExtensionNo())
-                .setChannelId(channel.getId()).setChannelCode(channel.getCode())
+        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp,order.getId())
+                .setOrderId(order.getId())
+                .setNo(generateOrderExtensionNo())
+                .setChannelId(channel.getId())
+                .setChannelCode(channel.getCode())
                 .setStatus(PayOrderStatusEnum.WAITING.getStatus());
         orderExtensionMapper.insert(orderExtension);
 
+        log.info("[submitPayOrder][2.创建扩展订单数据成功：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), JSONObject.toJSONString(orderExtension), userIp);
         // 3. 调用三方接口
         PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(reqVO)
                 // 商户相关的字段
                 .setMerchantOrderId(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
                 .setSubject(order.getSubject()).setBody(order.getBody())
                 .setNotifyUrl(genChannelPayNotifyUrl(channel))
-                .setReturnUrl(genChannelReturnUrl(channel))
+                // .setReturnUrl(genChannelReturnUrl(channel))
                 // 订单相关字段
                 .setAmount(order.getAmount()).setExpireTime(order.getExpireTime());
         PayOrderUnifiedRespDTO unifiedOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
 
         // TODO 轮询三方接口，是否已经支付的任务
+        log.info("[submitPayOrder][3.创建支付成功，返回支付链接：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), order.getMerchantOrderId(), userIp);
         // 返回成功
         return PayOrderConvert.INSTANCE.convert(unifiedOrderRespDTO);
     }
@@ -208,10 +231,10 @@ public class PayOrderServiceImpl implements PayOrderService {
     }
 
 
-    private PayOrderDO validatePayOrderCanSubmit(Long id) {
-        PayOrderDO order = orderMapper.selectById(id);
+    private PayOrderDO validatePayOrderCanSubmit(String id) {
+        PayOrderDO order = orderMapper.selectByMerchantOrderId(id);
         if (order == null) { // 是否存在
-            throw exception(ErrorCodeConstants.PAY_ORDER_NOT_FOUND);
+            throw exception(PAY_ORDER_NOT_FOUND);
         }
         if (!PayOrderStatusEnum.WAITING.getStatus().equals(order.getStatus())) { // 校验状态，必须是待支付
             throw exception(ErrorCodeConstants.PAY_ORDER_STATUS_IS_NOT_WAITING);
@@ -292,6 +315,8 @@ public class PayOrderServiceImpl implements PayOrderService {
             String roleCode = ProductEnum.getRoleCodeByCode(order.getProductCode());
             // 根据商品 code 获取权益类型
             String benefitsType = ProductEnum.getBenefitsTypeByCode(order.getProductCode());
+            // 设置上下文租户
+            TenantContextHolder.setTenantId(order.getTenantId());
             // TODO 设置用户角色 异常处理 日志
             userBenefitsService.addBenefitsAndRole(benefitsType, Long.valueOf(order.getCreator()), roleCode);
         });
@@ -347,6 +372,102 @@ public class PayOrderServiceImpl implements PayOrderService {
     }
 
     /**
+     * 更新订单为已支付
+     *
+     * @param id         编号
+     * @param payOrderId 支付订单号
+     */
+    @Override
+    public void updateDemoOrderPaid(Long id, Long payOrderId) {
+        // // 校验并获得支付订单（可支付）
+        // PayOrderRespDTO payOrder = validateDemoOrderCanPaid(id, payOrderId);
+        //
+        // // 更新 PayDemoOrderDO 状态为已支付
+        // int updateCount = orderMapper.updateByIdAndStatus(id, PayOrderStatusEnum.SUCCESS.getStatus(),
+        //         new PayOrderDO().setStatus(PayOrderStatusEnum.SUCCESS.getStatus()).setSuccessTime(LocalDateTime.now())
+        //                 .setChannelCode(payOrder.getChannelCode()));
+        // if (updateCount == 0) {
+        //     throw exception(PAY_DEMO_ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
+        // }
+
+    }
+
+    /**
+     * 用户端检测订单是否支付成功
+     *
+     * @param payOrderId 支付订单号
+     */
+    @Override
+    public Boolean notifyUSerOrderPaid(String payOrderId) {
+        // 1. 获得 PayOrderDO ，并校验其是否存在
+        PayOrderDO order = orderMapper.selectByMerchantOrderId(payOrderId);
+        if (order == null) { // 是否存在
+            throw exception(PAY_ORDER_NOT_FOUND);
+        }
+
+        if (PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
+
+    /**
+     * 校验交易订单满足被支付的条件
+     *
+     * 1. 交易订单未支付
+     * 2. 支付单已支付
+     *
+     * @param id 交易订单编号
+     * @param payOrderId 支付订单编号
+     * @return 交易订单
+     */
+    // private PayOrderRespDTO validateDemoOrderCanPaid(Long id, Long payOrderId) {
+    //     // 1.1 校验订单是否存在
+    //     PayOrderDO order = orderMapper.selectById(id);
+    //     if (order == null) {
+    //         throw exception(PAY_DEMO_ORDER_NOT_FOUND);
+    //     }
+    //     // 1.2 校验订单未支付
+    //     if (PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
+    //         log.error("[validateDemoOrderCanPaid][order({}) 不处于待支付状态，请进行处理！order 数据是：{}]",
+    //                 id, toJsonString(order));
+    //         throw exception(PAY_DEMO_ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
+    //     }
+    //     // 1.3 校验支付订单匹配
+    //     if (notEqual(order.getId(), payOrderId)) { // 支付单号
+    //         log.error("[validateDemoOrderCanPaid][order({}) 支付单不匹配({})，请进行处理！order 数据是：{}]",
+    //                 id, payOrderId, toJsonString(order));
+    //         throw exception(PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_ORDER_ID_ERROR);
+    //     }
+    //
+    //     // 2.1 校验支付单是否存在
+    //     PayOrderRespDTO payOrder = payOrderApi.getOrder(payOrderId);
+    //     if (payOrder == null) {
+    //         log.error("[validateDemoOrderCanPaid][order({}) payOrder({}) 不存在，请进行处理！]", id, payOrderId);
+    //         throw exception(PAY_ORDER_NOT_FOUND);
+    //     }
+    //     // 2.2 校验支付单已支付
+    //     if (!PayOrderStatusEnum.isSuccess(payOrder.getStatus())) {
+    //         log.error("[validateDemoOrderCanPaid][order({}) payOrder({}) 未支付，请进行处理！payOrder 数据是：{}]",
+    //                 id, payOrderId, toJsonString(payOrder));
+    //         throw exception(PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_ORDER_STATUS_NOT_SUCCESS);
+    //     }
+    //     // 2.3 校验支付金额一致
+    //     if (notEqual(payOrder.getAmount(), order.getAmount())) {
+    //         log.error("[validateDemoOrderCanPaid][order({}) payOrder({}) 支付金额不匹配，请进行处理！order 数据是：{}，payOrder 数据是：{}]",
+    //                 id, payOrderId, toJsonString(order), toJsonString(payOrder));
+    //         throw exception(PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_PRICE_NOT_MATCH);
+    //     }
+    //     // 2.4 校验支付订单匹配（二次）
+    //     if (notEqual(payOrder.getMerchantOrderId(), id.toString())) {
+    //         log.error("[validateDemoOrderCanPaid][order({}) 支付单不匹配({})，请进行处理！payOrder 数据是：{}]",
+    //                 id, payOrderId, toJsonString(payOrder));
+    //         throw exception(PAY_DEMO_ORDER_UPDATE_PAID_FAIL_PAY_ORDER_ID_ERROR);
+    //     }
+    //     return payOrder;
+    // }
+
+    /**
      * 更新 PayOrderExtensionDO 支付成功
      *
      * @param no        支付订单号（支付模块）
@@ -359,7 +480,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         if (orderExtension == null) {
             throw exception(ErrorCodeConstants.PAY_ORDER_EXTENSION_NOT_FOUND);
         }
-        if (ObjectUtil.notEqual(orderExtension.getStatus(), PayOrderStatusEnum.WAITING.getStatus())) { // 校验状态，必须是待支付
+        if (notEqual(orderExtension.getStatus(), PayOrderStatusEnum.WAITING.getStatus())) { // 校验状态，必须是待支付
             throw exception(ErrorCodeConstants.PAY_ORDER_EXTENSION_STATUS_IS_NOT_WAITING);
         }
         // 1.2 更新 PayOrderExtensionDO
@@ -387,7 +508,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         // 2.1 判断 PayOrderDO 是否处于待支付
         PayOrderDO order = orderMapper.selectById(orderExtension.getOrderId());
         if (order == null) {
-            throw exception(ErrorCodeConstants.PAY_ORDER_NOT_FOUND);
+            throw exception(PAY_ORDER_NOT_FOUND);
         }
         if (!PayOrderStatusEnum.WAITING.getStatus().equals(order.getStatus())) { // 校验状态，必须是待支付
             throw exception(ErrorCodeConstants.PAY_ORDER_STATUS_IS_NOT_WAITING);

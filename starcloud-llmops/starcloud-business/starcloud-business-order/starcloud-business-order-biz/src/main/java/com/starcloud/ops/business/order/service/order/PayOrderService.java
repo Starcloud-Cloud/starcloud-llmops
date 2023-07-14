@@ -75,7 +75,7 @@ public interface PayOrderService {
      * @param reqDTO 创建请求
      * @return 支付单编号
      */
-    Long createPayOrder(@Validated PayOrderCreateReqDTO reqDTO);
+    String createPayOrder(@Validated PayOrderCreateReqDTO reqDTO);
 
     /**
      * 提交支付
@@ -117,5 +117,22 @@ public interface PayOrderService {
      * 分页
      */
     Map<String, List<AppPayProductDetailsRespVO>> getAppProductList();
+
+
+    /**
+     * 更新示例订单为已支付
+     *
+     * @param id 编号
+     * @param payOrderId 支付订单号
+     */
+    void updateDemoOrderPaid(Long id, Long payOrderId);
+
+
+    /**
+     *  用户端检测订单是否支付成功
+     *
+     * @param payOrderId 支付订单号
+     */
+     Boolean notifyUSerOrderPaid(String payOrderId);
 
 }
