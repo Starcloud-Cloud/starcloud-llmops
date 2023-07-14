@@ -116,6 +116,7 @@ public class PayOrderServiceImpl implements PayOrderService {
 
     @Override
     public String createPayOrder(PayOrderCreateReqDTO reqDTO) {
+        log.info("[createPayOrder],用户[userId({})｜租户[({})｜开始创建订单({})]", getLoginUserId(), getTenantId(), reqDTO.getMerchantOrderId());
 
         // 检验是否有历史未支付订单
         PayOrderDO noPayOrder = orderMapper.selectNoPayByProductCode(
@@ -166,16 +167,16 @@ public class PayOrderServiceImpl implements PayOrderService {
         log.info("[submitPayOrder][0.支付宝统一下单接收到请求：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), reqVO.getOrderId(), userIp);
         // 1. 获得 PayOrderDO ，并校验其是否存在
         PayOrderDO order = validatePayOrderCanSubmit(reqVO.getOrderId());
-        reqVO.setId(order.getId());
         // 1.2 校验支付渠道是否有效
         PayChannelDO channel = validatePayChannelCanSubmit(order.getAppId(), reqVO.getChannelCode());
         PayClient client = payClientFactory.getPayClient(channel.getId());
         log.info("[submitPayOrder][1.支付渠道有效：用户ID({})|渠道 ID({})｜用户 IP({})]", getLoginUser(), channel.getId(), userIp);
         // 2. 插入 PayOrderExtensionDO
-        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp)
+        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp,order.getId())
                 .setOrderId(order.getId())
                 .setNo(generateOrderExtensionNo())
-                .setChannelId(channel.getId()).setChannelCode(channel.getCode())
+                .setChannelId(channel.getId())
+                .setChannelCode(channel.getCode())
                 .setStatus(PayOrderStatusEnum.WAITING.getStatus());
         orderExtensionMapper.insert(orderExtension);
 

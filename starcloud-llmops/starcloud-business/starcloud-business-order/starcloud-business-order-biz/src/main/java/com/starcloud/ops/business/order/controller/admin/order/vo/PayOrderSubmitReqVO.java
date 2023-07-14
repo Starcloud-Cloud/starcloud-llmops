@@ -11,9 +11,6 @@ import java.util.Map;
 @Data
 public class PayOrderSubmitReqVO {
 
-    @Schema(description = "编号", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    private Long id;
-
     @Schema(description = "支付单编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
     @NotNull(message = "支付单编号不能为空")
     private String orderId;

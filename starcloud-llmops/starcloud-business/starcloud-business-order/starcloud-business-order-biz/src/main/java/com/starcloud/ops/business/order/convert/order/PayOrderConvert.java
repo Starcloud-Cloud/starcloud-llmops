@@ -54,7 +54,7 @@ public interface PayOrderConvert {
     PayOrderDO convert(PayOrderCreateReqDTO bean);
 
     @Mapping(target = "id", ignore = true)
-    default PayOrderExtensionDO convert(PayOrderSubmitReqVO bean, String userIp) {
+    default PayOrderExtensionDO convert(PayOrderSubmitReqVO bean, String userIp,Long orderId) {
         if (bean == null && userIp == null) {
             return null;
         }
@@ -63,7 +63,7 @@ public interface PayOrderConvert {
 
         if (bean != null) {
             if (bean.getOrderId() != null) {
-                payOrderExtensionDO.orderId(bean.getId());
+                payOrderExtensionDO.orderId(orderId);
             }
             payOrderExtensionDO.channelCode(bean.getChannelCode());
             Map<String, String> map = bean.getChannelExtras();
