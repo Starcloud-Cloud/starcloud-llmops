@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.image.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -11,9 +12,9 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageReqVO;
-import com.starcloud.ops.business.app.api.image.vo.request.TextToImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.image.ImageService;
@@ -33,6 +34,7 @@ import org.springframework.util.StopWatch;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +130,7 @@ public class ImageServiceImpl implements ImageService {
      * @return 图片列表
      */
     @Override
-    public ImageRespVO textToImage(ImageReqVO request) {
+    public ImageMessageRespVO textToImage(ImageReqVO request) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start("Text to Image Task");
         Long userId = WebFrameworkUtils.getLoginUserId();
@@ -153,8 +155,11 @@ public class ImageServiceImpl implements ImageService {
             logAppMessageMapper.insert(messageRequest);
             // 更新会话记录
             this.updateAppConversation(conversation.getUid(), LogStatusEnum.SUCCESS, request);
-
-            return historyGenerateImages();
+            ImageMessageRespVO imageResponse = new ImageMessageRespVO();
+            imageResponse.setPrompt(request.getImageRequest().getPrompt());
+            imageResponse.setCreateTime(LocalDateTime.now());
+            imageResponse.setImages(imageList);
+            return imageResponse;
         } catch (ServiceException e) {
             stopWatch.stop();
             // 消息记录
@@ -166,8 +171,8 @@ public class ImageServiceImpl implements ImageService {
             logAppMessageMapper.insert(messageRequest);
             // 更新会话记录
             this.updateAppConversation(conversation.getUid(), LogStatusEnum.ERROR, request);
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", e.getCode(), e.getMessage(), e);
-            return historyGenerateImages();
+            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", e.getCode(), e.getMessage());
+            throw e;
         } catch (Exception e) {
             stopWatch.stop();
             // 消息记录
@@ -180,7 +185,7 @@ public class ImageServiceImpl implements ImageService {
             // 更新会话记录
             this.updateAppConversation(conversation.getUid(), LogStatusEnum.ERROR, request);
             log.error("文字生成图片失败，错误码：{}, 错误信息：{}", messageRequest.getErrorCode(), e.getMessage(), e);
-            return historyGenerateImages();
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), e.getMessage());
         }
     }
 
@@ -268,4 +273,5 @@ public class ImageServiceImpl implements ImageService {
         messageRequest.setEndUser(Long.toString(userId));
         return messageRequest;
     }
+
 }

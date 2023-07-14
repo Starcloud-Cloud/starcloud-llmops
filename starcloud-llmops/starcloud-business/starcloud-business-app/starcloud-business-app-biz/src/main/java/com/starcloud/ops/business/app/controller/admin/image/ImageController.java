@@ -2,10 +2,10 @@ package com.starcloud.ops.business.app.controller.admin.image;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageReqVO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +49,7 @@ public class ImageController {
     @PostMapping("/text-to-image")
     @Operation(summary = "文本生成图片", description = "文本生成图片")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<ImageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
+    public CommonResult<ImageMessageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
         ImageRequest imageRequest = request.getImageRequest();
         imageRequest.setCfgScale(0.7);
         imageRequest.setSteps(50);

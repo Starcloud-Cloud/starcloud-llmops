@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.image;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageReqVO;
+import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public interface ImageService {
      * @param request 请求参数
      * @return 图片列表
      */
-    ImageRespVO textToImage(ImageReqVO request);
+    ImageMessageRespVO textToImage(ImageReqVO request);
 
 
 }
