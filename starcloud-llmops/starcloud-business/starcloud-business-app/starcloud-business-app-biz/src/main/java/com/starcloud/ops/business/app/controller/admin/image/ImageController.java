@@ -51,8 +51,6 @@ public class ImageController {
     @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<ImageMessageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
         ImageRequest imageRequest = request.getImageRequest();
-        imageRequest.setCfgScale(0.7);
-        imageRequest.setSteps(50);
         imageRequest.setEngine("stable-diffusion-512-v2-0");
 
         return CommonResult.success(imageService.textToImage(request));
