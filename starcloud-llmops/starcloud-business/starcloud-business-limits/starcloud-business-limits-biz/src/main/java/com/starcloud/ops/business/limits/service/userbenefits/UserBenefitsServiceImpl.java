@@ -352,13 +352,13 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserBenefitsInfoResultVO userBenefitsInfoResultVO = new UserBenefitsInfoResultVO();
 
         // 查询条件：当前用户下启用的权益，并且未过期
-        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
 
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
                 .eq(UserBenefitsDO::getUserId, userId)
                 .eq(UserBenefitsDO::getEnabled, true)
-                .le(UserBenefitsDO::getEffectiveTime, currentTime)
-                .ge(UserBenefitsDO::getExpirationTime, currentTime);
+                .le(UserBenefitsDO::getEffectiveTime, now)
+                .ge(UserBenefitsDO::getExpirationTime, now);
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
 
@@ -373,23 +373,31 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         long totalAppCount = 0;
         long totalDatasetCount = 0;
 
-        for (UserBenefitsDO userBenefits : resultList) {
-            totalAppCountUsed += userBenefits.getAppCountUsed();
-            totalDatasetCountUsed += userBenefits.getDatasetCountUsed();
-            totalImageCountUsed += userBenefits.getImageCountUsed();
-            totalTokenCountUsed += userBenefits.getTokenCountUsed();
+        List<UserBenefitsStrategyDO> monthBenefitsStrategyDOS = null;
+        List<UserBenefitsStrategyDO> yearBenefitsStrategyDOS = null;
+        if (CollUtil.isNotEmpty(resultList)){
 
-            totalAppCount += userBenefits.getAppCountInit();
-            totalDatasetCount += userBenefits.getDatasetCountInit();
-            totalImageCount += userBenefits.getImageCountInit();
-            totalTokenCount += userBenefits.getTokenCountInit();
+            for (UserBenefitsDO userBenefits : resultList) {
+                totalAppCountUsed += userBenefits.getAppCountUsed();
+                totalDatasetCountUsed += userBenefits.getDatasetCountUsed();
+                totalImageCountUsed += userBenefits.getImageCountUsed();
+                totalTokenCountUsed += userBenefits.getTokenCountUsed();
+
+                totalAppCount += userBenefits.getAppCountInit();
+                totalDatasetCount += userBenefits.getDatasetCountInit();
+                totalImageCount += userBenefits.getImageCountInit();
+                totalTokenCount += userBenefits.getTokenCountInit();
+            }
+
+            List<String> strategyIds = resultList.stream().map(userBenefitsDO -> String.valueOf(userBenefitsDO.getId())).collect(Collectors.toList());
+
+            monthBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName());
+            yearBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName());
         }
-        userBenefitsInfoResultVO.setQueryTime(currentTime);
 
-        List<String> strategyIds = resultList.stream().map(userBenefitsDO -> String.valueOf(userBenefitsDO.getId())).collect(Collectors.toList());
 
-        List<UserBenefitsStrategyDO> monthBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName());
-        List<UserBenefitsStrategyDO> yearBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName());
+        userBenefitsInfoResultVO.setQueryTime(now);
+        
         // 根据用户权限判断用户等级
         if (securityFrameworkService.hasRole("MOFAAI_PRO") && (CollUtil.isNotEmpty(monthBenefitsStrategyDOS) || CollUtil.isNotEmpty(yearBenefitsStrategyDOS))) {
             userBenefitsInfoResultVO.setUserLevel("pro");
