@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.execute;
 
-import com.starcloud.ops.business.app.controller.admin.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.execute.AppExecuteReqVO;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.AppWorkflowService;
 import io.swagger.v3.oas.annotations.Operation;

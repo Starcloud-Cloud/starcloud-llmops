@@ -2,7 +2,9 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.params.ParamsEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +32,9 @@ public class AppWorkflowSkillEntity extends SkillEntity {
 
     @Override
     public JsonNode getInputSchemas() {
-        //根据 app配置参数 生成 schemas
+        //根据 app配置参数，第一个step的入参 生成 schemas
 
-        this.getAppUid();
+        AppEntity app = AppFactory.factory(this.getAppUid());
 
         //@todo 查询信息
         String name = "search workflow";
@@ -64,6 +66,10 @@ public class AppWorkflowSkillEntity extends SkillEntity {
     protected Object _execute(Object req) {
 
         log.info("_execute: {}", this.getAccredit());
+
+        AppEntity app = AppFactory.factory(this.getAppUid());
+
+        app.execute(req);
 
         return null;
     }

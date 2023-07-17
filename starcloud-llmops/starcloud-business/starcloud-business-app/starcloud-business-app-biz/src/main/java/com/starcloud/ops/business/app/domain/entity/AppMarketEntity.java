@@ -1,20 +1,13 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.starcloud.ops.business.app.api.chat.ChatRequest;
-import com.starcloud.ops.business.app.controller.admin.vo.AppExecuteReqVO;
-import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.api.app.vo.request.execute.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * @author nacoyer

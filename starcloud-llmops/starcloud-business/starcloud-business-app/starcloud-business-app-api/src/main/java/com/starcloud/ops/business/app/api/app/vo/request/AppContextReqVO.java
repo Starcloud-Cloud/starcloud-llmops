@@ -4,9 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 @Data
-public class AppContextReqVO {
+public class AppContextReqVO implements Serializable {
 
     @Schema(description = "场景")
     @NotNull(message = "场景Code 不能为空")

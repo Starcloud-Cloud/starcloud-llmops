@@ -70,6 +70,8 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("讲个关于汉堡的笑话吧。");
 
+        chatRequest.setQuery("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
+
         ChatAppEntity chatAppEntity = AppFactory.factory(chatRequest);
 
         SseEmitter sseEmitter = chatAppEntity.execute(chatRequest);
