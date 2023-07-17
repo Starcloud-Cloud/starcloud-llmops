@@ -94,14 +94,12 @@ public abstract class Chain<R> {
 
         } catch (Exception e) {
 
-            //chainRun.onChainError(e.getMessage(), e);
+            chainRun.onChainError(e.getMessage(), e);
 
-            this.getCallbackManager().onChainError(e.getMessage(), e);
+            //this.getCallbackManager().onChainError(e.getMessage(), e);
         }
 
-        //chainRun.onChainEnd(this.getClass(), baseLLMResult);
-
-        this.getCallbackManager().onChainEnd(this.getClass(), result);
+        chainRun.onChainEnd(this.getClass(), result);
 
         this.prepOutputs(baseVariables, result);
 

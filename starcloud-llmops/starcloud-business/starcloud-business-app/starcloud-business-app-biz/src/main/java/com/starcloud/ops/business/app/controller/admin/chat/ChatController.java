@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.controller.admin.chat;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.app.api.chat.ChatRequest;
+import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +30,12 @@ public class ChatController {
     public SseEmitter conversation(@RequestBody @Valid ChatRequest request, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
-        return chatService.chat(request);
+
+        ChatAppEntity appEntity =  AppFactory.factory(request);
+
+        //appEntity.execute(request);
+
+        return appEntity.execute(request);
     }
 
 

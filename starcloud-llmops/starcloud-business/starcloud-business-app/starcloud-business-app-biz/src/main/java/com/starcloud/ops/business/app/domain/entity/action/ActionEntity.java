@@ -11,36 +11,11 @@ import lombok.Data;
  * @since 2023-06-13
  */
 @Data
-public class ActionEntity {
-
-    /**
-     * 动作名称
-     */
-    private String name;
-
-    /**
-     * 动作描述
-     */
-    private String description;
-
-    /**
-     * 动作类型
-     */
-    private String type;
-
-    /**
-     * 动作处理器
-     */
-    private String handler;
-
-    /**
-     * 动作执行结果
-     */
-    private ActionResponse response;
+public class ActionEntity extends BaseActionEntity {
 
 
     public Object getValue() {
-        return ObjectUtil.isNotEmpty(this.response) ? this.response.getAnswer() : null;
+        return ObjectUtil.isNotEmpty(this.getResponse()) ? this.getResponse().getAnswer() : null;
     }
 
 }

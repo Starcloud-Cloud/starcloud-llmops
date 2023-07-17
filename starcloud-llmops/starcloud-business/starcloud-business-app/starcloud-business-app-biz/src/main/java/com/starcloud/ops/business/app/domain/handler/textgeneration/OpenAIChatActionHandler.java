@@ -7,6 +7,7 @@ import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
@@ -19,8 +20,10 @@ import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
+import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
+import io.swagger.v3.oas.models.media.JsonSchema;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -69,8 +72,8 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
 
             ChatOpenAI chatOpenAI = new ChatOpenAI();
             chatOpenAI.setStream(true);
-            chatOpenAI.setMaxTokens(Integer.valueOf(context.getContextVariablesValue("max_tokens","1000")));
-            chatOpenAI.setTemperature(Double.valueOf(context.getContextVariablesValue("temperature","0.7")));
+            chatOpenAI.setMaxTokens(Integer.valueOf(context.getContextVariablesValue("max_tokens", "1000")));
+            chatOpenAI.setTemperature(Double.valueOf(context.getContextVariablesValue("temperature", "0.7")));
             //chatOpenAI.setVerbose(true);
             chatOpenAI.addCallbackHandler(new StreamingSseCallBackHandler(context.getSseEmitter()));
 
@@ -117,4 +120,20 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
 
         return appStepResponse;
     }
+
+    @Override
+    public Class<?> getInputCls(AppContext context) {
+        return null;
+    }
+
+    @Override
+    public JsonNode getInputSchemas(AppContext context) {
+
+        Map<String, Object> stepParams = context.getContextVariablesValues();
+
+        // 根据步骤的参数 生成 jsonSchemas
+
+        return null;
+    }
+
 }

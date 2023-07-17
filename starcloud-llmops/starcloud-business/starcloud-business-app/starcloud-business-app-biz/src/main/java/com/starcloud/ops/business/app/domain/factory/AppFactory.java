@@ -3,11 +3,23 @@ package com.starcloud.ops.business.app.domain.factory;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.chat.ChatRequest;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
+import com.starcloud.ops.business.app.domain.entity.skill.ActionSkillEntity;
+import com.starcloud.ops.business.app.domain.entity.skill.ApiSkillEntity;
+import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkillEntity;
+import com.starcloud.ops.business.app.domain.handler.datasearch.GoogleSearchActionHandler;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
 
 /**
  * 获取步骤处理器工厂类
@@ -51,7 +63,13 @@ public class AppFactory {
      * @return AppEntity
      */
     public static AppEntity factory(String appId) {
-        return getAppRepository().getByUid(appId);
+        return (AppEntity) getAppRepository().getByUid(appId);
+    }
+
+    public static ChatAppEntity factoryChatApp(String appId) {
+
+
+        return (ChatAppEntity) getAppRepository().getByUid(appId);
     }
 
     /**
@@ -77,6 +95,55 @@ public class AppFactory {
         app.setUid(appId);
         Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
         return app;
+    }
+
+    public static ChatAppEntity factory(ChatRequest chatRequest) {
+
+        String appId = chatRequest.getAppId();
+
+        if ("play".equals(appId)) {
+
+            ChatAppEntity chatAppEntity = new ChatAppEntity();
+
+            chatAppEntity.setUid(appId);
+            chatAppEntity.setName("play");
+
+            ChatConfigEntity chatConfig = new ChatConfigEntity();
+
+            chatConfig.setPrePrompt("@123 can assist users in answering a wide range of professional knowledge-related queries. @123 is able to answer users' questions professionally and enthusiastically, and give professional and detailed insights. @123 can answer questions that is related to the field of .");
+            chatConfig.setSkills(Arrays.asList(
+                    SkillFactory.factory(ApiSkillEntity.class).setUrl("https://baidu.com").setName("search-news").setDesc("A search engine. Useful for when you need to answer questions about news. Input should be a search query."),
+                    SkillFactory.factory(ApiSkillEntity.class).setUrl("https://baidu.com").setName("search-food").setDesc("A search engine. Useful for when you need to answer questions about food. Input should be a search query."),
+                    SkillFactory.factoryAppWorkflow("appUid-test")
+            ));
+
+
+            ModelConfigEntity modelConfig = new ModelConfigEntity();
+
+            OpenaiCompletionParams openaiCompletionParams = new OpenaiCompletionParams();
+
+            openaiCompletionParams.setModel("gpt-3.5-turbo");
+            openaiCompletionParams.setMaxTokens(500);
+            openaiCompletionParams.setTemperature(0.7);
+            openaiCompletionParams.setStream(false);
+
+            modelConfig.setCompletionParams(openaiCompletionParams);
+
+            chatConfig.setModelConfig(modelConfig);
+
+            chatAppEntity.setChatConfig(chatConfig);
+
+            chatAppEntity.setCreator("1");
+            chatAppEntity.setCreateTime(LocalDateTime.now());
+
+
+            return chatAppEntity;
+        }
+
+        ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppId());
+
+
+        return appEntity;
     }
 
 

@@ -1,12 +1,8 @@
 package com.starcloud.ops.llm.langchain.core.agent;
 
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
 import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
@@ -14,7 +10,6 @@ import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentActi
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.StdOutCallbackHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.MessagesPlaceholder;
@@ -31,7 +26,6 @@ import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import com.starcloud.ops.llm.langchain.core.schema.prompt.BasePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
-import com.starcloud.ops.llm.langchain.core.tools.utils.ConvertToOpenaiUtils;
 import com.theokanning.openai.completion.chat.ChatFunctionCall;
 import lombok.Data;
 
@@ -108,7 +102,7 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
     public List<FunctionDescription> getFunctions() {
 
-        return (List<FunctionDescription>) Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().map(FunctionDescription::convert).collect(Collectors.toList());
+        return Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().map(FunctionDescription::convert).collect(Collectors.toList());
     }
 
 

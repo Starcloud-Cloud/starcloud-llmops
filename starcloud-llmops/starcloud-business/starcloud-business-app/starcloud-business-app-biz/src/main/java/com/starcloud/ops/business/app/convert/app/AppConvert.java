@@ -9,11 +9,11 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespV
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.chat.ChatRequest;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
-import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.*;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -65,7 +65,7 @@ public interface AppConvert {
      * @param appEntity 我的应用实体
      * @return AppDO
      */
-    default AppDO convert(AppEntity appEntity) {
+    default AppDO convert(BaseAppEntity appEntity) {
         AppDO appDO = new AppDO();
         appDO.setUid(appEntity.getUid());
         appDO.setName(appEntity.getName());
@@ -108,8 +108,22 @@ public interface AppConvert {
      * @param app AppDO
      * @return AppEntity
      */
-    default AppEntity convert(AppDO app) {
-        AppEntity appEntity = new AppEntity();
+    default BaseAppEntity convert(AppDO app) {
+        BaseAppEntity appEntity = null;
+
+        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+
+            appEntity = new AppEntity();
+
+        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+
+            appEntity = new ChatAppEntity();
+
+        } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
+
+            appEntity = new ImageAppEntity();
+        }
+
         appEntity.setUid(app.getUid());
         appEntity.setName(app.getName());
         appEntity.setModel(app.getModel());

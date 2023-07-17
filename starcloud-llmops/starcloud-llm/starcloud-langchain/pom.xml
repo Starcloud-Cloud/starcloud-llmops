@@ -26,7 +26,9 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
+
     </repositories>
+
 
     <dependencies>
 
@@ -34,6 +36,12 @@
             <groupId>com.github.serpapi</groupId>
             <artifactId>google-search-results-java</artifactId>
             <version>v2.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.kjetland</groupId>
+            <artifactId>mbknor-jackson-jsonschema_2.12</artifactId>
+            <version>1.0.39</version>
         </dependency>
 
         <dependency>
@@ -53,11 +61,19 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>com.theokanning.openai-gpt3-java</groupId>-->
+<!--            <artifactId>service</artifactId>-->
+<!--            <version>0.14.0</version>-->
+<!--        </dependency>-->
+
         <dependency>
-            <groupId>com.theokanning.openai-gpt3-java</groupId>
-            <artifactId>service</artifactId>
-            <version>0.14.0</version>
+            <groupId>com.github.df007df</groupId>
+            <artifactId>openai-java</artifactId>
+            <version>feature~chatFun-3db6b65d3c-1</version>
         </dependency>
+
+
 
         <!-- azure-->
 <!--        <dependency>-->

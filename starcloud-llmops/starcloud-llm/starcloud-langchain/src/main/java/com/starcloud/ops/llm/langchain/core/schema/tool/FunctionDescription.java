@@ -1,22 +1,25 @@
 package com.starcloud.ops.llm.langchain.core.schema.tool;
 
-import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.TypeUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import lombok.Data;
 
 import java.lang.reflect.Type;
 
 @Data
-public class FunctionDescription<Q> {
+public class FunctionDescription {
 
-    String name;
+    private String name;
 
-    String description;
+    private String description;
 
-    Class parameters;
+    private Class<?> parameters;
 
-    public FunctionDescription(String name, String description, Class<Q> qcls) {
+    private JsonNode jsonSchema;
+
+    @Deprecated
+    public FunctionDescription(String name, String description, Class<?> qcls) {
         this.name = name;
         this.description = description;
         this.parameters = qcls;
@@ -28,12 +31,14 @@ public class FunctionDescription<Q> {
 
     }
 
-    public static <Q, R> FunctionDescription<Q> convert(BaseTool<Q, R> baseTool) {
+    public FunctionDescription(String name, String description, JsonNode jsonSchema) {
+        this.name = name;
+        this.description = description;
+        this.jsonSchema = jsonSchema;
+    }
 
-        Type query = TypeUtil.getTypeArgument(baseTool.getClass());
+    public static <Q, R> FunctionDescription convert(BaseTool<Q, R> baseTool) {
 
-        Class cc =  (Class<Q>) query;
-
-        return new FunctionDescription<Q>(baseTool.getName(), baseTool.getDescription(), cc);
+        return new FunctionDescription(baseTool.getName(), baseTool.getDescription(), baseTool.getInputSchemas());
     }
 }

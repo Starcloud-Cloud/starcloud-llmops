@@ -3,7 +3,7 @@ package com.starcloud.ops.llm.langchain.core.agent.base.action;
 import lombok.Data;
 
 @Data
-public class AgentAction<R> {
+public class AgentAction {
 
     private String tool;
 
@@ -11,5 +11,5 @@ public class AgentAction<R> {
 
     private String log;
 
-    private R observation;
+    private Object observation;
 }

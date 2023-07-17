@@ -1,11 +1,15 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.starcloud.ops.business.app.api.chat.ChatRequest;
+import com.starcloud.ops.business.app.controller.admin.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -18,66 +22,28 @@ import java.util.List;
  * @since 2023-06-20
  */
 @Data
-public class AppMarketEntity {
-
-    /**
-     * 应用 UID
-     */
-    private String uid;
-
-    /**
-     * 应用名称
-     */
-    private String name;
-
-    /**
-     * 应用模型
-     */
-    private String model;
+public class AppMarketEntity extends AppEntity<AppExecuteReqVO, LogAppConversationCreateReqVO> {
 
     /**
      * 应用版本
      */
     private Integer version;
 
-    /**
-     * 应用语言
-     */
     private String language;
 
-    /**
-     * 应用标签
-     */
-    private List<String> tags;
+
+    private String example;
 
     /**
-     * 应用类别
+     * 应用是否是免费的
      */
-    private List<String> categories;
 
-    /**
-     * 应用场景
-     */
-    private List<String> scenes;
-
-    /**
-     * 应用图片
-     */
-    private List<String> images;
-
-    /**
-     * 应用图标
-     */
-    private String icon;
-
-    /**
-     * 应用是否免费
-     */
     private Boolean free;
 
     /**
-     * 应用价格
+     * 应用收费数
      */
+
     private BigDecimal cost;
 
     /**
@@ -101,33 +67,6 @@ public class AppMarketEntity {
     private Integer installCount;
 
     /**
-     * 应用详细配置信息, 步骤，变量，场景等
-     */
-    private WorkflowConfigEntity workflowConfig;
-
-    /**
-     * 应用聊天配置
-     */
-    private ChatConfigEntity chatConfig;
-
-    /**
-     * 应用图片配置
-     */
-    private ImageConfigEntity imageConfig;
-
-    /**
-     * 应用描述
-     */
-    @Schema(description = "应用描述")
-    private String description;
-
-    /**
-     * 应用example
-     */
-    @Schema(description = "应用example")
-    private String example;
-
-    /**
      * 应用市场数据库操作类
      */
     private static AppMarketRepository appMarketRepository;
@@ -147,27 +86,35 @@ public class AppMarketEntity {
     /**
      * 校验
      */
-    public void validate() {
-        if (AppModelEnum.COMPLETION.name().equals(this.model)) {
-            workflowConfig.validate();
-        } else if (AppModelEnum.CHAT.name().equals(this.model)) {
-            chatConfig.validate();
+    @Override
+    protected void _validate() {
+        if (AppModelEnum.COMPLETION.name().equals(this.getModel())) {
+            getWorkflowConfig().validate();
+        } else if (AppModelEnum.CHAT.name().equals(this.getModel())) {
+            getChatConfig().validate();
         }
+    }
+
+    @Override
+    protected LogAppConversationCreateReqVO _execute(AppExecuteReqVO req) {
+        return null;
     }
 
     /**
      * 新增应用
      */
-    public void insert() {
-        validate();
+    @Override
+    protected void _insert() {
+
         getAppMarketRepository().insert(this);
     }
 
     /**
      * 更新应用
      */
-    public void update() {
-        validate();
+    @Override
+    protected void _update() {
+
         getAppMarketRepository().update(this);
     }
 

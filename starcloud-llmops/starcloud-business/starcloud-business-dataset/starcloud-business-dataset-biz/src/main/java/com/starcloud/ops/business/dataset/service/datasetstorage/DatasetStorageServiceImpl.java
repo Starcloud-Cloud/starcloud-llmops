@@ -33,8 +33,8 @@ import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASE
 @Validated
 public class DatasetStorageServiceImpl implements DatasetStorageService {
 
-    @Resource
-    private FileConfigService fileConfigService;
+//    @Resource
+//    private FileConfigService fileConfigService;
     @Resource
     private FileMapper fileMapper;
 

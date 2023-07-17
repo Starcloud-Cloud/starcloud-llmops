@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public class AgentFinish extends AgentAction<Object> {
+public class AgentFinish extends AgentAction {
 
     private Map<String, Object> returnValues = new HashMap<>();
 

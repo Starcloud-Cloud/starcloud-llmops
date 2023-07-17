@@ -1,11 +1,12 @@
-package com.starcloud.ops.business.app.domain.entity.config;
+package com.starcloud.ops.business.app.domain.entity.chat;
 
 import com.starcloud.ops.business.app.domain.entity.action.LLMFunctionEntity;
+import com.starcloud.ops.business.app.domain.entity.config.*;
+import com.starcloud.ops.business.app.domain.entity.skill.SkillEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 聊天应用配置实体
@@ -25,6 +26,8 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private ModelConfigEntity modelConfig;
 
+    private WebSearchConfigEntity webSearchConfig;
+
     private List<DatesetEntity> datesetEntities;
 
     private SuggestedQuestionEntity suggestedQuestion;
@@ -34,9 +37,9 @@ public class ChatConfigEntity extends BaseConfigEntity {
     private AudioTransciptEntity audioTransciptEntity;
 
     /**
-     * 挂载的 functions 列表
+     * 挂载的 技能列表
      */
-    private List<LLMFunctionEntity> functions;
+    private List<SkillEntity> skills;
 
     /**
      * 校验实体，对一写复杂逻辑的校验，可以在这里实现

@@ -156,4 +156,35 @@ public class AppContext {
 
     }
 
+
+    /**
+     * 获取当前步骤的所有变量Maps
+     *
+     * @return
+     */
+    @JSONField(serialize = false)
+    public Map<String, Object> getContextVariablesValues() {
+
+        String prefixKey = "STEP";
+
+        //获取当前步骤前的所有变量的值
+        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(this.stepId);
+
+        Map<String, Object> allVariablesValues = MapUtil.newHashMap();
+
+        Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).forEach(wrapper -> {
+
+            Map<String, Object> variablesValues = wrapper.getContextVariablesValues(prefixKey);
+
+            Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()).entrySet().forEach(stringObjectEntry -> {
+
+                allVariablesValues.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
+            });
+        });
+
+
+        return allVariablesValues;
+
+    }
+
 }

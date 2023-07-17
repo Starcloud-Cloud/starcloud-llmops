@@ -189,6 +189,8 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
             log.error("plan is fail: {}", e.getMessage(), e);
 
+            //ExceptionTool
+
             return Arrays.asList(new AgentFinish(new HashMap() {{
                 put("error", e.getMessage());
             }}, ""));
@@ -208,7 +210,7 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
             Object observation = null;
 
-            this.callbackManager.onAgentAction(agentAction, this.getVerbose());
+            this.callbackManager.onAgentAction(this.getClass(), agentAction, this.getVerbose());
 
             if (toolMap.containsKey(agentAction.getTool())) {
 
