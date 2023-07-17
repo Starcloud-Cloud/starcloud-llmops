@@ -34,28 +34,28 @@ public enum BenefitsStrategyTypeEnums {
      */
     USER_ATTENDANCE("USER_ATTENDANCE", "签到", "Check In", "AT"),
 
+    //====================================支付套餐=======================================================================
     /**
      * PLUS套餐
      */
-    PAY_PLUS_MONTH("PAY_PLUS_MONTH", "PLUS套餐", "PLUS Package", "PL"),
-
+    PAY_PLUS_MONTH("PAY_PLUS_MONTH", "高级版-月付", "PLUS Package", "PL"),
     /**
      * PLUS套餐
      */
-    PAY_PLUS_YEAR("PAY_PLUS_YEAR", "PLUS套餐", "PLUS Package", "PL"),
+    PAY_PLUS_YEAR("PAY_PLUS_YEAR", "高级版-年付", "PLUS Package", "PL"),
     /**
      * PRO套餐
      */
-    PAY_PRO_MONTH("PAY_PRO_MONTH", "PLUS套餐", "PRO Package", "PR"),
+    PAY_PRO_MONTH("PAY_PRO_MONTH", "团队版-月付", "PRO Package", "PR"),
     /**
      * PRO套餐
      */
-    PAY_PRO_YEAR("PAY_PRO_YEAR", "PLUS套餐", "PRO Package", "PR"),
+    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR"),
 
     /**
-     * PRO套餐
+     * 自定义套餐
      */
-    GIFT("GIFT", "赠送", "gift", "GI"),
+    GIFT("GIFT", "系统赠送", "gift", "GI"),
     ;
     /**
      * code
