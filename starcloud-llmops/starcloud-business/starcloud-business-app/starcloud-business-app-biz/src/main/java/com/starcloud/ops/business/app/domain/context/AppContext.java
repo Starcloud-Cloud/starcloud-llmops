@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,6 +48,13 @@ public class AppContext {
      */
     @NotNull
     private AppEntity app;
+
+
+    /**
+     * 流程执行入口新入参，有数据和参数定义
+     * 对之前的大对象 AppEntity 进行精简处理
+     */
+    private JsonParamsEntity jsonParams;
 
 
     @JSONField(serialize = false)

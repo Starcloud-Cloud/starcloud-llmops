@@ -2,18 +2,18 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
-import com.starcloud.ops.business.app.api.chat.ChatRequest;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.ApiSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.SkillEntity;
@@ -22,13 +22,17 @@ import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
@@ -54,7 +58,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -64,7 +67,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Data
-public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
+public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity> {
 
 
     private static ChatService chatService = SpringUtil.getBean(ChatService.class);
@@ -72,6 +75,8 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
     private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
     private static DocumentSegmentsService documentSegmentsService = SpringUtil.getBean(DocumentSegmentsService.class);
+
+    private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
 
     private static AppRepository appRepository;
@@ -103,7 +108,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
      * 历史记录初始化
      */
     @Override
-    protected void _initHistory(ChatRequest req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageDOS) {
+    protected void _initHistory(ChatRequestVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageDOS) {
 
         //preHistory(request.getConversationUid(), AppModelEnum.CHAT.name());
 
@@ -126,41 +131,19 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
 
     }
 
-
     @Override
-    protected SseEmitter _execute(ChatRequest req) {
+    protected void _createAppConversationLog(ChatRequestVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
 
-        Long userId = WebFrameworkUtils.getLoginUserId();
+        logAppConversationCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
+        logAppConversationCreateReqVO.setAppName(this.getName());
 
-        benefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
+        logAppConversationCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
 
-        SseEmitter emitter = new SseEmitter(60000L);
-        Long tenantId = TenantContextHolder.getTenantId();
-        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        logAppConversationCreateReqVO.setAppUid(req.getAppUid());
+        logAppConversationCreateReqVO.setAppConfig(JSON.toJSONString(this.getChatConfig()));
 
-        try {
-            RequestContextHolder.setRequestAttributes(requestAttributes);
-            TenantContextHolder.setTenantId(tenantId);
-            executeChat(req, userId, emitter);
-            emitter.complete();
-        } catch (Exception e) {
-            log.error("chat error:", e);
-            emitter.completeWithError(e);
-        }
-
-//        threadPoolExecutor.execute(() -> {
-//            try {
-//                RequestContextHolder.setRequestAttributes(requestAttributes);
-//                TenantContextHolder.setTenantId(tenantId);
-//                executeChat(req, userId, emitter);
-//                emitter.complete();
-//            } catch (Exception e) {
-//                log.error("chat error:", e);
-//                emitter.completeWithError(e);
-//            }
-//        });
-
-        return emitter;
+        logAppConversationCreateReqVO.setFromScene(req.getScene());
+        logAppConversationCreateReqVO.setEndUser(req.getEndUser());
 
     }
 
@@ -170,8 +153,44 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
         return chatConfig;
     }
 
+    @Override
+    protected JsonParamsEntity _execute(ChatRequestVO req) {
 
-    private void executeChat(ChatRequest request, Long userId, SseEmitter emitter) {
+        Long userId = WebFrameworkUtils.getLoginUserId();
+
+        benefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
+
+        try {
+
+            executeChat(req, userId);
+
+        } catch (Exception e) {
+
+            log.error("chat error:", e);
+
+        }
+
+        return new JsonParamsEntity();
+
+    }
+
+    @Override
+    protected void _aexecute(ChatRequestVO req) {
+
+        SseEmitter emitter = req.getSseEmitter();
+        JsonParamsEntity jsonParams = this._execute(req);
+
+        if (emitter != null) {
+
+            emitter.complete();
+        }
+
+    }
+
+
+    private void executeChat(ChatRequestVO request, Long userId) {
+
+        SseEmitter emitter = request.getSseEmitter();
 
         long start = System.currentTimeMillis();
 
@@ -229,9 +248,6 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
                 )
         );
 
-
-        BaseLLMResult<ChatCompletionResult> result;
-
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
         if ((chatConfig.getWebSearchConfig() != null && chatConfig.getWebSearchConfig().getEnabled()) || CollectionUtil.isNotEmpty(chatConfig.getSkills())) {
 
@@ -241,50 +257,54 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
 
             agentExecutor.run(request.getQuery());
 
-            result = null;
+            //GPT 在做次总结
+
+            //@todo  生成 message
+
+            //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
+
 
         } else {
 
             LLMChain<ChatCompletionResult> llmChain = buildLlm(history, chatConfig, chatPromptTemplate, emitter);
-            result = llmChain.call(humanInput);
+
+            BaseLLMResult<ChatCompletionResult> result = llmChain.call(humanInput);
+
+            long end = System.currentTimeMillis();
+            BigDecimal totalPrice = BigDecimal.valueOf(result.getUsage().getTotalTokens()).multiply(new BigDecimal("0.0200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+
+            LogAppMessageCreateReqVO message = this.createAppMessage((messageCreateReqVO) -> {
+
+                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
+
+
+                messageCreateReqVO.setMessage(request.getQuery());
+                messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
+                messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.0200"));
+
+                messageCreateReqVO.setAppConfig(JSON.toJSONString(chatConfig));
+                messageCreateReqVO.setVariables(JSON.toJSONString(chatConfig.getModelConfig()));
+                messageCreateReqVO.setAppUid(request.getAppUid());
+                messageCreateReqVO.setAppStep("");
+                messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
+                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
+
+                messageCreateReqVO.setAnswer(result.getText());
+                messageCreateReqVO.setAnswerTokens(Math.toIntExact(result.getUsage().getCompletionTokens()));
+                messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.0200"));
+                messageCreateReqVO.setElapsed(end - start);
+                messageCreateReqVO.setTotalPrice(totalPrice);
+                messageCreateReqVO.setCurrency("USD");
+                messageCreateReqVO.setFromScene(request.getScene());
+                messageCreateReqVO.setStatus("SUCCESS");
+
+            });
+
+            benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
         }
 
+        log.info("chat end");
 
-        long end = System.currentTimeMillis();
-        BigDecimal totalPrice = BigDecimal.valueOf(result.getUsage().getTotalTokens()).multiply(new BigDecimal("0.0200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
-
-
-        String messageUid = IdUtil.fastSimpleUUID();
-        this.createAppMessage((messageCreateReqVO) -> {
-
-            messageCreateReqVO.setAppConversationUid(request.getConversationUid());
-
-            messageCreateReqVO.setUid(messageUid);
-            messageCreateReqVO.setMessage(request.getQuery());
-            messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
-            messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.0200"));
-
-            messageCreateReqVO.setAppConfig(JSON.toJSONString(chatConfig));
-            messageCreateReqVO.setVariables(JSON.toJSONString(chatConfig.getModelConfig()));
-            messageCreateReqVO.setAppUid(request.getAppId());
-            messageCreateReqVO.setAppStep("");
-            messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
-            messageCreateReqVO.setAppConversationUid(request.getConversationUid());
-
-            messageCreateReqVO.setAnswer(result.getText());
-            messageCreateReqVO.setAnswerTokens(Math.toIntExact(result.getUsage().getCompletionTokens()));
-            messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.0200"));
-            messageCreateReqVO.setElapsed(end - start);
-            messageCreateReqVO.setTotalPrice(totalPrice);
-            messageCreateReqVO.setCurrency("USD");
-            messageCreateReqVO.setFromScene(request.getScene());
-            messageCreateReqVO.setStatus("SUCCESS");
-
-        });
-
-        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, messageUid);
-
-        log.info("chat end , Response time: {} ms", end - start);
     }
 
 
@@ -315,7 +335,12 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
                                                                                            ChatPromptTemplate chatPromptTemplate,
                                                                                            SseEmitter emitter) {
         ChatOpenAI chatOpenAi = new ChatOpenAI();
+
+        //@todo 重新组装参数
         ChatConfigConvert.INSTANCE.updateParams(chatConfig.getModelConfig().getCompletionParams(), chatOpenAi);
+
+        chatOpenAi.setStream(true);
+
         chatOpenAi.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter));
         ConversationBufferMemory memory = new ConversationBufferMemory();
         memory.setChatHistory(history);
@@ -330,13 +355,15 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
                                         SseEmitter emitter) {
 
         ChatOpenAI chatOpenAI = new ChatOpenAI();
-        chatOpenAI.setModel("gpt-4-0613"); //gpt-3.5-turbo-0613, gpt-4-0613
+        chatOpenAI.setStream(false);
+        //gpt-3.5-turbo-0613, gpt-4-0613
+        chatOpenAI.setModel("gpt-4-0613");
         chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter));
         ConversationBufferMemory memory = new ConversationBufferMemory();
         memory.setChatHistory(history);
 
         List<SkillEntity> skillEntities = chatConfig.getSkills();
-        List<BaseTool> tools = this.loadLLMTools(chatConfig, skillEntities);
+        List<BaseTool> tools = this.loadLLMTools(chatConfig, skillEntities, emitter);
 
         OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools);
         AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(tools, chatOpenAI, baseSingleActionAgent, baseSingleActionAgent.getCallbackManager());
@@ -354,7 +381,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
      *
      * @return
      */
-    private List<BaseTool> loadLLMTools(ChatConfigEntity chatConfig, List<SkillEntity> skillEntities) {
+    private List<BaseTool> loadLLMTools(ChatConfigEntity chatConfig, List<SkillEntity> skillEntities, SseEmitter emitter) {
 
         List<BaseTool> loadTools = new ArrayList<>();
 
@@ -378,14 +405,12 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
             String name = skillEntity.getName();
             String desc = skillEntity.getDesc();
 
-            skillEntity.getInputCls();
-
             if (skillEntity instanceof ApiSkillEntity) {
 
                 FunTool funTool = new FunTool(name, desc, skillEntity.getInputSchemas(), (input) -> {
                     log.info("funTool: {} {}", name, input);
 
-                    skillEntity.execute(input);
+                    skillEntity.execute(input, emitter);
 
                     return null;
                 });
@@ -397,7 +422,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
                 FunTool funTool = new FunTool(name, desc, skillEntity.getInputSchemas(), (input) -> {
                     log.info("funTool: {} {}", name, input);
 
-                    skillEntity.execute(input);
+                    skillEntity.execute(input, emitter);
 
                     return null;
                 });

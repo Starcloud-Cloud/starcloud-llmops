@@ -6,7 +6,7 @@ import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.app.api.chat.ChatRequest;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
@@ -114,7 +114,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public SseEmitter chat(ChatRequest request) {
+    public SseEmitter chat(ChatRequestVO request) {
         Long userId = WebFrameworkUtils.getLoginUserId();
         SseEmitter emitter = new SseEmitter(60000L);
         threadExecutor.asyncExecute(() -> {
@@ -129,7 +129,7 @@ public class ChatServiceImpl implements ChatService {
         return emitter;
     }
 
-    public void execute(ChatRequest request, Long userId, SseEmitter emitter) {
+    public void execute(ChatRequestVO request, Long userId, SseEmitter emitter) {
         benefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
         long start = System.currentTimeMillis();
         LogAppConversationDO conversationDO = appConversationMapper.selectOne(LogAppConversationDO::getUid, request.getConversationUid());

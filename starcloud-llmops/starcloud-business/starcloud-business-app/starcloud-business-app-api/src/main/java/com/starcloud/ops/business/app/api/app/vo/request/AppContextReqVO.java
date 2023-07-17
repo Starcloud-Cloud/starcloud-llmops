@@ -14,7 +14,7 @@ public class AppContextReqVO implements Serializable {
     private String scene;
 
     @Schema(description = "应用ID")
-    private String appId;
+    private String appUid;
 
     @Schema(description = "会话id")
     private String conversationUid;

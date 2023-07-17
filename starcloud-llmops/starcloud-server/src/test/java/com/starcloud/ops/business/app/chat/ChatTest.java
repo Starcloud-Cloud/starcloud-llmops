@@ -10,13 +10,14 @@ import cn.iocoder.yudao.module.system.service.permission.MenuService;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
-import com.starcloud.ops.business.app.api.chat.ChatRequest;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -65,8 +66,8 @@ public class ChatTest extends BaseDbUnitTest {
     @Test
     public void initChatAppTest() {
 
-        ChatRequest chatRequest = new ChatRequest();
-        chatRequest.setAppId("play");
+        ChatRequestVO chatRequest = new ChatRequestVO();
+        chatRequest.setAppUid("play");
 
         chatRequest.setQuery("讲个关于汉堡的笑话吧。");
 
@@ -74,7 +75,8 @@ public class ChatTest extends BaseDbUnitTest {
 
         ChatAppEntity chatAppEntity = AppFactory.factory(chatRequest);
 
-        SseEmitter sseEmitter = chatAppEntity.execute(chatRequest);
+        JsonParamsEntity jsonParams = chatAppEntity.execute(chatRequest);
+
     }
 
 }

@@ -2,8 +2,9 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.params.ParamsEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
@@ -11,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 技能实体
@@ -67,9 +66,21 @@ public class AppWorkflowSkillEntity extends SkillEntity {
 
         log.info("_execute: {}", this.getAccredit());
 
-        AppEntity app = AppFactory.factory(this.getAppUid());
+        AppEntity<AppExecuteReqVO, Object> app = AppFactory.factory(this.getAppUid());
 
-        app.execute(req);
+        AppExecuteReqVO appExecuteReqVO = new AppExecuteReqVO();
+
+        //@todo 构造参数
+        appExecuteReqVO.setAppReqVO(null);
+
+        JsonParamsEntity jsonParams = new JsonParamsEntity();
+
+        //设置json对象的参数，因为现在 workflow 的入参也只有一层 即 一个 Map
+        jsonParams.setData(null);
+
+        appExecuteReqVO.setJsonParams(jsonParams);
+
+        Object result = app.execute(appExecuteReqVO);
 
         return null;
     }

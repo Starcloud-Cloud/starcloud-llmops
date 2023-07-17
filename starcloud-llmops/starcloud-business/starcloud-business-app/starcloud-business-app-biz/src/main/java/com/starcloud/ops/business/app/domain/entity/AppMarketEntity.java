@@ -1,9 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.starcloud.ops.business.app.api.app.vo.request.execute.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import lombok.Data;
 
@@ -81,16 +80,21 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, LogAppConversati
      */
     @Override
     protected void _validate() {
-        if (AppModelEnum.COMPLETION.name().equals(this.getModel())) {
-            getWorkflowConfig().validate();
-        } else if (AppModelEnum.CHAT.name().equals(this.getModel())) {
-            getChatConfig().validate();
-        }
+
+
     }
 
     @Override
     protected LogAppConversationCreateReqVO _execute(AppExecuteReqVO req) {
-        return null;
+
+        return super._execute(req);
+
+    }
+
+    @Override
+    protected void _aexecute(AppExecuteReqVO req) {
+
+        super._aexecute(req);
     }
 
     /**

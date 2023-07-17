@@ -4,6 +4,7 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.skill.accredit.BaseAccredit;
 import lombok.Data;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * 技能实体
@@ -43,4 +44,11 @@ public abstract class SkillEntity {
         return result;
     }
 
+
+    public Object execute(Object req, SseEmitter emitter) {
+
+        Object result = this._execute(req);
+
+        return result;
+    }
 }

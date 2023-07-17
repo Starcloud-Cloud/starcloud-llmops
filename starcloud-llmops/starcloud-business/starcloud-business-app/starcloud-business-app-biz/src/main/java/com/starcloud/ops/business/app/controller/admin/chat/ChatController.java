@@ -1,8 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.chat;
 
-
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.app.api.chat.ChatRequest;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.chat.ChatService;
@@ -27,15 +26,20 @@ public class ChatController {
 
     @Operation(summary = "聊天")
     @PostMapping("/completions")
-    public SseEmitter conversation(@RequestBody @Valid ChatRequest request, HttpServletResponse httpServletResponse) {
+    public SseEmitter conversation(@RequestBody @Valid ChatRequestVO request, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
 
-        ChatAppEntity appEntity =  AppFactory.factory(request);
+        SseEmitter emitter = new SseEmitter(60000L);
+        request.setSseEmitter(emitter);
+
+        ChatAppEntity appEntity = AppFactory.factory(request);
 
         //appEntity.execute(request);
 
-        return appEntity.execute(request);
+        appEntity.aexecute(request);
+
+        return emitter;
     }
 
 

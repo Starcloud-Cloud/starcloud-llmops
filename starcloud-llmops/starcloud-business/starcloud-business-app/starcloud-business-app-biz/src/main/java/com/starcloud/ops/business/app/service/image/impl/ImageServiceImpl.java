@@ -11,9 +11,9 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageReqVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
+import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -135,7 +135,7 @@ public class ImageServiceImpl implements ImageService {
         stopWatch.start("Text to Image Task");
         Long userId = WebFrameworkUtils.getLoginUserId();
         // 会话记录
-        LogAppConversationDO conversation = this.getConversation(request.getConversationId(), userId);
+        LogAppConversationDO conversation = this.getConversation(request.getConversationUid(), userId);
         try {
             // 检测权益
             benefitsService.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);

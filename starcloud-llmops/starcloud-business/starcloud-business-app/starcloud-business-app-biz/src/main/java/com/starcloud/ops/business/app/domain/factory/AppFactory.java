@@ -3,7 +3,7 @@ package com.starcloud.ops.business.app.domain.factory;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
-import com.starcloud.ops.business.app.api.chat.ChatRequest;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
@@ -97,16 +97,16 @@ public class AppFactory {
         return app;
     }
 
-    public static ChatAppEntity factory(ChatRequest chatRequest) {
+    public static ChatAppEntity factory(ChatRequestVO chatRequest) {
 
-        String appId = chatRequest.getAppId();
+        String appId = chatRequest.getAppUid();
 
         if ("play".equals(appId)) {
 
             ChatAppEntity chatAppEntity = new ChatAppEntity();
 
             chatAppEntity.setUid(appId);
-            chatAppEntity.setName("play");
+            chatAppEntity.setName("chat-play");
 
             ChatConfigEntity chatConfig = new ChatConfigEntity();
 
@@ -140,7 +140,7 @@ public class AppFactory {
             return chatAppEntity;
         }
 
-        ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppId());
+        ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
 
 
         return appEntity;

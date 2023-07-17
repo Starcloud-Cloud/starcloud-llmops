@@ -4,32 +4,29 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.alibaba.fastjson.JSON;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
-import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
-import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * App 实体类
@@ -40,13 +37,16 @@ import java.util.function.Function;
  */
 @Data
 @Slf4j
-public abstract class BaseAppEntity<Q, R> {
+public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
-
-    //@todo 封装为repository
     private static LogAppConversationService logAppConversationService = SpringUtil.getBean(LogAppConversationService.class);
 
     private static LogAppMessageService logAppMessageService = SpringUtil.getBean(LogAppMessageService.class);
+
+    private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
+
+
+    private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
 
     /**
@@ -154,9 +154,21 @@ public abstract class BaseAppEntity<Q, R> {
     protected abstract R _execute(Q req);
 
     /**
+     * 执行应用
+     */
+    protected abstract void _aexecute(Q req);
+
+    /**
      * 历史记录初始化
      */
     protected abstract void _initHistory(Q req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageDOS);
+
+    /**
+     * 创建会话记录
+     *
+     * @param reqVO
+     */
+    protected abstract void _createAppConversationLog(Q req, LogAppConversationCreateReqVO reqVO);
 
 
     /**
@@ -200,8 +212,9 @@ public abstract class BaseAppEntity<Q, R> {
         return conversationUid;
     }
 
+
     /**
-     * 执行应用
+     * 同步执行应用
      */
     public R execute(Q req) {
 
@@ -209,15 +222,20 @@ public abstract class BaseAppEntity<Q, R> {
 
             this.validate();
 
-            AppContextReqVO appContextReqVO = (AppContextReqVO) req;
+            //会话uid为空
+            if (StrUtil.isNotBlank(req.getConversationUid())) {
 
-            appContextReqVO.setConversationUid(this.parseConversationUid(appContextReqVO.getConversationUid()));
+                LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
+                List<LogAppMessageDO> logAppMessageDOS = this.getAppConversationMessages(req.getConversationUid());
 
-            //@todo 替换为 repository 实现
-            LogAppConversationDO logAppConversationDO = this.getAppConversation(appContextReqVO.getConversationUid());
-            List<LogAppMessageDO> logAppMessageDOS = this.getAppConversationMessages(appContextReqVO.getConversationUid());
+                this._initHistory(req, logAppConversationDO, logAppMessageDOS);
 
-            this._initHistory(req, logAppConversationDO, logAppMessageDOS);
+            } else {
+
+                String conversationUid = this.createAppConversationLog(req);
+
+                req.setConversationUid(conversationUid);
+            }
 
             R result = this._execute(req);
 
@@ -227,9 +245,64 @@ public abstract class BaseAppEntity<Q, R> {
 
             log.error("app execute is fail: {}", e.getMessage(), e);
 
+            //应该没有异常的，APP内部执行抓取异常处理了 @todo 这里创建一个异常的 message 对象
+
+            this.updateAppConversationLog(req.getConversationUid(), false);
+
+            throw e;
+        }
+    }
+
+
+    /**
+     * 异步执行
+     * log 交由具体类去实现
+     *
+     * @param req
+     */
+    public void aexecute(Q req) {
+
+        try {
+
+            this.validate();
+
+            //会话uid为空
+            if (StrUtil.isNotBlank(req.getConversationUid())) {
+
+                LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
+                List<LogAppMessageDO> logAppMessageDOS = this.getAppConversationMessages(req.getConversationUid());
+
+                this._initHistory(req, logAppConversationDO, logAppMessageDOS);
+
+            } else {
+
+                String conversationUid = this.createAppConversationLog(req);
+
+                req.setConversationUid(conversationUid);
+            }
+
+            threadExecutor.asyncExecute(() -> {
+
+                this._aexecute(req);
+
+            });
+
+        } catch (Exception e) {
+
+            log.error("app execute is fail: {}", e.getMessage(), e);
+
+            //直接 会话异常
+            this.updateAppConversationLog(req.getConversationUid(), false);
+
             throw e;
         }
 
+    }
+
+
+    public void allowExpendBenefits(String benefitsType, Long userId) {
+
+        userBenefitsService.allowExpendBenefits(benefitsType, userId);
     }
 
     /**
@@ -249,18 +322,49 @@ public abstract class BaseAppEntity<Q, R> {
     }
 
 
-    protected long createAppMessage(Consumer<LogAppMessageCreateReqVO> consumer) {
+    protected String createAppConversationLog(Q req) {
 
-        LogAppMessageCreateReqVO reqVO = new LogAppMessageCreateReqVO();
+        if (StrUtil.isBlank(req.getConversationUid())) {
+
+            LogAppConversationCreateReqVO reqVO = new LogAppConversationCreateReqVO();
+            reqVO.setUid(IdUtil.fastSimpleUUID());
+            reqVO.setAppUid(this.getUid());
+
+            this._createAppConversationLog(req, reqVO);
+
+            logAppConversationService.createAppConversation(reqVO);
+
+            return reqVO.getUid();
+        }
+
+        return req.getConversationUid();
+    }
+
+    protected LogAppMessageCreateReqVO createAppMessage(Consumer<LogAppMessageCreateReqVO> consumer) {
 
         LogAppMessageCreateReqVO messageCreateReqVO = new LogAppMessageCreateReqVO();
-        messageCreateReqVO.setUid(IdUtil.getSnowflakeNextIdStr());
-        messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.0200"));
 
-        consumer.accept(reqVO);
+//        messageCreateReqVO.setAppConversationUid(req.getConversationUid());
+        messageCreateReqVO.setUid(IdUtil.fastSimpleUUID());
 
-        return logAppMessageService.createAppMessage(reqVO);
+        consumer.accept(messageCreateReqVO);
+
+        logAppMessageService.createAppMessage(messageCreateReqVO);
+
+        return messageCreateReqVO;
     }
+
+
+    /**
+     * 判断执行情况，最最后的 会话状态更新
+     */
+    protected void updateAppConversationLog(String conversationUid, Boolean status) {
+
+
+        logAppConversationService.updateAppConversationStatus(conversationUid, status ? "SUCCESS" : "ERROR");
+
+    }
+
 
     protected <C> C getConversationConfig(String conversationId) {
 
