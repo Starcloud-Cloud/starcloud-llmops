@@ -357,7 +357,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
                 .eq(UserBenefitsDO::getUserId, userId)
                 .eq(UserBenefitsDO::getEnabled, true)
-                .ge(UserBenefitsDO::getEffectiveTime, currentTime)
+                .le(UserBenefitsDO::getEffectiveTime, currentTime)
                 .ge(UserBenefitsDO::getExpirationTime, currentTime);
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
@@ -450,12 +450,14 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             throw exception(USER_BENEFITS_USELESS_INTEREST);
         }
 
+        LocalDateTime now = LocalDateTime.now();
+
         // 查询条件：当前用户下启用且未过期且权益值大于0的数据
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
         wrapper.eq(UserBenefitsDO::getUserId, userId);
         wrapper.eq(UserBenefitsDO::getEnabled, true);
-        wrapper.ge(UserBenefitsDO::getExpirationTime, LocalDateTime.now());
-        wrapper.ge(UserBenefitsDO::getExpirationTime, LocalDateTime.now());
+        wrapper.le(UserBenefitsDO::getExpirationTime, now);
+        wrapper.ge(UserBenefitsDO::getExpirationTime, now);
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
 
@@ -517,12 +519,13 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             throw exception(BENEFITS_TYPE_NOT_EXISTS);
         }
 
+        LocalDateTime now = LocalDateTime.now();
         // 查询条件：当前用户下启用且未过期且权益值大于0的数据
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
                 .eq(UserBenefitsDO::getUserId, userId)
                 .eq(UserBenefitsDO::getEnabled, true)
-                .ge(UserBenefitsDO::getEffectiveTime, LocalDateTime.now())
-                .ge(UserBenefitsDO::getExpirationTime, LocalDateTime.now());
+                .le(UserBenefitsDO::getEffectiveTime, now)
+                .ge(UserBenefitsDO::getExpirationTime, now);
 
         List<UserBenefitsDO> userBenefitsDOS = userBenefitsMapper.selectList(wrapper);
 
