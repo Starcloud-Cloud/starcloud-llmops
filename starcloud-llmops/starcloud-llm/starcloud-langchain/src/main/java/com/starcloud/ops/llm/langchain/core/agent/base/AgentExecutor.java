@@ -146,6 +146,13 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
     }
 
 
+    /**
+     * 判断执行条件是否满足
+     * @todo 返回异常，让上游感知到
+     * @param iterations
+     * @param timeElapsed
+     * @return
+     */
     protected Boolean _shouldContinue(Integer iterations, long timeElapsed) {
         if (iterations > this.getMaxIterations()) {
             log.info("_shouldContinue is skip, more MaxIterations");

@@ -79,7 +79,10 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
         this.setCallbackManager(callbackManager);
         ChatResult<R> chatResult = this.generate(Arrays.asList(baseMessages), null, functionDescriptions);
 
-        return chatResult.getChatGenerations().get(0).getChatMessage();
+        BaseMessage baseMessage = chatResult.getChatGenerations().get(0).getChatMessage();
+        baseMessage.getAdditionalArgs().put("usage", chatResult.getUsage());
+
+        return baseMessage;
     }
 
     public ChatResult<R> generate(List<List<BaseMessage>> chatMessages, List<String> stops, List<FunctionDescription> functions) {

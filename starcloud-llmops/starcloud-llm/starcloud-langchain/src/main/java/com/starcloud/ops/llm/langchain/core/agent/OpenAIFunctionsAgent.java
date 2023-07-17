@@ -11,6 +11,7 @@ import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.StdOutCallbackHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.MessagesPlaceholder;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
@@ -155,6 +156,8 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
         ChatFunctionCall functionCall = (ChatFunctionCall) baseMessage.getAdditionalArgs().getOrDefault("function_call", null);
 
+        BaseLLMUsage usage = (BaseLLMUsage) baseMessage.getAdditionalArgs().getOrDefault("usage", null);
+
         if (functionCall != null) {
 
             String functionName = functionCall.getName();
@@ -165,11 +168,12 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
             FunctionsAgentAction functionsAgentAction = new FunctionsAgentAction(functionName, toolInput, log, Arrays.asList(baseMessage));
 
+            functionsAgentAction.setUsage(usage);
             return functionsAgentAction;
 
         } else {
 
-            return new AgentFinish(baseMessage.getContent(), baseMessage.getContent());
+            return new AgentFinish(baseMessage.getContent(), baseMessage.getContent(), usage);
         }
 
     }

@@ -71,8 +71,6 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
 
     private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
-    private static ThreadPoolExecutor threadPoolExecutor = SpringUtil.getBean("CHAT_POOL_EXECUTOR");
-
     private static DocumentSegmentsService documentSegmentsService = SpringUtil.getBean(DocumentSegmentsService.class);
 
 
@@ -237,7 +235,12 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
         if ((chatConfig.getWebSearchConfig() != null && chatConfig.getWebSearchConfig().getEnabled()) || CollectionUtil.isNotEmpty(chatConfig.getSkills())) {
 
-            buildLLmTools(history, chatConfig, chatPromptTemplate, emitter);
+            AgentExecutor agentExecutor = buildLLmTools(history, chatConfig, chatPromptTemplate, emitter);
+
+            //agentExecutor.run("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
+
+            agentExecutor.run(request.getQuery());
+
             result = null;
 
         } else {
@@ -321,28 +324,28 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequest, SseEmitter> {
         return llmChain;
     }
 
-    private void buildLLmTools(ChatMessageHistory history,
-                               ChatConfigEntity chatConfig,
-                               ChatPromptTemplate chatPromptTemplate,
-                               SseEmitter emitter) {
+    private AgentExecutor buildLLmTools(ChatMessageHistory history,
+                                        ChatConfigEntity chatConfig,
+                                        ChatPromptTemplate chatPromptTemplate,
+                                        SseEmitter emitter) {
 
         ChatOpenAI chatOpenAI = new ChatOpenAI();
         chatOpenAI.setModel("gpt-4-0613"); //gpt-3.5-turbo-0613, gpt-4-0613
+        chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter));
+        ConversationBufferMemory memory = new ConversationBufferMemory();
+        memory.setChatHistory(history);
 
         List<SkillEntity> skillEntities = chatConfig.getSkills();
         List<BaseTool> tools = this.loadLLMTools(chatConfig, skillEntities);
 
-        chatPromptTemplate.formatPrompt();
-
         OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools);
-
         AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(tools, chatOpenAI, baseSingleActionAgent, baseSingleActionAgent.getCallbackManager());
 
-        agentExecutor.run("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
+        agentExecutor.setMemory(memory);
 
         log.info("tools: {}", JSONUtil.parse(tools).toStringPretty());
 
-
+        return agentExecutor;
     }
 
     /**

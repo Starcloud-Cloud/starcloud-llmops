@@ -119,7 +119,7 @@ public interface AppConvert {
 
             appEntity = new ChatAppEntity();
 
-        } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
+        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
 
             appEntity = new ImageAppEntity();
         }
