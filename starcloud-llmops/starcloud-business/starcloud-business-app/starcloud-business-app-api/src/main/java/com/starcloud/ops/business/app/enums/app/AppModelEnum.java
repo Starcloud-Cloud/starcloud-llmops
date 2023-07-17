@@ -21,9 +21,11 @@ public enum AppModelEnum implements IEnumable<Integer> {
     CHAT(2, "聊天式应用"),
 
     /**
-     * 图片应用
+     * 基础图片生成模式
      */
-    IMAGE(3, "图片式应用");
+    BASE_GENERATE_IMAGE(3, "基础图片生成模式，文字生成图片，图片生成图片"),
+
+    ;
 
     /**
      * 应用类型Code

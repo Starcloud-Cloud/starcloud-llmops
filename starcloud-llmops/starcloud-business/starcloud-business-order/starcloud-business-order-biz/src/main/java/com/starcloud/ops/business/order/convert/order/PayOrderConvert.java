@@ -12,7 +12,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 支付订单 Convert
@@ -52,7 +54,28 @@ public interface PayOrderConvert {
     PayOrderDO convert(PayOrderCreateReqDTO bean);
 
     @Mapping(target = "id", ignore = true)
-    PayOrderExtensionDO convert(PayOrderSubmitReqVO bean, String userIp);
+    default PayOrderExtensionDO convert(PayOrderSubmitReqVO bean, String userIp,Long orderId) {
+        if (bean == null && userIp == null) {
+            return null;
+        }
+
+        PayOrderExtensionDO.PayOrderExtensionDOBuilder payOrderExtensionDO = PayOrderExtensionDO.builder();
+
+        if (bean != null) {
+            if (bean.getOrderId() != null) {
+                payOrderExtensionDO.orderId(orderId);
+            }
+            payOrderExtensionDO.channelCode(bean.getChannelCode());
+            Map<String, String> map = bean.getChannelExtras();
+            if (map != null) {
+                payOrderExtensionDO.channelExtras(new LinkedHashMap<String, String>(map));
+            }
+        }
+        payOrderExtensionDO.userIp(userIp);
+
+        return payOrderExtensionDO.build();
+
+    }
 
     PayOrderUnifiedReqDTO convert2(PayOrderSubmitReqVO reqVO);
 

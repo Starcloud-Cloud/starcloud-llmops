@@ -8,11 +8,9 @@ import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import kotlin.jvm.Transient;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import serpapi.GoogleSearch;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Data
 @Slf4j
@@ -48,12 +46,12 @@ public class SerpapiXXTool extends BaseTool<SerpapiXXTool.Request, String> {
         String result = "";
 
         try {
-            GoogleSearch googleSearch = new GoogleSearch(parameter, this.apiKey);
-            com.google.gson.JsonObject jsonObject = googleSearch.getJson();
-
-            String answerBox = Optional.ofNullable(jsonObject).map(b -> b.getAsJsonObject("answer_box")).map(b -> b.get("snippet").getAsString()).orElse("");
-
-            result = answerBox;
+            // GoogleSearch googleSearch = new GoogleSearch(parameter, this.apiKey);
+            // com.google.gson.JsonObject jsonObject = googleSearch.getJson();
+            //
+            // String answerBox = Optional.ofNullable(jsonObject).map(b -> b.getAsJsonObject("answer_box")).map(b -> b.get("snippet").getAsString()).orElse("");
+            //
+            // result = answerBox;
         } catch (Exception e) {
 
             log.error("googleSearch is fail {}", e.getMessage(), e);

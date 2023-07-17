@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.chat.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -16,6 +15,7 @@ import com.starcloud.ops.business.app.domain.entity.config.UserInputFromEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
@@ -43,15 +43,12 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -76,8 +73,8 @@ public class ChatServiceImpl implements ChatService {
     @Resource
     private UserBenefitsService benefitsService;
 
-    @Resource(name = "CHAT_POOL_EXECUTOR")
-    private ThreadPoolExecutor threadPoolExecutor;
+    @Resource
+    private ThreadWithContext threadExecutor;
 
 
     @Override
@@ -120,12 +117,8 @@ public class ChatServiceImpl implements ChatService {
     public SseEmitter chat(ChatRequest request) {
         Long userId = WebFrameworkUtils.getLoginUserId();
         SseEmitter emitter = new SseEmitter(60000L);
-        Long tenantId = TenantContextHolder.getTenantId();
-        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        threadPoolExecutor.execute(() -> {
+        threadExecutor.asyncExecute(() -> {
             try {
-                RequestContextHolder.setRequestAttributes(requestAttributes);
-                TenantContextHolder.setTenantId(tenantId);
                 execute(request, userId, emitter);
                 emitter.complete();
             } catch (Exception e) {

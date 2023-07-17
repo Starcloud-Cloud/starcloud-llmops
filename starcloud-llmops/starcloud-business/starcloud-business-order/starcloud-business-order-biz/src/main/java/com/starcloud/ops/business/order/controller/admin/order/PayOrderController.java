@@ -19,6 +19,7 @@ import com.starcloud.ops.business.order.dal.dataobject.merchant.PayAppDO;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayMerchantDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderExtensionDO;
+import com.starcloud.ops.business.order.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.order.service.merchant.PayAppService;
 import com.starcloud.ops.business.order.service.merchant.PayMerchantService;
 import com.starcloud.ops.business.order.service.order.PayOrderExtensionService;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
@@ -152,20 +154,31 @@ public class PayOrderController {
         // 设置商品价格
         payOrderCreateReqDTO.setAmount(productEnum.getPrice());
         // 设置过期时间
-        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtil.of(req2DTO.getTimestamp(), TimeZone.getTimeZone("Asia/Shanghai")).plusMinutes(10));
+        payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtil.of(req2DTO.getTimestamp(), TimeZone.getTimeZone("Asia/Shanghai")).plusMinutes(5));
         // 设置当前用户 IP
         payOrderCreateReqDTO.setUserIp(getClientIP());
 
         payOrderCreateReqDTO.setProductCode(req2DTO.getProductCode());
         log.info("2.订单参数封装完成，订单参数为:{}", JSONObject.toJSONString(payOrderCreateReqDTO));
-        return success(payOrderService.createPayOrder(payOrderCreateReqDTO));
+        try {
+            return success(payOrderService.createPayOrder(payOrderCreateReqDTO));
+        } catch (Exception e) {
+            throw exception(ErrorCodeConstants.PAY_ORDER_ERROR_CREAT);
+        }
+
     }
 
     @PostMapping("/submit")
     @Operation(summary = "提交支付订单")
     public CommonResult<PayOrderSubmitRespVO> submitPayOrder(@RequestBody PayOrderSubmitReqVO reqVO) {
-        PayOrderSubmitRespVO respVO = payOrderService.submitPayOrder(reqVO, getClientIP());
-        return success(respVO);
+        try {
+            PayOrderSubmitRespVO respVO = payOrderService.submitPayOrder(reqVO, getClientIP());
+            return success(respVO);
+        }catch (Exception e){
+            throw exception(ErrorCodeConstants.PAY_ORDER_ERROR_SUBMIT);
+        }
+
+
     }
 
     @PostMapping("/user/page")

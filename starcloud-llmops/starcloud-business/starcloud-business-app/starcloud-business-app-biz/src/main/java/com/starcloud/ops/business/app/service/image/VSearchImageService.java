@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.service.image;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.TextToImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
 
@@ -30,5 +30,5 @@ public interface VSearchImageService {
      * @param request 请求参数
      * @return 图片列表
      */
-    List<ImageDTO> textToImage(TextToImageRequest request);
+    List<ImageDTO> textToImage(ImageRequest request);
 }

@@ -105,14 +105,14 @@ public class VSearchImageRequest implements Serializable {
     @Min(value = 0, message = "cfgScale must be greater than or equal to 0")
     @Max(value = 35, message = "cfgScale must be less than or equal to 35")
     @JsonProperty(value = "cfg_scale")
-    private Integer cfgScale;
+    private Double cfgScale;
 
     /**
      * 用于扩散过程的采样器。如果省略此值，我们将自动为您选择合适的采样器
      */
     @Schema(description = "用于扩散过程的采样器。如果省略此值，我们将自动为您选择合适的采样器")
     @InEnum(value = SamplerEnum.class, field = InEnum.EnumField.CODE, message = "sampler[{value}] must be in {values}")
-    private String sampler;
+    private Integer sampler;
 
     /**
      * 要运行的扩散步骤数
@@ -144,7 +144,7 @@ public class VSearchImageRequest implements Serializable {
     @Schema(description = "剪辑指南预设")
     @JsonProperty(value = "guidance_preset")
     @InEnum(value = GuidancePresetEnum.class, field = InEnum.EnumField.CODE, message = "guidance_preset[{value}] must be in {values}")
-    private String guidancePreset;
+    private Integer guidancePreset;
 
     /**
      * 用于指导的切割数
@@ -180,6 +180,6 @@ public class VSearchImageRequest implements Serializable {
     @Schema(description = "传入样式预设以引导图像模型走向特定样式。 此样式预设列表可能会更改")
     @JsonProperty(value = "style_preset")
     @InEnum(value = StylePresetEnum.class, field = InEnum.EnumField.CODE, message = "style_preset[{value}] must be in {values}")
-    private String stylePreset;
+    private Integer stylePreset;
 
 }

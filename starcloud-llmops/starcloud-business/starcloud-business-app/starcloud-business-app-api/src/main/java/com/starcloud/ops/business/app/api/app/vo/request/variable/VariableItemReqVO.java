@@ -2,10 +2,9 @@ package com.starcloud.ops.business.app.api.app.vo.request.variable;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
-import com.starcloud.ops.framework.common.api.validation.InEnum;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,6 +15,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -49,25 +49,19 @@ public class VariableItemReqVO implements Serializable {
     /**
      * 变量类型
      */
-    @Schema(description = "变量类型", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "变量类型不能为空")
-    @InEnum(value = AppVariableTypeEnum.class, message = "变量类型[{value}]必须属于: {values}")
+    @Schema(description = "变量类型")
     private String type;
 
     /**
      * 变量样式
      */
-    @Schema(description = "变量样式", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "变量样式不能为空")
-    @InEnum(value = AppVariableStyleEnum.class, message = "变量样式[{value}]必须属于: {values}")
+    @Schema(description = "变量样式")
     private String style;
 
     /**
      * 变量分组
      */
-    @Schema(description = "变量分组", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "变量分组不能为空")
-    @InEnum(value = AppVariableGroupEnum.class, message = "变量分组[{value}]必须属于: {values}")
+    @Schema(description = "变量分组")
     private String group;
 
     /**
@@ -99,7 +93,6 @@ public class VariableItemReqVO implements Serializable {
      * 变量是否为点位
      */
     @Schema(description = "变量是否为点位", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "变量是否为点位不能为空")
     private Boolean isPoint;
 
     /**
@@ -113,4 +106,28 @@ public class VariableItemReqVO implements Serializable {
      */
     @Schema(description = "变量选项")
     private List<Option> options;
+
+    public void setType(String type) {
+        if (StringUtil.isBlank(type)) {
+            this.type = AppVariableTypeEnum.TEXT.name();
+        } else {
+            this.type = type;
+        }
+    }
+
+    public void setGroup(String group) {
+        if (StringUtil.isBlank(group)) {
+            this.group = AppVariableGroupEnum.PARAMS.name();
+        } else {
+            this.group = group;
+        }
+    }
+
+    public void setPoint(Boolean point) {
+        if (Objects.isNull(point)) {
+            this.isPoint = Boolean.FALSE;
+        } else {
+            isPoint = point;
+        }
+    }
 }

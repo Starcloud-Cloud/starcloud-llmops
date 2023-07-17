@@ -93,7 +93,7 @@ public interface AppConvert {
             if (Objects.nonNull(config)) {
                 appDO.setConfig(JSON.toJSONString(config));
             }
-        } else if (AppModelEnum.IMAGE.name().equals(appEntity.getModel())) {
+        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appEntity.getModel())) {
             ImageConfigEntity config = appEntity.getImageConfig();
             if (Objects.nonNull(config)) {
                 appDO.setConfig(JSON.toJSONString(config));
@@ -127,6 +127,7 @@ public interface AppConvert {
         appEntity.setUid(app.getUid());
         appEntity.setName(app.getName());
         appEntity.setModel(app.getModel());
+        appEntity.setType(app.getType());
         appEntity.setSource(app.getSource());
         appEntity.setTags(AppUtils.split(app.getTags()));
         appEntity.setCategories(AppUtils.split(app.getCategories()));
@@ -143,7 +144,7 @@ public interface AppConvert {
                 appEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
                 appEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
+            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
                 appEntity.setImageConfig(JSON.parseObject(app.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -177,7 +178,7 @@ public interface AppConvert {
                 appEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
                 appEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
+            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
                 appEntity.setImageConfig(JSON.parseObject(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -195,7 +196,7 @@ public interface AppConvert {
         appRespVO.setUid(app.getUid());
         appRespVO.setName(app.getName());
         appRespVO.setModel(app.getModel());
-        appRespVO.setModel(app.getModel());
+        appRespVO.setType(app.getType());
         appRespVO.setSource(app.getSource());
         appRespVO.setTags(AppUtils.split(app.getTags()));
         appRespVO.setCategories(AppUtils.split(app.getCategories()));
@@ -215,7 +216,7 @@ public interface AppConvert {
                 appRespVO.setActionIcons(buildActionIcons(appRespVO.getWorkflowConfig()));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
                 appRespVO.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigRespVO.class));
-            } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
+            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
                 appRespVO.setImageConfig(JSON.parseObject(app.getConfig(), ImageConfigRespVO.class));
             }
         }

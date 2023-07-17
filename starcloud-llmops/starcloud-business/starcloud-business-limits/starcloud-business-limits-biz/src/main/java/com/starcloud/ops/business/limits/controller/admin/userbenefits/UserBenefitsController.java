@@ -18,8 +18,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED;
+import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL;
 
 @Tag(name = "星河云海 - 用户权益")
 @RestController
@@ -60,7 +63,11 @@ public class UserBenefitsController {
     @PostMapping("/signIn")
     @Operation(summary = "用户签到")
     public CommonResult<Boolean> signIn() {
-        return success(userBenefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName(), getLoginUserId()));
+        Boolean result = userBenefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName(), getLoginUserId());
+        if (!result){
+            throw exception(USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL);
+        }
+        return success(true);
     }
 
     @PostMapping("/expendBenefits")
