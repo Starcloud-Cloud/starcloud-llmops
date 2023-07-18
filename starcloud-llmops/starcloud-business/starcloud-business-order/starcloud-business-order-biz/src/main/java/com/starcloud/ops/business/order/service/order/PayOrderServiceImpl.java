@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.order.service.order;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.pay.config.PayProperties;
@@ -13,6 +15,7 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespD
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.util.IgnorePropertiesUtil;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductTimeEnum;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -45,10 +48,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.ObjectUtil.notEqual;
@@ -175,7 +175,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         PayClient client = payClientFactory.getPayClient(channel.getId());
         log.info("[submitPayOrder][1.支付渠道有效：用户ID({})|渠道 ID({})｜用户 IP({})]", getLoginUser(), channel.getId(), userIp);
         // 2. 插入 PayOrderExtensionDO
-        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp,order.getId())
+        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp, order.getId())
                 .setOrderId(order.getId())
                 .setNo(generateOrderExtensionNo())
                 .setChannelId(channel.getId())
@@ -210,7 +210,7 @@ public class PayOrderServiceImpl implements PayOrderService {
      * @return 提交结果
      */
     @Override
-    public PayOrderSubmitRespVO submitOrderRepay(PayOrderSubmitReqVO reqVO, String userIp) {
+    public PayOrderSubmitRespVO submitOrderRepay(PayOrderRepaySubmitReqVO reqVO, String userIp) {
         // 获取订单
         log.info("[submitPayOrder][收到重新下单请求，支付宝统一下单接收到请求：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), reqVO.getOrderId(), userIp);
 
@@ -223,7 +223,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         log.info("[submitPayOrder][支付渠道有效：用户ID({})|渠道 ID({})｜用户 IP({})]", getLoginUser(), channel.getId(), userIp);
 
         // 插入 PayOrderExtensionDO
-        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp,order.getId())
+        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp, order.getId())
                 .setOrderId(order.getId())
                 .setNo(generateOrderExtensionNo())
                 .setChannelId(channel.getId())
@@ -231,8 +231,9 @@ public class PayOrderServiceImpl implements PayOrderService {
                 .setStatus(PayOrderStatusEnum.WAITING.getStatus());
         orderExtensionMapper.insert(orderExtension);
 
+        PayOrderSubmitReqVO payOrderSubmitReqVO = BeanUtil.copyProperties(reqVO, PayOrderSubmitReqVO.class);
         // 提交支付
-        PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(reqVO)
+        PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(payOrderSubmitReqVO)
                 // 商户相关的字段
                 .setMerchantOrderId(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
                 .setSubject(order.getSubject())
@@ -240,7 +241,7 @@ public class PayOrderServiceImpl implements PayOrderService {
                 .setNotifyUrl(genChannelPayNotifyUrl(channel))
                 // 订单相关字段
                 .setAmount(order.getAmount())
-                .setExpireTime(order.getExpireTime());
+                .setExpireTime(LocalDateTimeUtil.of(reqVO.getTimestamp(), TimeZone.getTimeZone("Asia/Shanghai")).plusMinutes(5));
         PayOrderUnifiedRespDTO unifiedOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
 
         // TODO 轮询三方接口，是否已经支付的任务
@@ -580,8 +581,7 @@ public class PayOrderServiceImpl implements PayOrderService {
     }
 
 
-
-    private LocalDateTime getNowGmtTime(){
+    private LocalDateTime getNowGmtTime() {
         long timestamp = System.currentTimeMillis();
         return Instant.ofEpochMilli(timestamp).atZone(ZoneOffset.ofHours(8)).toLocalDateTime();
     }

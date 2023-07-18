@@ -96,7 +96,7 @@ public interface PayOrderService {
      * @param userIp 提交 IP
      * @return 提交结果
      */
-    PayOrderSubmitRespVO submitOrderRepay(@Valid PayOrderSubmitReqVO reqVO,
+    PayOrderSubmitRespVO submitOrderRepay(@Valid PayOrderRepaySubmitReqVO reqVO,
                                         @NotEmpty(message = "提交 IP 不能为空") String userIp);
 
     /**
