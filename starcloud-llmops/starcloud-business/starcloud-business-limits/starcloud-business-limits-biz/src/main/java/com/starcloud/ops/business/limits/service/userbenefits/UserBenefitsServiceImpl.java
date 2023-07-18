@@ -243,8 +243,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 endTime = now.with(TemporalAdjusters.lastDayOfYear());
                 break;
             case ONCE_ONLY:
-                startTime = now.plusYears(50);
-                endTime = now.minus(50, ChronoUnit.YEARS);
+                startTime = now.minus(50, ChronoUnit.YEARS);
+                endTime = now.plusYears(50);
                 break;
             case MONTH:
             default:
