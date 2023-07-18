@@ -184,7 +184,7 @@ public class PayOrderController {
     public CommonResult<PayOrderSubmitRespVO> orderRepay(@RequestBody PayOrderRepaySubmitReqVO reqVO){
 
         try {
-            PayOrderSubmitRespVO respVO = payOrderService.submitPayOrder(reqVO, getClientIP());
+            PayOrderSubmitRespVO respVO = payOrderService.submitOrderRepay(reqVO, getClientIP());
             return success(respVO);
         }catch (Exception e){
             throw exception(ErrorCodeConstants.PAY_ORDER_ERROR_SUBMIT);
