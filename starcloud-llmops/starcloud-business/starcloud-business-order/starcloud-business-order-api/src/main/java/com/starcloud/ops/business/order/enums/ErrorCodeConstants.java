@@ -36,7 +36,7 @@ public interface ErrorCodeConstants {
     ErrorCode PAY_ORDER_STATUS_IS_NOT_SUCCESS = new ErrorCode(1007002002, "支付订单不处于已支付");
     ErrorCode PAY_ORDER_ERROR_USER = new ErrorCode(1007002003, "支付订单用户不正确");
     ErrorCode PAY_ORDER_ERROR_CREAT = new ErrorCode(1007002003, "订单创建失败，请重试！");
-    ErrorCode PAY_ORDER_ERROR_SUBMIT = new ErrorCode(1007002003, "订单创建失败，请重试！");
+    ErrorCode PAY_ORDER_ERROR_SUBMIT = new ErrorCode(1007002003, "订单支付失败，请重试！");
 
     /**
      * ========== ORDER 模块(拓展单) 1-007-003-000 ==========

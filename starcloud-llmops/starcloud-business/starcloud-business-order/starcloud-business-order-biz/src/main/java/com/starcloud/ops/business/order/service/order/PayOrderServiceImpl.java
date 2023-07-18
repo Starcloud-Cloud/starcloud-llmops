@@ -201,6 +201,55 @@ public class PayOrderServiceImpl implements PayOrderService {
         return PayOrderConvert.INSTANCE.convert(unifiedOrderRespDTO).setCreateTime(LocalDateTime.now()).setExpireTime(order.getExpireTime());
     }
 
+    /**
+     * 重新提交支付
+     * 此时，会发起支付渠道的调用
+     *
+     * @param reqVO  提交请求
+     * @param userIp 提交 IP
+     * @return 提交结果
+     */
+    @Override
+    public PayOrderSubmitRespVO submitOrderRepay(PayOrderSubmitReqVO reqVO, String userIp) {
+        // 获取订单
+        log.info("[submitPayOrder][收到重新下单请求，支付宝统一下单接收到请求：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), reqVO.getOrderId(), userIp);
+
+        //  获得 PayOrderDO ，并校验其是否存在
+        PayOrderDO order = validatePayOrderCanSubmit(reqVO.getOrderId());
+
+        // 校验支付渠道是否有效
+        PayChannelDO channel = validatePayChannelCanSubmit(order.getAppId(), reqVO.getChannelCode());
+        PayClient client = payClientFactory.getPayClient(channel.getId());
+        log.info("[submitPayOrder][支付渠道有效：用户ID({})|渠道 ID({})｜用户 IP({})]", getLoginUser(), channel.getId(), userIp);
+
+        // 插入 PayOrderExtensionDO
+        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp,order.getId())
+                .setOrderId(order.getId())
+                .setNo(generateOrderExtensionNo())
+                .setChannelId(channel.getId())
+                .setChannelCode(channel.getCode())
+                .setStatus(PayOrderStatusEnum.WAITING.getStatus());
+        orderExtensionMapper.insert(orderExtension);
+
+        // 提交支付
+        PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(reqVO)
+                // 商户相关的字段
+                .setMerchantOrderId(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
+                .setSubject(order.getSubject())
+                .setBody(order.getBody())
+                .setNotifyUrl(genChannelPayNotifyUrl(channel))
+                // 订单相关字段
+                .setAmount(order.getAmount())
+                .setExpireTime(order.getExpireTime());
+        PayOrderUnifiedRespDTO unifiedOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
+
+        // TODO 轮询三方接口，是否已经支付的任务
+        log.info("[submitPayOrder][3.创建支付成功，返回支付链接：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), order.getMerchantOrderId(), userIp);
+
+        // 返回成功
+        return PayOrderConvert.INSTANCE.convert(unifiedOrderRespDTO).setCreateTime(LocalDateTime.now()).setExpireTime(order.getExpireTime());
+    }
+
     @Deprecated
     public Long createPayOrder(ProductEnum product, String userIP) {
 
