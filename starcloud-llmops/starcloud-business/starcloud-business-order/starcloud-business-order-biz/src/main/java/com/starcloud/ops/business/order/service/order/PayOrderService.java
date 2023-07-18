@@ -89,6 +89,17 @@ public interface PayOrderService {
                                         @NotEmpty(message = "提交 IP 不能为空") String userIp);
 
     /**
+     * 重新提交支付
+     * 此时，会发起支付渠道的调用
+     *
+     * @param reqVO 提交请求
+     * @param userIp 提交 IP
+     * @return 提交结果
+     */
+    PayOrderSubmitRespVO submitOrderRepay(@Valid PayOrderSubmitReqVO reqVO,
+                                        @NotEmpty(message = "提交 IP 不能为空") String userIp);
+
+    /**
      * 通知支付单成功
      *
      * @param channelId 渠道编号
