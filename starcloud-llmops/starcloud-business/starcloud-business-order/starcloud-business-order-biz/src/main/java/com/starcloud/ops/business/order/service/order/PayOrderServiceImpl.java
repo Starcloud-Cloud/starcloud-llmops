@@ -43,6 +43,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.HashMap;
@@ -197,7 +198,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         // TODO 轮询三方接口，是否已经支付的任务
         log.info("[submitPayOrder][3.创建支付成功，返回支付链接：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), order.getMerchantOrderId(), userIp);
         // 返回成功
-        return PayOrderConvert.INSTANCE.convert(unifiedOrderRespDTO).setCreateTime(getNowGmtTime()).setExpireTime(order.getExpireTime());
+        return PayOrderConvert.INSTANCE.convert(unifiedOrderRespDTO).setCreateTime(LocalDateTime.now()).setExpireTime(order.getExpireTime());
     }
 
     @Deprecated
