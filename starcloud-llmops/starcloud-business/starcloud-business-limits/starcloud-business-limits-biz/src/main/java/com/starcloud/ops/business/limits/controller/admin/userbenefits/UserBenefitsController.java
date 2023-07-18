@@ -11,6 +11,7 @@ import com.starcloud.ops.business.limits.convert.userbenefits.UserBenefitsConver
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -34,6 +35,7 @@ public class UserBenefitsController {
     private UserBenefitsService userBenefitsService;
 
     @PostMapping("/code")
+    @RateLimiter(name="backendA")
     @Operation(summary = "根据 Code 激活使用权益")
     public CommonResult<Boolean> createUserBenefits(@Validated @RequestParam("code") String code) {
         return success(userBenefitsService.addUserBenefitsByCode(code, getLoginUserId()));

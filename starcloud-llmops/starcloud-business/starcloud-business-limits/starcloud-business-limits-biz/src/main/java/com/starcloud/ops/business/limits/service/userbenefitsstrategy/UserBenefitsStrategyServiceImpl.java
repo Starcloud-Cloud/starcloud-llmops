@@ -56,7 +56,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
             throw exception(BENEFITS_STRATEGY_TYPE_NOT_EXISTS);
         }
         // 生成兑换码 code
-        String code = strategyTypeEnums.getPrefix() + "_" + IdUtil.fastSimpleUUID().substring(0, 12).toUpperCase();
+        String code = strategyTypeEnums.getPrefix() + IdUtil.fastSimpleUUID().substring(0, 4).toUpperCase();
 
         // 创建查询条件
         LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
@@ -65,7 +65,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         // 校验 兑换码code 是否存在
         long count = userBenefitsStrategyMapper.selectCount(wrapper);
         while (count > 0) {
-            code = IdUtil.fastSimpleUUID().substring(0, 8);
+            code = strategyTypeEnums.getPrefix() + IdUtil.fastSimpleUUID().substring(0, 4);
             // 重新设置查询条件
             wrapper.clear();
             wrapper.eq(UserBenefitsStrategyDO::getCode, code);
@@ -97,7 +97,6 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
      * 创建用户权益策略
      *
      * @param createReqVO 创建信息
-     *
      * @return Long
      */
     @Override
@@ -114,23 +113,15 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
             throw exception(BENEFITS_STRATEGY_CODE_EXISTS);
         }
 
-        // 如果是签到、注册、邀请注册或者是邀请等系统类型，禁用租户下其他相同类型配置
-        switch (strategyTypeEnums) {
-            case SIGN_IN:
-            case INVITE_TO_REGISTER:
-            case USER_INVITE:
-            case USER_ATTENDANCE:
-                // 根据枚举类型停用同类型的数据
-                CancelMasterConfigStrategy(strategyTypeEnums.getName());
-            default:
-                break;
-        }
+        // 禁用租户下其他相同类型配置
+        // 根据枚举类型停用同类型的数据
+        CancelMasterConfigStrategy(strategyTypeEnums.getName());
+
 
         // 输入转换
         UserBenefitsStrategyDO userBenefitsStrategy = UserBenefitsStrategyConvert.convert(createReqVO);
         // 设置 code 前缀
         userBenefitsStrategy.setCode(userBenefitsStrategy.getCode());
-
         // 数据插入
         userBenefitsStrategyMapper.insert(userBenefitsStrategy);
         // 返回
@@ -214,7 +205,6 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
      * 通过 code 获取权益信息
      *
      * @param code 权益码
-     *
      * @return 编号
      */
     @Override
@@ -236,7 +226,6 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
      * 通过 code 获取权益信息
      *
      * @param strategyType
-     *
      * @return 编号
      */
     @Override
@@ -270,7 +259,6 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
      * 分页
      *
      * @param pageReqVO 分页查询
-     *
      * @return 用户权益策略表
      * 分页
      */
@@ -371,7 +359,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
     /**
      * 校验数据是否存在
      *
-     * @param ids           数据 ID
+     * @param ids          数据 ID
      * @param strategyType
      */
     @Override
@@ -379,7 +367,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         // 创建查询条件
         LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
         wrapper.eq(UserBenefitsStrategyDO::getStrategyType, strategyType);
-        wrapper.in(UserBenefitsStrategyDO::getId,ids);
+        wrapper.in(UserBenefitsStrategyDO::getId, ids);
 
         return userBenefitsStrategyMapper.selectList(wrapper);
     }
