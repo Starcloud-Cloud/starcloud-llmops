@@ -137,7 +137,7 @@ public class PayOrderController {
     @Operation(summary = "创建订单")
     public CommonResult<String> submitPayOrder(@RequestBody PayOrderCreateReq2DTO req2DTO) {
 
-        log.info("1.开始创建订单，准备封装订单参数，订单入参为:({})|用户ID({})|租户 ID({})", JSONObject.toJSONString(req2DTO),getLoginUserId(),getTenantId());
+        log.info("1.开始创建订单，准备封装订单参数，订单入参为:({})|用户ID({})|租户 ID({})", JSONObject.toJSONString(req2DTO), getLoginUserId(), getTenantId());
         PayOrderCreateReqDTO payOrderCreateReqDTO = new PayOrderCreateReqDTO();
 
         // 获取当前唯一 APPID
@@ -171,22 +171,18 @@ public class PayOrderController {
     @PostMapping("/submit")
     @Operation(summary = "提交支付订单")
     public CommonResult<PayOrderSubmitRespVO> submitPayOrder(@RequestBody PayOrderSubmitReqVO reqVO) {
-        try {
-            PayOrderSubmitRespVO respVO = payOrderService.submitPayOrder(reqVO, getClientIP());
-            return success(respVO);
-        }catch (Exception e){
-            throw exception(ErrorCodeConstants.PAY_ORDER_ERROR_SUBMIT);
-        }
+        PayOrderSubmitRespVO respVO = payOrderService.submitPayOrder(reqVO, getClientIP());
+        return success(respVO);
     }
 
     @PostMapping("/repay")
     @Operation(summary = "重新支付")
-    public CommonResult<PayOrderSubmitRespVO> orderRepay(@RequestBody PayOrderRepaySubmitReqVO reqVO){
+    public CommonResult<PayOrderSubmitRespVO> orderRepay(@RequestBody PayOrderRepaySubmitReqVO reqVO) {
 
         try {
             PayOrderSubmitRespVO respVO = payOrderService.submitOrderRepay(reqVO, getClientIP());
             return success(respVO);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw exception(ErrorCodeConstants.PAY_ORDER_ERROR_SUBMIT);
         }
     }
@@ -194,19 +190,15 @@ public class PayOrderController {
     @PostMapping("/user/page")
     @Operation(summary = "用户获取订单分页")
     public CommonResult<PageResult<AppPayOrderDetailsRespVO>> submitPayOrder(@RequestBody PayOrderAppPageReqVO pageReqVO) {
-        PageResult<AppPayOrderDetailsRespVO>  respVO = payOrderService.getAppOrderPage(pageReqVO, getLoginUserId(),getTenantId());
+        PageResult<AppPayOrderDetailsRespVO> respVO = payOrderService.getAppOrderPage(pageReqVO, getLoginUserId(), getTenantId());
         return success(respVO);
     }
 
     @PostMapping("/product/list")
     @Operation(summary = "获取商品列表")
     public CommonResult<Map<String, List<AppPayProductDetailsRespVO>>> getProductList() {
-        return success( payOrderService.getAppProductList());
+        return success(payOrderService.getAppProductList());
     }
-
-
-
-
 
 
     // @PostMapping("/update-paid")

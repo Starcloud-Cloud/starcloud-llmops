@@ -170,6 +170,14 @@ public class PayOrderServiceImpl implements PayOrderService {
         log.info("[submitPayOrder][0.支付宝统一下单接收到请求：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), reqVO.getOrderId(), userIp);
         // 1. 获得 PayOrderDO ，并校验其是否存在
         PayOrderDO order = validatePayOrderCanSubmit(reqVO.getOrderId());
+
+        // TODO 临时增加过期时间订单过期时间过滤
+        LocalDateTime now = LocalDateTimeUtil.of(System.currentTimeMillis(), TimeZone.getTimeZone("Asia/Shanghai"));
+        if (now.isAfter(order.getExpireTime())) {
+            orderMapper.updateByIdAndStatus(order.getId(), PayOrderStatusEnum.CLOSED.getStatus(), order);
+            throw exception(ErrorCodeConstants.PAY_ORDER_STATUS_IS_NOT_WAITING);
+        }
+
         // 1.2 校验支付渠道是否有效
         PayChannelDO channel = validatePayChannelCanSubmit(order.getAppId(), reqVO.getChannelCode());
         PayClient client = payClientFactory.getPayClient(channel.getId());
@@ -389,6 +397,17 @@ public class PayOrderServiceImpl implements PayOrderService {
 
         PageResult<PayOrderDO> payOrderDOPageResult = orderMapper.selectAppPage(pageReqVO, userId, tenantId);
 
+        List<PayOrderDO> list = payOrderDOPageResult.getList();
+
+        LocalDateTime now = LocalDateTimeUtil.of(System.currentTimeMillis(), TimeZone.getTimeZone("Asia/Shanghai"));
+        List<PayOrderDO> updatedList = list.stream()
+                .peek(order -> {
+                    if (now.isAfter(order.getExpireTime())) {
+                        order.setStatus(PayOrderStatusEnum.CLOSED.getStatus());
+                    }
+                })
+                .collect(Collectors.toList());
+        payOrderDOPageResult.setList(updatedList);
         return PayOrderConvert.INSTANCE.convertAppPage(payOrderDOPageResult);
 
     }
