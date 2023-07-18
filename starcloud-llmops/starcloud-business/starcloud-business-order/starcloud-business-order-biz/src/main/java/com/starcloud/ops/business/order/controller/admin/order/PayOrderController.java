@@ -177,8 +177,18 @@ public class PayOrderController {
         }catch (Exception e){
             throw exception(ErrorCodeConstants.PAY_ORDER_ERROR_SUBMIT);
         }
+    }
 
+    @PostMapping("/repay")
+    @Operation(summary = "重新支付")
+    public CommonResult<PayOrderSubmitRespVO> orderRepay(@RequestBody PayOrderRepaySubmitReqVO reqVO){
 
+        try {
+            PayOrderSubmitRespVO respVO = payOrderService.submitOrderRepay(reqVO, getClientIP());
+            return success(respVO);
+        }catch (Exception e){
+            throw exception(ErrorCodeConstants.PAY_ORDER_ERROR_SUBMIT);
+        }
     }
 
     @PostMapping("/user/page")
@@ -193,6 +203,10 @@ public class PayOrderController {
     public CommonResult<Map<String, List<AppPayProductDetailsRespVO>>> getProductList() {
         return success( payOrderService.getAppProductList());
     }
+
+
+
+
 
 
     // @PostMapping("/update-paid")

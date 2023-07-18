@@ -44,6 +44,8 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
             text = tika.parseToString(new URL(message.getStorageKey()));
             String cleanText = TextCleanUtils.cleanText(text, message.getSplitRule());
 
+            // FIXME: 2023/7/18 TODO 文件存储
+
             datasetSourceDataService.updateDatasourceStatus(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus());
             // 发送消息
             dataSplitProducer.sendSplitDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), message.getSplitRule(), cleanText);

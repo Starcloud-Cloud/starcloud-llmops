@@ -77,6 +77,30 @@ public interface PayOrderConvert {
 
     }
 
+    @Mapping(target = "id", ignore = true)
+    default PayOrderExtensionDO convert(PayOrderRepaySubmitReqVO bean, String userIp,Long orderId) {
+        if (bean == null && userIp == null) {
+            return null;
+        }
+
+        PayOrderExtensionDO.PayOrderExtensionDOBuilder payOrderExtensionDO = PayOrderExtensionDO.builder();
+
+        if (bean != null) {
+            if (bean.getOrderId() != null) {
+                payOrderExtensionDO.orderId(orderId);
+            }
+            payOrderExtensionDO.channelCode(bean.getChannelCode());
+            Map<String, String> map = bean.getChannelExtras();
+            if (map != null) {
+                payOrderExtensionDO.channelExtras(new LinkedHashMap<String, String>(map));
+            }
+        }
+        payOrderExtensionDO.userIp(userIp);
+
+        return payOrderExtensionDO.build();
+
+    }
+
     PayOrderUnifiedReqDTO convert2(PayOrderSubmitReqVO reqVO);
 
     PayOrderUnifiedReqDTO convert4(PayOrder2ReqVO reqVO);
