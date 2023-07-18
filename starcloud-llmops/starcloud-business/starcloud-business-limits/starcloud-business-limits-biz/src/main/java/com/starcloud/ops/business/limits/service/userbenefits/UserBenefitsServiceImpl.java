@@ -27,15 +27,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -468,6 +466,12 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         wrapper.ge(UserBenefitsDO::getExpirationTime, now);
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
+        if (CollUtil.isEmpty(resultList)){
+            log.error("[allowExpendBenefits][不存在可扣除的权益，用户没有可以使用权益 用户ID({})", userId);
+            String displayName = benefitsTypeEnums.getDisplayName(LocaleContextHolder.getLocale());
+            throw exception(USER_BENEFITS_USELESS_INSUFFICIENT, displayName);
+
+        }
 
         // 获取
         List<String> strategyIds = resultList.stream().map(UserBenefitsDO::getStrategyId).collect(Collectors.toList());
@@ -526,6 +530,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             log.error("[expendBenefits][权益扣减失败，权益类型不存在：用户ID({})｜权益类型({})|数量({})", userId, benefitsTypeCode, amount);
             throw exception(BENEFITS_TYPE_NOT_EXISTS);
         }
+
 
         LocalDateTime now = LocalDateTime.now();
         // 查询条件：当前用户下启用且未过期且权益值大于0的数据
@@ -778,9 +783,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         } catch (Exception e) {
             return Boolean.FALSE;
         }
-
-
     }
 
-
+    private LocalDateTime getNowGmtTime(){
+        long timestamp = System.currentTimeMillis();
+        return Instant.ofEpochMilli(timestamp).atZone(ZoneOffset.ofHours(8)).toLocalDateTime();
+    }
 }
