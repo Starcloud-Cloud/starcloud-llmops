@@ -4,9 +4,19 @@ import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class TextCleanUtils {
+
+
+    public static final List<String> ALLOWTYPE = Arrays.asList("TXT","PDF");
+
+    public static String cleanText(String text, SplitRule splitRule, String type) {
+        return cleanText(text, splitRule);
+    }
 
     public static String cleanText(String text, SplitRule splitRule) {
         if (StringUtils.isNotBlank(splitRule.getPattern())) {
