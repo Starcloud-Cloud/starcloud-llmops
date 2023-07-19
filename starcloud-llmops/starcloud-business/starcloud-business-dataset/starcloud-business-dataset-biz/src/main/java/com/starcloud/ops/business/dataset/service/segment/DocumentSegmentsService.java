@@ -28,6 +28,14 @@ public interface DocumentSegmentsService {
     public void splitAndIndex(SplitRule splitRule, String datasetId, String documentId, String url);
 
     /**
+     * 岸规则拆分文本
+     * @param dataSourceId
+     * @param text
+     * @param splitRule
+     */
+    void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule);
+
+    /**
      * 分段明细
      */
     public List<DocumentSegmentDO> segmentDetail(String datasetId, boolean disable, String docId, int lastPosition);
@@ -60,9 +68,9 @@ public interface DocumentSegmentsService {
 
     /**
      * 创建embedding索引
+     *
      * @param datasetId
      * @param documentId
-     * @param splitText
      */
-    void indexDoc(String datasetId, String documentId, List<String> splitText);
+    void indexDoc(String datasetId, String documentId);
 }

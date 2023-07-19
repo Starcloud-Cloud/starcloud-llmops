@@ -36,7 +36,7 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractStreamMessageLis
         datasetSourceDataService.updateDatasourceStatus(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_IN.getStatus());
         try {
             // 创建索引
-            documentSegmentsService.indexDoc(message.getDatasetId(), message.getDataSourceId(), message.getSplitText());
+            documentSegmentsService.indexDoc(message.getDatasetId(), message.getDataSourceId());
             // 设置数据源状态为创建索引完成
             datasetSourceDataService.updateDatasourceStatus(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_COMPLETED.getStatus());
 

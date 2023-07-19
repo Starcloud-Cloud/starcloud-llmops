@@ -1,10 +1,24 @@
 package com.starcloud.ops.business.user.config;
 
+import cn.iocoder.yudao.module.mp.framework.mp.core.DefaultMpServiceFactory;
+import cn.iocoder.yudao.module.mp.framework.mp.core.MpServiceFactory;
+import cn.iocoder.yudao.module.mp.service.handler.menu.MenuHandler;
+import cn.iocoder.yudao.module.mp.service.handler.message.MessageAutoReplyHandler;
+import cn.iocoder.yudao.module.mp.service.handler.message.MessageReceiveHandler;
+import cn.iocoder.yudao.module.mp.service.handler.other.KfSessionHandler;
+import cn.iocoder.yudao.module.mp.service.handler.other.NullHandler;
+import cn.iocoder.yudao.module.mp.service.handler.other.ScanHandler;
+import cn.iocoder.yudao.module.mp.service.handler.other.StoreCheckNotifyHandler;
+import cn.iocoder.yudao.module.mp.service.handler.user.LocationHandler;
+import cn.iocoder.yudao.module.mp.service.handler.user.SubscribeHandler;
+import cn.iocoder.yudao.module.mp.service.handler.user.UnsubscribeHandler;
+import com.binarywang.spring.starter.wxjava.mp.properties.WxMpProperties;
 import com.starcloud.ops.business.user.service.handler.WeChatUnMatchHandler;
 import com.starcloud.ops.business.user.service.handler.WeChatScanHandler;
 import com.starcloud.ops.business.user.service.handler.WeChatSubscribeHandler;
 import com.starcloud.ops.business.user.service.handler.WeChatUnsubscribeHandler;
 import me.chanjar.weixin.common.api.WxConsts;
+import me.chanjar.weixin.common.redis.RedisTemplateWxRedisOps;
 import me.chanjar.weixin.mp.api.WxMpMessageRouter;
 import me.chanjar.weixin.mp.api.WxMpService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +43,7 @@ public class WeChatConfiguration {
     @Autowired
     private WeChatScanHandler scanHandler;
 
-    @Bean("wxMpMessageRouter")
+//    @Bean("wxMpMessageRouter")
     public WxMpMessageRouter wxMpMessageRouter() {
         WxMpMessageRouter router = new WxMpMessageRouter(wxMpService);
 
@@ -52,4 +66,24 @@ public class WeChatConfiguration {
 
         return router;
     }
+
+    @Bean
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    public MpServiceFactory mpServiceFactory(RedisTemplateWxRedisOps redisTemplateWxRedisOps,
+                                             WxMpProperties wxMpProperties,
+                                             MessageReceiveHandler messageReceiveHandler,
+                                             KfSessionHandler kfSessionHandler,
+                                             StoreCheckNotifyHandler storeCheckNotifyHandler,
+                                             MenuHandler menuHandler,
+                                             NullHandler nullHandler,
+                                             WeChatSubscribeHandler subscribeHandler,
+                                             UnsubscribeHandler unsubscribeHandler,
+                                             LocationHandler locationHandler,
+                                             WeChatScanHandler scanHandler,
+                                             MessageAutoReplyHandler messageAutoReplyHandler) {
+        return new DefaultMpServiceFactory(redisTemplateWxRedisOps, wxMpProperties,
+                messageReceiveHandler, kfSessionHandler, storeCheckNotifyHandler, menuHandler,
+                nullHandler, subscribeHandler, unsubscribeHandler, locationHandler, scanHandler, messageAutoReplyHandler);
+    }
+
 }
