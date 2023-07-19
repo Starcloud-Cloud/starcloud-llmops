@@ -95,8 +95,8 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
                 if (StringUtils.isNotBlank(wxMessage.getTicket())) {
                     redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
                 }
-                WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("欢迎回到魔法AI").build();
-                return outTextMessage;
+                WxMpXmlOutMessage wxMpXmlOutMessage = mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage);
+                return wxMpXmlOutMessage;
             }
 
             socialUserDO = SocialUserDO.builder().code(wxMpUser.getOpenId())
@@ -138,12 +138,9 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
             starUserService.addBenefits(userId, inviteUserid);
 
-            Map<String, Object> msgParams = new HashMap();
-            msgParams.put("username", username);
-            msgParams.put("password", password);
-
-            WxMpXmlOutMessage wxMpXmlOutMessage = mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage, msgParams);
-            return wxMpXmlOutMessage;
+            String msg = String.format("欢迎使用魔法AI，您可以使用帐号密码登录，帐号是：%s  登录密码是：%s", username, password);
+            WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
+            return outTextMessage;
         } catch (Exception e) {
             log.error("新增用户失败", e);
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
