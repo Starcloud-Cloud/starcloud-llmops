@@ -33,7 +33,7 @@ public interface DocumentSegmentsService {
      * @param text
      * @param splitRule
      */
-    void splitDoc(String dataSourceId, String text, SplitRule splitRule);
+    void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule);
 
     /**
      * 分段明细
@@ -71,7 +71,6 @@ public interface DocumentSegmentsService {
      *
      * @param datasetId
      * @param documentId
-     * @param splitText
      */
-    void indexDoc(String datasetId, String documentId, List<String> splitText);
+    void indexDoc(String datasetId, String documentId);
 }
