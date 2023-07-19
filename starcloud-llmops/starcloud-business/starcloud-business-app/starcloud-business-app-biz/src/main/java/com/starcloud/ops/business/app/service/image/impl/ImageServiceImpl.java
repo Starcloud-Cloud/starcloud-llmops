@@ -266,7 +266,7 @@ public class ImageServiceImpl implements ImageService {
         messageRequest.setAppStep("TEXT_TO_IMAGE");
         messageRequest.setVariables(JSON.toJSONString(request.getImageRequest()));
         messageRequest.setMessage(request.getImageRequest().getPrompt());
-        messageRequest.setMessageTokens(0);
+        messageRequest.setMessageTokens(ImageMetaUtil.countTokens(request.getImageRequest().getPrompt()));
         messageRequest.setMessageUnitPrice(new BigDecimal("0"));
         messageRequest.setCurrency("USD");
         messageRequest.setFromScene(conversation.getFromScene());
