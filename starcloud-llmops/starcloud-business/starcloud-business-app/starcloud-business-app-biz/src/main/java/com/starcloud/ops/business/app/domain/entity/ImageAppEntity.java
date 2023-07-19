@@ -119,7 +119,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
             // 检测权益
             benefitsService.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);
             // 调用图片生成服务
-            List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
+            ImageMessageRespVO imageResponse = textToImage(request);
+            List<ImageDTO> imageList = imageResponse.getImages();
             // 扣除权益
             benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) imageList.size(), userId, request.getConversationUid());
             stopWatch.stop();
@@ -136,10 +137,6 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
             // 更新会话日志
             this.updateAppConversationLog(request.getConversationUid(), Boolean.TRUE);
             // 处理返回结果
-            ImageMessageRespVO imageResponse = new ImageMessageRespVO();
-            imageResponse.setPrompt(request.getImageRequest().getPrompt());
-            imageResponse.setCreateTime(LocalDateTime.now());
-            imageResponse.setImages(imageList);
             JsonParamsEntity jsonParamsEntity = new JsonParamsEntity();
             jsonParamsEntity.setData(imageResponse);
             jsonParamsEntity.setJsonSchemas(JSON.toJSONString(request));
@@ -206,6 +203,21 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
     @Override
     protected void _update() {
         getAppRepository().update(this);
+    }
+
+    /**
+     * 生成图片
+     *
+     * @param request 请求参数
+     * @return {@link ImageMessageRespVO}
+     */
+    private ImageMessageRespVO textToImage(ImageReqVO request) {
+        List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
+        ImageMessageRespVO imageResponse = new ImageMessageRespVO();
+        imageResponse.setPrompt(request.getImageRequest().getPrompt());
+        imageResponse.setCreateTime(LocalDateTime.now());
+        imageResponse.setImages(imageList);
+        return imageResponse;
     }
 
     /**
