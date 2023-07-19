@@ -30,7 +30,7 @@ public interface StarUserService {
      * @param currentUserId
      * @param inviteUserId
      */
-    public void addBenefits(Long currentUserId, Long inviteUserId);
+    void addBenefits(Long currentUserId, Long inviteUserId);
 
     /**
      * 找回密码
