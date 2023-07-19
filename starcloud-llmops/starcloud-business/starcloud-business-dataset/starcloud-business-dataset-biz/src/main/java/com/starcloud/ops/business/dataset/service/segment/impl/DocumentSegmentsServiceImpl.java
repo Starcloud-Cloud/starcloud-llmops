@@ -195,6 +195,11 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
 
     @Override
+    public void splitDoc(String dataSourceId, String text, SplitRule splitRule) {
+
+    }
+
+    @Override
     public void splitAndIndex(SplitRule splitRule, String datasetId, String documentId, String url) {
         Assert.notBlank(datasetId, "datasetId is null");
         Assert.notBlank(documentId, "documentId is null");
