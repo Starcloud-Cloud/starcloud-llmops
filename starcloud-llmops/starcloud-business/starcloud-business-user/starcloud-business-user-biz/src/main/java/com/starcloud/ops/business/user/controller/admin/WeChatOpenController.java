@@ -3,6 +3,11 @@ package com.starcloud.ops.business.user.controller.admin;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
+import cn.iocoder.yudao.module.mp.framework.mp.core.MpServiceFactory;
+import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
+import cn.iocoder.yudao.module.mp.service.account.MpAccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -14,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
 import java.util.Objects;
 
@@ -26,13 +32,17 @@ public class WeChatOpenController {
     private WxMpService wxMpService;
 
     @Autowired
-    private WxMpMessageRouter wxMpMessageRouter;
+    private MpAccountService mpAccountService;
+
+    @Autowired
+    private MpServiceFactory mpServiceFactory;
 
     @Operation(summary = "校验签名")
-    @GetMapping("/callback")
+    @GetMapping("/callback/{appId}")
     @PermitAll
     @OperateLog(enable = false)
-    public String test(@RequestParam(name = "signature", required = false) String signature,
+    public String test(@PathVariable("appId") String appId,
+                       @RequestParam(name = "signature", required = false) String signature,
                        @RequestParam(name = "timestamp", required = false) String timestamp,
                        @RequestParam(name = "nonce", required = false) String nonce,
                        @RequestParam(name = "echostr", required = false) String echostr) throws WxErrorException {
@@ -42,16 +52,26 @@ public class WeChatOpenController {
         return "验证失败";
     }
 
-
-    @PostMapping("/callback")
+    @PostMapping("/callback/{appId}")
     @PermitAll
     @OperateLog(enable = false)
     public String token(@RequestBody String content,
+                        @PathVariable("appId") String appId,
                         @RequestParam(name = "signature", required = false) String signature,
                         @RequestParam(name = "timestamp", required = false) String timestamp,
                         @RequestParam(name = "nonce", required = false) String nonce,
                         @RequestParam(name = "encrypt_type", required = false) String type) throws Exception {
 
+        WxMpService mppService = mpServiceFactory.getRequiredMpService(appId);
+        Assert.isTrue(mppService.checkSignature(timestamp, nonce, signature),
+                "非法请求");
+
+        MpContextHolder.setAppId(appId);
+
+        MpAccountDO account = mpAccountService.getAccountFromCache(appId);
+
+        TenantContextHolder.setTenantId(account.getTenantId());
+        TenantContextHolder.setIgnore(false);
         WxMpXmlMessage inMessage = null;
         if (StrUtil.isBlank(type)) {
             // 明文模式
@@ -64,7 +84,8 @@ public class WeChatOpenController {
         Assert.notNull(inMessage, "消息解析失败，原因：消息为空");
 
         WxMpXmlMessage wxMpXmlMessage = WxMpXmlMessage.fromXml(content);
-        WxMpXmlOutMessage wxMpXmlOutMessage = wxMpMessageRouter.route(wxMpXmlMessage);
+        WxMpMessageRouter mpMessageRouter = mpServiceFactory.getRequiredMpMessageRouter(appId);
+        WxMpXmlOutMessage wxMpXmlOutMessage = mpMessageRouter.route(wxMpXmlMessage);
 
         if (wxMpXmlOutMessage == null) {
             return StringUtils.EMPTY;

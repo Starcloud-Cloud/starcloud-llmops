@@ -1,21 +1,18 @@
 package com.starcloud.ops.business.user.service.handler;
 
-import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
+import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyService;
+import cn.iocoder.yudao.module.mp.service.user.MpUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
-import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;
-import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -37,9 +34,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import javax.annotation.Resource;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -67,11 +66,14 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Resource
+    private MpUserService mpUserService;
+
+    @Resource
+    private MpAutoReplyService mpAutoReplyService;
+
     @Value("${starcloud-llm.tenant.id:2}")
     private Long tenantId;
-
-    @Autowired
-    private AdminUserMapper adminUserMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -79,6 +81,8 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         log.info("接收到微信关注事件，内容：{}", wxMessage);
         try {
             WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
+            // 第二步，保存粉丝信息
+            mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
 
             SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
                     .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
@@ -88,7 +92,9 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             if (socialUserDO != null) {
                 //取消关注后重新关注 已有帐号
                 log.info("已存在用户，直接登录");
-                redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
+                if (StringUtils.isNotBlank(wxMessage.getTicket())) {
+                    redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
+                }
                 WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("欢迎回到魔法AI").build();
                 return outTextMessage;
             }
@@ -129,15 +135,17 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             } catch (Exception e) {
                 log.warn("获取邀请用户失败，currentUser={}", userId, e);
             }
-            TenantContextHolder.setTenantId(tenantId);
-            TenantContextHolder.setIgnore(false);
-            starUserService.addBenefits(userId, inviteUserid);
-            String msg = String.format("欢迎使用魔法AI，您可以使用帐号密码登录，帐号是：%s  登录密码是：%s", username, password);
 
-            WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
-            return outTextMessage;
+            starUserService.addBenefits(userId, inviteUserid);
+
+            Map<String, Object> msgParams = new HashMap();
+            msgParams.put("username", username);
+            msgParams.put("password", password);
+
+            WxMpXmlOutMessage wxMpXmlOutMessage = mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage, msgParams);
+            return wxMpXmlOutMessage;
         } catch (Exception e) {
-            log.error("新增用户失败",e);
+            log.error("新增用户失败", e);
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
         }
         return null;
