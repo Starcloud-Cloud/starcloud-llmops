@@ -32,6 +32,7 @@ public class DatasetSourceDataCleanSendMessage extends AbstractStreamMessage {
     @NotNull(message = "文件地址")
     private String storageKey;
 
+
     @Override
     public String getStreamKey() {
         return "system.dataset.sourcedata.clean.send";

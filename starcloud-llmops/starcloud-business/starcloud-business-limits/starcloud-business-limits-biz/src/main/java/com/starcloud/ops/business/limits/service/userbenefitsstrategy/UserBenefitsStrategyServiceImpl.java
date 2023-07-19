@@ -369,6 +369,22 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
     }
 
     /**
+     * 校验数据是否存在
+     *
+     * @param ids           数据 ID
+     * @param strategyType
+     */
+    @Override
+    public List<UserBenefitsStrategyDO> validateUserBenefitsStrategyExists(List<String> ids, String strategyType) {
+        // 创建查询条件
+        LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
+        wrapper.eq(UserBenefitsStrategyDO::getStrategyType, strategyType);
+        wrapper.in(UserBenefitsStrategyDO::getId,ids);
+
+        return userBenefitsStrategyMapper.selectList(wrapper);
+    }
+
+    /**
      * 校验数据是否可以修改 -仅启用状态且未归档的状态可以修改
      *
      * @param id 主键 ID

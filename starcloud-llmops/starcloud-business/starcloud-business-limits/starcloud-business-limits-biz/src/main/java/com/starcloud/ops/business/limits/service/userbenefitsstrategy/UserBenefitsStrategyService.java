@@ -141,5 +141,13 @@ public interface UserBenefitsStrategyService {
     void validateUserBenefitsStrategyExists(Long id);
 
 
+    /**
+     * 校验数据是否存在
+     *
+     * @param id 数据 ID
+     */
+    List<UserBenefitsStrategyDO> validateUserBenefitsStrategyExists(List<String> id , String strategyType);
+
+
 }
 

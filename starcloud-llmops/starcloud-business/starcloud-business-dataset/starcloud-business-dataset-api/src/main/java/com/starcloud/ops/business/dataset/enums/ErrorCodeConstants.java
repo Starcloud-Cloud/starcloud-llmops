@@ -24,6 +24,9 @@ public interface ErrorCodeConstants {
     ErrorCode DATASETS_NOT_EXIST_ERROR = new ErrorCode(1003001011, "dataset不存在");
 
 
+    ErrorCode FILE_TYPE_NOT_ALLOW = new ErrorCode(1003001012, "文件类型不支持");
+
+
 
     //======================================数据集源数据======================================
     ErrorCode DATASET_SOURCE_DATA_NOT_EXISTS = new ErrorCode(1003001009, "数据集源数据不存在");
