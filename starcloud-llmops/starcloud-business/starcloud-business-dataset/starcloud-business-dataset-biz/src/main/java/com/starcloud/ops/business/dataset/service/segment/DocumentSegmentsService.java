@@ -2,9 +2,9 @@ package com.starcloud.ops.business.dataset.service.segment;
 
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
-import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
-import com.starcloud.ops.business.dataset.pojo.response.MatchTestResponse;
+import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 
@@ -56,7 +56,7 @@ public interface DocumentSegmentsService {
      * @param request
      * @return
      */
-    public MatchTestResponse matchTest(MatchTestRequest request);
+    public MatchQueryVO matchQuery(MatchQueryRequest request);
 
     /**
      * 相似查询

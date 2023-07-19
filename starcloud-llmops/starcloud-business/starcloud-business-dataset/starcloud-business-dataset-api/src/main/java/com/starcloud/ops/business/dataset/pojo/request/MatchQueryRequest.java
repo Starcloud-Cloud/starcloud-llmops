@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 @Data
 @Schema(description = "文件分段命中测试")
-public class MatchTestRequest {
+public class MatchQueryRequest {
 
     @Schema(description = "文本Id")
     @NotBlank(message = "documentId 不能为空")

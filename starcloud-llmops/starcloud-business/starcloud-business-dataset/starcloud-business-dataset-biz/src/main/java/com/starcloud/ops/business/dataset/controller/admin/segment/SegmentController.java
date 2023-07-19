@@ -5,7 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstant
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
-import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,8 +58,8 @@ public class SegmentController {
 
     @PostMapping("/match/text")
     @Operation(summary = "文档分段命中测试", description = "文档分段命中测试")
-    public CommonResult matchTest(@RequestBody @Valid MatchTestRequest request) {
-        return CommonResult.success(documentSegmentsService.matchTest(request));
+    public CommonResult matchTest(@RequestBody @Valid MatchQueryRequest request) {
+        return CommonResult.success(documentSegmentsService.matchQuery(request));
     }
 
 

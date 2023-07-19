@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @Schema(description = "文件切割")
 @Builder
-public class MatchTestResponse {
+public class MatchQueryVO {
 
     private String queryText;
 
