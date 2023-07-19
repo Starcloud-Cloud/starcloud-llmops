@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -68,11 +69,13 @@ public class ChatTest extends BaseDbUnitTest {
 
         ChatRequestVO chatRequest = new ChatRequestVO();
         chatRequest.setAppUid("play");
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
 
         chatRequest.setQuery("讲个关于汉堡的笑话吧。");
 
         chatRequest.setQuery("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
 
+        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
         ChatAppEntity chatAppEntity = AppFactory.factory(chatRequest);
 
         JsonParamsEntity jsonParams = chatAppEntity.execute(chatRequest);

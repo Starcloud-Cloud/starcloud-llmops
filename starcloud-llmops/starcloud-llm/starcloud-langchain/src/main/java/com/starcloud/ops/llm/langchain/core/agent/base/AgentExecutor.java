@@ -234,7 +234,7 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
                 Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
 
-                observation = new InvalidTool().run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
+                observation = new InvalidTool().setCallbackManager(this.callbackManager).run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
             }
 
             agentAction.setObservation(observation);

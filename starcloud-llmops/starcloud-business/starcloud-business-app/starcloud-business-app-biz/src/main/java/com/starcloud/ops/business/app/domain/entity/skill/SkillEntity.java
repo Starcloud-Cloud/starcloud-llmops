@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.skill;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.skill.accredit.BaseAccredit;
 import lombok.Data;
@@ -26,9 +27,11 @@ public abstract class SkillEntity {
         return this.getClass().getSimpleName();
     }
 
+    @JsonIgnore
     @Deprecated
     public abstract Class<?> getInputCls();
 
+    @JsonIgnore
     public abstract JsonNode getInputSchemas();
 
     /**

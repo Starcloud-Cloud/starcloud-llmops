@@ -128,14 +128,6 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
         return toret;
     }
 
-
-
-    @Override
-    public com.fasterxml.jackson.databind.JsonNode getInputSchemas() {
-        return null;
-    }
-
-
     @Data
     public static class Request {
 

@@ -60,13 +60,6 @@ public class SerpapiXXTool extends BaseTool<SerpapiXXTool.Request, String> {
         return result;
     }
 
-
-    @Override
-    public JsonNode getInputSchemas() {
-        return null;
-    }
-
-
     @Data
     public static class Request {
 

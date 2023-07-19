@@ -63,6 +63,10 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
         Assert.isInstanceOf(ChatOpenAI.class, llm, "Only supported with ChatOpenAI models.");
 
+        Optional.ofNullable(tools).orElse(new ArrayList<>()).forEach(tool -> {
+            tool.setCallbackManager(callbackManager);
+        });
+
         OpenAIFunctionsAgent agent = new OpenAIFunctionsAgent(llm, tools, createPrompt(systemMessage, extraPromptMessages));
         agent.setCallbackManager(callbackManager);
 

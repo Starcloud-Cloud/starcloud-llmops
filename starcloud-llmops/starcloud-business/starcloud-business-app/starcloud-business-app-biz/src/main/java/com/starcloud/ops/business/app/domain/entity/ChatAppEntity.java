@@ -10,6 +10,8 @@ import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
+import com.starcloud.ops.business.app.domain.context.AppContext;
+import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
@@ -19,6 +21,8 @@ import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkillEntity
 import com.starcloud.ops.business.app.domain.entity.skill.SkillEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
+import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocActionHandler;
+import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -43,6 +47,7 @@ import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
+import com.starcloud.ops.llm.langchain.core.tools.RequestsGetTool;
 import com.starcloud.ops.llm.langchain.core.tools.SerpAPITool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
@@ -140,7 +145,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
         logAppConversationCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
 
         logAppConversationCreateReqVO.setAppUid(req.getAppUid());
-        logAppConversationCreateReqVO.setAppConfig(JSON.toJSONString(this.getChatConfig()));
+        logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getChatConfig()));
 
         logAppConversationCreateReqVO.setFromScene(req.getScene());
         logAppConversationCreateReqVO.setEndUser(req.getEndUser());
@@ -235,11 +240,11 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
             humanInput.put(PromptTempletEnum.DATASET_CONTEXT.getKey(), contextSj.toString());
         }
 
-
         // 历史记录
-        if (history.limitMessage(1).size() > 0) {
+        if (history != null && history.limitMessage(1).size() > 0) {
             messageTemp.add(PromptTempletEnum.HISTORY_TEMP.getTemp());
         }
+
         humanInput.put(PromptTempletEnum.INPUT_TEMP.getKey(), request.getQuery());
         messageTemp.add(PromptTempletEnum.INPUT_TEMP.getTemp());
 
@@ -282,8 +287,8 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
                 messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
                 messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.0200"));
 
-                messageCreateReqVO.setAppConfig(JSON.toJSONString(chatConfig));
-                messageCreateReqVO.setVariables(JSON.toJSONString(chatConfig.getModelConfig()));
+                messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(chatConfig));
+                messageCreateReqVO.setVariables(JSONUtil.toJsonStr(chatConfig.getModelConfig()));
                 messageCreateReqVO.setAppUid(request.getAppUid());
                 messageCreateReqVO.setAppStep("");
                 messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
@@ -360,7 +365,9 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
         chatOpenAI.setModel("gpt-4-0613");
         chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter));
         ConversationBufferMemory memory = new ConversationBufferMemory();
-        memory.setChatHistory(history);
+        if (history != null) {
+            memory.setChatHistory(history);
+        }
 
         List<SkillEntity> skillEntities = chatConfig.getSkills();
         List<BaseTool> tools = this.loadLLMTools(chatConfig, skillEntities, emitter);
@@ -389,14 +396,25 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
 
         //web search
         if (searchConfigEntity != null && searchConfigEntity.getEnabled()) {
-            SerpAPITool serpAPITool = new SerpAPITool();
-            if (StrUtil.isNotBlank(searchConfigEntity.getWebScope())) {
-                String newDesc = serpAPITool.getDescription();
-                StrUtil.replace(newDesc + ".Note do not call the tool if you encounter the following web domains <<<{WebScope}>>>", "{WebScope}", searchConfigEntity.getWebScope());
-                serpAPITool.setDescription(newDesc);
-            }
+//            RequestsGetTool requestsGetTool = new RequestsGetTool();
+//            String des = requestsGetTool.getDescription();
 
-            loadTools.add(serpAPITool);
+            WebSearch2DocActionHandler webSearch2Doc = SpringUtil.getBean(WebSearch2DocActionHandler.class);
+            String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
+
+            FunTool funTool = new FunTool(webSearch2Doc.getName(), description, webSearch2Doc.getInputSchemas(null), (input) -> {
+                log.info("funTool: {} {}", webSearch2Doc.getName(), input);
+
+                AppContext appContext = new AppContext();
+
+                appContext.setJsonParams(new JsonParamsEntity().setData(input));
+
+                ActionResponse actionResponse =  webSearch2Doc.execute(appContext, null);
+
+                return actionResponse.getJsonParams().toJson();
+            });
+
+            loadTools.add(funTool);
         }
 
         //load skill

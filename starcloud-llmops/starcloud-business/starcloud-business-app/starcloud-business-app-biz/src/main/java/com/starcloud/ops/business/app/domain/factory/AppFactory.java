@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
 import com.starcloud.ops.business.app.domain.entity.skill.ActionSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.ApiSkillEntity;
@@ -17,7 +18,9 @@ import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkillEntity
 import com.starcloud.ops.business.app.domain.handler.datasearch.GoogleSearchActionHandler;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
@@ -28,6 +31,7 @@ import java.util.Arrays;
  * @version 1.0.0
  * @since 2023-05-31
  */
+@Validated
 public class AppFactory {
 
     /**
@@ -97,7 +101,7 @@ public class AppFactory {
         return app;
     }
 
-    public static ChatAppEntity factory(ChatRequestVO chatRequest) {
+    public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
 
         String appId = chatRequest.getAppUid();
 
@@ -111,11 +115,18 @@ public class AppFactory {
             ChatConfigEntity chatConfig = new ChatConfigEntity();
 
             chatConfig.setPrePrompt("@123 can assist users in answering a wide range of professional knowledge-related queries. @123 is able to answer users' questions professionally and enthusiastically, and give professional and detailed insights. @123 can answer questions that is related to the field of .");
-            chatConfig.setSkills(Arrays.asList(
-                    SkillFactory.factory(ApiSkillEntity.class).setUrl("https://baidu.com").setName("search-news").setDesc("A search engine. Useful for when you need to answer questions about news. Input should be a search query."),
-                    SkillFactory.factory(ApiSkillEntity.class).setUrl("https://baidu.com").setName("search-food").setDesc("A search engine. Useful for when you need to answer questions about food. Input should be a search query."),
-                    SkillFactory.factoryAppWorkflow("appUid-test")
-            ));
+//            chatConfig.setSkills(Arrays.asList(
+//                    SkillFactory.factory(ApiSkillEntity.class).setUrl("https://baidu.com").setName("search-news").setDesc("A search engine. Useful for when you need to answer questions about news. Input should be a search query."),
+//                    SkillFactory.factory(ApiSkillEntity.class).setUrl("https://baidu.com").setName("search-food").setDesc("A search engine. Useful for when you need to answer questions about food. Input should be a search query."),
+//                    SkillFactory.factoryAppWorkflow("appUid-test")
+//            ));
+
+            WebSearchConfigEntity webSearchConfig = new WebSearchConfigEntity();
+            webSearchConfig.setEnabled(true);
+           // webSearchConfig.setWebScope("https://baidu.com\nhttps://google.com");
+            webSearchConfig.setWebScope("*");
+            webSearchConfig.setWhenToUse("Search for latest news and concept");
+            chatConfig.setWebSearchConfig(webSearchConfig);
 
 
             ModelConfigEntity modelConfig = new ModelConfigEntity();

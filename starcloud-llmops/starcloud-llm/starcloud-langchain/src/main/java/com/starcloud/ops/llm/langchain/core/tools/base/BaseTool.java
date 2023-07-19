@@ -10,6 +10,7 @@ import kotlin.jvm.Transient;
 import lombok.Data;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -31,6 +32,10 @@ public abstract class BaseTool<Q, R> {
 
     protected abstract R _run(Q input);
 
+    public R run(Q input) {
+        return this.run(input, false, new HashMap<>());
+    }
+
     public R run(Q input, Boolean verbose, Map<String, Object> toolRunKwargs) {
 
         CallbackManagerForToolRun toolRun = this.callbackManager.onToolStart(this.getName(), input, verbose);
@@ -39,12 +44,17 @@ public abstract class BaseTool<Q, R> {
 
         try {
 
+
             //@todo input if JsonNode
 
             Type query = TypeUtil.getTypeArgument(this.getClass());
-            Class<Q> cc = (Class<Q>) query;
+            if (query.getTypeName().contains("Object")) {
+                result = this._run(input);
+            } else {
 
-            result = this._run(JSONUtil.toBean(input.toString(), cc));
+                Class<Q> cc = (Class<Q>) query;
+                result = this._run(JSONUtil.toBean(input.toString(), cc));
+            }
 
             toolRun.onToolEnd(this.getName(), result, input, verbose);
 

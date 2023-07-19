@@ -28,16 +28,11 @@ public class RequestsGetTool extends BaseTool<RequestsGetTool.Request, String> {
     }
 
 
-    @Override
-    public JsonNode getInputSchemas() {
-        return null;
-    }
-
     @Data
     public static class Request {
 
         @JsonProperty(required = true)
-        @JsonPropertyDescription("a  url")
+        @JsonPropertyDescription("a website url")
         private String url;
 
     }

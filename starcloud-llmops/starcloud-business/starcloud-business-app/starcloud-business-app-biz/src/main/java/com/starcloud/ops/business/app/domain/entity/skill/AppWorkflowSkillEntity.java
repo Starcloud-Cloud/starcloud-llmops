@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.skill;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
@@ -23,21 +24,27 @@ public class AppWorkflowSkillEntity extends SkillEntity {
 
     private String appUid;
 
-
+    @JsonIgnore
     @Override
     public Class<?> getInputCls() {
         return null;
     }
 
+    @JsonIgnore
     @Override
     public JsonNode getInputSchemas() {
         //根据 app配置参数，第一个step的入参 生成 schemas
 
-        AppEntity app = AppFactory.factory(this.getAppUid());
+        try {
+            AppEntity app = AppFactory.factory(this.getAppUid());
+
+        } catch (Exception e) {
+
+        }
 
         //@todo 查询信息
-        String name = "search workflow";
-        String description = "workflow run command";
+        this.setName("search workflow");
+        this.setDesc("workflow run command");
 
         HashMap schemas = new HashMap() {
             {
