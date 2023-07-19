@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.Valid;
-import java.io.Serializable;
 
 /**
  * @author nacoyer
@@ -29,12 +28,6 @@ public class ImageReqVO extends AppContextReqVO {
 
     @Schema(description = "sse对象")
     private SseEmitter sseEmitter;
-
-    /**
-     * 应用名称
-     */
-    @Schema(description = "应用名称")
-    private String name;
 
     /**
      * 游客的唯一标识

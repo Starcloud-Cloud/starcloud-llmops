@@ -19,7 +19,7 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.image.VSearchImageService;
-import com.starcloud.ops.business.app.util.ImageMetaUtil;
+import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -70,11 +70,11 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public Map<String, List<ImageMetaDTO>> meta() {
         Map<String, List<ImageMetaDTO>> meta = new HashMap<>(8);
-        meta.put("samples", ImageMetaUtil.samplesList());
-        meta.put("imageSize", ImageMetaUtil.imageSizeList());
-        meta.put("sampler", ImageMetaUtil.samplerList());
-        meta.put("guidancePreset", ImageMetaUtil.guidancePresetList());
-        meta.put("stylePreset", ImageMetaUtil.stylePresetList());
+        meta.put("samples", ImageUtils.samplesList());
+        meta.put("imageSize", ImageUtils.imageSizeList());
+        meta.put("sampler", ImageUtils.samplerList());
+        meta.put("guidancePreset", ImageUtils.guidancePresetList());
+        meta.put("stylePreset", ImageUtils.stylePresetList());
         return meta;
     }
 
@@ -88,7 +88,7 @@ public class ImageServiceImpl implements ImageService {
         ImageRespVO response = new ImageRespVO();
         Long loginUserId = WebFrameworkUtils.getLoginUserId();
         LogAppConversationDO conversation = this.getConversation(null, loginUserId);
-        response.setConversationId(conversation.getUid());
+        response.setConversationUid(conversation.getUid());
         // 查询会话下的消息
         LambdaQueryWrapper<LogAppMessageDO> messageWrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
         messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer);
@@ -266,7 +266,7 @@ public class ImageServiceImpl implements ImageService {
         messageRequest.setAppStep("TEXT_TO_IMAGE");
         messageRequest.setVariables(JSON.toJSONString(request.getImageRequest()));
         messageRequest.setMessage(request.getImageRequest().getPrompt());
-        messageRequest.setMessageTokens(ImageMetaUtil.countTokens(request.getImageRequest().getPrompt()));
+        messageRequest.setMessageTokens(ImageUtils.countTokens(request.getImageRequest().getPrompt()));
         messageRequest.setMessageUnitPrice(new BigDecimal("0"));
         messageRequest.setCurrency("USD");
         messageRequest.setFromScene(conversation.getFromScene());

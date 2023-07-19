@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.convert.image;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
+import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
@@ -55,7 +56,7 @@ public interface VSearchConvert {
     default VSearchImageRequest convert(ImageRequest request) {
         VSearchImageRequest vSearchImageRequest = new VSearchImageRequest();
         vSearchImageRequest.setEngine(request.getEngine());
-        vSearchImageRequest.setPrompts(Collections.singletonList(request.getPrompt()));
+        vSearchImageRequest.setPrompts(Collections.singletonList(TextPrompt.ofDefault(request.getPrompt())));
         vSearchImageRequest.setHeight(request.getHeight());
         vSearchImageRequest.setWidth(request.getWidth());
         vSearchImageRequest.setCfgScale(request.getCfgScale());
@@ -64,6 +65,7 @@ public interface VSearchConvert {
         vSearchImageRequest.setSeed(request.getSeed());
         vSearchImageRequest.setSamples(request.getSamples());
         vSearchImageRequest.setGuidancePreset(request.getGuidancePreset());
+        vSearchImageRequest.setGuidanceStrength(request.getGuidanceStrength());
         vSearchImageRequest.setStylePreset(request.getStylePreset());
         return vSearchImageRequest;
     }

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * @version 1.0.0
  * @since 2023-07-14
  */
-public class ImageMetaUtil {
+public class ImageUtils {
 
     /**
      * 获取 samples

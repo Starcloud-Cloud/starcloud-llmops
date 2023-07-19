@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.feign.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.enums.vsearch.GuidancePresetEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
 import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
@@ -48,7 +49,7 @@ public class VSearchImageRequest implements Serializable {
      */
     @Schema(description = "用于生成的文本提示集合")
     @NotEmpty(message = "prompts can not be empty, please check it.")
-    private List<String> prompts;
+    private List<TextPrompt> prompts;
 
     /**
      * 初始化图像

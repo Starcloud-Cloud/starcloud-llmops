@@ -3,10 +3,10 @@ package com.starcloud.ops.business.app.domain.factory;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
@@ -14,25 +14,21 @@ import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
-import com.starcloud.ops.business.app.domain.entity.skill.ApiSkillEntity;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.recommend.AppRecommendedConsts;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
-import org.springframework.validation.annotation.Validated;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -149,7 +145,7 @@ public class AppFactory {
 
             WebSearchConfigEntity webSearchConfig = new WebSearchConfigEntity();
             webSearchConfig.setEnabled(true);
-           // webSearchConfig.setWebScope("https://baidu.com\nhttps://google.com");
+            // webSearchConfig.setWebScope("https://baidu.com\nhttps://google.com");
             webSearchConfig.setWebScope("*");
             webSearchConfig.setWhenToUse("Search for latest news and concept");
             chatConfig.setWebSearchConfig(webSearchConfig);
@@ -183,6 +179,12 @@ public class AppFactory {
         return appEntity;
     }
 
+    /**
+     * 构建 ImageAppEntity
+     *
+     * @param request 请求参数
+     * @return ImageAppEntity
+     */
     public static ImageAppEntity factory(ImageReqVO request) {
         String appUid = request.getAppUid();
         AppValidate.notBlank(appUid, ErrorCodeConstants.APP_UID_IS_REQUIRED);
@@ -191,23 +193,15 @@ public class AppFactory {
             imageAppEntity.setUid(appUid);
             imageAppEntity.setName(AppRecommendedConsts.BASE_GENERATE_IMAGE);
             imageAppEntity.setModel(AppModelEnum.BASE_GENERATE_IMAGE.name());
-            imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.WEB_ADMIN.name()));
+            imageAppEntity.setScenes(Collections.singletonList(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : request.getScene()));
             imageAppEntity.setType(AppTypeEnum.MYSELF.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());
-
-            ImageConfigEntity imageConfigEntity = new ImageConfigEntity();
-
-            VariableEntity variableEntity = new VariableEntity();
-
-            VariableItemEntity variableItemEntity = new VariableItemEntity();
-
-            ImageRequest imageRequest = request.getImageRequest();
-
-
+            imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
             return imageAppEntity;
         }
-
-        return factoryImageApp(appUid);
+        ImageAppEntity imageAppEntity = factoryImageApp(appUid);
+        imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
+        return imageAppEntity;
     }
 
 

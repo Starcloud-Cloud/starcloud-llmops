@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
+import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
+import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
@@ -25,7 +27,7 @@ public class ImageConfigEntity extends BaseConfigEntity {
     /**
      * 用于生成的文本提示集合。
      */
-    private List<String> prompts;
+    private List<TextPrompt> prompts;
 
     /**
      * 初始化图像
@@ -121,8 +123,27 @@ public class ImageConfigEntity extends BaseConfigEntity {
      */
     @Override
     public void validate() {
+
         if (StringUtils.isBlank(this.engine)) {
             this.engine = EngineEnum.STABLE_DIFFUSION_768_V2_1.getCode();
+        }
+        if (this.height == null) {
+            this.height = 512;
+        }
+        if (this.width == null) {
+            this.width = 512;
+        }
+        if (this.cfgScale == null) {
+            this.cfgScale = 0.8;
+        }
+        if (this.sampler == null) {
+            this.sampler = SamplerEnum.K_DPMPP_2M.getCode();
+        }
+        if (this.steps == null) {
+            this.steps = 50;
+        }
+        if (this.samples == null) {
+            this.sampler = 1;
         }
     }
 

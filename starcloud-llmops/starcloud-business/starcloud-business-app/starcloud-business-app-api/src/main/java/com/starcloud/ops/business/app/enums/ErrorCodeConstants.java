@@ -116,4 +116,8 @@ public interface ErrorCodeConstants {
      */
     ErrorCode GENERATE_IMAGE_FAIL = new ErrorCode(300300000, "Generate image fail, please try again or contact the administrator !");
 
+    /**
+     * 图片 Prompt 为必须的
+     */
+    ErrorCode IMAGE_PROMPT_REQUIRED = new ErrorCode(300300010, "The image prompt is required, please check and try again ! ");
 }

@@ -3,15 +3,22 @@ package com.starcloud.ops.business.app.controller.admin.image;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -50,9 +57,13 @@ public class ImageController {
     @Operation(summary = "文本生成图片", description = "文本生成图片")
     @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<ImageMessageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
-        ImageRequest imageRequest = request.getImageRequest();
-        imageRequest.setEngine("stable-diffusion-512-v2-0");
-
-        return CommonResult.success(imageService.textToImage(request));
+        SseEmitter emitter = new SseEmitter(60000L);
+        request.setSseEmitter(emitter);
+        // 构建 ImageAppEntity
+        ImageAppEntity factory = AppFactory.factory(request);
+        // 执行生成图片
+        JsonParamsEntity response = factory.execute(request);
+        // 返回结果
+        return CommonResult.success((ImageMessageRespVO)response.getData());
     }
 }

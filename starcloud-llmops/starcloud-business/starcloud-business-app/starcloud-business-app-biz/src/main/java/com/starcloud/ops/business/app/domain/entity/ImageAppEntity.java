@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -15,7 +16,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.image.VSearchImageService;
-import com.starcloud.ops.business.app.util.ImageMetaUtil;
+import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
@@ -25,6 +26,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
@@ -77,34 +79,6 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
     }
 
     /**
-     * 历史记录初始化
-     */
-    @Override
-    protected void _initHistory(ImageReqVO imageRequest, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
-        //preHistory(request.getConversationUid(), AppModelEnum.CHAT.name());
-        ImageConfigEntity imageConfigEntity = this._parseConversationConfig(logAppConversation.getAppConfig());
-
-        // 用 req 的参数 在去覆盖默认参数
-    }
-
-    /**
-     * 创建会话日志记录准备，属性赋值
-     *
-     * @param imageRequest
-     * @param logAppConversationRequest
-     */
-    @Override
-    protected void _createAppConversationLog(ImageReqVO imageRequest, LogAppConversationCreateReqVO logAppConversationRequest) {
-        logAppConversationRequest.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
-        logAppConversationRequest.setAppUid(imageRequest.getAppUid());
-        logAppConversationRequest.setAppName(this.getName());
-        logAppConversationRequest.setStatus(LogStatusEnum.ERROR.name());
-        logAppConversationRequest.setAppConfig(JSON.toJSONString(this.getImageConfig()));
-        logAppConversationRequest.setFromScene(AppSceneEnum.WEB_ADMIN.name());
-        logAppConversationRequest.setEndUser(imageRequest.getEndUser());
-    }
-
-    /**
      * 执行图片生成
      *
      * @param request 请求参数
@@ -120,19 +94,18 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
             benefitsService.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);
             // 调用图片生成服务
             ImageMessageRespVO imageResponse = textToImage(request);
-            List<ImageDTO> imageList = imageResponse.getImages();
             // 扣除权益
-            benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) imageList.size(), userId, request.getConversationUid());
+            benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) imageResponse.getImages().size(), userId, request.getConversationUid());
             stopWatch.stop();
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
                 buildAppMessageLog(messageRequest, request, userId);
                 messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
-                messageRequest.setAnswer(JSON.toJSONString(imageList));
+                messageRequest.setAnswer(JSONUtil.toJsonStr(imageResponse.getImages()));
                 // todo 价格统计
-                messageRequest.setAnswerTokens(imageList.size());
-                messageRequest.setMessageUnitPrice(new BigDecimal("0"));
+                messageRequest.setAnswerTokens(1000);
+                messageRequest.setAnswerUnitPrice(new BigDecimal("0.0200"));
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-                messageRequest.setTotalPrice(new BigDecimal(Integer.toString(imageList.size())));
+                messageRequest.setTotalPrice(messageRequest.getAnswerUnitPrice().multiply(new BigDecimal(messageRequest.getAnswerTokens().toString())));
             });
             // 更新会话日志
             this.updateAppConversationLog(request.getConversationUid(), Boolean.TRUE);
@@ -142,7 +115,9 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
             jsonParamsEntity.setJsonSchemas(JSON.toJSONString(request));
             return jsonParamsEntity;
         } catch (ServiceException exception) {
-            stopWatch.stop();
+            if (stopWatch.isRunning()) {
+                stopWatch.stop();
+            }
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
                 buildAppMessageLog(messageRequest, request, userId);
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
@@ -153,7 +128,9 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
             log.error("文字生成图片失败，错误码：{}, 错误信息：{}", exception.getCode(), exception.getMessage());
             throw exception;
         } catch (Exception exception) {
-            stopWatch.stop();
+            if (stopWatch.isRunning()) {
+                stopWatch.stop();
+            }
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
                 buildAppMessageLog(messageRequest, request, userId);
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
@@ -178,6 +155,31 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
     }
 
     /**
+     * 创建会话日志记录准备，属性赋值
+     *
+     * @param imageRequest
+     * @param logAppConversationRequest
+     */
+    @Override
+    protected void _createAppConversationLog(ImageReqVO imageRequest, LogAppConversationCreateReqVO logAppConversationRequest) {
+        logAppConversationRequest.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
+        logAppConversationRequest.setAppUid(imageRequest.getAppUid());
+        logAppConversationRequest.setAppName(this.getName());
+        logAppConversationRequest.setStatus(LogStatusEnum.ERROR.name());
+        logAppConversationRequest.setAppConfig(JSONUtil.toJsonStr(imageRequest.getImageRequest()));
+        logAppConversationRequest.setFromScene(StringUtils.isBlank(imageRequest.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : imageRequest.getScene());
+        logAppConversationRequest.setEndUser(imageRequest.getEndUser());
+    }
+
+    /**
+     * 历史记录初始化
+     */
+    @Override
+    protected void _initHistory(ImageReqVO imageRequest, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
+
+    }
+
+    /**
      * 解析会话配置
      *
      * @param conversationConfig 会话配置
@@ -185,8 +187,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
      */
     @Override
     protected ImageConfigEntity _parseConversationConfig(String conversationConfig) {
-        ImageConfigEntity imageConfig = JSON.parseObject(conversationConfig, ImageConfigEntity.class);
-        return imageConfig;
+        return null;
     }
 
     /**
@@ -232,14 +233,14 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
         messageRequest.setAppConversationUid(request.getConversationUid());
         messageRequest.setAppUid(request.getAppUid());
         messageRequest.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
-        messageRequest.setAppConfig(JSON.toJSONString(this.getImageConfig()));
+        messageRequest.setAppConfig(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setAppStep("BASE_GENERATE_IMAGE");
-        messageRequest.setVariables(JSON.toJSONString(request.getImageRequest()));
+        messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setMessage(request.getImageRequest().getPrompt());
-        messageRequest.setMessageTokens(ImageMetaUtil.countTokens(request.getImageRequest().getPrompt()));
-        messageRequest.setMessageUnitPrice(new BigDecimal("0"));
+        messageRequest.setMessageTokens(ImageUtils.countTokens(request.getImageRequest().getPrompt()));
+        messageRequest.setMessageUnitPrice(new BigDecimal("0.0200"));
         messageRequest.setCurrency("USD");
-        messageRequest.setFromScene(AppSceneEnum.WEB_ADMIN.name());
+        messageRequest.setFromScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : request.getScene());
         messageRequest.setEndUser(Long.toString(userId));
     }
 

@@ -123,4 +123,13 @@ public class ImageRequest implements Serializable {
     @InEnum(value = StylePresetEnum.class, field = InEnum.EnumField.CODE, message = "style_preset[{value}] must be in {values}")
     private Integer stylePreset;
 
+    /**
+     * 指导强度。我们建议取值范围为[0.0,1.0]。最好的默认值是0.25
+     */
+    @Schema(description = "指导强度。我们建议取值范围为[0.0,1.0]。最好的默认值是0.25")
+    @JsonProperty(value = "guidance_strength")
+    @Min(value = 0, message = "guidanceStrength must be greater than or equal to 0")
+    @Max(value = 1, message = "guidanceStrength must be less than or equal to 1")
+    private Double guidanceStrength;
+
 }
