@@ -37,6 +37,12 @@ public class ImageReqVO extends AppContextReqVO {
     private String name;
 
     /**
+     * 游客的唯一标识
+     */
+    @Schema(description = "游客的唯一标识")
+    private String endUser;
+
+    /**
      * 图片生成参数配置
      */
     @Valid

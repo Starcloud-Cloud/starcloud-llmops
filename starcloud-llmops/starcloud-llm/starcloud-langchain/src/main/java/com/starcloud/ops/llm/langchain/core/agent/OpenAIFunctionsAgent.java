@@ -103,7 +103,8 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
     public List<FunctionDescription> getFunctions() {
 
-        return Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().map(FunctionDescription::convert).collect(Collectors.toList());
+//        return Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().map(FunctionDescription::convert).collect(Collectors.toList());
+        return null;
     }
 
 
