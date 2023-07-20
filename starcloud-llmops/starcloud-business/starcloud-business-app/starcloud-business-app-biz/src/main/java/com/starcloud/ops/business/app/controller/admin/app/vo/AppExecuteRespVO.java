@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.controller.admin.vo;
+package com.starcloud.ops.business.app.controller.admin.app.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;

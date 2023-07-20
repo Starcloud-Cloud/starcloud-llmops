@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,6 +48,13 @@ public class AppContext {
      */
     @NotNull
     private AppEntity app;
+
+
+    /**
+     * 流程执行入口新入参，有数据和参数定义
+     * 对之前的大对象 AppEntity 进行精简处理
+     */
+    private JsonParamsEntity jsonParams;
 
 
     @JSONField(serialize = false)
@@ -153,6 +161,37 @@ public class AppContext {
         //内容中 变量占位符 替换
 
         return StrUtil.format(String.valueOf(value), allVariablesValues);
+
+    }
+
+
+    /**
+     * 获取当前步骤的所有变量Maps
+     *
+     * @return
+     */
+    @JSONField(serialize = false)
+    public Map<String, Object> getContextVariablesValues() {
+
+        String prefixKey = "STEP";
+
+        //获取当前步骤前的所有变量的值
+        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(this.stepId);
+
+        Map<String, Object> allVariablesValues = MapUtil.newHashMap();
+
+        Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).forEach(wrapper -> {
+
+            Map<String, Object> variablesValues = wrapper.getContextVariablesValues(prefixKey);
+
+            Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()).entrySet().forEach(stringObjectEntry -> {
+
+                allVariablesValues.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
+            });
+        });
+
+
+        return allVariablesValues;
 
     }
 

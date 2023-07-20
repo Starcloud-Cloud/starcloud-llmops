@@ -53,5 +53,9 @@ public class VSearchImage {
     @JsonProperty(value = "finish_reason")
     private Integer finishReason;
 
-
+    /**
+     * 图片扩散数
+     */
+    @Schema(description = "图片扩散数")
+    private Long seed;
 }

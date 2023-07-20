@@ -164,7 +164,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                         log.error("openAiService doOnError: {}", e.getMessage(), e);
 
-                        //this.getCallbackManager().onLLMError(e.getMessage(), e);
+                        callbackManagerForLLMRun.onLLMError(e.getMessage(), e);
 
                     })
                     .doOnComplete(() -> {
@@ -180,7 +180,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
                         chatResult.setChatGenerations(Arrays.asList(ChatGeneration.<ChatCompletionResult>builder().chatMessage(new AIMessage(resultMsg)).usage(baseLLMUsage).build()));
                         chatResult.setUsage(baseLLMUsage);
 
-                        //this.getCallbackManager().onLLMEnd("complete", resultMsg, totalTokens);
+                        //callbackManagerForLLMRun.onLLMEnd("complete", resultMsg, totalTokens);
                     })
                     .doFinally(() -> {
 
@@ -200,7 +200,8 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                         openAiService.shutdownExecutor();
 
-                        //this.getCallbackManager().onLLMEnd("finally", resultMsg, totalTokens);
+                        //callbackManagerForLLMRun.onLLMEnd("finally", resultMsg);
+
                     })
                     .blockingForEach(t -> {
                         String msg = t.getChoices().get(0).getMessage().getContent();
@@ -212,9 +213,9 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                             String endString = "&end&";
 
-                            //this.getCallbackManager().onLLMNewToken(endString);
+                            //callbackManagerForLLMRun.onLLMNewToken(endString);
 
-                            callbackManagerForLLMRun.onLLMEnd("stop");
+                            //callbackManagerForLLMRun.onLLMEnd("stop");
 
                         }
                     });
@@ -227,10 +228,16 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                 List<ChatFunction> chatFunctions = Optional.ofNullable(functions).orElse(new ArrayList<>()).stream().map(functionDescription -> {
 
-                    return ChatFunction.builder()
-                            .name(functionDescription.getName())
-                            .description(functionDescription.getDescription())
-                            .executor(functionDescription.getParameters(), null).build();
+                    ChatFunction chatFunction = new ChatFunction(functionDescription.getName());
+
+                    chatFunction.setDescription(functionDescription.getDescription());
+                    chatFunction.setParametersSchema(functionDescription.getJsonSchema());
+
+                    return chatFunction;
+//                    return ChatFunction.builder()
+//                            .name(functionDescription.getName())
+//                            .description(functionDescription.getDescription())
+//                            .executor(functionDescription.getParameters(), null).build();
 
                 }).collect(Collectors.toList());
 

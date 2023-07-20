@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -48,6 +49,13 @@ public interface AppService {
      * @return 应用详情
      */
     AppRespVO getRecommendApp(String recommend);
+
+    /**
+     * 获取步骤列表
+     *
+     * @return 步骤列表
+     */
+    List<WorkflowStepWrapperRespVO> stepList();
 
     /**
      * 分页查询应用列表

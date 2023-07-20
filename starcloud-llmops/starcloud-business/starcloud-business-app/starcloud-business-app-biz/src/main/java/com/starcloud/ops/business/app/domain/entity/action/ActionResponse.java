@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.action;
 
+import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -53,6 +54,9 @@ public class ActionResponse {
      * 响应数据
      */
     private String answer;
+
+
+    private JsonParamsEntity jsonParams;
 
     /**
      * 请求 token 使用

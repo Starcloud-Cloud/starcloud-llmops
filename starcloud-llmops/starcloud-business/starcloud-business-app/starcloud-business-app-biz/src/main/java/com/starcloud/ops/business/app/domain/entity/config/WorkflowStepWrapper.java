@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.config;
 
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.action.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
@@ -26,6 +27,7 @@ public class WorkflowStepWrapper {
     /**
      * 步骤 field
      */
+    @Deprecated
     private String field;
 
 
@@ -56,6 +58,15 @@ public class WorkflowStepWrapper {
      * 步骤变量,执行
      */
     private VariableEntity variable;
+
+
+    /**
+     * 获取当前步骤配置的 步骤Code
+     * @return
+     */
+    public String getStepCode() {
+        return this.field;
+    }
 
 
     /**
@@ -114,6 +125,13 @@ public class WorkflowStepWrapper {
         }, prefixKey);
     }
 
+    @JSONField(serialize = false)
+    public Map<String, String> getContextVariablesDes(String prefixKey) {
+
+        return VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
+            return variableItemEntity.getIsShow() ? StrUtil.isNotBlank(variableItemEntity.getDescription()) ? variableItemEntity.getDescription() : variableItemEntity.getLabel() : null;
+        }, prefixKey);
+    }
 
     /**
      * 获取当前步骤的变量Keys列表

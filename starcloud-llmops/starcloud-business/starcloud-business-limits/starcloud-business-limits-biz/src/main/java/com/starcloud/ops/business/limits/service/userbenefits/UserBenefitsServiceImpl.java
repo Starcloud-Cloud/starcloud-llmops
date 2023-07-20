@@ -54,7 +54,6 @@ import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.*;
 @Validated
 public class UserBenefitsServiceImpl implements UserBenefitsService {
 
-
     @Resource
     private UserBenefitsStrategyService userBenefitsStrategyService;
 

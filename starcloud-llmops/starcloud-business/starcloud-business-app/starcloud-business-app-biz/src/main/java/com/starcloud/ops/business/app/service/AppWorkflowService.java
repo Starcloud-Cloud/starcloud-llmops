@@ -177,8 +177,7 @@ public class AppWorkflowService {
      * @param stepId              步骤 ID
      * @param httpServletResponse Http 响应
      */
-    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId,
-                          HttpServletResponse httpServletResponse, SseEmitter sseEmitter) {
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId, SseEmitter sseEmitter) {
         // 获取 AppEntity
         AppEntity app = null;
         if (appRequest == null) {
@@ -201,7 +200,7 @@ public class AppWorkflowService {
         if (StringUtils.isNotBlank(stepId)) {
             appContext.setStepId(stepId);
         }
-        appContext.setHttpServletResponse(httpServletResponse);
+        //appContext.setHttpServletResponse(httpServletResponse);
         appContext.setSseEmitter(sseEmitter);
         if (StringUtils.isNotBlank(requestId)) {
             appContext.setConversationId(requestId);

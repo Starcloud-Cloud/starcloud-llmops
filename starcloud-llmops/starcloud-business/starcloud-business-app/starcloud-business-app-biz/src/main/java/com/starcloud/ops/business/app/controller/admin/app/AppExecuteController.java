@@ -1,6 +1,8 @@
-package com.starcloud.ops.business.app.controller.admin.execute;
+package com.starcloud.ops.business.app.controller.admin.app;
 
-import com.starcloud.ops.business.app.controller.admin.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.AppWorkflowService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,9 +36,16 @@ public class AppExecuteController {
     public SseEmitter execute(@RequestBody @Valid AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
+
         SseEmitter emitter = new SseEmitter(60000L);
-        appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_ADMIN, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(),
-                httpServletResponse,emitter);
+
+        executeReqVO.setSseEmitter(emitter);
+
+        AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO());
+
+        app.execute(executeReqVO);
+
+        //appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_ADMIN, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(), emitter);
         return emitter;
     }
 
@@ -47,8 +56,7 @@ public class AppExecuteController {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
         SseEmitter emitter = new SseEmitter(60000L);
-        appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_MARKET, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(),
-                httpServletResponse,emitter);
+        appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_MARKET, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(),emitter);
         return emitter;
     }
 

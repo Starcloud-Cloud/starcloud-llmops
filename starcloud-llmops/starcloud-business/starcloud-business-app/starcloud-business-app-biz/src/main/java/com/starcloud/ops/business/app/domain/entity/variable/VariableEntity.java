@@ -23,6 +23,11 @@ import java.util.stream.Collectors;
 public class VariableEntity {
 
     /**
+     * json 格式通过 json ObjectMapper 去实现双向转换,方便处理
+     */
+    private Object jsonParams;
+
+    /**
      * 应用变量
      */
     private List<VariableItemEntity> variables;
@@ -82,9 +87,11 @@ public class VariableEntity {
 
         Optional.ofNullable(self).orElse(new ArrayList<>()).forEach(variableItemEntity -> {
 
-            String allKey =  generateKey(prefixKey, variableItemEntity.getField());
+            String allKey = generateKey(prefixKey, variableItemEntity.getField());
 
-            variablesValues.put(allKey.toUpperCase(), consumer.apply(variableItemEntity));
+            if (consumer.apply(variableItemEntity) != null) {
+                variablesValues.put(allKey.toUpperCase(), consumer.apply(variableItemEntity));
+            }
         });
 
         return variablesValues;

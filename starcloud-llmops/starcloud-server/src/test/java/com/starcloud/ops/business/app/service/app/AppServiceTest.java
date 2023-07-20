@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfigu
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
@@ -18,6 +19,7 @@ import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.LanguageEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
@@ -28,6 +30,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.parameters.P;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -51,6 +54,9 @@ public class AppServiceTest extends BaseDbUnitTest {
 
     @MockBean
     private DictDataService dictDataService;
+
+    @MockBean
+    private UserBenefitsService userBenefitsService;
 
     private static final List<DictDataDO> DICT_LIST = Arrays.asList(
             of("Amazon", "AMAZON", 1, "{\"icon\":\"amazon\",\"image\":\"https://download.hotsalecloud.com/mofaai/images/category/amazon.jpg\",\"label\":{\"zh_CN\":\"亚马逊\",\"en_US\":\"Amazon\"},\"desc\":{\"zh_CN\":\"亚马逊Listing、产品分析及店铺管理等模板\",\"en_US\":\"Templates for Amazon Listing, product analysis and store management\"}}"),
@@ -93,6 +99,30 @@ public class AppServiceTest extends BaseDbUnitTest {
             String name = item.getName();
             request.setLanguage(detectLanguage(name));
             request.setCategories(item.getCategories());
+            publish(request);
+        });
+    }
+
+    @Test
+    public void bathPublishTest2() {
+        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class)
+                .select(AppDO::getUid, AppDO::getName, AppDO::getCategories)
+                .in(AppDO::getName, Arrays.asList("小红书文案",
+                        "星座运势",
+                        "今日头条文章",
+                        "社媒帖子标题",
+                        "独立站商品描述",
+                        "生成PPT大纲",
+                        "Generate Text",
+                        "Generate Images"))
+                .eq(AppDO::getDeleted, Boolean.FALSE);
+        List<AppDO> appDOList = appMapper.selectList(wrapper);
+        appDOList.forEach(item -> {
+            AppPublishReqVO request = new AppPublishReqVO();
+            request.setUid(item.getUid());
+            String name = item.getName();
+            request.setLanguage(detectLanguage(name));
+            request.setCategories(Arrays.asList(item.getCategories().split(",")));
             publish(request);
         });
     }

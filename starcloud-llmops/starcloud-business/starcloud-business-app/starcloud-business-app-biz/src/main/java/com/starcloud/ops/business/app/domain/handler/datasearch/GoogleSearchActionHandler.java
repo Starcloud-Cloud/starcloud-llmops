@@ -6,10 +6,14 @@ import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
-import com.starcloud.ops.business.app.domain.handler.common.StepAndFunctionHandler;
+import com.starcloud.ops.business.app.domain.handler.common.FlowStepHandler;
+import com.starcloud.ops.llm.langchain.core.tools.SerpAPITool;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -23,7 +27,9 @@ import java.util.Map;
  */
 @Slf4j
 @TaskComponent(name = "GoogleSearchActionHandler")
-public class GoogleSearchActionHandler extends StepAndFunctionHandler {
+public class GoogleSearchActionHandler extends FlowStepHandler {
+
+    private static SerpAPITool serpAPITool = new SerpAPITool("");
 
     @NoticeSta
     @TaskService(name = "GoogleSearchActionHandler", invoke = @Invoke(timeout = 180000))
@@ -31,14 +37,44 @@ public class GoogleSearchActionHandler extends StepAndFunctionHandler {
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
 
 
-        WorkflowStepWrapper appStepWrapper = context.getCurrentStepWrapper();
+        String query = context.getContextVariablesValue("query", "apple");
 
-        String prompt = appStepWrapper.getContextVariablesValue("prompt", "hi, what you name?");
+        SerpAPITool.Request request = new SerpAPITool.Request();
+        request.setQ(query);
 
+        String content = serpAPITool.run(request, false, null);
 
         ActionResponse appStepResponse = new ActionResponse();
-        appStepResponse.setSuccess(false);
+        appStepResponse.setSuccess(true);
+        appStepResponse.setAnswer(content);
 
         return appStepResponse;
     }
+
+    @Override
+    public Class<?> getInputCls(AppContext context) {
+
+        return Request.class;
+    }
+
+    @Override
+    public JsonNode getInputSchemas(AppContext context) {
+
+        Map<String, Object> stepParams = context.getContextVariablesValues();
+
+        // 根据步骤的参数 生成 jsonSchemas
+
+        return null;
+    }
+
+    @Data
+    public static class Request {
+
+        @JsonProperty(required = true)
+        @JsonPropertyDescription("Parameter defines the query you want to search.")
+        private String q;
+
+    }
+
+
 }
