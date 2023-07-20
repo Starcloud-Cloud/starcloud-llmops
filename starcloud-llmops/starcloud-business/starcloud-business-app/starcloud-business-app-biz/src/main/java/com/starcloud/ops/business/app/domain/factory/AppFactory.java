@@ -16,7 +16,6 @@ import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
-import com.starcloud.ops.business.app.domain.entity.skill.ApiSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.recommend.AppRecommendedConsts;
@@ -32,7 +31,6 @@ import com.starcloud.ops.business.app.validate.app.AppValidate;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -149,7 +147,7 @@ public class AppFactory {
 
             WebSearchConfigEntity webSearchConfig = new WebSearchConfigEntity();
             webSearchConfig.setEnabled(true);
-           // webSearchConfig.setWebScope("https://baidu.com\nhttps://google.com");
+            // webSearchConfig.setWebScope("https://baidu.com\nhttps://google.com");
             webSearchConfig.setWebScope("*");
             webSearchConfig.setWhenToUse("Search for latest news and concept");
             chatConfig.setWebSearchConfig(webSearchConfig);

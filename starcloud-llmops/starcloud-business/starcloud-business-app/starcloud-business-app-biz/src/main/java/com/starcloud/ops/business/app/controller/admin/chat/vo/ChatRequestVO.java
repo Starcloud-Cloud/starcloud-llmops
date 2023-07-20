@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.chat.vo;
 
 
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
-import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -30,7 +30,7 @@ public class ChatRequestVO extends AppContextReqVO {
     /**
      * jsonSchemas 格式的数据，后面会使用这种方式传递参数
      */
-    private JsonParamsEntity jsonParams;
+    private JsonData jsonParams;
 
     @Schema(description = "游客的唯一标识")
     private String endUser;

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
@@ -19,7 +19,7 @@ import java.util.HashMap;
  */
 @Slf4j
 @Data
-public class AppWorkflowSkillEntity extends SkillEntity {
+public class AppWorkflowSkill extends BaseSkillEntity {
 
 
     private String appUid;
@@ -80,12 +80,12 @@ public class AppWorkflowSkillEntity extends SkillEntity {
         //@todo 构造参数
         appExecuteReqVO.setAppReqVO(null);
 
-        JsonParamsEntity jsonParams = new JsonParamsEntity();
+        JsonData jsonParams = new JsonData();
 
         //设置json对象的参数，因为现在 workflow 的入参也只有一层 即 一个 Map
         jsonParams.setData(null);
 
-        appExecuteReqVO.setJsonParams(jsonParams);
+        //appExecuteReqVO.setJsonParams(jsonParams);
 
         Object result = app.execute(appExecuteReqVO);
 

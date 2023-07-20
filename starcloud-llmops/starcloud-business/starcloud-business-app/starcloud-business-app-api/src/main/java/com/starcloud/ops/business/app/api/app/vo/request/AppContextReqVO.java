@@ -17,6 +17,9 @@ public class AppContextReqVO implements Serializable {
     @NotNull(message = "应用ID 不能为空")
     private String appUid;
 
+    @Schema(description = "用户ID")
+    private Long userId;
+
     @Schema(description = "会话id")
     private String conversationUid;
 

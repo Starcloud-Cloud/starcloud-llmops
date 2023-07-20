@@ -1,6 +1,5 @@
-package com.starcloud.ops.business.app.domain.entity.action;
+package com.starcloud.ops.business.app.domain.entity.workflow;
 
-import cn.hutool.core.util.ObjectUtil;
 import lombok.Data;
 
 /**

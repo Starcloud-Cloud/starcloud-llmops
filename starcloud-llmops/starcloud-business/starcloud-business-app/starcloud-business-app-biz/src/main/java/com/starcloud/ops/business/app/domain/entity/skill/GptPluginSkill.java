@@ -2,18 +2,22 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.starcloud.ops.business.app.domain.handler.common.FlowStepHandler;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
- * action 技能
+ * 技能实体
  */
-@Slf4j
 @Data
-public class ActionSkillEntity extends SkillEntity {
+public class GptPluginSkill extends BaseSkillEntity {
 
-    private Class<? extends FlowStepHandler> actionCls;
+
+    private String pluginUrl;
+
+
+    private List<ApiSkill> apiSkillEntityList;
+
 
     @Override
     public Class<?> getInputCls() {
@@ -27,9 +31,6 @@ public class ActionSkillEntity extends SkillEntity {
 
     @Override
     protected Object _execute(Object req) {
-
-        log.info("_execute: {}", this.getActionCls());
-
         return null;
     }
 }

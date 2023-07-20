@@ -1,68 +1,61 @@
 package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
-import cn.kstry.framework.core.annotation.Invoke;
-import cn.kstry.framework.core.annotation.NoticeSta;
-import cn.kstry.framework.core.annotation.ReqTaskParam;
-import cn.kstry.framework.core.annotation.TaskComponent;
-import cn.kstry.framework.core.annotation.TaskService;
-import cn.kstry.framework.core.bus.ScopeDataOperator;
+import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.starcloud.ops.business.app.domain.context.AppContext;
-import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
-import com.starcloud.ops.business.app.domain.handler.common.FlowStepHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
-import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
-import io.swagger.v3.oas.models.media.JsonSchema;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Open AI Chat 步骤实体
+ * Open AI 执行
  *
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-05-31
  */
+@Data
 @Slf4j
-@TaskComponent(name = "OpenAIChatActionHandler")
-public class OpenAIChatActionHandler extends FlowStepHandler {
+public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, OpenAIChatHandler.Response> {
 
+    private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
-    @Autowired
-    private UserBenefitsService userBenefitsService;
+    private StreamingSseCallBackHandler streamingSseCallBackHandler;
 
+    public OpenAIChatHandler(StreamingSseCallBackHandler streamingSseCallBackHandler) {
+        this.streamingSseCallBackHandler = streamingSseCallBackHandler;
+    }
 
-    @NoticeSta
-    @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
-    public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
+    public BenefitsTypeEnums getBenefitsType() {
+        return BenefitsTypeEnums.TOKEN;
+    }
 
+    @Override
+    protected HandlerResponse<OpenAIChatHandler.Response> _execute(HandlerContext<OpenAIChatHandler.Request> context) {
 
-        WorkflowStepWrapper appStepWrapper = context.getCurrentStepWrapper();
-        String prompt = context.getContextVariablesValue("prompt", "hi, what you name?");
+        Request request = context.getRequest();
+        String prompt = request.getPrompt();
         //prompt = "hi, what you name?";
 
-        Map<String, Object> variablesMaps = appStepWrapper.getContextVariablesValues(null);
-
-        ActionResponse appStepResponse = new ActionResponse();
+        HandlerResponse appStepResponse = new HandlerResponse();
         appStepResponse.setSuccess(false);
-        appStepResponse.setStepVariables(JSON.toJSONString(variablesMaps));
+        appStepResponse.setStepConfig(JSON.toJSONString(request));
         //appStepResponse.setStepConfig(JSON.toJSONString(variablesMaps));
         appStepResponse.setMessage(prompt);
         appStepResponse.setMessageUnitPrice(BigDecimal.valueOf(0.0200));
@@ -72,16 +65,17 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
 
             ChatOpenAI chatOpenAI = new ChatOpenAI();
             chatOpenAI.setStream(true);
-            chatOpenAI.setMaxTokens(Integer.valueOf(context.getContextVariablesValue("max_tokens", "1000")));
-            chatOpenAI.setTemperature(Double.valueOf(context.getContextVariablesValue("temperature", "0.7")));
+            chatOpenAI.setMaxTokens(request.getMaxTokens());
+            chatOpenAI.setTemperature(request.getTemperature());
             //chatOpenAI.setVerbose(true);
-            chatOpenAI.addCallbackHandler(new StreamingSseCallBackHandler(context.getSseEmitter()));
+//            chatOpenAI.addCallbackHandler(new StreamingSseCallBackHandler(context.getSseEmitter()));
 
+            chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
             List<List<BaseMessage>> chatMessages = Arrays.asList(
                     Arrays.asList(new HumanMessage(prompt))
             );
 
-            appStepResponse.setStepConfig(chatOpenAI);
+            //appStepResponse.setStepConfig(chatOpenAI);
 
             ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
 
@@ -101,39 +95,63 @@ public class OpenAIChatActionHandler extends FlowStepHandler {
             appStepResponse.setTotalPrice(messagePrice.add(answerPrice));
 
 
-            //权益记录
-            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), appStepResponse.getTotalTokens(), Long.valueOf(context.getUser()), context.getConversationId());
-
-
         } catch (OpenAiHttpException exc) {
 
             appStepResponse.setErrorCode(exc.code);
             appStepResponse.setErrorMsg(exc.getMessage());
-            context.getSseEmitter().completeWithError(exc);
+
+            this.getStreamingSseCallBackHandler().completeWithError(exc);
+
         } catch (Exception exc) {
 
             appStepResponse.setErrorCode("001");
             appStepResponse.setErrorMsg(exc.getMessage());
-            context.getSseEmitter().completeWithError(exc);
+
+            this.getStreamingSseCallBackHandler().completeWithError(exc);
         }
 
 
         return appStepResponse;
     }
 
-    @Override
-    public Class<?> getInputCls(AppContext context) {
-        return null;
+
+    @Data
+    public static class Request {
+
+        /**
+         * 后续新参数 都是一个个独立字段即可
+         */
+        private String prompt;
+
+        private Double temperature = 0.7d;
+
+        private Double topP = 1d;
+
+        private Integer n = 1;
+
+        private Boolean stream = false;
+
+        private List<String> stop;
+
+        private Integer maxTokens = 500;
+
+        private Double presencePenalty = 0d;
+
+        private Double frequencyPenalty = 0d;
+
+        private BaseCallbackHandler llmCallbackHandler;
+
     }
 
-    @Override
-    public JsonNode getInputSchemas(AppContext context) {
 
-        Map<String, Object> stepParams = context.getContextVariablesValues();
+    @Data
+    public static class Response {
 
-        // 根据步骤的参数 生成 jsonSchemas
+        private String content;
 
-        return null;
+        public Response(String content) {
+            this.content = content;
+        }
     }
 
 }

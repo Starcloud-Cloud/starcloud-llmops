@@ -6,13 +6,12 @@ import cn.kstry.framework.core.engine.interceptor.IterData;
 import cn.kstry.framework.core.engine.interceptor.TaskInterceptor;
 import cn.kstry.framework.core.resource.service.ServiceNodeResource;
 import cn.kstry.framework.core.role.Role;
-import com.starcloud.ops.business.app.domain.context.AppContext;
-import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 //@Component

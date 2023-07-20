@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * 技能实体
  */
 @Data
-public abstract class SkillEntity {
+public abstract class BaseSkillEntity {
 
     private String name;
 

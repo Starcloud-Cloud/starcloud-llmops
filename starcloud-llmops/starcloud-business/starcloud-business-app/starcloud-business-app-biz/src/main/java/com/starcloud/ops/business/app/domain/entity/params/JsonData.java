@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-public class JsonParamsEntity extends BaseParamsEntity {
+public class JsonData extends BaseDataEntity {
 
     private Object data;
 

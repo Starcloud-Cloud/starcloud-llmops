@@ -1,6 +1,7 @@
-package com.starcloud.ops.business.app.domain.entity.action;
+package com.starcloud.ops.business.app.domain.entity.workflow;
 
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionEntity;
 import lombok.Data;
 
 import java.util.List;

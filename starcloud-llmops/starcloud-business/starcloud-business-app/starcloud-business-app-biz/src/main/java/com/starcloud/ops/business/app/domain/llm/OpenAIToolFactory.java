@@ -1,12 +1,15 @@
 package com.starcloud.ops.business.app.domain.llm;
 
 
+import cn.hutool.core.util.TypeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -30,7 +33,7 @@ public class OpenAIToolFactory {
 
         //转换为 schema
 
-        createAppTool(appEntity.getName(), appEntity.getDescription(), null, (params) -> {
+        createFunTool(appEntity.getName(), appEntity.getDescription(), null, (params) -> {
 
             log.info("123");
             return "";
@@ -40,9 +43,18 @@ public class OpenAIToolFactory {
     }
 
 
-    public static FunTool createAppTool(String name, String description, JsonNode schema, Function<Object, String> function) {
+    public static FunTool createHandlerTool(BaseHandler handler, Function<Object, String> function) {
 
-        FunTool funTool = new FunTool(name, description, schema, function);
+        Type query = TypeUtil.getTypeArgument(handler.getClass());
+        Class<?> cc = (Class<?>) query;
+        return createFunTool(handler.getName(), handler.getDescription(), cc, function);
+
+    }
+
+
+    private static FunTool createFunTool(String name, String description, Class<?> inputCls, Function<Object, String> function) {
+
+        FunTool funTool = new FunTool(name, description, inputCls, function);
 
         return funTool;
     }

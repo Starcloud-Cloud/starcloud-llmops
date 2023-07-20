@@ -2,26 +2,25 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
-import com.starcloud.ops.business.app.domain.context.AppContext;
-import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
-import com.starcloud.ops.business.app.domain.entity.skill.ApiSkillEntity;
-import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkillEntity;
-import com.starcloud.ops.business.app.domain.entity.skill.SkillEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
+import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
+import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
-import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocActionHandler;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
+import com.starcloud.ops.business.app.domain.llm.OpenAIToolFactory;
 import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
@@ -47,8 +46,6 @@ import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
-import com.starcloud.ops.llm.langchain.core.tools.RequestsGetTool;
-import com.starcloud.ops.llm.langchain.core.tools.SerpAPITool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
@@ -56,8 +53,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
@@ -72,7 +67,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Data
-public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity> {
+public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
 
 
     private static ChatService chatService = SpringUtil.getBean(ChatService.class);
@@ -159,15 +154,13 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
     }
 
     @Override
-    protected JsonParamsEntity _execute(ChatRequestVO req) {
+    protected JsonData _execute(ChatRequestVO req) {
 
-        Long userId = WebFrameworkUtils.getLoginUserId();
-
-        benefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
+        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
 
         try {
 
-            executeChat(req, userId);
+            executeChat(req, req.getUserId());
 
         } catch (Exception e) {
 
@@ -175,7 +168,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
 
         }
 
-        return new JsonParamsEntity();
+        return new JsonData();
 
     }
 
@@ -183,7 +176,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
     protected void _aexecute(ChatRequestVO req) {
 
         SseEmitter emitter = req.getSseEmitter();
-        JsonParamsEntity jsonParams = this._execute(req);
+        JsonData jsonParams = this._execute(req);
 
         if (emitter != null) {
 
@@ -256,7 +249,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
         if ((chatConfig.getWebSearchConfig() != null && chatConfig.getWebSearchConfig().getEnabled()) || CollectionUtil.isNotEmpty(chatConfig.getSkills())) {
 
-            AgentExecutor agentExecutor = buildLLmTools(history, chatConfig, chatPromptTemplate, emitter);
+            AgentExecutor agentExecutor = buildLLmTools(request, history, chatConfig, chatPromptTemplate, emitter);
 
             //agentExecutor.run("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
 
@@ -308,8 +301,6 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
             benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
         }
 
-        log.info("chat end");
-
     }
 
 
@@ -354,7 +345,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
         return llmChain;
     }
 
-    private AgentExecutor buildLLmTools(ChatMessageHistory history,
+    private AgentExecutor buildLLmTools(ChatRequestVO request, ChatMessageHistory history,
                                         ChatConfigEntity chatConfig,
                                         ChatPromptTemplate chatPromptTemplate,
                                         SseEmitter emitter) {
@@ -369,8 +360,8 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
             memory.setChatHistory(history);
         }
 
-        List<SkillEntity> skillEntities = chatConfig.getSkills();
-        List<BaseTool> tools = this.loadLLMTools(chatConfig, skillEntities, emitter);
+        List<BaseSkillEntity> skillEntities = chatConfig.getSkills();
+        List<BaseTool> tools = this.loadLLMTools(request, chatConfig, skillEntities, emitter);
 
         OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools);
         AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(tools, chatOpenAI, baseSingleActionAgent, baseSingleActionAgent.getCallbackManager());
@@ -388,7 +379,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
      *
      * @return
      */
-    private List<BaseTool> loadLLMTools(ChatConfigEntity chatConfig, List<SkillEntity> skillEntities, SseEmitter emitter) {
+    private List<BaseTool> loadLLMTools(ChatRequestVO request, ChatConfigEntity chatConfig, List<BaseSkillEntity> skillEntities, SseEmitter emitter) {
 
         List<BaseTool> loadTools = new ArrayList<>();
 
@@ -399,19 +390,18 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
 //            RequestsGetTool requestsGetTool = new RequestsGetTool();
 //            String des = requestsGetTool.getDescription();
 
-            WebSearch2DocActionHandler webSearch2Doc = SpringUtil.getBean(WebSearch2DocActionHandler.class);
+            WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
             String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
+            webSearch2Doc.setDescription(description);
 
-            FunTool funTool = new FunTool(webSearch2Doc.getName(), description, webSearch2Doc.getInputSchemas(null), (input) -> {
+            FunTool funTool = OpenAIToolFactory.createHandlerTool(webSearch2Doc, (input) -> {
                 log.info("funTool: {} {}", webSearch2Doc.getName(), input);
 
-                AppContext appContext = new AppContext();
+                HandlerContext appContext = HandlerContext.createContext(request.getConversationUid(), request.getUserId(), input);
 
-                appContext.setJsonParams(new JsonParamsEntity().setData(input));
+                HandlerResponse handlerResponse = webSearch2Doc.execute(appContext);
 
-                ActionResponse actionResponse =  webSearch2Doc.execute(appContext, null);
-
-                return actionResponse.getJsonParams().toJson();
+                return handlerResponse.toJsonOutput();
             });
 
             loadTools.add(funTool);
@@ -423,9 +413,9 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
             String name = skillEntity.getName();
             String desc = skillEntity.getDesc();
 
-            if (skillEntity instanceof ApiSkillEntity) {
+            if (skillEntity instanceof ApiSkill) {
 
-                FunTool funTool = new FunTool(name, desc, skillEntity.getInputSchemas(), (input) -> {
+                FunTool funTool = new FunTool(name, desc, skillEntity.getInputCls(), (input) -> {
                     log.info("funTool: {} {}", name, input);
 
                     skillEntity.execute(input, emitter);
@@ -436,8 +426,8 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonParamsEntity
                 return funTool;
             }
 
-            if (skillEntity instanceof AppWorkflowSkillEntity) {
-                FunTool funTool = new FunTool(name, desc, skillEntity.getInputSchemas(), (input) -> {
+            if (skillEntity instanceof AppWorkflowSkill) {
+                FunTool funTool = new FunTool(name, desc, skillEntity.getInputCls(), (input) -> {
                     log.info("funTool: {} {}", name, input);
 
                     skillEntity.execute(input, emitter);

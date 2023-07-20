@@ -2,22 +2,20 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.starcloud.ops.business.app.domain.entity.params.ParamsEntity;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 技能实体
+ * handler 技能包装类
  */
 @Slf4j
 @Data
-public class ApiSkillEntity extends SkillEntity {
+public class HandlerSkill extends BaseSkillEntity {
 
 
     private String url;

@@ -1,15 +1,14 @@
-package com.starcloud.ops.business.app.domain.context;
+package com.starcloud.ops.business.app.domain.entity.workflow.context;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.HashUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
-import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,14 +31,17 @@ import java.util.*;
 @NoArgsConstructor
 public class AppContext {
 
+    @NotNull
     private String conversationId;
-
-    private String stepId;
 
     @NotNull
     private AppSceneEnum scene;
 
-    private String user;
+
+    private String stepId;
+
+
+    private Long userId;
 
     private String endUser;
 
@@ -54,11 +56,7 @@ public class AppContext {
      * 流程执行入口新入参，有数据和参数定义
      * 对之前的大对象 AppEntity 进行精简处理
      */
-    private JsonParamsEntity jsonParams;
-
-
-    @JSONField(serialize = false)
-    private HttpServletResponse httpServletResponse;
+    private JsonData jsonData;
 
 
     @JSONField(serialize = false)
@@ -69,20 +67,7 @@ public class AppContext {
         this.app = app;
         this.scene = scene;
         this.stepId = app.getWorkflowConfig().getFirstStep().getField();
-        this.user = String.valueOf(WebFrameworkUtils.getLoginUserId());
-    }
-
-
-    public Map<String, Object> getContextVariables() {
-
-//        this.app.getConfig().getSteps().forEach(appStepWrapper -> {
-//
-//            appStepWrapper.get();
-//
-//        });
-
-        return new HashMap();
-
+        this.userId = WebFrameworkUtils.getLoginUserId();
     }
 
 

@@ -35,5 +35,8 @@ public class RequestsGetTool extends BaseTool<RequestsGetTool.Request, String> {
         @JsonPropertyDescription("a website url")
         private String url;
 
+        public Request(String url) {
+            this.url = url;
+        }
     }
 }

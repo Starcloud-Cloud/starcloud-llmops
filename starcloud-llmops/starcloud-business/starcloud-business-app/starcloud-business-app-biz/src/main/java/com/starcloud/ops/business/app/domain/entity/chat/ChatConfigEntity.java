@@ -1,8 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
-import com.starcloud.ops.business.app.domain.entity.action.LLMFunctionEntity;
 import com.starcloud.ops.business.app.domain.entity.config.*;
-import com.starcloud.ops.business.app.domain.entity.skill.SkillEntity;
+import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import lombok.Data;
 
@@ -39,7 +38,7 @@ public class ChatConfigEntity extends BaseConfigEntity {
     /**
      * 挂载的 技能列表
      */
-    private List<SkillEntity> skills;
+    private List<BaseSkillEntity> skills;
 
     /**
      * 校验实体，对一写复杂逻辑的校验，可以在这里实现

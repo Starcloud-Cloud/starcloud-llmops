@@ -1,15 +1,16 @@
-package com.starcloud.ops.workflow;
+package com.starcloud.ops.business.app.service.workflow;
 
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import cn.kstry.framework.core.engine.StoryEngine;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.action.WorkflowStepEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatActionHandler;
+import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.AppWorkflowService;
@@ -23,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +95,7 @@ public class WorkflowTest extends BaseDbUnitTest {
         WorkflowStepEntity appStepEntity = new WorkflowStepEntity();
 
         appStepEntity.setName("chatgpt api");
-        appStepEntity.setType(OpenAIChatActionHandler.class.getSimpleName());
+        appStepEntity.setType(OpenAIChatHandler.class.getSimpleName());
 
         appStepWrapper.setName(title);
         appStepWrapper.setField(title);
@@ -106,7 +108,19 @@ public class WorkflowTest extends BaseDbUnitTest {
     public void testRunTest() {
 
 
-        appWorkflowService.fireByAppUid(appId, AppSceneEnum.WEB_MARKET);
+        AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
+
+        executeReqVO.setAppUid("xx");
+        executeReqVO.setAppReqVO(new AppReqVO());
+        executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
+
+        SseEmitter emitter = new SseEmitter(60000L);
+
+        executeReqVO.setSseEmitter(emitter);
+
+        AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO());
+
+        app.execute(executeReqVO);
 
     }
 

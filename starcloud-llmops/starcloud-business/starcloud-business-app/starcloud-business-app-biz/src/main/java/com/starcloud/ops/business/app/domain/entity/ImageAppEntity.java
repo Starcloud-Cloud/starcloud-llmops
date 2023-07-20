@@ -9,7 +9,7 @@ import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -39,7 +39,7 @@ import java.util.List;
 @SuppressWarnings("all")
 @Slf4j
 @Data
-public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> {
+public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonData> {
 
     /**
      * 用户权益服务
@@ -108,10 +108,10 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
      * 执行图片生成
      *
      * @param request 请求参数
-     * @return {@link JsonParamsEntity}
+     * @return {@link JsonData}
      */
     @Override
-    protected JsonParamsEntity _execute(ImageReqVO request) {
+    protected JsonData _execute(ImageReqVO request) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start("Text to Image Task");
         Long userId = WebFrameworkUtils.getLoginUserId();
@@ -140,10 +140,10 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
             imageResponse.setPrompt(request.getImageRequest().getPrompt());
             imageResponse.setCreateTime(LocalDateTime.now());
             imageResponse.setImages(imageList);
-            JsonParamsEntity jsonParamsEntity = new JsonParamsEntity();
-            jsonParamsEntity.setData(imageResponse);
-            jsonParamsEntity.setJsonSchemas(JSON.toJSONString(request));
-            return jsonParamsEntity;
+            JsonData jsonData = new JsonData();
+            jsonData.setData(imageResponse);
+            jsonData.setJsonSchemas(JSON.toJSONString(request));
+            return jsonData;
         } catch (ServiceException exception) {
             stopWatch.stop();
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
