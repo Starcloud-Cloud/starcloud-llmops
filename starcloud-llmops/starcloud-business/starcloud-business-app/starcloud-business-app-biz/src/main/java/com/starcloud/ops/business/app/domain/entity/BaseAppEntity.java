@@ -3,12 +3,15 @@ package com.starcloud.ops.business.app.domain.entity;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -240,16 +243,16 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             R result = this._execute(req);
 
             return result;
-
-        } catch (Exception e) {
-
-            log.error("app execute is fail: {}", e.getMessage(), e);
-
+        } catch (ServiceException e) {
+            log.error("app execute is fail: {}", e.getMessage());
             //应该没有异常的，APP内部执行抓取异常处理了 @todo 这里创建一个异常的 message 对象
-
             this.updateAppConversationLog(req.getConversationUid(), false);
-
             throw e;
+        } catch (Exception e) {
+            log.error("app execute is fail: {}", e.getMessage());
+            //应该没有异常的，APP内部执行抓取异常处理了 @todo 这里创建一个异常的 message 对象
+            this.updateAppConversationLog(req.getConversationUid(), false);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, e.getMessage());
         }
     }
 

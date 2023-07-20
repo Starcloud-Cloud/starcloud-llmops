@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -139,7 +140,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
                 messageRequest.setErrorMsg(exception.getMessage());
             });
             log.error("文字生成图片失败，错误码：{}, 错误信息：{}", appMessage.getErrorCode(), exception.getMessage());
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 

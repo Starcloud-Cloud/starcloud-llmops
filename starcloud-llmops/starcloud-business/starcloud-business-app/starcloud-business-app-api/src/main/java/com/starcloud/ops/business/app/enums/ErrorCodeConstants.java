@@ -110,6 +110,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode AUDIO_TRANSCRIPT_ERROR = new ErrorCode(300200024, "audio transcript error, {}");
 
+    /**
+     * 应用执行异常
+     */
+    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "App execute fail, {}");
+
     // ========== 图片生成服务错误 3-003-000-00 ==========
     /**
      * 生成图片失败，请重试或者联系管理员
