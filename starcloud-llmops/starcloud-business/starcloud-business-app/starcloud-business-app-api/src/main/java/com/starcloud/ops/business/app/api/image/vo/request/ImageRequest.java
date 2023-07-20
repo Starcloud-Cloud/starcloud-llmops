@@ -52,6 +52,20 @@ public class ImageRequest implements Serializable {
     private String prompt;
 
     /**
+     * 反义词
+     */
+    @Schema(description = "反义词")
+    @JsonProperty(value = "negative_prompt")
+    private String negativePrompt;
+
+    /**
+     * 图片生成图片的基础图像
+     */
+    @Schema(description = "图片生成图片的基础图像")
+    @JsonProperty(value = "init_image")
+    private String initImage;
+
+    /**
      * 图像的高度（以像素为单位）。必须以 64 为增量，并通过以下验证
      * 对于 768 引擎：589,824 ≤ height * width ≤ 1,048,576
      * 所有其他引擎：262,144 ≤ height * width ≤ 1,048,576
@@ -121,15 +135,21 @@ public class ImageRequest implements Serializable {
     @Schema(description = "传入样式预设以引导图像模型走向特定样式。 此样式预设列表可能会更改")
     @JsonProperty(value = "style_preset")
     @InEnum(value = StylePresetEnum.class, field = InEnum.EnumField.CODE, message = "style_preset[{value}] must be in {values}")
-    private Integer stylePreset;
+    private String stylePreset;
+
+    /**
+     * This parameter is just an alternate way to set step_schedule_start, which is done via the calculation 1 - image_strength. For example, passing in an Image Strength of 35% (0.35) would result in a step_schedule_start of 0.65.
+     */
+    @Schema(description = "这个参数只是设置step_schedule_start的另一种方法，它是通过计算1 - image_strength来完成的。例如，传入35%的Image Strength(0.35)将导致step_schedule_start为0.65。")
+    @JsonProperty(value = "image_strength")
+    @Min(value = 0, message = "imageStrength must be greater than or equal to 0")
+    @Max(value = 1, message = "imageStrength must be less than or equal to 1")
+    private Double imageStrength;
 
     /**
      * 指导强度。我们建议取值范围为[0.0,1.0]。最好的默认值是0.25
      */
     @Schema(description = "指导强度。我们建议取值范围为[0.0,1.0]。最好的默认值是0.25")
     @JsonProperty(value = "guidance_strength")
-    @Min(value = 0, message = "guidanceStrength must be greater than or equal to 0")
-    @Max(value = 1, message = "guidanceStrength must be less than or equal to 1")
     private Double guidanceStrength;
-
 }

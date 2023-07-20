@@ -17,8 +17,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
-import javax.xml.soap.Text;
-import java.io.File;
 import java.util.List;
 
 /**
@@ -58,14 +56,14 @@ public class ImageConfigReqVO extends BaseConfigReqVO {
      */
     @Schema(description = "初始化图像")
     @JsonProperty(value = "init_image")
-    private File initImage;
+    private String initImage;
 
     /**
      * 遮罩图像
      */
     @Schema(description = "遮罩图像")
     @JsonProperty(value = "mask_image")
-    private File maskImage;
+    private String maskImage;
 
     /**
      * 图像的高度（以像素为单位）。必须以 64 为增量，并通过以下验证
@@ -130,7 +128,7 @@ public class ImageConfigReqVO extends BaseConfigReqVO {
      */
     @Schema(description = "随机噪声种子（省略此选项或用于随机种子)")
     @Min(value = 0, message = "seed must be greater than or equal to 0")
-    @Max(value = 4294967295L, message = "seed must be less than or equal to 4294967295")
+    @Max(value = 2147483647, message = "seed must be less than or equal to 4294967295")
     private Long seed;
 
     /**
@@ -183,6 +181,6 @@ public class ImageConfigReqVO extends BaseConfigReqVO {
     @Schema(description = "传入样式预设以引导图像模型走向特定样式。 此样式预设列表可能会更改")
     @JsonProperty(value = "style_preset")
     @InEnum(value = StylePresetEnum.class, field = InEnum.EnumField.CODE, message = "style_preset[{value}] must be in {values}")
-    private Integer stylePreset;
+    private String stylePreset;
 
 }

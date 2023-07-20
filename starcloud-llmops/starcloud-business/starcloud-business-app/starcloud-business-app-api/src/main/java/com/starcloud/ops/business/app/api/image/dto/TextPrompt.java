@@ -59,4 +59,17 @@ public class TextPrompt implements Serializable {
         textPrompt.setWeight(1.0);
         return textPrompt;
     }
+
+    /**
+     * 反义词 Prompt
+     *
+     * @param negativePrompt 反义词
+     * @return TextPrompt
+     */
+    public static TextPrompt ofNegative(String negativePrompt) {
+        TextPrompt textPrompt = new TextPrompt();
+        textPrompt.setText(negativePrompt);
+        textPrompt.setWeight(-1.0);
+        return textPrompt;
+    }
 }

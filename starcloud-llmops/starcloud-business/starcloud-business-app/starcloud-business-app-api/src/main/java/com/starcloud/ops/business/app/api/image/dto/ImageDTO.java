@@ -40,4 +40,10 @@ public class ImageDTO {
     @JsonProperty(value = "media_type")
     private String mediaType;
 
+    /**
+     * 图片扩散数
+     */
+    @Schema(description = "图片扩散数")
+    private Long seed;
+
 }

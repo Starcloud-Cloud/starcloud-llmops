@@ -1,8 +1,16 @@
 package com.starcloud.ops.business.app.util;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.enums.vsearch.*;
+import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
+import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
+import com.starcloud.ops.business.app.enums.vsearch.GuidancePresetEnum;
+import com.starcloud.ops.business.app.enums.vsearch.ImageSizeEnum;
+import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
+import com.starcloud.ops.business.app.enums.vsearch.SamplesEnum;
+import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +23,32 @@ import java.util.stream.Collectors;
  * @version 1.0.0
  * @since 2023-07-14
  */
+@SuppressWarnings("all")
 public class ImageUtils {
+
+    /**
+     * 获取 engine
+     *
+     * @return ImageMetaDTO
+     */
+    public static List<ImageMetaDTO> engineList() {
+        return Arrays.stream(EngineEnum.values())
+                .filter(item -> "IMAGE".equals(item.getEngineType()))
+                .map(item -> of(item.getCode(), item.getLabel(), item.getDescription()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取 engine
+     *
+     * @return ImageMetaDTO
+     */
+    public static List<ImageMetaDTO> upscalingEngineList() {
+        return Arrays.stream(EngineEnum.values())
+                .filter(item -> "UPSCALING".equals(item.getEngineType()))
+                .map(item -> of(item.getCode(), item.getLabel(), item.getDescription()))
+                .collect(Collectors.toList());
+    }
 
     /**
      * 获取 samples
@@ -124,12 +157,75 @@ public class ImageUtils {
     }
 
     /**
+     * 计算回答图片的token数量
+     *
+     * @param request 请求参数
+     * @return token数量
+     */
+    public static Integer countAnswerTokens(ImageRequest request) {
+        String engine = request.getEngine();
+        Integer steps = request.getSteps();
+        Integer width = request.getWidth();
+        Integer height = request.getHeight();
+        if (steps == null) {
+            steps = 50;
+        }
+        if (width == null) {
+            width = 512;
+        }
+        if (height == null) {
+            height = 512;
+        }
+        BigDecimal stepsDecimal = new BigDecimal(steps.toString());
+        BigDecimal multiplier = new BigDecimal("1000");
+
+        // SDXL 0.9
+        if (EngineEnum.STABLE_DIFFUSION_XL_1024_V0_9.getCode().equals(engine)) {
+            BigDecimal factor;
+            if (steps == 30) {
+                factor = new BigDecimal("0.016");
+            } else if (steps == 50) {
+                factor = new BigDecimal("0.02");
+            } else {
+                BigDecimal factorFirst = new BigDecimal("0.0122");
+                BigDecimal factorSecond = new BigDecimal("0.000127").multiply(stepsDecimal);
+                BigDecimal factorThird = new BigDecimal("0.000000623").multiply(stepsDecimal).multiply(stepsDecimal);
+                factor = factorFirst.add(factorSecond).add(factorThird);
+            }
+            return multiplier.multiply(factor).setScale(2, RoundingMode.HALF_UP).intValue();
+        }
+
+        // Upscaler
+        BigDecimal factorFirst = new BigDecimal(width.toString()).multiply(new BigDecimal(height.toString()));
+        if (EngineEnum.STABLE_DIFFUSION_X4_LATENT_UPSCALER.getCode().equals(engine)) {
+            return factorFirst.compareTo(new BigDecimal("262144")) > 0 ? 120 : 80;
+        }
+        if (EngineEnum.ESRGAN_V1_X2PLUS.getCode().equals(engine)) {
+            return 2;
+        }
+
+        factorFirst = factorFirst.subtract(new BigDecimal("169527"));
+        factorFirst = factorFirst.multiply(stepsDecimal);
+        factorFirst = factorFirst.divide(new BigDecimal("30"), 10, RoundingMode.HALF_UP);
+
+        // SDXL Beta
+        if (EngineEnum.STABLE_DIFFUSION_XL_BETA_V2_2_2.getCode().equals(engine)) {
+            BigDecimal factorSecond = new BigDecimal("5.4e-8");
+            return factorFirst.multiply(factorSecond).multiply(multiplier).setScale(2, RoundingMode.HALF_UP).intValue();
+        }
+
+        // Other
+        BigDecimal factorSecond = new BigDecimal("2.16e-8");
+        return factorFirst.multiply(factorSecond).multiply(multiplier).setScale(2, RoundingMode.HALF_UP).intValue();
+    }
+
+    /**
      * 计算消息中的token数量
      *
      * @param input 消息
      * @return token数量
      */
-    public static int countTokens(String input) {
+    public static int countMessageTokens(String input) {
         byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
         int count = 0;
         int length = bytes.length;

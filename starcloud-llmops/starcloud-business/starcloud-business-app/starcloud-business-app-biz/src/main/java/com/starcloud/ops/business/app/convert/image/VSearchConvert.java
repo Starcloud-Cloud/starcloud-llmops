@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -57,6 +58,14 @@ public interface VSearchConvert {
         VSearchImageRequest vSearchImageRequest = new VSearchImageRequest();
         vSearchImageRequest.setEngine(request.getEngine());
         vSearchImageRequest.setPrompts(Collections.singletonList(TextPrompt.ofDefault(request.getPrompt())));
+        if (StringUtils.isNotBlank(request.getInitImage())) {
+            vSearchImageRequest.setInitImage(request.getInitImage());
+            if (request.getImageStrength() == null) {
+                vSearchImageRequest.setStartSchedule(0.65);
+            } else {
+                vSearchImageRequest.setStartSchedule(1 - request.getImageStrength());
+            }
+        }
         vSearchImageRequest.setHeight(request.getHeight());
         vSearchImageRequest.setWidth(request.getWidth());
         vSearchImageRequest.setCfgScale(request.getCfgScale());

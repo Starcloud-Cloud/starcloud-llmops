@@ -101,11 +101,12 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
                 buildAppMessageLog(messageRequest, request, userId);
                 messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
                 messageRequest.setAnswer(JSONUtil.toJsonStr(imageResponse.getImages()));
-                // todo 价格统计
-                messageRequest.setAnswerTokens(1000);
+                messageRequest.setAnswerTokens(ImageUtils.countAnswerTokens(request.getImageRequest()) * imageResponse.getImages().size());
                 messageRequest.setAnswerUnitPrice(new BigDecimal("0.0200"));
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-                messageRequest.setTotalPrice(messageRequest.getAnswerUnitPrice().multiply(new BigDecimal(messageRequest.getAnswerTokens().toString())));
+                BigDecimal totalPrice = (messageRequest.getMessageUnitPrice().multiply(new BigDecimal(messageRequest.getMessageTokens().toString())))
+                        .add(messageRequest.getAnswerUnitPrice().multiply(new BigDecimal(messageRequest.getAnswerTokens())));
+                messageRequest.setTotalPrice(totalPrice);
             });
             // 更新会话日志
             this.updateAppConversationLog(request.getConversationUid(), Boolean.TRUE);
@@ -216,6 +217,10 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
         List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
         ImageMessageRespVO imageResponse = new ImageMessageRespVO();
         imageResponse.setPrompt(request.getImageRequest().getPrompt());
+        imageResponse.setEngine(request.getImageRequest().getEngine());
+        imageResponse.setWidth(request.getImageRequest().getWidth());
+        imageResponse.setHeight(request.getImageRequest().getHeight());
+        imageResponse.setSteps(request.getImageRequest().getSteps());
         imageResponse.setCreateTime(LocalDateTime.now());
         imageResponse.setImages(imageList);
         return imageResponse;
@@ -237,7 +242,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
         messageRequest.setAppStep("BASE_GENERATE_IMAGE");
         messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setMessage(request.getImageRequest().getPrompt());
-        messageRequest.setMessageTokens(ImageUtils.countTokens(request.getImageRequest().getPrompt()));
+        messageRequest.setMessageTokens(ImageUtils.countMessageTokens(request.getImageRequest().getPrompt()));
         messageRequest.setMessageUnitPrice(new BigDecimal("0.0200"));
         messageRequest.setCurrency("USD");
         messageRequest.setFromScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : request.getScene());

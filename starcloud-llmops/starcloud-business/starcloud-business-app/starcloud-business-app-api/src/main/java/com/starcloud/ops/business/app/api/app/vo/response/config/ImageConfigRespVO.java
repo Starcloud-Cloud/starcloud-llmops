@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.Valid;
-import java.io.File;
 import java.util.List;
 
 /**
@@ -46,13 +45,13 @@ public class ImageConfigRespVO extends BaseConfigRespVO {
      * 初始化图像
      */
     @Schema(description = "初始化图像")
-    private File initImage;
+    private String initImage;
 
     /**
      * 遮罩图像
      */
     @Schema(description = "遮罩图像")
-    private File maskImage;
+    private String maskImage;
 
     /**
      * 图像的高度（以像素为单位）。必须以 64 为增量，并通过以下验证
@@ -146,6 +145,6 @@ public class ImageConfigRespVO extends BaseConfigRespVO {
      * 传入样式预设以引导图像模型走向特定样式。 此样式预设列表可能会更改
      */
     @Schema(description = "传入样式预设以引导图像模型走向特定样式。 此样式预设列表可能会更改")
-    private Integer stylePreset;
+    private String stylePreset;
 
 }

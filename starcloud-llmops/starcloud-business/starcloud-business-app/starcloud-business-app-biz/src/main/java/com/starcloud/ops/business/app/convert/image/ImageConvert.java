@@ -11,7 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -32,17 +33,35 @@ public interface ImageConvert {
     default ImageConfigEntity convert(ImageRequest request) {
         ImageConfigEntity entity = new ImageConfigEntity();
 
+        // prompts
         if (StringUtils.isBlank(request.getPrompt())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_PROMPT_REQUIRED);
         }
-        entity.setPrompts(Collections.singletonList(TextPrompt.ofDefault(request.getPrompt())));
+        List<TextPrompt> prompts = new ArrayList<>();
+        prompts.add(TextPrompt.ofDefault(request.getPrompt()));
+        // 反义词
+        if (StringUtils.isNotBlank(request.getNegativePrompt())) {
+            prompts.add(TextPrompt.ofNegative(request.getNegativePrompt()));
+        }
+        entity.setPrompts(prompts);
 
         // 生成图片的引擎
         if (StringUtils.isBlank(request.getEngine())) {
-            entity.setEngine(EngineEnum.STABLE_DIFFUSION_768_V2_1.getCode());
-            request.setEngine(EngineEnum.STABLE_DIFFUSION_768_V2_1.getCode());
+            entity.setEngine(EngineEnum.STABLE_DIFFUSION_XL_BETA_V2_2_2.getCode());
+            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_BETA_V2_2_2.getCode());
         } else {
             entity.setEngine(request.getEngine());
+        }
+
+        // 初始化图片
+        if (StringUtils.isNotBlank(request.getInitImage())) {
+            entity.setInitImage(request.getInitImage());
+            if (request.getImageStrength() == null) {
+                entity.setStartSchedule(0.65);
+                request.setImageStrength(0.35);
+            } else {
+                entity.setStartSchedule(1 - request.getImageStrength());
+            }
         }
 
         // 图片的宽度
@@ -63,8 +82,8 @@ public interface ImageConvert {
 
         // 图片的 cfgScale
         if (request.getCfgScale() == null) {
-            entity.setCfgScale(0.8);
-            request.setCfgScale(0.8);
+            entity.setCfgScale(7.0);
+            request.setCfgScale(7.0);
         } else {
             entity.setCfgScale(request.getCfgScale());
         }
@@ -105,7 +124,7 @@ public interface ImageConvert {
             entity.setGuidanceStrength(request.getGuidanceStrength());
         }
 
-        if (request.getStylePreset() != null) {
+        if (StringUtils.isNotBlank(request.getStylePreset())) {
             entity.setStylePreset(request.getStylePreset());
         }
 

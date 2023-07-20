@@ -5,6 +5,9 @@ import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -14,6 +17,7 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -27,6 +31,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -62,6 +67,9 @@ public class ImageServiceImpl implements ImageService {
     @Resource
     private VSearchImageService vSearchImageService;
 
+    @Resource
+    private DictDataService dictDataService;
+
     /**
      * 获取图片元数据
      *
@@ -70,11 +78,27 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public Map<String, List<ImageMetaDTO>> meta() {
         Map<String, List<ImageMetaDTO>> meta = new HashMap<>(8);
+        meta.put("model", ImageUtils.engineList());
+        meta.put("upscalingModel", ImageUtils.upscalingEngineList());
         meta.put("samples", ImageUtils.samplesList());
         meta.put("imageSize", ImageUtils.imageSizeList());
         meta.put("sampler", ImageUtils.samplerList());
         meta.put("guidancePreset", ImageUtils.guidancePresetList());
         meta.put("stylePreset", ImageUtils.stylePresetList());
+        DictDataExportReqVO request = new DictDataExportReqVO();
+        request.setDictType(AppConstants.IMAGE_EXAMPLE_PROMPT);
+        request.setStatus(StateEnum.ENABLE.getCode());
+        List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
+        List<ImageMetaDTO> examplePromptList = CollectionUtil.emptyIfNull(dictDataList).stream()
+                .filter(Objects::nonNull)
+                .map(dictData -> {
+                    ImageMetaDTO imageMetaDTO = new ImageMetaDTO();
+                    imageMetaDTO.setLabel(dictData.getLabel());
+                    imageMetaDTO.setValue(dictData.getValue());
+                    return imageMetaDTO;
+                })
+                .collect(Collectors.toList());
+        meta.put("examplePrompt", examplePromptList);
         return meta;
     }
 
@@ -266,7 +290,7 @@ public class ImageServiceImpl implements ImageService {
         messageRequest.setAppStep("TEXT_TO_IMAGE");
         messageRequest.setVariables(JSON.toJSONString(request.getImageRequest()));
         messageRequest.setMessage(request.getImageRequest().getPrompt());
-        messageRequest.setMessageTokens(ImageUtils.countTokens(request.getImageRequest().getPrompt()));
+        messageRequest.setMessageTokens(ImageUtils.countMessageTokens(request.getImageRequest().getPrompt()));
         messageRequest.setMessageUnitPrice(new BigDecimal("0"));
         messageRequest.setCurrency("USD");
         messageRequest.setFromScene(conversation.getFromScene());
