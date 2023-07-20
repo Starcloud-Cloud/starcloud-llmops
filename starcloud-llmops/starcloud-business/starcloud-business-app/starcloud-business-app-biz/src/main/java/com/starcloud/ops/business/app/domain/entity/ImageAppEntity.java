@@ -5,7 +5,6 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
-import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
@@ -113,7 +112,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
             // 处理返回结果
             JsonParamsEntity jsonParamsEntity = new JsonParamsEntity();
             jsonParamsEntity.setData(imageResponse);
-            jsonParamsEntity.setJsonSchemas(JSON.toJSONString(request));
+            jsonParamsEntity.setJsonSchemas(JSONUtil.toJsonStr(request));
             return jsonParamsEntity;
         } catch (ServiceException exception) {
             if (stopWatch.isRunning()) {

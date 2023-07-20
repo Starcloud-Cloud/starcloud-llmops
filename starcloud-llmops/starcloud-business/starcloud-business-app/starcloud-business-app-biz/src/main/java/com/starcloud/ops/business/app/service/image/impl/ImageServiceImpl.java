@@ -1,19 +1,21 @@
 package com.starcloud.ops.business.app.service.image.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
+import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
@@ -115,7 +117,7 @@ public class ImageServiceImpl implements ImageService {
         response.setConversationUid(conversation.getUid());
         // 查询会话下的消息
         LambdaQueryWrapper<LogAppMessageDO> messageWrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer);
+        messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer, LogAppMessageDO::getAppConfig);
         messageWrapper.eq(LogAppMessageDO::getAppConversationUid, conversation.getUid());
         messageWrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.BASE_GENERATE_IMAGE.name());
         messageWrapper.eq(LogAppMessageDO::getCreator, Long.toString(WebFrameworkUtils.getLoginUserId()));
@@ -129,7 +131,8 @@ public class ImageServiceImpl implements ImageService {
             if (StringUtils.isBlank(item.getAnswer())) {
                 return null;
             }
-            List<ImageDTO> imageList = JSON.parseArray(item.getAnswer(), ImageDTO.class);
+            List<ImageDTO> imageList = JSONUtil.toBean(item.getAnswer(), new TypeReference<List<ImageDTO>>() {
+            }, true);
             // 排除掉空的和没有 url 的图片
             imageList = imageList.stream().filter(Objects::nonNull).filter(imageItem -> StringUtils.isNotBlank(imageItem.getUrl())).collect(Collectors.toList());
             // 如果没有结果，返回 null
@@ -140,6 +143,13 @@ public class ImageServiceImpl implements ImageService {
             imageResponse.setPrompt(item.getMessage());
             imageResponse.setCreateTime(item.getCreateTime());
             imageResponse.setImages(imageList);
+            ImageRequest imageRequest = JSONUtil.toBean(item.getAppConfig(), ImageRequest.class);
+            if (imageRequest != null) {
+                imageResponse.setEngine(imageRequest.getEngine());
+                imageResponse.setWidth(imageRequest.getWidth());
+                imageResponse.setHeight(imageRequest.getHeight());
+                imageResponse.setSteps(imageRequest.getSteps());
+            }
             return imageResponse;
         }).filter(Objects::nonNull).collect(Collectors.toList());
 
@@ -171,7 +181,7 @@ public class ImageServiceImpl implements ImageService {
             stopWatch.stop();
             LogAppMessageDO messageRequest = buildAppMessageLog(request, conversation, userId);
             messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
-            messageRequest.setAnswer(JSON.toJSONString(imageList));
+            messageRequest.setAnswer(JSONUtil.toJsonStr(imageList));
             messageRequest.setAnswerTokens(imageList.size());
             messageRequest.setMessageUnitPrice(new BigDecimal("0"));
             messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
@@ -247,7 +257,7 @@ public class ImageServiceImpl implements ImageService {
         conversation.setAppName("基础生成图片应用：文本生成图片，图片生成图片");
         conversation.setStatus(LogStatusEnum.ERROR.name());
         conversation.setAppUid(fastConversationUid);
-        conversation.setAppConfig(JSON.toJSONString(new ImageReqVO()));
+        conversation.setAppConfig(JSONUtil.toJsonStr(new ImageReqVO()));
         conversation.setFromScene(AppSceneEnum.WEB_ADMIN.name());
         conversation.setEndUser(Long.toString(userId));
         logAppConversationMapper.insert(conversation);
@@ -266,7 +276,7 @@ public class ImageServiceImpl implements ImageService {
         conversationWrapper.eq(LogAppConversationDO::getUid, conversationUid);
         conversationWrapper.eq(LogAppConversationDO::getDeleted, Boolean.FALSE);
         conversationWrapper.set(LogAppConversationDO::getStatus, status.name());
-        conversationWrapper.set(LogAppConversationDO::getAppConfig, JSON.toJSONString(request));
+        conversationWrapper.set(LogAppConversationDO::getAppConfig, JSONUtil.toJsonStr(request));
         logAppConversationMapper.update(null, conversationWrapper);
     }
 
@@ -286,9 +296,9 @@ public class ImageServiceImpl implements ImageService {
         messageRequest.setAppConversationUid(conversation.getUid());
         messageRequest.setAppUid(conversation.getUid());
         messageRequest.setAppMode(conversation.getAppMode());
-        messageRequest.setAppConfig(JSON.toJSONString(request));
+        messageRequest.setAppConfig(JSONUtil.toJsonStr(request));
         messageRequest.setAppStep("TEXT_TO_IMAGE");
-        messageRequest.setVariables(JSON.toJSONString(request.getImageRequest()));
+        messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setMessage(request.getImageRequest().getPrompt());
         messageRequest.setMessageTokens(ImageUtils.countMessageTokens(request.getImageRequest().getPrompt()));
         messageRequest.setMessageUnitPrice(new BigDecimal("0"));
