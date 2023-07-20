@@ -243,6 +243,11 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonParamsEntity> 
         messageRequest.setMessage(request.getImageRequest().getPrompt());
         messageRequest.setMessageTokens(ImageUtils.countMessageTokens(request.getImageRequest().getPrompt()));
         messageRequest.setMessageUnitPrice(new BigDecimal("0.0200"));
+        messageRequest.setAnswerTokens(0);
+        messageRequest.setAnswerUnitPrice(new BigDecimal("0.0200"));
+        BigDecimal totalPrice = (messageRequest.getMessageUnitPrice().multiply(new BigDecimal(messageRequest.getMessageTokens().toString())))
+                .add(messageRequest.getAnswerUnitPrice().multiply(new BigDecimal(messageRequest.getAnswerTokens())));
+        messageRequest.setTotalPrice(totalPrice);
         messageRequest.setCurrency("USD");
         messageRequest.setFromScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : request.getScene());
         messageRequest.setEndUser(Long.toString(userId));
