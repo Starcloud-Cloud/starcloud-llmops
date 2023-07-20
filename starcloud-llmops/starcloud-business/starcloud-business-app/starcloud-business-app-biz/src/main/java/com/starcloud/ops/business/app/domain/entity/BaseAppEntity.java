@@ -227,7 +227,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             this.validate();
 
-
             //会话uid为空
             if (StrUtil.isNotBlank(req.getConversationUid())) {
 

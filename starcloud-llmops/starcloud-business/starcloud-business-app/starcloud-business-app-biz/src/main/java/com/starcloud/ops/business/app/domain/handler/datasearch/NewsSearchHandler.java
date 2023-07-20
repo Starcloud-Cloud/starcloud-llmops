@@ -27,11 +27,6 @@ public class NewsSearchHandler extends BaseHandler<NewsSearchHandler.Request, Ne
 
     private static SerpAPITool serpAPITool = new SerpAPITool();
 
-    @Override
-    public BenefitsTypeEnums getBenefitsType() {
-        return null;
-    }
-
 
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {

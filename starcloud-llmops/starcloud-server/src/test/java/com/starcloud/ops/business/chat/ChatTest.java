@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.chat;
+package com.starcloud.ops.business.chat;
 
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;

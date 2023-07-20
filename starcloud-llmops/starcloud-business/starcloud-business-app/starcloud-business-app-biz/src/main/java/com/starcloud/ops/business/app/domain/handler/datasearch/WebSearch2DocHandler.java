@@ -28,11 +28,6 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
     private static RequestsGetTool requestsGetTool = new RequestsGetTool();
 
-    @Override
-    public BenefitsTypeEnums getBenefitsType() {
-        return null;
-    }
-
 
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {

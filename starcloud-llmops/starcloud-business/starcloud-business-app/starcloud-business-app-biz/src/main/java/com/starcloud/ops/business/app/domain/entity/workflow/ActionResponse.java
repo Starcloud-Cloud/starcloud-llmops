@@ -56,10 +56,8 @@ public class ActionResponse {
     private String answer;
 
 
-    private Object output;
 
-
-    private JsonData jsonParams;
+    private JsonData output;
 
     /**
      * 请求 token 使用
@@ -94,6 +92,7 @@ public class ActionResponse {
     /**
      * step 执行的参数
      */
+    @Deprecated
     private Object stepVariables;
 
     /**

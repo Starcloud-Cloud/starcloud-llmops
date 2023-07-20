@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service.app;
+package com.starcloud.ops.business.app;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.LanguageEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
+import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;

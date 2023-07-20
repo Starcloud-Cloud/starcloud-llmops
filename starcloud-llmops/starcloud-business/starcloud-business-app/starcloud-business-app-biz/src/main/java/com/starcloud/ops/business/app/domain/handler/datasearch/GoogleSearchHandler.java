@@ -28,12 +28,6 @@ public class GoogleSearchHandler extends BaseHandler<GoogleSearchHandler.Request
     private static SerpAPITool serpAPITool = new SerpAPITool();
 
     @Override
-    public BenefitsTypeEnums getBenefitsType() {
-        return null;
-    }
-
-
-    @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
 
         String query = context.getRequest().getQ();

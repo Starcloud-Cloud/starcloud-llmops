@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service.market;
+package com.starcloud.ops.business.market;
 
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;

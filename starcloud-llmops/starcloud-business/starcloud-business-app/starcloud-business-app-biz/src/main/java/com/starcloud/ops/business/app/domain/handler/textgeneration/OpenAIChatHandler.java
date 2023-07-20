@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -31,7 +32,7 @@ import java.util.List;
  */
 @Data
 @Slf4j
-public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, OpenAIChatHandler.Response> {
+public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, String> {
 
     private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
@@ -42,12 +43,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, Op
     }
 
     @Override
-    public BenefitsTypeEnums getBenefitsType() {
-        return BenefitsTypeEnums.TOKEN;
-    }
-
-    @Override
-    protected HandlerResponse<OpenAIChatHandler.Response> _execute(HandlerContext<OpenAIChatHandler.Request> context) {
+    protected HandlerResponse<String> _execute(HandlerContext<OpenAIChatHandler.Request> context) {
 
         Request request = context.getRequest();
         String prompt = request.getPrompt();
@@ -55,7 +51,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, Op
 
         HandlerResponse appStepResponse = new HandlerResponse();
         appStepResponse.setSuccess(false);
-        appStepResponse.setStepConfig(JSON.toJSONString(request));
+        appStepResponse.setStepConfig(JSONUtil.toJsonStr(request));
         //appStepResponse.setStepConfig(JSON.toJSONString(variablesMaps));
         appStepResponse.setMessage(prompt);
         appStepResponse.setMessageUnitPrice(BigDecimal.valueOf(0.0200));
@@ -84,6 +80,8 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, Op
 
             appStepResponse.setAnswer(msg);
             appStepResponse.setSuccess(true);
+
+            appStepResponse.setOutput(msg);
 
             appStepResponse.setMessageTokens(baseLLMUsage.getPromptTokens());
             appStepResponse.setAnswerTokens(baseLLMUsage.getCompletionTokens());
@@ -142,16 +140,4 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, Op
         private BaseCallbackHandler llmCallbackHandler;
 
     }
-
-
-    @Data
-    public static class Response {
-
-        private String content;
-
-        public Response(String content) {
-            this.content = content;
-        }
-    }
-
 }

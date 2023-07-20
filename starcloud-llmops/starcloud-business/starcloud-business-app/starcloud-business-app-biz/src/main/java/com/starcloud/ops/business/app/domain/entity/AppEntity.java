@@ -86,10 +86,13 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, JsonData> {
     @Override
     protected JsonData _execute(AppExecuteReqVO req) {
 
+        //权益放在这里是为了包装 可以执行完整的一次应用
         this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
 
         // 创建 App 执行上下文
         AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(req.getScene()));
+        appContext.setUserId(req.getUserId());
+        appContext.setSseEmitter(req.getSseEmitter());
 
         if (StringUtils.isNotBlank(req.getStepId())) {
             appContext.setStepId(req.getStepId());
@@ -205,8 +208,6 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, JsonData> {
             messageCreateReqVO.setUpdateTime(nodeTracking.getStartTime());
 
             messageCreateReqVO.setElapsed(nodeTracking.getSpendTime());
-
-            Map<String, Object> variablesMaps = appContext.getStepWrapper(stepId).getContextVariablesValues("");
 
             messageCreateReqVO.setEndUser(appContext.getEndUser());
             messageCreateReqVO.setFromScene(appContext.getScene().name());

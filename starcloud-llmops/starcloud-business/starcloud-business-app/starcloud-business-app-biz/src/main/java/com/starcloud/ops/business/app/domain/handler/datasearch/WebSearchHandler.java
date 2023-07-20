@@ -28,11 +28,6 @@ public class WebSearchHandler extends BaseHandler<WebSearchHandler.Request, Stri
 
     private static RequestsGetTool requestsGetTool = new RequestsGetTool();
 
-    @Override
-    public BenefitsTypeEnums getBenefitsType() {
-        return null;
-    }
-
 
     @Override
     protected HandlerResponse<String> _execute(HandlerContext<Request> context) {

@@ -1,7 +1,13 @@
-package com.starcloud.ops.business.app.service.workflow;
+package com.starcloud.ops.business.workflow;
 
+import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
+import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import cn.iocoder.yudao.module.system.service.permission.PermissionService;
+import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.kstry.framework.core.engine.StoryEngine;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -22,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -30,9 +37,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class})
+@Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class})
 @ExtendWith(MockitoExtension.class)
 public class WorkflowTest extends BaseDbUnitTest {
+
+
+    @MockBean
+    private PermissionApi permissionApi;
+
+    @MockBean
+    private DictDataService dictDataService;
+
+    @MockBean
+    private RoleService roleService;
+
+    @MockBean
+    private PermissionService permissionService;
+
 
     @Autowired
     private StoryEngine storyEngine;
@@ -76,14 +97,17 @@ public class WorkflowTest extends BaseDbUnitTest {
         appEntity.setWorkflowConfig(appConfigEntity);
 
 
-        Mockito.mockStatic(AppFactory.class);
-        Mockito.when(AppFactory.factory(appId)).thenReturn(appEntity);
+        //Mockito.mockStatic(AppFactory.class);
+//        Mockito.when(AppFactory.factory(appId)).thenReturn(appEntity);
+//
+//
+//        Mockito.when(AppFactory.factory(appId, new AppReqVO())).thenReturn(appEntity);
+//
+//        Mockito.when(AppFactory.factory(appId, new AppReqVO(), stepId)).thenReturn(appEntity);
 
 
-        Mockito.when(AppFactory.factory(appId, new AppReqVO())).thenReturn(appEntity);
-
-        Mockito.when(AppFactory.factory(appId, new AppReqVO(), stepId)).thenReturn(appEntity);
-
+        Mockito.mockStatic(SecurityFrameworkUtils.class);
+        Mockito.when(SecurityFrameworkUtils.getLoginUserId()).thenReturn(1L);
 
     }
 
@@ -95,7 +119,8 @@ public class WorkflowTest extends BaseDbUnitTest {
         WorkflowStepEntity appStepEntity = new WorkflowStepEntity();
 
         appStepEntity.setName("chatgpt api");
-        appStepEntity.setType(OpenAIChatHandler.class.getSimpleName());
+        appStepEntity.setType("OpenAIChatHandler");
+        appStepEntity.setHandler("OpenAIChatHandler");
 
         appStepWrapper.setName(title);
         appStepWrapper.setField(title);
@@ -110,7 +135,7 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
 
-        executeReqVO.setAppUid("xx");
+        executeReqVO.setAppUid("2196b6cce43f41679e15487d79bde823");
         executeReqVO.setAppReqVO(new AppReqVO());
         executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
 
@@ -118,7 +143,7 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         executeReqVO.setSseEmitter(emitter);
 
-        AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO());
+        AppEntity app = AppFactory.factory(executeReqVO.getAppUid());
 
         app.execute(executeReqVO);
 

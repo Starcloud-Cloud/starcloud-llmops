@@ -23,4 +23,12 @@ public class JsonData extends BaseDataEntity {
         return JSONUtil.toJsonStr(this.getData());
     }
 
+    public static JsonData of(Object data) {
+
+        JsonData jsonData = new JsonData();
+
+        jsonData.setData(data);
+        return jsonData;
+    }
+
 }

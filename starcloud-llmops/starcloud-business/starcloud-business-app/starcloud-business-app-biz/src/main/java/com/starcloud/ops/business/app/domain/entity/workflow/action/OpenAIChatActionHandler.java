@@ -2,16 +2,15 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 
@@ -26,19 +25,6 @@ import java.util.Map;
 @TaskComponent(name = "OpenAIChatActionHandler")
 public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionHandler.Request, OpenAIChatActionHandler.Response> {
 
-
-    @Autowired
-    private UserBenefitsService userBenefitsService;
-
-    @Override
-    public Class<Request> getInputCls() {
-        return Request.class;
-    }
-
-    @Override
-    public Class<Response> getOutputCls() {
-        return Response.class;
-    }
 
     @NoticeSta
     @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
@@ -75,16 +61,46 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
 
-        HandlerContext handlerContext = HandlerContext.createContext(conversationId, userId, request);
+        HandlerContext handlerContext = HandlerContext.createContext(conversationId, userId, handlerRequest);
 
-        HandlerResponse<OpenAIChatHandler.Response> handlerResponse = openAIChatHandler.execute(handlerContext);
+        HandlerResponse<String> handlerResponse = openAIChatHandler.execute(handlerContext);
 
         //@todo 补齐字段
         ActionResponse appStepResponse = new ActionResponse();
 
-        appStepResponse.setAnswer(handlerResponse.getOutput().getContent());
+        appStepResponse.setAnswer(handlerResponse.getOutput());
 
-        return appStepResponse;
+        return convert(handlerResponse);
+    }
+
+    private ActionResponse convert(HandlerResponse handlerResponse) {
+
+        ActionResponse actionResponse = new ActionResponse();
+
+        actionResponse.setSuccess(handlerResponse.getSuccess());
+        actionResponse.setErrorCode(handlerResponse.getErrorCode());
+        actionResponse.setErrorMsg(handlerResponse.getErrorMsg());
+        actionResponse.setType(handlerResponse.getType());
+        actionResponse.setIsShow(true);
+        actionResponse.setMessage(handlerResponse.getMessage());
+
+        actionResponse.setAnswer(handlerResponse.getAnswer());
+
+        actionResponse.setOutput(JsonData.of(handlerResponse.getOutput()));
+        actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
+        actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
+
+        actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
+        actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
+
+        actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
+        actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
+
+        actionResponse.setStepConfig(handlerResponse.getStepConfig());
+
+
+        return actionResponse;
+
     }
 
 
