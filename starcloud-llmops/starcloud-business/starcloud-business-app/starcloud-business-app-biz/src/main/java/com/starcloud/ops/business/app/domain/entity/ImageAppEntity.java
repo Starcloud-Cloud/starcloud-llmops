@@ -41,7 +41,7 @@ import java.util.List;
 @SuppressWarnings("all")
 @Slf4j
 @Data
-public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonData> {
+public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO> {
 
     /**
      * 用户权益服务
@@ -85,7 +85,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonData> {
      * @return {@link JsonData}
      */
     @Override
-    protected JsonData _execute(ImageReqVO request) {
+    protected ImageMessageRespVO _execute(ImageReqVO request) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start("Text to Image Task");
         Long userId = WebFrameworkUtils.getLoginUserId();
@@ -110,12 +110,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, JsonData> {
             });
             // 更新会话日志
             this.updateAppConversationLog(request.getConversationUid(), Boolean.TRUE);
-            // 处理返回结果
-
-            JsonData jsonData = new JsonData();
-            jsonData.setData(imageResponse);
-            return jsonData;
-
+            // 返回结果
+            return imageResponse;
         } catch (ServiceException exception) {
             if (stopWatch.isRunning()) {
                 stopWatch.stop();

@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 import lombok.Data;
 
 import java.util.Map;
@@ -64,6 +65,9 @@ public class WorkflowStepWrapper {
         return this.field;
     }
 
+    public void validate() {
+        this.field = AppUtils.obtainField(this.name);
+    }
 
     /**
      * 获取当前步骤的变量值
