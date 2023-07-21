@@ -33,7 +33,7 @@ public class LogAppMessageBaseVO {
     private String appMode;
 
     @Schema(description = "app 配置", required = true)
-    private String appConfig;
+    private String appConfig = "";
 
     @Schema(description = "执行的 app step", required = true)
     @NotNull(message = "执行的 app step不能为空")
@@ -55,26 +55,26 @@ public class LogAppMessageBaseVO {
 
     @Schema(description = "请求内容", required = true)
     @NotNull(message = "请求内容不能为空")
-    private String message;
+    private String message = "";
 
     @Schema(description = "消耗token数", required = true)
     @NotNull(message = "Message 消耗token数不能为空")
-    private Integer messageTokens;
+    private Integer messageTokens = 0;
 
     @Schema(description = "消耗token单位价格", required = true, example = "23618")
     @NotNull(message = "Message 消耗token单位价格不能为空")
-    private BigDecimal messageUnitPrice;
+    private BigDecimal messageUnitPrice = BigDecimal.ZERO;
 
     @Schema(description = "返回内容", required = true)
-    private String answer;
+    private String answer = "";
 
     @Schema(description = "消耗token数", required = true)
     @NotNull(message = "Answer 消耗token数不能为空")
-    private Integer answerTokens;
+    private Integer answerTokens = 0;
 
     @Schema(description = "消耗token单位价格", required = true, example = "18453")
     @NotNull(message = "Answer 消耗token单位价格不能为空")
-    private BigDecimal answerUnitPrice;
+    private BigDecimal answerUnitPrice = BigDecimal.ZERO;
 
     @Schema(description = "执行耗时", required = true)
     @NotNull(message = "执行耗时不能为空")
@@ -82,7 +82,7 @@ public class LogAppMessageBaseVO {
 
     @Schema(description = "总消耗价格", required = true, example = "4382")
     @NotNull(message = "总消耗价格不能为空")
-    private BigDecimal totalPrice;
+    private BigDecimal totalPrice = BigDecimal.ZERO;
 
     @Schema(description = "价格单位", required = true)
     @NotNull(message = "价格单位不能为空")
