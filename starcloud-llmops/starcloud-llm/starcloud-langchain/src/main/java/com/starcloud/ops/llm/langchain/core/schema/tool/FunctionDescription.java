@@ -37,7 +37,7 @@ public class FunctionDescription {
         this.jsonSchema = jsonSchema;
     }
 
-    public static <Q, R> FunctionDescription convert(BaseTool<Q, R> baseTool) {
+    public static FunctionDescription convert(BaseTool baseTool) {
 
         return new FunctionDescription(baseTool.getName(), baseTool.getDescription(), baseTool.getInputSchemas());
     }
