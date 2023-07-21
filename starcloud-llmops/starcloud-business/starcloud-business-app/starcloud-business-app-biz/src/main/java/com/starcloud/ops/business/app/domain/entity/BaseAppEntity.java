@@ -224,10 +224,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
         try {
 
-            req.setUserId(SecurityFrameworkUtils.getLoginUserId());
-
             log.info("app start:{}, {}", this.getUid(), this.getName());
 
+            req.setUserId(SecurityFrameworkUtils.getLoginUserId());
             this.validate();
 
             //会话uid为空
@@ -274,8 +273,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
         try {
 
-            this.validate();
+            log.info("app async start:{}, {}", this.getUid(), this.getName());
             req.setUserId(SecurityFrameworkUtils.getLoginUserId());
+            this.validate();
 
             //会话uid为空
             if (StrUtil.isNotBlank(req.getConversationUid())) {
