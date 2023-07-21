@@ -275,6 +275,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         try {
 
             this.validate();
+            req.setUserId(SecurityFrameworkUtils.getLoginUserId());
 
             //会话uid为空
             if (StrUtil.isNotBlank(req.getConversationUid())) {

@@ -111,7 +111,6 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     protected void _aexecute(AppExecuteReqVO req) {
 
-
         try {
 
             this._execute(req);
