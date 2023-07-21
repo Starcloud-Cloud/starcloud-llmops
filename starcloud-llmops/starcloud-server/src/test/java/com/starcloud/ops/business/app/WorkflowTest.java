@@ -119,8 +119,8 @@ public class WorkflowTest extends BaseDbUnitTest {
         WorkflowStepEntity appStepEntity = new WorkflowStepEntity();
 
         appStepEntity.setName("chatgpt api");
-        appStepEntity.setType("OpenAIChatHandler");
-        appStepEntity.setHandler("OpenAIChatHandler");
+        appStepEntity.setType("OpenAIChatActionHandler");
+        appStepEntity.setHandler("OpenAIChatActionHandler");
 
         appStepWrapper.setName(title);
         appStepWrapper.setField(title);

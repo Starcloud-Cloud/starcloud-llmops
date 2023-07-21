@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
@@ -79,7 +80,7 @@ public class RecommendedActionFactory {
         step.setName(MessageUtil.getMessage("OPEN_AI_CHAT_COMPLETION_NAME"));
         step.setDescription(MessageUtil.getMessage("OPEN_AI_CHAT_COMPLETION_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
-        step.setHandler(OpenAIChatHandler.class.getSimpleName());
+        step.setHandler(OpenAIChatActionHandler.class.getSimpleName());
         step.setResponse(response);
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
