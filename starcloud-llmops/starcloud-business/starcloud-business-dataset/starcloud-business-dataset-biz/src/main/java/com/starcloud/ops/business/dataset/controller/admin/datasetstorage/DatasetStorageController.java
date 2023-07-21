@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,12 +28,13 @@ public class DatasetStorageController {
     @Resource
     private DataSetServicesImpl dataSetServices;
 
-    @PostMapping(value = "/upload")
-    @Operation(summary = "创建数据集源数据存储")
-    public CommonResult<String> createDatasetStorage(MultipartFile file, String path) throws IOException {
-        DatasetStorageRespVO datasetStorageRespVO = new DatasetStorageRespVO();
-        datasetStorageRespVO.setFile(file);
-        datasetStorageRespVO.setPath(path);
-        return success(dataSetServices.uploadSourceData(datasetStorageRespVO));
-    }
+    // @PostMapping(value = "/upload")
+    // @Operation(summary = "创建数据集源数据存储")
+    // public CommonResult<String> createDatasetStorage(@RequestParam(value = "files") MultipartFile[] file) throws IOException {
+    //     DatasetStorageRespVO datasetStorageRespVO = new DatasetStorageRespVO();
+    //     datasetStorageRespVO.setFile(file);
+    //     datasetStorageRespVO.setPath(path);
+    //     return success(dataSetServices.uploadSourceData(datasetStorageRespVO));
+    // }
+
 }

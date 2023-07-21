@@ -43,10 +43,11 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractStreamMessageLis
         datasetSourceDataService.updateDatasourceStatus(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_IN.getStatus());
 
         try {
-            List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(message.getCleanText(), message.getSplitRule().getChunkSize(), message.getSplitRule().getSeparator());
+            // fixme 查询清洗数据
+            documentSegmentsService.splitDoc(message.getDataSourceId(),null,message.getSplitRule());
             datasetSourceDataService.updateDatasourceStatus(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus());
             // 发送消息
-            dataIndexProducer.sendIndexDatasetsSendMessage(message.getDatasetId() ,message.getDataSourceId(),splitText);
+            dataIndexProducer.sendIndexDatasetsSendMessage(message.getDatasetId() ,message.getDataSourceId() ,null);
 
         } catch (Exception e) {
             log.error("[DataSetSourceDataCleanSendConsumer][数据清洗失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})", getLoginUserId(), getTenantId(), message.getDataSourceId(), message.getDataSourceId());

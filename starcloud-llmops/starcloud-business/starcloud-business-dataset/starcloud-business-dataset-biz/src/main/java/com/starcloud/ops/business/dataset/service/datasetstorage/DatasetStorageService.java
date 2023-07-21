@@ -3,6 +3,8 @@ package com.starcloud.ops.business.dataset.service.datasetstorage;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
 
+import java.util.List;
+
 /**
  * 数据集源数据存储 Service 接口
  *
@@ -15,7 +17,15 @@ public interface DatasetStorageService {
      * @param createReqVO 源数据上传
      * @return 数据集源数据UID
      */
-    String addSourceData(DatasetStorageCreateReqVO createReqVO);
+    Long addStorageData(DatasetStorageCreateReqVO createReqVO);
+
+    /**
+     * 上传数据集源数据
+     *
+     * @param createReqVOS 源数据上传
+     * @return 数据集源数据UID
+     */
+    List<Long> addBatchStorageData(List<DatasetStorageCreateReqVO> createReqVOS);
 
     /**
      * 根据文件编号获取文件存储信息

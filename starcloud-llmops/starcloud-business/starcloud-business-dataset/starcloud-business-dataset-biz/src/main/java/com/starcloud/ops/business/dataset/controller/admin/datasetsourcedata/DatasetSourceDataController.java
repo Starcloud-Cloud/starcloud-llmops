@@ -29,7 +29,7 @@ public class DatasetSourceDataController {
     @Operation(summary = "创建数据集源数据")
     @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
     public CommonResult<Boolean> createDatasetSourceData(@Valid @RequestBody DatasetSourceDataCreateReqVO createReqVO) {
-        datasetSourceDataService.createDatasetSourceData(createReqVO);
+        // datasetSourceDataService.createDatasetSourceData(createReqVO);
         return success(true);
     }
 

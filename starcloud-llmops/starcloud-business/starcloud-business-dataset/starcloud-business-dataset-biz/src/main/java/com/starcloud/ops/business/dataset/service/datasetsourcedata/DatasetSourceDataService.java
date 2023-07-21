@@ -1,12 +1,13 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataCreateReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataUpdateReqVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.SourceDataBatchCreateReqVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
+import org.springframework.validation.annotation.Validated;
 
-import javax.validation.Valid;
+import java.util.List;
 
 /**
  * 数据集源数据 Service 接口
@@ -18,17 +19,29 @@ public interface DatasetSourceDataService {
     /**
      * 创建数据集源数据
      *
-     * @param createReqVO 创建信息
+     * @param datasetId 数据集 ID
+     * @param storageId 存储 ID
+     * @param sourceName 资源名称
+     * @param wordCount 字符数
      * @return 编号
      */
-    void createDatasetSourceData(@Valid DatasetSourceDataCreateReqVO createReqVO);
+    Long createDatasetSourceData(String datasetId, Long storageId, String sourceName, Long wordCount);
+
+    /**
+     * 创建数据集源数据
+     *
+     * @param batchCreateReqVOS 创建信息
+     * @return 编号
+     */
+    List<Long> batchCreateDatasetSourceData(String datasetId, List<SourceDataBatchCreateReqVO> batchCreateReqVOS);
+
 
     /**
      * 更新数据集源数据
      *
      * @param updateReqVO 更新信息
      */
-    void updateDatasetSourceData(@Valid DatasetSourceDataUpdateReqVO updateReqVO);
+    void updateDatasetSourceData(@Validated DatasetSourceDataUpdateReqVO updateReqVO);
 
     /**
      * 删除数据集源数据

@@ -44,7 +44,7 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     /**
      * 位置
      */
-    private Integer position;
+    private Long position;
     /**
      * 数据源类型（0-本地上传，1-接口上传）
      */

@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.dataset.service.datasets;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -11,6 +13,7 @@ import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsU
 import com.starcloud.ops.business.dataset.convert.datasets.DatasetsConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
+import com.starcloud.ops.business.dataset.enums.DataSourceTypeEnum;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -36,17 +39,37 @@ public class DatasetsServiceImpl implements DatasetsService {
     public String createDatasets(DatasetsCreateReqVO createReqVO) {
         // TODO 校验当前用户权限 是否可以创建数据集
 
-        //数据非空校验
+        // 数据非空校验
         if (ObjectUtil.isEmpty(createReqVO)) {
             throw exception(DATASETS_PARAM_NULL);
         }
         // 数据转换
         DatasetsDO datasets = DatasetsConvert.convert(createReqVO, DatasetUID.getDatasetUID());
-        //数据插入
+        // 数据插入
         datasetsMapper.insert(datasets);
         // 返回
         return datasets.getUid();
     }
+
+    @Override
+    public String createWechatDatasets() {
+        String datasetUid = validateDatasetsExistsBySourceType(DataSourceTypeEnum.WECHAT.name());
+        if (StrUtil.isBlank(datasetUid)){
+            DatasetsDO datasetsDO = new DatasetsDO();
+
+            datasetsDO.setUid(IdUtil.getSnowflakeNextIdStr());
+            datasetsDO.setName("微信数据集" + IdUtil.fastSimpleUUID().substring(0, 6));
+            datasetsDO.setDescription("微信数据集" + IdUtil.fastSimpleUUID().substring(0, 6));
+            datasetsDO.setPermission(0);
+            datasetsDO.setSourceType(DataSourceTypeEnum.WECHAT.name());
+            // 数据插入
+            datasetsMapper.insert(datasetsDO);
+            // 返回
+            datasetUid = datasetsDO.getUid();
+        }
+        return datasetUid;
+    }
+
 
     @Override
     public void updateDatasets(DatasetsUpdateReqVO updateReqVO) {
@@ -54,37 +77,35 @@ public class DatasetsServiceImpl implements DatasetsService {
         validateDatasetsExists(updateReqVO.getUid());
         // 更新
         DatasetsDO updateObj = DatasetsConvert.convert(updateReqVO);
-        datasetsMapper.update(updateObj,Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid,updateReqVO.getUid()));
+        datasetsMapper.update(updateObj, Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, updateReqVO.getUid()));
     }
 
     /**
      * 启用数据集
      *
-     * @param uid
-     *         数据集编号
+     * @param uid 数据集编号
      */
     @Override
     public void enableDatasets(String uid) {
         // 校验存在
         validateDatasetsExists(uid);
         LambdaUpdateWrapper<DatasetsDO> wrapper = Wrappers.lambdaUpdate(DatasetsDO.class);
-        wrapper.eq(DatasetsDO::getUid,uid);
-        wrapper.set(DatasetsDO::getEnabled,true);
-        datasetsMapper.update(null,wrapper);
+        wrapper.eq(DatasetsDO::getUid, uid);
+        wrapper.set(DatasetsDO::getEnabled, true);
+        datasetsMapper.update(null, wrapper);
     }
 
     /**
      * 停用数据集
      *
-     * @param uid
-     *         数据集编号
+     * @param uid 数据集编号
      */
     @Override
     public void offDatasets(String uid) {
         LambdaUpdateWrapper<DatasetsDO> wrapper = Wrappers.lambdaUpdate(DatasetsDO.class);
-        wrapper.eq(DatasetsDO::getUid,uid);
-        wrapper.set(DatasetsDO::getEnabled,false);
-        datasetsMapper.update(null,wrapper);
+        wrapper.eq(DatasetsDO::getUid, uid);
+        wrapper.set(DatasetsDO::getEnabled, false);
+        datasetsMapper.update(null, wrapper);
     }
 
     @Override
@@ -92,9 +113,8 @@ public class DatasetsServiceImpl implements DatasetsService {
         // 校验存在
         validateDatasetsExists(uid);
         // 删除
-        datasetsMapper.delete(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid,uid));
+        datasetsMapper.delete(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, uid));
     }
-
 
 
     @Override
@@ -104,10 +124,10 @@ public class DatasetsServiceImpl implements DatasetsService {
         DatasetsDO datasetsDO;
         try {
             datasetsDO = datasetsMapper.selectOne(wrapper);
-        }catch (RuntimeException e){
-            throw exception(DATASETS_ERROR_REPEAT,uid);
+        } catch (RuntimeException e) {
+            throw exception(DATASETS_ERROR_REPEAT, uid);
         }
-       return datasetsDO;
+        return datasetsDO;
     }
 
 
@@ -117,17 +137,26 @@ public class DatasetsServiceImpl implements DatasetsService {
     }
 
 
-
     /**
      * 数据存在校验
+     *
      * @param uid
      */
     @Override
     public void validateDatasetsExists(String uid) {
 
-        if (datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid,uid)) == null) {
+        if (datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, uid)) == null) {
             throw exception(DATASETS_NOT_EXISTS);
         }
+    }
+
+    public String validateDatasetsExistsBySourceType(String sourceType) {
+
+        DatasetsDO datasetsDO = datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getSourceType, sourceType));
+        if (datasetsDO ==null){
+            return null;
+        }
+        return datasetsDO.getUid();
     }
 
     /**
@@ -137,6 +166,6 @@ public class DatasetsServiceImpl implements DatasetsService {
     @Override
     public DatasetsDO getDataSetBaseDo(String UID) {
         this.validateDatasetsExists(UID);
-        return datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid,UID));
+        return datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, UID));
     }
 }

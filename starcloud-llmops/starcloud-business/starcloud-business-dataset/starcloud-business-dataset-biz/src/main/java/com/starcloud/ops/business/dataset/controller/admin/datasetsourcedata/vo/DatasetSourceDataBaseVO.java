@@ -29,7 +29,7 @@ public class DatasetSourceDataBaseVO {
 
     @Schema(description = "位置", required = true)
     @NotNull(message = "位置不能为空")
-    private Integer position;
+    private Long position;
 
     @Schema(description = "数据源类型（0-本地上传，1-接口上传）", required = true)
     @NotNull(message = "数据源类型（0-本地上传，1-接口上传）不能为空")

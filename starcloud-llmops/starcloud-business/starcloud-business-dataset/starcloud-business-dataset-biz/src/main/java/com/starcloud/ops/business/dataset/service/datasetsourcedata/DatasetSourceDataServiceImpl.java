@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataCreateReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataUpdateReqVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.SourceDataBatchCreateReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
@@ -29,6 +30,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
@@ -55,44 +59,68 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Resource
     private DatasetSourceDataCleanProducer dataSetProducer;
 
+
     @Override
-    public void createDatasetSourceData(DatasetSourceDataCreateReqVO createReqVO) {
+    public Long createDatasetSourceData(String datasetId, Long storageId, String sourceName, Long wordCount) {
 
-        //根据文件ID获取文件信息
-        DatasetStorageUpLoadRespVO datasetStorageUpLoadRespVO = datasetStorageService.getDatasetStorageByUID(createReqVO.getFiledId());
-        //数据校验
-        validateDatasetSourceDataExists(createReqVO.getFiledId(), createReqVO.getDatasetId());
+        // TODO 校验数据集是否存在
 
-        //获取字符数
-        int wordCount = getFileCharacterCountFromURL(datasetStorageUpLoadRespVO.getStorageKey());
-        //封装查询条件
+        // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(DatasetSourceDataDO::getDatasetId, createReqVO.getDatasetId());
-        //获取当前文件位置
-        Long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
 
-        //插入
-        DatasetSourceDataDO datasetSourceDataDO = new DatasetSourceDataDO();
-        datasetSourceDataDO.setUid(DatasetUID.getDatasetUID());
-        datasetSourceDataDO.setName(datasetStorageUpLoadRespVO.getName());
-        datasetSourceDataDO.setStorageId(createReqVO.getFiledId());
-        datasetSourceDataDO.setPosition(position.intValue());
-        datasetSourceDataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
-        datasetSourceDataDO.setWordCount(Long.valueOf(wordCount));
-        datasetSourceDataDO.setDatasetId(createReqVO.getDatasetId());
-        datasetSourceDataMapper.insert(datasetSourceDataDO);
-        dataSetProducer.sendCleanDatasetsSendMessage( createReqVO.getDatasetId(),createReqVO.getFiledId(),createReqVO.getSplitRule(),datasetStorageUpLoadRespVO.getStorageKey());
+        wrapper.eq(DatasetSourceDataDO::getDatasetId, datasetId);
+        // 获取当前文件位置
+        long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
 
-        executeSplitAndIndex(createReqVO.getSplitRule(),createReqVO.getFiledId(),createReqVO.getDatasetId(),datasetStorageUpLoadRespVO.getStorageKey());
+        DatasetSourceDataDO dataDO = new DatasetSourceDataDO();
+        dataDO.setUid(DatasetUID.getDatasetUID());
+        dataDO.setName(sourceName);
+        dataDO.setStorageId(String.valueOf(storageId));
+        dataDO.setPosition(position);
+        dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
+        dataDO.setWordCount(wordCount);
+        dataDO.setDatasetId(datasetId);
+
+        datasetSourceDataMapper.insert(dataDO);
+        return dataDO.getId();
+    }
 
 
+    @Override
+    public List<Long> batchCreateDatasetSourceData(String datasetId, List<SourceDataBatchCreateReqVO> batchCreateReqVOS) {
+
+        // TODO 校验数据集是否存在
+
+        // 封装查询条件
+        LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
+
+        wrapper.eq(DatasetSourceDataDO::getDatasetId, datasetId);
+        // 获取当前文件位置
+        AtomicLong position = new AtomicLong(datasetSourceDataMapper.selectCount(wrapper) + 1);
+
+        // 批量封装数据
+        List<DatasetSourceDataDO> datasetSourceDataDOList = batchCreateReqVOS.stream()
+                .map(reqVO -> {
+                            DatasetSourceDataDO dataDO = new DatasetSourceDataDO();
+                            dataDO.setUid(DatasetUID.getDatasetUID());
+                            dataDO.setName(reqVO.getSourceName());
+                            dataDO.setStorageId(reqVO.getStorageId());
+                            dataDO.setPosition(position.getAndIncrement());
+                            dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
+                            dataDO.setWordCount(reqVO.getWordCount());
+                            dataDO.setDatasetId(datasetId);
+                            return dataDO;
+                        }
+                )
+                .collect(Collectors.toList());
+        datasetSourceDataMapper.insertBatch(datasetSourceDataDOList);
+        return datasetSourceDataDOList.stream().map(DatasetSourceDataDO::getId).collect(Collectors.toList());
     }
 
     /**
      * 更新数据集源数据
      *
-     * @param updateReqVO
-     *         更新信息
+     * @param updateReqVO 更新信息
      */
     @Override
     public void updateDatasetSourceData(DatasetSourceDataUpdateReqVO updateReqVO) {
@@ -137,9 +165,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public void archivedDatasetSourceData(String uid) {
-        //判断当前源数据状态
+        // 判断当前源数据状态
         if (archivedStatus(uid)) {
-            //更新数据
+            // 更新数据
             LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
             wrapper.eq(DatasetSourceDataDO::getUid, uid);
             wrapper.set(DatasetSourceDataDO::getArchived, true);
@@ -157,9 +185,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public void unArchivedDatasetSourceData(String uid) {
-        //判断当前源数据状态
+        // 判断当前源数据状态
         if (archivedStatus(uid)) {
-            //更新数据
+            // 更新数据
             LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
             wrapper.eq(DatasetSourceDataDO::getUid, uid);
             wrapper.set(DatasetSourceDataDO::getArchived, true);
@@ -177,7 +205,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public void updateDatasourceStatus(String uid, Integer status) {
-        //更新数据
+        // 更新数据
         LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
         wrapper.eq(DatasetSourceDataDO::getUid, uid);
         wrapper.set(DatasetSourceDataDO::getStatus, status);
