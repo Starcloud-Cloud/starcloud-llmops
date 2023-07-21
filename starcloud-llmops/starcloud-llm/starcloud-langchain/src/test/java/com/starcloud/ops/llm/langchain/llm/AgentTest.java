@@ -91,7 +91,7 @@ public class AgentTest extends SpringBootTests {
 
         AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(tools, chatOpenAI, baseSingleActionAgent, baseSingleActionAgent.getCallbackManager());
 
-        agentExecutor.run("Who is Leo DiCaprio's girlfriend? What is her current age raised to the 0.43 power?");
+        agentExecutor.run("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
 
         log.info("tools: {}", JSONUtil.parse(tools).toStringPretty());
 

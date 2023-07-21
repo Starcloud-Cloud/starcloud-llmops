@@ -27,7 +27,7 @@ public class ImageRespVO implements Serializable {
      * 会话 ID
      */
     @Schema(description = "会话 ID")
-    private String conversationId;
+    private String conversationUid;
 
     /**
      * 图片生成的记录

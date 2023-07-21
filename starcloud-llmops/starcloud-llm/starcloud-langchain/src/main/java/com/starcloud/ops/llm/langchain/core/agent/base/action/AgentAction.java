@@ -1,9 +1,10 @@
 package com.starcloud.ops.llm.langchain.core.agent.base.action;
 
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import lombok.Data;
 
 @Data
-public class AgentAction<R> {
+public class AgentAction {
 
     private String tool;
 
@@ -11,5 +12,7 @@ public class AgentAction<R> {
 
     private String log;
 
-    private R observation;
+    private Object observation;
+
+    private BaseLLMUsage usage;
 }

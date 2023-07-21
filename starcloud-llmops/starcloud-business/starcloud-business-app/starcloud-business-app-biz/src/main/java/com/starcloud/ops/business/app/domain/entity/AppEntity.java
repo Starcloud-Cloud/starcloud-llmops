@@ -1,15 +1,48 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
+import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
+import cn.kstry.framework.core.engine.StoryEngine;
+import cn.kstry.framework.core.engine.facade.ReqBuilder;
+import cn.kstry.framework.core.engine.facade.StoryRequest;
+import cn.kstry.framework.core.engine.facade.TaskResponse;
+import cn.kstry.framework.core.enums.TrackingTypeEnum;
+import cn.kstry.framework.core.exception.KstryException;
+import cn.kstry.framework.core.monitor.MonitorTracking;
+import cn.kstry.framework.core.monitor.NodeTracking;
+import cn.kstry.framework.core.monitor.NoticeTracking;
+import com.alibaba.fastjson.JSON;
+import com.google.common.base.CaseFormat;
+import com.starcloud.ops.business.app.constant.WorkflowConstants;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.service.AppWorkflowService;
+import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
-import java.time.LocalDateTime;
+import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * App 实体类
@@ -18,93 +51,22 @@ import java.util.List;
  * @version 1.0.0
  * @since 2023-05-31
  */
+@Slf4j
 @Data
-public class AppEntity {
+public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> {
 
-    /**
-     * 应用 UID, 每个应用的唯一标识
-     */
-    private String uid;
 
-    /**
-     * 应用名称
-     */
-    private String name;
+    private AppWorkflowService appWorkflowService = SpringUtil.getBean(AppWorkflowService.class);
 
-    /**
-     * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
-     */
-    private String model;
 
-    /**
-     * 应用类型：MYSELF：我的应用，DOWNLOAD：已下载应用
-     */
-    private String type;
+    private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
-    /**
-     * 应用来源类型：表示应用的是从那个平台创建，或者下载的。
-     */
-    private String source;
 
-    /**
-     * 应用标签，多个以逗号分割
-     */
-    private List<String> tags;
+    private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
-    /**
-     * 应用类别，多个以逗号分割
-     */
-    private List<String> categories;
 
-    /**
-     * 应用场景，多个以逗号分割
-     */
-    private List<String> scenes;
+    private StoryEngine storyEngine = SpringUtil.getBean(StoryEngine.class);
 
-    /**
-     * 应用图片，多个以逗号分割
-     */
-    private List<String> images;
-
-    /**
-     * 应用图标
-     */
-    private String icon;
-
-    /**
-     * 应用详细配置信息, 步骤，变量，场景等
-     */
-    private WorkflowConfigEntity workflowConfig;
-
-    /**
-     * 应用聊天配置
-     */
-    private ChatConfigEntity chatConfig;
-
-    /**
-     * 应用图片配置
-     */
-    private ImageConfigEntity imageConfig;
-
-    /**
-     * 应用描述
-     */
-    private String description;
-
-    /**
-     * 应用发布成功后，应用市场 uid-version
-     */
-    private String publishUid;
-
-    /**
-     * 应用安装成功后，应用市场 uid-version
-     */
-    private String installUid;
-
-    /**
-     * 最后一次发布到应用市场时间
-     */
-    private LocalDateTime lastPublish;
 
     /**
      * AppRepository
@@ -123,31 +85,220 @@ public class AppEntity {
         return appRepository;
     }
 
-    /**
-     * 校验
-     */
-    public void validate() {
-        if (AppModelEnum.COMPLETION.name().equals(this.model)) {
-            workflowConfig.validate();
-        } else if (AppModelEnum.CHAT.name().equals(this.model)) {
-            chatConfig.validate();
+    @Override
+    protected void _validate() {
+        WorkflowConfigEntity config = this.getWorkflowConfig();
+        List<WorkflowStepWrapper> stepWrappers = config.getSteps();
+        for (WorkflowStepWrapper stepWrapper : stepWrappers) {
+            // name 不能重复
+            if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.APP_MARKET_FAIL.getCode(), "步骤名称不能重复"));
+            }
+            stepWrapper.validate();
         }
+        config.setSteps(stepWrappers);
+        this.setWorkflowConfig(config);
     }
 
-    /**
-     * 新增应用
-     */
-    public void insert() {
-        validate();
+
+    @Override
+    protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
+
+        //权益放在这里是为了包装 可以执行完整的一次应用
+        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
+
+        // 创建 App 执行上下文
+        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(req.getScene()));
+        appContext.setUserId(req.getUserId());
+        appContext.setSseEmitter(req.getSseEmitter());
+
+        if (StringUtils.isNotBlank(req.getStepId())) {
+            appContext.setStepId(req.getStepId());
+        }
+        //appContext.setHttpServletResponse(httpServletResponse);
+
+        if (StringUtils.isNotBlank(req.getConversationUid())) {
+            appContext.setConversationId(req.getConversationUid());
+        }
+
+        return this.fireWorkflowContext(appContext);
+    }
+
+
+    @Override
+    protected void _aexecute(AppExecuteReqVO req) {
+
+        try {
+
+            this._execute(req);
+
+            if (req.getSseEmitter() != null) {
+                req.getSseEmitter().complete();
+            }
+
+        } catch (Exception e) {
+
+            log.error("app _aexecute is fail: {}", e.getMessage(), e);
+
+            if (req.getSseEmitter() != null) {
+                req.getSseEmitter().completeWithError(e);
+            }
+        }
+
+
+    }
+
+    @Override
+    protected void _createAppConversationLog(AppExecuteReqVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
+
+
+        logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
+
+        logAppConversationCreateReqVO.setEndUser(req.getEndUser());
+
+    }
+
+
+    @Override
+    protected void _initHistory(AppExecuteReqVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageDOS) {
+
+    }
+
+
+    @Override
+    protected void _insert() {
         getAppRepository().insert(this);
     }
 
-    /**
-     * 更新应用
-     */
-    public void update() {
-        validate();
+    @Override
+    protected void _update() {
         getAppRepository().update(this);
+    }
+
+    @Override
+    protected <C> C _parseConversationConfig(String conversationConfig) {
+        return null;
+    }
+
+
+    /**
+     * 执行应用
+     *
+     * @param appContext 执行应用上下文
+     */
+    protected AppExecuteRespVO fireWorkflowContext(@Valid AppContext appContext) {
+
+        StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
+                .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
+                .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
+                .startId(appContext.getConversationId())
+                .request(appContext).build();
+
+        req.setRecallStoryHook(recallStory -> {
+            MonitorTracking monitorTracking = recallStory.getMonitorTracking();
+            List<NodeTracking> storyTracking = monitorTracking.getStoryTracking();
+
+            log.info("recallStory: {} {} {} \n {}", recallStory.getBusinessId(), recallStory.getStartId(), recallStory.getResult().isPresent(), JSONUtil.parse(recallStory.getReq()).toJSONString(4));
+
+            storyTracking.stream().filter((nodeTracking) -> BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())).forEach(nodeTracking -> {
+                this.createAppMessageLog(appContext, nodeTracking);
+            });
+
+        });
+
+        TaskResponse<Void> fire = storyEngine.fire(req);
+
+        this.updateAppConversationLog(appContext.getConversationId(), fire.isSuccess());
+
+        log.info("fireWorkflowContext: {}, {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc());
+
+        return new AppExecuteRespVO().setSuccess(fire.isSuccess()).setResult(fire.getResult()).setResultCode(fire.getResultCode()).setResultDesc(fire.getResultDesc());
+
+    }
+
+
+    /**
+     * 创建应用消息日志
+     *
+     * @param appContext   应用上下文
+     * @param nodeTracking 节点跟踪
+     */
+    private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
+
+        String stepId = nodeTracking.getNodeName();
+
+        this.createAppMessage((messageCreateReqVO) -> {
+
+            messageCreateReqVO.setAppConversationUid(appContext.getConversationId());
+
+            messageCreateReqVO.setAppStep(appContext.getStepId());
+
+            messageCreateReqVO.setCreateTime(nodeTracking.getStartTime());
+            messageCreateReqVO.setUpdateTime(nodeTracking.getStartTime());
+
+            messageCreateReqVO.setElapsed(nodeTracking.getSpendTime());
+
+            messageCreateReqVO.setEndUser(appContext.getEndUser());
+            messageCreateReqVO.setFromScene(appContext.getScene().name());
+            messageCreateReqVO.setCurrency("USD");
+
+            ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
+
+            if (actionResponse != null) {
+
+                messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
+
+                messageCreateReqVO.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
+
+                messageCreateReqVO.setVariables(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
+
+                messageCreateReqVO.setMessage(actionResponse.getMessage());
+
+                messageCreateReqVO.setMessageTokens(actionResponse.getMessageTokens().intValue());
+                messageCreateReqVO.setMessageUnitPrice(actionResponse.getMessageUnitPrice());
+
+                messageCreateReqVO.setAnswer(actionResponse.getAnswer());
+                messageCreateReqVO.setAnswerTokens(actionResponse.getAnswerTokens().intValue());
+                messageCreateReqVO.setAnswerUnitPrice(actionResponse.getAnswerUnitPrice());
+
+                messageCreateReqVO.setTotalPrice(actionResponse.getTotalPrice());
+
+                messageCreateReqVO.setErrorCode(actionResponse.getErrorCode());
+                messageCreateReqVO.setErrorMsg(actionResponse.getErrorMsg());
+            }
+
+            if (nodeTracking.getTaskException() != null) {
+
+                messageCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
+                messageCreateReqVO.setErrorMsg(nodeTracking.getTaskException().getMessage());
+                messageCreateReqVO.setErrorCode("010");
+
+                if (nodeTracking.getTaskException() instanceof KstryException) {
+                    messageCreateReqVO.setErrorCode(((KstryException) nodeTracking.getTaskException()).getErrorCode());
+                }
+            }
+
+        });
+
+    }
+
+    /**
+     * 获取追踪
+     *
+     * @param noticeTrackings 追踪列表
+     * @param cls             类
+     * @param <T>             类型
+     * @return 追踪
+     */
+    private <T> T getTracking(List<NoticeTracking> noticeTrackings, Class<T> cls) {
+
+        String clsName = cls.getSimpleName();
+
+        String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
+
+        return Optional.ofNullable(noticeTrackings).orElse(new ArrayList<>()).stream().filter(noticeTracking -> noticeTracking.getFieldName().equals(field)).map(noticeTracking -> {
+            return JSON.parseObject(noticeTracking.getValue(), cls);
+        }).findFirst().orElse(null);
     }
 
 }

@@ -18,9 +18,9 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.ExecuteAppRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
-import com.starcloud.ops.business.app.domain.context.AppContext;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -57,6 +57,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @Validated
+@Deprecated
 public class AppWorkflowService {
 
     @Autowired
@@ -160,7 +161,6 @@ public class AppWorkflowService {
         if (StringUtils.isNotBlank(stepId)) {
             appContext.setStepId(stepId);
         }
-        appContext.setHttpServletResponse(httpServletResponse);
 
         // 执行该应用
         this.fireByAppContext(appContext);
@@ -177,8 +177,7 @@ public class AppWorkflowService {
      * @param stepId              步骤 ID
      * @param httpServletResponse Http 响应
      */
-    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId,
-                          HttpServletResponse httpServletResponse, SseEmitter sseEmitter) {
+    public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId, SseEmitter sseEmitter) {
         // 获取 AppEntity
         AppEntity app = null;
         if (appRequest == null) {
@@ -201,7 +200,7 @@ public class AppWorkflowService {
         if (StringUtils.isNotBlank(stepId)) {
             appContext.setStepId(stepId);
         }
-        appContext.setHttpServletResponse(httpServletResponse);
+        //appContext.setHttpServletResponse(httpServletResponse);
         appContext.setSseEmitter(sseEmitter);
         if (StringUtils.isNotBlank(requestId)) {
             appContext.setConversationId(requestId);

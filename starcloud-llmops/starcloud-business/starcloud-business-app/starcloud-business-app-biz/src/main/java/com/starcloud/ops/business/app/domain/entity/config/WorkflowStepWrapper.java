@@ -1,15 +1,13 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.starcloud.ops.business.app.domain.entity.action.WorkflowStepEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 import lombok.Data;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,6 +24,7 @@ public class WorkflowStepWrapper {
     /**
      * 步骤 field
      */
+    @Deprecated
     private String field;
 
 
@@ -57,6 +56,19 @@ public class WorkflowStepWrapper {
      */
     private VariableEntity variable;
 
+
+    /**
+     * 获取当前步骤配置的 步骤Code
+     * @return
+     */
+    public String getStepCode() {
+        return this.field;
+    }
+
+
+    public void validate() {
+        this.field = AppUtils.obtainField(this.name);
+    }
 
     /**
      * 获取当前步骤的变量值
@@ -114,6 +126,13 @@ public class WorkflowStepWrapper {
         }, prefixKey);
     }
 
+    @JSONField(serialize = false)
+    public Map<String, String> getContextVariablesDes(String prefixKey) {
+
+        return VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
+            return variableItemEntity.getIsShow() ? StrUtil.isNotBlank(variableItemEntity.getDescription()) ? variableItemEntity.getDescription() : variableItemEntity.getLabel() : null;
+        }, prefixKey);
+    }
 
     /**
      * 获取当前步骤的变量Keys列表

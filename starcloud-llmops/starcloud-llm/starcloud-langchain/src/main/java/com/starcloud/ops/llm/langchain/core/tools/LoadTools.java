@@ -1,6 +1,7 @@
 package com.starcloud.ops.llm.langchain.core.tools;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.ClassUtil;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackHandler;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
@@ -66,6 +67,13 @@ public class LoadTools {
 
             tools.add(tool);
         }
+
+        return tools;
+    }
+
+    public static List<? extends BaseTool> loadToolsInstance(List<? extends BaseTool> tools, BaseLanguageModel llm) {
+
+        List<BaseCallbackHandler> callbacks = new ArrayList<>();
 
         return tools;
     }

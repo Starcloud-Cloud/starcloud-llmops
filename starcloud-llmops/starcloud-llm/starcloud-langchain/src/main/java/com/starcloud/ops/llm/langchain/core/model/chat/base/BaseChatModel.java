@@ -4,7 +4,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.llm.langchain.core.callbacks.*;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.model.llm.LLMUtils;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.*;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
@@ -12,7 +11,6 @@ import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
-import com.starcloud.ops.llm.langchain.core.tools.utils.ConvertToOpenaiUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -81,7 +79,10 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
         this.setCallbackManager(callbackManager);
         ChatResult<R> chatResult = this.generate(Arrays.asList(baseMessages), null, functionDescriptions);
 
-        return chatResult.getChatGenerations().get(0).getChatMessage();
+        BaseMessage baseMessage = chatResult.getChatGenerations().get(0).getChatMessage();
+        baseMessage.getAdditionalArgs().put("usage", chatResult.getUsage());
+
+        return baseMessage;
     }
 
     public ChatResult<R> generate(List<List<BaseMessage>> chatMessages, List<String> stops, List<FunctionDescription> functions) {
@@ -98,7 +99,12 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
             try {
 
-                chatResults.add(this._generate(chatMessages.get(i), stops, functions, llmRun));
+                llmRun.onLLMStart(this.getClass(), chatMessages.get(i), stops, functions);
+
+                ChatResult<R> chatResult = this._generate(chatMessages.get(i), stops, functions, llmRun);
+                chatResults.add(chatResult);
+
+                llmRun.onLLMEnd(this.getClass(), chatResult.getText(), chatResult.getUsage());
 
                 //llmRun.onLLMEnd();
 
@@ -111,7 +117,7 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
         log.debug("BaseChatModel.generate result: {}", chatResults);
 
-        //this.getCallbackManager().onChatModelEnd(this.getClass(), chatResults);
+//        this.getCallbackManager().onChatModelEnd(this.getClass(), chatResults);
 
         return this.combineLLMOutputs(chatResults);
     }

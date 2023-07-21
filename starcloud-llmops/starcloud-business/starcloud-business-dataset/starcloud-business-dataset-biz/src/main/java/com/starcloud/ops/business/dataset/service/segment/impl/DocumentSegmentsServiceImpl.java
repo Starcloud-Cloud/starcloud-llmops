@@ -27,9 +27,9 @@ import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
-import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
-import com.starcloud.ops.business.dataset.pojo.response.MatchTestResponse;
+import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
@@ -360,7 +360,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     }
 
     @Override
-    public MatchTestResponse matchTest(MatchTestRequest request) {
+    public MatchQueryVO matchQuery(MatchQueryRequest request) {
         validateTenantId(request.getDocumentId());
         List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDocId(request.getDocumentId());
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
@@ -374,7 +374,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             RecordDTO recordDTO = DocumentSegmentConvert.INSTANCE.segmentDo2Record(segmentDOMap.get(segmentId)).setScore(knnQueryHit.getScore());
             recordDTOS.add(recordDTO);
         }
-        return MatchTestResponse.builder().records(recordDTOS).queryText(request.getText()).build();
+        return MatchQueryVO.builder().records(recordDTOS).queryText(request.getText()).build();
     }
 
     @Override

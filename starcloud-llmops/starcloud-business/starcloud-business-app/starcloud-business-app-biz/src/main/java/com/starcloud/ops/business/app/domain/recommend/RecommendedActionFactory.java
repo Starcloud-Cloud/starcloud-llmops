@@ -2,9 +2,9 @@ package com.starcloud.ops.business.app.domain.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
-import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
+import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.business.app.util.app.AppUtils;

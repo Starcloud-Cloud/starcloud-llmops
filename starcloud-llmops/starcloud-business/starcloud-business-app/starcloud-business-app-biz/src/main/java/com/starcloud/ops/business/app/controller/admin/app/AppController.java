@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -69,6 +70,13 @@ public class AppController {
     public CommonResult<AppRespVO> getRecommendApp(@Parameter(name = "recommend", description = "推荐应用唯一标识")
                                                    @PathVariable("recommend") String recommend) {
         return CommonResult.success(appService.getRecommendApp(recommend));
+    }
+
+    @GetMapping("/stepList")
+    @Operation(summary = "获取步骤列表", description = "获取步骤列表")
+    @ApiOperationSupport(order = 11, author = "nacoyer")
+    public CommonResult<List<WorkflowStepWrapperRespVO>> stepList() {
+        return CommonResult.success(appService.stepList());
     }
 
     @GetMapping("/page")

@@ -79,6 +79,10 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
     }
 
 
+    public void completeWithError(Throwable throwable) {
+
+    }
+
     @Data
     private class StreamResult {
 

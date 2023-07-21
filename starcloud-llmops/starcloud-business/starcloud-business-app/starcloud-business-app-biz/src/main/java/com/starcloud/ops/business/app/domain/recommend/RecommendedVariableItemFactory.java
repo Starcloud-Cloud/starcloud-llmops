@@ -264,5 +264,55 @@ public class RecommendedVariableItemFactory {
     }
     // Article Generate Variable Item ----------------------------------------------------------------------------------\
 
+    // SD Generate Image Variable Item ---------------------------------------------------------------------------------------\
+
+    public static VariableItemRespVO defImageEngineVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("engine");
+        variableItem.setLabel(MessageUtil.getMessage("SD_IMAGE_ENGINE_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("SD_IMAGE_ENGINE_DESCRIPTION"));
+        variableItem.setDefaultValue("pixabay");
+        variableItem.setValue("pixabay");
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+//        variableItem.setOptions(ImageEngineEnum.ofOptions());
+        return variableItem;
+    }
+
+    /**
+     * 生成图片的数量
+     *
+     * @return VariableItemRespVO
+     */
+    public static VariableItemRespVO defImageSamplesVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("samples");
+        variableItem.setLabel(MessageUtil.getMessage("SD_IMAGE_SAMPLES_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("SD_IMAGE_SAMPLES_DESCRIPTION"));
+        variableItem.setDefaultValue(1);
+        variableItem.setValue(1);
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.addOption("1", 1);
+        variableItem.addOption("2", 2);
+        variableItem.addOption("3", 3);
+        variableItem.addOption("4", 4);
+        variableItem.addOption("5", 5);
+        variableItem.addOption("6", 6);
+        variableItem.addOption("7", 7);
+        variableItem.addOption("8", 8);
+        variableItem.addOption("9", 9);
+        variableItem.addOption("10", 10);
+        return variableItem;
+    }
+
 
 }

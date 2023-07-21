@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.util.MessageUtil;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 
 /**
  * 推荐应用Action 包装类工厂类
@@ -19,7 +20,7 @@ public class RecommendedStepWrapperFactory {
      */
     public static WorkflowStepWrapperRespVO defDefaultTextCompletionStepWrapper() {
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField("GENERATE_TEXT");
+        stepWrapper.setField(AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME")));
         stepWrapper.setName(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
@@ -34,10 +35,12 @@ public class RecommendedStepWrapperFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defArticleTitleStepWrapper() {
-        String defaultPrompt = "Write a title for an article about \"{STEP.TITLE.TOPIC}\" in {STEP.TITLE.LANGUAGE}. Style: {STEP.TITLE.WRITING_STYLE}. Tone: {STEP.TITLE.WRITING_TONE}. Must be between 40 and 60 characters";
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_TITLE_NAME");
+        String field = AppUtils.obtainField(name);
+        String defaultPrompt = "Write a title for an article about \"{STEP." + field + ".TOPIC}\" in {STEP." + field + ".LANGUAGE}. Style: {STEP." + field + ".WRITING_STYLE}. Tone: {STEP." + field + ".WRITING_TONE}. Must be between 40 and 60 characters";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField("TITLE");
-        stepWrapper.setName(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_TITLE_NAME"));
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_TITLE_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_TITLE_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendedActionFactory.defOpenAiChatCompletionStep(defaultPrompt, Boolean.FALSE, RecommendedResponseFactory.defInputResponse()));
@@ -51,10 +54,13 @@ public class RecommendedStepWrapperFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defArticleSectionsStepWrapper() {
-        String defaultPrompt = "Write {STEP.SECTIONS.SECTIONS} consecutive headings for an article about \"{STEP.TITLE._OUT}\", in {STEP.TITLE.LANGUAGE}. Style: {STEP.TITLE.WRITING_STYLE}. Tone: {STEP.TITLE.WRITING_TONE}. Each heading is between 40 and 60 characters. Use Markdown for the headings (## ).";
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_SECTIONS_NAME");
+        String field = AppUtils.obtainField(name);
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_TITLE_NAME"));
+        String defaultPrompt = "Write {STEP." + field + ".SECTIONS} consecutive headings for an article about \"{STEP." + titleField + "._OUT}\", in {STEP." + titleField + ".LANGUAGE}. Style: {STEP." + titleField + ".WRITING_STYLE}. Tone: {STEP." + titleField + ".WRITING_TONE}. Each heading is between 40 and 60 characters. Use Markdown for the headings (## ).";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField("SECTIONS");
-        stepWrapper.setName(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_SECTIONS_NAME"));
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_SECTIONS_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_SECTIONS_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendedActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
@@ -68,10 +74,14 @@ public class RecommendedStepWrapperFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defArticleContentStepWrapper() {
-        String defaultPrompt = "Write an article about \"{STEP.TITLE._OUT}\" in {STEP.TITLE.LANGUAGE}. The article is organized by the following headings:\n{STEP.SECTIONS._OUT}\nWrite {STEP.CONTENT._IN.PARAGRAPHS} paragraphs per heading.\nUse Markdown for formatting.\nAdd an introduction prefixed by \"<!--- ===INTRO: --->\", and a conclusion prefixed by \"<!--- ===OUTRO: --->\".\nStyle: {STEP.TITLE.WRITING_STYLE}. Tone: {STEP.TITLE.WRITING_TONE}.";
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_CONTENT_NAME");
+        String field = AppUtils.obtainField(name);
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_TITLE_NAME"));
+        String selectionField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_SECTIONS_NAME"));
+        String defaultPrompt = "Write an article about \"{STEP." + titleField + "._OUT}\" in {STEP." + titleField + ".LANGUAGE}. The article is organized by the following headings:\n{STEP." + selectionField + "._OUT}\nWrite {STEP." + field + "._IN.PARAGRAPHS} paragraphs per heading.\nUse Markdown for formatting.\nAdd an introduction prefixed by \"<!--- ===INTRO: --->\", and a conclusion prefixed by \"<!--- ===OUTRO: --->\".\nStyle: {STEP." + titleField + ".WRITING_STYLE}. Tone: {STEP." + titleField + ".WRITING_TONE}.";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField("CONTENT");
-        stepWrapper.setName(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_CONTENT_NAME"));
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_CONTENT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_CONTENT_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendedActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
@@ -85,10 +95,13 @@ public class RecommendedStepWrapperFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defArticleExcerptStepWrapper() {
-        String defaultPrompt = "Write an excerpt for an article about \"{STEP.TITLE._OUT}\" in {STEP.TITLE.LANGUAGE}. Style: {STEP.TITLE.WRITING_STYLE}. Tone: {STEP.TITLE.WRITING_TONE}. Must be between 40 and 60 characters.";
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_NAME");
+        String field = AppUtils.obtainField(name);
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_TITLE_NAME"));
+        String defaultPrompt = "Write an excerpt for an article about \"{STEP." + titleField + "._OUT}\" in {STEP." + titleField + ".LANGUAGE}. Style: {STEP." + titleField + ".WRITING_STYLE}. Tone: {STEP." + titleField + ".WRITING_TONE}. Must be between 40 and 60 characters.";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField("EXCERPT");
-        stepWrapper.setName(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_NAME"));
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendedActionFactory.defOpenAiChatCompletionStep(defaultPrompt));

@@ -9,9 +9,6 @@ package com.starcloud.ops.business.app.domain.entity.config;
  */
 public abstract class BaseConfigEntity {
 
-    /**
-     * 校验实体，对一写复杂逻辑的校验，可以在这里实现
-     */
-    abstract void validate();
+    public abstract void validate();
 
 }

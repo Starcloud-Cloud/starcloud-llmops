@@ -8,6 +8,15 @@ import java.util.Optional;
 
 public class CallbackManagerForLLMRun extends BaseRunManager implements ChainManagerMixin {
 
+
+    public void onLLMStart(Object... objects) {
+
+        Optional.ofNullable(this.getHandlers()).orElse(new ArrayList<>()).forEach((callbackHandler -> {
+            callbackHandler.onLLMStart(objects);
+        }));
+    }
+
+
     public void onLLMNewToken(Object... objects) {
         Optional.ofNullable(this.getHandlers()).orElse(new ArrayList<>()).forEach((callbackHandler -> {
             callbackHandler.onLLMNewToken(objects);
