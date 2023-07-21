@@ -347,7 +347,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             reqVO.setFromScene(req.getScene());
 
-
             this._createAppConversationLog(req, reqVO);
 
             logAppConversationService.createAppConversation(reqVO);

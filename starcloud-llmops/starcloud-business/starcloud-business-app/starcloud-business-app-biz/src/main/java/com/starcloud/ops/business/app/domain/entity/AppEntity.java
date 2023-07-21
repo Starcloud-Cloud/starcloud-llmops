@@ -210,7 +210,6 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
         String stepId = nodeTracking.getNodeName();
 
-
         this.createAppMessage((messageCreateReqVO) -> {
 
             messageCreateReqVO.setAppConversationUid(appContext.getConversationId());
@@ -229,6 +228,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
 
             if (actionResponse != null) {
+
+                messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
 
                 messageCreateReqVO.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
 
