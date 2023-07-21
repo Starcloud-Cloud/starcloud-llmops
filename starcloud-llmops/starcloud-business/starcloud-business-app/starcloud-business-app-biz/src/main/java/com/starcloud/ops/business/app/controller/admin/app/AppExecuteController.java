@@ -41,7 +41,7 @@ public class AppExecuteController {
 
         executeReqVO.setSseEmitter(emitter);
 
-        AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO());
+        AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO(), AppSceneEnum.WEB_ADMIN);
 
         app.aexecute(executeReqVO);
 
@@ -56,7 +56,15 @@ public class AppExecuteController {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
         SseEmitter emitter = new SseEmitter(60000L);
-        appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_MARKET, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(),emitter);
+
+        executeReqVO.setSseEmitter(emitter);
+
+        AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO(), AppSceneEnum.WEB_MARKET);
+
+
+        app.aexecute(executeReqVO);
+
+        //appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_MARKET, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(),emitter);
         return emitter;
     }
 

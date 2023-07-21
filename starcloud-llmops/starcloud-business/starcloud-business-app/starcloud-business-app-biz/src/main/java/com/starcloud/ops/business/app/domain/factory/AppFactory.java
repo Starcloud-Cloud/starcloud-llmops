@@ -123,6 +123,25 @@ public class AppFactory {
         return app;
     }
 
+    public static AppEntity factory(String appId, AppReqVO appRequest, AppSceneEnum scene) {
+
+        // 获取 AppEntity
+        AppEntity app = null;
+        if (appRequest == null) {
+            if (AppSceneEnum.WEB_MARKET.equals(scene)) {
+                app = AppFactory.factoryMarket(appId);
+            } else {
+                app = AppFactory.factory(appId);
+            }
+        } else {
+            app = AppFactory.factory(appId, appRequest);
+        }
+
+        app.setUid(appId);
+        Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
+        return app;
+    }
+
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
 
         String appId = chatRequest.getAppUid();
@@ -204,8 +223,4 @@ public class AppFactory {
         return imageAppEntity;
     }
 
-
-    public static AppEntity factory(String appId, AppReqVO appRequest, String requestId) {
-        return null;
-    }
 }
