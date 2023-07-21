@@ -57,6 +57,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @Validated
+@Deprecated
 public class AppWorkflowService {
 
     @Autowired

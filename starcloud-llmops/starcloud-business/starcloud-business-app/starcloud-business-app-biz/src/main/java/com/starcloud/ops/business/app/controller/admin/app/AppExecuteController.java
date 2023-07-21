@@ -43,7 +43,7 @@ public class AppExecuteController {
 
         AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO());
 
-        app.execute(executeReqVO);
+        app.aexecute(executeReqVO);
 
         //appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_ADMIN, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(), emitter);
         return emitter;

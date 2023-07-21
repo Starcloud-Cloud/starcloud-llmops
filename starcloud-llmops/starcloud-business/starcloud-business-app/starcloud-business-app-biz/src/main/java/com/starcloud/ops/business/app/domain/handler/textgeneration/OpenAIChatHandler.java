@@ -3,22 +3,30 @@ package com.starcloud.ops.business.app.domain.handler.textgeneration;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackHandler;
+import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
+import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
+import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
+import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
@@ -60,18 +68,19 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         try {
 
             ChatOpenAI chatOpenAI = new ChatOpenAI();
-            chatOpenAI.setStream(true);
+
+            chatOpenAI.setStream(request.getStream());
             chatOpenAI.setMaxTokens(request.getMaxTokens());
             chatOpenAI.setTemperature(request.getTemperature());
-            //chatOpenAI.setVerbose(true);
-//            chatOpenAI.addCallbackHandler(new StreamingSseCallBackHandler(context.getSseEmitter()));
 
             chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
+
+            //数据集支持
+
             List<List<BaseMessage>> chatMessages = Arrays.asList(
                     Arrays.asList(new HumanMessage(prompt))
             );
 
-            //appStepResponse.setStepConfig(chatOpenAI);
 
             ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
 
@@ -137,7 +146,15 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
         private Double frequencyPenalty = 0d;
 
-        private BaseCallbackHandler llmCallbackHandler;
+        /**
+         * 数据集支持
+         */
+        private List<String> docsUid;
+
+//        @Deprecated
+//        private BaseCallbackHandler llmCallbackHandler;
+//
+//        private SseEmitter sseEmitter;
 
     }
 }

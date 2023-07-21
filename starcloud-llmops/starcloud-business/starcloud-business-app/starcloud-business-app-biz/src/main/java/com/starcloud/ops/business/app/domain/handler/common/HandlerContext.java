@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.handler.common;
 
 import lombok.Data;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * @author nacoyer
@@ -15,6 +16,8 @@ public class HandlerContext<Q> {
     private String conversationUid;
 
     private String messageUid;
+
+    private SseEmitter sseEmitter;
 
     private Q request;
 
