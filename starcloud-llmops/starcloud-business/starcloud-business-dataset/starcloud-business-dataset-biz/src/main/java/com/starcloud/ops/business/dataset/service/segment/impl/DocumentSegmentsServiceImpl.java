@@ -35,6 +35,8 @@ import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
+import com.starcloud.ops.business.dataset.service.task.SummaryEntity;
+import com.starcloud.ops.business.dataset.service.task.SummaryTask;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
@@ -44,6 +46,7 @@ import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStor
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.starcloud.ops.llm.langchain.core.utils.VectorSerializeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,12 +66,15 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_EMBEDDING_ERROR;
-import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_NOT_EXIST_ERROR;
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
 
 @Service
 @Slf4j
@@ -101,6 +107,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Autowired
     private DatasetSourceDataMapper sourceDataMapper;
 
+    @Autowired
+    private SummaryTask summaryTask;
+
     @Override
     public SplitForecastResponse splitForecast(FileSplitRequest fileSplitRequest) {
         validateTenantId(fileSplitRequest.getDocumentId());
@@ -118,6 +127,39 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         } catch (IOException | TikaException e) {
             log.error("split forecast error:", e);
             throw new ServiceException(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR.getCode(), e.getMessage());
+        }
+    }
+
+    public String segmentSummary(String documentId, String text, SplitRule splitRule,Integer summarySize) {
+        long start = System.currentTimeMillis();
+        List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
+        int size = splitText.size();
+        CountDownLatch countDownLatch = new CountDownLatch(size);
+
+        ConcurrentHashMap<Integer, String> resultMap = new ConcurrentHashMap<>(size);
+        for (int i = 0; i < splitText.size(); i++) {
+            SummaryEntity summaryEntity = new SummaryEntity(resultMap, countDownLatch);
+            summaryEntity.setIndex(i);
+            summaryEntity.setText(splitText.get(i));
+            summaryEntity.setSummarySize(summarySize);
+            summaryTask.execute(summaryEntity);
+        }
+        try {
+            boolean await = countDownLatch.await(100, TimeUnit.SECONDS);
+            if (!await || resultMap.size() < size) {
+                log.info("count down wait={}", await);
+                throw exception(SUMMARY_ERROR);
+            }
+            StringJoiner sj = new StringJoiner(StringUtils.LF);
+            for (int i = 0; i < size; i++) {
+                sj.add(resultMap.get(i));
+            }
+            long end = System.currentTimeMillis();
+            log.info("summary success，rt：{} ms", end - start);
+            return sj.toString();
+        } catch (InterruptedException e) {
+            log.info("总结文档失败，docId = {}", documentId, e);
+            throw exception(SUMMARY_ERROR);
         }
     }
 

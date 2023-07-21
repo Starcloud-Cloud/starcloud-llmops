@@ -244,9 +244,11 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
 
+            //@todo 避免因为异常获取不到元素的值，从 appContext 中获取原始的值
+
             if (actionResponse != null) {
 
-                messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
+                //messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
 
                 messageCreateReqVO.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
 
