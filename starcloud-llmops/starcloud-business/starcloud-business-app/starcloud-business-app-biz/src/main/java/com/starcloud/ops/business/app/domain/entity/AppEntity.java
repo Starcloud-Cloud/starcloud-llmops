@@ -198,7 +198,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
             MonitorTracking monitorTracking = recallStory.getMonitorTracking();
             List<NodeTracking> storyTracking = monitorTracking.getStoryTracking();
 
-            log.info("recallStory: {} {} {} \n {}", recallStory.getBusinessId(), recallStory.getStartId(), recallStory.getResult().isPresent(), JSONUtil.toJsonPrettyStr(recallStory.getReq()));
+            log.info("recallStory: {} {} {} \n {}", recallStory.getBusinessId(), recallStory.getStartId(), recallStory.getResult().isPresent(), JSONUtil.parse(recallStory.getReq()).toJSONString(4));
 
             storyTracking.stream().filter((nodeTracking) -> BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())).forEach(nodeTracking -> {
                 this.createAppMessageLog(appContext, nodeTracking);
