@@ -130,17 +130,15 @@ public class AppFactory {
         AppEntity app = null;
         String appId = executeReqVO.getAppUid();
 
-//        if (executeReqVO.getAppReqVO() == null) {
-//            if (AppSceneEnum.WEB_MARKET.name().equals(executeReqVO.getScene())) {
-//                app = AppFactory.factoryMarket(appId);
-//            } else {
-//                app = AppFactory.factory(appId);
-//            }
-//        } else {
-//
-//        }
-
-        app = AppFactory.factory(appId, executeReqVO.getAppReqVO());
+        if (executeReqVO.getAppReqVO() == null) {
+            if (AppSceneEnum.WEB_MARKET.name().equals(executeReqVO.getScene())) {
+                app = AppFactory.factoryMarket(appId);
+            } else {
+                app = AppFactory.factory(appId);
+            }
+        } else {
+            app = AppFactory.factory(appId, executeReqVO.getAppReqVO());
+        }
 
         Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
         return app;

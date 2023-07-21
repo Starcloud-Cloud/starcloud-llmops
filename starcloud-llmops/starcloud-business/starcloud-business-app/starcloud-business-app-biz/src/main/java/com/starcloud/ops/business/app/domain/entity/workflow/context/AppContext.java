@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import java.sql.Array;
 import java.util.*;
 
 /**
@@ -151,7 +152,7 @@ public class AppContext {
 
 
     /**
-     * 获取当前步骤的所有变量Maps
+     * 获取当前步骤的所有变量值Maps
      *
      * @return
      */
@@ -170,13 +171,23 @@ public class AppContext {
             Map<String, Object> variablesValues = wrapper.getContextVariablesValues(prefixKey);
 
             Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()).entrySet().forEach(stringObjectEntry -> {
-
                 allVariablesValues.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
             });
         });
 
+        WorkflowStepWrapper wrapper = this.getStepWrapper(this.stepId);
+        //当前步骤的所有变量
+        Map<String, Object> variables = wrapper.getContextVariablesValues(null);
 
-        return allVariablesValues;
+        Map<String, Object> fieldVariables = new HashMap<>();
+        Optional.ofNullable(variables.entrySet()).orElse(new HashSet<Map.Entry<String, Object>>()).forEach(entrySet -> {
+
+            String filedKey = StrUtil.replace(entrySet.getKey(), this.stepId + ".", "");
+            filedKey = StrUtil.replace(filedKey, this.stepId, "");
+            fieldVariables.put(filedKey, StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues));
+        });
+
+        return fieldVariables;
 
     }
 

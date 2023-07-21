@@ -64,7 +64,6 @@ public class WorkflowStepWrapper {
         return this.field;
     }
 
-
     /**
      * 获取当前步骤的变量值
      *

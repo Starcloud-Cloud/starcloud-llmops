@@ -53,9 +53,9 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         Long userId = this.getAppContext().getUserId();
         String conversationId = this.getAppContext().getConversationId();
 
-        String prompt = (String) params.getOrDefault("prompt", "hi, what you name?");
-        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("max_tokens", "1000"));
-        Double temperature = Double.valueOf((String) params.getOrDefault("temperature", "0.7"));
+        String prompt = (String) params.getOrDefault("PROMPT", "hi, what you name?");
+        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
+        Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7"));
 
 
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();

@@ -135,7 +135,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     protected void _createAppConversationLog(AppExecuteReqVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
 
 
-        logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(req.getAppReqVO()));
+        logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
 
         logAppConversationCreateReqVO.setEndUser(req.getEndUser());
 
