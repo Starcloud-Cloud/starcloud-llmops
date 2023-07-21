@@ -7,7 +7,7 @@ import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
-import com.starcloud.ops.business.app.domain.entity.params.JsonParamsEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,7 +62,7 @@ public class ImageController {
         // 构建 ImageAppEntity
         ImageAppEntity factory = AppFactory.factory(request);
         // 执行生成图片
-        JsonParamsEntity response = factory.execute(request);
+        JsonData response = factory.execute(request);
         // 返回结果
         return CommonResult.success((ImageMessageRespVO)response.getData());
     }
