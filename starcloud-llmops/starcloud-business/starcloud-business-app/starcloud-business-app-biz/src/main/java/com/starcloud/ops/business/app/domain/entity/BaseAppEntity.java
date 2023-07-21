@@ -20,6 +20,7 @@ import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import lombok.Data;
@@ -223,6 +224,10 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
         try {
 
+            req.setUserId(SecurityFrameworkUtils.getLoginUserId());
+
+            log.info("app start:{}, {}", this.getUid(), this.getName());
+
             this.validate();
 
             //会话uid为空
@@ -241,6 +246,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             }
 
             R result = this._execute(req);
+
+            log.info("app end: {} {}", this.getUid(), result);
 
             return result;
         } catch (ServiceException e) {
@@ -303,7 +310,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     }
 
 
-    public void allowExpendBenefits(String benefitsType, Long userId) {
+    protected void allowExpendBenefits(String benefitsType, Long userId) {
 
         userBenefitsService.allowExpendBenefits(benefitsType, userId);
     }
@@ -331,7 +338,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             LogAppConversationCreateReqVO reqVO = new LogAppConversationCreateReqVO();
             reqVO.setUid(IdUtil.fastSimpleUUID());
+
             reqVO.setAppUid(this.getUid());
+            reqVO.setAppName(this.getName());
+            reqVO.setAppMode(this.getModel());
+            reqVO.setStatus(LogStatusEnum.ERROR.name());
+
+            reqVO.setFromScene(req.getScene());
+
 
             this._createAppConversationLog(req, reqVO);
 
@@ -350,6 +364,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 //        messageCreateReqVO.setAppConversationUid(req.getConversationUid());
         messageCreateReqVO.setUid(IdUtil.fastSimpleUUID());
 
+        messageCreateReqVO.setAppUid(this.getUid());
+        messageCreateReqVO.setAppMode(this.getModel());
+
         consumer.accept(messageCreateReqVO);
 
         logAppMessageService.createAppMessage(messageCreateReqVO);
@@ -367,15 +384,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         logAppConversationService.updateAppConversationStatus(conversationUid, status ? "SUCCESS" : "ERROR");
 
     }
-
-
-    protected <C> C getConversationConfig(String conversationId) {
-
-        LogAppConversationDO logAppConversationDO = this.getAppConversation(conversationId);
-
-        return this._parseConversationConfig(logAppConversationDO.getAppConfig());
-    }
-
 
     private LogAppConversationDO getAppConversation(String conversationId) {
 

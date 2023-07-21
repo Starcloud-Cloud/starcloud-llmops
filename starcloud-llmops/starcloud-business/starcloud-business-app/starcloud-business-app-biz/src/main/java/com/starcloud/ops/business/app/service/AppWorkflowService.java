@@ -18,9 +18,9 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.ExecuteAppRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
-import com.starcloud.ops.business.app.domain.context.AppContext;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -160,7 +160,6 @@ public class AppWorkflowService {
         if (StringUtils.isNotBlank(stepId)) {
             appContext.setStepId(stepId);
         }
-        appContext.setHttpServletResponse(httpServletResponse);
 
         // 执行该应用
         this.fireByAppContext(appContext);

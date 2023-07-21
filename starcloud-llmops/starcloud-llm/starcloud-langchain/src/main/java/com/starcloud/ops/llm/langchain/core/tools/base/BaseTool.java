@@ -27,9 +27,6 @@ public abstract class BaseTool<Q, R> {
     @Transient
     private BaseCallbackManager callbackManager;
 
-    private Class<?> parameters;
-
-
     protected abstract R _run(Q input);
 
     public R run(Q input) {
@@ -47,11 +44,12 @@ public abstract class BaseTool<Q, R> {
 
             //@todo input if JsonNode
 
-            Type query = TypeUtil.getTypeArgument(this.getClass());
-            if (query.getTypeName().contains("Object")) {
-                result = this._run(input);
+            if (this instanceof FunTool) {
+                Class<Q> qq = (Class<Q>) ((FunTool) this).getInputCls();
+                result = this._run(JSONUtil.toBean(input.toString(), qq));
             } else {
 
+                Type query = TypeUtil.getTypeArgument(this.getClass());
                 Class<Q> cc = (Class<Q>) query;
                 result = this._run(JSONUtil.toBean(input.toString(), cc));
             }

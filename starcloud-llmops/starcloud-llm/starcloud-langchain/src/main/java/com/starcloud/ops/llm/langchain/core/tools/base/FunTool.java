@@ -1,11 +1,9 @@
 package com.starcloud.ops.llm.langchain.core.tools.base;
 
-import cn.hutool.core.util.TypeUtil;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
-
-import java.lang.reflect.Type;
 import java.util.function.Function;
 
 /**
@@ -14,7 +12,7 @@ import java.util.function.Function;
  * @author df007df
  */
 @Data
-public class FunTool extends BaseTool<Object, String> {
+public class FunTool extends BaseTool<Object, Object> {
 
     /**
      * 自定义的 schema
@@ -23,18 +21,22 @@ public class FunTool extends BaseTool<Object, String> {
 
     private Function<Object, String> function;
 
-    public FunTool(String name, String description, JsonNode jsonSchema, Function<Object, String> function) {
-        this.setFunction(function);
-        this.setName(name);
-        this.setDescription(description);
-        this.setJsonSchema(jsonSchema);
-    }
+    private Class<?> inputCls;
+
+    private Class<?> outputCls;
+
+//    public FunTool(String name, String description, JsonNode jsonSchema, Function<Object, String> function) {
+//        this.setFunction(function);
+//        this.setName(name);
+//        this.setDescription(description);
+//        this.setJsonSchema(jsonSchema);
+//    }
 
     public FunTool(String name, String description, Class<?> schemaCls, Function<Object, String> function) {
         this.setFunction(function);
         this.setName(name);
         this.setDescription(description);
-        this.setParameters(schemaCls);
+        this.setInputCls(schemaCls);
     }
 
     @Override
@@ -46,7 +48,7 @@ public class FunTool extends BaseTool<Object, String> {
     @Override
     public JsonNode getInputSchemas() {
 
-        return this.getJsonSchema();
+        return OpenAIUtils.serializeJsonSchema(this.getInputCls());
     }
 
 

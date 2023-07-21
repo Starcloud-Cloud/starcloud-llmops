@@ -2,7 +2,9 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import lombok.Data;
 
@@ -14,7 +16,7 @@ import java.math.BigDecimal;
  * @since 2023-06-20
  */
 @Data
-public class AppMarketEntity extends AppEntity<AppExecuteReqVO, LogAppConversationCreateReqVO> {
+public class AppMarketEntity extends AppEntity<AppExecuteReqVO, JsonData> {
 
     /**
      * 应用版本
@@ -81,11 +83,20 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, LogAppConversati
     @Override
     protected void _validate() {
 
-
     }
 
     @Override
-    protected LogAppConversationCreateReqVO _execute(AppExecuteReqVO req) {
+    protected JsonData _execute(AppExecuteReqVO req) {
+
+
+        //        // 使用量加一
+//        if (AppSceneEnum.WEB_MARKET.equals(appContext.getScene())) {
+//            AppOperateReqVO appOperateReqVO = new AppOperateReqVO();
+//            appOperateReqVO.setAppUid(appContext.getApp().getUid());
+//            appOperateReqVO.setVersion(AppConstants.DEFAULT_VERSION);
+//            appOperateReqVO.setOperate(AppOperateTypeEnum.USAGE.name());
+//            appMarketService.operate(appOperateReqVO);
+//        }
 
         return super._execute(req);
 

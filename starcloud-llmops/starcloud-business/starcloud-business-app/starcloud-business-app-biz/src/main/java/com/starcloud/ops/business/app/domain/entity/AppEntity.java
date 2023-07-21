@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.hutool.json.JSONUtil;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -16,8 +16,9 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
-import com.starcloud.ops.business.app.domain.context.AppContext;
-import com.starcloud.ops.business.app.domain.entity.action.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.AppWorkflowService;
@@ -31,7 +32,6 @@ import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -45,7 +45,7 @@ import java.util.*;
  */
 @Slf4j
 @Data
-public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, Object> {
+public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, JsonData> {
 
 
     private AppWorkflowService appWorkflowService = SpringUtil.getBean(AppWorkflowService.class);
@@ -84,14 +84,15 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, Object> {
 
 
     @Override
-    protected LogAppConversationCreateReqVO _execute(AppExecuteReqVO req) {
+    protected JsonData _execute(AppExecuteReqVO req) {
 
-        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), SecurityFrameworkUtils.getLoginUserId());
-
-        log.info("fireByApp app: {}", JSON.toJSON(req.getAppReqVO()));
+        //权益放在这里是为了包装 可以执行完整的一次应用
+        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
 
         // 创建 App 执行上下文
         AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(req.getScene()));
+        appContext.setUserId(req.getUserId());
+        appContext.setSseEmitter(req.getSseEmitter());
 
         if (StringUtils.isNotBlank(req.getStepId())) {
             appContext.setStepId(req.getStepId());
@@ -123,15 +124,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, Object> {
     protected void _createAppConversationLog(AppExecuteReqVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
 
 
-        logAppConversationCreateReqVO.setAppMode(req.getAppReqVO().getModel());
-        logAppConversationCreateReqVO.setAppName(req.getAppReqVO().getName());
+        logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(req.getAppReqVO()));
 
-        logAppConversationCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
-
-        logAppConversationCreateReqVO.setAppUid(req.getAppUid());
-        logAppConversationCreateReqVO.setAppConfig(JSON.toJSONString(req.getAppReqVO()));
-
-        logAppConversationCreateReqVO.setFromScene(req.getScene());
         logAppConversationCreateReqVO.setEndUser(req.getEndUser());
 
     }
@@ -186,15 +180,6 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, Object> {
 
         TaskResponse<Void> fire = storyEngine.fire(req);
 
-//        // 使用量加一
-//        if (AppSceneEnum.WEB_MARKET.equals(appContext.getScene())) {
-//            AppOperateReqVO appOperateReqVO = new AppOperateReqVO();
-//            appOperateReqVO.setAppUid(appContext.getApp().getUid());
-//            appOperateReqVO.setVersion(AppConstants.DEFAULT_VERSION);
-//            appOperateReqVO.setOperate(AppOperateTypeEnum.USAGE.name());
-//            appMarketService.operate(appOperateReqVO);
-//        }
-
         this.updateAppConversationLog(appContext.getConversationId(), fire.isSuccess());
 
         log.info("{}, {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc(), fire.getResult());
@@ -212,12 +197,11 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, Object> {
 
         String stepId = nodeTracking.getNodeName();
 
+
         this.createAppMessage((messageCreateReqVO) -> {
 
             messageCreateReqVO.setAppConversationUid(appContext.getConversationId());
 
-            messageCreateReqVO.setAppUid(appContext.getApp().getUid());
-            messageCreateReqVO.setAppMode(appContext.getApp().getModel());
             messageCreateReqVO.setAppStep(appContext.getStepId());
 
             messageCreateReqVO.setCreateTime(nodeTracking.getStartTime());
@@ -225,10 +209,6 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, Object> {
 
             messageCreateReqVO.setElapsed(nodeTracking.getSpendTime());
 
-//        Map<String, Object> variablesMaps = appContext.getCurrentAppStepWrapper(stepId).getContextVariablesMaps();
-            Map<String, Object> variablesMaps = new HashMap<>();
-
-            messageCreateReqVO.setVariables(JSON.toJSONString(variablesMaps));
             messageCreateReqVO.setEndUser(appContext.getEndUser());
             messageCreateReqVO.setFromScene(appContext.getScene().name());
             messageCreateReqVO.setCurrency("USD");
@@ -239,7 +219,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, Object> {
 
                 messageCreateReqVO.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
 
-                messageCreateReqVO.setAppConfig(JSON.toJSONString(actionResponse.getStepConfig()));
+                messageCreateReqVO.setVariables(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
 
                 messageCreateReqVO.setMessage(actionResponse.getMessage());
 
