@@ -111,11 +111,24 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     protected void _aexecute(AppExecuteReqVO req) {
 
-        this._execute(req);
 
-        if (req.getSseEmitter() != null) {
-            req.getSseEmitter().complete();
+        try {
+
+            this._execute(req);
+
+            if (req.getSseEmitter() != null) {
+                req.getSseEmitter().complete();
+            }
+
+        } catch (Exception e) {
+
+            log.error("app _aexecute is fail: {}", e.getMessage(), e);
+
+            if (req.getSseEmitter() != null) {
+                req.getSseEmitter().completeWithError(e);
+            }
         }
+
 
     }
 
