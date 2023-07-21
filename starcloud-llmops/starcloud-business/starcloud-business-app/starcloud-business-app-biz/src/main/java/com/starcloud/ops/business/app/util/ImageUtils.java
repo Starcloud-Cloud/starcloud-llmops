@@ -157,12 +157,12 @@ public class ImageUtils {
     }
 
     /**
-     * 计算回答图片的token数量
+     * 计算回答图片消耗的 SD 点数
      *
      * @param request 请求参数
      * @return token数量
      */
-    public static Integer countAnswerTokens(ImageRequest request) {
+    public static BigDecimal countAnswerCredits(ImageRequest request) {
         String engine = request.getEngine();
         Integer steps = request.getSteps();
         Integer width = request.getWidth();
@@ -177,7 +177,7 @@ public class ImageUtils {
             height = 512;
         }
         BigDecimal stepsDecimal = new BigDecimal(steps.toString());
-        BigDecimal multiplier = new BigDecimal("1000");
+        BigDecimal multiplier = new BigDecimal("100");
 
         // SDXL 0.9
         if (EngineEnum.STABLE_DIFFUSION_XL_1024_V0_9.getCode().equals(engine)) {
@@ -192,16 +192,16 @@ public class ImageUtils {
                 BigDecimal factorThird = new BigDecimal("0.000000623").multiply(stepsDecimal).multiply(stepsDecimal);
                 factor = factorFirst.add(factorSecond).add(factorThird);
             }
-            return multiplier.multiply(factor).setScale(2, RoundingMode.HALF_UP).intValue();
+            return multiplier.multiply(factor).setScale(2, RoundingMode.HALF_UP);
         }
 
         // Upscaler
         BigDecimal factorFirst = new BigDecimal(width.toString()).multiply(new BigDecimal(height.toString()));
         if (EngineEnum.STABLE_DIFFUSION_X4_LATENT_UPSCALER.getCode().equals(engine)) {
-            return factorFirst.compareTo(new BigDecimal("262144")) > 0 ? 120 : 80;
+            return factorFirst.compareTo(new BigDecimal("262144")) > 0 ? new BigDecimal("12") : new BigDecimal("8");
         }
         if (EngineEnum.ESRGAN_V1_X2PLUS.getCode().equals(engine)) {
-            return 2;
+            return new BigDecimal("0.2");
         }
 
         factorFirst = factorFirst.subtract(new BigDecimal("169527"));
@@ -211,12 +211,22 @@ public class ImageUtils {
         // SDXL Beta
         if (EngineEnum.STABLE_DIFFUSION_XL_BETA_V2_2_2.getCode().equals(engine)) {
             BigDecimal factorSecond = new BigDecimal("5.4e-8");
-            return factorFirst.multiply(factorSecond).multiply(multiplier).setScale(2, RoundingMode.HALF_UP).intValue();
+            return factorFirst.multiply(factorSecond).multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
         }
 
         // Other
         BigDecimal factorSecond = new BigDecimal("2.16e-8");
-        return factorFirst.multiply(factorSecond).multiply(multiplier).setScale(2, RoundingMode.HALF_UP).intValue();
+        return factorFirst.multiply(factorSecond).multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 计算回答图片的token数量
+     *
+     * @param credits 消耗点数
+     * @return token数量
+     */
+    public static Integer countAnswerTokens(BigDecimal credits) {
+        return credits.multiply(new BigDecimal("100")).intValue();
     }
 
     /**
