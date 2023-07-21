@@ -32,6 +32,8 @@ public interface ErrorCodeConstants {
     ErrorCode DATASET_SOURCE_DATA_NOT_EXISTS = new ErrorCode(1003001009, "数据集源数据不存在");
     ErrorCode  DATASET_SOURCE_DATA_EXISTS= new ErrorCode(1003001009, "源数据已经存在");
 
+    ErrorCode SUMMARY_ERROR = new ErrorCode(1003001011, "总结文档失败");
+
     ErrorCode DATASET_SOURCE_DATA_ARCHIVED = new ErrorCode(99999999, "数据集源数据归档失败，当前数据集已经归档");
     ErrorCode DATASET_SOURCE_DATA_UNARCHIVED = new ErrorCode(99999999, "数据集源数据取消归档失败，当前数据集未归档");
 
