@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.workflow;
+package com.starcloud.ops.business.app;
 
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;

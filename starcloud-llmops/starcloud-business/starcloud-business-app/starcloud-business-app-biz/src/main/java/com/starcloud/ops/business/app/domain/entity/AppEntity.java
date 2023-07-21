@@ -181,7 +181,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
             MonitorTracking monitorTracking = recallStory.getMonitorTracking();
             List<NodeTracking> storyTracking = monitorTracking.getStoryTracking();
 
-            log.info("recallStory: {} {} {} {}", recallStory.getBusinessId(), recallStory.getStartId(), recallStory.getResult().isPresent(), recallStory.getReq());
+            log.info("recallStory: {} {} {} \n {}", recallStory.getBusinessId(), recallStory.getStartId(), recallStory.getResult().isPresent(), JSONUtil.parse(recallStory.getReq()).toJSONString(4));
 
             storyTracking.stream().filter((nodeTracking) -> BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())).forEach(nodeTracking -> {
                 this.createAppMessageLog(appContext, nodeTracking);
@@ -193,7 +193,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
         this.updateAppConversationLog(appContext.getConversationId(), fire.isSuccess());
 
-        log.info("{}, {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc(), fire.getResult());
+        log.info("fireWorkflowContext: {}, {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc());
 
         return new AppExecuteRespVO().setSuccess(fire.isSuccess()).setResult(fire.getResult()).setResultCode(fire.getResultCode()).setResultDesc(fire.getResultDesc());
 
