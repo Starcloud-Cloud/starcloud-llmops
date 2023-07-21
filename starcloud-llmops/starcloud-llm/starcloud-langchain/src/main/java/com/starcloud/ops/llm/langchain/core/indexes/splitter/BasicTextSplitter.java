@@ -11,10 +11,16 @@ public abstract class BasicTextSplitter {
 
     private static final List<String> BACK_SEPARATORS = Arrays.asList("\n", "。", ".", "！", "!");
 
-    public List<String> splitText(String text, int chunkSize, List<String> separators) {
+    private static final int DEFAULT_SIZE = 1000;
+
+    public List<String> splitText(String text, Integer chunkSize, List<String> separators) {
         if (StringUtils.isBlank(text)) {
             throw new IllegalArgumentException("text is blank");
         }
+        if (chunkSize == null || chunkSize <= 100) {
+            chunkSize = DEFAULT_SIZE;
+        }
+
         if (CollectionUtils.isEmpty(separators)) {
             separators = BACK_SEPARATORS;
         }

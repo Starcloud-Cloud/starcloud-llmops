@@ -180,4 +180,13 @@ public class AppUtils {
         // 去重排序并且返回字符串
         return StringUtil.toList(merge(DEFAULT_SCENES, sceneList));
     }
+
+    /**
+     * 获取字段
+     * @param name 字段名
+     * @return 字段
+     */
+    public static String obtainField(String name) {
+        return name.replace(" ", "_").toUpperCase();
+    }
 }
