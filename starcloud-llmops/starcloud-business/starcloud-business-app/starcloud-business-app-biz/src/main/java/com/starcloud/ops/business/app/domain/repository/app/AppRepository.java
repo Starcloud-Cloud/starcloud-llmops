@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.app.AppUtils;
@@ -34,7 +35,7 @@ public class AppRepository {
      * @param uid 应用唯一标识
      * @return 应用实体
      */
-    public AppEntity getByUid(String uid) {
+    public BaseAppEntity getByUid(String uid) {
         return AppConvert.INSTANCE.convert(appMapper.getByUid(uid, Boolean.FALSE));
     }
 
@@ -43,7 +44,7 @@ public class AppRepository {
      *
      * @param appEntity 应用实体
      */
-    public void insert(AppEntity appEntity) {
+    public void insert(BaseAppEntity appEntity) {
         // 校验应用名称是否重复
         AppValidate.isTrue(!duplicateName(appEntity.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
         AppDO app = AppConvert.INSTANCE.convert(appEntity);
@@ -59,13 +60,10 @@ public class AppRepository {
      *
      * @param appEntity 应用实体
      */
-    public void update(AppEntity appEntity) {
-        // 判断应用是否存在
-        AppDO appDO = appMapper.getByUid(appEntity.getUid(), Boolean.TRUE);
-        // 名称修改的话，需要判断名称是否重复
-        if (!StringUtils.equals(appDO.getName(), appEntity.getName())) {
-            AppValidate.isTrue(!duplicateName(appEntity.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
-        }
+
+    public void update(BaseAppEntity appEntity) {
+        AppValidate.isTrue(!duplicateName(appEntity.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+
         AppDO app = AppConvert.INSTANCE.convert(appEntity);
         // deleted 不允许修改
         app.setDeleted(Boolean.FALSE);

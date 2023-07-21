@@ -33,7 +33,6 @@ public class LogAppMessageBaseVO {
     private String appMode;
 
     @Schema(description = "app 配置", required = true)
-    @NotNull(message = "app 配置不能为空")
     private String appConfig;
 
     @Schema(description = "执行的 app step", required = true)
@@ -59,22 +58,22 @@ public class LogAppMessageBaseVO {
     private String message;
 
     @Schema(description = "消耗token数", required = true)
-    @NotNull(message = "消耗token数不能为空")
+    @NotNull(message = "Message 消耗token数不能为空")
     private Integer messageTokens;
 
     @Schema(description = "消耗token单位价格", required = true, example = "23618")
-    @NotNull(message = "消耗token单位价格不能为空")
+    @NotNull(message = "Message 消耗token单位价格不能为空")
     private BigDecimal messageUnitPrice;
 
     @Schema(description = "返回内容", required = true)
     private String answer;
 
     @Schema(description = "消耗token数", required = true)
-    @NotNull(message = "消耗token数不能为空")
+    @NotNull(message = "Answer 消耗token数不能为空")
     private Integer answerTokens;
 
     @Schema(description = "消耗token单位价格", required = true, example = "18453")
-    @NotNull(message = "消耗token单位价格不能为空")
+    @NotNull(message = "Answer 消耗token单位价格不能为空")
     private BigDecimal answerUnitPrice;
 
     @Schema(description = "执行耗时", required = true)

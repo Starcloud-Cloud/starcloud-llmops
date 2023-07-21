@@ -146,6 +146,13 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
     }
 
 
+    /**
+     * 判断执行条件是否满足
+     * @todo 返回异常，让上游感知到
+     * @param iterations
+     * @param timeElapsed
+     * @return
+     */
     protected Boolean _shouldContinue(Integer iterations, long timeElapsed) {
         if (iterations > this.getMaxIterations()) {
             log.info("_shouldContinue is skip, more MaxIterations");
@@ -189,6 +196,8 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
             log.error("plan is fail: {}", e.getMessage(), e);
 
+            //ExceptionTool
+
             return Arrays.asList(new AgentFinish(new HashMap() {{
                 put("error", e.getMessage());
             }}, ""));
@@ -208,7 +217,7 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
             Object observation = null;
 
-            this.callbackManager.onAgentAction(agentAction, this.getVerbose());
+            this.callbackManager.onAgentAction(this.getClass(), agentAction, this.getVerbose());
 
             if (toolMap.containsKey(agentAction.getTool())) {
 
@@ -225,7 +234,7 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
                 Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
 
-                observation = new InvalidTool().run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
+                observation = new InvalidTool().setCallbackManager(this.callbackManager).run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
             }
 
             agentAction.setObservation(observation);

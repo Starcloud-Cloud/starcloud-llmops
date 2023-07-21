@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
@@ -23,6 +24,7 @@ import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.recommend.RecommendedAppCache;
+import com.starcloud.ops.business.app.domain.recommend.RecommendedStepWrapperFactory;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
@@ -124,6 +126,16 @@ public class AppServiceImpl implements AppService {
     @Override
     public AppRespVO getRecommendApp(String recommend) {
         return RecommendedAppCache.getRecommendApp(recommend);
+    }
+
+    /**
+     * 获取步骤列表
+     *
+     * @return 步骤列表
+     */
+    @Override
+    public List<WorkflowStepWrapperRespVO> stepList() {
+        return Collections.singletonList(RecommendedStepWrapperFactory.defDefaultTextCompletionStepWrapper());
     }
 
     /**

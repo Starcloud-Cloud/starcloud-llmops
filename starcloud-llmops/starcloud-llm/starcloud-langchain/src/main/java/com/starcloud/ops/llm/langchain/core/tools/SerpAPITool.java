@@ -2,8 +2,12 @@ package com.starcloud.ops.llm.langchain.core.tools;
 
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
+import com.starcloud.ops.llm.langchain.config.SerpAPIToolConfig;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import kong.unirest.HttpResponse;
 import kong.unirest.JacksonObjectMapper;
@@ -33,20 +37,26 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
     private String apiKey;
 
     public SerpAPITool(String serpapiApiKey) {
-
         Unirest.config().setObjectMapper(new JacksonObjectMapper());
         this.apiKey = serpapiApiKey;
     }
 
+    public SerpAPITool() {
+
+        SerpAPIToolConfig serpAPIToolConfig = SpringUtil.getBean(SerpAPIToolConfig.class);
+        Unirest.config().setObjectMapper(new JacksonObjectMapper());
+        this.apiKey = serpAPIToolConfig.getApiKey();
+    }
+
     @Override
-    protected String _run(Object input) {
+    protected String _run(SerpAPITool.Request input) {
 
         String result = "";
 
         try {
 
             HttpResponse<JsonNode> response = Unirest.post("https://google.serper.dev/search")
-                    .header("X-API-KEY", "2e5c6660fac6cacce028248c66d80204843436b4")
+                    .header("X-API-KEY", this.getApiKey())
                     .header("Content-Type", "application/json")
                     .body(input)
                     .asJson();

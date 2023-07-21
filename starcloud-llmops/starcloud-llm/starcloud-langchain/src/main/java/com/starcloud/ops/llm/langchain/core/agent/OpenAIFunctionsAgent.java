@@ -1,12 +1,8 @@
 package com.starcloud.ops.llm.langchain.core.agent;
 
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
 import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
@@ -14,8 +10,8 @@ import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentActi
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.StdOutCallbackHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
-import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.MessagesPlaceholder;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
@@ -31,7 +27,6 @@ import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import com.starcloud.ops.llm.langchain.core.schema.prompt.BasePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
-import com.starcloud.ops.llm.langchain.core.tools.utils.ConvertToOpenaiUtils;
 import com.theokanning.openai.completion.chat.ChatFunctionCall;
 import lombok.Data;
 
@@ -67,6 +62,10 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
     public static OpenAIFunctionsAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools, BaseCallbackManager callbackManager, List<BaseMessagePromptTemplate> extraPromptMessages, SystemMessage systemMessage) {
 
         Assert.isInstanceOf(ChatOpenAI.class, llm, "Only supported with ChatOpenAI models.");
+
+        Optional.ofNullable(tools).orElse(new ArrayList<>()).forEach(tool -> {
+            tool.setCallbackManager(callbackManager);
+        });
 
         OpenAIFunctionsAgent agent = new OpenAIFunctionsAgent(llm, tools, createPrompt(systemMessage, extraPromptMessages));
         agent.setCallbackManager(callbackManager);
@@ -108,7 +107,7 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
     public List<FunctionDescription> getFunctions() {
 
-        return (List<FunctionDescription>) Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().map(FunctionDescription::convert).collect(Collectors.toList());
+        return Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().map(FunctionDescription::convert).collect(Collectors.toList());
     }
 
 
@@ -161,6 +160,8 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
         ChatFunctionCall functionCall = (ChatFunctionCall) baseMessage.getAdditionalArgs().getOrDefault("function_call", null);
 
+        BaseLLMUsage usage = (BaseLLMUsage) baseMessage.getAdditionalArgs().getOrDefault("usage", null);
+
         if (functionCall != null) {
 
             String functionName = functionCall.getName();
@@ -171,11 +172,12 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
             FunctionsAgentAction functionsAgentAction = new FunctionsAgentAction(functionName, toolInput, log, Arrays.asList(baseMessage));
 
+            functionsAgentAction.setUsage(usage);
             return functionsAgentAction;
 
         } else {
 
-            return new AgentFinish(baseMessage.getContent(), baseMessage.getContent());
+            return new AgentFinish(baseMessage.getContent(), baseMessage.getContent(), usage);
         }
 
     }

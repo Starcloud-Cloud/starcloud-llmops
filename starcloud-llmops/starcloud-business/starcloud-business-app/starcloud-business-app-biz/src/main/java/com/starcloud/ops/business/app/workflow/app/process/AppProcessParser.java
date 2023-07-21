@@ -37,7 +37,7 @@ public class AppProcessParser implements ConfigResource {
 
         List<WorkflowStepWrapper> stepWrappers = CollectionUtil.defaultIfEmpty(this.app.getWorkflowConfig().getSteps(), new ArrayList<>());
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
-            ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '" + stepWrapper.getField() + "'"), stepWrapper.getFlowStep().getHandler()).name(stepWrapper.getName()).build();
+            ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '" + stepWrapper.getStepCode() + "'"), stepWrapper.getFlowStep().getHandler()).name(stepWrapper.getName()).build();
 
             processLink.end();
         }

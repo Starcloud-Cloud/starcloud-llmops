@@ -25,8 +25,35 @@ public class ImageMessageRespVO implements Serializable {
 
     private static final long serialVersionUID = -5639623586957890335L;
 
+    /**
+     * 请求的 Prompt
+     */
     @Schema(description = "请求的 Prompt ")
     private String prompt;
+
+    /**
+     * 图片的Engine
+     */
+    @Schema(description = "请求的 Engine ")
+    private String engine;
+
+    /**
+     * 图片的宽度
+     */
+    @Schema(description = "图片的宽度")
+    private Integer width;
+
+    /**
+     * 图片的高度
+     */
+    @Schema(description = "图片的高度")
+    private Integer height;
+
+    /**
+     * 图片的步骤
+     */
+    @Schema(description = "图片的步骤")
+    private Integer steps;
 
     /**
      * 生成的图片时间

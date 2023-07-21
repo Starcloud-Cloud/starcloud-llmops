@@ -15,6 +15,10 @@ public class CallbackManager extends BaseCallbackManager {
 
         llmRun.setHandlers(this.getHandlers());
 
+        Optional.ofNullable(this.getHandlers()).orElse(new ArrayList<>()).forEach((callbackHandler -> {
+            callbackHandler.onLLMStart(objects);
+        }));
+
         return Arrays.asList(llmRun);
     }
 
@@ -26,6 +30,11 @@ public class CallbackManager extends BaseCallbackManager {
 
         llmRun.setHandlers(this.getHandlers());
 
+        Optional.ofNullable(this.getHandlers()).orElse(new ArrayList<>()).forEach((callbackHandler -> {
+            callbackHandler.onChatModelStart(objects);
+        }));
+
+
         return Arrays.asList(llmRun);
 
     }
@@ -36,6 +45,10 @@ public class CallbackManager extends BaseCallbackManager {
         CallbackManagerForChainRun chainRun = new CallbackManagerForChainRun();
 
         chainRun.setHandlers(this.getHandlers());
+
+        Optional.ofNullable(this.getHandlers()).orElse(new ArrayList<>()).forEach((callbackHandler -> {
+            callbackHandler.onChainStart(objects);
+        }));
 
         return chainRun;
 
@@ -55,6 +68,11 @@ public class CallbackManager extends BaseCallbackManager {
         CallbackManagerForToolRun toolRun = new CallbackManagerForToolRun();
 
         toolRun.setHandlers(this.getHandlers());
+
+
+        Optional.ofNullable(this.getHandlers()).orElse(new ArrayList<>()).forEach((callbackHandler -> {
+            callbackHandler.onToolStart(objects);
+        }));
 
         return toolRun;
     }

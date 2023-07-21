@@ -3,6 +3,7 @@ package com.starcloud.ops.llm.langchain.core.tools;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import kotlin.jvm.Transient;
 import lombok.Data;
@@ -32,7 +33,7 @@ public class SerpapiXXTool extends BaseTool<SerpapiXXTool.Request, String> {
     }
 
     @Override
-    protected String _run(Object input) {
+    protected String _run(SerpapiXXTool.Request input) {
 
         SerpapiXXTool.Request request = JSONUtil.toBean(input.toString(), SerpapiXXTool.Request.class);
 
@@ -58,7 +59,6 @@ public class SerpapiXXTool extends BaseTool<SerpapiXXTool.Request, String> {
 
         return result;
     }
-
 
     @Data
     public static class Request {

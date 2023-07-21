@@ -69,16 +69,6 @@ public abstract class Chain<R> {
         return baseVariables;
     }
 
-    protected R prepOutputs(List<BaseVariable> baseVariables, R result) {
-
-        this._validateOutputs(result);
-
-        if (this.getMemory() != null) {
-            this.getMemory().saveContext(baseVariables, result);
-        }
-        return result;
-    }
-
 
     public R call(List<BaseVariable> baseVariables) {
 
@@ -94,17 +84,25 @@ public abstract class Chain<R> {
 
         } catch (Exception e) {
 
-            //chainRun.onChainError(e.getMessage(), e);
+            chainRun.onChainError(e.getMessage(), e);
 
-            this.getCallbackManager().onChainError(e.getMessage(), e);
+            //this.getCallbackManager().onChainError(e.getMessage(), e);
         }
 
-        //chainRun.onChainEnd(this.getClass(), baseLLMResult);
-
-        this.getCallbackManager().onChainEnd(this.getClass(), result);
+        chainRun.onChainEnd(this.getClass(), result);
 
         this.prepOutputs(baseVariables, result);
 
+        return result;
+    }
+
+    protected R prepOutputs(List<BaseVariable> baseVariables, R result) {
+
+        this._validateOutputs(result);
+
+        if (this.getMemory() != null) {
+            this.getMemory().saveContext(baseVariables, result);
+        }
         return result;
     }
 

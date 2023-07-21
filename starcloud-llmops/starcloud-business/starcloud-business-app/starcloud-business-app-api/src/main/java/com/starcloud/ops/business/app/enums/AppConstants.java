@@ -30,6 +30,11 @@ public interface AppConstants {
     String APP_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_APP_CATEGORY_TYPE";
 
     /**
+     * 图片生成 Prompt 案例
+     */
+    String IMAGE_EXAMPLE_PROMPT = "STAR_CLOUD_LLM_IMAGE_EXAMPLE_PROMPT";
+
+    /**
      * 应用市场应用默认图片
      */
     String APP_MARKET_DEFAULT_IMAGE = "https://download.hotsalecloud.com/mofaai/images/category/seo.jpg";

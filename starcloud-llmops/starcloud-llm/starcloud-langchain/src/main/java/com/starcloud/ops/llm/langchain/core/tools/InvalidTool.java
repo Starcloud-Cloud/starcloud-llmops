@@ -1,11 +1,12 @@
 package com.starcloud.ops.llm.langchain.core.tools;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseRequestsTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import lombok.Data;
 
 @Data
-public class InvalidTool extends BaseTool<String, String> implements BaseRequestsTool {
+public class InvalidTool extends BaseTool<Object, String> implements BaseRequestsTool {
 
     private String name = "invalid_tool";
 
@@ -14,5 +15,11 @@ public class InvalidTool extends BaseTool<String, String> implements BaseRequest
     @Override
     protected String _run(Object input) {
         return this.name + " is not a valid tool, try another one.";
+    }
+
+
+    @Override
+    public JsonNode getInputSchemas() {
+        return null;
     }
 }
