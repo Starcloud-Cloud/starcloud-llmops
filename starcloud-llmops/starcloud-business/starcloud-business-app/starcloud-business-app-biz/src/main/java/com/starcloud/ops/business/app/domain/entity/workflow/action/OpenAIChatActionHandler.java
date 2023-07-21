@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.TypeUtil;
 import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -12,6 +14,8 @@ import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandle
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 
 /**

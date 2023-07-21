@@ -50,13 +50,29 @@ public abstract class BaseActionHandler<Q, R> {
 
         this.appContext = context;
 
-        //拿到之前的结构，全部的数据
+        Q request = this.parseInput();
+
+        ActionResponse actionResponse = this._execute(request);
+
+        //权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
+        if (actionResponse.getSuccess() && this.getBenefitsType() != null && actionResponse.getTotalTokens() > 0) {
+            //权益记录
+            userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), actionResponse.getTotalTokens(), context.getUserId(), context.getConversationId());
+        }
+
+        return actionResponse;
+    }
+
+
+    protected Q parseInput() {
+
+
         Map<String, Object> stepParams = this.appContext.getContextVariablesValues();
 
         //只拿新参数
 
         //用新参数 覆盖老结构的参数
-        context.getJsonData();
+        this.getAppContext().getJsonData();
 
         //优化方案：老结构数据全部废除，实体初始化好配置的参数，前端只传必要的参数
         //还是 传入的参数 覆盖 保存的参数
@@ -68,17 +84,8 @@ public abstract class BaseActionHandler<Q, R> {
             put("stepParams", stepParams);
         }}, inputCls);
 
-        ActionResponse actionResponse = this._execute(request);
-
-        //权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
-        if (actionResponse.getSuccess() && this.getBenefitsType() != null && actionResponse.getTotalTokens() > 0) {
-            //权益记录
-            userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), actionResponse.getTotalTokens(), context.getUserId(), context.getConversationId());
-        }
-
-        return this._execute(request);
+        return request;
     }
-
 
     /**
      * 获取当前handler消耗的权益类型，如果返回自动扣除权益，返回null,则不处理权益扣除
