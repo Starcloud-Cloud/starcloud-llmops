@@ -33,7 +33,6 @@ public class LogAppMessageBaseVO {
     private String appMode;
 
     @Schema(description = "app 配置", required = true)
-    @NotNull(message = "app 配置不能为空")
     private String appConfig;
 
     @Schema(description = "执行的 app step", required = true)

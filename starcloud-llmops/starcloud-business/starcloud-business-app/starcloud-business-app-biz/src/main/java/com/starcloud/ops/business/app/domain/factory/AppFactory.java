@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.factory;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -123,6 +124,27 @@ public class AppFactory {
         return app;
     }
 
+    public static AppEntity factory(@Valid AppExecuteReqVO executeReqVO) {
+
+        // 获取 AppEntity
+        AppEntity app = null;
+        String appId = executeReqVO.getAppUid();
+
+        if (executeReqVO.getAppReqVO() == null) {
+            if (AppSceneEnum.WEB_MARKET.name().equals(executeReqVO.getScene())) {
+                app = AppFactory.factoryMarket(appId);
+            } else {
+                app = AppFactory.factory(appId);
+            }
+        } else {
+            app = AppFactory.factory(appId, executeReqVO.getAppReqVO());
+        }
+
+        app.setUid(appId);
+        Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
+        return app;
+    }
+
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
 
         String appId = chatRequest.getAppUid();
@@ -204,8 +226,4 @@ public class AppFactory {
         return imageAppEntity;
     }
 
-
-    public static AppEntity factory(String appId, AppReqVO appRequest, String requestId) {
-        return null;
-    }
 }

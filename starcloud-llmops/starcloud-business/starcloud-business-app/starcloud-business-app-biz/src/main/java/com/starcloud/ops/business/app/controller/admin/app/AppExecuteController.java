@@ -22,7 +22,6 @@ import javax.validation.Valid;
  * @version 1.0.0
  * @since 2023-06-26
  */
-@Validated
 @RestController
 @RequestMapping("/llm/app/execute")
 @Tag(name = "星河云海-应用执行")
@@ -33,7 +32,7 @@ public class AppExecuteController {
 
     @PostMapping("/app")
     @Operation(summary = "执行应用")
-    public SseEmitter execute(@RequestBody @Valid AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
+    public SseEmitter execute(@RequestBody AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
 
@@ -41,9 +40,11 @@ public class AppExecuteController {
 
         executeReqVO.setSseEmitter(emitter);
 
-        AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO());
+        executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
 
-        app.execute(executeReqVO);
+        AppEntity app = AppFactory.factory(executeReqVO);
+
+        app.aexecute(executeReqVO);
 
         //appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_ADMIN, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(), emitter);
         return emitter;
@@ -52,11 +53,20 @@ public class AppExecuteController {
 
     @PostMapping("/market")
     @Operation(summary = "执行应用市场")
-    public SseEmitter executeMarket(@RequestBody @Valid AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
+    public SseEmitter executeMarket(@RequestBody AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
         SseEmitter emitter = new SseEmitter(60000L);
-        appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_MARKET, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(),emitter);
+
+        executeReqVO.setSseEmitter(emitter);
+        executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
+
+        AppEntity app = AppFactory.factory(executeReqVO);
+
+
+        app.aexecute(executeReqVO);
+
+        //appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_MARKET, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(),emitter);
         return emitter;
     }
 

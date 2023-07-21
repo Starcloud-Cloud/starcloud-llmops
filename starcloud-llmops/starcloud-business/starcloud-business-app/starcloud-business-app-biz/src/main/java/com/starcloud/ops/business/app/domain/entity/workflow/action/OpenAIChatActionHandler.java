@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,7 +44,6 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     @Override
     protected ActionResponse _execute(Request request) {
 
-
         OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(new StreamingSseCallBackHandler(this.getAppContext().getSseEmitter()));
 
 
@@ -65,14 +65,14 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
 
+        if (request.getEnabledDateset()) {
+            handlerRequest.setDocsUid(request.getDatesetList());
+        }
+
+
         HandlerContext handlerContext = HandlerContext.createContext(conversationId, userId, handlerRequest);
 
         HandlerResponse<String> handlerResponse = openAIChatHandler.execute(handlerContext);
-
-        //@todo 补齐字段
-        ActionResponse appStepResponse = new ActionResponse();
-
-        appStepResponse.setAnswer(handlerResponse.getOutput());
 
         return convert(handlerResponse);
     }
@@ -122,6 +122,14 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
          * 后续新参数 都是一个个独立字段即可
          */
         private String prompt;
+
+
+        private Boolean enabledDateset = false;
+
+        /**
+         * 数据集支持
+         */
+        private List<String> datesetList;
 
     }
 

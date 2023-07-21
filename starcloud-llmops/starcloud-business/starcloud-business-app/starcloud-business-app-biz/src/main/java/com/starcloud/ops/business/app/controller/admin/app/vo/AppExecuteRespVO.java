@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * 应用类别 DTO 对象
+ * 应用执行返回结果
  *
  * @author nacoyer
  * @version 1.0.0
@@ -24,40 +24,16 @@ public class AppExecuteRespVO implements Serializable {
 
     private static final long serialVersionUID = 5973120108905794563L;
 
-    /**
-     * 应用类别编号
-     */
-    @Schema(description = "类别编码")
-    private String code;
+    @Schema(description = "返回状态")
+    private Boolean success;
 
-    /**
-     * 应用类别名称
-     */
-    @Schema(description = "类别名称")
-    private String name;
+    @Schema(description = "返回code")
+    private String resultCode;
 
-    /**
-     * 应用类别图标
-     */
-    @Schema(description = "类别图标")
-    private String icon;
+    @Schema(description = "返回描述")
+    private String resultDesc;
 
-    /**
-     * 应用类别图片
-     */
-    @Schema(description = "类别图片")
-    private String image;
-
-    /**
-     * 应用类别排序
-     */
-    @Schema(description = "类别排序")
-    private Integer sort;
-
-    /**
-     * 应用类别描述
-     */
-    @Schema(description = "类别描述")
-    private String description;
+    @Schema(description = "返回值")
+    private Object result;
 
 }
