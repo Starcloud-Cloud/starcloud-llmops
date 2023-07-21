@@ -22,7 +22,6 @@ import javax.validation.Valid;
  * @version 1.0.0
  * @since 2023-06-26
  */
-@Validated
 @RestController
 @RequestMapping("/llm/app/execute")
 @Tag(name = "星河云海-应用执行")
@@ -33,7 +32,7 @@ public class AppExecuteController {
 
     @PostMapping("/app")
     @Operation(summary = "执行应用")
-    public SseEmitter execute(@RequestBody @Valid AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
+    public SseEmitter execute(@RequestBody AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
 
@@ -41,7 +40,9 @@ public class AppExecuteController {
 
         executeReqVO.setSseEmitter(emitter);
 
-        AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO(), AppSceneEnum.WEB_ADMIN);
+        executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
+
+        AppEntity app = AppFactory.factory(executeReqVO);
 
         app.aexecute(executeReqVO);
 
@@ -52,14 +53,15 @@ public class AppExecuteController {
 
     @PostMapping("/market")
     @Operation(summary = "执行应用市场")
-    public SseEmitter executeMarket(@RequestBody @Valid AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
+    public SseEmitter executeMarket(@RequestBody AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
         SseEmitter emitter = new SseEmitter(60000L);
 
         executeReqVO.setSseEmitter(emitter);
+        executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
 
-        AppEntity app = AppFactory.factory(executeReqVO.getAppUid(), executeReqVO.getAppReqVO(), AppSceneEnum.WEB_MARKET);
+        AppEntity app = AppFactory.factory(executeReqVO);
 
 
         app.aexecute(executeReqVO);
