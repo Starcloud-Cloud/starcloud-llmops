@@ -1,14 +1,22 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
+import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
+import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import lombok.Data;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.HashMap;
 
 /**
  * @author nacoyer
@@ -16,7 +24,11 @@ import java.math.BigDecimal;
  * @since 2023-06-20
  */
 @Data
-public class AppMarketEntity extends AppEntity<AppExecuteReqVO, JsonData> {
+public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO> {
+
+
+    private AppMarketService appMarketService = SpringUtil.getBean(AppMarketService.class);
+
 
     /**
      * 应用版本
@@ -86,20 +98,20 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, JsonData> {
     }
 
     @Override
-    protected JsonData _execute(AppExecuteReqVO req) {
+    protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
 
+        AppExecuteRespVO appExecuteRespVO = super._execute(req);
 
-        //        // 使用量加一
-//        if (AppSceneEnum.WEB_MARKET.equals(appContext.getScene())) {
-//            AppOperateReqVO appOperateReqVO = new AppOperateReqVO();
-//            appOperateReqVO.setAppUid(appContext.getApp().getUid());
-//            appOperateReqVO.setVersion(AppConstants.DEFAULT_VERSION);
-//            appOperateReqVO.setOperate(AppOperateTypeEnum.USAGE.name());
-//            appMarketService.operate(appOperateReqVO);
-//        }
+        if (appExecuteRespVO != null) {
 
-        return super._execute(req);
+            AppOperateReqVO appOperateReqVO = new AppOperateReqVO();
+            appOperateReqVO.setAppUid(this.getUid());
+            appOperateReqVO.setVersion(AppConstants.DEFAULT_VERSION);
+            appOperateReqVO.setOperate(AppOperateTypeEnum.USAGE.name());
+            appMarketService.operate(appOperateReqVO);
+        }
 
+        return appExecuteRespVO;
     }
 
     @Override

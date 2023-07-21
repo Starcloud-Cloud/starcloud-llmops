@@ -16,6 +16,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -45,7 +46,7 @@ import java.util.*;
  */
 @Slf4j
 @Data
-public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, JsonData> {
+public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> {
 
 
     private AppWorkflowService appWorkflowService = SpringUtil.getBean(AppWorkflowService.class);
@@ -84,7 +85,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, JsonData> {
 
 
     @Override
-    protected JsonData _execute(AppExecuteReqVO req) {
+    protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
 
         //权益放在这里是为了包装 可以执行完整的一次应用
         this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
@@ -103,9 +104,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, JsonData> {
             appContext.setConversationId(req.getConversationUid());
         }
 
-        this.fireWorkflowContext(appContext);
-
-        return null;
+        return this.fireWorkflowContext(appContext);
     }
 
 
@@ -158,7 +157,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, JsonData> {
      *
      * @param appContext 执行应用上下文
      */
-    protected void fireWorkflowContext(@Valid AppContext appContext) {
+    protected AppExecuteRespVO fireWorkflowContext(@Valid AppContext appContext) {
 
         StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
                 .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
@@ -183,6 +182,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, JsonData> {
         this.updateAppConversationLog(appContext.getConversationId(), fire.isSuccess());
 
         log.info("{}, {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc(), fire.getResult());
+
+        return new AppExecuteRespVO().setSuccess(fire.isSuccess()).setResult(fire.getResult()).setResultCode(fire.getResultCode()).setResultDesc(fire.getResultDesc());
 
     }
 
