@@ -51,7 +51,7 @@ public class LogAppMessageBaseVO {
 
     @Schema(description = "app 配置", required = true)
     @NotNull(message = "app 配置不能为空")
-    private String variables;
+    private String variables = "";
 
     @Schema(description = "请求内容", required = true)
     @NotNull(message = "请求内容不能为空")
