@@ -10,6 +10,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -59,7 +61,15 @@ public interface VSearchConvert {
         vSearchImageRequest.setEngine(request.getEngine());
         vSearchImageRequest.setPrompts(Collections.singletonList(TextPrompt.ofDefault(request.getPrompt())));
         if (StringUtils.isNotBlank(request.getInitImage())) {
-            vSearchImageRequest.setInitImage(request.getInitImage());
+
+            String initImage = request.getInitImage();
+            if (initImage.contains("data:image/png;base64,")) {
+                initImage = initImage.replace("data:image/png;base64,", "");
+            }
+            initImage = initImage.replaceAll("\r|\n", "").trim();
+            byte[] decode = Base64.getDecoder().decode(initImage);
+            String binary = new String(decode, StandardCharsets.UTF_8);
+            vSearchImageRequest.setInitImage(binary);
             if (request.getImageStrength() == null) {
                 vSearchImageRequest.setStartSchedule(0.65);
             } else {

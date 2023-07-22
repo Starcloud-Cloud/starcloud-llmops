@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -97,16 +98,18 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
             // 扣除权益
             benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) imageResponse.getImages().size(), userId, request.getConversationUid());
             stopWatch.stop();
+
+            // 计算消耗的 SD 的点数。需要乘以图片数量
+            BigDecimal answerCredit = ImageUtils.countAnswerCredits(request.getImageRequest()).multiply(new BigDecimal(Integer.toString(imageResponse.getImages().size())));
+            // 记录消息日志
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
                 buildAppMessageLog(messageRequest, request, userId);
                 messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
                 messageRequest.setAnswer(JSONUtil.toJsonStr(imageResponse.getImages()));
-                messageRequest.setAnswerTokens(ImageUtils.countAnswerTokens(request.getImageRequest()) * imageResponse.getImages().size());
-                messageRequest.setAnswerUnitPrice(new BigDecimal("0.0200"));
+                // 消耗的 SD 的点数 X 100，有助于数据准确性
+                messageRequest.setAnswerTokens(ImageUtils.countAnswerTokens(answerCredit));
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-                BigDecimal totalPrice = (messageRequest.getMessageUnitPrice().multiply(new BigDecimal(messageRequest.getMessageTokens().toString())))
-                        .add(messageRequest.getAnswerUnitPrice().multiply(new BigDecimal(messageRequest.getAnswerTokens())));
-                messageRequest.setTotalPrice(totalPrice);
+                messageRequest.setTotalPrice(answerCredit.multiply(messageRequest.getAnswerUnitPrice()).setScale(4, RoundingMode.HALF_UP));
             });
             // 更新会话日志
             this.updateAppConversationLog(request.getConversationUid(), Boolean.TRUE);
@@ -239,13 +242,11 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
         messageRequest.setAppStep("BASE_GENERATE_IMAGE");
         messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setMessage(request.getImageRequest().getPrompt());
-        messageRequest.setMessageTokens(ImageUtils.countMessageTokens(request.getImageRequest().getPrompt()));
-        messageRequest.setMessageUnitPrice(new BigDecimal("0.0200"));
+        messageRequest.setMessageTokens(0);
+        messageRequest.setMessageUnitPrice(new BigDecimal("0.0000"));
         messageRequest.setAnswerTokens(0);
-        messageRequest.setAnswerUnitPrice(new BigDecimal("0.0200"));
-        BigDecimal totalPrice = (messageRequest.getMessageUnitPrice().multiply(new BigDecimal(messageRequest.getMessageTokens().toString())))
-                .add(messageRequest.getAnswerUnitPrice().multiply(new BigDecimal(messageRequest.getAnswerTokens())));
-        messageRequest.setTotalPrice(totalPrice);
+        messageRequest.setAnswerUnitPrice(new BigDecimal("0.0100"));
+        messageRequest.setTotalPrice(new BigDecimal("0.0000"));
         messageRequest.setCurrency("USD");
         messageRequest.setFromScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : request.getScene());
         messageRequest.setEndUser(Long.toString(userId));

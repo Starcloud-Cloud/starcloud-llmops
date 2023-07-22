@@ -7,6 +7,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -28,6 +29,6 @@ public interface VSearchClient {
      * @return 生成图片结果
      */
     @PostMapping(value = "/generateImage")
-    VSearchResponse<List<VSearchImage>> generateImage(@Validated VSearchImageRequest request);
+    VSearchResponse<List<VSearchImage>> generateImage(@Validated @RequestBody VSearchImageRequest request);
 
 }

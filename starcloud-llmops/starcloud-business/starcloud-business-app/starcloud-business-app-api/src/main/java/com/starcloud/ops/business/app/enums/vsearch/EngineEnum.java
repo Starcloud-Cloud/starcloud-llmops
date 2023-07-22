@@ -13,7 +13,7 @@ public enum EngineEnum implements IEnumable<String> {
     /**
      * stable-diffusion-xl-1024-v0-9
      */
-    STABLE_DIFFUSION_XL_1024_V0_9("stable-diffusion-xl-1024-v0-9", "SDXL v0.9", "Stability-AI Stable Diffusion XL v0.9", "PICTURE", "IMAGE"),
+    STABLE_DIFFUSION_XL_1024_V0_9("stable-diffusion-xl-1024-v0-9", "SDXL v0.9", "Stability-AI Stable Diffusion XL v0.9", "PICTURE", ""),
 
     /**
      * stable-diffusion-512-v2-1
