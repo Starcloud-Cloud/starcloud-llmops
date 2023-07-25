@@ -126,10 +126,22 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param audit 审核状态
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void audit(String uid, Integer audit) {
+        // 校验审核状态
         if (!Objects.equals(AppMarketAuditEnum.APPROVED.getCode(), audit) || !Objects.equals(AppMarketAuditEnum.REJECTED.getCode(), audit)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED);
         }
+        // 查询发布记录
+        AppPublishDO appPublish = appPublishMapper.getByUid(uid, Boolean.FALSE);
+        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, uid);
+
+        // 如果审核通过
+        if (Objects.equals(AppMarketAuditEnum.APPROVED.getCode(), audit)) {
+
+
+        }
+        // 更新发布记录
         appPublishMapper.audit(uid, audit);
     }
 
