@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageAdminQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
@@ -14,6 +15,7 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.framework.common.api.dto.PageQuery;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -49,14 +52,23 @@ public class AppMarketController {
     @Operation(summary = "分页查询应用市场应用列表", description = "分页查询应用市场应用列表")
     @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<PageResp<AppMarketRespVO>> page(@Validated AppMarketPageQuery query) {
-        return CommonResult.success(appMarketService.page(query, false));
+        return CommonResult.success(appMarketService.page(query));
     }
 
     @GetMapping("/pageAdmin")
-    @Operation(summary = "分页查询应用市场应用列表", description = "分页查询应用市场应用列表")
-    @ApiOperationSupport(order = 11, author = "nacoyer")
-    public CommonResult<PageResp<AppMarketRespVO>> pageAdmin(@Validated AppMarketPageQuery query) {
-        return CommonResult.success(appMarketService.page(query, true));
+    @Operation(summary = "后台使用-分页查询应用市应用列表", description = "后台使用-分页查询应用市应用列表")
+    @ApiOperationSupport(order = 10, author = "nacoyer")
+    public CommonResult<PageResp<AppMarketRespVO>> pageAdmin(@Validated AppMarketPageAdminQuery query) {
+        return CommonResult.success(appMarketService.pageAdmin(query));
+    }
+
+    @GetMapping("/historyPublished")
+    @Operation(summary = "历史发布记录", description = "历史发布记录")
+    @ApiOperationSupport(order = 10, author = "nacoyer")
+    public CommonResult<PageResp<AppMarketRespVO>> historyPublished(@RequestParam("uid") String uid,
+                                                                    @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
+                                                                    @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+        return CommonResult.success(appMarketService.historyPublished(uid, PageQuery.of(pageNo, pageSize)));
     }
 
     @GetMapping("/getByUid/{uid}")
@@ -132,6 +144,14 @@ public class AppMarketController {
     @ApiOperationSupport(order = 50, author = "nacoyer")
     public CommonResult<Boolean> audit(@Validated @RequestBody AppMarketAuditReqVO request) {
         appMarketService.audit(request);
+        return CommonResult.success(Boolean.TRUE);
+    }
+
+    @PostMapping("/cancelAudit")
+    @Operation(summary = "取消审核", description = "审核应用市场应用")
+    @ApiOperationSupport(order = 50, author = "nacoyer")
+    public CommonResult<Boolean> cancelAudit(@Validated @RequestBody UidRequest request) {
+        appMarketService.cancelAudit(request.getMarketUid());
         return CommonResult.success(Boolean.TRUE);
     }
 

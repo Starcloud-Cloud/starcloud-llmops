@@ -51,4 +51,11 @@ public class PageQuery implements Serializable {
      */
     @Schema(description = "排序字段")
     private List<SortQuery> sorts;
+
+    public static PageQuery of(Integer pageNo, Integer pageSize) {
+        PageQuery pageQuery = new PageQuery();
+        pageQuery.setPageNo(pageNo);
+        pageQuery.setPageSize(pageSize);
+        return pageQuery;
+    }
 }

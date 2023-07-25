@@ -1,13 +1,17 @@
 package com.starcloud.ops.business.app.service.market;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageAdminQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
+import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
+import com.starcloud.ops.framework.common.api.dto.PageQuery;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;
@@ -27,7 +31,24 @@ public interface AppMarketService {
      * @param query 查询条件
      * @return 应用市场列表
      */
-    PageResp<AppMarketRespVO> page(AppMarketPageQuery query, boolean isAdmin);
+    PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
+
+    /**
+     * 分页查询应用市场列表
+     *
+     * @param query 查询条件
+     * @return 应用市场列表
+     */
+    PageResp<AppMarketRespVO> pageAdmin(AppMarketPageAdminQuery query);
+
+    /**
+     * 分页查询历史发布记录
+     *
+     * @param uid   应用 uid
+     * @param query 分页查询条件
+     * @return 历史发布记录
+     */
+    PageResp<AppMarketRespVO> historyPublished(String uid, PageQuery query);
 
     /**
      * 获取应用详情
@@ -73,6 +94,13 @@ public interface AppMarketService {
      * @param request 审核请求
      */
     void audit(AppMarketAuditReqVO request);
+
+    /**
+     * 取消审核，将应用状态改为审核未通过
+     *
+     * @param uid 应用 uid
+     */
+    void cancelAudit(String uid);
 
     /**
      * 应用操作

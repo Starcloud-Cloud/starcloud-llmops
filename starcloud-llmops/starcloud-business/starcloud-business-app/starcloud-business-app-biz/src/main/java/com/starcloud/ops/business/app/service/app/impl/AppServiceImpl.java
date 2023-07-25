@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
@@ -218,36 +219,36 @@ public class AppServiceImpl implements AppService {
     public void publish(AppPublishReqVO request) {
         // 查询我的应用是否存在，不存在则抛出异常
         AppDO appDO = appMapper.getByUid(request.getUid(), Boolean.FALSE);
+        // 校验名称是否重复
+        AppValidate.isFalse(appMarketRepository.duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        // 查询之前发布的应用市场记录的所有版本，按照版本号倒序排序。
+        List<AppMarketDO> appMarketList = getAppMarketListOrderByVersionDesc(appDO);
+        // 校验应用是否已经发布过应用市场, 同一时间只能有一个版本的应用处于待审核状态，必须先审核通过或者审核不通过，才能再次发布。
+        Optional<AppMarketDO> anyOptional = CollectionUtil.emptyIfNull(appMarketList).stream()
+                .filter(item -> Objects.equals(item.getAudit(), AppMarketAuditEnum.PENDING.getCode())).findAny();
+        if (anyOptional.isPresent()) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_ALREADY_PUBLISH, anyOptional.get().getName());
+        }
+
         // 转换为应用市场对象
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appDO, request);
         // 图片根据分类从应用市场中获取
         appMarketEntity.setImages(buildImages(appMarketEntity.getCategories(), request.getImages()));
         // 判断是否已经发布过应用市场：判断依据：publishUid 是否为空, 如果为空则说明没有发布过应用市场。
         if (StringUtils.isNotBlank(appDO.getPublishUid())) {
-            // 查询之前发布的应用市场记录的所有版本，按照版本号倒序排序。
-            List<AppMarketDO> appMarketList = getAppMarketListOrderByVersionDesc(appDO);
             // 如果查询结果不为空，则获取最新的一条记录，进行处理: UID 不变，版本号增加, 三数取最新一条记录的数据。
             if (CollectionUtil.isNotEmpty(appMarketList)) {
                 AppMarketDO appMarketDO = appMarketList.get(0);
                 // 新增的数据，UID 不变，版本号增加
                 appMarketEntity.setUid(appMarketDO.getUid());
                 // 版本号增加
-                Integer nextVersion = AppUtils.nextVersion(appMarketDO.getVersion());
-                // 校验名称是否重复
-                AppValidate.isFalse(appMarketRepository.duplicateName(appMarketEntity.getName(), appMarketDO.getName(), nextVersion),
-                        ErrorCodeConstants.APP_NAME_DUPLICATE);
-
-                appMarketEntity.setVersion(nextVersion);
+                appMarketEntity.setVersion(AppUtils.nextVersion(appMarketDO.getVersion()));
                 // 四数取最新一条记录的数据
                 appMarketEntity.setUsageCount(Optional.ofNullable(appMarketDO.getUsageCount()).orElse(0));
                 appMarketEntity.setLikeCount(Optional.ofNullable(appMarketDO.getLikeCount()).orElse(0));
                 appMarketEntity.setViewCount(Optional.ofNullable(appMarketDO.getViewCount()).orElse(0));
                 appMarketEntity.setInstallCount(Optional.ofNullable(appMarketDO.getInstallCount()).orElse(0));
             }
-        } else {
-            // 校验名称是否重复
-            AppValidate.isFalse(appMarketRepository.duplicateName(appMarketEntity.getName()),
-                    ErrorCodeConstants.APP_NAME_DUPLICATE);
         }
         // 校验数据
         appMarketEntity.validate();
@@ -293,6 +294,7 @@ public class AppServiceImpl implements AppService {
                         AppMarketDO::getInstallCount
                 )
                 .eq(AppMarketDO::getUid, AppUtils.obtainUid(appDO.getPublishUid()))
+                .eq(AppMarketDO::getDeleted, Boolean.FALSE)
                 .orderByDesc(AppMarketDO::getVersion);
         return appMarketMapper.selectList(marketQueryWrapper);
     }

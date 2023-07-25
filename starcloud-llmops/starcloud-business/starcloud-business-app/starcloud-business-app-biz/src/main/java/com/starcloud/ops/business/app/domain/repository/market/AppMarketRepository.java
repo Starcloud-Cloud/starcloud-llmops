@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * App Repository
@@ -51,13 +52,11 @@ public class AppMarketRepository {
         AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
         // 新增 UID 重新生成
         appMarket.setUid(AppUtils.generateUid(AppConstants.MARKET_PREFIX));
-        // 新增版本号默认为 1
-        appMarket.setVersion(AppConstants.DEFAULT_VERSION);
-        // 新增，使用量，点赞，查看，安装量为 0
-        appMarket.setUsageCount(0);
-        appMarket.setLikeCount(0);
-        appMarket.setViewCount(0);
-        appMarket.setInstallCount(0);
+        appMarket.setVersion(Objects.isNull(appMarket.getVersion()) ? AppConstants.DEFAULT_VERSION : appMarket.getVersion());
+        appMarket.setUsageCount(Objects.isNull(appMarket.getUsageCount()) ? 0 : appMarket.getUsageCount());
+        appMarket.setLikeCount(Objects.isNull(appMarket.getLikeCount()) ? 0 : appMarket.getLikeCount());
+        appMarket.setViewCount(Objects.isNull(appMarket.getViewCount()) ? 0 : appMarket.getViewCount());
+        appMarket.setInstallCount(Objects.isNull(appMarket.getInstallCount()) ? 0 : appMarket.getInstallCount());
         // 目前模版市场只有免费版
         appMarket.setFree(Boolean.TRUE);
         appMarket.setCost(BigDecimal.ZERO);

@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.app.dal.mysql.market;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageAdminQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -11,6 +13,7 @@ import com.starcloud.ops.business.app.enums.app.LanguageEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.framework.common.api.dto.PageQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -33,23 +36,59 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     /**
      * 分页查询应用市场列表
      *
-     * @param query   查询条件
-     * @param isAdmin 是否是管理员
+     * @param query 查询条件
      * @return 应用市场列表
      */
-    default Page<AppMarketDO> page(AppMarketPageQuery query, boolean isAdmin) {
+    default Page<AppMarketDO> page(AppMarketPageQuery query) {
         // 构建查询条件
-        LambdaQueryWrapper<AppMarketDO> wrapper = pageQueryMapper()
-                .likeLeft(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
-        if (!isAdmin) {
-            wrapper.eq(AppMarketDO::getAudit, AppMarketAuditEnum.APPROVED.getCode());
-        }
+        LambdaQueryWrapper<AppMarketDO> queryMapper = pageQueryMapper();
+        queryMapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
+        queryMapper.eq(AppMarketDO::getAudit, AppMarketAuditEnum.APPROVED.getCode());
+        queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
         String local = LocaleContextHolder.getLocale().toString();
         String language = LanguageEnum.ZH_CN.getCode().equals(local) ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
         // 先按照语言排序，再按照使用量排序
-        wrapper.last("ORDER BY CASE WHEN language = '" + language + "' THEN 0 ELSE 1 END, usage_count DESC, view_count Desc, create_time DESC");
+        queryMapper.last("ORDER BY CASE WHEN language = '" + language + "' THEN 0 ELSE 1 END, usage_count DESC, view_count Desc, create_time DESC");
         // 分页查询
-        return this.selectPage(PageUtil.page(query), wrapper);
+        return this.selectPage(PageUtil.page(query), queryMapper);
+    }
+
+    /**
+     * 分页查询应用市场列表, 后台管理使用
+     *
+     * @param query 查询条件
+     * @return 应用市场列表
+     */
+    default Page<AppMarketDO> pageAdmin(AppMarketPageAdminQuery query) {
+        // 构建查询条件
+        LambdaQueryWrapper<AppMarketDO> queryMapper = pageQueryMapper();
+        queryMapper.eq(StringUtils.isNotBlank(query.getUid()), AppMarketDO::getUid, query.getUid());
+        queryMapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
+        queryMapper.in(CollectionUtil.isNotEmpty(query.getAudits()), AppMarketDO::getAudit, query.getAudits());
+        queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
+
+        queryMapper.orderByDesc(AppMarketDO::getCreateTime);
+        queryMapper.orderByDesc(AppMarketDO::getVersion);
+        return this.selectPage(PageUtil.page(query), queryMapper);
+    }
+
+    /**
+     * 历史发布记录
+     *
+     * @param uid   应用 uid
+     * @param query 查询条件
+     * @return 应用市场列表
+     */
+    default Page<AppMarketDO> historyPublished(String uid, PageQuery query) {
+        // 构建查询条件
+        LambdaQueryWrapper<AppMarketDO> queryMapper = pageQueryMapper();
+        queryMapper.eq(StringUtils.isNotBlank(uid), AppMarketDO::getUid, uid);
+        queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
+
+        queryMapper.orderByDesc(AppMarketDO::getCreateTime);
+        queryMapper.orderByDesc(AppMarketDO::getVersion);
+        // 分页查询
+        return this.selectPage(PageUtil.page(query), queryMapper);
     }
 
     /**
