@@ -145,6 +145,7 @@ public class ImageServiceImpl implements ImageService {
             imageResponse.setImages(imageList);
             ImageRequest imageRequest = JSONUtil.toBean(item.getAppConfig(), ImageRequest.class);
             if (imageRequest != null) {
+                imageResponse.setNegativePrompt(imageRequest.getNegativePrompt());
                 imageResponse.setEngine(imageRequest.getEngine());
                 imageResponse.setWidth(imageRequest.getWidth());
                 imageResponse.setHeight(imageRequest.getHeight());

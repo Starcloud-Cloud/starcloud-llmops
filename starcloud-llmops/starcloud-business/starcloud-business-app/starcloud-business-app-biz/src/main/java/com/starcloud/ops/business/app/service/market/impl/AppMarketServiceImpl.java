@@ -3,12 +3,18 @@ package com.starcloud.ops.business.app.service.market.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
-import com.starcloud.ops.business.app.api.market.vo.request.*;
+import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageAdminQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -32,6 +38,7 @@ import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.framework.common.api.dto.PageQuery;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.extern.slf4j.Slf4j;
@@ -75,9 +82,42 @@ public class AppMarketServiceImpl implements AppMarketService {
      * @return 应用市场列表
      */
     @Override
-    public PageResp<AppMarketRespVO> page(AppMarketPageQuery query, boolean isAdmin) {
+    public PageResp<AppMarketRespVO> page(AppMarketPageQuery query) {
         // 分页查询
-        Page<AppMarketDO> page = appMarketMapper.page(query, isAdmin);
+        Page<AppMarketDO> page = appMarketMapper.page(query);
+        // 转换并且返回数据
+        List<AppMarketRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
+                .map(AppMarketConvert.INSTANCE::convertResp).collect(Collectors.toList());
+        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+    }
+
+    /**
+     * 分页查询应用市场列表
+     *
+     * @param query 查询条件
+     * @return 应用市场列表
+     */
+    @Override
+    public PageResp<AppMarketRespVO> pageAdmin(AppMarketPageAdminQuery query) {
+        // 分页查询
+        Page<AppMarketDO> page = appMarketMapper.pageAdmin(query);
+        // 转换并且返回数据
+        List<AppMarketRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
+                .map(AppMarketConvert.INSTANCE::convertResp).collect(Collectors.toList());
+        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+    }
+
+    /**
+     * 分页查询历史发布记录
+     *
+     * @param uid   应用 uid
+     * @param query 分页查询条件
+     * @return 历史发布记录
+     */
+    @Override
+    public PageResp<AppMarketRespVO> historyPublished(String uid, PageQuery query) {
+        // 分页查询
+        Page<AppMarketDO> page = appMarketMapper.historyPublished(uid, query);
         // 转换并且返回数据
         List<AppMarketRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
                 .map(AppMarketConvert.INSTANCE::convertResp).collect(Collectors.toList());
@@ -218,6 +258,30 @@ public class AppMarketServiceImpl implements AppMarketService {
                     .eq(AppMarketDO::getVersion, request.getVersion());
             appMarketMapper.update(null, updateWrapper);
         }
+    }
+
+    /**
+     * 取消审核，将应用状态改为审核未通过
+     *
+     * @param uid 应用 uid
+     */
+    @Override
+    public void cancelAudit(String uid) {
+        // 取最新的一条待审核的记录
+        LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class);
+        wrapper.eq(AppMarketDO::getUid, uid);
+        wrapper.eq(AppMarketDO::getAudit, AppMarketAuditEnum.PENDING.getCode());
+        wrapper.orderByDesc(AppMarketDO::getVersion);
+        wrapper.last("LIMIT 1");
+        AppMarketDO appMarketDO = appMarketMapper.selectOne(wrapper);
+        if (appMarketDO == null) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid);
+        }
+        // 更新应用的审核状态为审核未通过
+        AppMarketDO updateAppMarketDO = new AppMarketDO();
+        updateAppMarketDO.setId(appMarketDO.getId());
+        updateAppMarketDO.setAudit(AppMarketAuditEnum.REJECTED.getCode());
+        appMarketMapper.updateById(updateAppMarketDO);
     }
 
     /**
