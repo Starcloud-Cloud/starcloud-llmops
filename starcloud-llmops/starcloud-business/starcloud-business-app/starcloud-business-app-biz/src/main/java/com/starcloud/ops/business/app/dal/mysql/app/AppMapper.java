@@ -7,12 +7,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.app.AppUtils;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -52,9 +50,8 @@ public interface AppMapper extends BaseMapperX<AppDO> {
     default AppDO getByUid(String uid, boolean isSimple) {
         LambdaQueryWrapper<AppDO> wrapper = isSimple ? simpleQueryWrapper() : Wrappers.lambdaQuery(AppDO.class);
         wrapper.eq(AppDO::getUid, uid);
-        AppDO app = this.selectOne(wrapper);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return app;
+        wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
+        return this.selectOne(wrapper);
     }
 
     /**

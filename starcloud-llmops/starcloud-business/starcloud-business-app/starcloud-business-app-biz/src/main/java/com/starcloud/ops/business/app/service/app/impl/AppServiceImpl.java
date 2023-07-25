@@ -161,7 +161,9 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO getByUid(String uid) {
-        return AppConvert.INSTANCE.convertResp(appMapper.getByUid(uid, Boolean.FALSE));
+        AppDO app = appMapper.getByUid(uid, Boolean.FALSE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        return AppConvert.INSTANCE.convertResp(app);
     }
 
     /**
@@ -219,6 +221,7 @@ public class AppServiceImpl implements AppService {
     public void publish(AppPublishReqVO request) {
         // 查询我的应用是否存在，不存在则抛出异常
         AppDO appDO = appMapper.getByUid(request.getUid(), Boolean.FALSE);
+        AppValidate.notNull(appDO, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getUid());
         // 校验名称是否重复
         AppValidate.isFalse(appMarketRepository.duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
         // 查询之前发布的应用市场记录的所有版本，按照版本号倒序排序。

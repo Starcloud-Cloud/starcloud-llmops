@@ -131,4 +131,13 @@ public interface ErrorCodeConstants {
      */
     ErrorCode IMAGE_PROMPT_REQUIRED = new ErrorCode(300300010, "The image prompt is required, please check and try again ! ");
 
+    /**
+     * 应用发布记录不存在
+     */
+    ErrorCode APP_PUBLISH_RECORD_NO_EXISTS_UID = new ErrorCode(300400000, "The app publish record is not exists! [UID: {}]");
+
+    /**
+     * 审核状态不支持
+     */
+    ErrorCode APP_PUBLISH_AUDIT_NOT_SUPPORTED = new ErrorCode(300400002, "The app publish audit is not supported! [audit: {}]");
 }

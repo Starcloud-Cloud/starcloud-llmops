@@ -14,19 +14,29 @@ import lombok.Getter;
 public enum AppMarketAuditEnum implements IEnumable<Integer> {
 
     /**
+     * 未发布
+     */
+    UN_PUBLISH(0, "未发布"),
+
+    /**
      * 未审核
      */
-    PENDING(0, "未审核"),
+    PENDING(1, "未审核"),
 
     /**
      * 审核通过
      */
-    APPROVED(1, "审核通过"),
+    APPROVED(2, "审核通过"),
 
     /**
      * 审核不通过
      */
-    REJECTED(2, "审核不通过");
+    REJECTED(3, "审核不通过"),
+
+    /**
+     * 用户已取消
+     */
+    CANCELED(4, "用户已取消");
 
     /**
      * 步骤类型Code

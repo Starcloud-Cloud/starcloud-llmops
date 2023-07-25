@@ -5,13 +5,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -36,7 +34,9 @@ public class AppRepository {
      * @return 应用实体
      */
     public BaseAppEntity getByUid(String uid) {
-        return AppConvert.INSTANCE.convert(appMapper.getByUid(uid, Boolean.FALSE));
+        AppDO app = appMapper.getByUid(uid, Boolean.FALSE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        return AppConvert.INSTANCE.convert(app);
     }
 
     /**
@@ -78,6 +78,7 @@ public class AppRepository {
      */
     public void deleteByUid(String uid) {
         AppDO app = appMapper.getByUid(uid, Boolean.TRUE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
         appMapper.deleteById(app.getId());
     }
 
