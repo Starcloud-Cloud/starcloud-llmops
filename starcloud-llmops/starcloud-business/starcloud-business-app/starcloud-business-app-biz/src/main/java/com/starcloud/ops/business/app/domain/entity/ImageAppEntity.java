@@ -18,7 +18,6 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.image.VSearchImageService;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
@@ -220,7 +219,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
         List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
         ImageMessageRespVO imageResponse = new ImageMessageRespVO();
         imageResponse.setPrompt(request.getImageRequest().getPrompt());
-        imageResponse.setNegativePrompt(AppUtils.handleNegativePrompt(request.getImageRequest().getNegativePrompt(), Boolean.FALSE));
+        imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getImageRequest().getNegativePrompt(), Boolean.FALSE));
         imageResponse.setEngine(request.getImageRequest().getEngine());
         imageResponse.setWidth(request.getImageRequest().getWidth());
         imageResponse.setHeight(request.getImageRequest().getHeight());

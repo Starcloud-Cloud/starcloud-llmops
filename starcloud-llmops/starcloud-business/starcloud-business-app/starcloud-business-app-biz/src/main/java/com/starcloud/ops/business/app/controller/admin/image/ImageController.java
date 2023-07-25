@@ -10,7 +10,7 @@ import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.image.ImageService;
-import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.ImageUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -61,7 +61,7 @@ public class ImageController {
         SseEmitter emitter = new SseEmitter(60000L);
         request.setSseEmitter(emitter);
         ImageRequest imageRequest = request.getImageRequest();
-        String negativePrompt = AppUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.TRUE);
+        String negativePrompt = ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.TRUE);
         imageRequest.setNegativePrompt(negativePrompt);
         request.setImageRequest(imageRequest);
 

@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.util.app;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
@@ -190,29 +189,5 @@ public class AppUtils {
      */
     public static String obtainField(String name) {
         return name.replace(" ", "_").toUpperCase();
-    }
-
-    /**
-     * 处理反义词
-     *
-     * @param negativePrompt 反义词
-     * @return 处理后的反义词
-     */
-    public static String handleNegativePrompt(String negativePrompt, boolean isJoin) {
-        if (isJoin) {
-            if (StringUtils.isBlank(negativePrompt)) {
-                return AppConstants.DEFAULT_NEGATIVE_PROMPT;
-            } else {
-                return negativePrompt + ", " + AppConstants.DEFAULT_NEGATIVE_PROMPT;
-            }
-        }
-        if (StringUtils.endsWith(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
-            if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
-                return "";
-            } else {
-                return negativePrompt.substring(0, negativePrompt.length() - AppConstants.DEFAULT_NEGATIVE_PROMPT.length() - 2) + ".";
-            }
-        }
-        return negativePrompt;
     }
 }
