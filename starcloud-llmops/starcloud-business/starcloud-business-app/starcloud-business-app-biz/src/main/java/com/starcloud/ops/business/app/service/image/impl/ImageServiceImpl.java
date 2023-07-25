@@ -26,6 +26,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.image.VSearchImageService;
 import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -145,7 +146,7 @@ public class ImageServiceImpl implements ImageService {
             imageResponse.setImages(imageList);
             ImageRequest imageRequest = JSONUtil.toBean(item.getAppConfig(), ImageRequest.class);
             if (imageRequest != null) {
-                imageResponse.setNegativePrompt(imageRequest.getNegativePrompt());
+                imageResponse.setNegativePrompt(AppUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.FALSE));
                 imageResponse.setEngine(imageRequest.getEngine());
                 imageResponse.setWidth(imageRequest.getWidth());
                 imageResponse.setHeight(imageRequest.getHeight());
