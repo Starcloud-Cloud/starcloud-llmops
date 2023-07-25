@@ -217,6 +217,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
         List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
         ImageMessageRespVO imageResponse = new ImageMessageRespVO();
         imageResponse.setPrompt(request.getImageRequest().getPrompt());
+        imageResponse.setNegativePrompt(request.getImageRequest().getNegativePrompt());
         imageResponse.setEngine(request.getImageRequest().getEngine());
         imageResponse.setWidth(request.getImageRequest().getWidth());
         imageResponse.setHeight(request.getImageRequest().getHeight());

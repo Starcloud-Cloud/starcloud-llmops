@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.image.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -30,6 +31,13 @@ public class ImageMessageRespVO implements Serializable {
      */
     @Schema(description = "请求的 Prompt ")
     private String prompt;
+
+    /**
+     * 反义词
+     */
+    @Schema(description = "反义词")
+    @JsonProperty(value = "negative_prompt")
+    private String negativePrompt;
 
     /**
      * 图片的Engine

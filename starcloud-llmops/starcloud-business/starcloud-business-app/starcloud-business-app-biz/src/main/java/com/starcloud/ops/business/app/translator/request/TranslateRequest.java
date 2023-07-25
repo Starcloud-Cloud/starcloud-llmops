@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.List;
 
@@ -27,10 +28,12 @@ public class TranslateRequest implements Serializable {
     /**
      * 目标语言
      */
+    @NotEmpty(message = "目标语言不能为空")
     private String targetLanguage;
 
     /**
      * 需要翻译的文本
      */
+    @NotEmpty(message = "翻译文本不能为空")
     private List<String> textList;
 }
