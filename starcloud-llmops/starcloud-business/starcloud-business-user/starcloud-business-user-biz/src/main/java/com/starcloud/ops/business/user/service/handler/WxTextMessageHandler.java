@@ -1,10 +1,13 @@
 package com.starcloud.ops.business.user.service.handler;
 
+import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpAutoReplyDO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
+import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyService;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
@@ -34,7 +37,7 @@ import java.util.regex.Pattern;
 public class WxTextMessageHandler implements WxMpMessageHandler {
     private static final String regex = "^(https?)://([A-Za-z0-9.-]+)(:[0-9]+)?(/[A-Za-z0-9.-]*)*(\\?[A-Za-z0-9-._%&+=]*)?(#[A-Za-z0-9-]*)?$";
 
-    private static final String REQUEST_ATTRIBUTE_LOGIN_USER_ID = "login_user_id";
+    private static final String PREFIX = "#openai-chat";
 
     @Resource
     private WxMpChatService wxMpChatService;
@@ -48,9 +51,11 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
     @Resource
     private LogAppConversationService logAppConversationService;
 
-
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Resource
+    private MpAutoReplyService mpAutoReplyService;
 
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) {
@@ -59,6 +64,18 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
             if (!aBoolean) {
                 return null;
             }
+            String wxAppId = MpContextHolder.getAppId();
+            MpAutoReplyDO mpAutoReplyDO = mpAutoReplyService.selectListByAppIdAndMessage(wxAppId, wxMessage.getMsgType());
+            if (mpAutoReplyDO == null || mpAutoReplyDO.getResponseContent() == null
+                    || !mpAutoReplyDO.getResponseContent().startsWith(PREFIX)) {
+                return mpAutoReplyService.replyForMessage(MpContextHolder.getAppId(), wxMessage);
+            }
+            String prompt = mpAutoReplyDO.getResponseContent().substring(PREFIX.length());
+            //限流
+            if (!limiter(wxMessage.getFromUser())) {
+                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("超过限制! 60秒后重试").build();
+            }
+
             Pattern pattern = Pattern.compile(regex);
             // 设置用户上下文
             String openId = wxMessage.getFromUser();
@@ -68,7 +85,6 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
             UserContextHolder.setUserId(userDO.getId());
 
             String content = wxMessage.getContent();
-            String wxAppId = MpContextHolder.getAppId();
             MpUserDO user = mpUserService.getUser(wxAppId, openId);
             if (pattern.matcher(content).matches()) {
                 // 解析url 新建聊天应用
@@ -76,7 +92,7 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
                 return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("暂不支持url解析").build();
             } else {
                 // 普通聊天
-                String appUid = wxMpChatService.getRecentlyChatApp();
+                String appUid = wxMpChatService.getRecentlyChatApp(prompt);
                 LogAppConversationDO recentlyConversation = logAppConversationService.getRecentlyConversation(appUid);
                 ChatRequestVO chatRequestVO = new ChatRequestVO();
                 chatRequestVO.setAppUid(appUid);
@@ -95,6 +111,21 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
         return null;
     }
 
+    private Boolean limiter(String openId) {
+        Long currentTime = System.currentTimeMillis();
+
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(openId))) {
+            // intervalTime是限流的时间
+            Long intervalTime = 60000L;
+            Integer count = redisTemplate.opsForZSet().rangeByScore(openId, currentTime - intervalTime, currentTime).size();
+            if (count != null && count >= 5) {
+                log.info("超量");
+                return false;
+            }
+        }
+        redisTemplate.opsForZSet().add(openId, IdUtil.fastSimpleUUID(), currentTime);
+        return true;
+    }
 
     private Boolean redisLock(Long msgId) {
         return redisTemplate.boundValueOps(msgId.toString()).setIfAbsent(msgId.toString(), 60, TimeUnit.SECONDS);
