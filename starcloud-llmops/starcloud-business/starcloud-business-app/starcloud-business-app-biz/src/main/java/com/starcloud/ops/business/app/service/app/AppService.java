@@ -109,6 +109,11 @@ public interface AppService {
     void publish(AppPublishReqVO request);
 
     /**
+     * 获取最新的wxmp聊天应用Uid
+     */
+    AppRespVO getRecently(Long userId);
+
+    /**
      * 批量发布应用到应用市场
      *
      * @param requestList 应用发布到应用市场请求对象列表

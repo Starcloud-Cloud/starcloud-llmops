@@ -58,5 +58,11 @@
             <artifactId>starcloud-business-limits-biz</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-chat-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
     </dependencies>
 </project>

@@ -2,14 +2,17 @@ package cn.iocoder.yudao.module.system.service.social;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.http.HttpUtils;
 import cn.iocoder.yudao.framework.social.core.YudaoAuthRequestFactory;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserBindReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import lombok.extern.slf4j.Slf4j;
 import me.zhyd.oauth.model.AuthCallback;
 import me.zhyd.oauth.model.AuthResponse;
@@ -46,6 +49,9 @@ public class SocialUserServiceImpl implements SocialUserService {
     private SocialUserBindMapper socialUserBindMapper;
     @Resource
     private SocialUserMapper socialUserMapper;
+
+    @Resource
+    private AdminUserService adminUserService;
 
     @Override
     public String getAuthorizeUrl(Integer type, String redirectUri) {
@@ -115,6 +121,20 @@ public class SocialUserServiceImpl implements SocialUserService {
                 .userId(reqDTO.getUserId()).userType(reqDTO.getUserType())
                 .socialUserId(socialUser.getId()).socialType(socialUser.getType()).build();
         socialUserBindMapper.insert(socialUserBind);
+    }
+
+    @Override
+    public AdminUserDO getSocialUser(String openId, Integer socialUserType, Integer userType) {
+        SocialUserDO socialUserDO = socialUserMapper.selectByTypeAndOpenid(socialUserType, openId);
+        if (socialUserDO == null) {
+            return null;
+        }
+        SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectByUserTypeAndSocialUserId(userType, socialUserDO.getId());
+        if (socialUserBindDO == null) {
+            return null;
+        }
+        AdminUserDO user = adminUserService.getUser(socialUserBindDO.getUserId());
+        return user;
     }
 
     @Override

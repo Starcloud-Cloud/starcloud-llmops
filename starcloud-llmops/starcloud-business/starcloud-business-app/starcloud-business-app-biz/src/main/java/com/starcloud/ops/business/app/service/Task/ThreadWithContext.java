@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.service.Task;
 
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -36,11 +38,14 @@ public class ThreadWithContext {
     public void asyncExecute(RunFunction runFunction) {
         Long tenantId = TenantContextHolder.getTenantId();
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        Long userId = UserContextHolder.getUserId();
         threadPoolExecutor.execute(() -> {
             TenantContextHolder.setIgnore(false);
             TenantContextHolder.setTenantId(tenantId);
             RequestContextHolder.setRequestAttributes(requestAttributes);
+            UserContextHolder.setUserId(userId);
             runFunction.run();
+            UserContextHolder.clear();
         });
     }
 

@@ -30,6 +30,9 @@ import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.LanguageEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -265,6 +268,21 @@ public class AppServiceImpl implements AppService {
         appMapper.update(appDO, Wrappers.lambdaUpdate(AppDO.class).eq(AppDO::getUid, request.getUid()));
     }
 
+    @Override
+    public AppRespVO getRecently(Long userId) {
+        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class)
+                .eq(AppDO::getSource, AppSourceEnum.WX_WP.name())
+                .eq(AppDO::getModel, AppModelEnum.CHAT.name())
+                .eq(AppDO::getType,AppTypeEnum.MYSELF.name())
+                .eq(AppDO::getCreator,userId)
+                .orderByDesc(AppDO::getUpdateTime)
+                .last("limit 1");
+        AppDO appDO = appMapper.selectOne(wrapper);
+        if (appDO == null) {
+            return null;
+        }
+        return AppConvert.INSTANCE.convertResp(appMapper.selectOne(wrapper));
+    }
 
     /**
      * 批量发布应用到应用市场

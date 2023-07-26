@@ -82,7 +82,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
     private static AppRepository appRepository;
 
 
-    private ChatMessageHistory chatMessageHistory;
+    private ChatMessageHistory chatMessageHistory = new ChatMessageHistory();
 
     /**
      * 获取 AppRepository
@@ -117,17 +117,14 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
             this.setChatConfig(chatConfig);
         }
 
-        ChatMessageHistory history = new ChatMessageHistory();
 
         Optional.ofNullable(logAppMessageDOS).orElse(new ArrayList<>()).stream().forEach((logAppMessageDO -> {
 
             //@todo 判断状态，获取function记录？
-            history.addUserMessage(logAppMessageDO.getMessage());
-            history.addAiMessage(logAppMessageDO.getAnswer());
+            chatMessageHistory.addUserMessage(logAppMessageDO.getMessage());
+            chatMessageHistory.addAiMessage(logAppMessageDO.getAnswer());
 
         }));
-
-        this.chatMessageHistory = history;
 
     }
 
@@ -160,7 +157,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
 
         try {
 
-            executeChat(req, req.getUserId());
+            return executeChat(req, req.getUserId());
 
         } catch (Exception e) {
 
@@ -186,7 +183,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
     }
 
 
-    private void executeChat(ChatRequestVO request, Long userId) {
+    private JsonData executeChat(ChatRequestVO request, Long userId) {
 
         SseEmitter emitter = request.getSseEmitter();
 
@@ -260,6 +257,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
             //@todo  生成 message
 
             //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
+            return null;
 
 
         } else {
@@ -299,6 +297,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
             });
 
             benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
+            return JsonData.of(result);
         }
 
     }

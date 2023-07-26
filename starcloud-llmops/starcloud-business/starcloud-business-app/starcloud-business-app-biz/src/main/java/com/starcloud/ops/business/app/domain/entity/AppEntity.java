@@ -88,6 +88,9 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     protected void _validate() {
         WorkflowConfigEntity config = this.getWorkflowConfig();
+        if (config == null) {
+            return;
+        }
         List<WorkflowStepWrapper> stepWrappers = config.getSteps();
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
             // name 不能重复
