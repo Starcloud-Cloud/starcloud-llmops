@@ -28,6 +28,7 @@ public interface MpAutoReplyService {
 
     /**
      * 获得一个公众号自动
+     *
      * @param appId
      * @param requestMessageType
      * @return
@@ -83,8 +84,11 @@ public interface MpAutoReplyService {
      */
     WxMpXmlOutMessage replyForSubscribe(String appId, WxMpXmlMessage wxMessage);
 
+    WxMpXmlOutMessage replyForSubscribe(String appId, String suffix, WxMpXmlMessage wxMessage);
+
     /**
      * 当粉丝关注时，自动回复
+     *
      * @param appId
      * @param wxMessage
      * @param params
