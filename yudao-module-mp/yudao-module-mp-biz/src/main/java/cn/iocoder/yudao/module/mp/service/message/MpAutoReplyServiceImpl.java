@@ -60,6 +60,16 @@ public class MpAutoReplyServiceImpl implements MpAutoReplyService {
     }
 
     @Override
+    public MpAutoReplyDO selectListByAppIdAndMessage(String appId, String requestMessageType) {
+
+        List<MpAutoReplyDO> mpAutoReplyDOS = mpAutoReplyMapper.selectListByAppIdAndMessage(appId, requestMessageType);
+        if (CollUtil.isEmpty(mpAutoReplyDOS)) {
+            return null;
+        }
+        return CollUtil.getFirst(mpAutoReplyDOS);
+    }
+
+    @Override
     public MpAutoReplyDO getAutoReply(Long id) {
         return mpAutoReplyMapper.selectById(id);
     }

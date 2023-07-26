@@ -81,6 +81,7 @@ public interface AppConvert {
         appDO.setInstallUid(appEntity.getInstallUid());
         appDO.setLastPublish(appEntity.getLastPublish());
         appDO.setDeleted(Boolean.FALSE);
+        appDO.setCreator(appEntity.getCreator());
         // 处理配置
         if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
             WorkflowConfigEntity config = appEntity.getWorkflowConfig();

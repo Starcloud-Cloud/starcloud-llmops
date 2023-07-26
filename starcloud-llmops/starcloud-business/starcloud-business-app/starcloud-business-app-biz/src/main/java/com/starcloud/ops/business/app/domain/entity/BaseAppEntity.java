@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -226,7 +227,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             log.info("app start:{}, {}", this.getUid(), this.getName());
 
-            req.setUserId(SecurityFrameworkUtils.getLoginUserId());
+            if (req.getUserId() == null) {
+                req.setUserId(SecurityFrameworkUtils.getLoginUserId());
+            }
             this.validate();
 
             //会话uid为空
@@ -234,7 +237,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
                 LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
                 List<LogAppMessageDO> logAppMessageDOS = this.getAppConversationMessages(req.getConversationUid());
-
+                Collections.reverse(logAppMessageDOS);
                 this._initHistory(req, logAppConversationDO, logAppMessageDOS);
 
             } else {
@@ -246,8 +249,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             R result = this._execute(req);
 
+            this.updateAppConversationLog(req.getConversationUid(), true);
             log.info("app end: {} {}", this.getUid(), result);
-
             return result;
         } catch (ServiceException e) {
             log.error("app execute is fail: {}", e.getMessage());
@@ -282,7 +285,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
                 LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
                 List<LogAppMessageDO> logAppMessageDOS = this.getAppConversationMessages(req.getConversationUid());
-
+                Collections.reverse(logAppMessageDOS);
                 this._initHistory(req, logAppConversationDO, logAppMessageDOS);
 
             } else {
