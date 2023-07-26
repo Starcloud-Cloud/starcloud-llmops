@@ -199,7 +199,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
         StringJoiner messageTemp = new StringJoiner(StringUtils.LF);
 
         // 配置项
-        if (cleanInputs.size() > 0) {
+        if (StringUtils.isNotBlank(chatConfig.getPrePrompt())) {
             messageTemp.add(chatConfig.getPrePrompt());
         }
 

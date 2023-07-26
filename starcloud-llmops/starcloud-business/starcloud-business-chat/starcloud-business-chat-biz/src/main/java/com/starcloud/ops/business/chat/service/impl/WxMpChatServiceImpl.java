@@ -23,6 +23,7 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.chat.service.WxMpChatService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -44,17 +45,17 @@ public class WxMpChatServiceImpl implements WxMpChatService {
     private MpMessageService mpMessageService;
 
     @Override
-    public void parseUrl(String url, Long mqUserId) {
+    public void parseUrl(String url, Long mqUserId, String prompt) {
         //todo 调用数据集
         List<String> datasetUid = new ArrayList<>();
-        appService.create(buildAppReqVO(datasetUid));
+        appService.create(buildAppReqVO(datasetUid, prompt));
     }
 
     @Override
-    public String getRecentlyChatApp() {
+    public String getRecentlyChatApp(String prompt) {
         AppRespVO recently = appService.getRecently(UserContextHolder.getUserId());
         if (recently == null) {
-            appService.create(buildAppReqVO());
+            appService.create(buildAppReqVO(prompt));
             recently = appService.getRecently(UserContextHolder.getUserId());
         }
         return recently.getUid();
@@ -66,17 +67,24 @@ public class WxMpChatServiceImpl implements WxMpChatService {
             ChatAppEntity appEntity = AppFactory.factory(chatRequestVO);
             JsonData execute = appEntity.execute(chatRequestVO);
             // 回复消息
-            MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
-            messageSendReqVO.setUserId(mqUserId);
-            messageSendReqVO.setContent(JSONUtil.parseObj(execute.getData()).getStr("text"));
-            messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
-            mpMessageService.sendKefuMessage(messageSendReqVO);
-            UserContextHolder.clear();
+            String msg = JSONUtil.parseObj(execute.getData()).getStr("text");
+            if (StringUtils.isNotBlank(msg)) {
+                sendMsg(mqUserId, msg);
+            }
         });
     }
 
-    private AppReqVO buildAppReqVO(List<String> datasetUid) {
-        AppReqVO appReqVO = buildAppReqVO();
+    @Override
+    public void sendMsg(Long mqUserId, String msg) {
+        MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
+        messageSendReqVO.setUserId(mqUserId);
+        messageSendReqVO.setContent(msg);
+        messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
+        mpMessageService.sendKefuMessage(messageSendReqVO);
+    }
+
+    private AppReqVO buildAppReqVO(List<String> datasetUid, String prompt) {
+        AppReqVO appReqVO = buildAppReqVO(prompt);
         if (CollectionUtils.isEmpty(datasetUid)) {
             return appReqVO;
         }
@@ -89,7 +97,7 @@ public class WxMpChatServiceImpl implements WxMpChatService {
         return appReqVO;
     }
 
-    private AppReqVO buildAppReqVO() {
+    private AppReqVO buildAppReqVO(String prompt) {
         AppReqVO appReqVO = new AppReqVO();
         String name = IdUtil.fastUUID();
         appReqVO.setName(name);
@@ -99,6 +107,7 @@ public class WxMpChatServiceImpl implements WxMpChatService {
         ChatConfigReqVO chatConfigReqVO = new ChatConfigReqVO();
         ModelConfigReqVO openaiModel = ModelConfigReqVO.builder().provider("openai").completionParams(new OpenaiCompletionReqVo()).build();
         chatConfigReqVO.setModelConfig(openaiModel);
+        chatConfigReqVO.setPrePrompt(prompt);
         appReqVO.setChatConfig(chatConfigReqVO);
         return appReqVO;
     }
