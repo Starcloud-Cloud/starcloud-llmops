@@ -2,12 +2,14 @@ package com.starcloud.ops.business.app.util;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
 import com.starcloud.ops.business.app.enums.vsearch.GuidancePresetEnum;
 import com.starcloud.ops.business.app.enums.vsearch.ImageSizeEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplesEnum;
 import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -262,5 +264,32 @@ public class ImageUtils {
         }
 
         return count;
+    }
+
+    /**
+     * 处理反义词
+     *
+     * @param negativePrompt 反义词
+     * @return 处理后的反义词
+     */
+    public static String handleNegativePrompt(String negativePrompt, boolean isJoin) {
+        if (isJoin) {
+            if (StringUtils.isBlank(negativePrompt)) {
+                return AppConstants.DEFAULT_NEGATIVE_PROMPT;
+            } else {
+                if (StringUtils.endsWith(negativePrompt, ".")) {
+                    negativePrompt = negativePrompt.substring(0, negativePrompt.length() - 1);
+                }
+                return negativePrompt + ", " + AppConstants.DEFAULT_NEGATIVE_PROMPT;
+            }
+        }
+        if (StringUtils.endsWith(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
+            if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
+                return "";
+            } else {
+                return negativePrompt.substring(0, negativePrompt.length() - AppConstants.DEFAULT_NEGATIVE_PROMPT.length() - 2) + ".";
+            }
+        }
+        return negativePrompt;
     }
 }

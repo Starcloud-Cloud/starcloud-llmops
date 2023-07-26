@@ -1,18 +1,20 @@
 package com.starcloud.ops.business.app.convert.image;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
+import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -59,23 +61,22 @@ public interface VSearchConvert {
     default VSearchImageRequest convert(ImageRequest request) {
         VSearchImageRequest vSearchImageRequest = new VSearchImageRequest();
         vSearchImageRequest.setEngine(request.getEngine());
-        vSearchImageRequest.setPrompts(Collections.singletonList(TextPrompt.ofDefault(request.getPrompt())));
-        if (StringUtils.isNotBlank(request.getInitImage())) {
 
-            String initImage = request.getInitImage();
-            if (initImage.contains("data:image/png;base64,")) {
-                initImage = initImage.replace("data:image/png;base64,", "");
-            }
-            initImage = initImage.replaceAll("\r|\n", "").trim();
-            byte[] decode = Base64.getDecoder().decode(initImage);
-            String binary = new String(decode, StandardCharsets.UTF_8);
-            vSearchImageRequest.setInitImage(binary);
-            if (request.getImageStrength() == null) {
-                vSearchImageRequest.setStartSchedule(0.65);
-            } else {
-                vSearchImageRequest.setStartSchedule(1 - request.getImageStrength());
-            }
+        // prompts
+        String prompt = request.getPrompt();
+        if (StringUtils.isBlank(prompt)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_PROMPT_REQUIRED);
         }
+        List<TextPrompt> prompts = new ArrayList<>();
+        prompts.add(TextPrompt.ofDefault(prompt));
+
+        // 反义词
+        String negativePrompt = request.getNegativePrompt();
+        if (StringUtils.isNotBlank(negativePrompt)) {
+            prompts.add(TextPrompt.ofNegative(negativePrompt));
+        }
+
+        vSearchImageRequest.setPrompts(prompts);
         vSearchImageRequest.setHeight(request.getHeight());
         vSearchImageRequest.setWidth(request.getWidth());
         vSearchImageRequest.setCfgScale(request.getCfgScale());

@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
+import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
@@ -214,10 +215,11 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * @return {@link ImageMessageRespVO}
      */
     private ImageMessageRespVO textToImage(ImageReqVO request) {
+        ImageRequest imageRequest = request.getImageRequest();
         List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
         ImageMessageRespVO imageResponse = new ImageMessageRespVO();
         imageResponse.setPrompt(request.getImageRequest().getPrompt());
-        imageResponse.setNegativePrompt(request.getImageRequest().getNegativePrompt());
+        imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getImageRequest().getNegativePrompt(), Boolean.FALSE));
         imageResponse.setEngine(request.getImageRequest().getEngine());
         imageResponse.setWidth(request.getImageRequest().getWidth());
         imageResponse.setHeight(request.getImageRequest().getHeight());
