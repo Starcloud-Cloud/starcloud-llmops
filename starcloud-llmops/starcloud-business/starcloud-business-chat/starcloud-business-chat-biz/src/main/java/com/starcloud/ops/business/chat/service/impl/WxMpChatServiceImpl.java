@@ -78,7 +78,6 @@ public class WxMpChatServiceImpl implements WxMpChatService {
                     sendMsg(mqUserId, msg);
                 }
             } finally {
-                log.info("dele");
                 redisTemplate.delete(openId + "-ready");
             }
         });
