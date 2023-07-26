@@ -79,7 +79,7 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
             // 上次对话结束
             if (!ready(wxMessage.getFromUser())) {
                 log.info("上次对话未结束，{}", wxMessage.getFromUser());
-                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("请求频率过快，请稍后重试").build();
+                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("请求频率过快，20秒后重试").build();
             }
 
 
@@ -119,7 +119,7 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
     }
 
     private Boolean ready(String openId) {
-        return redisTemplate.boundValueOps(openId + "-ready").setIfAbsent("lock", 60, TimeUnit.SECONDS);
+        return redisTemplate.boundValueOps(openId + "-ready").setIfAbsent("lock", 20, TimeUnit.SECONDS);
     }
 
     private Boolean limiter(String openId) {
