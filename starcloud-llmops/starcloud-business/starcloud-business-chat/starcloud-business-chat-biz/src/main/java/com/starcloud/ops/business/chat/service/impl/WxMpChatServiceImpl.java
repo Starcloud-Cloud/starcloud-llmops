@@ -69,14 +69,18 @@ public class WxMpChatServiceImpl implements WxMpChatService {
     @Override
     public void chatAndReply(ChatRequestVO chatRequestVO, Long mqUserId, String openId) {
         threadWithContext.asyncExecute(() -> {
-            ChatAppEntity appEntity = AppFactory.factory(chatRequestVO);
-            JsonData execute = appEntity.execute(chatRequestVO);
-            // 回复消息
-            String msg = JSONUtil.parseObj(execute.getData()).getStr("text");
-            if (StringUtils.isNotBlank(msg)) {
-                sendMsg(mqUserId, msg);
+            try {
+                ChatAppEntity appEntity = AppFactory.factory(chatRequestVO);
+                JsonData execute = appEntity.execute(chatRequestVO);
+                // 回复消息
+                String msg = JSONUtil.parseObj(execute.getData()).getStr("text");
+                if (StringUtils.isNotBlank(msg)) {
+                    sendMsg(mqUserId, msg);
+                }
+            } finally {
+                log.info("dele");
+                redisTemplate.delete(openId + "-ready");
             }
-            redisTemplate.boundValueOps(openId + "-ready").getAndDelete();
         });
     }
 
