@@ -17,7 +17,7 @@ public interface WxMpChatService {
     /**
      * 聊天并回复
      */
-    void chatAndReply(ChatRequestVO chatRequestVO, Long mqUserId);
+    void chatAndReply(ChatRequestVO chatRequestVO, Long mqUserId, String openId);
 
     /**
      * 发送消息

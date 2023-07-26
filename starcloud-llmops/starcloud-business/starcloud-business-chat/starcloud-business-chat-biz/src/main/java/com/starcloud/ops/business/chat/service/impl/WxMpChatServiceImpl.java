@@ -24,6 +24,8 @@ import com.starcloud.ops.business.chat.service.WxMpChatService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -44,6 +46,9 @@ public class WxMpChatServiceImpl implements WxMpChatService {
     @Resource
     private MpMessageService mpMessageService;
 
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
     @Override
     public void parseUrl(String url, Long mqUserId, String prompt) {
         //todo 调用数据集
@@ -62,7 +67,7 @@ public class WxMpChatServiceImpl implements WxMpChatService {
     }
 
     @Override
-    public void chatAndReply(ChatRequestVO chatRequestVO, Long mqUserId) {
+    public void chatAndReply(ChatRequestVO chatRequestVO, Long mqUserId, String openId) {
         threadWithContext.asyncExecute(() -> {
             ChatAppEntity appEntity = AppFactory.factory(chatRequestVO);
             JsonData execute = appEntity.execute(chatRequestVO);
@@ -71,6 +76,7 @@ public class WxMpChatServiceImpl implements WxMpChatService {
             if (StringUtils.isNotBlank(msg)) {
                 sendMsg(mqUserId, msg);
             }
+            redisTemplate.boundValueOps(openId + "-ready").getAndDelete();
         });
     }
 
