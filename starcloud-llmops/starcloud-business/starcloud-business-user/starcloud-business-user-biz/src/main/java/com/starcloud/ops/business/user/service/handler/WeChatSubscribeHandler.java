@@ -75,6 +75,20 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     @Value("${starcloud-llm.tenant.id:2}")
     private Long tenantId;
 
+    private static final String MSG = "终于见面了！\n" +
+            "欢迎使用魔法AI！已奉送5000积分及10张图片权益到您的账户，马上体验吧！\n" +
+            "\n" +
+            "新一代的跨境营销创意工具，集成AI助手、营销内容生成、数据分析、流程自动化于一体，帮您和您的企业高效处理繁琐复杂的低效工作，释放更多创意能量。\n" +
+            "\n" +
+            "【加群有礼】加入官方交流群\n" +
+            "https://mp.weixin.qq.com/s?__biz=MzkxMjUxMDE1Mg==&mid=2247483676&idx=1&sn=b40645a668ebb07b481c9dcb698c3172&chksm=c10a9cbbf67d15ad5abdb1fa092eb63aa07eb86898d73565d1786f9a2550ac591c37fda3b3b4#rd\n" +
+            "\n" +
+            "【权益领取】做任务领权益\n" +
+            "https://www.mofaai.com.cn/exchange\n" +
+            "\n" +
+            "【加小助理】享受1对1专属顾问\n" +
+            "https://mp.weixin.qq.com/s?__biz=MzkxMjUxMDE1Mg==&mid=2247483681&idx=1&sn=d66e77bb135e004b1c6410c995425182&chksm=c10a9c86f67d15904ea00afb11d82efd34c5893eb4632573aed289e58c0a40c05bf03829b5dc#rd";
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
@@ -95,8 +109,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
                 if (StringUtils.isNotBlank(wxMessage.getTicket())) {
                     redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
                 }
-                WxMpXmlOutMessage wxMpXmlOutMessage = mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage);
-                return wxMpXmlOutMessage;
+                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(MSG).build();
             }
 
             socialUserDO = SocialUserDO.builder().code(wxMpUser.getOpenId())
@@ -138,9 +151,8 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
             starUserService.addBenefits(userId, inviteUserid);
 
-            String msg = String.format("欢迎使用魔法AI，您可以使用帐号密码登录，帐号是：%s  登录密码是：%s", username, password);
-            WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
-            return outTextMessage;
+            String msg = String.format("%s \n\n您可以使用帐号密码登录，帐号是：%s  登录密码是：%s", MSG, username, password);
+            return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
         } catch (Exception e) {
             log.error("新增用户失败", e);
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);

@@ -64,6 +64,7 @@ public class DefaultMpServiceFactory implements MpServiceFactory {
     private final LocationHandler locationHandler;
     private final WxMpMessageHandler scanHandler;
     private final MessageAutoReplyHandler messageAutoReplyHandler;
+    private final WxMpMessageHandler wxTextMessageHandler;
 
     @Override
     public void init(List<MpAccountDO> list) {
@@ -161,6 +162,10 @@ public class DefaultMpServiceFactory implements MpServiceFactory {
         router.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT)
                 .event(WxConsts.EventType.LOCATION).handler(locationHandler)
                 .end();
+
+        // 文本消息
+        router.rule().async(false).msgType(WxConsts.XmlMsgType.TEXT)
+                .handler(wxTextMessageHandler).end();
 
         // 接收地理位置消息
         router.rule().async(false).msgType(WxConsts.XmlMsgType.LOCATION)

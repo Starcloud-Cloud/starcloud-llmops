@@ -61,7 +61,15 @@ public enum AppSourceEnum implements IEnumable<Integer> {
     /**
      * 未知
      */
-    UNKNOWN(9, "未知");
+    UNKNOWN(9, "未知"),
+
+
+    /**
+     * 微信公共号
+     */
+    WX_WP(10, "微信公共号")
+
+    ;
 
     /**
      * 应用类型Code

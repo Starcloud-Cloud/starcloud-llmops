@@ -35,6 +35,19 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     @Schema(description = "code")
     private String code;
 
+    @Schema(description = "对话提示词")
+    private String prePrompt;
+
+    @Schema(description = "模版变量")
+    private VariableReqVO variable;
+
+    @Schema(description = "聊天模型参数配置")
+    private ModelConfigReqVO modelConfig;
+
+    @Schema(description = "绑定数据集")
+    private List<DatesetReqVO> datesetEntities;
+
+
     /**
      * 挂载的 functions 列表
      */

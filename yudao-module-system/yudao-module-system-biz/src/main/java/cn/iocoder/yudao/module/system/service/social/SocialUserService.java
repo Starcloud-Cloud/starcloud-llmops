@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.system.service.social;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserBindReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 
 import javax.validation.Valid;
@@ -52,6 +53,14 @@ public interface SocialUserService {
      * @param reqDTO 绑定信息
      */
     void bindSocialUser(@Valid SocialUserBindReqDTO reqDTO);
+
+    /**
+     * 获得绑定用户
+     *
+     * @param openId
+     * @return
+     */
+    AdminUserDO getSocialUser(String openId, Integer socialUserType, Integer userType);
 
     /**
      * 取消绑定社交用户

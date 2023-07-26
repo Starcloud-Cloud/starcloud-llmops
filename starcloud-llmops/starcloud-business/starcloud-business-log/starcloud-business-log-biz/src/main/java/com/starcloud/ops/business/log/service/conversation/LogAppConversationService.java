@@ -113,5 +113,9 @@ public interface LogAppConversationService {
      */
     PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO);
 
+    /**
+     * 获取最新的会话
+     */
+    LogAppConversationDO getRecentlyConversation(String appUid);
 
 }
