@@ -76,6 +76,13 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
                 return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("超过限制! 60秒后重试").build();
             }
 
+            // 上次对话结束
+            if (!ready(wxMessage.getFromUser())) {
+                log.info("上次对话未结束，{}", wxMessage.getFromUser());
+                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("请求频率过快，请稍后重试").build();
+            }
+
+
             Pattern pattern = Pattern.compile(regex);
             // 设置用户上下文
             String openId = wxMessage.getFromUser();
@@ -102,13 +109,17 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
                 if (recentlyConversation != null) {
                     chatRequestVO.setConversationUid(recentlyConversation.getUid());
                 }
-                wxMpChatService.chatAndReply(chatRequestVO, user.getId());
+                wxMpChatService.chatAndReply(chatRequestVO, user.getId(), wxMessage.getFromUser());
             }
         } catch (Exception e) {
             log.error("wx chat error, from= {}, content= {}", wxMessage.getFromUser(), wxMessage.getContent(), e);
-            return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("服务异常!请稍后重试或联系管理员").build();
+            return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("服务异常！请稍后重试或联系管理员").build();
         }
         return null;
+    }
+
+    private Boolean ready(String openId) {
+        return redisTemplate.boundValueOps(openId + "-ready").setIfAbsent("lock", 60, TimeUnit.SECONDS);
     }
 
     private Boolean limiter(String openId) {
@@ -119,7 +130,7 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
             Long intervalTime = 60000L;
             Integer count = redisTemplate.opsForZSet().rangeByScore(openId, currentTime - intervalTime, currentTime).size();
             if (count != null && count >= 5) {
-                log.info("超量");
+                log.info("请求超过每分钟5次 {}", openId);
                 return false;
             }
         }
