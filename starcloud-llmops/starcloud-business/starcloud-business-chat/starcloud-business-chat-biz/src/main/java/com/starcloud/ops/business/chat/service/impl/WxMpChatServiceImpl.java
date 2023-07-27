@@ -76,7 +76,12 @@ public class WxMpChatServiceImpl implements WxMpChatService {
                 String msg = JSONUtil.parseObj(execute.getData()).getStr("text");
                 if (StringUtils.isNotBlank(msg)) {
                     sendMsg(mqUserId, msg);
+                } else {
+                    sendMsg(mqUserId, "AI 异常请稍后重试");
                 }
+            } catch (Exception e) {
+                log.error("chat error", e);
+                sendMsg(mqUserId, "AI 异常请稍后重试！");
             } finally {
                 redisTemplate.delete(openId + "-ready");
             }
