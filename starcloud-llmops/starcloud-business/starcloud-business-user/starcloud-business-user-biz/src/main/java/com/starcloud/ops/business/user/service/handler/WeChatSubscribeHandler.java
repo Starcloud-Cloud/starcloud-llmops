@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service.handler;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyService;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
@@ -81,6 +82,10 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信关注事件，内容：{}", wxMessage);
         try {
+            // 上下文补充
+            TenantContextHolder.setTenantId(tenantId);
+            TenantContextHolder.setIgnore(false);
+
             WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
             // 第二步，保存粉丝信息
             mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
