@@ -29,7 +29,7 @@ public class ChatShareController {
     @Operation(summary = "应用详情")
     public String detail(@RequestParam(name = "appUid") String appUid, HttpServletRequest request, HttpServletResponse response) {
 
-        request.getSession().setMaxInactiveInterval(3600 * 24 * 15);
+        request.getSession().setMaxInactiveInterval(-1);
 
         return request.getRequestedSessionId();
     }

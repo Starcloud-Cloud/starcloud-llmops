@@ -12,7 +12,9 @@ import cn.iocoder.yudao.module.system.dal.mysql.oauth2.OAuth2AccessTokenMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.oauth2.OAuth2RefreshTokenMapper;
 import cn.iocoder.yudao.module.system.dal.redis.oauth2.OAuth2AccessTokenRedisDAO;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2ClientService;
+import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -30,7 +32,10 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
  * 3，下游手动增加 EndUser 字段到表中，自行使用
  */
 @Service
-public class EndUserService extends OAuth2TokenServiceImpl {
+public class EndUserService {
+
+    @Autowired
+    private OAuth2TokenServiceImpl oAuth2TokenService;
 
     @Resource
     private OAuth2AccessTokenMapper oauth2AccessTokenMapper;
@@ -54,7 +59,7 @@ public class EndUserService extends OAuth2TokenServiceImpl {
 
         //没有就创建
         if (refreshTokenDO == null) {
-            refreshTokenDO = createOAuth2RefreshToken(0L, UserTypeEnum.ADMIN.getValue(), clientDO, new ArrayList<>());
+           // refreshTokenDO = oAuth2TokenService.createOAuth2RefreshToken(0L, UserTypeEnum.ADMIN.getValue(), clientDO, new ArrayList<>());
         }
 
         if (ObjectUtil.notEqual(clientDO.getClientId(), refreshTokenDO.getClientId())) {
