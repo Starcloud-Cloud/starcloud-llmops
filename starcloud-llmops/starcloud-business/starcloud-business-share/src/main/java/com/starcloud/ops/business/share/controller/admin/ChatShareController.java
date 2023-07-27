@@ -6,10 +6,12 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.share.controller.admin.vo.ChatReq;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -21,13 +23,15 @@ import javax.servlet.http.HttpServletResponse;
  * @since 2023-06-26
  */
 @RestController
-@RequestMapping("/c")
+@RequestMapping("/chat")
 @Tag(name = "星河云海-应用执行")
 public class ChatShareController {
 
     @GetMapping("/")
     @Operation(summary = "应用详情")
-    public String detail(@RequestParam(name = "appUid") String appUid, HttpServletRequest request, HttpServletResponse response) {
+    @Parameter(name = "uid", description = "应用uuid", required = true)
+    @PermitAll
+    public String detail(@RequestParam(name = "uid") String appUid, HttpServletRequest request, HttpServletResponse response) {
 
         request.getSession().setMaxInactiveInterval(-1);
 
@@ -36,6 +40,7 @@ public class ChatShareController {
 
     @PostMapping("/")
     @Operation(summary = "执行应用")
+    @PermitAll
     public SseEmitter execute(@RequestBody ChatReq chatReq, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
