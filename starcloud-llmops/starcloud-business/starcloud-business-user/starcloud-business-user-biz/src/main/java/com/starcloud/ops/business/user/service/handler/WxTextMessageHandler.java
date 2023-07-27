@@ -23,6 +23,7 @@ import me.chanjar.weixin.mp.api.WxMpMessageHandler;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
+import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -75,7 +76,8 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
             if (!limiter(wxMessage.getFromUser())) {
                 return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("超过限制! 60秒后重试").build();
             }
-
+            WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
+            mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
             // 上次对话结束
             if (!ready(wxMessage.getFromUser())) {
                 log.info("上次对话未结束，{}", wxMessage.getFromUser());
