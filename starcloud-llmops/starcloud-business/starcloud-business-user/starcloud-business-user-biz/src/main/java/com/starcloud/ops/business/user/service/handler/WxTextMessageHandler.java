@@ -74,14 +74,14 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
             String prompt = mpAutoReplyDO.getResponseContent().substring(PREFIX.length());
             //限流
             if (!limiter(wxMessage.getFromUser())) {
-                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("超过限制! 60秒后重试").build();
+                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("提问超过限制! 20秒后重试").build();
             }
             WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
             mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
             // 上次对话结束
             if (!ready(wxMessage.getFromUser())) {
                 log.info("上次对话未结束，{}", wxMessage.getFromUser());
-                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("请求频率过快，20秒后重试").build();
+                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("AI正在思考中，请务重复提问！").build();
             }
 
 
@@ -129,10 +129,10 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
 
         if (Boolean.TRUE.equals(redisTemplate.hasKey(openId))) {
             // intervalTime是限流的时间
-            Long intervalTime = 60000L;
+            Long intervalTime = 10000L;
             Integer count = redisTemplate.opsForZSet().rangeByScore(openId, currentTime - intervalTime, currentTime).size();
-            if (count != null && count >= 5) {
-                log.info("请求超过每分钟5次 {}", openId);
+            if (count != null && count >= 1) {
+                log.info("请求超过每十秒1次 {}", openId);
                 return false;
             }
         }
