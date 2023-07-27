@@ -4,7 +4,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import javax.validation.constraints.*;
 
 @Schema(description = "管理后台 - 应用执行日志会话创建 Request VO")
@@ -12,6 +14,21 @@ import javax.validation.constraints.*;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class LogAppConversationCreateReqVO extends LogAppConversationBaseVO {
+
+    /**
+     * 多租户编号
+     */
+    private Long tenantId;
+
+
+    /**
+     * 指定创建者
+     * 1，游客执行的时候，创建者为 执行应用的 创建者
+     */
+    private String creator;
+
+
+    private String updater;
 
 //    /**
 //     * 创建时间

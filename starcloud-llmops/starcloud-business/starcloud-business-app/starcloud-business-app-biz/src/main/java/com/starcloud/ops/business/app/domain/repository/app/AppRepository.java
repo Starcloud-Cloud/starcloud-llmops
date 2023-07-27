@@ -29,6 +29,11 @@ public class AppRepository {
     @Resource
     private AppMapper appMapper;
 
+
+    public BaseAppEntity getByUid(String uid, Boolean share) {
+        return AppConvert.INSTANCE.convert(appMapper.getByUid(uid, Boolean.FALSE), share);
+    }
+
     /**
      * 根据 uid 查询应用
      *
@@ -36,7 +41,7 @@ public class AppRepository {
      * @return 应用实体
      */
     public BaseAppEntity getByUid(String uid) {
-        return AppConvert.INSTANCE.convert(appMapper.getByUid(uid, Boolean.FALSE));
+        return AppConvert.INSTANCE.convert(appMapper.getByUid(uid, Boolean.FALSE), false);
     }
 
     /**

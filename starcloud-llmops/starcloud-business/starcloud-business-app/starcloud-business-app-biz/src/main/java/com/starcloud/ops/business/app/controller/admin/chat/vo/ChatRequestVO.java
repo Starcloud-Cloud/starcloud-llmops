@@ -32,9 +32,6 @@ public class ChatRequestVO extends AppContextReqVO {
      */
     private JsonData jsonParams;
 
-    @Schema(description = "游客的唯一标识")
-    private String endUser;
-
     @Schema(description = "临时上传都索引文档")
     private List<String> docsUid;
 

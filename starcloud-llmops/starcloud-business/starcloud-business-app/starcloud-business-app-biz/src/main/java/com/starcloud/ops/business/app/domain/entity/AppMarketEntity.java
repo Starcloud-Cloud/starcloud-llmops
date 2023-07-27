@@ -93,7 +93,7 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      * 校验
      */
     @Override
-    protected void _validate() {
+    protected void _validate(AppExecuteReqVO req) {
 
     }
 

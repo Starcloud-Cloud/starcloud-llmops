@@ -20,6 +20,9 @@ public class AppContextReqVO implements Serializable {
     @Schema(description = "用户ID")
     private Long userId;
 
+    @Schema(description = "游客的唯一标识")
+    private String endUser;
+
     @Schema(description = "会话id")
     private String conversationUid;
 

@@ -8,10 +8,7 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
-import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
-import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
+import com.starcloud.ops.business.app.domain.entity.*;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
@@ -77,6 +74,23 @@ public class AppFactory {
     public static AppEntity factory(String appId) {
         return (AppEntity) getAppRepository().getByUid(appId);
     }
+
+
+    /**
+     * @param appId
+     * @return
+     * @todo 通过 发布表 获取 具体的激活中的 appUid
+     */
+    public static AppEntity factoryShareApp(String appId) {
+
+        //通过 发布表 获取 具体的激活中的 appUid
+
+        appId = "2196b6cce43f41679e15487d79bde823";
+
+
+        return factory(appId);
+    }
+
 
     /**
      * 获取 ChatAppEntity 通过 appId

@@ -32,6 +32,15 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     public Long createAppMessage(LogAppMessageCreateReqVO createReqVO) {
         // 插入
         LogAppMessageDO appMessage = LogAppMessageConvert.INSTANCE.convert(createReqVO);
+
+        appMessage.setCreator(createReqVO.getCreator());
+        appMessage.setUpdater(createReqVO.getCreator());
+
+        appMessage.setCreateTime(createReqVO.getCreateTime());
+        appMessage.setUpdateTime(createReqVO.getUpdateTime());
+
+        appMessage.setTenantId(createReqVO.getTenantId());
+
         appMessageMapper.insert(appMessage);
         // 返回
         return appMessage.getId();

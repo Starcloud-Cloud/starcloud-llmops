@@ -30,15 +30,11 @@ public class AppExecuteReqVO extends AppContextReqVO {
 
     @Schema(description = "应用参数")
     AppReqVO appReqVO;
-
-
     /**
      * jsonSchemas 格式的数据，后面会使用这种方式传递参数
      */
     @Schema(description = "入参")
     private JsonData jsonData;
 
-    @Schema(description = "游客的唯一标识")
-    private String endUser;
 
 }

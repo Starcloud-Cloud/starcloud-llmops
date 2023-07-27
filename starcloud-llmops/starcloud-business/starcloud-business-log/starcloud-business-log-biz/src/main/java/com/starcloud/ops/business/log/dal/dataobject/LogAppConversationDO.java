@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.log.dal.dataobject;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import lombok.*;
 
 
@@ -19,7 +20,7 @@ import com.baomidou.mybatisplus.annotation.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LogAppConversationDO extends BaseDO {
+public class LogAppConversationDO extends TenantBaseDO {
 
     /**
      * ID

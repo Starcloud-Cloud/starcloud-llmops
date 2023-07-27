@@ -107,16 +107,24 @@ public interface AppConvert {
      * @param app AppDO
      * @return AppEntity
      */
-    default BaseAppEntity convert(AppDO app) {
+    default BaseAppEntity convert(AppDO app, Boolean share) {
         BaseAppEntity appEntity = null;
 
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
 
-            appEntity = new AppEntity();
+            if (share) {
+                appEntity = new ShareAppEntity();
+            } else {
+                appEntity = new AppEntity();
+            }
 
         } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
 
-            appEntity = new ChatAppEntity();
+            if (share) {
+                appEntity = new ChatAppEntity();
+            } else {
+                appEntity = new ChatAppEntity();
+            }
 
         } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
 
@@ -137,6 +145,15 @@ public interface AppConvert {
         appEntity.setPublishUid(app.getPublishUid());
         appEntity.setInstallUid(app.getInstallUid());
         appEntity.setLastPublish(app.getLastPublish());
+
+        appEntity.setCreator(app.getCreator());
+        appEntity.setUpdater(app.getUpdater());
+
+        appEntity.setCreateTime(app.getCreateTime());
+        appEntity.setUpdateTime(app.getUpdateTime());
+
+        appEntity.setTenantId(app.getTenantId());
+
         // 处理配置
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
