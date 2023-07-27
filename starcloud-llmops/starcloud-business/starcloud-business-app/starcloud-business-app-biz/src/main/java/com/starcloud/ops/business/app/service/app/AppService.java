@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.app;
 
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
-import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
@@ -71,7 +70,7 @@ public interface AppService {
      * @param uid 应用 UID
      * @return 应用详情
      */
-    AppRespVO getByUid(String uid);
+    AppRespVO get(String uid);
 
     /**
      * 创建模版
@@ -99,20 +98,6 @@ public interface AppService {
      *
      * @param uid 应用 UID
      */
-    void deleteByUid(String uid);
-
-    /**
-     * 发布应用到应用市场
-     *
-     * @param request 应用发布到应用市场请求对象
-     */
-    void publish(AppPublishReqVO request);
-
-    /**
-     * 批量发布应用到应用市场
-     *
-     * @param requestList 应用发布到应用市场请求对象列表
-     */
-    void batchPublicAppToMarket(List<AppPublishReqVO> requestList);
+    void delete(String uid);
 
 }

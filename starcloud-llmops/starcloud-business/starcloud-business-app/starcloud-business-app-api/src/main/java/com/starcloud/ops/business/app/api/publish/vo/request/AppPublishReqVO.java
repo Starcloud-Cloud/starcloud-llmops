@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -35,7 +34,6 @@ public class AppPublishReqVO implements Serializable {
      * 应用语言
      */
     @Schema(description = "应用语言")
-    @NotBlank(message = "应用语言不能为空")
     private String language;
 
 }

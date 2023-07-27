@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -61,10 +62,10 @@ public class AppPublishRespVO implements Serializable {
     private Integer version;
 
     /**
-     * 模版市场应用版本号
+     * 应用类别
      */
-    @Schema(description = "模版市场应用版本号")
-    private Integer marketVersion;
+    @Schema(description = "应用类别")
+    private List<String> categories;
 
     /**
      * 应用语言
@@ -89,18 +90,6 @@ public class AppPublishRespVO implements Serializable {
      */
     @Schema(description = "审核状态")
     private Integer audit;
-
-    /**
-     * 分享链接
-     */
-    @Schema(description = "分享链接")
-    private String shareLink;
-
-    /**
-     * 是否启用分享链接：0-不启用分享，1-启用分享
-     */
-    @Schema(description = "是否启用分享链接")
-    private Boolean enableShare;
 
     /**
      * 创建时间

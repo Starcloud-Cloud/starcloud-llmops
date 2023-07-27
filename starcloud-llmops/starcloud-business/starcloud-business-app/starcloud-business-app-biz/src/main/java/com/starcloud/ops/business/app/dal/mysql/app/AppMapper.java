@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.mysql.app;
 
+import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -7,10 +8,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.validate.app.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -35,7 +38,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      */
     default Page<AppDO> page(AppPageQuery query) {
         // 构建查询条件
-        LambdaQueryWrapper<AppDO> wrapper = pageQueryWrapper()
+        LambdaQueryWrapper<AppDO> wrapper = queryWrapper(Boolean.TRUE)
                 .likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName())
                 .orderByDesc(AppDO::getCreateTime);
         return this.selectPage(PageUtil.page(query), wrapper);
@@ -47,11 +50,53 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      * @param uid 应用 uid
      * @return 应用详情
      */
-    default AppDO getByUid(String uid, boolean isSimple) {
-        LambdaQueryWrapper<AppDO> wrapper = isSimple ? simpleQueryWrapper() : Wrappers.lambdaQuery(AppDO.class);
+    default AppDO get(String uid, boolean isSimple) {
+        LambdaQueryWrapper<AppDO> wrapper = queryWrapper(isSimple);
         wrapper.eq(AppDO::getUid, uid);
         wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
         return this.selectOne(wrapper);
+    }
+
+    /**
+     * 创建应用市场应用
+     *
+     * @param appDO 应用市场
+     * @return 应用市场
+     */
+    default AppDO create(AppDO appDO) {
+        // 校验应用名称是否重复
+        AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        appDO.setUid(IdUtil.fastSimpleUUID());
+        appDO.setDeleted(Boolean.FALSE);
+        appDO.setPublishUid(null);
+        appDO.setLastPublish(null);
+        this.insert(appDO);
+        return appDO;
+    }
+
+    /**
+     * 修改应用市场应用
+     *
+     * @param appDO 应用市场
+     * @return 应用市场
+     */
+    default AppDO modify(AppDO appDO) {
+        // 校验应用名称是否重复
+        AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        appDO.setDeleted(Boolean.FALSE);
+        this.updateById(appDO);
+        return appDO;
+    }
+
+    /**
+     * 删除应用
+     *
+     * @param uid 应用唯一标识
+     */
+    default void delete(String uid) {
+        AppDO app = this.get(uid, Boolean.TRUE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        this.deleteById(app.getId());
     }
 
     /**
@@ -92,49 +137,33 @@ public interface AppMapper extends BaseMapperX<AppDO> {
     }
 
     /**
-     * 简单查询条件
+     * 获取查询条件
      *
+     * @param isSimple 是否简单查询
      * @return 查询条件
      */
-    static LambdaQueryWrapper<AppDO> simpleQueryWrapper() {
-        return Wrappers.lambdaQuery(AppDO.class).select(
-                AppDO::getId,
-                AppDO::getUid,
-                AppDO::getName,
-                AppDO::getType,
-                AppDO::getModel,
-                AppDO::getSource,
-                AppDO::getCategories,
-                AppDO::getScenes,
-                AppDO::getIcon,
-                AppDO::getPublishUid,
-                AppDO::getInstallUid
-        );
+    static LambdaQueryWrapper<AppDO> queryWrapper(boolean isSimple) {
+        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class);
+        wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
+        if (!isSimple) {
+            return wrapper;
+        }
+        wrapper.select(AppDO::getId);
+        wrapper.select(AppDO::getUid);
+        wrapper.select(AppDO::getName);
+        wrapper.select(AppDO::getType);
+        wrapper.select(AppDO::getModel);
+        wrapper.select(AppDO::getSource);
+        wrapper.select(AppDO::getTags);
+        wrapper.select(AppDO::getCategories);
+        wrapper.select(AppDO::getScenes);
+        wrapper.select(AppDO::getIcon);
+        wrapper.select(AppDO::getDescription);
+        wrapper.select(AppDO::getPublishUid);
+        wrapper.select(AppDO::getInstallUid);
+        wrapper.select(AppDO::getCreateTime);
+        wrapper.select(AppDO::getUpdateTime);
+        return wrapper;
     }
 
-    /**
-     * 简单查询条件
-     *
-     * @return 查询条件
-     */
-    static LambdaQueryWrapper<AppDO> pageQueryWrapper() {
-        return Wrappers.lambdaQuery(AppDO.class).select(
-                AppDO::getUid,
-                AppDO::getName,
-                AppDO::getType,
-                AppDO::getModel,
-                AppDO::getSource,
-                AppDO::getTags,
-                AppDO::getCategories,
-                AppDO::getScenes,
-                AppDO::getIcon,
-                AppDO::getDescription,
-                AppDO::getPublishUid,
-                AppDO::getInstallUid,
-                AppDO::getCreator,
-                AppDO::getUpdater,
-                AppDO::getCreateTime,
-                AppDO::getUpdateTime
-        );
-    }
 }

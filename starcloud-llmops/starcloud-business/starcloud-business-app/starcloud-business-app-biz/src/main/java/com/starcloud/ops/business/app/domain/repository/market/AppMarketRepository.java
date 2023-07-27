@@ -1,21 +1,14 @@
 package com.starcloud.ops.business.app.domain.repository.market;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
-import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
-import java.util.Objects;
 
 /**
  * App Repository
@@ -37,7 +30,7 @@ public class AppMarketRepository {
      * @return 应用实体
      */
     public AppMarketEntity get(String uid) {
-        AppMarketDO appMarketDO = appMarketMapper.get(uid, null, Boolean.FALSE);
+        AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
         return AppMarketConvert.INSTANCE.convert(appMarketDO);
     }
 
@@ -48,23 +41,7 @@ public class AppMarketRepository {
      */
     public void insert(AppMarketEntity appMarketEntity) {
         AppMarketDO appMarket = AppMarketConvert.INSTANCE.convert(appMarketEntity);
-        // 名称唯一性校验
-        AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
-        // 新增 UID 重新生成
-        appMarket.setUid(AppUtils.generateUid(AppConstants.MARKET_PREFIX));
-        appMarket.setVersion(Objects.isNull(appMarket.getVersion()) ? AppConstants.DEFAULT_VERSION : appMarket.getVersion());
-        appMarket.setUsageCount(Objects.isNull(appMarket.getUsageCount()) ? 0 : appMarket.getUsageCount());
-        appMarket.setLikeCount(Objects.isNull(appMarket.getLikeCount()) ? 0 : appMarket.getLikeCount());
-        appMarket.setViewCount(Objects.isNull(appMarket.getViewCount()) ? 0 : appMarket.getViewCount());
-        appMarket.setInstallCount(Objects.isNull(appMarket.getInstallCount()) ? 0 : appMarket.getInstallCount());
-        // 目前模版市场只有免费版
-        appMarket.setFree(Boolean.TRUE);
-        appMarket.setCost(BigDecimal.ZERO);
-        // 默认为未删除状态
-        appMarket.setDeleted(Boolean.FALSE);
-        // 新增审核状态统一为待审核
-        appMarket.setAudit(AppMarketAuditEnum.PENDING.getCode());
-        appMarketMapper.insert(appMarket);
+        appMarketMapper.create(appMarket);
     }
 
     /**
@@ -74,68 +51,13 @@ public class AppMarketRepository {
      */
     public void update(AppMarketEntity appMarketEntity) {
         // 判断应用是否存在, 不存在无法修改
-        AppMarketDO appMarketDO = appMarketMapper.get(appMarketEntity.getUid(), appMarketEntity.getVersion(), Boolean.TRUE);
+        AppMarketDO appMarketDO = appMarketMapper.get(appMarketEntity.getUid(), Boolean.TRUE);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, appMarketEntity.getUid());
+
         // 应用实体转换为应用 DO
         AppMarketDO appMarket = AppMarketConvert.INSTANCE.convert(appMarketEntity);
-        // 版本号
-        Integer nextVersion = AppUtils.nextVersion(appMarket.getVersion());
-        // 名称唯一性校验
-        AppValidate.isFalse(duplicateName(appMarket.getName(), appMarketDO.getName(), nextVersion),
-                ErrorCodeConstants.APP_NAME_DUPLICATE);
-        // 版本号
-        appMarket.setVersion(nextVersion);
-        // 目前模版市场只有免费版
-        appMarket.setFree(Boolean.TRUE);
-        appMarket.setCost(BigDecimal.ZERO);
-        // 默认为未删除状态
-        appMarket.setDeleted(Boolean.FALSE);
-        // 修改审核状态统一为待审核
-        appMarket.setAudit(AppMarketAuditEnum.PENDING.getCode());
-
-        // 修改应用市场应用
-        LambdaUpdateWrapper<AppMarketDO> wrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
-                .eq(AppMarketDO::getVersion, appMarketEntity.getUid())
-                .eq(AppMarketDO::getVersion, appMarketEntity.getVersion());
-        appMarketMapper.update(appMarket, wrapper);
-    }
-
-    /**
-     * 删除应用
-     *
-     * @param uid 应用唯一标识
-     */
-    public void deleteByUidAndVersion(String uid, Integer version) {
-        AppMarketDO appMarketDO = appMarketMapper.get(uid, version, Boolean.TRUE);
-        appMarketMapper.deleteById(appMarketDO.getId());
-    }
-
-    /**
-     * 判断应用名称是否重复
-     * <p>
-     * 只判断名称是否重复，不判断版本号，用于新增应用时判断名称是否重复
-     *
-     * @param name 应用名称
-     * @return Boolean
-     */
-    public Boolean duplicateName(String name) {
-        return appMarketMapper.duplicateName(name);
-    }
-
-    /**
-     * 判断应用名称是否重复
-     * <p>
-     * 1. 如果名称没有修改，判断名称+版本号是否重复, 重复返回 true，不重复返回 false
-     * 2. 如果名称修改，判断名称是否重复, 重复返回 true，不重复返回 false
-     *
-     * @param name 应用名称
-     */
-    public Boolean duplicateName(String name, String oldName, Integer version) {
-        // 如果名称没有修改，判断名称+版本号是否重复
-        if (name.equals(oldName)) {
-            return appMarketMapper.duplicateName(name, version);
-        }
-        // 如果名称修改，判断名称是否重复
-        return appMarketMapper.duplicateName(name);
+        appMarket.setId(appMarketDO.getId());
+        appMarketMapper.modify(appMarket);
     }
 
 }

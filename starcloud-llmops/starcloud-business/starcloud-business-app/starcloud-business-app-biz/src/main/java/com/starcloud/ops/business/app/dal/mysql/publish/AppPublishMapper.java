@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.app.dal.mysql.publish;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -9,10 +7,10 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
+import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +24,7 @@ import java.util.Objects;
  * @version 1.0.0
  * @since 2023-07-25
  */
+@Mapper
 public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
 
     /**
@@ -36,10 +35,22 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
      */
     default Page<AppPublishDO> page(AppPublishPageReqVO query) {
         LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(Boolean.TRUE);
+        // APP_UID
         wrapper.eq(StringUtils.isNotBlank(query.getAppUid()), AppPublishDO::getAppUid, query.getAppUid());
+        // NAME 模糊查询
         wrapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppPublishDO::getName, query.getName());
+        // MODEL
         wrapper.eq(StringUtils.isNotBlank(query.getModel()), AppPublishDO::getModel, query.getModel());
-        wrapper.in(CollectionUtil.isNotEmpty(query.getAudits()), AppPublishDO::getAudit, query.getAudits());
+        // 审核状态 只允许查询已审核通过和已拒绝的发布记录
+        if (query.getAudit() != null ) {
+            if (Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), query.getAudit()) ||
+                    Objects.equals(AppPublishAuditEnum.REJECTED.getCode(), query.getAudit())) {
+                wrapper.eq(AppPublishDO::getAudit, query.getAudit());
+            }
+        } else {
+            wrapper.in(AppPublishDO::getAudit, AppPublishAuditEnum.APPROVED.getCode(), AppPublishAuditEnum.REJECTED.getCode());
+        }
+        // 排序
         wrapper.orderByDesc(AppPublishDO::getUpdateTime);
         wrapper.orderByDesc(AppPublishDO::getVersion);
         return this.selectPage(PageUtil.page(query), wrapper);
@@ -71,37 +82,16 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
     }
 
     /**
-     * 修改应用发布记录的审核状态
+     * 审核发布记录
      *
      * @param uid   发布 UID
      * @param audit 审核状态
      */
     default void audit(String uid, Integer audit) {
-        // 只允许待审核、审核通过、审核拒绝、取消发布
-        if (!Objects.equals(AppMarketAuditEnum.PENDING.getCode(), audit) ||
-                !Objects.equals(AppMarketAuditEnum.APPROVED.getCode(), audit) ||
-                !Objects.equals(AppMarketAuditEnum.REJECTED.getCode(), audit) ||
-                !Objects.equals(AppMarketAuditEnum.CANCELED.getCode(), audit)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED);
-        }
         LambdaUpdateWrapper<AppPublishDO> wrapper = Wrappers.lambdaUpdate(AppPublishDO.class);
         wrapper.eq(AppPublishDO::getUid, uid);
         wrapper.eq(AppPublishDO::getDeleted, Boolean.FALSE);
         wrapper.set(AppPublishDO::getAudit, audit);
-        this.update(null, wrapper);
-    }
-
-    /**
-     * 启用或者禁用分享
-     *
-     * @param uid         发布 UID
-     * @param enableShare 是否启用分享
-     */
-    default void changeShareStatus(String uid, Boolean enableShare) {
-        LambdaUpdateWrapper<AppPublishDO> wrapper = Wrappers.lambdaUpdate(AppPublishDO.class);
-        wrapper.eq(AppPublishDO::getUid, uid);
-        wrapper.eq(AppPublishDO::getDeleted, Boolean.FALSE);
-        wrapper.set(AppPublishDO::getEnableShare, enableShare);
         this.update(null, wrapper);
     }
 
@@ -123,12 +113,13 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         wrapper.select(AppPublishDO::getName);
         wrapper.select(AppPublishDO::getModel);
         wrapper.select(AppPublishDO::getVersion);
+        wrapper.select(AppPublishDO::getCategories);
         wrapper.select(AppPublishDO::getLanguage);
         wrapper.select(AppPublishDO::getAudit);
-        wrapper.select(AppPublishDO::getShareLink);
-        wrapper.select(AppPublishDO::getEnableShare);
         wrapper.select(AppPublishDO::getCreateTime);
         wrapper.select(AppPublishDO::getUpdateTime);
         return wrapper;
     }
+
+
 }

@@ -7,7 +7,7 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
+import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
@@ -36,11 +36,10 @@ public interface AppPublishConverter {
         appPublishDO.setName(appDO.getName());
         appPublishDO.setModel(appDO.getModel());
         appPublishDO.setVersion(AppConstants.DEFAULT_VERSION);
+        appPublishDO.setCategories(appDO.getCategories());
         appPublishDO.setAppInfo(JSONUtil.toJsonStr(appDO));
         appPublishDO.setDescription(appDO.getDescription());
-        appPublishDO.setAudit(AppMarketAuditEnum.UN_PUBLISH.getCode());
-        appPublishDO.setShareLink(AppUtils.obtainShareLink(appPublishDO.getUid()));
-        appPublishDO.setEnableShare(Boolean.FALSE);
+        appPublishDO.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
         appPublishDO.setDeleted(Boolean.FALSE);
         return appPublishDO;
     }
@@ -59,7 +58,7 @@ public interface AppPublishConverter {
         appPublishResponse.setName(appPublishDO.getName());
         appPublishResponse.setModel(appPublishDO.getModel());
         appPublishResponse.setVersion(appPublishDO.getVersion());
-        appPublishResponse.setMarketVersion(appPublishDO.getMarketVersion());
+        appPublishResponse.setCategories(AppUtils.split(appPublishDO.getCategories()));
         appPublishResponse.setLanguage(appPublishDO.getLanguage());
         String appInfo = appPublishDO.getAppInfo();
         if (StringUtils.isNotBlank(appInfo)) {
@@ -68,8 +67,6 @@ public interface AppPublishConverter {
         }
         appPublishResponse.setDescription(appPublishDO.getDescription());
         appPublishResponse.setAudit(appPublishDO.getAudit());
-        appPublishResponse.setShareLink(appPublishDO.getShareLink());
-        appPublishResponse.setEnableShare(appPublishDO.getEnableShare());
         appPublishResponse.setCreateTime(appPublishDO.getCreateTime());
         appPublishResponse.setUpdateTime(appPublishDO.getUpdateTime());
         return appPublishResponse;

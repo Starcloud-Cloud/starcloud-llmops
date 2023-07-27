@@ -49,10 +49,18 @@ public interface AppPublishService {
     AppPublishRespVO create(AppPublishReqVO request);
 
     /**
-     * 更新一条应用发布记录
+     * 审核应用发布记录
      *
      * @param uid   发布 UID
      * @param audit 审核状态
      */
     void audit(String uid, Integer audit);
+
+    /**
+     * 提供给用户的接口，用于取消发布到模版市场和重新发布到模版市场
+     *
+     * @param uid   发布 UID
+     * @param audit 审核状态
+     */
+    void operate(String uid, Integer audit);
 }

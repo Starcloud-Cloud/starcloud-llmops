@@ -8,17 +8,10 @@ import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
-import com.alibaba.fastjson.JSON;
-import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
-import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
@@ -33,9 +26,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -67,10 +57,8 @@ public class AppMarketServiceTest extends BaseDbUnitTest {
     private AppMarketMapper appMarketMapper;
 
 
-
     @BeforeEach
     public void before() {
-
 
 
         //Mockito.mockStatic(AppFactory.class);
@@ -85,16 +73,6 @@ public class AppMarketServiceTest extends BaseDbUnitTest {
         Mockito.mockStatic(SecurityFrameworkUtils.class);
         Mockito.when(SecurityFrameworkUtils.getLoginUserId()).thenReturn(1L);
 
-    }
-
-
-    @Test
-    public void auditTest() {
-        AppMarketAuditReqVO request = new AppMarketAuditReqVO();
-        request.setUid("5ce0bded250f4dcc87c39484d2f10ba6");
-        request.setVersion(2);
-        request.setAudit(1);
-        appMarketService.audit(request);
     }
 
     @Test

@@ -36,11 +36,6 @@ public interface ErrorCodeConstants {
     ErrorCode APP_MARKET_NO_EXISTS_UID = new ErrorCode(300200000, "The app is not exists in the market ! [UID: {}]");
 
     /**
-     * 应用市场应用不存在
-     */
-    ErrorCode APP_MARKET_NO_EXISTS_UID_VERSION = new ErrorCode(300200002, "The app is not exists in the market ! [UID: {}, version: {}]");
-
-    /**
      * 应用市场应用不能安装
      */
     ErrorCode APP_MARKET_CANNOT_INSTALL = new ErrorCode(300200003, "The app is not exists in the market or the audit fails ! [UID: {}, version: {}]");
@@ -140,4 +135,9 @@ public interface ErrorCodeConstants {
      * 审核状态不支持
      */
     ErrorCode APP_PUBLISH_AUDIT_NOT_SUPPORTED = new ErrorCode(300400002, "The app publish audit is not supported! [audit: {}]");
+
+    /**
+     * 应用发布记录不存在
+     */
+    ErrorCode APP_PUBLISH_APP_INFO_NOT_FOUND = new ErrorCode(300400004, "The app publish info is not exists!");
 }

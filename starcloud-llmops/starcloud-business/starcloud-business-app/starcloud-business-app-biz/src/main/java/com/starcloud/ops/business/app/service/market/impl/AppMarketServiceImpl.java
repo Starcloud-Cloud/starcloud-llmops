@@ -3,15 +3,12 @@ package com.starcloud.ops.business.app.service.market.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketAuditReqVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageAdminQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
@@ -31,16 +28,12 @@ import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
-import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
-import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
-import com.starcloud.ops.framework.common.api.dto.PageQuery;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,9 +60,6 @@ public class AppMarketServiceImpl implements AppMarketService {
     private AppMarketMapper appMarketMapper;
 
     @Resource
-    private AppMarketRepository appMarketRepository;
-
-    @Resource
     private AppOperateMapper appOperateMapper;
 
     @Resource
@@ -92,50 +82,16 @@ public class AppMarketServiceImpl implements AppMarketService {
     }
 
     /**
-     * 分页查询应用市场列表
-     *
-     * @param query 查询条件
-     * @return 应用市场列表
-     */
-    @Override
-    public PageResp<AppMarketRespVO> pageAdmin(AppMarketPageAdminQuery query) {
-        // 分页查询
-        Page<AppMarketDO> page = appMarketMapper.pageAdmin(query);
-        // 转换并且返回数据
-        List<AppMarketRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppMarketConvert.INSTANCE::convertResp).collect(Collectors.toList());
-        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
-    }
-
-    /**
-     * 分页查询历史发布记录
-     *
-     * @param uid   应用 uid
-     * @param query 分页查询条件
-     * @return 历史发布记录
-     */
-    @Override
-    public PageResp<AppMarketRespVO> historyPublished(String uid, PageQuery query) {
-        // 分页查询
-        Page<AppMarketDO> page = appMarketMapper.historyPublished(uid, query);
-        // 转换并且返回数据
-        List<AppMarketRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppMarketConvert.INSTANCE::convertResp).collect(Collectors.toList());
-        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
-    }
-
-    /**
      * 获取应用详情
      *
-     * @param uid     应用 uid
-     * @param version 应用版本
+     * @param uid 应用 uid
      * @return 应用详情
      */
     @Override
-    public AppMarketRespVO get(String uid, Integer version) {
+    public AppMarketRespVO get(String uid) {
         AppValidate.notBlank(uid, ErrorCodeConstants.APP_MARKET_UID_REQUIRED);
         // 查询应用市场信息
-        AppMarketDO appMarketDO = appMarketMapper.get(uid, version, Boolean.FALSE);
+        AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
 
         // 获取当前用户是否安装了该应用的信息
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
@@ -183,12 +139,11 @@ public class AppMarketServiceImpl implements AppMarketService {
     /**
      * 删除应用市场的应用
      *
-     * @param uid     应用 uid
-     * @param version 应用版本
+     * @param uid 应用 uid
      */
     @Override
-    public void deleteByUidAndVersion(String uid, Integer version) {
-        appMarketRepository.deleteByUidAndVersion(uid, version);
+    public void delete(String uid) {
+        appMarketMapper.delete(uid);
     }
 
     /**
@@ -207,7 +162,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         }
 
         // 2. 查询应用市场应用并且校验
-        AppMarketDO appMarket = appMarketMapper.get(request.getUid(), null, Boolean.FALSE);
+        AppMarketDO appMarket = appMarketMapper.get(request.getUid(), Boolean.FALSE);
 
         // 3. 校验当前用户是否已经安装过该用户, 如果安装过，抛出异常
         InstalledRespVO installed = appMapper.verifyHasInstalled(request.getUid(), Long.toString(loginUserId));
@@ -231,60 +186,6 @@ public class AppMarketServiceImpl implements AppMarketService {
     }
 
     /**
-     * 审核应用
-     *
-     * @param request 审核请求
-     */
-    @Override
-    public void audit(AppMarketAuditReqVO request) {
-        // 1. 基础校验
-        AppValidate.notBlank(request.getUid(), ErrorCodeConstants.APP_MARKET_UID_REQUIRED);
-        AppValidate.notNull(request.getVersion(), ErrorCodeConstants.APP_MARKET_VERSION_REQUIRED);
-        AppValidate.notNull(request.getAudit(), ErrorCodeConstants.APP_MARKET_AUDIT_IS_REQUIRED);
-        // 2. 审核状态是否支持
-        AppValidate.isTrue(IEnumable.containsOfCode(request.getAudit(), AppMarketAuditEnum.class),
-                ErrorCodeConstants.APP_MARKET_AUDIT_IS_NOT_SUPPORT, request.getAudit());
-        // 3. 查询应用是否存在
-        appMarketMapper.get(request.getUid(), request.getVersion(), Boolean.TRUE);
-        // 4. 更新应用的审核状态
-        if (AppMarketAuditEnum.APPROVED.getCode().equals(request.getAudit())) {
-            // 如果要将该版本更新为 审核通过，则需要该版本的 audit 状态设置为已通过, 其他版本的 audit 状态设置为已拒绝
-            appMarketMapper.approvedAuditByUidAndVersion(request.getUid(), request.getVersion());
-        } else {
-            // 如果要将该版本更新为 审核拒绝或者待审核，只需要需要该版本的 audit 状态设置为已拒绝或者待审核
-            LambdaUpdateWrapper<AppMarketDO> updateWrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
-                    .set(AppMarketDO::getAudit, request.getAudit())
-                    .eq(AppMarketDO::getUid, request.getUid())
-                    .eq(AppMarketDO::getVersion, request.getVersion());
-            appMarketMapper.update(null, updateWrapper);
-        }
-    }
-
-    /**
-     * 取消审核，将应用状态改为审核未通过
-     *
-     * @param uid 应用 uid
-     */
-    @Override
-    public void cancelAudit(String uid) {
-        // 取最新的一条待审核的记录
-        LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class);
-        wrapper.eq(AppMarketDO::getUid, uid);
-        wrapper.eq(AppMarketDO::getAudit, AppMarketAuditEnum.PENDING.getCode());
-        wrapper.orderByDesc(AppMarketDO::getVersion);
-        wrapper.last("LIMIT 1");
-        AppMarketDO appMarketDO = appMarketMapper.selectOne(wrapper);
-        if (appMarketDO == null) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid);
-        }
-        // 更新应用的审核状态为审核未通过
-        AppMarketDO updateAppMarketDO = new AppMarketDO();
-        updateAppMarketDO.setId(appMarketDO.getId());
-        updateAppMarketDO.setAudit(AppMarketAuditEnum.REJECTED.getCode());
-        appMarketMapper.updateById(updateAppMarketDO);
-    }
-
-    /**
      * 应用操作
      *
      * @param request 操作请求
@@ -297,7 +198,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppValidate.notBlank(request.getOperate(), ErrorCodeConstants.APP_OPERATE_IS_REQUIRED);
 
         // 2. 查询应用市场的应用, 如果不存在，抛出异常
-        AppMarketDO appMarketDO = appMarketMapper.get(request.getAppUid(), null, Boolean.TRUE);
+        AppMarketDO appMarketDO = appMarketMapper.get(request.getAppUid(), Boolean.TRUE);
 
         request.setVersion(appMarketDO.getVersion());
         // 转换数据
@@ -367,7 +268,7 @@ public class AppMarketServiceImpl implements AppMarketService {
                 .eq(AppFavoriteDO::getAppUid, uid).eq(AppFavoriteDO::getUser, userId));
         AppValidate.isNull(favoriteDO, ErrorCodeConstants.APP_HAS_FAVORITE, uid);
         // 查询应用市场的应用, 如果不存在，抛出异常
-        AppMarketDO appMarketDO = appMarketMapper.get(uid, null, Boolean.FALSE);
+        AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
 
         // 插入收藏记录
         AppFavoriteDO appFavoriteDO = new AppFavoriteDO();

@@ -71,13 +71,13 @@ public class AppPublishDO extends TenantBaseDO {
     private Integer version;
 
     /**
-     * 模版市场应用版本号
+     * 应用类别
      */
-    @TableField("market_version")
-    private Integer marketVersion;
+    @TableField("categories")
+    private String categories;
 
     /**
-     * 应用语言
+     * 语言
      */
     @TableField("language")
     private String language;
@@ -95,21 +95,8 @@ public class AppPublishDO extends TenantBaseDO {
     private String description;
 
     /**
-     * 审核状态（0-未审核，1-审核通过，2-审核未通过，3-用户取消审核）
+     * 审核状态
      */
     @TableField("audit")
     private Integer audit;
-
-    /**
-     * 分享链接
-     */
-    @TableField("share_link")
-    private String shareLink;
-
-    /**
-     * 是否启用分享链接：0-不启用分享，1-启用分享
-     */
-    @TableField("enable_share")
-    private Boolean enableShare;
-
 }

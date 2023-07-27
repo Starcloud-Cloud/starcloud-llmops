@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.controller.admin.app;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
-import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
@@ -90,7 +89,7 @@ public class AppController {
     @Operation(summary = "根据 UID 获得应用", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 14, author = "nacoyer")
     public CommonResult<AppRespVO> get(@Parameter(name = "uid", description = "应用 UID") @PathVariable("uid") String uid) {
-        return CommonResult.success(appService.getByUid(uid));
+        return CommonResult.success(appService.get(uid));
     }
 
     @PostMapping("/create")
@@ -121,15 +120,7 @@ public class AppController {
     @Operation(summary = "删除应用", description = "根据 UID 删除应用")
     @ApiOperationSupport(order = 22, author = "nacoyer")
     public CommonResult<Boolean> delete(@Parameter(name = "uid", description = "应用 UID") @PathVariable("uid") String uid) {
-        appService.deleteByUid(uid);
-        return CommonResult.success(Boolean.TRUE);
-    }
-
-    @PostMapping("/publish")
-    @Operation(summary = "发布应用到应用市场", description = "发布应用到应用市场")
-    @ApiOperationSupport(order = 24, author = "nacoyer")
-    public CommonResult<Boolean> publish(@Validated @RequestBody AppPublishReqVO request) {
-        appService.publish(request);
+        appService.delete(uid);
         return CommonResult.success(Boolean.TRUE);
     }
 

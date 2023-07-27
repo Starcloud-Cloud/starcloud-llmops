@@ -7,8 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.List;
-
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -45,6 +43,6 @@ public class AppPublishPageReqVO extends PageQuery {
      * 审核状态
      */
     @Schema(description = "审核状态")
-    private List<Integer> audits;
+    private Integer audit;
 
 }

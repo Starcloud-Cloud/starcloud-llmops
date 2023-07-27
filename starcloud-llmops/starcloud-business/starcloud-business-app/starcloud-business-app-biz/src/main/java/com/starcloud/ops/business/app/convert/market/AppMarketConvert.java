@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.convert.market;
 
+import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
@@ -9,11 +11,13 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
+import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -93,6 +97,40 @@ public interface AppMarketConvert {
                 appMarket.setConfig(JSON.toJSONString(config));
             }
         }
+        return appMarket;
+    }
+
+    /**
+     * AppPublishDO 转 AppMarketDO
+     *
+     * @param appPublish AppPublishDO
+     * @return AppMarketDO
+     */
+    default AppMarketDO convert(AppPublishDO appPublish) {
+        AppMarketDO appMarket = new AppMarketDO();
+        String appInfo = appPublish.getAppInfo();
+        if (StringUtils.isBlank(appInfo)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_APP_INFO_NOT_FOUND);
+        }
+        AppDO app = JSONUtil.toBean(appInfo, AppDO.class);
+        appMarket.setUid(appPublish.getMarketUid());
+        appMarket.setName(app.getName());
+        appMarket.setModel(app.getModel());
+        appMarket.setVersion(appPublish.getVersion());
+        appMarket.setLanguage(appPublish.getLanguage());
+        appMarket.setTags(app.getTags());
+        appMarket.setCategories(app.getCategories());
+        appMarket.setScenes(app.getScenes());
+        appMarket.setIcon(app.getIcon());
+        appMarket.setFree(Boolean.TRUE);
+        appMarket.setCost(BigDecimal.ZERO);
+        appMarket.setUsageCount(0);
+        appMarket.setLikeCount(0);
+        appMarket.setViewCount(0);
+        appMarket.setInstallCount(0);
+        appMarket.setConfig(app.getConfig());
+        appMarket.setDescription(app.getDescription());
+        // appMarketEntity.setExample("");
         return appMarket;
     }
 
