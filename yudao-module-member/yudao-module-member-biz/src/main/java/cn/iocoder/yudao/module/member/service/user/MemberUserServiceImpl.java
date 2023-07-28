@@ -70,7 +70,7 @@ public class MemberUserServiceImpl implements MemberUserService {
         return this.createUser(mobile, registerIp);
     }
 
-    private MemberUserDO createUser(String mobile, String registerIp) {
+    public MemberUserDO createUser(String mobile, String registerIp) {
         // 生成密码
         String password = IdUtil.fastSimpleUUID();
         // 插入用户

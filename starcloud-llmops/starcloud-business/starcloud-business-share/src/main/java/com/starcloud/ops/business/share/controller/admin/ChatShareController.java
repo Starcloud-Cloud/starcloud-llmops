@@ -5,9 +5,12 @@ import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.share.controller.admin.vo.ChatReq;
+import com.starcloud.ops.business.share.util.EndUserCodeUtil;
+import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -23,23 +26,28 @@ import javax.servlet.http.HttpServletResponse;
  * @since 2023-06-26
  */
 @RestController
-@RequestMapping("/chat")
-@Tag(name = "星河云海-应用执行")
+@RequestMapping("/share/chat")
+@Tag(name = "魔法AI-分享聊天")
 public class ChatShareController {
 
+    @Autowired
+    private EndUserServiceImpl endUserService;
+
     @GetMapping("/")
-    @Operation(summary = "应用详情")
+    @Operation(summary = "聊天详情")
     @Parameter(name = "uid", description = "应用uuid", required = true)
     @PermitAll
-    public String detail(@RequestParam(name = "uid") String appUid, HttpServletRequest request, HttpServletResponse response) {
+    public String detail(@RequestParam(name = "uid") String appUid, @CookieValue(value = "fSId", required = false) String upfSId, HttpServletRequest request, HttpServletResponse response) {
 
-        request.getSession().setMaxInactiveInterval(-1);
+        upfSId = EndUserCodeUtil.parseUserCodeAndSaveCookie(upfSId, request, response);
 
-        return request.getRequestedSessionId();
+        endUserService.webLogin(upfSId);
+
+        return upfSId;
     }
 
     @PostMapping("/")
-    @Operation(summary = "执行应用")
+    @Operation(summary = "聊天执行")
     @PermitAll
     public SseEmitter execute(@RequestBody ChatReq chatReq, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");

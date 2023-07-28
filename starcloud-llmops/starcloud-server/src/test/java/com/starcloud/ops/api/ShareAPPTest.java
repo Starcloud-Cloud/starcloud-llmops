@@ -13,11 +13,13 @@ import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.ShareAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -41,6 +43,8 @@ public class ShareAPPTest extends BaseDbUnitTest {
     @MockBean
     private PermissionService permissionService;
 
+    @Autowired
+    private EndUserServiceImpl endUserService;
 
     @Test
     public void testShareWebTest() {
