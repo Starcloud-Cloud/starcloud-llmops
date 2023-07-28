@@ -43,7 +43,6 @@ public class DatasetSourceDataConvert {
         datasetSourceDataDO.name( bean.getName() );
         datasetSourceDataDO.storageId( bean.getStorageId() );
         datasetSourceDataDO.position( bean.getPosition() );
-        datasetSourceDataDO.dataSourceType( bean.getDataSourceType() );
         datasetSourceDataDO.dataSourceInfo( bean.getDataSourceInfo() );
         datasetSourceDataDO.datasetProcessRuleId( bean.getDatasetProcessRuleId() );
         datasetSourceDataDO.batch( bean.getBatch() );
@@ -88,7 +87,6 @@ public class DatasetSourceDataConvert {
         datasetSourceDataRespVO.setName( bean.getName() );
         datasetSourceDataRespVO.setStorageId( bean.getStorageId() );
         datasetSourceDataRespVO.setPosition( bean.getPosition() );
-        datasetSourceDataRespVO.setDataSourceType( bean.getDataSourceType() );
         datasetSourceDataRespVO.setDataSourceInfo( bean.getDataSourceInfo() );
         datasetSourceDataRespVO.setDatasetProcessRuleId( bean.getDatasetProcessRuleId() );
         datasetSourceDataRespVO.setBatch( bean.getBatch() );

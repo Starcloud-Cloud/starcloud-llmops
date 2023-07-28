@@ -37,18 +37,28 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      * 名称
      */
     private String name;
+
+    /**
+     * 数据集ID
+     */
+    private String datasetId;
     /**
      * 存储ID
      */
-    private String storageId;
+    private Long storageId;
     /**
      * 位置
      */
     private Long position;
+
     /**
-     * 数据源类型（0-本地上传，1-接口上传）
+     * 数据模型（0-问答，1-文档）
      */
-    private Integer dataSourceType;
+    private  Integer dataModel;
+    /**
+     * 数据源类型 文档 URL 字符串
+     */
+    private  String dataType;
     /**
      * 数据源信息
      */
@@ -62,6 +72,10 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      */
     private String batch;
     /**
+     * 同步配置
+     */
+    private String syncConfig;
+    /**
      * 创建来源
      */
     private String createdFrom;
@@ -73,10 +87,6 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      * 令牌数
      */
     private Long tokens;
-    /**
-     * 数据集ID
-     */
-    private String datasetId;
     /**
      * 创建API请求ID
      */
@@ -166,10 +176,8 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      */
     private LocalDateTime archivedTime;
     /**
-     * 支付状态
+     * 状态
      *
-     * 枚举 {@link DataSetSourceDataStatusEnum}
-     * 注意，只包含上述枚举的 WAITING 和 SUCCESS
      */
     private Integer status;
 

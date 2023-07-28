@@ -11,7 +11,7 @@ import lombok.ToString;
 public class SourceDataBatchCreateReqVO {
 
     @Schema(description = " 存储 ID", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String storageId;
+    private Long storageId;
 
     @Schema(description = " 资源名称", requiredMode = Schema.RequiredMode.REQUIRED)
     private String  sourceName;

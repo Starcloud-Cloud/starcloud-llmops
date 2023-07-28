@@ -10,9 +10,6 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class DatasetSourceDataCreateReqVO {
 
-    @Schema(description = "文件ID", required = true)
-    private String filedId;
-
     @Schema(description = "数据集ID", required = true)
     private String datasetId;
 

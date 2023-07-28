@@ -26,6 +26,15 @@ public interface DatasetsService {
     String createDatasets(@Validated DatasetsCreateReqVO createReqVO);
 
     /**
+     * 根据用户应用创建数据集
+     *
+     * @param appId 应用 ID
+     * @param appName 应用 名称
+     * @return Boolean
+     */
+    Boolean createDatasetsByApplication(String appId,String appName);
+
+    /**
      * 创建数据集
      *
      * @return 编号

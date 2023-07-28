@@ -52,8 +52,8 @@ public class AppDataMigration {
     private static final String SOURCE_USERNAME = "dev";
     private static final String SOURCE_PASSWORD = "devseastar2002";
 
-    private static final String TARGET_URL = "jdbc:mysql://rm-uf665hm6p41e4tuk89o.mysql.rds.aliyuncs.com:3306/ruoyi-vue-pro?useSSL=false&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true";
-    private static final String TARGET_USERNAME = "starcloud_dev";
+    private static final String TARGET_URL = "jdbc:mysql://rm-uf665hm6p41e4tuk89o.mysql.rds.aliyuncs.com:3306/cn-pro-llmops?useSSL=false&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true";
+    private static final String TARGET_USERNAME = "llmops";
     private static final String TARGET_PASSWORD = "Hellostarcloud2022";
 
 
@@ -65,7 +65,7 @@ public class AppDataMigration {
         sourceConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         // 1.1 查询源数据库的数据
         ResultSet resultSet = sourceConnection
-                .prepareStatement("select id, name, icon, topics, tags, image_urls, scenes, config, description, prompt_details from ss_template_info where id = 993")
+                .prepareStatement("select id, name, icon, topics, tags, image_urls, scenes, config, description, prompt_details from ss_template_info where id = 1011")
                 .executeQuery();
         // 解析数据
         List<AppDO> appDOList = new LinkedList<>();

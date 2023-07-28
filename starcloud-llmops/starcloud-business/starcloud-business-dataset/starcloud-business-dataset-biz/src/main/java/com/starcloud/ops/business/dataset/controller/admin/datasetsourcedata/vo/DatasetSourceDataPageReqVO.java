@@ -24,7 +24,7 @@ public class DatasetSourceDataPageReqVO extends PageParam {
     private String name;
 
     @Schema(description = "存储ID", example = "18574")
-    private String storageId;
+    private Long storageId;
 
     @Schema(description = "位置")
     private Integer position;

@@ -45,7 +45,7 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
      */
     @Override
     public Long addStorageData(DatasetStorageCreateReqVO  createReqVOS) {
-        String uid = DatasetUID.getDatasetUID();
+        String uid = DatasetUID.createStorageUID();
         DatasetStorageDO datasetStorageDO = DatasetStorageConvert.INSTANCE.convert(createReqVOS);
         datasetStorageMapper.insert(datasetStorageDO);
         return datasetStorageDO.getId();
@@ -54,12 +54,12 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
 
 
     /**
-     * @param  createReqVO 源数据上传
+     * @param  createReqVOS 源数据上传
      * @return UID
      */
     @Override
     public List<Long> addBatchStorageData(List<DatasetStorageCreateReqVO>  createReqVOS) {
-        String uid = DatasetUID.getDatasetUID();
+        String uid = DatasetUID.createStorageUID();
         List<DatasetStorageDO> datasetStorageDOS = DatasetStorageConvert.INSTANCE.convertCreateList(createReqVOS);
         datasetStorageMapper.insertBatch(datasetStorageDOS);
         return datasetStorageDOS.stream().map(DatasetStorageDO::getId).collect(Collectors.toList());

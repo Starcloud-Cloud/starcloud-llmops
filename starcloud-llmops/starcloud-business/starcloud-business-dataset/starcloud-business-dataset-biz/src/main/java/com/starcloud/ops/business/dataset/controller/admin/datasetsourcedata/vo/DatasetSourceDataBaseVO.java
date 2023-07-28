@@ -24,8 +24,8 @@ public class DatasetSourceDataBaseVO {
     @NotNull(message = "名称不能为空")
     private String name;
 
-    @Schema(description = "存储ID", example = "18574")
-    private String storageId;
+    @Schema(description = "存储ID", example = "18574L")
+    private Long storageId;
 
     @Schema(description = "位置", required = true)
     @NotNull(message = "位置不能为空")

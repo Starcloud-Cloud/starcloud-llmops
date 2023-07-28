@@ -8,21 +8,54 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
 
-    UPLOAD(0,"数据上传中"),
 
-    SYNCHRONIZATION(-1,"数据同步中"),
+    /**
+     * 1-10 数据解析
+     */
+    ANALYSIS_ERROR(0,"数据解析失败"),
 
-    CLEANING_IN(1,"数据清洗中"),
-    CLEANING_ERROR(2,"数据清洗失败"),
-    CLEANING_COMPLETED(3,"数据完成"),
+    /**
+     * 11-20  上传
+     */
 
-    SPLIT_IN(4,"数据分割中"),
-    SPLIT_ERROR(5,"数据分割失败"),
-    SPLIT_COMPLETED(6,"数据分割完成"),
+    UPLOAD(11,"数据上传中"),
+    UPLOAD_ERROR(15,"数据失败"),
+    UPLOAD_COMPLETED(20,"数据上传中"),
 
-    INDEX_IN(7,"正在创建索引"),
-    INDEX_ERROR(8,"创建索引失败"),
-    INDEX_COMPLETED(9,"创建索引完成");
+    /**
+     * 21 - 30 数据同步
+     */
+    SYNCHRONIZATION(21,"数据同步中"),
+    SYNCHRONIZATION_ERROR(25,"数据同步中"),
+    SYNCHRONIZATION__COMPLETED(30,"数据同步中"),
+
+    /**
+     * 31 - 40  数据清洗
+     */
+    CLEANING_IN(31,"数据清洗中"),
+    CLEANING_ERROR(35,"数据清洗失败"),
+    CLEANING_COMPLETED(40,"数据完成"),
+
+    /**
+     * 41 - 50  数据清洗
+     */
+    SPLIT_IN(41,"数据分割中"),
+    SPLIT_ERROR(45,"数据分割失败"),
+    SPLIT_COMPLETED(50,"数据分割完成"),
+
+    /**
+     * 51 -60  创建索引
+     */
+    INDEX_IN(51,"正在创建索引"),
+    INDEX_ERROR(55,"创建索引失败"),
+    INDEX_COMPLETED(60,"创建索引完成"),
+
+    /**
+     * 99 完成
+     */
+    COMPLETED(99," 完成"),
+
+    ;
 
     private final Integer status;
     private final String name;

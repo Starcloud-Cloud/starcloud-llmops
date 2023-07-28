@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.dataset.service.datasets;
 
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -14,6 +15,8 @@ import com.starcloud.ops.business.dataset.convert.datasets.DatasetsConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
 import com.starcloud.ops.business.dataset.enums.DataSourceTypeEnum;
+import com.starcloud.ops.business.dataset.enums.DatasetPermissionEnum;
+import com.starcloud.ops.business.dataset.enums.DatasetProviderEnum;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -38,36 +41,55 @@ public class DatasetsServiceImpl implements DatasetsService {
     @Override
     public String createDatasets(DatasetsCreateReqVO createReqVO) {
         // TODO 校验当前用户权限 是否可以创建数据集
-
         // 数据非空校验
         if (ObjectUtil.isEmpty(createReqVO)) {
             throw exception(DATASETS_PARAM_NULL);
         }
         // 数据转换
-        DatasetsDO datasets = DatasetsConvert.convert(createReqVO, DatasetUID.getDatasetUID());
+        DatasetsDO datasets = DatasetsConvert.convert(createReqVO, DatasetUID.createDatasetUID());
         // 数据插入
         datasetsMapper.insert(datasets);
         // 返回
         return datasets.getUid();
     }
 
+    /**
+     * 根据用户应用创建数据集
+     *
+     * @param appId 应用 ID
+     * @param appName 应用 名称
+     * @return Boolean
+     */
+    @Override
+    public Boolean createDatasetsByApplication(String appId, String appName) {
+        DatasetsDO datasetsDO = new DatasetsDO();
+        datasetsDO.setUid(appId);
+        datasetsDO.setName(appName);
+        datasetsDO.setDescription(appName);
+        datasetsDO.setProvider(DatasetProviderEnum.SYSTEM.getName());
+        datasetsDO.setPermission(DatasetPermissionEnum.TEAM_OWNED.getStatus());
+        datasetsDO.setEnabled(true);
+
+        // 数据插入
+        int result = datasetsMapper.insert(datasetsDO);
+
+        return BooleanUtil.isTrue(1 == result);
+    }
+
     @Override
     public String createWechatDatasets() {
-        String datasetUid = validateDatasetsExistsBySourceType(DataSourceTypeEnum.WECHAT.name());
-        if (StrUtil.isBlank(datasetUid)){
-            DatasetsDO datasetsDO = new DatasetsDO();
 
-            datasetsDO.setUid(IdUtil.getSnowflakeNextIdStr());
-            datasetsDO.setName("微信数据集" + IdUtil.fastSimpleUUID().substring(0, 6));
-            datasetsDO.setDescription("微信数据集" + IdUtil.fastSimpleUUID().substring(0, 6));
-            datasetsDO.setPermission(0);
-            datasetsDO.setSourceType(DataSourceTypeEnum.WECHAT.name());
-            // 数据插入
-            datasetsMapper.insert(datasetsDO);
-            // 返回
-            datasetUid = datasetsDO.getUid();
-        }
-        return datasetUid;
+        DatasetsDO datasetsDO = new DatasetsDO();
+
+        datasetsDO.setUid(IdUtil.getSnowflakeNextIdStr());
+        datasetsDO.setName("微信数据集" + IdUtil.fastSimpleUUID().substring(0, 6));
+        datasetsDO.setDescription("微信数据集" + IdUtil.fastSimpleUUID().substring(0, 6));
+        datasetsDO.setPermission(0);
+        // 数据插入
+        datasetsMapper.insert(datasetsDO);
+        // 返回
+        return datasetsDO.getUid();
+
     }
 
 
@@ -150,14 +172,6 @@ public class DatasetsServiceImpl implements DatasetsService {
         }
     }
 
-    public String validateDatasetsExistsBySourceType(String sourceType) {
-
-        DatasetsDO datasetsDO = datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getSourceType, sourceType));
-        if (datasetsDO ==null){
-            return null;
-        }
-        return datasetsDO.getUid();
-    }
 
     /**
      * @param UID

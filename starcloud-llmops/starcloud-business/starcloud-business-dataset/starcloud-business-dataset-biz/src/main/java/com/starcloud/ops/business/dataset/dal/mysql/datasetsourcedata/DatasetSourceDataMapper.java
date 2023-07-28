@@ -23,7 +23,6 @@ public interface DatasetSourceDataMapper extends BaseMapperX<DatasetSourceDataDO
                 .likeIfPresent(DatasetSourceDataDO::getName, reqVO.getName())
                 .eqIfPresent(DatasetSourceDataDO::getStorageId, reqVO.getStorageId())
                 .eqIfPresent(DatasetSourceDataDO::getPosition, reqVO.getPosition())
-                .eqIfPresent(DatasetSourceDataDO::getDataSourceType, reqVO.getDataSourceType())
                 .eqIfPresent(DatasetSourceDataDO::getDataSourceInfo, reqVO.getDataSourceInfo())
                 .eqIfPresent(DatasetSourceDataDO::getDatasetProcessRuleId, reqVO.getDatasetProcessRuleId())
                 .eqIfPresent(DatasetSourceDataDO::getBatch, reqVO.getBatch())
