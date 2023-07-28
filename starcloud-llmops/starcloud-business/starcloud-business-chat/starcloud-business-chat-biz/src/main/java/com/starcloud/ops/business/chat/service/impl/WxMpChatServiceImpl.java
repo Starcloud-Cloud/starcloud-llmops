@@ -70,7 +70,7 @@ public class WxMpChatServiceImpl implements WxMpChatService {
     public void chatAndReply(ChatRequestVO chatRequestVO, Long mqUserId, String openId) {
         threadWithContext.asyncExecute(() -> {
             try {
-                ChatAppEntity appEntity = AppFactory.factory(chatRequestVO);
+                ChatAppEntity<ChatRequestVO, JsonData> appEntity = AppFactory.factory(chatRequestVO);
                 JsonData execute = appEntity.execute(chatRequestVO);
                 // 回复消息
                 String msg = JSONUtil.parseObj(execute.getData()).getStr("text");
