@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.app.AppUtils;
@@ -41,6 +42,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         // 构建查询条件
         LambdaQueryWrapper<AppDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
+        wrapper.ne(AppDO::getSource, AppSourceEnum.WX_WP.name());
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             wrapper.eq(AppDO::getModel, AppModelEnum.CHAT.name());
         } else {
