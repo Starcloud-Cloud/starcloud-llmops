@@ -4,6 +4,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -86,7 +87,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     }
 
     @Override
-    protected void _validate() {
+    protected void _validate(AppExecuteReqVO req) {
         WorkflowConfigEntity config = this.getWorkflowConfig();
         if (config == null) {
             return;
@@ -103,6 +104,17 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
         this.setWorkflowConfig(config);
     }
 
+    /**
+     * 只用 应用创建者
+     * 注意，创建应用的时候，要设置 creator 为当前用户态
+     *
+     * @return
+     */
+    @Override
+    protected Long getRunUserId() {
+
+        return Long.valueOf(this.getCreator());
+    }
 
     @Override
     protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
@@ -113,6 +125,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
         // 创建 App 执行上下文
         AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(req.getScene()));
         appContext.setUserId(req.getUserId());
+        appContext.setEndUser(req.getEndUser());
+
         appContext.setSseEmitter(req.getSseEmitter());
 
         if (StringUtils.isNotBlank(req.getStepId())) {
@@ -156,8 +170,6 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
 
         logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
-
-        logAppConversationCreateReqVO.setEndUser(req.getEndUser());
 
     }
 
@@ -232,6 +244,9 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
         this.createAppMessage((messageCreateReqVO) -> {
 
+            messageCreateReqVO.setCreator(String.valueOf(appContext.getUserId()));
+            messageCreateReqVO.setEndUser(appContext.getEndUser());
+
             messageCreateReqVO.setAppConversationUid(appContext.getConversationId());
 
             messageCreateReqVO.setAppStep(appContext.getStepId());
@@ -241,7 +256,6 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
             messageCreateReqVO.setElapsed(nodeTracking.getSpendTime());
 
-            messageCreateReqVO.setEndUser(appContext.getEndUser());
             messageCreateReqVO.setFromScene(appContext.getScene().name());
             messageCreateReqVO.setCurrency("USD");
 

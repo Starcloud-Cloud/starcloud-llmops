@@ -254,7 +254,7 @@ public class AppServiceImpl implements AppService {
             }
         }
         // 校验数据
-        appMarketEntity.validate();
+        appMarketEntity.validate(null);
         AppMarketDO appMarketDO = AppMarketConvert.INSTANCE.convert(appMarketEntity);
         appMarketDO.setDeleted(Boolean.FALSE);
         // 统一设置为待审核状态

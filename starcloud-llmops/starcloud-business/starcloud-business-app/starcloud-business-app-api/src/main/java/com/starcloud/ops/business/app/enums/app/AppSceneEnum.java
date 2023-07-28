@@ -11,14 +11,36 @@ import lombok.Getter;
 public enum AppSceneEnum implements IEnumable<Integer> {
 
     /**
-     * 生成内容/图片等应用
+     * 我的应用场景入口
      */
     WEB_ADMIN(1, "WEB_ADMIN"),
 
     /**
-     * 聊天应用
+     * 应用市场场景入口
      */
-    WEB_MARKET(2, "WEB_MARKET");
+    WEB_MARKET(2, "WEB_MARKET"),
+
+
+    /**
+     * 分享页面场景入口
+     */
+    SHARE_WEB(3, "SHARE_WEB"),
+
+    /**
+     * iframe场景入口
+     */
+    SHARE_IFRAME(3, "SHARE_IFRAME"),
+
+
+    /**
+     * js页面场景入口
+     */
+    SHARE_JS(4, "SHARE_JS"),
+
+    /**
+     * API场景入口
+     */
+    SHARE_API(5, "SHARE_API");
 
     /**
      * 应用类型Code

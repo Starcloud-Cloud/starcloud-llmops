@@ -61,14 +61,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * 我的 chat 执行
+ *
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-06-20
  */
 @Slf4j
 @Data
-public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
-
+public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> {
 
     private static ChatService chatService = SpringUtil.getBean(ChatService.class);
 
@@ -100,7 +101,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
      * 校验
      */
     @Override
-    protected void _validate() {
+    protected void _validate(ChatRequestVO req) {
         getChatConfig().validate();
     }
 
@@ -131,17 +132,7 @@ public class ChatAppEntity extends BaseAppEntity<ChatRequestVO, JsonData> {
     @Override
     protected void _createAppConversationLog(ChatRequestVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
 
-        logAppConversationCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
-        logAppConversationCreateReqVO.setAppName(this.getName());
-
-        logAppConversationCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
-
-        logAppConversationCreateReqVO.setAppUid(req.getAppUid());
         logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getChatConfig()));
-
-        logAppConversationCreateReqVO.setFromScene(req.getScene());
-        logAppConversationCreateReqVO.setEndUser(req.getEndUser());
-
     }
 
     @Override

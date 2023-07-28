@@ -30,6 +30,10 @@ public class AdapterRuoyiProConfiguration implements ApplicationListener<Applica
         return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("starcloud-llm", "/llm");
     }
 
+    @Bean
+    public GroupedOpenApi businessShareGroupedOpenApi() {
+        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("starcloud-share", "/share");
+    }
 
     @Override
     public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -38,6 +42,9 @@ public class AdapterRuoyiProConfiguration implements ApplicationListener<Applica
 
         if (properties.stream().findFirst().isPresent()) {
             properties.stream().findFirst().get().getIgnoreUrls().add("/app-api/llm/**");
+
+            properties.stream().findFirst().get().getIgnoreUrls().add("/admin-api/share/**");
+            properties.stream().findFirst().get().getIgnoreUrls().add("/app-api/share/**");
         }
 
     }

@@ -76,7 +76,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * 基础数据校验
      */
     @Override
-    protected void _validate() {
+    protected void _validate(ImageReqVO req) {
         getImageConfig().validate();
     }
 
@@ -164,13 +164,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     @Override
     protected void _createAppConversationLog(ImageReqVO imageRequest, LogAppConversationCreateReqVO logAppConversationRequest) {
-        logAppConversationRequest.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
-        logAppConversationRequest.setAppUid(imageRequest.getAppUid());
-        logAppConversationRequest.setAppName(this.getName());
-        logAppConversationRequest.setStatus(LogStatusEnum.ERROR.name());
+
         logAppConversationRequest.setAppConfig(JSONUtil.toJsonStr(imageRequest.getImageRequest()));
-        logAppConversationRequest.setFromScene(StringUtils.isBlank(imageRequest.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : imageRequest.getScene());
-        logAppConversationRequest.setEndUser(imageRequest.getEndUser());
     }
 
     /**

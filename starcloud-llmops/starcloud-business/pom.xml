@@ -23,6 +23,7 @@
         <module>starcloud-business-dataset</module>
         <module>starcloud-business-core</module>
         <module>starcloud-business-log</module>
+        <module>starcloud-business-share</module>
     </modules>
 
     <dependencyManagement>
@@ -101,6 +102,13 @@
                 <artifactId>starcloud-business-log</artifactId>
                 <version>${starcloud.revision}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-share</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
 
         </dependencies>
 
