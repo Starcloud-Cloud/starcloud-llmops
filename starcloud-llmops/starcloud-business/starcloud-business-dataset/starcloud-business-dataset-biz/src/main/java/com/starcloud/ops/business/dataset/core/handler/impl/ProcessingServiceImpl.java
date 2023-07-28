@@ -81,6 +81,7 @@ public class ProcessingServiceImpl implements ProcessingService {
 
     @Override
     public Boolean urlProcessing(String url, SplitRule splitRule, String datasetId) {
+
         log.info("====> 数据集{}开始上传URL,分割规则为{}",datasetId,splitRule);
         validate(splitRule, datasetId);
         urlUploadStrategy.setUrl(url);

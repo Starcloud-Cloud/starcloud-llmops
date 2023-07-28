@@ -2,7 +2,9 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -36,6 +38,7 @@ import javax.annotation.Resource;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
@@ -158,7 +161,14 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         String batch = IdUtil.getSnowflakeNextIdStr();
 
         List<CompletableFuture<Boolean>> completableFutures = urls.stream()
-                .map(url -> CompletableFuture.supplyAsync(() -> processingService.urlProcessing(url, splitRule, datasetId))
+                .map(url -> CompletableFuture.supplyAsync(() ->{
+                            TenantContextHolder.setIgnore(false);
+                            TenantContextHolder.setTenantId(tenantId);
+                            RequestContextHolder.setRequestAttributes(requestAttributes);
+                            UserContextHolder.setUserId(userId);
+                            processingService.urlProcessing(url, splitRule, datasetId);
+                        }
+                      )
                 .collect(Collectors.toList());
 
         // 等待所有异步任务完成
