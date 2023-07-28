@@ -22,4 +22,9 @@ public interface AppRecommendedConsts {
      */
     String BASE_GENERATE_IMAGE = "BASE_GENERATE_IMAGE";
 
+    /**
+     * 聊天机器人的唯一标识
+     */
+    String CHAT_ROBOT = "CHAT_ROBOT";
+
 }

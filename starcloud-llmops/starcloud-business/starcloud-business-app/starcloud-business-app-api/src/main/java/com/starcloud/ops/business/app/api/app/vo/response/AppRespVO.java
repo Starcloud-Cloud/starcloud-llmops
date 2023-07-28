@@ -34,12 +34,6 @@ public class AppRespVO implements Serializable {
     private String uid;
 
     /**
-     * 推荐应用的唯一标识，只有推荐应用存在该标识
-     */
-    @Schema(description = "推荐应用的唯一标识，只有推荐应用存在该标识")
-    private String recommend;
-
-    /**
      * 应用名称
      */
     @Schema(description = "应用名称")
@@ -164,23 +158,5 @@ public class AppRespVO implements Serializable {
      */
     @Schema(description = "最后一次上传到应用市场时间")
     private LocalDateTime lastPublish;
-
-    /**
-     * 获取应用的简介信息
-     *
-     * @return 应用简介信息
-     */
-    public AppRespVO intro() {
-        this.setPublishUid(null);
-        this.setInstallUid(null);
-        this.setUpdater(null);
-        this.setCreator(null);
-        this.setCreateTime(null);
-        this.setUpdateTime(null);
-        this.setUid(null);
-        this.setWorkflowConfig(null);
-        this.setChatConfig(null);
-        return this;
-    }
 
 }

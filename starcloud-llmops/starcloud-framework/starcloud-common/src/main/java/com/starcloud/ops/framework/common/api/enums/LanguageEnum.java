@@ -1,7 +1,6 @@
-package com.starcloud.ops.business.app.enums.app;
+package com.starcloud.ops.framework.common.api.enums;
 
 import com.starcloud.ops.framework.common.api.dto.Option;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 import org.springframework.context.i18n.LocaleContextHolder;
 
@@ -20,96 +19,99 @@ public enum LanguageEnum implements IEnumable<String> {
     /**
      * 简体中文
      */
-    ZH_CN("zh_CN", "中文", "Chinese"),
+    ZH_CN("zh_CN", "zh", "中文", "Chinese"),
 
     /**
      * 英语
      */
-    EN_US("en_US", "英语", "English"),
+    EN_US("en_US", "en", "英语", "English"),
 
     /**
      * 俄语
      */
-    RU_RU("ru_RU", "俄语", "Russian"),
+    RU_RU("ru_RU", "ru", "俄语", "Russian"),
 
     /**
      * 法语
      */
-    FR_FR("fr_FR", "法语", "French"),
+    FR_FR("fr_FR", "fr", "法语", "French"),
 
     /**
      * 德语
      */
-    DE_DE("de_DE", "德语", "German"),
+    DE_DE("de_DE", "de", "德语", "German"),
 
     /**
      * 意大利语
      */
-    IT_IT("it_IT", "意大利语", "Italian"),
+    IT_IT("it_IT", "it", "意大利语", "Italian"),
 
     /**
      * 葡萄牙语
      */
-    PT_PT("pt_PT", "葡萄牙语", "Portuguese"),
+    PT_PT("pt_PT", "pt", "葡萄牙语", "Portuguese"),
 
     /**
      * 西班牙语
      */
-    ES_ES("es_ES", "西班牙语", "Spanish"),
+    ES_ES("es_ES", "es", "西班牙语", "Spanish"),
 
     /**
      * 波兰语
      */
-    PL_PL("pl_PL", "波兰语", "Polish"),
+    PL_PL("pl_PL", "pl", "波兰语", "Polish"),
 
     /**
      * 荷兰语
      */
-    NL_NL("nl_NL", "荷兰语", "Dutch"),
+    NL_NL("nl_NL", "nl", "荷兰语", "Dutch"),
 
     /**
      * 瑞典语
      */
-    SV_SE("sv_SE", "瑞典语", "Swedish"),
+    SV_SE("sv_SE", "sv", "瑞典语", "Swedish"),
 
     /**
      * 丹麦语
      */
-    DA_DK("da_DK", "丹麦语", "Danish"),
+    DA_DK("da_DK", "da", "丹麦语", "Danish"),
 
     /**
      * 挪威语
      */
-    NO_NO("no_NO", "挪威语", "Norwegian"),
+    NO_NO("no_NO", "no", "挪威语", "Norwegian"),
 
     /**
      * 芬兰语
      */
-    FI_FI("fi_FI", "芬兰语", "Finnish"),
+    FI_FI("fi_FI", "fi", "芬兰语", "Finnish"),
 
     /**
      * 日语
      */
-    JA_JP("ja_JP", "日语", "Japanese"),
+    JA_JP("ja_JP", "ja", "日语", "Japanese"),
 
     /**
      * 韩语
      */
-    KO_KR("ko_KR", "韩语", "Korean"),
+    KO_KR("ko_KR", "ko", "韩语", "Korean"),
 
     /**
      * 阿拉伯语
      */
-    AR_SA("ar_SA", "阿拉伯语", "Arabic"),
+    AR_SA("ar_SA", "ar", "阿拉伯语", "Arabic"),
 
     /**
      * 土耳其语
      */
-    TR_TR("tr_TR", "土耳其语", "Turkish"),
+    TR_TR("tr_TR", "tr", "土耳其语", "Turkish"),
     ;
 
     @Getter
     private final String code;
+
+    @Getter
+    private final String simpleCode;
 
     @Getter
     private final String label;
@@ -117,8 +119,9 @@ public enum LanguageEnum implements IEnumable<String> {
     @Getter
     private final String labelEn;
 
-    LanguageEnum(String code, String label, String labelEn) {
+    LanguageEnum(String code, String simpleCode, String label, String labelEn) {
         this.code = code;
+        this.simpleCode = simpleCode;
         this.label = label;
         this.labelEn = labelEn;
     }
@@ -152,6 +155,25 @@ public enum LanguageEnum implements IEnumable<String> {
                 option.setLabel(language.getLabel());
             } else {
                 option.setLabel(language.getLabelEn());
+            }
+            return option;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取语言列表,使用 simpleCode 作为 value 值
+     *
+     * @return 语言列表
+     */
+    public static List<Option> simpleLanguageList() {
+        return Arrays.stream(LanguageEnum.values()).map(item -> {
+            Option option = new Option();
+            option.setValue(item.getSimpleCode());
+            Locale locale = LocaleContextHolder.getLocale();
+            if (Locale.CHINA.toString().equals(locale.toString())) {
+                option.setLabel(item.getLabel());
+            } else {
+                option.setLabel(item.getLabelEn());
             }
             return option;
         }).collect(Collectors.toList());

@@ -51,6 +51,13 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     public Long createAppConversation(LogAppConversationCreateReqVO createReqVO) {
         // 插入
         LogAppConversationDO appConversation = LogAppConversationConvert.INSTANCE.convert(createReqVO);
+
+        //手动设置，不走用户态
+        appConversation.setCreator(createReqVO.getCreator());
+        appConversation.setUpdater(createReqVO.getUpdater());
+
+        appConversation.setTenantId(createReqVO.getTenantId());
+
         appConversationMapper.insert(appConversation);
         // 返回
         return appConversation.getId();

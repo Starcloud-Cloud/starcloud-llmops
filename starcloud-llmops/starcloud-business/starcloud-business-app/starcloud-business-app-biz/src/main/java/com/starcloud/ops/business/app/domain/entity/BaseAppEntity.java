@@ -147,11 +147,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
     private LocalDateTime updateTime;
 
+    private Long tenantId;
+
 
     /**
      * 校验
      */
-    protected abstract void _validate();
+    protected abstract void _validate(Q req);
 
     /**
      * 执行应用
@@ -200,9 +202,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 校验
      */
-    public void validate() {
+    public void validate(Q req) {
 
-        this._validate();
+        this._validate(req);
     }
 
     private String parseConversationUid(String conversationUid) {
@@ -219,20 +221,31 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
 
     /**
+     * 获取当前执行记录的主体用户，会做主体用户做如下操作.默认都是当前用户态
+     * 1，扣点
+     * 2，记录log
+     *
+     * @return
+     */
+    protected Long getRunUserId() {
+        return SecurityFrameworkUtils.getLoginUserId();
+    }
+
+    /**
      * 同步执行应用
      */
     public R execute(Q req) {
 
         try {
 
-            log.info("app start:{}, {}", this.getUid(), this.getName());
+            this.validate(req);
 
             if (req.getUserId() == null) {
-                req.setUserId(SecurityFrameworkUtils.getLoginUserId());
+                req.setUserId(this.getRunUserId());
             }
-            this.validate();
 
-            //会话uid为空
+            log.info("app start:{}, {}, {}", this.getUid(), this.getName(), req.getUserId());
+
             if (StrUtil.isNotBlank(req.getConversationUid())) {
 
                 LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
@@ -242,6 +255,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             } else {
 
+                //会话uid为空,自动创建
                 String conversationUid = this.createAppConversationLog(req);
 
                 req.setConversationUid(conversationUid);
@@ -253,12 +267,12 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.info("app end: {} {}", this.getUid(), result);
             return result;
         } catch (ServiceException e) {
-            log.error("app execute is fail: {}", e.getMessage());
+            log.error("app execute is fail: {}", e.getMessage(), e);
             //应该没有异常的，APP内部执行抓取异常处理了 @todo 这里创建一个异常的 message 对象
             this.updateAppConversationLog(req.getConversationUid(), false);
             throw e;
         } catch (Exception e) {
-            log.error("app execute is fail: {}", e.getMessage());
+            log.error("app execute is fail: {}", e.getMessage(), e);
             //应该没有异常的，APP内部执行抓取异常处理了 @todo 这里创建一个异常的 message 对象
             this.updateAppConversationLog(req.getConversationUid(), false);
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, e.getMessage());
@@ -278,7 +292,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             log.info("app async start:{}, {}", this.getUid(), this.getName());
             req.setUserId(SecurityFrameworkUtils.getLoginUserId());
-            this.validate();
+
+            this.validate(req);
 
             //会话uid为空
             if (StrUtil.isNotBlank(req.getConversationUid())) {
@@ -323,7 +338,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * 新增应用
      */
     public void insert() {
-        this.validate();
+        this.validate(null);
         this._insert();
     }
 
@@ -331,7 +346,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * 更新应用
      */
     public void update() {
-        this.validate();
+        this.validate(null);
         this._update();
     }
 
@@ -347,6 +362,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             reqVO.setAppName(this.getName());
             reqVO.setAppMode(this.getModel());
             reqVO.setStatus(LogStatusEnum.ERROR.name());
+
+            reqVO.setEndUser(req.getEndUser());
+            reqVO.setCreator(String.valueOf(req.getUserId()));
+            reqVO.setUpdater(String.valueOf(req.getUserId()));
+            reqVO.setTenantId(this.getTenantId());
 
             reqVO.setFromScene(req.getScene());
 
@@ -369,6 +389,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
         messageCreateReqVO.setAppUid(this.getUid());
         messageCreateReqVO.setAppMode(this.getModel());
+        messageCreateReqVO.setTenantId(this.getTenantId());
 
         consumer.accept(messageCreateReqVO);
 

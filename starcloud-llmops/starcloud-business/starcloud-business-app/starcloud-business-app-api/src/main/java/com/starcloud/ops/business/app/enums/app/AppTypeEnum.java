@@ -23,11 +23,6 @@ public enum AppTypeEnum implements IEnumable<Integer> {
      */
     INSTALLED(1, "下载应用：我已经下载的应用"),
 
-    /**
-     * 已经发布的应用：已经发布的应用
-     */
-    PUBLISHED(2, "已经发布的应用：已经发布的应用"),
-
     ;
 
     /**

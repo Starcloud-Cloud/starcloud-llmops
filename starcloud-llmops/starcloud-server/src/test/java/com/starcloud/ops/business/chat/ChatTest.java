@@ -60,7 +60,7 @@ public class ChatTest extends BaseDbUnitTest {
         chatRequest.setQuery("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
 
         chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
-        ChatAppEntity chatAppEntity = AppFactory.factory(chatRequest);
+        ChatAppEntity<ChatRequestVO, JsonData> chatAppEntity = AppFactory.factory(chatRequest);
 
         JsonData jsonParams = chatAppEntity.execute(chatRequest);
 

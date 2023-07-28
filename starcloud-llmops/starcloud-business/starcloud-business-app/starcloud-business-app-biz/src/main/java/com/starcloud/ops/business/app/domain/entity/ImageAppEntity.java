@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
+import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
@@ -75,7 +76,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * 基础数据校验
      */
     @Override
-    protected void _validate() {
+    protected void _validate(ImageReqVO req) {
         getImageConfig().validate();
     }
 
@@ -163,13 +164,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     @Override
     protected void _createAppConversationLog(ImageReqVO imageRequest, LogAppConversationCreateReqVO logAppConversationRequest) {
-        logAppConversationRequest.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
-        logAppConversationRequest.setAppUid(imageRequest.getAppUid());
-        logAppConversationRequest.setAppName(this.getName());
-        logAppConversationRequest.setStatus(LogStatusEnum.ERROR.name());
+
         logAppConversationRequest.setAppConfig(JSONUtil.toJsonStr(imageRequest.getImageRequest()));
-        logAppConversationRequest.setFromScene(StringUtils.isBlank(imageRequest.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : imageRequest.getScene());
-        logAppConversationRequest.setEndUser(imageRequest.getEndUser());
     }
 
     /**
@@ -214,10 +210,11 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * @return {@link ImageMessageRespVO}
      */
     private ImageMessageRespVO textToImage(ImageReqVO request) {
+        ImageRequest imageRequest = request.getImageRequest();
         List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
         ImageMessageRespVO imageResponse = new ImageMessageRespVO();
         imageResponse.setPrompt(request.getImageRequest().getPrompt());
-        imageResponse.setNegativePrompt(request.getImageRequest().getNegativePrompt());
+        imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getImageRequest().getNegativePrompt(), Boolean.FALSE));
         imageResponse.setEngine(request.getImageRequest().getEngine());
         imageResponse.setWidth(request.getImageRequest().getWidth());
         imageResponse.setHeight(request.getImageRequest().getHeight());
