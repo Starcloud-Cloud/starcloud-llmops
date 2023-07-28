@@ -18,6 +18,12 @@
 
         <dependency>
             <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-share</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-app-biz</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>

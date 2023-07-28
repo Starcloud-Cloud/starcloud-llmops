@@ -33,6 +33,9 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
     @Override
     @SneakyThrows
     public void onLLMNewToken(Object... objects) {
+        if (emitter == null) {
+            return;
+        }
         StreamResult streamResult = new StreamResult(200, objects[0].toString());
         emitter.send(streamResult);
     }
@@ -47,6 +50,9 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
     @Override
     @SneakyThrows
     public void onLLMError(String message) {
+        if (emitter == null) {
+            return;
+        }
         emitter.send(new StreamResult(500, message));
     }
 
@@ -54,7 +60,9 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
     @Override
     @SneakyThrows
     public void onLLMError(String message, Throwable throwable) {
-
+        if (emitter == null) {
+            return;
+        }
         if (message != null && message.contains("timeout")) {
 
             emitter.send(new StreamResult(500, "[Timeout] " + throwable.getMessage()));
@@ -78,6 +86,10 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
         return null;
     }
 
+
+    public void completeWithError(Throwable throwable) {
+
+    }
 
     @Data
     private class StreamResult {

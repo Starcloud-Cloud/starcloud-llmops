@@ -26,7 +26,7 @@ public class RecommendedAppFactory {
      */
     public static AppRespVO defGenerateTextApp() {
         AppRespVO app = new AppRespVO();
-        app.setRecommend(AppRecommendedConsts.GENERATE_TEXT);
+        app.setUid(AppRecommendedConsts.GENERATE_TEXT);
         app.setName(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
         app.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_DESCRIPTION"));
         app.setModel(AppModelEnum.COMPLETION.name());
@@ -48,7 +48,7 @@ public class RecommendedAppFactory {
      */
     public static AppRespVO defGenerateArticleApp() {
         AppRespVO app = new AppRespVO();
-        app.setRecommend(AppRecommendedConsts.GENERATE_ARTICLE);
+        app.setUid(AppRecommendedConsts.GENERATE_ARTICLE);
         app.setName(MessageUtil.getMessage("GENERATE_ARTICLE_APP_NAME"));
         app.setDescription(MessageUtil.getMessage("GENERATE_ARTICLE_APP_DESCRIPTION"));
         app.setModel(AppModelEnum.COMPLETION.name());
@@ -60,6 +60,27 @@ public class RecommendedAppFactory {
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
         app.setWorkflowConfig(RecommendedConfigFactory.defGenerateArticleConfig());
+        return app;
+    }
+
+    /**
+     * 生成文章应用
+     *
+     * @return AppRespVO
+     */
+    public static AppRespVO defChatRobotApp() {
+        AppRespVO app = new AppRespVO();
+        app.setUid(AppRecommendedConsts.CHAT_ROBOT);
+        app.setName(MessageUtil.getMessage("CHAT_ROBOT_NAME"));
+        app.setDescription(MessageUtil.getMessage("CHAT_ROBOT_DESCRIPTION"));
+        app.setModel(AppModelEnum.CHAT.name());
+        app.setType(AppTypeEnum.MYSELF.name());
+        app.setSource(AppSourceEnum.WEB.name());
+        app.setTags(Collections.singletonList("Chat"));
+        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setScenes(AppUtils.DEFAULT_SCENES);
+        app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
+        app.setIcon("seo");
         return app;
     }
 

@@ -1,6 +1,7 @@
 package com.starcloud.ops.framework.common.api.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -62,6 +63,29 @@ public class StringUtil {
 
     public static Boolean isBlank(String source) {
         return StringUtils.isBlank(source);
+    }
+
+    /**
+     * 判断字符串中是否包含中文
+     *
+     * @param input 输入字符串
+     * @return 是否包含中文
+     */
+    public static String detectLanguage(String input) {
+        boolean containsChinese = false;
+
+        for (char c : input.toCharArray()) {
+            if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
+                containsChinese = true;
+                break;
+            }
+        }
+
+        if (containsChinese) {
+            return LanguageEnum.ZH_CN.getCode();
+        } else {
+            return LanguageEnum.EN_US.getCode();
+        }
     }
 
 }

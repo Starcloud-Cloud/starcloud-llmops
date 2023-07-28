@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.app.service.app;
 
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
-import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -39,15 +39,22 @@ public interface AppService {
      *
      * @return 模版列表
      */
-    List<AppRespVO> listRecommendedApps();
+    List<AppRespVO> listRecommendedApps(String model);
 
     /**
      * 查询推荐的应用详情
      *
-     * @param recommend 推荐应用唯一标识
+     * @param uid 推荐应用唯一标识
      * @return 应用详情
      */
-    AppRespVO getRecommendApp(String recommend);
+    AppRespVO getRecommendApp(String uid);
+
+    /**
+     * 获取步骤列表
+     *
+     * @return 步骤列表
+     */
+    List<WorkflowStepWrapperRespVO> stepList();
 
     /**
      * 分页查询应用列表
@@ -63,7 +70,7 @@ public interface AppService {
      * @param uid 应用 UID
      * @return 应用详情
      */
-    AppRespVO getByUid(String uid);
+    AppRespVO get(String uid);
 
     /**
      * 创建模版
@@ -91,20 +98,11 @@ public interface AppService {
      *
      * @param uid 应用 UID
      */
-    void deleteByUid(String uid);
+    void delete(String uid);
 
     /**
-     * 发布应用到应用市场
-     *
-     * @param request 应用发布到应用市场请求对象
+     * 获取最新的wxmp聊天应用Uid
      */
-    void publish(AppPublishReqVO request);
-
-    /**
-     * 批量发布应用到应用市场
-     *
-     * @param requestList 应用发布到应用市场请求对象列表
-     */
-    void batchPublicAppToMarket(List<AppPublishReqVO> requestList);
+    AppRespVO getRecently(Long userId);
 
 }

@@ -17,4 +17,14 @@ public interface AppRecommendedConsts {
      */
     String GENERATE_ARTICLE = "GENERATE_ARTICLE";
 
+    /**
+     * 默认生成图片步骤的唯一标识
+     */
+    String BASE_GENERATE_IMAGE = "BASE_GENERATE_IMAGE";
+
+    /**
+     * 聊天机器人的唯一标识
+     */
+    String CHAT_ROBOT = "CHAT_ROBOT";
+
 }

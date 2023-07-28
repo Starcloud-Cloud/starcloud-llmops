@@ -23,6 +23,11 @@ import java.util.stream.Collectors;
 public class VariableEntity {
 
     /**
+     * json 格式通过 json ObjectMapper 去实现双向转换,方便处理
+     */
+    private Object jsonParams;
+
+    /**
      * 应用变量
      */
     private List<VariableItemEntity> variables;
@@ -75,16 +80,18 @@ public class VariableEntity {
     @JSONField(serialize = false)
     public static <V> Map<String, V> coverMergeVariables(VariableEntity coverVariableEntity, VariableEntity variableEntity, Function<VariableItemEntity, V> consumer, String prefixKey) {
 
-        List<VariableItemEntity> self = CollectionUtil.emptyIfNull(variableEntity.variables);
-        self.addAll(CollectionUtil.emptyIfNull(coverVariableEntity.variables));
+        List<VariableItemEntity> self = Optional.ofNullable(variableEntity).map(VariableEntity::getVariables).orElse(new ArrayList<>());
+        self.addAll(Optional.ofNullable(coverVariableEntity).map(VariableEntity::getVariables).orElse(new ArrayList<>()));
 
         Map<String, V> variablesValues = MapUtil.newHashMap();
 
         Optional.ofNullable(self).orElse(new ArrayList<>()).forEach(variableItemEntity -> {
 
-            String allKey =  generateKey(prefixKey, variableItemEntity.getField());
+            String allKey = generateKey(prefixKey, variableItemEntity.getField());
 
-            variablesValues.put(allKey.toUpperCase(), consumer.apply(variableItemEntity));
+            if (consumer.apply(variableItemEntity) != null) {
+                variablesValues.put(allKey.toUpperCase(), consumer.apply(variableItemEntity));
+            }
         });
 
         return variablesValues;

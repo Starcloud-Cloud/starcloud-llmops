@@ -75,4 +75,4 @@ feign:
   remote:
     vsearch:
       name: vsearch # 服务名
-      url: http://vsearch.hotsalecloud.com # 服务地址
+      url: 127.0.0.1:4567 # 服务地址

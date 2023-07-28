@@ -25,6 +25,16 @@ public interface MpAutoReplyService {
      */
     PageResult<MpAutoReplyDO> getAutoReplyPage(MpMessagePageReqVO pageVO);
 
+
+    /**
+     * 获得一个公众号自动
+     *
+     * @param appId
+     * @param requestMessageType
+     * @return
+     */
+    MpAutoReplyDO selectListByAppIdAndMessage(String appId, String requestMessageType);
+
     /**
      * 获得公众号自动回复
      *
@@ -74,8 +84,11 @@ public interface MpAutoReplyService {
      */
     WxMpXmlOutMessage replyForSubscribe(String appId, WxMpXmlMessage wxMessage);
 
+    WxMpXmlOutMessage replyForSubscribe(String appId, String suffix, WxMpXmlMessage wxMessage);
+
     /**
      * 当粉丝关注时，自动回复
+     *
      * @param appId
      * @param wxMessage
      * @param params

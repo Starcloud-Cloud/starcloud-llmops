@@ -11,9 +11,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
-import com.starcloud.ops.business.app.domain.entity.config.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.*;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -65,7 +64,7 @@ public interface AppConvert {
      * @param appEntity 我的应用实体
      * @return AppDO
      */
-    default AppDO convert(AppEntity appEntity) {
+    default AppDO convert(BaseAppEntity appEntity) {
         AppDO appDO = new AppDO();
         appDO.setUid(appEntity.getUid());
         appDO.setName(appEntity.getName());
@@ -82,6 +81,7 @@ public interface AppConvert {
         appDO.setInstallUid(appEntity.getInstallUid());
         appDO.setLastPublish(appEntity.getLastPublish());
         appDO.setDeleted(Boolean.FALSE);
+        appDO.setCreator(appEntity.getCreator());
         // 处理配置
         if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
             WorkflowConfigEntity config = appEntity.getWorkflowConfig();
@@ -108,8 +108,30 @@ public interface AppConvert {
      * @param app AppDO
      * @return AppEntity
      */
-    default AppEntity convert(AppDO app) {
-        AppEntity appEntity = new AppEntity();
+    default BaseAppEntity convert(AppDO app, Boolean share) {
+        BaseAppEntity appEntity = null;
+
+        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+
+            if (share) {
+                appEntity = new ShareAppEntity();
+            } else {
+                appEntity = new AppEntity();
+            }
+
+        } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+
+            if (share) {
+                appEntity = new ChatAppEntity();
+            } else {
+                appEntity = new ChatAppEntity();
+            }
+
+        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
+
+            appEntity = new ImageAppEntity();
+        }
+
         appEntity.setUid(app.getUid());
         appEntity.setName(app.getName());
         appEntity.setModel(app.getModel());
@@ -124,6 +146,15 @@ public interface AppConvert {
         appEntity.setPublishUid(app.getPublishUid());
         appEntity.setInstallUid(app.getInstallUid());
         appEntity.setLastPublish(app.getLastPublish());
+
+        appEntity.setCreator(app.getCreator());
+        appEntity.setUpdater(app.getUpdater());
+
+        appEntity.setCreateTime(app.getCreateTime());
+        appEntity.setUpdateTime(app.getUpdateTime());
+
+        appEntity.setTenantId(app.getTenantId());
+
         // 处理配置
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {

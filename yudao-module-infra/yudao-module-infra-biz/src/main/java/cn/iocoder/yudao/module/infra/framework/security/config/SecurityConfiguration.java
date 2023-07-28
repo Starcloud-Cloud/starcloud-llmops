@@ -39,6 +39,8 @@ public class SecurityConfiguration {
                 // Spring Boot Admin Server 的安全配置
                 registry.antMatchers(adminSeverContextPath).anonymous()
                         .antMatchers(adminSeverContextPath + "/**").anonymous();
+
+                registry.antMatchers("/llm/text/**").anonymous();
                 // 文件读取
                 registry.antMatchers(buildAdminApi("/infra/file/*/get/**")).permitAll();
             }

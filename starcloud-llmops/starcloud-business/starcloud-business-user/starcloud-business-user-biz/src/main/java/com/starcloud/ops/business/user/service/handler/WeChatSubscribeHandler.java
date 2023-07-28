@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service.handler;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyService;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
@@ -75,11 +76,16 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     @Value("${starcloud-llm.tenant.id:2}")
     private Long tenantId;
 
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信关注事件，内容：{}", wxMessage);
         try {
+            // 上下文补充
+            TenantContextHolder.setTenantId(tenantId);
+            TenantContextHolder.setIgnore(false);
+
             WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
             // 第二步，保存粉丝信息
             mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
@@ -95,8 +101,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
                 if (StringUtils.isNotBlank(wxMessage.getTicket())) {
                     redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
                 }
-                WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("欢迎回到魔法AI").build();
-                return outTextMessage;
+                return mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage);
             }
 
             socialUserDO = SocialUserDO.builder().code(wxMpUser.getOpenId())
@@ -138,12 +143,8 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
             starUserService.addBenefits(userId, inviteUserid);
 
-            Map<String, Object> msgParams = new HashMap();
-            msgParams.put("username", username);
-            msgParams.put("password", password);
-
-            WxMpXmlOutMessage wxMpXmlOutMessage = mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage, msgParams);
-            return wxMpXmlOutMessage;
+            String msg = String.format("您可以使用帐号密码登录，帐号是：%s  登录密码是：%s", username, password);
+            return  mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(),msg, wxMessage);
         } catch (Exception e) {
             log.error("新增用户失败", e);
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);

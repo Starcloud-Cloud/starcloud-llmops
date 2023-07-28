@@ -91,6 +91,14 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.aliyun/alimt20181012 -->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>alimt20181012</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+
     </dependencies>
 
     <dependencyManagement>

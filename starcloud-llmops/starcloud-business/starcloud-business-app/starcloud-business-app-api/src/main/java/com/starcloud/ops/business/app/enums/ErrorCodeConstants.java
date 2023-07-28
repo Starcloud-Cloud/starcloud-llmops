@@ -28,18 +28,12 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_UID_IS_REQUIRED = new ErrorCode(300100006, "The App UID Is Required, Please Check And Try Again ! ");
 
-
     // ========== 应用市场错误码 3-002-000-000 ==========
 
     /**
      * 应用市场应用不存在
      */
     ErrorCode APP_MARKET_NO_EXISTS_UID = new ErrorCode(300200000, "The app is not exists in the market ! [UID: {}]");
-
-    /**
-     * 应用市场应用不存在
-     */
-    ErrorCode APP_MARKET_NO_EXISTS_UID_VERSION = new ErrorCode(300200002, "The app is not exists in the market ! [UID: {}, version: {}]");
 
     /**
      * 应用市场应用不能安装
@@ -87,6 +81,11 @@ public interface ErrorCodeConstants {
     ErrorCode APP_MARKET_AUDIT_IS_REQUIRED = new ErrorCode(300200016, "The app audit is required, please check and try again ! ");
 
     /**
+     * 应用已经发布
+     */
+    ErrorCode APP_ALREADY_PUBLISH = new ErrorCode(300200017, "The app has been published, place wait for the audit result or cancel the publish ! [name: {}]");
+
+    /**
      * 应用市场审核不支持
      */
     ErrorCode APP_MARKET_AUDIT_IS_NOT_SUPPORT = new ErrorCode(300200018, "The app audit is not support, please check and try again! [audit: {}]");
@@ -109,11 +108,36 @@ public interface ErrorCodeConstants {
     /**
      * 语音转文字异常
      */
-    ErrorCode AUDIO_TRANSCRIPT_ERROR = new ErrorCode(300200024,"audio transcript error, {}");
+    ErrorCode AUDIO_TRANSCRIPT_ERROR = new ErrorCode(300200024, "audio transcript error, {}");
+
+    /**
+     * 应用执行异常
+     */
+    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "App execute fail, {}");
 
     // ========== 图片生成服务错误 3-003-000-00 ==========
     /**
      * 生成图片失败，请重试或者联系管理员
      */
     ErrorCode GENERATE_IMAGE_FAIL = new ErrorCode(300300000, "Generate image fail, please try again or contact the administrator !");
+
+    /**
+     * 图片 Prompt 为必须的
+     */
+    ErrorCode IMAGE_PROMPT_REQUIRED = new ErrorCode(300300010, "The image prompt is required, please check and try again ! ");
+
+    /**
+     * 应用发布记录不存在
+     */
+    ErrorCode APP_PUBLISH_RECORD_NO_EXISTS_UID = new ErrorCode(300400000, "The app publish record is not exists! [UID: {}]");
+
+    /**
+     * 审核状态不支持
+     */
+    ErrorCode APP_PUBLISH_AUDIT_NOT_SUPPORTED = new ErrorCode(300400002, "The app publish audit is not supported! [audit: {}]");
+
+    /**
+     * 应用发布记录不存在
+     */
+    ErrorCode APP_PUBLISH_APP_INFO_NOT_FOUND = new ErrorCode(300400004, "The app publish info is not exists!");
 }

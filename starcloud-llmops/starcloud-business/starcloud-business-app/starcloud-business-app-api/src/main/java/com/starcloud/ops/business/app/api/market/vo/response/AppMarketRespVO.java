@@ -191,7 +191,7 @@ public class AppMarketRespVO implements Serializable {
     @Schema(description = "更新者")
     private String updater;
 
-    @Schema(description = "应用安装状态")
-    private InstalledRespVO installStatus;
+    @Schema(description = "应用安装信息")
+    private InstalledRespVO installInfo;
 
 }

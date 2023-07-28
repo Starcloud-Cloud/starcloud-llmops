@@ -27,13 +27,16 @@ import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
-import com.starcloud.ops.business.dataset.pojo.request.MatchTestRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
-import com.starcloud.ops.business.dataset.pojo.response.MatchTestResponse;
+import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
+import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
+import com.starcloud.ops.business.dataset.service.task.SummaryEntity;
+import com.starcloud.ops.business.dataset.service.task.SummaryTask;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
@@ -43,6 +46,7 @@ import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStor
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.starcloud.ops.llm.langchain.core.utils.VectorSerializeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,12 +66,15 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_EMBEDDING_ERROR;
-import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_NOT_EXIST_ERROR;
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
 
 @Service
 @Slf4j
@@ -92,10 +99,16 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     private DatasetsService datasetsService;
 
     @Autowired
+    private DatasetSourceDataService datasetSourceDataService;
+
+    @Autowired
     private SplitRulesMapper splitRulesMapper;
 
     @Autowired
     private DatasetSourceDataMapper sourceDataMapper;
+
+    @Autowired
+    private SummaryTask summaryTask;
 
     @Override
     public SplitForecastResponse splitForecast(FileSplitRequest fileSplitRequest) {
@@ -117,58 +130,77 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         }
     }
 
+    public String segmentSummary(String documentId, String text, SplitRule splitRule,Integer summarySize) {
+        long start = System.currentTimeMillis();
+        List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
+        int size = splitText.size();
+        CountDownLatch countDownLatch = new CountDownLatch(size);
+
+        ConcurrentHashMap<Integer, String> resultMap = new ConcurrentHashMap<>(size);
+        for (int i = 0; i < splitText.size(); i++) {
+            SummaryEntity summaryEntity = new SummaryEntity(resultMap, countDownLatch);
+            summaryEntity.setIndex(i);
+            summaryEntity.setText(splitText.get(i));
+            summaryEntity.setSummarySize(summarySize);
+            summaryTask.execute(summaryEntity);
+        }
+        try {
+            boolean await = countDownLatch.await(100, TimeUnit.SECONDS);
+            if (!await || resultMap.size() < size) {
+                log.info("count down wait={}", await);
+                throw exception(SUMMARY_ERROR);
+            }
+            StringJoiner sj = new StringJoiner(StringUtils.LF);
+            for (int i = 0; i < size; i++) {
+                sj.add(resultMap.get(i));
+            }
+            long end = System.currentTimeMillis();
+            log.info("summary success，rt：{} ms", end - start);
+            return sj.toString();
+        } catch (InterruptedException e) {
+            log.info("总结文档失败，docId = {}", documentId, e);
+            throw exception(SUMMARY_ERROR);
+        }
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void indexDoc(String datasetId, String documentId, List<String> splitText) {
+    public void indexDoc(String datasetId, String documentId) {
         Assert.notBlank(datasetId, "datasetId is null");
         Assert.notBlank(documentId, "documentId is null");
         log.info("start embedding index,datasetId={},documentId={}", datasetId, documentId);
         long start = System.currentTimeMillis();
-        validateTenantId(documentId);
         DatasetsDO datasets = datasetsService.getDatasets(datasetId);
         if (datasets == null) {
             throw exception(DATASETS_NOT_EXIST_ERROR);
         }
         try {
-            List<DocumentSegmentDTO> segments = new ArrayList<>(splitText.size());
+            List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDocId(documentId);
             Long tenantId = TenantContextHolder.getTenantId();
             String creator = datasets.getCreator();
-            for (int i = 0; i < splitText.size(); i++) {
-                String segmentId = IdUtil.getSnowflakeNextIdStr();
-                String split = splitText.get(i);
-                String segmentHash = strToHex(split);
+            List<DocumentSegmentDTO> segments = new ArrayList<>(segmentDOS.size());
+            for (DocumentSegmentDO segmentDO : segmentDOS) {
+                String split = segmentDO.getContent();
+                String segmentHash = segmentDO.getSegmentHash();
                 DocumentSegmentDTO documentSegmentDTO = new DocumentSegmentDTO();
                 documentSegmentDTO.setTenantId(tenantId);
                 documentSegmentDTO.setCreator(creator);
                 documentSegmentDTO.setDataSetId(datasetId);
                 documentSegmentDTO.setDocumentId(documentId);
-                documentSegmentDTO.setSegmentId(segmentId);
+                documentSegmentDTO.setSegmentId(segmentDO.getId());
                 documentSegmentDTO.setSegmentText(split);
                 documentSegmentDTO.setStatus(true);
-
-                DocumentSegmentDO documentSegmentDO = new DocumentSegmentDO();
-                documentSegmentDO.setId(segmentId);
-                documentSegmentDO.setTenantId(tenantId);
-                documentSegmentDO.setCreator(creator);
-                documentSegmentDO.setUpdater(creator);
-                documentSegmentDO.setDatasetId(datasetId);
-                documentSegmentDO.setDocumentId(documentId);
-                documentSegmentDO.setPosition(i);
-                documentSegmentDO.setContent(split);
-                documentSegmentDO.setWordCount(split.length());
-                documentSegmentDO.setSegmentHash(segmentHash);
-                documentSegmentDO.setStatus(DocumentSegmentEnum.INDEXING.getCode());
                 SegmentsEmbeddingsDO segmentsEmbeddingsDO = embeddingsDOMapper.selectOneByHash(segmentHash);
                 if (ObjectUtil.isNotNull(segmentsEmbeddingsDO)) {
                     segmentsEmbeddingsDO.setId(null);
-                    documentSegmentDO.setTokens(segmentsEmbeddingsDO.getTokens());
+                    segmentDO.setTokens(segmentsEmbeddingsDO.getTokens());
                     documentSegmentDTO.setVector(VectorSerializeUtils.deserialize(segmentsEmbeddingsDO.getVector()));
                 } else {
                     EmbeddingDetail embeddingDetail = basicEmbedding.embedText(split);
                     segmentsEmbeddingsDO = new SegmentsEmbeddingsDO();
                     segmentsEmbeddingsDO.setTokens(embeddingDetail.getTotalTokens());
                     segmentsEmbeddingsDO.setVector(VectorSerializeUtils.serialize(embeddingDetail.getEmbedding()));
-                    documentSegmentDO.setTokens(embeddingDetail.getTotalTokens());
+                    segmentDO.setTokens(embeddingDetail.getTotalTokens());
                     documentSegmentDTO.setVector(embeddingDetail.getEmbedding());
                 }
                 segmentsEmbeddingsDO.setTenantId(tenantId);
@@ -176,17 +208,17 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                 segmentsEmbeddingsDO.setDatasetId(datasetId);
                 segmentsEmbeddingsDO.setDocumentId(documentId);
                 segmentsEmbeddingsDO.setDeleted(false);
-                segmentsEmbeddingsDO.setSegmentId(segmentId);
+                segmentsEmbeddingsDO.setSegmentId(segmentDO.getId());
                 segmentsEmbeddingsDO.setUpdater(creator);
                 segmentsEmbeddingsDO.setSegmentHash(segmentHash);
-                segmentMapper.insert(documentSegmentDO);
+                segmentDO.setStatus(DocumentSegmentEnum.INDEXED.getCode());
+                segmentMapper.updateById(segmentDO);
                 embeddingsDOMapper.insert(segmentsEmbeddingsDO);
                 segments.add(documentSegmentDTO);
             }
             basicVectorStore.addSegment(segments);
             long embeddingEnd = System.currentTimeMillis();
             log.info("embedding finished , time consume {}", embeddingEnd - start);
-            segmentMapper.updateStatus(documentId, DocumentSegmentEnum.COMPLETED.getCode());
         } catch (Exception e) {
             log.error("embedding index error:", e);
             throw exception(DATASETS_EMBEDDING_ERROR);
@@ -195,8 +227,31 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
 
     @Override
-    public void splitDoc(String dataSourceId, String text, SplitRule splitRule) {
-
+    public void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule) {
+        Assert.notBlank(dataSourceId, "dataSourceId is null");
+        List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
+        DatasetsDO datasets = datasetsService.getDatasets(datasetId);
+        if (datasets == null) {
+            throw exception(DATASETS_NOT_EXIST_ERROR);
+        }
+        String creator = datasets.getCreator();
+        for (int i = 0; i < splitText.size(); i++) {
+            String segmentId = IdUtil.getSnowflakeNextIdStr();
+            String split = splitText.get(i);
+            String segmentHash = strToHex(split);
+            DocumentSegmentDO documentSegmentDO = new DocumentSegmentDO();
+            documentSegmentDO.setId(segmentId);
+            documentSegmentDO.setCreator(creator);
+            documentSegmentDO.setUpdater(creator);
+            documentSegmentDO.setDatasetId(datasets.getUid());
+            documentSegmentDO.setDocumentId(dataSourceId);
+            documentSegmentDO.setPosition(i);
+            documentSegmentDO.setContent(split);
+            documentSegmentDO.setWordCount(split.length());
+            documentSegmentDO.setSegmentHash(segmentHash);
+            documentSegmentDO.setStatus(DocumentSegmentEnum.SPLIT.getCode());
+            segmentMapper.insert(documentSegmentDO);
+        }
     }
 
     @Override
@@ -249,7 +304,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                 documentSegmentDO.setContent(split);
                 documentSegmentDO.setWordCount(split.length());
                 documentSegmentDO.setSegmentHash(segmentHash);
-                documentSegmentDO.setStatus(DocumentSegmentEnum.INDEXING.getCode());
+                documentSegmentDO.setStatus(DocumentSegmentEnum.INDEXED.getCode());
                 SegmentsEmbeddingsDO segmentsEmbeddingsDO = embeddingsDOMapper.selectOneByHash(segmentHash);
                 if (ObjectUtil.isNotNull(segmentsEmbeddingsDO)) {
                     segmentsEmbeddingsDO.setId(null);
@@ -290,7 +345,6 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             splitRulesDO.setUpdater(creator);
 
             splitRulesMapper.insert(splitRulesDO);
-            segmentMapper.updateStatus(documentId, DocumentSegmentEnum.COMPLETED.getCode());
             updateWrapper.set(DatasetSourceDataDO::getProcessingStartedTime, ofMill(start))
                     .set(DatasetSourceDataDO::getCleaningCompletedTime, ofMill(cleanEnd))
                     .set(DatasetSourceDataDO::getSplittingCompletedTime, ofMill(splitEnd))
@@ -348,7 +402,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     }
 
     @Override
-    public MatchTestResponse matchTest(MatchTestRequest request) {
+    public MatchQueryVO matchQuery(MatchQueryRequest request) {
         validateTenantId(request.getDocumentId());
         List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDocId(request.getDocumentId());
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
@@ -362,7 +416,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             RecordDTO recordDTO = DocumentSegmentConvert.INSTANCE.segmentDo2Record(segmentDOMap.get(segmentId)).setScore(knnQueryHit.getScore());
             recordDTOS.add(recordDTO);
         }
-        return MatchTestResponse.builder().records(recordDTOS).queryText(request.getText()).build();
+        return MatchQueryVO.builder().records(recordDTOS).queryText(request.getText()).build();
     }
 
     @Override

@@ -21,6 +21,7 @@ import cn.iocoder.yudao.module.mp.service.message.bo.MpMessageSendOutReqBO;
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -57,6 +58,16 @@ public class MpAutoReplyServiceImpl implements MpAutoReplyService {
     @Override
     public PageResult<MpAutoReplyDO> getAutoReplyPage(MpMessagePageReqVO pageVO) {
         return mpAutoReplyMapper.selectPage(pageVO);
+    }
+
+    @Override
+    public MpAutoReplyDO selectListByAppIdAndMessage(String appId, String requestMessageType) {
+
+        List<MpAutoReplyDO> mpAutoReplyDOS = mpAutoReplyMapper.selectListByAppIdAndMessage(appId, requestMessageType);
+        if (CollUtil.isEmpty(mpAutoReplyDOS)) {
+            return null;
+        }
+        return CollUtil.getFirst(mpAutoReplyDOS);
     }
 
     @Override
@@ -184,6 +195,19 @@ public class MpAutoReplyServiceImpl implements MpAutoReplyService {
     @Override
     public WxMpXmlOutMessage replyForSubscribe(String appId, WxMpXmlMessage wxMessage) {
         return replyForSubscribe(appId, wxMessage, null);
+    }
+
+    @Override
+    public WxMpXmlOutMessage replyForSubscribe(String appId, String suffix, WxMpXmlMessage wxMessage) {
+        // 第一步，匹配自动回复
+        List<MpAutoReplyDO> replies = mpAutoReplyMapper.selectListByAppIdAndSubscribe(appId);
+        MpAutoReplyDO reply = CollUtil.isNotEmpty(replies) ? CollUtil.getFirst(replies)
+                : buildDefaultSubscribeAutoReply(appId); // 如果不存在，提供一个默认末班
+        MpMessageSendOutReqBO sendReqBO = MpAutoReplyConvert.INSTANCE.convert(wxMessage.getFromUser(), reply);
+        if (StringUtils.isNotBlank(suffix)) {
+            sendReqBO.setContent(sendReqBO.getContent() + "\n\n\n" + suffix);
+        }
+        return mpMessageService.sendOutMessage(sendReqBO);
     }
 
     @Override

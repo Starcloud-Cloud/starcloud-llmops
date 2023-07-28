@@ -1,14 +1,20 @@
 package com.starcloud.ops.business.app.convert.image;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
+import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
+import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
+import com.starcloud.ops.business.app.util.app.AppUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -55,7 +61,22 @@ public interface VSearchConvert {
     default VSearchImageRequest convert(ImageRequest request) {
         VSearchImageRequest vSearchImageRequest = new VSearchImageRequest();
         vSearchImageRequest.setEngine(request.getEngine());
-        vSearchImageRequest.setPrompts(Collections.singletonList(request.getPrompt()));
+
+        // prompts
+        String prompt = request.getPrompt();
+        if (StringUtils.isBlank(prompt)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_PROMPT_REQUIRED);
+        }
+        List<TextPrompt> prompts = new ArrayList<>();
+        prompts.add(TextPrompt.ofDefault(prompt));
+
+        // 反义词
+        String negativePrompt = request.getNegativePrompt();
+        if (StringUtils.isNotBlank(negativePrompt)) {
+            prompts.add(TextPrompt.ofNegative(negativePrompt));
+        }
+
+        vSearchImageRequest.setPrompts(prompts);
         vSearchImageRequest.setHeight(request.getHeight());
         vSearchImageRequest.setWidth(request.getWidth());
         vSearchImageRequest.setCfgScale(request.getCfgScale());
@@ -64,6 +85,7 @@ public interface VSearchConvert {
         vSearchImageRequest.setSeed(request.getSeed());
         vSearchImageRequest.setSamples(request.getSamples());
         vSearchImageRequest.setGuidancePreset(request.getGuidancePreset());
+        vSearchImageRequest.setGuidanceStrength(request.getGuidanceStrength());
         vSearchImageRequest.setStylePreset(request.getStylePreset());
         return vSearchImageRequest;
     }

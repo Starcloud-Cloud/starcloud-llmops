@@ -3,10 +3,10 @@ package com.starcloud.ops.business.app.controller.admin.app;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
-import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -59,16 +60,23 @@ public class AppController {
     @GetMapping("/recommends")
     @Operation(summary = "查询推荐的应用列表", description = "查询推荐的应用列表")
     @ApiOperationSupport(order = 10, author = "nacoyer")
-    public CommonResult<List<AppRespVO>> recommends() {
-        return CommonResult.success(appService.listRecommendedApps());
+    public CommonResult<List<AppRespVO>> recommends(@RequestParam(value = "model", required = false) String model) {
+        return CommonResult.success(appService.listRecommendedApps(model));
     }
 
-    @GetMapping("/getRecommendApp/{recommend}")
+    @GetMapping("/getRecommendApp/{uid}")
     @Operation(summary = "根据推荐应用唯一标识获得推荐应用详情", description = "根据 推荐应用唯一标识 获得推荐应用详情")
     @ApiOperationSupport(order = 11, author = "nacoyer")
-    public CommonResult<AppRespVO> getRecommendApp(@Parameter(name = "recommend", description = "推荐应用唯一标识")
-                                                   @PathVariable("recommend") String recommend) {
-        return CommonResult.success(appService.getRecommendApp(recommend));
+    public CommonResult<AppRespVO> getRecommendApp(@Parameter(name = "uid", description = "推荐应用唯一标识")
+                                                   @PathVariable("uid") String uid) {
+        return CommonResult.success(appService.getRecommendApp(uid));
+    }
+
+    @GetMapping("/stepList")
+    @Operation(summary = "获取步骤列表", description = "获取步骤列表")
+    @ApiOperationSupport(order = 11, author = "nacoyer")
+    public CommonResult<List<WorkflowStepWrapperRespVO>> stepList() {
+        return CommonResult.success(appService.stepList());
     }
 
     @GetMapping("/page")
@@ -82,7 +90,7 @@ public class AppController {
     @Operation(summary = "根据 UID 获得应用", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 14, author = "nacoyer")
     public CommonResult<AppRespVO> get(@Parameter(name = "uid", description = "应用 UID") @PathVariable("uid") String uid) {
-        return CommonResult.success(appService.getByUid(uid));
+        return CommonResult.success(appService.get(uid));
     }
 
     @PostMapping("/create")
@@ -113,15 +121,7 @@ public class AppController {
     @Operation(summary = "删除应用", description = "根据 UID 删除应用")
     @ApiOperationSupport(order = 22, author = "nacoyer")
     public CommonResult<Boolean> delete(@Parameter(name = "uid", description = "应用 UID") @PathVariable("uid") String uid) {
-        appService.deleteByUid(uid);
-        return CommonResult.success(Boolean.TRUE);
-    }
-
-    @PostMapping("/publish")
-    @Operation(summary = "发布应用到应用市场", description = "发布应用到应用市场")
-    @ApiOperationSupport(order = 24, author = "nacoyer")
-    public CommonResult<Boolean> publish(@Validated @RequestBody AppPublishReqVO request) {
-        appService.publish(request);
+        appService.delete(uid);
         return CommonResult.success(Boolean.TRUE);
     }
 

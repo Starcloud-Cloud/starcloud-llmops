@@ -1,5 +1,8 @@
 package com.starcloud.ops.business.user.service.handler;
 
+import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
+import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyService;
+import cn.iocoder.yudao.module.mp.service.user.MpUserService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.session.WxSessionManager;
@@ -13,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -23,10 +27,17 @@ public class WeChatScanHandler implements WxMpMessageHandler {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Resource
+    private MpAutoReplyService mpAutoReplyService;
+
+    @Resource
+    private MpUserService mpUserService;
+
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信扫描事件，内容：{}", wxMessage);
         WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
+        mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
         WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("欢迎回到魔法AI").build();
         return outTextMessage;

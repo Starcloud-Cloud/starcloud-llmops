@@ -22,7 +22,7 @@ public class OpenaiCompletionParams {
 
     private Integer n = 1;
 
-    private Boolean stream = true;
+    private Boolean stream = false;
 
 
 }

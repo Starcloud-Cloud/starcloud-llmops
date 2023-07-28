@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.log.service.conversation;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -50,6 +51,13 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     public Long createAppConversation(LogAppConversationCreateReqVO createReqVO) {
         // 插入
         LogAppConversationDO appConversation = LogAppConversationConvert.INSTANCE.convert(createReqVO);
+
+        //手动设置，不走用户态
+        appConversation.setCreator(createReqVO.getCreator());
+        appConversation.setUpdater(createReqVO.getUpdater());
+
+        appConversation.setTenantId(createReqVO.getTenantId());
+
         appConversationMapper.insert(appConversation);
         // 返回
         return appConversation.getId();
@@ -134,6 +142,13 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         return new PageResult<>(infoPOIPage.getRecords(), infoPOIPage.getTotal());
     }
 
+    @Override
+    public LogAppConversationDO getRecentlyConversation(String appUid) {
+        LambdaQueryWrapper<LogAppConversationDO> wrapper = Wrappers.lambdaQuery(LogAppConversationDO.class)
+                .eq(LogAppConversationDO::getAppUid, appUid)
+                .last("limit 1");
+        return appConversationMapper.selectOne(wrapper);
+    }
 
     @Override
     public List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO statisticsListReqVO) {

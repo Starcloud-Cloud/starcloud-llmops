@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.feign.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.enums.vsearch.GuidancePresetEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
 import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
@@ -48,21 +49,21 @@ public class VSearchImageRequest implements Serializable {
      */
     @Schema(description = "用于生成的文本提示集合")
     @NotEmpty(message = "prompts can not be empty, please check it.")
-    private List<String> prompts;
+    private List<TextPrompt> prompts;
 
     /**
      * 初始化图像
      */
     @Schema(description = "初始化图像")
     @JsonProperty(value = "init_image")
-    private File initImage;
+    private String initImage;
 
     /**
      * 遮罩图像
      */
     @Schema(description = "遮罩图像")
     @JsonProperty(value = "mask_image")
-    private File maskImage;
+    private String maskImage;
 
     /**
      * 图像的高度（以像素为单位）。必须以 64 为增量，并通过以下验证
@@ -127,7 +128,7 @@ public class VSearchImageRequest implements Serializable {
      */
     @Schema(description = "随机噪声种子（省略此选项或用于随机种子)")
     @Min(value = 0, message = "seed must be greater than or equal to 0")
-    @Max(value = 4294967295L, message = "seed must be less than or equal to 4294967295")
+    @Max(value = 2147483647, message = "seed must be less than or equal to 4294967295")
     private Long seed;
 
     /**
@@ -180,6 +181,6 @@ public class VSearchImageRequest implements Serializable {
     @Schema(description = "传入样式预设以引导图像模型走向特定样式。 此样式预设列表可能会更改")
     @JsonProperty(value = "style_preset")
     @InEnum(value = StylePresetEnum.class, field = InEnum.EnumField.CODE, message = "style_preset[{value}] must be in {values}")
-    private Integer stylePreset;
+    private String stylePreset;
 
 }

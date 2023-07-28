@@ -20,7 +20,7 @@ public class SplitRule {
 
     private Boolean removeUrlsEmails;
 
-    @Max(1000)
+    @Max(3000)
     @Min(100)
     private Integer chunkSize;
 
