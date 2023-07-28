@@ -71,8 +71,8 @@ public class RecommendedAppFactory {
     public static AppRespVO defChatRobotApp() {
         AppRespVO app = new AppRespVO();
         app.setUid(AppRecommendedConsts.CHAT_ROBOT);
-        app.setName(MessageUtil.getMessage("GENERATE_ARTICLE_APP_NAME"));
-        app.setDescription(MessageUtil.getMessage("GENERATE_ARTICLE_APP_DESCRIPTION"));
+        app.setName(MessageUtil.getMessage("CHAT_ROBOT_NAME"));
+        app.setDescription(MessageUtil.getMessage("CHAT_ROBOT_DESCRIPTION"));
         app.setModel(AppModelEnum.CHAT.name());
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
