@@ -1,40 +1,21 @@
 package com.starcloud.ops.business.app;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
-import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
-import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
-import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
-import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.app.LanguageEnum;
-import com.starcloud.ops.business.app.enums.market.AppMarketAuditEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
-import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
-import com.starcloud.ops.framework.common.api.dto.PageResp;
-import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.core.parameters.P;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -80,103 +61,6 @@ public class AppServiceTest extends BaseDbUnitTest {
         dictDataDO.setSort(sort);
         dictDataDO.setRemark(remark);
         return dictDataDO;
-    }
-
-    @Test
-    public void publishTest() {
-
-    }
-
-    @Test
-    public void bathPublishTest() {
-        AppPageQuery appPageQuery = new AppPageQuery();
-        appPageQuery.setPageNo(1);
-        appPageQuery.setPageSize(1000);
-        PageResp<AppRespVO> page = appService.page(appPageQuery);
-        List<AppRespVO> list = page.getList();
-        CollectionUtil.emptyIfNull(list).forEach(item -> {
-            AppPublishReqVO request = new AppPublishReqVO();
-            request.setUid(item.getUid());
-            String name = item.getName();
-            request.setLanguage(detectLanguage(name));
-            request.setCategories(item.getCategories());
-            publish(request);
-        });
-    }
-
-    @Test
-    public void bathPublishTest2() {
-        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class)
-                .select(AppDO::getUid, AppDO::getName, AppDO::getCategories)
-                .in(AppDO::getName, Arrays.asList("小红书文案",
-                        "星座运势",
-                        "今日头条文章",
-                        "社媒帖子标题",
-                        "独立站商品描述",
-                        "生成PPT大纲",
-                        "Generate Text",
-                        "Generate Images"))
-                .eq(AppDO::getDeleted, Boolean.FALSE);
-        List<AppDO> appDOList = appMapper.selectList(wrapper);
-        appDOList.forEach(item -> {
-            AppPublishReqVO request = new AppPublishReqVO();
-            request.setUid(item.getUid());
-            String name = item.getName();
-            request.setLanguage(detectLanguage(name));
-            request.setCategories(Arrays.asList(item.getCategories().split(",")));
-            publish(request);
-        });
-    }
-
-    public void publish(AppPublishReqVO request) {
-
-        DictDataExportReqVO requestd = new DictDataExportReqVO();
-        requestd.setDictType(AppConstants.APP_CATEGORY_DICT_TYPE);
-        requestd.setStatus(StateEnum.ENABLE.getCode());
-        Mockito.when(dictDataService.getDictDataList(requestd)).thenReturn(DICT_LIST);
-
-        appService.publish(request);
-
-        AppDO byUid = appMapper.getByUid(request.getUid(), false);
-
-        // 更新应用表
-        appMapper.update(null, Wrappers.lambdaUpdate(AppDO.class)
-                .set(AppDO::getUpdater, "1")
-                .set(AppDO::getUpdateTime, LocalDateTime.now())
-                .eq(AppDO::getUid, byUid.getUid())
-        );
-
-        // 更新市场表
-        appMarketMapper.update(null, Wrappers.lambdaUpdate(AppMarketDO.class)
-                .set(AppMarketDO::getCreator, "1")
-                .set(AppMarketDO::getUpdater, "1")
-                .set(AppMarketDO::getTenantId, 1L)
-                .set(AppMarketDO::getExample, byUid.getExample())
-                .set(AppMarketDO::getCreateTime, LocalDateTime.now())
-                .set(AppMarketDO::getUpdateTime, LocalDateTime.now())
-                .set(AppMarketDO::getAudit, AppMarketAuditEnum.APPROVED.getCode())
-                .eq(AppMarketDO::getUid, AppUtils.obtainUid(byUid.getPublishUid()))
-                .eq(AppMarketDO::getVersion, AppUtils.obtainVersion(byUid.getPublishUid()))
-        );
-        log.info("Publish app success");
-    }
-
-
-    public static String detectLanguage(String input) {
-        boolean containsChinese = false;
-
-        for (char c : input.toCharArray()) {
-            if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
-                containsChinese = true;
-                break;
-            }
-        }
-
-        if (containsChinese) {
-            return LanguageEnum.ZH_CN.getCode();
-        } else {
-            return LanguageEnum.EN_US.getCode();
-        }
     }
 
 }

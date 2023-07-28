@@ -52,7 +52,7 @@ public class RecommendedAppCache {
      * @return 应用详情
      */
     public static AppRespVO getRecommendApp(String code) {
-        Optional<AppRespVO> appOptional = get().stream().filter(app -> app.getRecommend().equals(code)).findFirst();
+        Optional<AppRespVO> appOptional = get().stream().filter(app -> app.getUid().equals(code)).findAny();
         if (appOptional.isPresent()) {
             return appOptional.get();
         }

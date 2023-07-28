@@ -15,6 +15,21 @@ public interface AppConstants {
     Integer DEFAULT_VERSION = 1;
 
     /**
+     * 国内测试环境分享链接
+     */
+    String APP_SHARE_LINK_CN_TEST = "http://cn-test.llmops-ui-user.hotsalestar.com/app/share/";
+
+    /**
+     * 国内生产环境分享链接
+     */
+    String APP_SHARE_LINK_CN_PROD = "https://mofaai.com.cn/app/share/";
+
+    /**
+     * 海外生产环境分享链接
+     */
+    String APP_SHARE_LINK_US_PROD = "https://mofaai.com.cn/app/share/";
+
+    /**
      * APP 应用前缀
      */
     String APP_PREFIX = "app";

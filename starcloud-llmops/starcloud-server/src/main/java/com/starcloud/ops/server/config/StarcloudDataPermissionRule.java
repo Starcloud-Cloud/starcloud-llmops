@@ -25,6 +25,8 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
      */
     private static final Set<String> TABLE_NAMES = Sets.newHashSet(
             "llm_app",
+            "llm_app_publish",
+            "llm_app_publish_channel",
             "llm_log_app_conversation",
             "llm_log_app_message",
             "llm_log_app_message_annotations",

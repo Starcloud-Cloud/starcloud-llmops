@@ -26,7 +26,7 @@ public class RecommendedAppFactory {
      */
     public static AppRespVO defGenerateTextApp() {
         AppRespVO app = new AppRespVO();
-        app.setRecommend(AppRecommendedConsts.GENERATE_TEXT);
+        app.setUid(AppRecommendedConsts.GENERATE_TEXT);
         app.setName(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
         app.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_DESCRIPTION"));
         app.setModel(AppModelEnum.COMPLETION.name());
@@ -48,7 +48,7 @@ public class RecommendedAppFactory {
      */
     public static AppRespVO defGenerateArticleApp() {
         AppRespVO app = new AppRespVO();
-        app.setRecommend(AppRecommendedConsts.GENERATE_ARTICLE);
+        app.setUid(AppRecommendedConsts.GENERATE_ARTICLE);
         app.setName(MessageUtil.getMessage("GENERATE_ARTICLE_APP_NAME"));
         app.setDescription(MessageUtil.getMessage("GENERATE_ARTICLE_APP_DESCRIPTION"));
         app.setModel(AppModelEnum.COMPLETION.name());

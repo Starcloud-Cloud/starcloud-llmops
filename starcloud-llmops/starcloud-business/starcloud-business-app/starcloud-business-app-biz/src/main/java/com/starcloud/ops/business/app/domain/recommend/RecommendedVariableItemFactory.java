@@ -6,8 +6,8 @@ import com.starcloud.ops.business.app.domain.recommend.enums.WritingToneEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
-import com.starcloud.ops.business.app.enums.app.LanguageEnum;
 import com.starcloud.ops.business.app.util.MessageUtil;
+import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 
 /**
  * 推荐应用Variable Item 工厂类
