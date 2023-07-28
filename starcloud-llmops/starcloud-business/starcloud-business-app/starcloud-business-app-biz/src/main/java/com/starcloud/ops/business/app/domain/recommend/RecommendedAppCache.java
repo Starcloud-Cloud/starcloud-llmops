@@ -5,11 +5,15 @@ import cn.hutool.cache.CacheUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 项目推荐应用缓存，将项目推荐应用缓存到本地缓存中
@@ -46,6 +50,20 @@ public class RecommendedAppCache {
     }
 
     /**
+     * 获取推荐应用列表
+     *
+     * @param model 应用模型
+     * @return 推荐应用列表
+     */
+    public static List<AppRespVO> get(String model) {
+        if (StringUtils.isNotBlank(model) && AppModelEnum.CHAT.name().equals(model)) {
+            AppRespVO chatRobotApp = get().stream().filter(app -> AppModelEnum.CHAT.name().equals(app.getModel())).findAny().orElse(null);
+            return Collections.singletonList(chatRobotApp);
+        }
+        return get().stream().filter(app -> !AppModelEnum.CHAT.name().equals(app.getModel())).collect(Collectors.toList());
+    }
+
+    /**
      * 获取推荐应用详情
      *
      * @param code 应用uid
@@ -69,7 +87,9 @@ public class RecommendedAppCache {
                 // 生成文本应用
                 RecommendedAppFactory.defGenerateTextApp(),
                 // 生成文章应用
-                RecommendedAppFactory.defGenerateArticleApp()
+                RecommendedAppFactory.defGenerateArticleApp(),
+                // 聊天机器人
+                RecommendedAppFactory.defChatRobotApp()
         );
     }
 

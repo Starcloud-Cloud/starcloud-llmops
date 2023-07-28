@@ -63,4 +63,25 @@ public class RecommendedAppFactory {
         return app;
     }
 
+    /**
+     * 生成文章应用
+     *
+     * @return AppRespVO
+     */
+    public static AppRespVO defChatRobotApp() {
+        AppRespVO app = new AppRespVO();
+        app.setUid(AppRecommendedConsts.CHAT_ROBOT);
+        app.setName(MessageUtil.getMessage("GENERATE_ARTICLE_APP_NAME"));
+        app.setDescription(MessageUtil.getMessage("GENERATE_ARTICLE_APP_DESCRIPTION"));
+        app.setModel(AppModelEnum.CHAT.name());
+        app.setType(AppTypeEnum.MYSELF.name());
+        app.setSource(AppSourceEnum.WEB.name());
+        app.setTags(Collections.singletonList("Chat"));
+        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setScenes(AppUtils.DEFAULT_SCENES);
+        app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
+        app.setIcon("seo");
+        return app;
+    }
+
 }

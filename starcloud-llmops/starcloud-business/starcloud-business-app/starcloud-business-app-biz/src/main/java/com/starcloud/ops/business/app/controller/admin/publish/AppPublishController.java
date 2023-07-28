@@ -47,7 +47,7 @@ public class AppPublishController {
     @Operation(summary = "根据 UID 获得发布记录详情", description = "根据 UID 获得发布记录详情")
     @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<AppPublishRespVO> get(@Parameter(name = "uid", description = "发布 UID") @PathVariable("uid") String uid) {
-        return CommonResult.success(appPublishService.getByUid(uid));
+        return CommonResult.success(appPublishService.get(uid));
     }
 
     @PostMapping("/create")

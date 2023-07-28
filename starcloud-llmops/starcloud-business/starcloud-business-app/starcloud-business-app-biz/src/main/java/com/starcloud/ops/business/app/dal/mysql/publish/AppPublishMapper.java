@@ -42,7 +42,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         // MODEL
         wrapper.eq(StringUtils.isNotBlank(query.getModel()), AppPublishDO::getModel, query.getModel());
         // 审核状态 只允许查询已审核通过和已拒绝的发布记录
-        if (query.getAudit() != null ) {
+        if (query.getAudit() != null) {
             if (Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), query.getAudit()) ||
                     Objects.equals(AppPublishAuditEnum.REJECTED.getCode(), query.getAudit())) {
                 wrapper.eq(AppPublishDO::getAudit, query.getAudit());
@@ -75,7 +75,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
      * @param uid 发布 UID
      * @return 应用发布记录
      */
-    default AppPublishDO getByUid(String uid, boolean isSimple) {
+    default AppPublishDO get(String uid, boolean isSimple) {
         LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(isSimple);
         wrapper.eq(AppPublishDO::getUid, uid);
         return this.selectOne(wrapper);
@@ -107,17 +107,19 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         if (!isSimple) {
             return wrapper;
         }
-        wrapper.select(AppPublishDO::getUid);
-        wrapper.select(AppPublishDO::getAppUid);
-        wrapper.select(AppPublishDO::getMarketUid);
-        wrapper.select(AppPublishDO::getName);
-        wrapper.select(AppPublishDO::getModel);
-        wrapper.select(AppPublishDO::getVersion);
-        wrapper.select(AppPublishDO::getCategories);
-        wrapper.select(AppPublishDO::getLanguage);
-        wrapper.select(AppPublishDO::getAudit);
-        wrapper.select(AppPublishDO::getCreateTime);
-        wrapper.select(AppPublishDO::getUpdateTime);
+        wrapper.select(
+                AppPublishDO::getUid,
+                AppPublishDO::getAppUid,
+                AppPublishDO::getMarketUid,
+                AppPublishDO::getName,
+                AppPublishDO::getModel,
+                AppPublishDO::getVersion,
+                AppPublishDO::getCategories,
+                AppPublishDO::getLanguage,
+                AppPublishDO::getAudit,
+                AppPublishDO::getCreateTime,
+                AppPublishDO::getUpdateTime
+        );
         return wrapper;
     }
 

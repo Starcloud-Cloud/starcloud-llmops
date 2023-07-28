@@ -38,7 +38,7 @@ public interface AppPublishService {
      * @param uid 发布 UID
      * @return 应用发布响应
      */
-    AppPublishRespVO getByUid(String uid);
+    AppPublishRespVO get(String uid);
 
     /**
      * 创建一条应用发布记录

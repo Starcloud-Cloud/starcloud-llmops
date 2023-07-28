@@ -103,4 +103,10 @@ public class AppPublishRespVO implements Serializable {
     @Schema(description = "修改时间")
     private LocalDateTime updateTime;
 
+    /**
+     * 应用最后更新时间
+     */
+    @Schema(description = "应用最后更新时间")
+    private LocalDateTime appLastUpdateTime;
+
 }

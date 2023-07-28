@@ -113,7 +113,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 转换并且返回应用数据
         appMarketDO.setViewCount(viewCount);
         AppMarketRespVO appMarketRespVO = AppMarketConvert.INSTANCE.convertResp(appMarketDO);
-        appMarketRespVO.setInstallStatus(installedRespVO);
+        appMarketRespVO.setInstallInfo(installedRespVO);
         return appMarketRespVO;
     }
 

@@ -39,7 +39,7 @@ public interface AppService {
      *
      * @return 模版列表
      */
-    List<AppRespVO> listRecommendedApps();
+    List<AppRespVO> listRecommendedApps(String model);
 
     /**
      * 查询推荐的应用详情
@@ -99,5 +99,10 @@ public interface AppService {
      * @param uid 应用 UID
      */
     void delete(String uid);
+
+    /**
+     * 获取最新的wxmp聊天应用Uid
+     */
+    AppRespVO getRecently(Long userId);
 
 }

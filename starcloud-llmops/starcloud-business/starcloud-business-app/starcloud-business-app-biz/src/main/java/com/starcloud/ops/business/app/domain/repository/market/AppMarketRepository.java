@@ -50,13 +50,7 @@ public class AppMarketRepository {
      * @param appMarketEntity 应用实体
      */
     public void update(AppMarketEntity appMarketEntity) {
-        // 判断应用是否存在, 不存在无法修改
-        AppMarketDO appMarketDO = appMarketMapper.get(appMarketEntity.getUid(), Boolean.TRUE);
-        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, appMarketEntity.getUid());
-
-        // 应用实体转换为应用 DO
         AppMarketDO appMarket = AppMarketConvert.INSTANCE.convert(appMarketEntity);
-        appMarket.setId(appMarketDO.getId());
         appMarketMapper.modify(appMarket);
     }
 

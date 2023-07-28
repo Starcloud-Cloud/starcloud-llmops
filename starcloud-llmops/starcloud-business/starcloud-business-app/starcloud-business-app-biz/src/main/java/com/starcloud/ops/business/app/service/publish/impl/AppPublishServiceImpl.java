@@ -89,9 +89,16 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @return 应用发布响应
      */
     @Override
-    public AppPublishRespVO getByUid(String uid) {
-        AppPublishDO appPublish = appPublishMapper.getByUid(uid, Boolean.FALSE);
+    public AppPublishRespVO get(String uid) {
+        // 查询发布记录
+        AppPublishDO appPublish = appPublishMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, uid);
+
+        // 查询应用详情
+//        AppDO appDO = appMapper.get(appPublish.getAppUid(), Boolean.TRUE);
+//        AppValidate.notNull(appDO, ErrorCodeConstants.APP_NO_EXISTS_UID, appPublish.getAppUid());
+//        AppPublishRespVO response = AppPublishConverter.INSTANCE.convert(appPublish);
+//        response.setAppLastUpdateTime(appDO.getUpdateTime());
         return AppPublishConverter.INSTANCE.convert(appPublish);
     }
 
@@ -143,7 +150,7 @@ public class AppPublishServiceImpl implements AppPublishService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED);
         }
         // 查询发布记录
-        AppPublishDO appPublish = appPublishMapper.getByUid(uid, Boolean.FALSE);
+        AppPublishDO appPublish = appPublishMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, uid);
 
         // 如果审核通过

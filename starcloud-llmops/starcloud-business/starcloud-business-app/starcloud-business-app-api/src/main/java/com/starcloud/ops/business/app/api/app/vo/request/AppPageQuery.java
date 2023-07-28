@@ -32,11 +32,17 @@ public class AppPageQuery extends PageQuery {
     private String name;
 
     /**
+     * 应用模型
+     */
+    @Schema(description = "应用类型")
+    private String model;
+
+    /**
      * 应用类型
      */
     @Schema(description = "应用类型")
     private String type;
-
+    
     /**
      * 应用标签
      */

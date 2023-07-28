@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
@@ -20,6 +22,9 @@ import com.starcloud.ops.business.app.domain.recommend.RecommendedAppCache;
 import com.starcloud.ops.business.app.domain.recommend.RecommendedStepWrapperFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -89,8 +94,8 @@ public class AppServiceImpl implements AppService {
      * @return 应用列表
      */
     @Override
-    public List<AppRespVO> listRecommendedApps() {
-        return RecommendedAppCache.get();
+    public List<AppRespVO> listRecommendedApps(String model) {
+        return RecommendedAppCache.get(model);
     }
 
     /**
@@ -186,4 +191,22 @@ public class AppServiceImpl implements AppService {
         appMapper.delete(uid);
     }
 
+    /**
+     * 获取最新的wxmp聊天应用Uid
+     */
+    @Override
+    public AppRespVO getRecently(Long userId) {
+        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class)
+                .eq(AppDO::getSource, AppSourceEnum.WX_WP.name())
+                .eq(AppDO::getModel, AppModelEnum.CHAT.name())
+                .eq(AppDO::getType, AppTypeEnum.MYSELF.name())
+                .eq(AppDO::getCreator, userId)
+                .orderByDesc(AppDO::getUpdateTime)
+                .last("limit 1");
+        AppDO appDO = appMapper.selectOne(wrapper);
+        if (appDO == null) {
+            return null;
+        }
+        return AppConvert.INSTANCE.convertResp(appMapper.selectOne(wrapper));
+    }
 }

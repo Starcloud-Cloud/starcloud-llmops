@@ -32,7 +32,7 @@ public class AppRepository {
     public BaseAppEntity getByUid(String uid) {
         AppDO app = appMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return AppConvert.INSTANCE.convert(app);
+        return AppConvert.INSTANCE.convert(app, Boolean.FALSE);
     }
 
     /**
@@ -52,12 +52,7 @@ public class AppRepository {
      */
 
     public void update(BaseAppEntity appEntity) {
-        // 判断应用是否存在, 不存在无法修改
-        AppDO app = appMapper.get(appEntity.getUid(), Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, appEntity.getUid());
-
         AppDO appDO = AppConvert.INSTANCE.convert(appEntity);
-        appDO.setId(app.getId());
         appMapper.modify(appDO);
     }
 

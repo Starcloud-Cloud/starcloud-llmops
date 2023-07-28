@@ -50,7 +50,7 @@ public class AppMarketController {
     }
 
     @GetMapping("/get/{uid}")
-    @Operation(summary = "根据 UID 和版本号 获得应用详情", description = "根据 UID 获取应用详情")
+    @Operation(summary = "根据 UID 获得应用详情", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<AppMarketRespVO> get(@PathVariable("uid") String uid) {
         return CommonResult.success(appMarketService.get(uid));

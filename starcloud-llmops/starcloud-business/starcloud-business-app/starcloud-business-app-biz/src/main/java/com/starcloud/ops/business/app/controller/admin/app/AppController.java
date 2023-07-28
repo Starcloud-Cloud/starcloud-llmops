@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -59,8 +60,8 @@ public class AppController {
     @GetMapping("/recommends")
     @Operation(summary = "查询推荐的应用列表", description = "查询推荐的应用列表")
     @ApiOperationSupport(order = 10, author = "nacoyer")
-    public CommonResult<List<AppRespVO>> recommends() {
-        return CommonResult.success(appService.listRecommendedApps());
+    public CommonResult<List<AppRespVO>> recommends(@RequestParam(value = "model", required = false) String model) {
+        return CommonResult.success(appService.listRecommendedApps(model));
     }
 
     @GetMapping("/getRecommendApp/{uid}")

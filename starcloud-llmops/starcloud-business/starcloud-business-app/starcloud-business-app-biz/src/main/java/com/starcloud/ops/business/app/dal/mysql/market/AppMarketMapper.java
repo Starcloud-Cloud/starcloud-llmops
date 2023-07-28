@@ -84,8 +84,15 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
      * @return 应用市场
      */
     default AppMarketDO modify(AppMarketDO appMarket) {
-        // 校验应用名称是否重复
-        AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        // 判断应用是否存在, 不存在无法修改
+        AppMarketDO appMarketDO = this.get(appMarket.getUid(), Boolean.TRUE);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, appMarket.getUid());
+        // 名称修改了, 则需要校验名称是否重复
+        if (!appMarket.getName().equals(appMarketDO.getName())) {
+            AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        }
+        appMarket.setDeleted(Boolean.FALSE);
+        appMarket.setId(appMarketDO.getId());
         this.updateById(appMarket);
         return appMarket;
     }
@@ -122,22 +129,24 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         if (!isSimple) {
             return wrapper;
         }
-        wrapper.select(AppMarketDO::getId);
-        wrapper.select(AppMarketDO::getUid);
-        wrapper.select(AppMarketDO::getName);
-        wrapper.select(AppMarketDO::getModel);
-        wrapper.select(AppMarketDO::getVersion);
-        wrapper.select(AppMarketDO::getLanguage);
-        wrapper.select(AppMarketDO::getCategories);
-        wrapper.select(AppMarketDO::getScenes);
-        wrapper.select(AppMarketDO::getImages);
-        wrapper.select(AppMarketDO::getFree);
-        wrapper.select(AppMarketDO::getCost);
-        wrapper.select(AppMarketDO::getUsageCount);
-        wrapper.select(AppMarketDO::getViewCount);
-        wrapper.select(AppMarketDO::getLikeCount);
-        wrapper.select(AppMarketDO::getInstallCount);
-        wrapper.select(AppMarketDO::getCreateTime);
+        wrapper.select(
+                AppMarketDO::getId,
+                AppMarketDO::getUid,
+                AppMarketDO::getName,
+                AppMarketDO::getModel,
+                AppMarketDO::getVersion,
+                AppMarketDO::getLanguage,
+                AppMarketDO::getCategories,
+                AppMarketDO::getScenes,
+                AppMarketDO::getImages,
+                AppMarketDO::getFree,
+                AppMarketDO::getCost,
+                AppMarketDO::getUsageCount,
+                AppMarketDO::getViewCount,
+                AppMarketDO::getLikeCount,
+                AppMarketDO::getInstallCount,
+                AppMarketDO::getCreateTime
+        );
         return wrapper;
     }
 }

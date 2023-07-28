@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.app.AppUtils;
@@ -38,9 +39,14 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      */
     default Page<AppDO> page(AppPageQuery query) {
         // 构建查询条件
-        LambdaQueryWrapper<AppDO> wrapper = queryWrapper(Boolean.TRUE)
-                .likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName())
-                .orderByDesc(AppDO::getCreateTime);
+        LambdaQueryWrapper<AppDO> wrapper = queryWrapper(Boolean.TRUE);
+        wrapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
+        if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
+            wrapper.eq(AppDO::getModel, AppModelEnum.CHAT.name());
+        } else {
+            wrapper.ne(AppDO::getModel, AppModelEnum.CHAT.name());
+        }
+        wrapper.orderByDesc(AppDO::getCreateTime);
         return this.selectPage(PageUtil.page(query), wrapper);
     }
 
@@ -81,9 +87,15 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      * @return 应用市场
      */
     default AppDO modify(AppDO appDO) {
-        // 校验应用名称是否重复
-        AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        // 判断应用是否存在, 不存在无法修改
+        AppDO app = this.get(appDO.getUid(), Boolean.TRUE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, appDO.getUid());
+        // 名称修改了，需要校验名称是否重复
+        if (!app.getName().equals(appDO.getName())) {
+            AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        }
         appDO.setDeleted(Boolean.FALSE);
+        appDO.setId(app.getId());
         this.updateById(appDO);
         return appDO;
     }
@@ -124,9 +136,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
 
          */
         LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class);
-        wrapper.select(AppDO::getUid);
-        wrapper.select(AppDO::getInstallUid);
-        wrapper.select(AppDO::getPublishUid);
+        wrapper.select(AppDO::getUid, AppDO::getInstallUid, AppDO::getPublishUid);
         wrapper.eq(AppDO::getCreator, userId);
         wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
         wrapper.and(and -> and
@@ -156,21 +166,23 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         if (!isSimple) {
             return wrapper;
         }
-        wrapper.select(AppDO::getId);
-        wrapper.select(AppDO::getUid);
-        wrapper.select(AppDO::getName);
-        wrapper.select(AppDO::getType);
-        wrapper.select(AppDO::getModel);
-        wrapper.select(AppDO::getSource);
-        wrapper.select(AppDO::getTags);
-        wrapper.select(AppDO::getCategories);
-        wrapper.select(AppDO::getScenes);
-        wrapper.select(AppDO::getIcon);
-        wrapper.select(AppDO::getDescription);
-        wrapper.select(AppDO::getPublishUid);
-        wrapper.select(AppDO::getInstallUid);
-        wrapper.select(AppDO::getCreateTime);
-        wrapper.select(AppDO::getUpdateTime);
+        wrapper.select(
+                AppDO::getId,
+                AppDO::getUid,
+                AppDO::getName,
+                AppDO::getType,
+                AppDO::getModel,
+                AppDO::getSource,
+                AppDO::getTags,
+                AppDO::getCategories,
+                AppDO::getScenes,
+                AppDO::getIcon,
+                AppDO::getDescription,
+                AppDO::getPublishUid,
+                AppDO::getInstallUid,
+                AppDO::getCreateTime,
+                AppDO::getUpdateTime
+        );
         return wrapper;
     }
 
