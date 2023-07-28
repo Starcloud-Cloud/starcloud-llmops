@@ -155,7 +155,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         // 更新我的应用的发布 UID
         LambdaUpdateWrapper<AppDO> appUpdateWrapper = Wrappers.lambdaUpdate(AppDO.class);
         appUpdateWrapper.eq(AppDO::getUid, appPublish.getAppUid());
-        appUpdateWrapper.set(AppDO::getPublishUid, appPublish.getUid());
+        appUpdateWrapper.set(AppDO::getPublishUid, AppUtils.generateUid(appPublish.getMarketUid(), appPublish.getVersion()));
         appMapper.update(null, appUpdateWrapper);
 
         // 更新发布记录

@@ -29,7 +29,6 @@ import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
@@ -88,6 +87,7 @@ public class AppMarketServiceImpl implements AppMarketService {
      * @return 应用详情
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public AppMarketRespVO get(String uid) {
         AppValidate.notBlank(uid, ErrorCodeConstants.APP_MARKET_UID_REQUIRED);
         // 查询应用市场信息
@@ -98,13 +98,16 @@ public class AppMarketServiceImpl implements AppMarketService {
         if (loginUserId == null) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
         }
+
+        // 获取当前用户是否安装了该应用的信息
         InstalledRespVO installedRespVO = appMapper.verifyHasInstalled(appMarketDO.getUid(), Long.toString(loginUserId));
 
-        // 查看详情时候，会增加应用的查看量
+        // 操作表中插入一条查看记录, 并且增加查看量
+        appOperateMapper.create(appMarketDO.getUid(), appMarketDO.getVersion(), AppOperateTypeEnum.VIEW.name(), Long.toString(loginUserId));
         Integer viewCount = appMarketDO.getViewCount() + 1;
-        LambdaUpdateWrapper<AppMarketDO> updateWrapper = Wrappers.lambdaUpdate(AppMarketDO.class)
-                .set(AppMarketDO::getViewCount, appMarketDO.getViewCount() + 1)
-                .eq(AppMarketDO::getId, appMarketDO.getId());
+        LambdaUpdateWrapper<AppMarketDO> updateWrapper = Wrappers.lambdaUpdate(AppMarketDO.class);
+        updateWrapper.set(AppMarketDO::getViewCount, viewCount);
+        updateWrapper.eq(AppMarketDO::getId, appMarketDO.getId());
         appMarketMapper.update(null, updateWrapper);
 
         // 转换并且返回应用数据
@@ -163,20 +166,18 @@ public class AppMarketServiceImpl implements AppMarketService {
 
         // 2. 查询应用市场应用并且校验
         AppMarketDO appMarket = appMarketMapper.get(request.getUid(), Boolean.FALSE);
+        AppValidate.notNull(appMarket, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, request.getUid());
 
         // 3. 校验当前用户是否已经安装过该用户, 如果安装过，抛出异常
         InstalledRespVO installed = appMapper.verifyHasInstalled(request.getUid(), Long.toString(loginUserId));
-        AppValidate.isTrue(!AppInstallStatusEnum.UNINSTALLED.name().equals(installed.getInstallStatus()),
-                ErrorCodeConstants.APP_HAS_BEEN_INSTALLED);
+        AppValidate.isTrue(InstalledRespVO.isInstalled(installed), ErrorCodeConstants.APP_HAS_BEEN_INSTALLED);
 
         // 4. 说明没有安装过，需要安装
         AppEntity appEntity = AppConvert.INSTANCE.convert(appMarket);
         appEntity.insert();
 
         // 5. 操作表中插入一条数据
-        AppOperateDO appOperateDO = AppOperateConvert.INSTANCE.convert(appMarket.getUid(), appMarket.getVersion(),
-                AppOperateTypeEnum.INSTALLED.name());
-        appOperateMapper.insert(appOperateDO);
+        appOperateMapper.create(appMarket.getUid(), appMarket.getVersion(), AppOperateTypeEnum.INSTALLED.name(), Long.toString(loginUserId));
 
         // 6. 更新应用的安装量
         AppMarketDO updateAppMarketDO = new AppMarketDO();

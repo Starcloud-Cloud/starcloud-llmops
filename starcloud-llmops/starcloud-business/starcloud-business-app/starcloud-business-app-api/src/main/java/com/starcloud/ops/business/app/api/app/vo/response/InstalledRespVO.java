@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,7 +27,7 @@ public class InstalledRespVO implements Serializable {
      * 是否已安装
      */
     @Schema(description = "安装状态：UNINSTALLED：未安装，INSTALLED：已安装，UPDATE: 需要更新")
-    private String installStatus;
+    private String status;
 
     /**
      * 旧的版本
@@ -50,10 +51,29 @@ public class InstalledRespVO implements Serializable {
      */
     public static InstalledRespVO of(String installStatus, Integer oldVersion, Integer newVersion) {
         InstalledRespVO installedRespVO = new InstalledRespVO();
-        installedRespVO.setInstallStatus(installStatus);
+        installedRespVO.setStatus(installStatus);
         installedRespVO.setOldVersion(oldVersion);
         installedRespVO.setNewVersion(newVersion);
         return installedRespVO;
     }
 
+    /**
+     * 判断应用是否已安装
+     *
+     * @param installedRespVO 已安装的应用状态信息
+     * @return true: 已安装，false: 未安装
+     */
+    public static boolean isInstalled(InstalledRespVO installedRespVO) {
+        return AppInstallStatusEnum.INSTALLED.name().equals(installedRespVO.getStatus());
+    }
+
+    /**
+     * 判断应用是否需要更新
+     *
+     * @param installedRespVO 已安装的应用状态信息
+     * @return true: 需要更新，false: 不需要更新
+     */
+    public static boolean isUpdate(InstalledRespVO installedRespVO) {
+        return AppInstallStatusEnum.UPDATE.name().equals(installedRespVO.getStatus());
+    }
 }

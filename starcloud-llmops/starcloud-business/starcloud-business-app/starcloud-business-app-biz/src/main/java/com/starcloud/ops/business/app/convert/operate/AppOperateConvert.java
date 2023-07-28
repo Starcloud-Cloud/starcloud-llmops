@@ -46,13 +46,9 @@ public interface AppOperateConvert {
      * @param operateType 操作类型
      * @return TemplateOperateDO
      */
-    default AppOperateDO convert(String uid, Integer version, String operateType) {
+    default AppOperateDO convert(String uid, Integer version, String operateType, String userId) {
         AppOperateDO operate = new AppOperateDO();
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        if (loginUserId == null) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
-        }
-        operate.setUser(Long.toString(loginUserId));
+        operate.setUser(userId);
         operate.setAppUid(uid);
         operate.setVersion(version);
         operate.setOperate(operateType);

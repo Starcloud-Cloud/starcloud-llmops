@@ -116,16 +116,24 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      * @return 安装状态
      */
     default InstalledRespVO verifyHasInstalled(String marketUid, String userId) {
-        // 查询应用是否已经安装; INSTALLED 的时候，比较 installUid，PUBLISHED 的时候，比较 publishUid
-        // 因为发布过的应用也不应该可以再次安装，如果两个都有值，说明用户先是安装了应用，然后发布了应用，这个时候，应该是已经安装的
-        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class)
-                .select(AppDO::getUid, AppDO::getInstallUid, AppDO::getPublishUid)
-                .eq(AppDO::getCreator, userId)
-                .and(and -> and
-                        .likeLeft(AppDO::getInstallUid, marketUid).eq(AppDO::getType, AppTypeEnum.INSTALLED.name())
-                        .or()
-                        .likeLeft(AppDO::getPublishUid, marketUid).eq(AppDO::getType, AppTypeEnum.PUBLISHED.name())
-                );
+        /*
+            1. 当前用户，
+            2. 未删除，
+            3. 已经发布的应用
+            4. 已经安装的应用
+
+         */
+        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class);
+        wrapper.select(AppDO::getUid);
+        wrapper.select(AppDO::getInstallUid);
+        wrapper.select(AppDO::getPublishUid);
+        wrapper.eq(AppDO::getCreator, userId);
+        wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
+        wrapper.and(and -> and
+                .likeLeft(AppDO::getPublishUid, marketUid)
+                .or()
+                .likeLeft(AppDO::getInstallUid, marketUid).eq(AppDO::getType, AppTypeEnum.INSTALLED.name())
+        );
 
         AppDO appDO = this.selectOne(wrapper);
         if (Objects.isNull(appDO)) {
