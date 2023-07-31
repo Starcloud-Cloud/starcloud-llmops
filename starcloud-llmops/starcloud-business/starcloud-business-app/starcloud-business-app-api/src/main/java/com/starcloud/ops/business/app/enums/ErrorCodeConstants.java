@@ -140,4 +140,9 @@ public interface ErrorCodeConstants {
      * 应用发布记录不存在
      */
     ErrorCode APP_PUBLISH_APP_INFO_NOT_FOUND = new ErrorCode(300400004, "The app publish info is not exists!");
+
+    /**
+     * 重复发布
+     */
+    ErrorCode APP_PUBLISH_DUPLICATE = new ErrorCode(300400006, "The app has been published, please cancel the publish and try again !");
 }

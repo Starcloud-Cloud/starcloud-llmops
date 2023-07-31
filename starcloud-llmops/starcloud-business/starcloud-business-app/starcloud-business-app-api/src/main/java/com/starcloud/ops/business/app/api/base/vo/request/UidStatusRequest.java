@@ -32,6 +32,13 @@ public class UidStatusRequest implements Serializable {
     private String uid;
 
     /**
+     * 应用 uid
+     */
+    @Schema(description = "app uid")
+    @NotBlank(message = "App UID 不能为空")
+    private String appUid;
+
+    /**
      * 状态
      */
     @Schema(description = "状态")

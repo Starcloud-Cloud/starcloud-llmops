@@ -5,9 +5,11 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishAuditRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.publish.AppPublishConverter;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -93,13 +96,63 @@ public class AppPublishServiceImpl implements AppPublishService {
         // 查询发布记录
         AppPublishDO appPublish = appPublishMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, uid);
-
-        // 查询应用详情
-//        AppDO appDO = appMapper.get(appPublish.getAppUid(), Boolean.TRUE);
-//        AppValidate.notNull(appDO, ErrorCodeConstants.APP_NO_EXISTS_UID, appPublish.getAppUid());
-//        AppPublishRespVO response = AppPublishConverter.INSTANCE.convert(appPublish);
-//        response.setAppLastUpdateTime(appDO.getUpdateTime());
         return AppPublishConverter.INSTANCE.convert(appPublish);
+    }
+
+    /**
+     * 根据应用 UID 查询应用发布记录
+     *
+     * @param appUid 应用 UID
+     * @return 应用发布响应
+     */
+    @Override
+    public AppPublishAuditRespVO getAuditByAppUid(String appUid) {
+        AppPublishAuditRespVO response = new AppPublishAuditRespVO();
+        List<AppPublishDO> publishList = appPublishMapper.listByAppUid(appUid);
+        // 不存在发布记录, 则返回 null， 说明应用未发布过
+        if (CollectionUtil.isEmpty(publishList)) {
+            response.setAppUid(appUid);
+            response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
+            return response;
+        }
+
+        // 存在待审核的发布记录, 则返回该记录
+        Optional<AppPublishDO> pendingPublishOptional = publishList.stream()
+                .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).findFirst();
+        if (pendingPublishOptional.isPresent()) {
+            AppPublishDO pendingPublish = pendingPublishOptional.get();
+            response.setAudit(AppPublishAuditEnum.PENDING.getCode());
+            response.setUid(pendingPublish.getUid());
+            response.setAppUid(appUid);
+            response.setUpdateTime(pendingPublish.getUpdateTime());
+            return response;
+        }
+
+        // 存在已发布的记录, 则返回该记录
+        Optional<AppPublishDO> approvedPublishOptional = publishList.stream()
+                .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode())).findFirst();
+        if (approvedPublishOptional.isPresent()) {
+            AppPublishDO approvedPublish = approvedPublishOptional.get();
+            response.setAudit(AppPublishAuditEnum.APPROVED.getCode());
+            response.setUid(approvedPublish.getUid());
+            response.setAppUid(appUid);
+            response.setUpdateTime(approvedPublish.getUpdateTime());
+            return response;
+        }
+
+        // 否则直接返回最新一条条发布记录的状态, 并且把 audit 变为 已经取消
+        AppPublishDO first = publishList.get(0);
+        // 如果是未发布状态, 则直接返回未发布
+        if (Objects.equals(first.getAudit(), AppPublishAuditEnum.UN_PUBLISH.getCode())) {
+            response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
+        } else {
+            // 否则返回已经取消
+            response.setAudit(AppPublishAuditEnum.CANCELED.getCode());
+        }
+        response.setUid(first.getUid());
+        response.setAppUid(appUid);
+        response.setUpdateTime(first.getUpdateTime());
+        return response;
     }
 
     /**
@@ -126,9 +179,9 @@ public class AppPublishServiceImpl implements AppPublishService {
             // 版本号递增
             appPublish.setVersion(AppUtils.nextVersion(lastAppPublish.getVersion()));
             appPublish.setMarketUid(lastAppPublish.getMarketUid());
-            // 如果最新发布应用处于审核中，将最新发布状态改为已失效
+            // 如果最新发布应用处于审核中，将最新发布状态改为已取消
             if (Objects.equals(AppPublishAuditEnum.PENDING.getCode(), lastAppPublish.getAudit())) {
-                appPublishMapper.audit(lastAppPublish.getUid(), AppPublishAuditEnum.INVALID.getCode());
+                appPublishMapper.audit(lastAppPublish.getUid(), AppPublishAuditEnum.CANCELED.getCode());
             }
         }
         // 保存应用发布记录
@@ -139,22 +192,22 @@ public class AppPublishServiceImpl implements AppPublishService {
     /**
      * 管理员只能审核通过或者审核拒绝
      *
-     * @param uid   发布 UID
-     * @param audit 审核状态
+     * @param request 请求参数
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void audit(String uid, Integer audit) {
+    public void audit(UidStatusRequest request) {
         // 校验审核状态
-        if (!Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), audit) || !Objects.equals(AppPublishAuditEnum.REJECTED.getCode(), audit)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED);
+        if (!Objects.equals(request.getStatus(), AppPublishAuditEnum.APPROVED.getCode()) &&
+                !Objects.equals(request.getStatus(), AppPublishAuditEnum.REJECTED.getCode())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
         }
         // 查询发布记录
-        AppPublishDO appPublish = appPublishMapper.get(uid, Boolean.FALSE);
-        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, uid);
+        AppPublishDO appPublish = appPublishMapper.get(request.getUid(), Boolean.FALSE);
+        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, request.getUid());
 
         // 如果审核通过
-        if (Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), audit)) {
+        if (Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), request.getStatus())) {
             AppMarketDO appMarketDO = this.handlerMarketApp(appPublish);
             appPublish.setMarketUid(appMarketDO.getUid());
         }
@@ -167,8 +220,8 @@ public class AppPublishServiceImpl implements AppPublishService {
 
         // 更新发布记录
         LambdaUpdateWrapper<AppPublishDO> publishUpdateWrapper = Wrappers.lambdaUpdate(AppPublishDO.class);
-        publishUpdateWrapper.eq(AppPublishDO::getUid, uid);
-        publishUpdateWrapper.set(AppPublishDO::getAudit, audit);
+        publishUpdateWrapper.eq(AppPublishDO::getUid, request.getUid());
+        publishUpdateWrapper.set(AppPublishDO::getAudit, request.getStatus());
         publishUpdateWrapper.set(AppPublishDO::getMarketUid, appPublish.getMarketUid());
         appPublishMapper.update(null, publishUpdateWrapper);
     }
@@ -176,16 +229,29 @@ public class AppPublishServiceImpl implements AppPublishService {
     /**
      * 提供给用户的接口，用于取消发布到模版市场和重新发布到模版市场
      *
-     * @param uid   发布 UID
-     * @param audit 审核状态
+     * @param request 应用 request
      */
     @Override
-    public void operate(String uid, Integer audit) {
+    public void operate(UidStatusRequest request) {
         // 校验审核状态
-        if (!Objects.equals(AppPublishAuditEnum.CANCELED.getCode(), audit) || !Objects.equals(AppPublishAuditEnum.PENDING.getCode(), audit)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED);
+        if (!Objects.equals(request.getStatus(), AppPublishAuditEnum.CANCELED.getCode()) &&
+                !Objects.equals(request.getStatus(), AppPublishAuditEnum.PENDING.getCode())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
         }
-        appPublishMapper.audit(uid, audit);
+
+        // 如果是重新发布, 则校验是否存在待审核的发布记录, 如果存在, 则不允许重新发布
+        if (Objects.equals(request.getStatus(), AppPublishAuditEnum.PENDING.getCode())) {
+            List<AppPublishDO> publishList = appPublishMapper.listByAppUid(request.getAppUid());
+            // 存在待审核的发布记录, 则不允许重新发布
+            Optional<AppPublishDO> pendingPublishOptional = publishList.stream()
+                    .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).findAny();
+            if (pendingPublishOptional.isPresent()) {
+                AppPublishDO pendingPublish = pendingPublishOptional.get();
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_DUPLICATE, pendingPublish.getUid());
+            }
+        }
+
+        appPublishMapper.audit(request.getUid(), request.getStatus());
     }
 
     /**

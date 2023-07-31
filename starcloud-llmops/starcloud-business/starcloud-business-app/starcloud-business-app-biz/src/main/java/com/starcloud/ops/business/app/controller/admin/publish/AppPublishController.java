@@ -5,9 +5,11 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishAuditRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
+import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,10 +38,19 @@ public class AppPublishController {
     @Resource
     private AppPublishService appPublishService;
 
+    @GetMapping("/pageAdmin")
+    @Operation(summary = "管理审核发布分页查询发布记录", description = "管理审核发布分页查询发布记录")
+    @ApiOperationSupport(order = 1, author = "nacoyer")
+    public CommonResult<PageResp<AppPublishRespVO>> pageAdmin(@Validated AppPublishPageReqVO query) {
+        query.setIsAdmin(Boolean.TRUE);
+        return CommonResult.success(appPublishService.page(query));
+    }
+
     @GetMapping("/page")
     @Operation(summary = "分页查询发布记录", description = "分页查询发布记录")
     @ApiOperationSupport(order = 5, author = "nacoyer")
     public CommonResult<PageResp<AppPublishRespVO>> page(@Validated AppPublishPageReqVO query) {
+        query.setIsAdmin(Boolean.FALSE);
         return CommonResult.success(appPublishService.page(query));
     }
 
@@ -50,27 +61,34 @@ public class AppPublishController {
         return CommonResult.success(appPublishService.get(uid));
     }
 
+    @GetMapping("/getAuditByAppUid/{appUid}")
+    @Operation(summary = "根据 应用UID 获得发布状态详情", description = "根据 应用UID 获得发布状态详情")
+    @ApiOperationSupport(order = 15, author = "nacoyer")
+    public CommonResult<AppPublishAuditRespVO> getAuditByAppUid(@Parameter(name = "appUid", description = "应用 UID") @PathVariable("appUid") String appUid) {
+        return CommonResult.success(appPublishService.getAuditByAppUid(appUid));
+    }
+
     @PostMapping("/create")
     @Operation(summary = "创建应用发布记录", description = "创建应用发布记录")
-    @ApiOperationSupport(order = 15, author = "nacoyer")
-    public CommonResult<Boolean> create(@Validated @RequestBody AppPublishReqVO request) {
-        appPublishService.create(request);
-        return CommonResult.success(Boolean.TRUE);
+    @ApiOperationSupport(order = 20, author = "nacoyer")
+    public CommonResult<AppPublishRespVO> create(@Validated @RequestBody AppPublishReqVO request) {
+        request.setLanguage(LanguageEnum.ZH_CN.getCode());
+        return CommonResult.success(appPublishService.create(request));
     }
 
     @PostMapping("/audit")
     @Operation(summary = "审核发布记录", description = "审核发布记录")
-    @ApiOperationSupport(order = 20, author = "nacoyer")
+    @ApiOperationSupport(order = 25, author = "nacoyer")
     public CommonResult<Boolean> audit(@Validated @RequestBody UidStatusRequest request) {
-        appPublishService.audit(request.getUid(), request.getStatus());
+        appPublishService.audit(request);
         return CommonResult.success(Boolean.TRUE);
     }
 
     @PostMapping("/operate")
     @Operation(summary = "操作发布记录", description = "操作发布记录")
-    @ApiOperationSupport(order = 25, author = "nacoyer")
+    @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<Boolean> operate(@Validated @RequestBody UidStatusRequest request) {
-        appPublishService.operate(request.getUid(), request.getStatus());
+        appPublishService.operate(request);
         return CommonResult.success(Boolean.TRUE);
     }
 

@@ -63,7 +63,7 @@ public interface AppPublishConverter {
         String appInfo = appPublishDO.getAppInfo();
         if (StringUtils.isNotBlank(appInfo)) {
             AppDO appDO = JSONUtil.toBean(appInfo, AppDO.class);
-            appPublishResponse.setAppInfo(AppConvert.INSTANCE.convertResp(appDO));
+            appPublishResponse.setAppInfo(AppConvert.INSTANCE.convertResponse(appDO));
         }
         appPublishResponse.setDescription(appPublishDO.getDescription());
         appPublishResponse.setAudit(appPublishDO.getAudit());

@@ -41,14 +41,18 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         wrapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppPublishDO::getName, query.getName());
         // MODEL
         wrapper.eq(StringUtils.isNotBlank(query.getModel()), AppPublishDO::getModel, query.getModel());
-        // 审核状态 只允许查询已审核通过和已拒绝的发布记录
-        if (query.getAudit() != null) {
-            if (Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), query.getAudit()) ||
-                    Objects.equals(AppPublishAuditEnum.REJECTED.getCode(), query.getAudit())) {
-                wrapper.eq(AppPublishDO::getAudit, query.getAudit());
+        if (query.getIsAdmin()) {
+            if (query.getAudit() != null) {
+                if (Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), query.getAudit()) ||
+                        Objects.equals(AppPublishAuditEnum.PENDING.getCode(), query.getAudit()) ||
+                        Objects.equals(AppPublishAuditEnum.REJECTED.getCode(), query.getAudit())) {
+                    wrapper.eq(AppPublishDO::getAudit, query.getAudit());
+                }
+            } else {
+                wrapper.in(AppPublishDO::getAudit, AppPublishAuditEnum.APPROVED.getCode(), AppPublishAuditEnum.REJECTED.getCode(), AppPublishAuditEnum.PENDING.getCode());
             }
         } else {
-            wrapper.in(AppPublishDO::getAudit, AppPublishAuditEnum.APPROVED.getCode(), AppPublishAuditEnum.REJECTED.getCode());
+            wrapper.eq(Objects.nonNull(query.getAudit()), AppPublishDO::getAudit, query.getAudit());
         }
         // 排序
         wrapper.orderByDesc(AppPublishDO::getUpdateTime);

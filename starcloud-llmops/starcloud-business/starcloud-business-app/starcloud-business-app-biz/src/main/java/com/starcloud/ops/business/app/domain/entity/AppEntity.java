@@ -179,15 +179,14 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
     }
 
-
     @Override
-    protected void _insert() {
-        getAppRepository().insert(this);
+    protected BaseAppEntity _insert() {
+       return getAppRepository().insert(this);
     }
 
     @Override
-    protected void _update() {
-        getAppRepository().update(this);
+    protected BaseAppEntity _update() {
+        return getAppRepository().update(this);
     }
 
     @Override

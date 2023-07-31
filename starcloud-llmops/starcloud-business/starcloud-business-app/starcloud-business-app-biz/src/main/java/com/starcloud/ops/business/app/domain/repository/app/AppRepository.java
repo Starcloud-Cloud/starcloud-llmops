@@ -40,9 +40,13 @@ public class AppRepository {
      *
      * @param appEntity 应用实体
      */
-    public void insert(BaseAppEntity appEntity) {
+    public BaseAppEntity insert(BaseAppEntity appEntity) {
         AppDO app = AppConvert.INSTANCE.convert(appEntity);
         appMapper.create(app);
+        appEntity.setUid(app.getUid());
+        appEntity.setCreateTime(app.getCreateTime());
+        appEntity.setUpdateTime(app.getUpdateTime());
+        return appEntity;
     }
 
     /**
@@ -51,9 +55,13 @@ public class AppRepository {
      * @param appEntity 应用实体
      */
 
-    public void update(BaseAppEntity appEntity) {
-        AppDO appDO = AppConvert.INSTANCE.convert(appEntity);
-        appMapper.modify(appDO);
+    public BaseAppEntity update(BaseAppEntity appEntity) {
+        AppDO app = AppConvert.INSTANCE.convert(appEntity);
+        appMapper.modify(app);
+        appEntity.setUid(app.getUid());
+        appEntity.setCreateTime(app.getCreateTime());
+        appEntity.setUpdateTime(app.getUpdateTime());
+        return appEntity;
     }
 
 }

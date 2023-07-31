@@ -77,21 +77,21 @@ public interface AppService {
      *
      * @param request 应用请求信息
      */
-    void create(AppReqVO request);
+    AppRespVO create(AppReqVO request);
 
     /**
      * 复制应用
      *
      * @param request 应用请求信息
      */
-    void copy(AppReqVO request);
+    AppRespVO copy(AppReqVO request);
 
     /**
      * 应用模版
      *
      * @param request 应用更新请求信息
      */
-    void modify(AppUpdateReqVO request);
+    AppRespVO modify(AppUpdateReqVO request);
 
     /**
      * 根据应用 UID 删除应用

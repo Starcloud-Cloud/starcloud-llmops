@@ -45,4 +45,7 @@ public class AppPublishPageReqVO extends PageQuery {
     @Schema(description = "审核状态")
     private Integer audit;
 
+    @Schema
+    private Boolean isAdmin;
+
 }

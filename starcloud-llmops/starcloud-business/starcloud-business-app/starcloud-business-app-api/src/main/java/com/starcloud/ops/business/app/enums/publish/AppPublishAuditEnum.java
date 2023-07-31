@@ -21,7 +21,7 @@ public enum AppPublishAuditEnum implements IEnumable<Integer> {
     /**
      * 未审核
      */
-    PENDING(1, "未审核"),
+    PENDING(1, "待审核"),
 
     /**
      * 审核通过
