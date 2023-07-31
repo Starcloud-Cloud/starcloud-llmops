@@ -1,16 +1,12 @@
 package com.starcloud.ops.business.chat.service.impl;
 
-import cn.hutool.Hutool;
-import cn.hutool.core.comparator.CompareUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
-import cn.hutool.json.JSONUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.cognitiveservices.speech.*;
-import com.microsoft.cognitiveservices.speech.audio.AudioConfig;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.ChatVoiceVO;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.SpeakConfigVO;
 import com.starcloud.ops.business.core.config.BusinessChatProperties;
@@ -23,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,6 +36,16 @@ public class AzureVoiceServiceImpl {
 
     @Autowired
     private BusinessChatProperties chatProperties;
+
+
+    public void setEventCompletedConsumer(Consumer<byte[]> eventCompletedConsumer) {
+        this.eventCompletedConsumer = eventCompletedConsumer;
+    }
+
+    /**
+     * 回调实现
+     */
+    private Consumer<byte[]> eventCompletedConsumer;
 
     /**
      * 选中的语音，男女各10各
@@ -143,6 +150,12 @@ public class AzureVoiceServiceImpl {
         this.speakSsml(this.createSsml(text, speakConfigVO));
     }
 
+    @SneakyThrows
+    public void speak(String text, SpeakConfigVO speakConfigVO) {
+
+        this.speakSsml(this.createSsml(text, speakConfigVO));
+    }
+
 
     public void speakSsml(String ssml) throws ExecutionException, InterruptedException {
 
@@ -161,9 +174,15 @@ public class AzureVoiceServiceImpl {
         speechSynthesizer.SynthesisCompleted.addEventListener((o, e) -> {
             SpeechSynthesisResult result = e.getResult();
             byte[] audioData = result.getAudioData();
+
             System.out.println("SynthesisCompleted event:");
             System.out.println("\tAudioData: " + audioData.length + " bytes");
             System.out.println("\tAudioDuration: " + result.getAudioDuration());
+
+            if (this.eventCompletedConsumer != null) {
+                eventCompletedConsumer.accept(audioData);
+            }
+
             result.close();
         });
 
@@ -173,9 +192,6 @@ public class AzureVoiceServiceImpl {
 
         speechSynthesizer.Synthesizing.addEventListener((o, e) -> {
             SpeechSynthesisResult result = e.getResult();
-
-            e.getResult().getAudioDuration();
-
             byte[] audioData = result.getAudioData();
             System.out.println("Synthesizing event:");
             System.out.println("\tAudioData: " + audioData.length + " bytes");
@@ -222,6 +238,9 @@ public class AzureVoiceServiceImpl {
     }
 
     public String createSsml(String text, SpeakConfigVO speakConfigVO) {
+
+        Assert.notBlank(speakConfigVO.getShortName(), "speakConfig shortName is required");
+        Assert.notBlank(text, "speak is fail, The content cannot be empty");
 
         text = createProsody(text, speakConfigVO);
         text = createRole(text, speakConfigVO);

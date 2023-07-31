@@ -1,12 +1,16 @@
 package com.starcloud.ops.business.chat.controller.admin.voices;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.ChatVoiceVO;
+import com.starcloud.ops.business.chat.controller.admin.voices.vo.SpeakConfigVO;
 import com.starcloud.ops.business.chat.service.impl.AzureVoiceServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -17,6 +21,7 @@ import java.util.List;
  * @version 1.0.0
  * @since 2023-05-29
  */
+@Slf4j
 @RestController
 @RequestMapping("/llm/chat/voice")
 @Tag(name = "chat语音管理", description = "chat语音管理")
@@ -27,19 +32,53 @@ public class ChatVoiceController {
 
     @GetMapping("/list")
     @Operation(summary = "查询语音模型列表", description = "查询语音模型列表")
-    public CommonResult<List<ChatVoiceVO>> categories() {
+    public CommonResult<List<ChatVoiceVO>> list() {
 
         return CommonResult.success(null);
     }
 
 
+    @GetMapping("/example")
+    @Operation(summary = "语音事例执行", description = "语音事例执行")
+    public SseEmitter example(@RequestBody SpeakConfigVO speakConfigVO) {
+
+        SseEmitter emitter = new SseEmitter(60000L);
+
+        azureVoiceService.setEventCompletedConsumer((bytes) -> {
+
+            try {
+                emitter.send(bytes);
+            } catch (Exception e) {
+                log.error("example is fail: {}", e.getMessage(), e);
+            }
+        });
+
+        azureVoiceService.speak("魔法AI是一家专注于生成式 AI 领域的科技公司，致力于用前沿的AI技术来创造内容。", speakConfigVO);
+
+        return emitter;
+    }
+
     @PostMapping("/speak")
     @Operation(summary = "消息文本语音生成", description = "消息文本语音生成")
-    public CommonResult<String> speak(String messageUid, String text) {
+    public SseEmitter speak(@RequestBody SpeakConfigVO speakConfigVO, String messageUid, String text) {
 
-        azureVoiceService.speak(text);
+        SseEmitter emitter = new SseEmitter(60000L);
 
-        return CommonResult.success(null);
+        //messageUid 校验合法性
+
+        azureVoiceService.setEventCompletedConsumer((bytes) -> {
+
+            try {
+                emitter.send(bytes);
+            } catch (Exception e) {
+                log.error("example is fail: {}", e.getMessage(), e);
+            }
+
+        });
+
+        azureVoiceService.speak(text, speakConfigVO);
+
+        return emitter;
     }
 
 }
