@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.translator;
 
 import com.aliyun.alimt20181012.Client;
 import com.aliyun.teaopenapi.models.Config;
+import com.starcloud.ops.business.core.config.translate.TranslatorProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
