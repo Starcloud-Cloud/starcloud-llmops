@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,6 +28,27 @@ import java.util.List;
 @Tag(name = "chat语音管理", description = "chat语音管理")
 public class ChatVoiceController {
 
+    private static List<String> showChatVoiceList = new ArrayList<String>() {{
+        add("zh-CN-YunyeNeural");
+        add("zh-CN-YunxiNeural");
+        add("wuu-CN-YunzheNeural");
+        add("zh-TW-YunJheNeural");
+        add("zh-CN-henan-YundengNeural");
+
+        add("zh-CN-XiaoxuanNeural");
+        add("zh-CN-XiaoruiNeural");
+        add("zh-CN-XiaoqiuNeural");
+
+        add("zh-CN-XiaomoNeural");
+        add("zh-CN-XiaoxiaoNeural");
+        add("wuu-CN-XiaotongNeural");
+
+        add("zh-TW-HsiaoChenNeural");
+        add("zh-CN-shaanxi-XiaoniNeural");
+        add("zh-CN-liaoning-XiaobeiNeural");
+
+    }};
+
     @Autowired
     public AzureVoiceServiceImpl azureVoiceService;
 
@@ -34,7 +56,7 @@ public class ChatVoiceController {
     @Operation(summary = "查询语音模型列表", description = "查询语音模型列表")
     public CommonResult<List<ChatVoiceVO>> list() {
 
-        return CommonResult.success(null);
+        return CommonResult.success(azureVoiceService.findVoiceList(showChatVoiceList));
     }
 
 
