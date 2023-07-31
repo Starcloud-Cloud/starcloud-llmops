@@ -3,6 +3,7 @@ package com.starcloud.ops.business.chat.service.impl;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.context.UserContextHolder;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
 import cn.iocoder.yudao.module.mp.service.message.MpMessageService;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
@@ -32,6 +33,8 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL;
 
 @Slf4j
 @Service
@@ -78,6 +81,12 @@ public class WxMpChatServiceImpl implements WxMpChatService {
                     sendMsg(mqUserId, msg);
                 } else {
                     sendMsg(mqUserId, "AI 异常请稍后重试");
+                }
+            } catch (ServiceException e) {
+                if (USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL.getCode().intValue() == e.getCode()) {
+                    sendMsg(mqUserId, "令牌不足，请访问魔法AI官网获取。");
+                } else {
+                    sendMsg(mqUserId, e.getMessage());
                 }
             } catch (Exception e) {
                 log.error("chat error", e);
