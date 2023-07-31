@@ -11,6 +11,9 @@ import org.springframework.context.annotation.PropertySource;
 
 import javax.annotation.PostConstruct;
 
+/**
+ * @author admin
+ */
 @Slf4j
 @Configuration
 @ComponentScan(basePackages = "com.starcloud.ops")

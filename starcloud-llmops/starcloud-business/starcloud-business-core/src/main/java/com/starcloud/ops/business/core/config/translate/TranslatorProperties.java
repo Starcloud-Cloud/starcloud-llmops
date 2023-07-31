@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.translator;
+package com.starcloud.ops.business.core.config.translate;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component
-@ConfigurationProperties(prefix = "starcloud-llm.translator")
+@ConfigurationProperties(prefix = "starcloud-llm.business.app.translator")
 public class TranslatorProperties {
 
     /**
@@ -22,8 +22,8 @@ public class TranslatorProperties {
 
     @Data
     @Component
-    @ConfigurationProperties(prefix = "llm.translator.aliyun")
-    static class AliyunTranslatorProperties {
+    @ConfigurationProperties(prefix = "starcloud-llm.business.app.translator.aliyun")
+    public static class AliyunTranslatorProperties {
 
         /**
          * 阿里云翻译服务的accessKey
