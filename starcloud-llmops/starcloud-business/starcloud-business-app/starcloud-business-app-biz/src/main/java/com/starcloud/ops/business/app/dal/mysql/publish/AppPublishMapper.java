@@ -118,6 +118,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
                 AppPublishDO::getLanguage,
                 AppPublishDO::getAudit,
                 AppPublishDO::getCreateTime,
+                AppPublishDO::getDescription,
                 AppPublishDO::getUpdateTime
         );
         return wrapper;

@@ -20,6 +20,21 @@
     </properties>
 
     <dependencies>
+
+        <!-- Test 测试相关 -->
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.cognitiveservices.speech</groupId>
+            <artifactId>client-sdk</artifactId>
+            <version>1.30.0</version>
+        </dependency>
+
+
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
