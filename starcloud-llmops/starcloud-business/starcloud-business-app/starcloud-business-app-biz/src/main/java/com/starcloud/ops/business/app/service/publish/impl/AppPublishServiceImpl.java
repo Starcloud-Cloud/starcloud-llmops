@@ -100,6 +100,54 @@ public class AppPublishServiceImpl implements AppPublishService {
     }
 
     /**
+     * 根据应用 UID 查询最新的应用发布记录
+     *
+     * @param appUid 应用 UID
+     * @return 应用发布响应
+     */
+    @Override
+    public AppPublishRespVO getLatest(String appUid) {
+        // 查询应用
+        AppDO appDO = appMapper.get(appUid, Boolean.TRUE);
+        // 应用不存在，此时说明，应用还没有创建过，未持久化应用
+        if (Objects.isNull(appDO)) {
+            AppPublishRespVO response = new AppPublishRespVO();
+            response.setAppUid(appUid);
+            response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
+            response.setIsFirstCreatePublishRecord(Boolean.TRUE);
+            // 此时需要提示用户更新应用发布记录
+            response.setNeedUpdate(Boolean.FALSE);
+            return response;
+        }
+        // 获取最新版本发布记录
+        AppPublishDO latest = appPublishMapper.getLatest(appUid);
+        // 未查询到发布记录, 说明还没有发布过应用。则返回应用的基本信息, 构造一个未发布的发布记录，临时判断时候使用，未持久化
+        if (Objects.isNull(latest)) {
+            AppPublishRespVO response = new AppPublishRespVO();
+            response.setAppUid(appUid);
+            response.setName(appDO.getName());
+            response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
+            response.setAppLastUpdateTime(appDO.getUpdateTime());
+            response.setIsFirstCreatePublishRecord(Boolean.TRUE);
+            // 此时需要提示用户更新应用发布记录
+            response.setNeedUpdate(Boolean.TRUE);
+            return response;
+        }
+        // 应用已经发布过，返回最新的发布记录，根据应用更新时间判断是否需要更新发布记录
+        AppPublishRespVO response = AppPublishConverter.INSTANCE.convert(latest);
+        response.setIsFirstCreatePublishRecord(Boolean.FALSE);
+        response.setAppLastUpdateTime(appDO.getUpdateTime());
+        // 如果应用更新时间在发布时间之后, 则需要新增发布记录
+        if (appDO.getUpdateTime().isAfter(latest.getCreateTime())) {
+            response.setNeedUpdate(Boolean.TRUE);
+        } else {
+            response.setNeedUpdate(Boolean.FALSE);
+        }
+
+        return response;
+    }
+
+    /**
      * 根据应用 UID 查询应用发布记录
      *
      * @param appUid 应用 UID
@@ -145,8 +193,9 @@ public class AppPublishServiceImpl implements AppPublishService {
         // 如果是未发布状态, 则直接返回未发布
         if (Objects.equals(first.getAudit(), AppPublishAuditEnum.UN_PUBLISH.getCode())) {
             response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
+        } else if (Objects.equals(first.getAudit(), AppPublishAuditEnum.REJECTED.getCode())) {
+            response.setAudit(AppPublishAuditEnum.REJECTED.getCode());
         } else {
-            // 否则返回已经取消
             response.setAudit(AppPublishAuditEnum.CANCELED.getCode());
         }
         response.setUid(first.getUid());
@@ -179,9 +228,13 @@ public class AppPublishServiceImpl implements AppPublishService {
             // 版本号递增
             appPublish.setVersion(AppUtils.nextVersion(lastAppPublish.getVersion()));
             appPublish.setMarketUid(lastAppPublish.getMarketUid());
-            // 如果最新发布应用处于审核中，将最新发布状态改为已取消
-            if (Objects.equals(AppPublishAuditEnum.PENDING.getCode(), lastAppPublish.getAudit())) {
-                appPublishMapper.audit(lastAppPublish.getUid(), AppPublishAuditEnum.CANCELED.getCode());
+            // 如果最新发布应用处于审核中，将最新发布状态改为已取消, 基本上只会存在一条审核中的发布记录，但是为了防止意外，将所有的审核中的发布记录都取消
+            List<AppPublishDO> pendingPublishList = appPublishRecords.stream()
+                    .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(pendingPublishList)) {
+                for (AppPublishDO appPublishDO : pendingPublishList) {
+                    appPublishMapper.audit(appPublishDO.getUid(), AppPublishAuditEnum.CANCELED.getCode());
+                }
             }
         }
         // 保存应用发布记录
@@ -207,7 +260,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, request.getUid());
 
         // 如果审核通过
-        if (Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), request.getStatus())) {
+        if (Objects.equals(request.getStatus(), AppPublishAuditEnum.APPROVED.getCode())) {
             AppMarketDO appMarketDO = this.handlerMarketApp(appPublish);
             appPublish.setMarketUid(appMarketDO.getUid());
         }
@@ -215,7 +268,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         // 更新我的应用的发布 UID
         LambdaUpdateWrapper<AppDO> appUpdateWrapper = Wrappers.lambdaUpdate(AppDO.class);
         appUpdateWrapper.eq(AppDO::getUid, appPublish.getAppUid());
-        appUpdateWrapper.set(AppDO::getPublishUid, AppUtils.generateUid(appPublish.getMarketUid(), appPublish.getVersion()));
+        appUpdateWrapper.set(AppDO::getPublishUid, AppUtils.generateUid(appPublish.getUid(), appPublish.getVersion()));
         appMapper.update(null, appUpdateWrapper);
 
         // 更新发布记录

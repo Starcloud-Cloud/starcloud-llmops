@@ -109,4 +109,16 @@ public class AppPublishRespVO implements Serializable {
     @Schema(description = "应用最后更新时间")
     private LocalDateTime appLastUpdateTime;
 
+    /**
+     * 是否需要更新
+     */
+    @Schema(description = "是否需要更新发布记录，发布按钮是否可用")
+    private Boolean needUpdate;
+
+    /**
+     * 是否是第一次发布
+     */
+    @Schema(description = "是否是第一次生成发布记录")
+    private Boolean isFirstCreatePublishRecord;
+
 }

@@ -43,6 +43,14 @@ public interface AppPublishService {
     AppPublishRespVO get(String uid);
 
     /**
+     * 根据应用 UID 查询最新的应用发布记录
+     *
+     * @param appUid 应用 UID
+     * @return 应用发布响应
+     */
+    AppPublishRespVO getLatest(String appUid);
+
+    /**
      * 根据应用 UID 查询应用发布记录
      *
      * @param appUid 应用 UID

@@ -61,16 +61,23 @@ public class AppPublishController {
         return CommonResult.success(appPublishService.get(uid));
     }
 
+    @GetMapping("/getLatest/{appUid}")
+    @Operation(summary = "根据应用 UID 获得最新的发布记录详情", description = "根据应用 UID 获得最新的发布记录详情")
+    @ApiOperationSupport(order = 15, author = "nacoyer")
+    public CommonResult<AppPublishRespVO> getLatest(@Parameter(name = "appUid", description = "应用 UID") @PathVariable("appUid") String uid) {
+        return CommonResult.success(appPublishService.getLatest(uid));
+    }
+
     @GetMapping("/getAuditByAppUid/{appUid}")
     @Operation(summary = "根据 应用UID 获得发布状态详情", description = "根据 应用UID 获得发布状态详情")
-    @ApiOperationSupport(order = 15, author = "nacoyer")
+    @ApiOperationSupport(order = 20, author = "nacoyer")
     public CommonResult<AppPublishAuditRespVO> getAuditByAppUid(@Parameter(name = "appUid", description = "应用 UID") @PathVariable("appUid") String appUid) {
         return CommonResult.success(appPublishService.getAuditByAppUid(appUid));
     }
 
     @PostMapping("/create")
     @Operation(summary = "创建应用发布记录", description = "创建应用发布记录")
-    @ApiOperationSupport(order = 20, author = "nacoyer")
+    @ApiOperationSupport(order = 25, author = "nacoyer")
     public CommonResult<AppPublishRespVO> create(@Validated @RequestBody AppPublishReqVO request) {
         request.setLanguage(LanguageEnum.ZH_CN.getCode());
         return CommonResult.success(appPublishService.create(request));
@@ -78,7 +85,7 @@ public class AppPublishController {
 
     @PostMapping("/audit")
     @Operation(summary = "审核发布记录", description = "审核发布记录")
-    @ApiOperationSupport(order = 25, author = "nacoyer")
+    @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<Boolean> audit(@Validated @RequestBody UidStatusRequest request) {
         appPublishService.audit(request);
         return CommonResult.success(Boolean.TRUE);
@@ -86,7 +93,7 @@ public class AppPublishController {
 
     @PostMapping("/operate")
     @Operation(summary = "操作发布记录", description = "操作发布记录")
-    @ApiOperationSupport(order = 30, author = "nacoyer")
+    @ApiOperationSupport(order = 35, author = "nacoyer")
     public CommonResult<Boolean> operate(@Validated @RequestBody UidStatusRequest request) {
         appPublishService.operate(request);
         return CommonResult.success(Boolean.TRUE);
