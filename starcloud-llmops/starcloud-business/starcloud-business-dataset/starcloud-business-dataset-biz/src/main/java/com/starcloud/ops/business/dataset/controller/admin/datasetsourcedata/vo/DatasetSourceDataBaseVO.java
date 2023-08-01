@@ -24,12 +24,12 @@ public class DatasetSourceDataBaseVO {
     @NotNull(message = "名称不能为空")
     private String name;
 
-    @Schema(description = "存储ID", example = "18574")
-    private String storageId;
+    @Schema(description = "存储ID", example = "18574L")
+    private Long storageId;
 
     @Schema(description = "位置", required = true)
     @NotNull(message = "位置不能为空")
-    private Integer position;
+    private Long position;
 
     @Schema(description = "数据源类型（0-本地上传，1-接口上传）", required = true)
     @NotNull(message = "数据源类型（0-本地上传，1-接口上传）不能为空")
@@ -114,13 +114,6 @@ public class DatasetSourceDataBaseVO {
     @Schema(description = "是否启用", required = true)
     @NotNull(message = "是否启用不能为空")
     private Boolean enabled;
-
-    @Schema(description = "文档类型", required = true, example = "1")
-    @NotNull(message = "文档类型不能为空")
-    private String docType;
-
-    @Schema(description = "文档元数据")
-    private String docMetadata;
 
     @Schema(description = "是否归档", required = true)
     @NotNull(message = "是否归档不能为空")

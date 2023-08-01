@@ -19,42 +19,13 @@ public interface DatasetSourceDataMapper extends BaseMapperX<DatasetSourceDataDO
 
     default PageResult<DatasetSourceDataDO> selectPage(DatasetSourceDataPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<DatasetSourceDataDO>()
-                .eqIfPresent(DatasetSourceDataDO::getUid, reqVO.getUid())
-                .likeIfPresent(DatasetSourceDataDO::getName, reqVO.getName())
-                .eqIfPresent(DatasetSourceDataDO::getStorageId, reqVO.getStorageId())
-                .eqIfPresent(DatasetSourceDataDO::getPosition, reqVO.getPosition())
-                .eqIfPresent(DatasetSourceDataDO::getDataSourceType, reqVO.getDataSourceType())
-                .eqIfPresent(DatasetSourceDataDO::getDataSourceInfo, reqVO.getDataSourceInfo())
-                .eqIfPresent(DatasetSourceDataDO::getDatasetProcessRuleId, reqVO.getDatasetProcessRuleId())
-                .eqIfPresent(DatasetSourceDataDO::getBatch, reqVO.getBatch())
-                .eqIfPresent(DatasetSourceDataDO::getCreatedFrom, reqVO.getCreatedFrom())
-                .eqIfPresent(DatasetSourceDataDO::getWordCount, reqVO.getWordCount())
-                .eqIfPresent(DatasetSourceDataDO::getTokens, reqVO.getTokens())
                 .eqIfPresent(DatasetSourceDataDO::getDatasetId, reqVO.getDatasetId())
-                .eqIfPresent(DatasetSourceDataDO::getCreatedApiRequestId, reqVO.getCreatedApiRequestId())
-                .betweenIfPresent(DatasetSourceDataDO::getParsingCompletedTime, reqVO.getParsingCompletedTime())
-                .betweenIfPresent(DatasetSourceDataDO::getCleaningCompletedTime, reqVO.getCleaningCompletedTime())
-                .betweenIfPresent(DatasetSourceDataDO::getSplittingCompletedTime, reqVO.getSplittingCompletedTime())
-                .betweenIfPresent(DatasetSourceDataDO::getIndexingTime, reqVO.getIndexingTime())
-                .betweenIfPresent(DatasetSourceDataDO::getProcessingStartedTime, reqVO.getProcessingStartedTime())
-                .eqIfPresent(DatasetSourceDataDO::getCompletedAt, reqVO.getCompletedAt())
-                .eqIfPresent(DatasetSourceDataDO::getErrorMessage, reqVO.getErrorMessage())
-                .betweenIfPresent(DatasetSourceDataDO::getStoppedTime, reqVO.getStoppedTime())
-                .eqIfPresent(DatasetSourceDataDO::getPausedBy, reqVO.getPausedBy())
-                .betweenIfPresent(DatasetSourceDataDO::getPausedTime, reqVO.getPausedTime())
-                .eqIfPresent(DatasetSourceDataDO::getDisabledAt, reqVO.getDisabledAt())
-                .betweenIfPresent(DatasetSourceDataDO::getDisabledTime, reqVO.getDisabledTime())
-                .betweenIfPresent(DatasetSourceDataDO::getCreateTime, reqVO.getCreateTime())
-                .eqIfPresent(DatasetSourceDataDO::getIndexingStatus, reqVO.getIndexingStatus())
-                .eqIfPresent(DatasetSourceDataDO::getEnabled, reqVO.getEnabled())
-                .eqIfPresent(DatasetSourceDataDO::getDocType, reqVO.getDocType())
-                .eqIfPresent(DatasetSourceDataDO::getDocMetadata, reqVO.getDocMetadata())
-                .eqIfPresent(DatasetSourceDataDO::getArchived, reqVO.getArchived())
-                .eqIfPresent(DatasetSourceDataDO::getArchivedBy, reqVO.getArchivedBy())
-                .eqIfPresent(DatasetSourceDataDO::getArchivedReason, reqVO.getArchivedReason())
-                .eqIfPresent(DatasetSourceDataDO::getIsPaused, reqVO.getIsPaused())
-                .betweenIfPresent(DatasetSourceDataDO::getArchivedTime, reqVO.getArchivedTime())
                 .orderByDesc(DatasetSourceDataDO::getId));
+    }
+
+
+    default List<DatasetSourceDataDO> selectByDatasetId(String datasetId) {
+        return selectList(DatasetSourceDataDO::getDatasetId, datasetId);
     }
 
 

@@ -9,7 +9,6 @@ import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
@@ -151,14 +150,13 @@ public class StarUserServiceImpl implements StarUserService {
     public void addBenefits(Long currentUserId, Long inviteUserId) {
         try {
             if (inviteUserId != null && inviteUserId > 0) {
-                //邀请注册权益 邀请人
-                benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE.getName(), inviteUserId);
-                //被邀请人
-                benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.INVITE_TO_REGISTER.getName(), currentUserId);
+                // 邀请注册权益 邀请人
+                benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
             } else {
                 // 普通注册权益
-                benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.SIGN_IN.getName(), currentUserId);
+                benefitsService.addUserBenefitsSign(currentUserId);
             }
+
         } catch (Exception e) {
             log.warn("新增权益失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
         }
