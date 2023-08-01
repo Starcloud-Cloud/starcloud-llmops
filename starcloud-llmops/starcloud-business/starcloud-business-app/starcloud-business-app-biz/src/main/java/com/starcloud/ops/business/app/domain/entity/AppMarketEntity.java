@@ -1,22 +1,16 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import lombok.Data;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.HashMap;
 
 /**
  * @author nacoyer
@@ -124,18 +118,16 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      * 新增应用
      */
     @Override
-    protected void _insert() {
-
-        getAppMarketRepository().insert(this);
+    protected AppMarketEntity _insert() {
+        return getAppMarketRepository().insert(this);
     }
 
     /**
      * 更新应用
      */
     @Override
-    protected void _update() {
-
-        getAppMarketRepository().update(this);
+    protected AppMarketEntity _update() {
+        return getAppMarketRepository().update(this);
     }
 
 

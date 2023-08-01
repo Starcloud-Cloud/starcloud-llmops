@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.recommend.RecommendedAppCache;
 import com.starcloud.ops.business.app.domain.recommend.RecommendedStepWrapperFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
@@ -129,7 +130,7 @@ public class AppServiceImpl implements AppService {
     public PageResp<AppRespVO> page(AppPageQuery query) {
         Page<AppDO> page = appMapper.page(query);
         List<AppRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppConvert.INSTANCE::convertResp).collect(Collectors.toList());
+                .map(AppConvert.INSTANCE::convertResponse).collect(Collectors.toList());
         return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
@@ -143,7 +144,7 @@ public class AppServiceImpl implements AppService {
     public AppRespVO get(String uid) {
         AppDO app = appMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return AppConvert.INSTANCE.convertResp(app);
+        return AppConvert.INSTANCE.convertResponse(app);
     }
 
     /**
@@ -152,9 +153,10 @@ public class AppServiceImpl implements AppService {
      * @param request 应用信息
      */
     @Override
-    public void create(AppReqVO request) {
+    public AppRespVO create(AppReqVO request) {
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        appEntity.insert();
+        BaseAppEntity entity = appEntity.insert();
+        return AppConvert.INSTANCE.convertResponse(entity);
     }
 
     /**
@@ -163,10 +165,11 @@ public class AppServiceImpl implements AppService {
      * @param request 模版应用
      */
     @Override
-    public void copy(AppReqVO request) {
+    public AppRespVO copy(AppReqVO request) {
         request.setName(request.getName() + " - Copy");
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        appEntity.insert();
+        BaseAppEntity entity = appEntity.insert();
+        return AppConvert.INSTANCE.convertResponse(entity);
     }
 
     /**
@@ -175,10 +178,11 @@ public class AppServiceImpl implements AppService {
      * @param request 更新请求信息
      */
     @Override
-    public void modify(AppUpdateReqVO request) {
+    public AppRespVO modify(AppUpdateReqVO request) {
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
-        appEntity.update();
+        BaseAppEntity entity = appEntity.update();
+        return AppConvert.INSTANCE.convertResponse(entity);
     }
 
     /**
@@ -207,6 +211,6 @@ public class AppServiceImpl implements AppService {
         if (appDO == null) {
             return null;
         }
-        return AppConvert.INSTANCE.convertResp(appMapper.selectOne(wrapper));
+        return AppConvert.INSTANCE.convertResponse(appMapper.selectOne(wrapper));
     }
 }

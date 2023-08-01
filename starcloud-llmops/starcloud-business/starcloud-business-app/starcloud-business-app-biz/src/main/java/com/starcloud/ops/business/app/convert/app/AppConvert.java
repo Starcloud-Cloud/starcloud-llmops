@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.convert.app;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.alibaba.fastjson.JSON;
+import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
@@ -11,7 +11,12 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
-import com.starcloud.ops.business.app.domain.entity.*;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
+import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
+import com.starcloud.ops.business.app.domain.entity.ShareAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -86,17 +91,17 @@ public interface AppConvert {
         if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
             WorkflowConfigEntity config = appEntity.getWorkflowConfig();
             if (Objects.nonNull(config)) {
-                appDO.setConfig(JSON.toJSONString(config));
+                appDO.setConfig(JSONUtil.toJsonStr(config));
             }
         } else if (AppModelEnum.CHAT.name().equals(appEntity.getModel())) {
             ChatConfigEntity config = appEntity.getChatConfig();
             if (Objects.nonNull(config)) {
-                appDO.setConfig(JSON.toJSONString(config));
+                appDO.setConfig(JSONUtil.toJsonStr(config));
             }
         } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appEntity.getModel())) {
             ImageConfigEntity config = appEntity.getImageConfig();
             if (Objects.nonNull(config)) {
-                appDO.setConfig(JSON.toJSONString(config));
+                appDO.setConfig(JSONUtil.toJsonStr(config));
             }
         }
         return appDO;
@@ -158,11 +163,11 @@ public interface AppConvert {
         // 处理配置
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-                appEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
+                appEntity.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-                appEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
+                appEntity.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigEntity.class));
             } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
-                appEntity.setImageConfig(JSON.parseObject(app.getConfig(), ImageConfigEntity.class));
+                appEntity.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigEntity.class));
             }
         }
         return appEntity;
@@ -192,11 +197,11 @@ public interface AppConvert {
         // 处理配置
         if (StringUtils.isNotBlank(appMarket.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
-                appEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
+                appEntity.setWorkflowConfig(JSONUtil.toBean(appMarket.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
-                appEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
+                appEntity.setChatConfig(JSONUtil.toBean(appMarket.getConfig(), ChatConfigEntity.class));
             } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
-                appEntity.setImageConfig(JSON.parseObject(appMarket.getConfig(), ImageConfigEntity.class));
+                appEntity.setImageConfig(JSONUtil.toBean(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
         return appEntity;
@@ -208,7 +213,7 @@ public interface AppConvert {
      * @param app AppDO
      * @return AppRespVO
      */
-    default AppRespVO convertResp(AppDO app) {
+    default AppRespVO convertResponse(AppDO app) {
         AppRespVO appRespVO = new AppRespVO();
         appRespVO.setUid(app.getUid());
         appRespVO.setName(app.getName());
@@ -229,12 +234,57 @@ public interface AppConvert {
         // 处理配置
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-                appRespVO.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigRespVO.class));
+                appRespVO.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigRespVO.class));
                 appRespVO.setActionIcons(buildActionIcons(appRespVO.getWorkflowConfig()));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-                appRespVO.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigRespVO.class));
+                appRespVO.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigRespVO.class));
             } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
-                appRespVO.setImageConfig(JSON.parseObject(app.getConfig(), ImageConfigRespVO.class));
+                appRespVO.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigRespVO.class));
+            }
+        }
+
+        return appRespVO;
+    }
+
+    /**
+     * AppDO 转 AppRespVO
+     *
+     * @param appEntity AppDO
+     * @return AppRespVO
+     */
+    default AppRespVO convertResponse(BaseAppEntity appEntity) {
+        AppRespVO appRespVO = new AppRespVO();
+        appRespVO.setUid(appEntity.getUid());
+        appRespVO.setName(appEntity.getName());
+        appRespVO.setModel(appEntity.getModel());
+        appRespVO.setType(appEntity.getType());
+        appRespVO.setSource(appEntity.getSource());
+        appRespVO.setTags(appEntity.getTags());
+        appRespVO.setCategories(appEntity.getCategories());
+        appRespVO.setScenes(appEntity.getScenes());
+        appRespVO.setImages(appEntity.getImages());
+        appRespVO.setIcon(appEntity.getIcon());
+        appRespVO.setDescription(appEntity.getDescription());
+        appRespVO.setPublishUid(appEntity.getPublishUid());
+        appRespVO.setInstallUid(appEntity.getInstallUid());
+        appRespVO.setCreateTime(appEntity.getCreateTime());
+        appRespVO.setUpdateTime(appEntity.getUpdateTime());
+        appRespVO.setLastPublish(appEntity.getLastPublish());
+        // 处理配置
+        if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
+            WorkflowConfigEntity config = appEntity.getWorkflowConfig();
+            if (Objects.nonNull(config)) {
+                appRespVO.setWorkflowConfig(JSONUtil.toBean(JSONUtil.toJsonStr(appEntity.getWorkflowConfig()), WorkflowConfigRespVO.class));
+            }
+        } else if (AppModelEnum.CHAT.name().equals(appEntity.getModel())) {
+            ChatConfigEntity config = appEntity.getChatConfig();
+            if (Objects.nonNull(config)) {
+                appRespVO.setChatConfig(JSONUtil.toBean(JSONUtil.toJsonStr(appEntity.getChatConfig()), ChatConfigRespVO.class));
+            }
+        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appEntity.getModel())) {
+            ImageConfigEntity config = appEntity.getImageConfig();
+            if (Objects.nonNull(config)) {
+                appRespVO.setImageConfig(JSONUtil.toBean(JSONUtil.toJsonStr(appEntity.getImageConfig()), ImageConfigRespVO.class));
             }
         }
 

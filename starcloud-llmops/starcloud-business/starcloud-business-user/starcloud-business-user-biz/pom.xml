@@ -25,7 +25,6 @@
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-module-member-biz</artifactId>
             <version>${revision}</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>

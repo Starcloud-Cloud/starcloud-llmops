@@ -41,14 +41,18 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         wrapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppPublishDO::getName, query.getName());
         // MODEL
         wrapper.eq(StringUtils.isNotBlank(query.getModel()), AppPublishDO::getModel, query.getModel());
-        // 审核状态 只允许查询已审核通过和已拒绝的发布记录
-        if (query.getAudit() != null) {
-            if (Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), query.getAudit()) ||
-                    Objects.equals(AppPublishAuditEnum.REJECTED.getCode(), query.getAudit())) {
-                wrapper.eq(AppPublishDO::getAudit, query.getAudit());
+        if (query.getIsAdmin()) {
+            if (query.getAudit() != null) {
+                if (Objects.equals(query.getAudit(), AppPublishAuditEnum.APPROVED.getCode()) ||
+                        Objects.equals(query.getAudit(), AppPublishAuditEnum.PENDING.getCode()) ||
+                        Objects.equals(query.getAudit(), AppPublishAuditEnum.REJECTED.getCode())) {
+                    wrapper.eq(AppPublishDO::getAudit, query.getAudit());
+                }
+            } else {
+                wrapper.in(AppPublishDO::getAudit, AppPublishAuditEnum.APPROVED.getCode(), AppPublishAuditEnum.REJECTED.getCode(), AppPublishAuditEnum.PENDING.getCode());
             }
         } else {
-            wrapper.in(AppPublishDO::getAudit, AppPublishAuditEnum.APPROVED.getCode(), AppPublishAuditEnum.REJECTED.getCode());
+            wrapper.eq(Objects.nonNull(query.getAudit()), AppPublishDO::getAudit, query.getAudit());
         }
         // 排序
         wrapper.orderByDesc(AppPublishDO::getUpdateTime);
@@ -78,6 +82,20 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
     default AppPublishDO get(String uid, boolean isSimple) {
         LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(isSimple);
         wrapper.eq(AppPublishDO::getUid, uid);
+        return this.selectOne(wrapper);
+    }
+
+    /**
+     * 根据应用 UID 查询最新的应用发布记录
+     *
+     * @param appUid 应用 UID
+     * @return 应用发布记录
+     */
+    default AppPublishDO getLatest(String appUid) {
+        LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(Boolean.TRUE);
+        wrapper.eq(AppPublishDO::getAppUid, appUid);
+        wrapper.orderByDesc(AppPublishDO::getVersion);
+        wrapper.last("LIMIT 1");
         return this.selectOne(wrapper);
     }
 
@@ -118,6 +136,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
                 AppPublishDO::getLanguage,
                 AppPublishDO::getAudit,
                 AppPublishDO::getCreateTime,
+                AppPublishDO::getDescription,
                 AppPublishDO::getUpdateTime
         );
         return wrapper;
