@@ -45,7 +45,7 @@ public class WeChatScanHandler implements WxMpMessageHandler {
     private MpUserService mpUserService;
 
     private List<String> openIds = Arrays.asList("oyCo06QA656Tro1GsgetoRzqEHgg","oyCo06UNZfaREciXe_T0kvKWfZZA",
-            "oyCo06RRyVQxlIAkR00Lxj4PNQXo","oyCo06X7q7kLyA-be8AAhJQqevbE"
+            "oyCo06RRyVQxlIAkR00Lxj4PNQXo","oyCo06X7q7kLyA-be8AAhJQqevbE","oyCo06aChvHe_ZhSXrVNRYnxWwRo"
     );
 
     private static final String MSG = "你好，我是魔法AI小助手，注意到您热心的邀请了朋友一起使用魔法AI，过程中是否有问题，可以加客服的微信，让我帮你一起解决。\n" +
