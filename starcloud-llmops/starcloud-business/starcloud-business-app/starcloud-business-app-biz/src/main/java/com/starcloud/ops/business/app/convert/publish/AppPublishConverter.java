@@ -90,6 +90,33 @@ public interface AppPublishConverter {
         latestResponse.setDescription(appPublish.getDescription());
         latestResponse.setCreateTime(appPublish.getCreateTime());
         latestResponse.setUpdateTime(appPublish.getUpdateTime());
+        latestResponse.setIsFirstCreatePublishRecord(Boolean.FALSE);
+        return latestResponse;
+    }
+
+    /**
+     * 转换应用发布最新版本响应
+     *
+     * @param appUid 应用 UID
+     * @param app    应用最后
+     * @return 应用发布最新版本响应
+     */
+    default AppPublishLatestRespVO convertDefaultUnpublishedLatest(String appUid, AppDO app) {
+        AppPublishLatestRespVO latestResponse = new AppPublishLatestRespVO();
+        latestResponse.setAppUid(appUid);
+        latestResponse.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
+        latestResponse.setAuditTag(AppPublishAuditEnum.UN_PUBLISH.getCode());
+        latestResponse.setNeedUpdate(Boolean.TRUE);
+        latestResponse.setShowPublish(Boolean.TRUE);
+        latestResponse.setEnablePublish(Boolean.FALSE);
+        latestResponse.setNeedTips(Boolean.TRUE);
+        latestResponse.setIsFirstCreatePublishRecord(Boolean.TRUE);
+        if (app != null) {
+            latestResponse.setName(app.getName());
+            latestResponse.setModel(app.getModel());
+            latestResponse.setDescription(app.getDescription());
+            latestResponse.setAppLastUpdateTime(app.getUpdateTime());
+        }
         return latestResponse;
     }
 }

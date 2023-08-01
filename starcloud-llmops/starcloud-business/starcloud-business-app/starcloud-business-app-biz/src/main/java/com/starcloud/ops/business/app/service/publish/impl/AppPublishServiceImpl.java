@@ -9,7 +9,6 @@ import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
-import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishAuditRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
@@ -108,100 +107,47 @@ public class AppPublishServiceImpl implements AppPublishService {
      */
     @Override
     public AppPublishLatestRespVO getLatest(String appUid) {
-        // 查询应用
-        AppDO appDO = appMapper.get(appUid, Boolean.TRUE);
-        // 应用不存在，此时说明，应用还没有创建过，未持久化应用
-        if (Objects.isNull(appDO)) {
-            AppPublishLatestRespVO response = new AppPublishLatestRespVO();
-            response.setAppUid(appUid);
-            response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
-            response.setIsFirstCreatePublishRecord(Boolean.TRUE);
-            // 此时需要提示用户更新应用发布记录
-            response.setNeedUpdate(Boolean.FALSE);
-            return response;
-        }
-        // 获取最新版本发布记录
-        AppPublishDO latest = appPublishMapper.getLatest(appUid);
-        // 未查询到发布记录, 说明还没有发布过应用。则返回应用的基本信息, 构造一个未发布的发布记录，临时判断时候使用，未持久化
-        if (Objects.isNull(latest)) {
-            AppPublishLatestRespVO response = new AppPublishLatestRespVO();
-            response.setAppUid(appUid);
-            response.setName(appDO.getName());
-            response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
-            response.setAppLastUpdateTime(appDO.getUpdateTime());
-            response.setIsFirstCreatePublishRecord(Boolean.TRUE);
-            // 此时需要提示用户更新应用发布记录
-            response.setNeedUpdate(Boolean.TRUE);
-            return response;
-        }
-        // 应用已经发布过，返回最新版本发布记录，根据应用更新时间判断是否需要更新发布记录
-        AppPublishLatestRespVO response = AppPublishConverter.INSTANCE.convertLatest(latest);
-        response.setIsFirstCreatePublishRecord(Boolean.FALSE);
-        response.setAppLastUpdateTime(appDO.getUpdateTime());
-        // 如果应用更新时间在发布时间之后, 则需要新增发布记录
-        if (appDO.getUpdateTime().isAfter(latest.getCreateTime())) {
-            response.setNeedUpdate(Boolean.TRUE);
-        } else {
-            response.setNeedUpdate(Boolean.FALSE);
-        }
 
-        return response;
-    }
+        // 查询应用信息
+        AppDO app = appMapper.get(appUid, Boolean.TRUE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, appUid);
 
-    /**
-     * 根据应用 UID 查询应用发布记录
-     *
-     * @param appUid 应用 UID
-     * @return 应用发布响应
-     */
-    @Override
-    public AppPublishAuditRespVO getAuditByAppUid(String appUid) {
-        AppPublishAuditRespVO response = new AppPublishAuditRespVO();
+        // 基本信息复制
         List<AppPublishDO> publishList = appPublishMapper.listByAppUid(appUid);
-        // 不存在发布记录, 则返回 null， 说明应用未发布过
+        // 不存在发布记录, 说明第一次发布应用
+        // 此时：审核状态为：未发布，审核标签为：未发布，需要更新，展示发布按钮，但是发布按钮不可用，需要提示。
         if (CollectionUtil.isEmpty(publishList)) {
-            response.setAppUid(appUid);
-            response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
+            return AppPublishConverter.INSTANCE.convertDefaultUnpublishedLatest(appUid, app);
+        }
+
+        // 获取最新版本发布记录
+        AppPublishLatestRespVO response = AppPublishConverter.INSTANCE.convertLatest(publishList.get(0));
+        response.setAppLastUpdateTime(app.getUpdateTime());
+        response.setIsFirstCreatePublishRecord(Boolean.FALSE);
+        // 发布记录不为空且存在待审核的发布记录, 不显示发布按钮，显示 取消发布按钮
+        if (publishList.stream().anyMatch(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode()))) {
+            response.setAuditTag(AppPublishAuditEnum.PENDING.getCode());
+            if (app.getUpdateTime().isAfter(response.getCreateTime())) {
+                // 应用有更新，需要更新
+                buildNeedUpdateResponse(Boolean.FALSE, response);
+            } else {
+                // 应用无更新，不需要更新
+                buildUnNeedUpdateResponse(Boolean.FALSE, response);
+            }
             return response;
         }
 
-        // 存在待审核的发布记录, 则返回该记录
-        Optional<AppPublishDO> pendingPublishOptional = publishList.stream()
-                .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).findFirst();
-        if (pendingPublishOptional.isPresent()) {
-            AppPublishDO pendingPublish = pendingPublishOptional.get();
-            response.setAudit(AppPublishAuditEnum.PENDING.getCode());
-            response.setUid(pendingPublish.getUid());
-            response.setAppUid(appUid);
-            response.setUpdateTime(pendingPublish.getUpdateTime());
-            return response;
-        }
-
-        // 存在已发布的记录, 则返回该记录
-        Optional<AppPublishDO> approvedPublishOptional = publishList.stream()
-                .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode())).findFirst();
-        if (approvedPublishOptional.isPresent()) {
-            AppPublishDO approvedPublish = approvedPublishOptional.get();
-            response.setAudit(AppPublishAuditEnum.APPROVED.getCode());
-            response.setUid(approvedPublish.getUid());
-            response.setAppUid(appUid);
-            response.setUpdateTime(approvedPublish.getUpdateTime());
-            return response;
-        }
-
-        // 否则直接返回最新一条条发布记录的状态, 并且把 audit 变为 已经取消
-        AppPublishDO first = publishList.get(0);
-        // 如果是未发布状态, 则直接返回未发布
-        if (Objects.equals(first.getAudit(), AppPublishAuditEnum.UN_PUBLISH.getCode())) {
-            response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
-        } else if (Objects.equals(first.getAudit(), AppPublishAuditEnum.REJECTED.getCode())) {
-            response.setAudit(AppPublishAuditEnum.REJECTED.getCode());
+        // 发布记录不为空且发布记录中不存在待审核的记录且存在审核通过的发布记录
+        boolean approvedFlag = publishList.stream().anyMatch(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()));
+        // 发布记录不为空，不存在待审核和审核通过的发布记录。
+        response.setAuditTag(approvedFlag ? AppPublishAuditEnum.APPROVED.getCode() : response.getAudit());
+        if (app.getUpdateTime().isAfter(response.getCreateTime())) {
+            buildNeedUpdateResponse(Boolean.TRUE, response);
         } else {
-            response.setAudit(AppPublishAuditEnum.CANCELED.getCode());
+            // 应用无更新，不需要更新
+            buildUnNeedUpdateResponse(Boolean.TRUE, response);
         }
-        response.setUid(first.getUid());
-        response.setAppUid(appUid);
-        response.setUpdateTime(first.getUpdateTime());
+
         return response;
     }
 
@@ -258,7 +204,7 @@ public class AppPublishServiceImpl implements AppPublishService {
                 !Objects.equals(request.getStatus(), AppPublishAuditEnum.REJECTED.getCode())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
         }
-        // 查询应用
+        // 查询应用，应用不存在，抛出异常
         AppDO app = appMapper.get(request.getUid(), Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getUid());
 
@@ -268,6 +214,7 @@ public class AppPublishServiceImpl implements AppPublishService {
 
         // 如果审核通过
         if (Objects.equals(request.getStatus(), AppPublishAuditEnum.APPROVED.getCode())) {
+            // 处理应用市场，存在则更新，不存在则创建
             AppMarketDO appMarketDO = this.handlerMarketApp(appPublish);
             appPublish.setMarketUid(appMarketDO.getUid());
             // 更新我的应用的发布 UID
@@ -301,7 +248,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         // 如果是重新发布, 则校验是否存在待审核的发布记录, 如果存在, 则不允许重新发布
         if (Objects.equals(request.getStatus(), AppPublishAuditEnum.PENDING.getCode())) {
             List<AppPublishDO> publishList = appPublishMapper.listByAppUid(request.getAppUid());
-            // 存在待审核的发布记录, 则不允许重新发布
+            // 存在待审核的发布记录, 则不允许重新发布，理论上不会存在多条待审核的发布记录，但是为了防止意外，进行校验
             Optional<AppPublishDO> pendingPublishOptional = publishList.stream()
                     .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).findAny();
             if (pendingPublishOptional.isPresent()) {
@@ -367,6 +314,32 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
 
         return AppConstants.APP_MARKET_DEFAULT_IMAGE;
+    }
+
+    /**
+     * 构建应用发布最新版本的响应，需要更新的情况
+     *
+     * @param showPublish 是否显示发布按钮
+     * @param response    响应
+     */
+    private void buildNeedUpdateResponse(Boolean showPublish, AppPublishLatestRespVO response) {
+        response.setNeedUpdate(Boolean.TRUE);
+        response.setNeedTips(Boolean.TRUE);
+        response.setShowPublish(showPublish);
+        response.setEnablePublish(Boolean.FALSE);
+    }
+
+    /**
+     * 构建应用发布最新版本的响应，不需要更新的情况
+     *
+     * @param showPublish 是否显示发布按钮
+     * @param response    响应
+     */
+    private void buildUnNeedUpdateResponse(Boolean showPublish, AppPublishLatestRespVO response) {
+        response.setNeedUpdate(Boolean.FALSE);
+        response.setNeedTips(Boolean.FALSE);
+        response.setShowPublish(showPublish);
+        response.setEnablePublish(Boolean.TRUE);
     }
 
 }
