@@ -52,7 +52,7 @@ public class UrlUploadStrategy implements UploadStrategy {
         Document doc;
         try {
             doc = Jsoup.connect(url).get();
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("====> 网页解析失败,数据状态为 false，网页链接为{}",url);
             return uploadFileRespDTO;
         }

@@ -31,21 +31,24 @@ public interface DatasetSourceDataService {
 
     /**
      * 上传文件-支持批量上传
+     *
      * @return 编号
      */
-    SourceDataUploadDTO uploadFilesSourceData(MultipartFile files,String batch, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadFilesSourceData(MultipartFile files, String batch, SplitRule splitRule, String datasetId);
 
     /**
      * 上传URL-支持批量上传
+     *
      * @return 编号
      */
-    SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO>urls, String batch, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO> urls, String batch, SplitRule splitRule, String datasetId);
 
     /**
      * 上传字符-支持批量上传
+     *
      * @return 编号
      */
-    SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS,String batch, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS, String batch, SplitRule splitRule, String datasetId);
 
     /**
      * 创建数据集源数据
@@ -85,7 +88,7 @@ public interface DatasetSourceDataService {
      * @param datasetId 数据集 ID
      * @return 数据集源数据列表
      */
-    List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId);
+    List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId, Integer dataModel);
 
     /**
      * 归档数据集源数据

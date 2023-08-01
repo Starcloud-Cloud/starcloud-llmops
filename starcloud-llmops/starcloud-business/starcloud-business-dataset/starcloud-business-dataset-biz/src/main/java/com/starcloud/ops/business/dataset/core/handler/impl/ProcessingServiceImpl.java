@@ -37,7 +37,6 @@ import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.SOURCE
  * 数据源数据上传逻辑 - 支持 URL、文件、字符串、siteMap 上传
  *
  * @author Alan Cusack
- *
  */
 @Slf4j
 @Service
@@ -60,7 +59,6 @@ public class ProcessingServiceImpl implements ProcessingService {
     private DatasetsMapper datasetsMapper;
 
 
-
     @Autowired
     public ProcessingServiceImpl(FileUploadStrategy fileUploadStrategy, UrlUploadStrategy urlUploadStrategy, StringUploadStrategy stringUploadStrategy) {
         this.fileUploadStrategy = fileUploadStrategy;
@@ -69,10 +67,10 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public Boolean fileProcessing(MultipartFile file, byte[] fileContent, SplitRule splitRule, String datasetId) {
-        log.info("====> 数据集{}开始上传文件,分割规则为{}",datasetId,splitRule);
+    public Boolean fileProcessing(MultipartFile file, byte[] fileContent, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
+        log.info("====> 数据集{}开始上传文件,分割规则为{}", datasetId, splitRule);
         validate(splitRule, datasetId);
-        fileUploadStrategy.setFileData(file,fileContent);
+        fileUploadStrategy.setFileData(file, fileContent);
         UploadFileRespDTO process = fileUploadStrategy.process();
 
         // 执行通用逻辑并且返回
@@ -80,8 +78,8 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public Boolean urlProcessing(String url, SplitRule splitRule, String datasetId) {
-        log.info("====> 数据集{}开始上传URL,分割规则为{}",datasetId,splitRule);
+    public Boolean urlProcessing(String url, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
+        log.info("====> 数据集{}开始上传URL,分割规则为{}", datasetId, splitRule);
         validate(splitRule, datasetId);
         urlUploadStrategy.setUrl(url);
         UploadFileRespDTO process = urlUploadStrategy.process();
@@ -90,17 +88,17 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public Boolean stringProcessing(String title,String context, SplitRule splitRule, String datasetId) {
-        log.info("====> 数据集{}开始上传字符串,分割规则为{}",datasetId,splitRule);
+    public Boolean stringProcessing(String title, String context, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
+        log.info("====> 数据集{}开始上传字符串,分割规则为{}", datasetId, splitRule);
         validate(splitRule, datasetId);
-        stringUploadStrategy.setData(title,context);
+        stringUploadStrategy.setData(title, context);
         UploadFileRespDTO process = stringUploadStrategy.process();
         // 执行通用逻辑并且返回
-        return commonProcess(process, datasetId, splitRule);
+        return commonProcess(process, datasetId, splitRule, batch, dataModel, dataType);
     }
 
-    private Boolean commonProcess(UploadFileRespDTO process, String datasetId, SplitRule splitRule) {
-        if (!process.getStatus()){
+    private Boolean commonProcess(UploadFileRespDTO process, String datasetId, SplitRule splitRule, String batch, Integer dataModel, String dataType) {
+        if (!process.getStatus()) {
             return false;
         }
         log.info("====> 数据上传成功,开始保存数据");
@@ -108,10 +106,10 @@ public class ProcessingServiceImpl implements ProcessingService {
         Long storageId = saveStorageData(process);
         log.info("====> 上传记录保存成功,开始保存源数据 ");
         // 保存源数据
-        Long sourceDataId = this.saveSourceData(process, storageId, datasetId);
+        Long sourceDataId = this.saveSourceData(process, storageId, datasetId, batch, dataModel, dataType);
         log.info("====> 源数据保存成功,开始异步发送队列信息 ");
         // 异步发送队列信息
-        sendMQMessage(datasetId,sourceDataId,splitRule,null);
+        sendMQMessage(datasetId, sourceDataId, splitRule, null);
         log.info("====> 返回数据上传信息");
 
         return true;
@@ -119,6 +117,7 @@ public class ProcessingServiceImpl implements ProcessingService {
 
     /**
      * 参数校验 分割规则不可以为空，数据集必须存在
+     *
      * @param splitRule
      * @param datasetId
      */
@@ -126,7 +125,7 @@ public class ProcessingServiceImpl implements ProcessingService {
     @TenantIgnore
     public void validate(SplitRule splitRule, String datasetId) {
         log.info("====> 验证数据集和分割规则");
-        if (splitRule == null){
+        if (splitRule == null) {
             throw exception(SOURCE_DATA_UPLOAD_SPLIT_RULE_EMPTY);
         }
         log.info("====> 分割规则验证通过");
@@ -158,7 +157,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         return datasetStorageDO.getId();
     }
 
-    private Long saveSourceData(UploadFileRespDTO process,Long storageId,String datasetId) {
+    private Long saveSourceData(UploadFileRespDTO process, Long storageId, String datasetId, String batch, Integer dataModel, String dataType) {
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
 
@@ -171,6 +170,9 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataDO.setName(process.getName());
         dataDO.setStorageId(storageId);
         dataDO.setPosition(position);
+        dataDO.setBatch(batch);
+        dataDO.setDataModel(dataModel);
+        dataDO.setDataType(dataType);
         dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
         dataDO.setWordCount(process.getCharacterCount());
         dataDO.setDatasetId(datasetId);
@@ -178,9 +180,6 @@ public class ProcessingServiceImpl implements ProcessingService {
         datasetSourceDataMapper.insert(dataDO);
         return dataDO.getId();
     }
-
-
-
 
 
 }

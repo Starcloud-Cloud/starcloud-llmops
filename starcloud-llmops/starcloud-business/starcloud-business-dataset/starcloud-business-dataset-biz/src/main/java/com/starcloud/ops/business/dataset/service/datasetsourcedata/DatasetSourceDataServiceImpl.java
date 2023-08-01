@@ -10,6 +10,8 @@ import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadCharacterReqDTO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
@@ -88,7 +90,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public SourceDataUploadDTO uploadFilesSourceData(MultipartFile file,String batch, SplitRule splitRule, String datasetId) {
+    public SourceDataUploadDTO uploadFilesSourceData(MultipartFile file, String batch, SplitRule splitRule, String datasetId) {
 
         SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
@@ -101,7 +103,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw new RuntimeException(e);
         }
 
-        Boolean booleanFuture = processingService.fileProcessing(file, fileContent, splitRule, datasetId);
+        Boolean booleanFuture = processingService.fileProcessing(file, fileContent, splitRule, datasetId, batch, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.DOCUMENT.name());
         source.add(booleanFuture);
 
 
@@ -122,9 +124,10 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO> urls,String batch, SplitRule splitRule, String datasetId) {
+    public SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO> urls, String batch, SplitRule splitRule, String datasetId) {
 
         // 校验 URL 是否合法
+
         SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
         sourceDataUrlUploadDTO.setDatasetId(datasetId);
@@ -151,8 +154,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
     @Async
-    public ListenableFuture<Boolean> executeAsyncWithUrl(UploadUrlReqVO url,String batch, SplitRule splitRule, String datasetId) {
-        return AsyncResult.forValue(processingService.urlProcessing(url.getUrl(), splitRule, datasetId));
+    public ListenableFuture<Boolean> executeAsyncWithUrl(UploadUrlReqVO url, String batch, SplitRule splitRule, String datasetId) {
+        return AsyncResult.forValue(processingService.urlProcessing(url.getUrl(), splitRule, datasetId, batch, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.URL.name()));
     }
 
 
@@ -165,16 +168,15 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS,String batch, SplitRule splitRule, String datasetId) {
+    public SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS, String batch, SplitRule splitRule, String datasetId) {
         SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
-
 
         ArrayList<Boolean> source = new ArrayList<>();
 
         for (UploadCharacterReqVO reqVO : reqVOS) {
 
             UploadCharacterReqDTO bean = BeanUtil.toBean(reqVO, UploadCharacterReqDTO.class);
-            Boolean aBoolean = processingService.stringProcessing(bean.getTitle(),bean.getContext(), splitRule, datasetId);
+            Boolean aBoolean = processingService.stringProcessing(bean.getTitle(), bean.getContext(), splitRule, datasetId, batch, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.CHARACTERS.name());
             source.add(aBoolean);
         }
 
@@ -182,20 +184,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         sourceDataUrlUploadDTO.setBatch(batch);
         sourceDataUrlUploadDTO.setStatus(source);
 
-        // List<CompletableFuture<Boolean>> completableFutures = characters.stream()
-        //         .map(character -> CompletableFuture.supplyAsync(() -> processingService.urlProcessing(character, splitRule, datasetId)))
-        //         .collect(Collectors.toList());
-        //
-        // // 等待所有异步任务完成
-        // CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
-        //
-        // // 处理每个任务的结果，并收集结果到 source 列表中
-        // List<Boolean> source = completableFutures.stream()
-        //         .map(CompletableFuture::join) // 获取任务结果，如果有异常，join 会抛出 ExecutionException
-        //         .collect(Collectors.toList());
-        //
-        // sourceDataUrlUploadDTO.setDatasetId(datasetId);
-        // sourceDataUrlUploadDTO.setStatus(source);
         return sourceDataUrlUploadDTO;
     }
 
@@ -274,9 +262,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
     @Override
-    public List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId) {
+    public List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId, Integer dataModel) {
 
-        return datasetSourceDataMapper.selectByDatasetId(datasetId);
+        return datasetSourceDataMapper.selectByDatasetId(datasetId,dataModel);
     }
 
     /**
