@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.IdUtil;
-import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -22,22 +19,19 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
-
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -129,16 +123,27 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO> urls,String batch, SplitRule splitRule, String datasetId) {
+
+        // 校验 URL 是否合法
         SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
         sourceDataUrlUploadDTO.setDatasetId(datasetId);
         sourceDataUrlUploadDTO.setBatch(batch);
-    //     // 异步处理文件
-    // List<Future<Boolean>> completableFutures = urls.stream()
-    //             .map(url -> this.executeAsyncWithUrl(url,batch,splitRule,datasetId).get())
-    //             .collect(Collectors.toList());
-    //
-    //     sourceDataUrlUploadDTO.setStatus(source);
+        // 异步处理文件
+        List<Boolean> source = urls.stream()
+                .map(url -> {
+                    ListenableFuture<Boolean> executed = this.executeAsyncWithUrl(url, batch, splitRule, datasetId);
+                    try {
+                        return executed.get();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    } catch (ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
+
+        sourceDataUrlUploadDTO.setStatus(source);
 
 
         return sourceDataUrlUploadDTO;
@@ -146,8 +151,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
     @Async
-    public Future<Boolean> executeAsyncWithUrl(UploadUrlReqVO url,String batch, SplitRule splitRule, String datasetId) {
-        return AsyncResult.forValue(processingService.urlProcessing(null, splitRule, datasetId));
+    public ListenableFuture<Boolean> executeAsyncWithUrl(UploadUrlReqVO url,String batch, SplitRule splitRule, String datasetId) {
+        return AsyncResult.forValue(processingService.urlProcessing(url.getUrl(), splitRule, datasetId));
     }
 
 
@@ -169,7 +174,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         for (UploadCharacterReqVO reqVO : reqVOS) {
 
             UploadCharacterReqDTO bean = BeanUtil.toBean(reqVO, UploadCharacterReqDTO.class);
-            Boolean aBoolean = processingService.stringProcessing(bean, splitRule, datasetId);
+            Boolean aBoolean = processingService.stringProcessing(bean.getTitle(),bean.getContext(), splitRule, datasetId);
             source.add(aBoolean);
         }
 

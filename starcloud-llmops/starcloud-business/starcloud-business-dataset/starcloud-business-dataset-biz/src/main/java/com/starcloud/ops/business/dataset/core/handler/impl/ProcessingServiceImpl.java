@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
 import com.starcloud.ops.business.dataset.convert.datasetstorage.DatasetStorageConvert;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadCharacterReqDTO;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
 import com.starcloud.ops.business.dataset.core.handler.strategy.FileUploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.strategy.StringUploadStrategy;
@@ -24,7 +23,6 @@ import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +30,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum.UPLOAD_COMPLETED;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_NOT_EXISTS;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.SOURCE_DATA_UPLOAD_SPLIT_RULE_EMPTY;
 
@@ -93,10 +90,10 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public Boolean stringProcessing(UploadCharacterReqDTO reqVO, SplitRule splitRule, String datasetId) {
+    public Boolean stringProcessing(String title,String context, SplitRule splitRule, String datasetId) {
         log.info("====> 数据集{}开始上传字符串,分割规则为{}",datasetId,splitRule);
         validate(splitRule, datasetId);
-        stringUploadStrategy.setData(reqVO);
+        stringUploadStrategy.setData(title,context);
         UploadFileRespDTO process = stringUploadStrategy.process();
         // 执行通用逻辑并且返回
         return commonProcess(process, datasetId, splitRule);
@@ -124,7 +121,6 @@ public class ProcessingServiceImpl implements ProcessingService {
      * 参数校验 分割规则不可以为空，数据集必须存在
      * @param splitRule
      * @param datasetId
-     * @return
      */
     @Override
     @TenantIgnore

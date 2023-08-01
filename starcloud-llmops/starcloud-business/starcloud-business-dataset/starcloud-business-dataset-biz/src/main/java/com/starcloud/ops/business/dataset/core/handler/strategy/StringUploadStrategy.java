@@ -5,7 +5,6 @@ import cn.hutool.core.io.IoUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadCharacterReqDTO;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,11 +23,14 @@ public class StringUploadStrategy implements UploadStrategy {
     private FileApi fileApi;
 
     // 成员变量用于保存URL
-    private UploadCharacterReqDTO reqDTO;
+    private String title;
+
+    private String characters;
 
     // Setter方法，用于接收MultipartFile对象
-    public void setData(UploadCharacterReqDTO reqDTO) {
-        this.reqDTO = reqDTO;
+    public void setData(String title,String characters) {
+        this.title = title;
+        this.characters = characters;
     }
 
     @Override
@@ -37,8 +39,8 @@ public class StringUploadStrategy implements UploadStrategy {
         UploadFileRespDTO uploadFileRespDTO = new UploadFileRespDTO();
 
         // 获取资源名称
-        String name = reqDTO.getTitle();
-        String character =reqDTO.getContext();
+        String name =title;
+        String character =characters;
 
 
         // 设置数据名称
@@ -48,7 +50,7 @@ public class StringUploadStrategy implements UploadStrategy {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(character.getBytes(StandardCharsets.UTF_8));
         // 生成文件ID - 使用 String SecureUtil.md5 会关闭流
         String fileId = SecureUtil.md5(character);
-        String filePath = null;
+        String filePath;
         try {
             // 上传文件
             filePath = uploadFile(fileId, inputStream, null);
