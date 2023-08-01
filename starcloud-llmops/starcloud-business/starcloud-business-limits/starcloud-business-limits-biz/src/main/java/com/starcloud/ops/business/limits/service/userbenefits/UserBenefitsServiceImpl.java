@@ -132,6 +132,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param userId       用户 ID
      * @return Boolean
      */
+    @Transactional
     public Boolean addUserBenefitsByStrategyType(String strategyType, Long userId) {
 
         log.info("[addUserBenefitsByCode][1.准备增加权益，根据权益类型获取权益配置：用户ID({})|租户 ID({})｜权益类型({})]", userId, getTenantId(), strategyType);
