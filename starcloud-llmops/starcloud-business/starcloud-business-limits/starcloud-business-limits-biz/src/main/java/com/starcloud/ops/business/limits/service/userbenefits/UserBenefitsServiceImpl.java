@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.record.PageBreakRecord;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
@@ -297,6 +298,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         userBenefitsDO.setDatasetCountInit(benefitsStrategy.getDatasetCount());
         userBenefitsDO.setImageCountInit(benefitsStrategy.getImageCount());
         userBenefitsDO.setTokenCountInit(benefitsStrategy.getTokenCount());
+
+        userBenefitsDO.setCreator(String.valueOf(userId));
+        userBenefitsDO.setUpdater(String.valueOf(userId));
 
         // 根据策略设置时间
         BenefitsStrategyEffectiveUnitEnums scopeEnums = BenefitsStrategyEffectiveUnitEnums.getByCode(benefitsStrategy.getEffectiveUnit());
@@ -768,6 +772,36 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         permissionService.addUserRole(userId, roleCode);
 
         return Boolean.TRUE;
+    }
+
+    /**
+     * 用户有邀请码的情况--增加权益
+     *
+     * @param inviteUserId  邀请人 ID
+     * @param currentUserId 被邀请人 ID
+     */
+    @Transactional
+    public void addUserBenefitsInvitation(Long inviteUserId, Long currentUserId) {
+        // 邀请人
+        log.info("[addUserBenefitsInvitation][增加邀请注册权益：邀请人用户ID({})｜被邀请人({})],开始为邀请人增加权益", inviteUserId, currentUserId);
+        Boolean inviteResult = this.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE.getName(), inviteUserId);
+        log.info("[addUserBenefitsInvitation][邀请人增加权益结束：邀请人用户ID({})｜增加状态为({})],开始为被邀请人增加权益", inviteUserId, inviteResult);
+        // 被邀请人
+        Boolean inviteRegisterResult = this.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.INVITE_TO_REGISTER.getName(), currentUserId);
+        log.info("[addUserBenefitsInvitation][增加被邀请人权益：邀请人用户ID({})｜被邀请人({})]｜增加状态为({})],权益增加结束", inviteUserId, currentUserId, inviteRegisterResult);
+    }
+
+    /**
+     * 用户普通注册--增加权益
+     *
+     * @param userId  用户 ID
+     */
+    @Transactional
+    public void addUserBenefitsSign(Long userId) {
+        log.info("[addUserBenefitsSign][增加注册权益：注册人用户ID({})]", userId);
+        // 普通注册权益
+        Boolean signResult = this.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.SIGN_IN.getName(), userId);
+        log.info("[addUserBenefitsSign][增加注册权益结束：注册人用户ID({})｜增加状态为({})]", userId,signResult);
     }
 
     /**
