@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishAuditRespVO;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.publish.AppPublishConverter;
@@ -106,12 +107,12 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @return 应用发布响应
      */
     @Override
-    public AppPublishRespVO getLatest(String appUid) {
+    public AppPublishLatestRespVO getLatest(String appUid) {
         // 查询应用
         AppDO appDO = appMapper.get(appUid, Boolean.TRUE);
         // 应用不存在，此时说明，应用还没有创建过，未持久化应用
         if (Objects.isNull(appDO)) {
-            AppPublishRespVO response = new AppPublishRespVO();
+            AppPublishLatestRespVO response = new AppPublishLatestRespVO();
             response.setAppUid(appUid);
             response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
             response.setIsFirstCreatePublishRecord(Boolean.TRUE);
@@ -123,7 +124,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         AppPublishDO latest = appPublishMapper.getLatest(appUid);
         // 未查询到发布记录, 说明还没有发布过应用。则返回应用的基本信息, 构造一个未发布的发布记录，临时判断时候使用，未持久化
         if (Objects.isNull(latest)) {
-            AppPublishRespVO response = new AppPublishRespVO();
+            AppPublishLatestRespVO response = new AppPublishLatestRespVO();
             response.setAppUid(appUid);
             response.setName(appDO.getName());
             response.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
@@ -133,8 +134,8 @@ public class AppPublishServiceImpl implements AppPublishService {
             response.setNeedUpdate(Boolean.TRUE);
             return response;
         }
-        // 应用已经发布过，返回最新的发布记录，根据应用更新时间判断是否需要更新发布记录
-        AppPublishRespVO response = AppPublishConverter.INSTANCE.convert(latest);
+        // 应用已经发布过，返回最新版本发布记录，根据应用更新时间判断是否需要更新发布记录
+        AppPublishLatestRespVO response = AppPublishConverter.INSTANCE.convertLatest(latest);
         response.setIsFirstCreatePublishRecord(Boolean.FALSE);
         response.setAppLastUpdateTime(appDO.getUpdateTime());
         // 如果应用更新时间在发布时间之后, 则需要新增发布记录
@@ -227,7 +228,9 @@ public class AppPublishServiceImpl implements AppPublishService {
             AppPublishDO lastAppPublish = appPublishRecords.get(0);
             // 版本号递增
             appPublish.setVersion(AppUtils.nextVersion(lastAppPublish.getVersion()));
-            appPublish.setMarketUid(lastAppPublish.getMarketUid());
+            if (StringUtils.isNotBlank(lastAppPublish.getMarketUid())) {
+                appPublish.setMarketUid(lastAppPublish.getMarketUid());
+            }
             // 如果最新发布应用处于审核中，将最新发布状态改为已取消, 基本上只会存在一条审核中的发布记录，但是为了防止意外，将所有的审核中的发布记录都取消
             List<AppPublishDO> pendingPublishList = appPublishRecords.stream()
                     .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).collect(Collectors.toList());
@@ -255,6 +258,10 @@ public class AppPublishServiceImpl implements AppPublishService {
                 !Objects.equals(request.getStatus(), AppPublishAuditEnum.REJECTED.getCode())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
         }
+        // 查询应用
+        AppDO app = appMapper.get(request.getUid(), Boolean.FALSE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getUid());
+
         // 查询发布记录
         AppPublishDO appPublish = appPublishMapper.get(request.getUid(), Boolean.FALSE);
         AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, request.getUid());
@@ -263,13 +270,12 @@ public class AppPublishServiceImpl implements AppPublishService {
         if (Objects.equals(request.getStatus(), AppPublishAuditEnum.APPROVED.getCode())) {
             AppMarketDO appMarketDO = this.handlerMarketApp(appPublish);
             appPublish.setMarketUid(appMarketDO.getUid());
+            // 更新我的应用的发布 UID
+            LambdaUpdateWrapper<AppDO> appUpdateWrapper = Wrappers.lambdaUpdate(AppDO.class);
+            appUpdateWrapper.eq(AppDO::getUid, appPublish.getAppUid());
+            appUpdateWrapper.set(AppDO::getPublishUid, AppUtils.generateUid(appPublish.getUid(), appPublish.getVersion()));
+            appMapper.update(null, appUpdateWrapper);
         }
-
-        // 更新我的应用的发布 UID
-        LambdaUpdateWrapper<AppDO> appUpdateWrapper = Wrappers.lambdaUpdate(AppDO.class);
-        appUpdateWrapper.eq(AppDO::getUid, appPublish.getAppUid());
-        appUpdateWrapper.set(AppDO::getPublishUid, AppUtils.generateUid(appPublish.getUid(), appPublish.getVersion()));
-        appMapper.update(null, appUpdateWrapper);
 
         // 更新发布记录
         LambdaUpdateWrapper<AppPublishDO> publishUpdateWrapper = Wrappers.lambdaUpdate(AppPublishDO.class);

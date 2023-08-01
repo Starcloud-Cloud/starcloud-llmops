@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.convert.publish;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
@@ -47,28 +48,48 @@ public interface AppPublishConverter {
     /**
      * 转换应用发布响应
      *
-     * @param appPublishDO 应用发布 DO
+     * @param appPublish 应用发布 DO
      * @return 应用发布响应
      */
-    default AppPublishRespVO convert(AppPublishDO appPublishDO) {
+    default AppPublishRespVO convert(AppPublishDO appPublish) {
         AppPublishRespVO appPublishResponse = new AppPublishRespVO();
-        appPublishResponse.setUid(appPublishDO.getUid());
-        appPublishResponse.setAppUid(appPublishDO.getAppUid());
-        appPublishResponse.setMarketUid(appPublishDO.getMarketUid());
-        appPublishResponse.setName(appPublishDO.getName());
-        appPublishResponse.setModel(appPublishDO.getModel());
-        appPublishResponse.setVersion(appPublishDO.getVersion());
-        appPublishResponse.setCategories(AppUtils.split(appPublishDO.getCategories()));
-        appPublishResponse.setLanguage(appPublishDO.getLanguage());
-        String appInfo = appPublishDO.getAppInfo();
+        appPublishResponse.setUid(appPublish.getUid());
+        appPublishResponse.setAppUid(appPublish.getAppUid());
+        appPublishResponse.setMarketUid(appPublish.getMarketUid());
+        appPublishResponse.setName(appPublish.getName());
+        appPublishResponse.setModel(appPublish.getModel());
+        appPublishResponse.setVersion(appPublish.getVersion());
+        appPublishResponse.setCategories(AppUtils.split(appPublish.getCategories()));
+        appPublishResponse.setLanguage(appPublish.getLanguage());
+        String appInfo = appPublish.getAppInfo();
         if (StringUtils.isNotBlank(appInfo)) {
             AppDO appDO = JSONUtil.toBean(appInfo, AppDO.class);
             appPublishResponse.setAppInfo(AppConvert.INSTANCE.convertResponse(appDO));
         }
-        appPublishResponse.setDescription(appPublishDO.getDescription());
-        appPublishResponse.setAudit(appPublishDO.getAudit());
-        appPublishResponse.setCreateTime(appPublishDO.getCreateTime());
-        appPublishResponse.setUpdateTime(appPublishDO.getUpdateTime());
+        appPublishResponse.setDescription(appPublish.getDescription());
+        appPublishResponse.setAudit(appPublish.getAudit());
+        appPublishResponse.setCreateTime(appPublish.getCreateTime());
+        appPublishResponse.setUpdateTime(appPublish.getUpdateTime());
         return appPublishResponse;
+    }
+
+    /**
+     * 转换应用发布最新版本响应
+     *
+     * @param appPublish 应用发布 DO
+     * @return 应用发布最新版本响应
+     */
+    default AppPublishLatestRespVO convertLatest(AppPublishDO appPublish) {
+        AppPublishLatestRespVO latestResponse = new AppPublishLatestRespVO();
+        latestResponse.setUid(appPublish.getUid());
+        latestResponse.setAppUid(appPublish.getAppUid());
+        latestResponse.setName(appPublish.getName());
+        latestResponse.setModel(appPublish.getModel());
+        latestResponse.setVersion(appPublish.getVersion());
+        latestResponse.setAudit(appPublish.getAudit());
+        latestResponse.setDescription(appPublish.getDescription());
+        latestResponse.setCreateTime(appPublish.getCreateTime());
+        latestResponse.setUpdateTime(appPublish.getUpdateTime());
+        return latestResponse;
     }
 }

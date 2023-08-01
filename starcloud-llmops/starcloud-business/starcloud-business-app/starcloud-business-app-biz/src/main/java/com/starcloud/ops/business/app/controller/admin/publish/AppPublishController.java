@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishAuditRespVO;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -64,7 +65,7 @@ public class AppPublishController {
     @GetMapping("/getLatest/{appUid}")
     @Operation(summary = "根据应用 UID 获得最新的发布记录详情", description = "根据应用 UID 获得最新的发布记录详情")
     @ApiOperationSupport(order = 15, author = "nacoyer")
-    public CommonResult<AppPublishRespVO> getLatest(@Parameter(name = "appUid", description = "应用 UID") @PathVariable("appUid") String uid) {
+    public CommonResult<AppPublishLatestRespVO> getLatest(@Parameter(name = "appUid", description = "应用 UID") @PathVariable("appUid") String uid) {
         return CommonResult.success(appPublishService.getLatest(uid));
     }
 
