@@ -9,7 +9,7 @@ import java.util.List;
  *
  */
 @Data
-public class SourceDataUrlUploadDTO {
+public class SourceDataUploadDTO {
 
     /**
      * 数据集 ID

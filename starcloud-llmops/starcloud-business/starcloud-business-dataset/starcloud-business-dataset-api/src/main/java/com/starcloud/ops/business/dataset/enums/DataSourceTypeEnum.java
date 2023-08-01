@@ -3,6 +3,8 @@ package com.starcloud.ops.business.dataset.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import javax.swing.text.html.HTML;
+
 /**
  * 数据来源类型
  * @author Alan Cusack
@@ -13,11 +15,20 @@ import lombok.Getter;
 public enum DataSourceTypeEnum {
 
     /**
-     * 微信 - 不需要 分段规则
+     * 文档
      */
-    WECHAT,
+    DOCUMENT,
 
-    COMMON,
+    /**
+     *  URL
+     */
+    URL,
+
+    /**
+     * 字符
+     */
+    CHARACTERS,
+
     ;
 
 

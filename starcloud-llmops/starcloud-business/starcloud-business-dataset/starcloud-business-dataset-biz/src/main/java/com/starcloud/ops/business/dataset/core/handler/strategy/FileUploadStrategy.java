@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,15 +50,19 @@ public class FileUploadStrategy implements UploadStrategy {
         // 设置文件名称
         uploadFileRespDTO.setName(name);
 
-
+        // 获取文件size
+        long size = uploadFile.getSize();
+        // 设置文件大小
+        uploadFileRespDTO.setSize(size);
         // 生成文件ID - 使用 URL SecureUtil.md5 会关闭流
         String fileId = null;
 
         fileId = SecureUtil.md5(new ByteArrayInputStream(fileContent));
 
+        log.info("文件的数据大小为:{}",fileContent.length);
         String filePath = null;
 
-        String extension = getExtension(uploadFile);
+        String extension = getExtension(name);
         try {
             // 上传文件
             filePath = uploadFile(fileId, fileContent, extension);
@@ -69,11 +74,6 @@ public class FileUploadStrategy implements UploadStrategy {
             return uploadFileRespDTO;
             // throw exception(SOURCE_DATA_UPLOAD_URL_ERROR);
         }
-
-        // 获取文件size
-        long size = uploadFile.getSize();
-        // 设置文件大小
-        uploadFileRespDTO.setSize(size);
 
         // 设置扩展名
         uploadFileRespDTO.setExtension(extension);
@@ -110,12 +110,11 @@ public class FileUploadStrategy implements UploadStrategy {
      * @param file
      * @return
      */
-    private static String getExtension(MultipartFile file) {
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename != null) {
-            int dotIndex = originalFilename.lastIndexOf(".");
-            if (dotIndex > 0 && dotIndex < originalFilename.length() - 1) {
-                return originalFilename.substring(dotIndex + 1).toLowerCase();
+    private static String getExtension(String fileName) {
+        if (fileName != null) {
+            int dotIndex = fileName.lastIndexOf(".");
+            if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
+                return fileName.substring(dotIndex + 1).toLowerCase();
             }
         }
         return "";

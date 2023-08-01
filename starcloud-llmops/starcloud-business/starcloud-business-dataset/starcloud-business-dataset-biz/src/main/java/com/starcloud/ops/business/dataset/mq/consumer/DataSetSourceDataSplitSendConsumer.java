@@ -44,7 +44,7 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractStreamMessageLis
 
         try {
             // fixme 查询清洗数据
-            documentSegmentsService.splitDoc(message.getDataSourceId(),null,message.getSplitRule());
+            documentSegmentsService.splitDoc(message.getDataSourceId(),null,null,message.getSplitRule());
             datasetSourceDataService.updateDatasourceStatus(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus());
             // 发送消息
             dataIndexProducer.sendIndexDatasetsSendMessage(message.getDatasetId() ,message.getDataSourceId() ,null);

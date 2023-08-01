@@ -92,4 +92,20 @@ public interface UserBenefitsService {
      */
     Boolean addBenefitsAndRole(String benefitsType, Long userId, String roleCode);
 
+
+    /**
+     * 用户有邀请码的情况--增加权益
+     *
+     * @param inviteUserId  邀请人 ID
+     * @param currentUserId 被邀请人 ID
+     */
+    void addUserBenefitsInvitation(Long inviteUserId, Long currentUserId);
+
+    /**
+     * 用户普通注册--增加权益
+     *
+     * @param userId  用户 ID
+     */
+    void addUserBenefitsSign(Long userId);
+
 }

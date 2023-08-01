@@ -115,13 +115,6 @@ public class DatasetSourceDataBaseVO {
     @NotNull(message = "是否启用不能为空")
     private Boolean enabled;
 
-    @Schema(description = "文档类型", required = true, example = "1")
-    @NotNull(message = "文档类型不能为空")
-    private String docType;
-
-    @Schema(description = "文档元数据")
-    private String docMetadata;
-
     @Schema(description = "是否归档", required = true)
     @NotNull(message = "是否归档不能为空")
     private Boolean archived;

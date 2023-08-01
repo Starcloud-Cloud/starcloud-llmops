@@ -1,41 +1,34 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
-import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataCreateReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataPageReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataUpdateReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.SourceDataBatchCreateReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadCharacterReqDTO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
-import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataCleanProducer;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
-import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
-import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadRespDTO;
-import com.starcloud.ops.business.dataset.service.dto.SourceDataUrlUploadDTO;
-import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
+import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.checkerframework.checker.units.qual.A;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
-import org.springframework.util.StreamUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
@@ -43,16 +36,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
@@ -101,37 +88,17 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     /**
      * 上传文件-支持批量上传
      *
-     * @param files
+     * @param file
      * @param splitRule
      * @param datasetId
      * @return 编号
      */
     @Override
-    public SourceDataUrlUploadDTO uploadFilesSourceData(MultipartFile[] files, SplitRule splitRule, String datasetId) {
+    public SourceDataUploadDTO uploadFilesSourceData(MultipartFile file,String batch, SplitRule splitRule, String datasetId) {
 
+        SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
-        SourceDataUrlUploadDTO sourceDataUrlUploadDTO = new SourceDataUrlUploadDTO();
-
-        ArrayList<Boolean> arrayList = new ArrayList<>();
-        // 生成批次
-        String batch = IdUtil.getSnowflakeNextIdStr();
-        List<Future<Boolean>> completableFutures = Stream.of(files)
-                .map(file -> processFileUploadAsync(file, splitRule, datasetId))
-                .collect(Collectors.toList());
-
-        List<Boolean> source = completableFutures.stream()
-                .map(Future::isDone) // 获取任务结果，如果有异常，join 会抛出 ExecutionException
-                .collect(Collectors.toList());
-
-        sourceDataUrlUploadDTO.setDatasetId(datasetId);
-        sourceDataUrlUploadDTO.setBatch(batch);
-        sourceDataUrlUploadDTO.setStatus(source);
-        return sourceDataUrlUploadDTO;
-    }
-
-
-    @Async
-    public Future<Boolean> processFileUploadAsync(MultipartFile file, SplitRule splitRule, String datasetId) {
+        ArrayList<Boolean> source = new ArrayList<>();
         // 读取文件内容到字节数组中
         byte[] fileContent;
         try {
@@ -139,8 +106,18 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return AsyncResult.forValue(processingService.fileProcessing(file, fileContent, splitRule, datasetId));
+
+        Boolean booleanFuture = processingService.fileProcessing(file, fileContent, splitRule, datasetId);
+        source.add(booleanFuture);
+
+
+        sourceDataUrlUploadDTO.setDatasetId(datasetId);
+        sourceDataUrlUploadDTO.setBatch(batch);
+        sourceDataUrlUploadDTO.setStatus(source);
+
+        return sourceDataUrlUploadDTO;
     }
+
 
     /**
      * 上传文件-支持批量上传
@@ -151,70 +128,69 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public SourceDataUrlUploadDTO uploadUrlsSourceData(List<String> urls, SplitRule splitRule, String datasetId) {
-        SourceDataUrlUploadDTO sourceDataUrlUploadDTO = new SourceDataUrlUploadDTO();
-
-        // 生成批次
-        String batch = IdUtil.getSnowflakeNextIdStr();
-
-        List<CompletableFuture<Boolean>> completableFutures = urls.stream()
-                .map(url -> CompletableFuture.supplyAsync(() -> processingService.urlProcessing(url, splitRule, datasetId))
-                .collect(Collectors.toList());
-
-        // 等待所有异步任务完成
-        CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
-
-        // 处理每个任务的结果，并收集结果到 source 列表中
-        List<Boolean> source = completableFutures.stream()
-                .map(CompletableFuture::join) // 获取任务结果，如果有异常，join 会抛出 ExecutionException
-                .collect(Collectors.toList());
+    public SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO> urls,String batch, SplitRule splitRule, String datasetId) {
+        SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
         sourceDataUrlUploadDTO.setDatasetId(datasetId);
-        sourceDataUrlUploadDTO.setStatus(source);
+        sourceDataUrlUploadDTO.setBatch(batch);
+    //     // 异步处理文件
+    // List<Future<Boolean>> completableFutures = urls.stream()
+    //             .map(url -> this.executeAsyncWithUrl(url,batch,splitRule,datasetId).get())
+    //             .collect(Collectors.toList());
+    //
+    //     sourceDataUrlUploadDTO.setStatus(source);
+
+
         return sourceDataUrlUploadDTO;
     }
 
-    public Future<Boolean> processUrlUploadAsync(String url, SplitRule splitRule, String datasetId) {
-        // 读取文件内容到字节数组中
-        byte[] fileContent;
-        try {
-            fileContent = IOUtils.toByteArray(file.getInputStream());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return AsyncResult.forValue(processingService.fileProcessing(file, fileContent, splitRule, datasetId));
+
+    @Async
+    public Future<Boolean> executeAsyncWithUrl(UploadUrlReqVO url,String batch, SplitRule splitRule, String datasetId) {
+        return AsyncResult.forValue(processingService.urlProcessing(null, splitRule, datasetId));
     }
 
 
     /**
      * 上传文件-支持批量上传
      *
-     * @param characters
+     * @param reqVOS
      * @param splitRule
      * @param datasetId
      * @return 编号
      */
     @Override
-    public SourceDataUrlUploadDTO uploadCharactersSourceData(List<String> characters, SplitRule splitRule, String datasetId) {
-        SourceDataUrlUploadDTO sourceDataUrlUploadDTO = new SourceDataUrlUploadDTO();
+    public SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS,String batch, SplitRule splitRule, String datasetId) {
+        SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
-        // 生成批次
-        String batch = IdUtil.getSnowflakeNextIdStr();
 
-        List<CompletableFuture<Boolean>> completableFutures = characters.stream()
-                .map(character -> CompletableFuture.supplyAsync(() -> processingService.urlProcessing(character, splitRule, datasetId)))
-                .collect(Collectors.toList());
+        ArrayList<Boolean> source = new ArrayList<>();
 
-        // 等待所有异步任务完成
-        CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
+        for (UploadCharacterReqVO reqVO : reqVOS) {
 
-        // 处理每个任务的结果，并收集结果到 source 列表中
-        List<Boolean> source = completableFutures.stream()
-                .map(CompletableFuture::join) // 获取任务结果，如果有异常，join 会抛出 ExecutionException
-                .collect(Collectors.toList());
+            UploadCharacterReqDTO bean = BeanUtil.toBean(reqVO, UploadCharacterReqDTO.class);
+            Boolean aBoolean = processingService.stringProcessing(bean, splitRule, datasetId);
+            source.add(aBoolean);
+        }
 
         sourceDataUrlUploadDTO.setDatasetId(datasetId);
+        sourceDataUrlUploadDTO.setBatch(batch);
         sourceDataUrlUploadDTO.setStatus(source);
+
+        // List<CompletableFuture<Boolean>> completableFutures = characters.stream()
+        //         .map(character -> CompletableFuture.supplyAsync(() -> processingService.urlProcessing(character, splitRule, datasetId)))
+        //         .collect(Collectors.toList());
+        //
+        // // 等待所有异步任务完成
+        // CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
+        //
+        // // 处理每个任务的结果，并收集结果到 source 列表中
+        // List<Boolean> source = completableFutures.stream()
+        //         .map(CompletableFuture::join) // 获取任务结果，如果有异常，join 会抛出 ExecutionException
+        //         .collect(Collectors.toList());
+        //
+        // sourceDataUrlUploadDTO.setDatasetId(datasetId);
+        // sourceDataUrlUploadDTO.setStatus(source);
         return sourceDataUrlUploadDTO;
     }
 
@@ -289,6 +265,13 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Override
     public PageResult<DatasetSourceDataDO> getDatasetSourceDataPage(DatasetSourceDataPageReqVO pageReqVO) {
         return datasetSourceDataMapper.selectPage(pageReqVO);
+    }
+
+
+    @Override
+    public List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId) {
+
+        return datasetSourceDataMapper.selectByDatasetId(datasetId);
     }
 
     /**

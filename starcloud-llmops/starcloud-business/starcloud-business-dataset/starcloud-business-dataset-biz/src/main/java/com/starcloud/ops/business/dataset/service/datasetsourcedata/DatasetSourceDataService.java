@@ -1,13 +1,10 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataPageReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataUpdateReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.SourceDataBatchCreateReqVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
-import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadRespDTO;
-import com.starcloud.ops.business.dataset.service.dto.SourceDataUrlUploadDTO;
+import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,19 +33,19 @@ public interface DatasetSourceDataService {
      * 上传文件-支持批量上传
      * @return 编号
      */
-    SourceDataUrlUploadDTO uploadFilesSourceData(MultipartFile[] files, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadFilesSourceData(MultipartFile files,String batch, SplitRule splitRule, String datasetId);
 
     /**
      * 上传URL-支持批量上传
      * @return 编号
      */
-    SourceDataUrlUploadDTO uploadUrlsSourceData(List<String> urls, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO>urls, String batch, SplitRule splitRule, String datasetId);
 
     /**
      * 上传字符-支持批量上传
      * @return 编号
      */
-    SourceDataUrlUploadDTO uploadCharactersSourceData(List<String> characters, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS,String batch, SplitRule splitRule, String datasetId);
 
     /**
      * 创建数据集源数据
@@ -80,6 +77,15 @@ public interface DatasetSourceDataService {
      * @return 数据集源数据分页
      */
     PageResult<DatasetSourceDataDO> getDatasetSourceDataPage(DatasetSourceDataPageReqVO pageReqVO);
+
+
+    /**
+     * 获得数据集源数据列表
+     *
+     * @param datasetId 数据集 ID
+     * @return 数据集源数据列表
+     */
+    List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId);
 
     /**
      * 归档数据集源数据

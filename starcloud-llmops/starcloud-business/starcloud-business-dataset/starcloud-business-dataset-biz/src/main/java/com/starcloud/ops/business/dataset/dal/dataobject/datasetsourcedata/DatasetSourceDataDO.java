@@ -148,14 +148,6 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      */
     private Boolean enabled;
     /**
-     * 文档类型
-     */
-    private String docType;
-    /**
-     * 文档元数据
-     */
-    private String docMetadata;
-    /**
      * 是否归档
      */
     private Boolean archived;

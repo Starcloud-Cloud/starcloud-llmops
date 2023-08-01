@@ -19,8 +19,8 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
      */
 
     UPLOAD(11,"数据上传中"),
-    UPLOAD_ERROR(15,"数据失败"),
-    UPLOAD_COMPLETED(20,"数据上传中"),
+    UPLOAD_ERROR(15,"数据上传失败"),
+    UPLOAD_COMPLETED(20,"数据上传成功"),
 
     /**
      * 21 - 30 数据同步

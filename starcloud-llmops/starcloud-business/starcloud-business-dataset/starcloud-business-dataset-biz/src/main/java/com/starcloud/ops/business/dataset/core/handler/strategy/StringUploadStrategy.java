@@ -2,10 +2,10 @@ package com.starcloud.ops.business.dataset.core.handler.strategy;
 
 import cn.hutool.core.io.FileTypeUtil;
 import cn.hutool.core.io.IoUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadCharacterReqDTO;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,11 +24,11 @@ public class StringUploadStrategy implements UploadStrategy {
     private FileApi fileApi;
 
     // 成员变量用于保存URL
-    private String character;
+    private UploadCharacterReqDTO reqDTO;
 
     // Setter方法，用于接收MultipartFile对象
-    public void setCharacter(String character) {
-        this.character = character;
+    public void setData(UploadCharacterReqDTO reqDTO) {
+        this.reqDTO = reqDTO;
     }
 
     @Override
@@ -37,7 +37,9 @@ public class StringUploadStrategy implements UploadStrategy {
         UploadFileRespDTO uploadFileRespDTO = new UploadFileRespDTO();
 
         // 获取资源名称
-        String name = character.substring(0,12);
+        String name = reqDTO.getTitle();
+        String character =reqDTO.getContext();
+
 
         // 设置数据名称
         uploadFileRespDTO.setName(name);
