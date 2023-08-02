@@ -261,6 +261,21 @@ public class AppPublishServiceImpl implements AppPublishService {
     }
 
     /**
+     * 删除应用发布记录
+     *
+     * @param appUid 应用 UID
+     */
+    @Override
+    public void deleteByAppUid(String appUid) {
+        List<AppPublishDO> publishList = appPublishMapper.listByAppUid(appUid);
+        if (CollectionUtil.isEmpty(publishList)) {
+            return;
+        }
+        List<Long> collect = publishList.stream().map(AppPublishDO::getId).collect(Collectors.toList());
+        appPublishMapper.deleteBatchIds(collect);
+    }
+
+    /**
      * 新增或者更新应用市场记录
      *
      * @param appPublish 应用发布记录
