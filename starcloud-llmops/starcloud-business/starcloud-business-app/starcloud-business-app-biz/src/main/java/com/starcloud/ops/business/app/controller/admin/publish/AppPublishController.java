@@ -39,7 +39,7 @@ public class AppPublishController {
     private AppPublishService appPublishService;
 
     @GetMapping("/pageAdmin")
-    @Operation(summary = "管理审核发布分页查询发布记录", description = "管理审核发布分页查询发布记录")
+    @Operation(summary = "市场管理分页查询发布记录", description = "市场管理分页查询发布记录")
     @ApiOperationSupport(order = 1, author = "nacoyer")
     public CommonResult<PageResp<AppPublishRespVO>> pageAdmin(@Validated AppPublishPageReqVO query) {
         query.setIsAdmin(Boolean.TRUE);

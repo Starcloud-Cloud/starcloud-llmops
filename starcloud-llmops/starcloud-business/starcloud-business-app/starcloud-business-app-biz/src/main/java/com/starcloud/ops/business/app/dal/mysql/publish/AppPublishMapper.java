@@ -51,6 +51,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
             } else {
                 wrapper.in(AppPublishDO::getAudit, AppPublishAuditEnum.APPROVED.getCode(), AppPublishAuditEnum.REJECTED.getCode(), AppPublishAuditEnum.PENDING.getCode());
             }
+            wrapper.orderByAsc(AppPublishDO::getAudit);
         } else {
             wrapper.eq(Objects.nonNull(query.getAudit()), AppPublishDO::getAudit, query.getAudit());
         }
@@ -125,7 +126,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
                 AppPublishDO::getCreateTime,
                 AppPublishDO::getUpdateTime,
                 AppPublishDO::getDescription
-                );
+        );
         return wrapper;
     }
 
