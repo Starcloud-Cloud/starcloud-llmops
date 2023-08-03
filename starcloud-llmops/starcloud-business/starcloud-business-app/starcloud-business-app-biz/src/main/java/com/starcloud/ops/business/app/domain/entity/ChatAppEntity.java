@@ -327,6 +327,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         if (openaiCompletionParams.getMaxTokens() != null && openaiCompletionParams.getMaxTokens() > 0) {
             maxTokens -= openaiCompletionParams.getMaxTokens();
+        } else {
+            maxTokens -= 500;
         }
 
         maxTokens -= TokenUtils.intTokens(modelType, currQuery);
