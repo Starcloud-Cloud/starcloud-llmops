@@ -36,7 +36,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     default Page<AppMarketDO> page(AppMarketPageQuery query) {
         // 构建查询条件
         LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
-        queryMapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
+        queryMapper.likeRight(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
         queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());

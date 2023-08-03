@@ -41,7 +41,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
     default Page<AppDO> page(AppPageQuery query) {
         // 构建查询条件
         LambdaQueryWrapper<AppDO> wrapper = queryWrapper(Boolean.TRUE);
-        wrapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
+        wrapper.likeRight(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
         wrapper.ne(AppDO::getSource, AppSourceEnum.WX_WP.name());
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             wrapper.eq(AppDO::getModel, AppModelEnum.CHAT.name());
@@ -144,9 +144,9 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         wrapper.eq(AppDO::getCreator, userId);
         wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
         wrapper.and(and -> and
-                .likeLeft(AppDO::getPublishUid, marketUid)
+                .likeRight(AppDO::getPublishUid, marketUid)
                 .or()
-                .likeLeft(AppDO::getInstallUid, marketUid).eq(AppDO::getType, AppTypeEnum.INSTALLED.name())
+                .likeRight(AppDO::getInstallUid, marketUid).eq(AppDO::getType, AppTypeEnum.INSTALLED.name())
         );
 
         AppDO appDO = this.selectOne(wrapper);
