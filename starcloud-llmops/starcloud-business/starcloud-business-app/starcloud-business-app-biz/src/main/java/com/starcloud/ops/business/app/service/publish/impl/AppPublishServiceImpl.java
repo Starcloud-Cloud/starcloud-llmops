@@ -147,7 +147,7 @@ public class AppPublishServiceImpl implements AppPublishService {
             response.setAuditTag(AppPublishAuditEnum.REJECTED.getCode());
         } else {
             boolean approvedFlag = publishList.stream().anyMatch(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()));
-            // 发布记录不为空，不存在待审核和审核通过的发布记录。
+            // 不存在待审核和最新一条记录为审核拒绝状态，若历史记录中有审核已通过的记录，则显示已通过，否则显示最新记录的审核状态。
             response.setAuditTag(approvedFlag ? AppPublishAuditEnum.APPROVED.getCode() : response.getAudit());
         }
         if (app.getUpdateTime().isAfter(response.getCreateTime())) {
@@ -185,7 +185,7 @@ public class AppPublishServiceImpl implements AppPublishService {
             AppPublishDO lastAppPublish = appPublishRecords.get(0);
             // 版本号递增
             appPublish.setVersion(AppUtils.nextVersion(lastAppPublish.getVersion()));
-            // 如果最新发布应用处于审核通过状态，则将 marketUid 带到最新发布记录中
+            // 如果历史中有已经审核通过的记录，则将历史记录中的 marketUid 赋值给当前发布记录
             Optional<AppPublishDO> approvedPublish = appPublishRecords.stream()
                     .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()))
                     .filter(item -> StringUtils.isNotBlank(item.getMarketUid()))
