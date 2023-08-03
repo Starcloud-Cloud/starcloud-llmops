@@ -2,8 +2,6 @@ package com.starcloud.ops.business.app.controller.admin.chat;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
-import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatHistoryPageQuery;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
@@ -25,7 +23,6 @@ import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.module.infra.enums.ErrorCodeConstants.FILE_IS_EMPTY;
 
 @Tag(name = "星河云海 - 对话")
@@ -81,7 +78,6 @@ public class ChatController {
 
     @PostMapping("/avatar/{appUid}")
     @Operation(summary = "修改chatApp头像")
-    @PreAuthenticated
     public CommonResult<String> updateUserAvatar(@PathVariable("appUid") String appUid,
                                                  @RequestParam("avatarFile") MultipartFile file) throws Exception {
         if (file.isEmpty()) {
@@ -90,6 +86,14 @@ public class ChatController {
         String avatar = chatService.updateAppAvatar(appUid, file.getInputStream());
         return success(avatar);
     }
+
+    @GetMapping("/avatar/default")
+    @Operation(summary = "获取推荐头像")
+    public CommonResult<List<String>> defaultAvatar(){
+        return success(chatService.defaultAvatar());
+    }
+
+
 
     @Operation(summary = "聊天建议")
     @PostMapping("/suggestion/{conversationUid}")
