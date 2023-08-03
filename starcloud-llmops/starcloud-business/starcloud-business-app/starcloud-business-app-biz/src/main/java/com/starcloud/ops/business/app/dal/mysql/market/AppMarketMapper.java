@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
@@ -37,6 +38,10 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
         queryMapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
         queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
+        if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
+            queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
+        }
+
         String local = LocaleContextHolder.getLocale().toString();
         String language = LanguageEnum.ZH_CN.getCode().equals(local) ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
         // 先按照语言排序，再按照使用量排序

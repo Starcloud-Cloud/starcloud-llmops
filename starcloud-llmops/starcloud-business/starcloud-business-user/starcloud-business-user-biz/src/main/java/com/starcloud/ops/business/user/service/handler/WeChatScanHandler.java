@@ -44,7 +44,7 @@ public class WeChatScanHandler implements WxMpMessageHandler {
     @Resource
     private MpUserService mpUserService;
 
-    private List<String> openIds = Arrays.asList("oyCo06QA656Tro1GsgetoRzqEHgg","oyCo06UNZfaREciXe_T0kvKWfZZA",
+    private List<String> openIds = Arrays.asList(
             "oyCo06RRyVQxlIAkR00Lxj4PNQXo","oyCo06X7q7kLyA-be8AAhJQqevbE","oyCo06aChvHe_ZhSXrVNRYnxWwRo"
     );
 
