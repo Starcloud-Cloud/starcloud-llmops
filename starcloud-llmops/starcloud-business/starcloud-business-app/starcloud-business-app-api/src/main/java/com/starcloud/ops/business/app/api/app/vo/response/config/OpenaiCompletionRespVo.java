@@ -7,27 +7,27 @@ import lombok.Data;
 @Schema(description = "openai参数配置")
 public class OpenaiCompletionRespVo {
 
-    @Schema(description = "语言模型",example = "gpt-3.5-turbo")
-    private String modelName;
+    @Schema(description = "语言模型", example = "gpt-3.5-turbo")
+    private String model = "gpt-3.5-turbo";
 
     @Schema(description = "返回内容的令牌最大数量")
-    private Integer maxTokens;
+    private Integer maxTokens = 500;
 
     @Schema(description = "多样性")
-    private Double temperature;
+    private Double temperature = 0.7d;
 
     @Schema(description = "采样范围")
-    private Double topP;
+    private Double topP = 1d;
 
     @Schema(description = "词汇控制")
-    private Double presencePenalty;
+    private Double presencePenalty = 0d;
 
     @Schema(description = "重复控制")
-    private Double frequencyPenalty;
+    private Double frequencyPenalty = 0d;
 
     @Schema(description = "回复消息数")
     private Integer n = 1;
 
     @Schema(description = "流式响应")
-    private Boolean stream ;
+    private Boolean stream = true;
 }

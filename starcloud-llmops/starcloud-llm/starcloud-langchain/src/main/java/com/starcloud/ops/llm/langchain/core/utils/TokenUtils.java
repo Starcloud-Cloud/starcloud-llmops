@@ -54,6 +54,11 @@ public class TokenUtils {
         return (long) encoding.countTokens(content);
     }
 
+    public static int intTokens(ModelType modelType, String content) {
+        Encoding encoding = getEncoding(modelType);
+        return encoding.countTokens(content);
+    }
+
     /**
      * Encodes the {@code content} into a list of token ids and returns the amount of tokens.
      *

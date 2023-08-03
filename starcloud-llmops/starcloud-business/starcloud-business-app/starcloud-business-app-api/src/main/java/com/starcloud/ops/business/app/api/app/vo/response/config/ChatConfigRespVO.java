@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.action.LLMFunctionRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
@@ -49,8 +46,14 @@ public class ChatConfigRespVO extends BaseConfigRespVO {
     @Schema(description = "聊天建议")
     private SuggestedQuestionRespVO suggestedQuestion;
 
-    @Schema(description = "聊天开场白")
+    @Schema(description = "聊天欢迎语")
     private OpeningStatementRespVO openingStatement;
+
+    @Schema(description = "常用问题")
+    private List<CommonQuestionRespVO> commonQuestion;
+
+    @Schema(description = "语音配置")
+    private AudioTransciptRespVO audioTransciptEntity;
 
     /**
      * 挂载的 functions 列表

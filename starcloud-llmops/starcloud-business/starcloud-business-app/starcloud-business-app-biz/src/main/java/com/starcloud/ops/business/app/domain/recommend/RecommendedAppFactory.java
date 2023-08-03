@@ -1,13 +1,16 @@
 package com.starcloud.ops.business.app.domain.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.*;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -64,7 +67,7 @@ public class RecommendedAppFactory {
     }
 
     /**
-     * 生成文章应用
+     * 生成聊天机器人
      *
      * @return AppRespVO
      */
@@ -81,6 +84,20 @@ public class RecommendedAppFactory {
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
+
+        ChatConfigRespVO chatConfigRespVO = new ChatConfigRespVO();
+        ModelConfigRespVO openaiModel = ModelConfigRespVO.builder().provider("openai").completionParams(new OpenaiCompletionRespVo()).build();
+        OpeningStatementRespVO openingStatementRespVO = new OpeningStatementRespVO();
+        openingStatementRespVO.setEnabled(true);
+        openingStatementRespVO.setStatement("你好！我是一个人工智能助手，我可以回答你的问题、提供信息、进行翻译、提供建议等等。请告诉我你需要什么帮助。");
+        chatConfigRespVO.setOpeningStatement(openingStatementRespVO);
+        CommonQuestionRespVO commonQuestionRespVO = new CommonQuestionRespVO();
+        commonQuestionRespVO.setEnabled(true);
+        commonQuestionRespVO.setContent("你能帮助我做什么？");
+        chatConfigRespVO.setCommonQuestion(Arrays.asList(commonQuestionRespVO));
+        chatConfigRespVO.setModelConfig(openaiModel);
+        chatConfigRespVO.setPrePrompt("我是一个聊天机器人助手");
+        app.setChatConfig(chatConfigRespVO);
         return app;
     }
 
