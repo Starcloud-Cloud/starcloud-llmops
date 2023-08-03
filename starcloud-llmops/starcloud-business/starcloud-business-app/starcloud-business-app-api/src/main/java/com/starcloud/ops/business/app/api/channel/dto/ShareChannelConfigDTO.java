@@ -24,5 +24,5 @@ public class ShareChannelConfigDTO extends BaseChannelConfigDTO {
      * 分享链接
      */
     @Schema(description = "分享链接")
-    private String link;
+    private String slug;
 }

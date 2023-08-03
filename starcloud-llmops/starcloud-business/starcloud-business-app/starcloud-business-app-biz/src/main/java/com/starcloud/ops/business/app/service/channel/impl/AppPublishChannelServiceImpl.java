@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.app.service.channel.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.IdUtil;
+import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.app.api.channel.dto.ShareChannelConfigDTO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.convert.channel.AppPublishChannelConverter;
@@ -131,10 +134,30 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         // 修改状态
         AppValidate.notBlank(request.getUid(), ErrorCodeConstants.APP_CHANNEL_UID_IS_REQUIRED);
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
-        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getAppUid());
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getUid());
         appPublishChannel.setStatus(request.getStatus());
         appPublishChannelMapper.updateById(appPublishChannel);
         return AppPublishChannelConverter.INSTANCE.convert(appPublishChannel);
+    }
+
+    /**
+     * 重置分享链接唯一标识
+     *
+     * @param uid 应用发布渠道uid
+     * @return {@link String}
+     */
+    @Override
+    public String resetShareSlug(String uid) {
+        AppValidate.notBlank(uid, ErrorCodeConstants.APP_CHANNEL_UID_IS_REQUIRED);
+        AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(uid, Boolean.TRUE);
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, uid);
+
+        ShareChannelConfigDTO shareChannelConfigDTO = new ShareChannelConfigDTO();
+        String slug = IdUtil.fastSimpleUUID();
+        shareChannelConfigDTO.setSlug(slug);
+        appPublishChannel.setConfig(JSON.toJSONString(shareChannelConfigDTO));
+        appPublishChannelMapper.updateById(appPublishChannel);
+        return slug;
     }
 
     /**

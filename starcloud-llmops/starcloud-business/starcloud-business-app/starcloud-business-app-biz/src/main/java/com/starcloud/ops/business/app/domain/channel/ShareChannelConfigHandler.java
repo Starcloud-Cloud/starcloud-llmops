@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.channel;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.channel.dto.ShareChannelConfigDTO;
@@ -26,7 +27,7 @@ public class ShareChannelConfigHandler extends AppPublishChannelConfigTemplate<S
      */
     @Override
     public void validate(ShareChannelConfigDTO config) {
-        if (Objects.nonNull(config) && StringUtils.isBlank(config.getLink())) {
+        if (Objects.nonNull(config) && StringUtils.isBlank(config.getSlug())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_CONFIG_SHARE_LINK_IS_REQUIRED);
         }
     }
@@ -41,7 +42,7 @@ public class ShareChannelConfigHandler extends AppPublishChannelConfigTemplate<S
         if (Objects.isNull(config)) {
             config = new ShareChannelConfigDTO();
             // 生成分享链接
-            config.setLink(generateShareLink());
+            config.setSlug(generateShareSlug());
         }
         return config;
     }
@@ -62,9 +63,8 @@ public class ShareChannelConfigHandler extends AppPublishChannelConfigTemplate<S
      *
      * @return 分享链接
      */
-    private String generateShareLink() {
-        // 生成分享链接
-
-        return "";
+    private String generateShareSlug() {
+        // 生成分享链接唯一标识
+        return IdUtil.fastSimpleUUID();
     }
 }

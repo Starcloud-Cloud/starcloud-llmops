@@ -55,6 +55,14 @@ public interface AppPublishChannelService {
     AppPublishChannelRespVO changeStatus(AppPublishChannelReqVO request);
 
     /**
+     * 重置分享链接唯一标识
+     *
+     * @param uid 应用发布渠道uid
+     * @return {@link String}
+     */
+    String resetShareSlug(String uid);
+
+    /**
      * 根据 appUid 批量修改渠道的 publishUid
      *
      * @param appUid     应用 Uid

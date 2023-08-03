@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.channel;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
@@ -61,5 +62,11 @@ public class AppPublishChannelController {
         return CommonResult.success(appPublishChannelService.changeStatus(request));
     }
 
+    @PostMapping("/resetShareSlug")
+    @Operation(summary = "重置分享链接唯一标识", description = "重置分享链接唯一标识")
+    @ApiOperationSupport(order = 25, author = "nacoyer")
+    public CommonResult<String> modify(@Validated @RequestBody UidRequest request) {
+        return CommonResult.success(appPublishChannelService.resetShareSlug(request.getUid()));
+    }
 
 }

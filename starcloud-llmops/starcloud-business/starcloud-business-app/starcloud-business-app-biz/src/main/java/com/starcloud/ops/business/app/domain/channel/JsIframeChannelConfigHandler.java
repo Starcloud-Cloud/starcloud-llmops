@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.channel;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.channel.dto.JsIframeChannelConfigDTO;
@@ -64,7 +65,6 @@ public class JsIframeChannelConfigHandler extends AppPublishChannelConfigTemplat
      */
     private String generateSlug() {
         // 生成 slug
-
-        return "";
+        return IdUtil.fastSimpleUUID();
     }
 }

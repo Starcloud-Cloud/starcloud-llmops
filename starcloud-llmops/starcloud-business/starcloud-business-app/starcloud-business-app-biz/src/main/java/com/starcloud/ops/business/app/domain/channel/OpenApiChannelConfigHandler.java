@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.channel;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.channel.dto.OpenApiChannelConfigDTO;
@@ -64,7 +65,6 @@ public class OpenApiChannelConfigHandler extends AppPublishChannelConfigTemplate
      */
     private String generateApiKey() {
         // 生成 apiKey
-
-        return "";
+        return "mf-" + IdUtil.simpleUUID();
     }
 }
