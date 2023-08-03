@@ -1,11 +1,12 @@
 package com.starcloud.ops.business.dataset.dal.mysql.segment;
 
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
+import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -54,6 +55,16 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
                 .eq(DocumentSegmentDO::getId,segmentId)
                 .set(DocumentSegmentDO::getDisabled,!enable);
         return this.update(null,updateWrapper);
+    }
+
+    default PageResult<DocumentSegmentDO> page(SegmentPageQuery segmentPageQuery) {
+        LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
+                .eq(DocumentSegmentDO::getDatasetId,segmentPageQuery.getDatasetUid())
+                .eq(DocumentSegmentDO::getDocumentId,segmentPageQuery.getDocumentUid())
+                .orderByAsc(DocumentSegmentDO::getPosition)
+                ;
+
+        return selectPage(segmentPageQuery, queryWrapper);
     }
 
     default int deleteSegment(String datasetId, String documentId) {
