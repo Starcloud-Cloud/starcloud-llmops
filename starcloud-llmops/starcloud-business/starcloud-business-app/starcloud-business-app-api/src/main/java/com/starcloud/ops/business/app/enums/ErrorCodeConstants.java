@@ -180,4 +180,9 @@ public interface ErrorCodeConstants {
      * 应用发布渠道配置 JS Iframe Slug 是必须的
      */
     ErrorCode APP_PUBLISH_CHANNEL_CONFIG_JS_IFRAME_SLUG_IS_REQUIRED = new ErrorCode(300500007, "The app publish channel config js iframe slug is required, please check and try again ! ");
+
+    /**
+     * 应用发布记录创建失败
+     */
+    ErrorCode APP_PUBLISH_RECORD_CREATE_FAILED = new ErrorCode(300500008, "The app publish create failed, please check and try again ! ");
 }

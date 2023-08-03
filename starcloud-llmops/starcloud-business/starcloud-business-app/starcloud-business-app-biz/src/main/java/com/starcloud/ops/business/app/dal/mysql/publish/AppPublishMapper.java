@@ -38,7 +38,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         // APP_UID
         wrapper.eq(StringUtils.isNotBlank(query.getAppUid()), AppPublishDO::getAppUid, query.getAppUid());
         // NAME 模糊查询
-        wrapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppPublishDO::getName, query.getName());
+        wrapper.likeRight(StringUtils.isNotBlank(query.getName()), AppPublishDO::getName, query.getName());
         // MODEL
         wrapper.eq(StringUtils.isNotBlank(query.getModel()), AppPublishDO::getModel, query.getModel());
         if (query.getIsAdmin()) {

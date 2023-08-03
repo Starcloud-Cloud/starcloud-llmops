@@ -36,7 +36,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     default Page<AppMarketDO> page(AppMarketPageQuery query) {
         // 构建查询条件
         LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
-        queryMapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
+        queryMapper.likeRight(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
         queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
@@ -71,7 +71,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
      */
     default AppMarketDO create(AppMarketDO appMarket) {
         // 校验应用名称是否重复
-        AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, appMarket.getName());
         appMarket.setUid(IdUtil.fastSimpleUUID());
         appMarket.setUsageCount(0);
         appMarket.setLikeCount(0);
@@ -94,7 +94,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, appMarket.getUid());
         // 名称修改了, 则需要校验名称是否重复
         if (!appMarket.getName().equals(appMarketDO.getName())) {
-            AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+            AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, appMarket.getName());
         }
         appMarket.setDeleted(Boolean.FALSE);
         appMarket.setId(appMarketDO.getId());

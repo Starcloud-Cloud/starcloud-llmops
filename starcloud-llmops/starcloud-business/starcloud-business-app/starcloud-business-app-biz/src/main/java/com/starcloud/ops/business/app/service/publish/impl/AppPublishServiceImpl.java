@@ -181,9 +181,13 @@ public class AppPublishServiceImpl implements AppPublishService {
             AppPublishDO lastAppPublish = appPublishRecords.get(0);
             // 版本号递增
             appPublish.setVersion(AppUtils.nextVersion(lastAppPublish.getVersion()));
-            if (StringUtils.isNotBlank(lastAppPublish.getMarketUid())) {
-                appPublish.setMarketUid(lastAppPublish.getMarketUid());
-            }
+            // 如果最新发布应用处于审核通过状态，则将 marketUid 带到最新发布记录中
+            Optional<AppPublishDO> approvedPublish = appPublishRecords.stream()
+                    .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()))
+                    .filter(item -> StringUtils.isNotBlank(item.getMarketUid()))
+                    .findFirst();
+            approvedPublish.ifPresent(appPublishDO -> appPublish.setMarketUid(appPublishDO.getMarketUid()));
+
             // 如果最新发布应用处于审核中，将最新发布状态改为已取消, 基本上只会存在一条审核中的发布记录，但是为了防止意外，将所有的审核中的发布记录都取消
             List<AppPublishDO> pendingPublishList = appPublishRecords.stream()
                     .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).collect(Collectors.toList());
@@ -248,10 +252,31 @@ public class AppPublishServiceImpl implements AppPublishService {
      */
     @Override
     public void operate(UidStatusRequest request) {
+
         // 校验审核状态
         if (!Objects.equals(request.getStatus(), AppPublishAuditEnum.CANCELED.getCode()) &&
                 !Objects.equals(request.getStatus(), AppPublishAuditEnum.PENDING.getCode())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
+        }
+
+        // 查询发布记录，发布记录不存在，抛出异常
+        AppPublishDO appPublishDO = appPublishMapper.get(request.getUid(), Boolean.TRUE);
+        AppValidate.notNull(appPublishDO, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, request.getUid());
+
+        // 查询应用，应用不存在，抛出异常
+        AppDO app = appMapper.get(request.getAppUid(), Boolean.FALSE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
+
+        // 说明已经最少审核通过一次了，应用市场已经存在了。
+        if (StringUtils.isNotBlank(appPublishDO.getMarketUid())) {
+            AppMarketDO appMarketDO = appMarketMapper.get(appPublishDO.getMarketUid(), Boolean.TRUE);
+            if (Objects.nonNull(appMarketDO) && !appMarketDO.getName().equals(app.getName())) {
+                // 此时说明应用市场已经存在了，但是应用市场的名称和应用的名称不一致，说明应用名称有修改，需要校验应用市场的名称是否已经存在
+                AppValidate.isFalse(appMarketMapper.duplicateName(app.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+            }
+        } else {
+            // 说明还没有审核通过，应用市场不存在，需要校验应用市场的名称是否已经存在
+            AppValidate.isFalse(appMarketMapper.duplicateName(app.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
         }
 
         // 如果是重新发布, 则校验是否存在待审核的发布记录, 如果存在, 则不允许重新发布

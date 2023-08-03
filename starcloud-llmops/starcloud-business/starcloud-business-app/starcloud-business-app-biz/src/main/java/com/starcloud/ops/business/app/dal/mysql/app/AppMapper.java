@@ -41,7 +41,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
     default Page<AppDO> page(AppPageQuery query) {
         // 构建查询条件
         LambdaQueryWrapper<AppDO> wrapper = queryWrapper(Boolean.TRUE);
-        wrapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
+        wrapper.likeRight(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
         wrapper.ne(AppDO::getSource, AppSourceEnum.WX_WP.name());
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             wrapper.eq(AppDO::getModel, AppModelEnum.CHAT.name());
@@ -73,7 +73,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      */
     default AppDO create(AppDO appDO) {
         // 校验应用名称是否重复
-        AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE,appDO.getName());
+        AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, appDO.getName());
         if (StringUtils.isBlank(appDO.getUid())) {
             appDO.setUid(IdUtil.fastSimpleUUID());
         }
@@ -87,21 +87,21 @@ public interface AppMapper extends BaseMapperX<AppDO> {
     /**
      * 修改应用市场应用
      *
-     * @param appDO 应用市场
+     * @param app 应用市场
      * @return 应用市场
      */
-    default AppDO modify(AppDO appDO) {
+    default AppDO modify(AppDO app) {
         // 判断应用是否存在, 不存在无法修改
-        AppDO app = this.get(appDO.getUid(), Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, appDO.getUid());
+        AppDO appDO = this.get(app.getUid(), Boolean.TRUE);
+        AppValidate.notNull(appDO, ErrorCodeConstants.APP_NO_EXISTS_UID, app.getUid());
         // 名称修改了，需要校验名称是否重复
-        if (!app.getName().equals(appDO.getName())) {
-            AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
+        if (!appDO.getName().equals(app.getName())) {
+            AppValidate.isFalse(duplicateName(app.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, app.getName());
         }
-        appDO.setDeleted(Boolean.FALSE);
-        appDO.setId(app.getId());
-        this.updateById(appDO);
-        return appDO;
+        app.setDeleted(Boolean.FALSE);
+        app.setId(appDO.getId());
+        this.updateById(app);
+        return app;
     }
 
     /**
@@ -144,9 +144,9 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         wrapper.eq(AppDO::getCreator, userId);
         wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
         wrapper.and(and -> and
-                .likeLeft(AppDO::getPublishUid, marketUid)
+                .likeRight(AppDO::getPublishUid, marketUid)
                 .or()
-                .likeLeft(AppDO::getInstallUid, marketUid).eq(AppDO::getType, AppTypeEnum.INSTALLED.name())
+                .likeRight(AppDO::getInstallUid, marketUid).eq(AppDO::getType, AppTypeEnum.INSTALLED.name())
         );
 
         AppDO appDO = this.selectOne(wrapper);
