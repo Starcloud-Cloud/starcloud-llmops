@@ -326,9 +326,10 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         }
 
         if (openaiCompletionParams.getMaxTokens() != null && openaiCompletionParams.getMaxTokens() > 0) {
-            maxTokens -= openaiCompletionParams.getMaxTokens();
+            // 临界值时 总结会多最后一次对话的回复 预先扣除token
+            maxTokens -= openaiCompletionParams.getMaxTokens() * 2;
         } else {
-            maxTokens -= 500;
+            maxTokens -= 500 * 2;
         }
 
         maxTokens -= TokenUtils.intTokens(modelType, currQuery);
