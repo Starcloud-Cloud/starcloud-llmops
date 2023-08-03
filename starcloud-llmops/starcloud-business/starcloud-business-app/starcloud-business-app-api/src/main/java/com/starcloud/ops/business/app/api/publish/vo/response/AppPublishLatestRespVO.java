@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.publish.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -118,5 +120,11 @@ public class AppPublishLatestRespVO implements Serializable {
      */
     @Schema(description = "是否是第一次生成发布记录")
     private Boolean isFirstCreatePublishRecord;
+
+    /**
+     * 发布渠道
+     */
+    @Schema(description = "发布渠道")
+    private List<AppPublishChannelRespVO> channels;
 
 }

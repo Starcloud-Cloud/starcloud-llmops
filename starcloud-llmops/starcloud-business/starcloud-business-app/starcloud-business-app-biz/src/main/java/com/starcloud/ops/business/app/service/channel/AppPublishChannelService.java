@@ -55,6 +55,14 @@ public interface AppPublishChannelService {
     AppPublishChannelRespVO changeStatus(AppPublishChannelReqVO request);
 
     /**
+     * 根据 appUid 批量修改渠道的 publishUid
+     *
+     * @param appUid     应用 Uid
+     * @param publishUid 发布 Uid
+     */
+    void updatePublishUidByAppUid(String appUid, String publishUid);
+
+    /**
      * 根据应用uid删除
      *
      * @param appUid 应用uid

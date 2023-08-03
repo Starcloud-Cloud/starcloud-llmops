@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
@@ -23,6 +24,7 @@ import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
@@ -58,6 +60,9 @@ public class AppPublishServiceImpl implements AppPublishService {
 
     @Resource
     private AppPublishMapper appPublishMapper;
+
+    @Resource
+    private AppPublishChannelService appPublishChannelService;
 
     /**
      * 分页查询应用发布记录
@@ -148,6 +153,8 @@ public class AppPublishServiceImpl implements AppPublishService {
             buildUnNeedUpdateResponse(Boolean.TRUE, response);
         }
 
+        List<AppPublishChannelRespVO> channelList = appPublishChannelService.listByAppUid(appUid);
+        response.setChannels(channelList);
         return response;
     }
 
@@ -186,6 +193,8 @@ public class AppPublishServiceImpl implements AppPublishService {
                 }
             }
         }
+        // 更新渠道表中的发布 UID
+        appPublishChannelService.updatePublishUidByAppUid(request.getAppUid(), appPublish.getUid());
         // 保存应用发布记录
         appPublishMapper.insert(appPublish);
         return AppPublishConverter.INSTANCE.convert(appPublish);

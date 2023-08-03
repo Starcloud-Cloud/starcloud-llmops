@@ -37,7 +37,7 @@ public interface AppPublishChannelConverter {
         appPublishChannel.setPublishUid(request.getPublishUid());
         appPublishChannel.setType(request.getType());
         appPublishChannel.setConfig(JSONUtil.toJsonStr(request.getConfig()));
-        appPublishChannel.setStatus(Objects.isNull(request.getStatus()) ? StateEnum.ENABLE.getCode() : request.getStatus());
+        appPublishChannel.setStatus(Objects.isNull(request.getStatus()) ? StateEnum.DISABLE.getCode() : request.getStatus());
         return appPublishChannel;
     }
 

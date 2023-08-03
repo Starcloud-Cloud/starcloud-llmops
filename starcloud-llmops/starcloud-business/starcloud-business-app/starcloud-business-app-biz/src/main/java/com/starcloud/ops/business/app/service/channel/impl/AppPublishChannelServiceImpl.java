@@ -9,12 +9,16 @@ import com.starcloud.ops.business.app.dal.mysql.channel.AppPublishChannelMapper;
 import com.starcloud.ops.business.app.domain.channel.AppPublishChannelConfigFactory;
 import com.starcloud.ops.business.app.domain.channel.AppPublishChannelConfigTemplate;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.publish.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -109,16 +113,49 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
      */
     @Override
     public AppPublishChannelRespVO changeStatus(AppPublishChannelReqVO request) {
+        // 特殊处理 1.分享链接 2.js iframe 3.开放API，如果不存在则创建一个新的发布渠道
+        AppValidate.notNull(request.getType(), ErrorCodeConstants.APP_PUBLISH_CHANNEL_TYPE_NOT_NULL);
+        List<Integer> types = Arrays.asList(AppPublishChannelEnum.SHARE_LINK.getCode(), AppPublishChannelEnum.JS_IFRAME.getCode(), AppPublishChannelEnum.OPEN_API.getCode());
+        if (types.contains(request.getType())) {
+            if (Objects.isNull(request.getStatus())) {
+                request.setStatus(StateEnum.ENABLE.getCode());
+            }
+            if (StringUtils.isBlank(request.getUid())) {
+                return create(request);
+            }
+            AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
+            if (Objects.isNull(appPublishChannel)) {
+                return create(request);
+            }
+        }
+        // 修改状态
         AppValidate.notBlank(request.getUid(), ErrorCodeConstants.APP_CHANNEL_UID_IS_REQUIRED);
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
-        if (Objects.isNull(appPublishChannel)) {
-            return create(request);
-        }
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getAppUid());
+        appPublishChannel.setStatus(request.getStatus());
+        appPublishChannelMapper.updateById(appPublishChannel);
+        return AppPublishChannelConverter.INSTANCE.convert(appPublishChannel);
+    }
 
-        AppPublishChannelDO updateAppPublishChannel = AppPublishChannelConverter.INSTANCE.convert(request);
-        updateAppPublishChannel.setId(appPublishChannel.getId());
-        appPublishChannelMapper.updateById(updateAppPublishChannel);
-        return AppPublishChannelConverter.INSTANCE.convert(updateAppPublishChannel);
+    /**
+     * 根据 appUid 批量修改渠道的 publishUid
+     *
+     * @param appUid     应用 Uid
+     * @param publishUid 发布 Uid
+     */
+    @Override
+    public void updatePublishUidByAppUid(String appUid, String publishUid) {
+        List<AppPublishChannelDO> publishChannelList = appPublishChannelMapper.listByAppUid(appUid);
+        if (CollectionUtil.isEmpty(publishChannelList)) {
+            return;
+        }
+        List<Long> idList = publishChannelList.stream().map(AppPublishChannelDO::getId).collect(Collectors.toList());
+        for (Long id : idList) {
+            AppPublishChannelDO appPublishChannel = new AppPublishChannelDO();
+            appPublishChannel.setId(id);
+            appPublishChannel.setPublishUid(publishUid);
+            appPublishChannelMapper.updateById(appPublishChannel);
+        }
     }
 
     /**
