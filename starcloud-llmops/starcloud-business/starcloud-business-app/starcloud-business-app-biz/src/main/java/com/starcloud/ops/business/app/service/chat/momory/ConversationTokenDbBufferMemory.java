@@ -25,6 +25,7 @@ import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Slf4j
 public class ConversationTokenDbBufferMemory extends BaseChatMemory {
 
     private LogAppMessageService messageService;
@@ -108,7 +110,7 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
             super.setChatHistory(historySummary);
             return Collections.singletonList(BaseVariable.builder()
                     .field(MEMORY_KEY)
-                    .value(summary)
+                    .value(BaseMessage.getBufferString(historySummary.getMessages()))
                     .build());
 
         }
@@ -132,15 +134,17 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
     private String summaryHistory(String bufferString) {
         Long start = System.currentTimeMillis();
         ChatOpenAI openAi = new ChatOpenAI();
+        ModelType.fromName(modelType).ifPresent(type -> openAi.setModel(type.getName()));
         List<BaseMessage> messages = new ArrayList<>();
         String query = String.format(PromptTempletEnum.HISTORY_SUMMARY.getTemp(),
                 bufferString);
 
         HumanMessage humanMessage = new HumanMessage(query);
         messages.add(humanMessage);
+        log.info("start summary history {}", messages);
         ChatResult<ChatCompletionResult> openaiResult = openAi._generate(messages, null, null, null);
         Long end = System.currentTimeMillis();
-
+        log.info("success summary history, {} ms", end - start);
         BigDecimal totalPrice = BigDecimal.valueOf(openaiResult.getUsage().getTotalTokens()).multiply(new BigDecimal("0.0200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
         LogAppMessageCreateReqVO messageCreateReqVO = new LogAppMessageCreateReqVO();
         messageCreateReqVO.setUid(IdUtil.fastSimpleUUID());
