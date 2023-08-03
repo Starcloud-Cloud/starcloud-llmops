@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.dataset.service.segment;
 
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
 import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
+import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
@@ -38,7 +41,7 @@ public interface DocumentSegmentsService {
     /**
      * 分段明细
      */
-    public List<DocumentSegmentDO> segmentDetail(String datasetId, boolean disable, String docId, int lastPosition);
+    PageResult<DocumentSegmentDO> segmentDetail(SegmentPageQuery pageQuery);
 
     /**
      * 启用/禁用分段

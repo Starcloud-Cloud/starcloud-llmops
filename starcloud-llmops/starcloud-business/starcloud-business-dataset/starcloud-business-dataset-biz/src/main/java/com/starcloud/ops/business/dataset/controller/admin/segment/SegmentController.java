@@ -3,18 +3,20 @@ package com.starcloud.ops.business.dataset.controller.admin.segment;
 
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
 import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
+import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/llm/dataset/segment")
@@ -31,17 +33,11 @@ public class SegmentController {
         return CommonResult.success(splitForecastResponse);
     }
 
-    @GetMapping("/split/detail/{datasetId}/{documentId}")
+    @GetMapping("/segment/detail")
     @Operation(summary = "文档分段明细", description = "文档分段明细")
-    public CommonResult<List<DocumentSegmentDO>> segmentDetail(
-            @PathVariable("datasetId") String datasetId,
-            @PathVariable("documentId") String documentId,
-            @RequestParam(value = "disable", defaultValue = "true") boolean disable,
-            @RequestParam(value = "lastPosition", defaultValue = "-1") int lastPosition
-
-    ) {
-        List<DocumentSegmentDO> documentSegmentDOS = documentSegmentsService.segmentDetail(datasetId, disable, documentId, lastPosition);
-        return CommonResult.success(documentSegmentDOS);
+    public CommonResult<PageResult<DocumentSegmentDO>> segmentDetail(@Validated @RequestBody SegmentPageQuery pageQuery
+            ) {
+        return CommonResult.success(documentSegmentsService.segmentDetail(pageQuery));
     }
 
     @GetMapping("/split/enable/{documentId}/{segmentId}")
