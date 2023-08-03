@@ -1,12 +1,19 @@
 package com.starcloud.ops.business.app.service.chat.impl;
 
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatHistoryPageQuery;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
@@ -15,18 +22,27 @@ import com.starcloud.ops.business.app.domain.entity.config.UserInputFromEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
+import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationRespVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
+import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
@@ -42,10 +58,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -62,7 +80,13 @@ public class ChatServiceImpl implements ChatService {
     private LogAppConversationMapper appConversationMapper;
 
     @Resource
+    private AppService appService;
+
+    @Resource
     private LogAppMessageMapper messageMapper;
+
+    @Resource
+    private FileApi fileApi;
 
     @Resource
     private LogAppMessageService logAppMessageDO;
@@ -74,7 +98,13 @@ public class ChatServiceImpl implements ChatService {
     private UserBenefitsService benefitsService;
 
     @Resource
+    private LogAppMessageService messageService;
+
+    @Resource
     private ThreadWithContext threadExecutor;
+
+    @Resource
+    private LogAppConversationService conversationService;
 
 
     @Override
@@ -106,11 +136,23 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<LogAppMessageDO> chatHistory(String conversationUid) {
-        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class)
-                .eq(LogAppMessageDO::getAppConversationUid, conversationUid)
-                .orderByDesc(LogAppMessageDO::getCreateTime);
-        return messageMapper.selectList(wrapper);
+    public PageResult<LogAppMessageDO> chatHistory(String conversationUid, Integer pageNo, Integer pageSize) {
+        LogAppMessagePageReqVO logAppMessagePageReqVO = new LogAppMessagePageReqVO();
+        logAppMessagePageReqVO.setAppConversationUid(conversationUid);
+        logAppMessagePageReqVO.setPageNo(pageNo);
+        logAppMessagePageReqVO.setPageSize(pageSize);
+        PageResult<LogAppMessageDO> appMessagePage = messageService.userMessagePage(logAppMessagePageReqVO);
+        Collections.reverse(appMessagePage.getList());
+        return appMessagePage;
+    }
+
+    @Override
+    public List<LogAppConversationRespVO> listConversation(String scene, String appUid) {
+        LogAppConversationExportReqVO reqVO = new LogAppConversationExportReqVO();
+        reqVO.setFromScene(scene);
+        reqVO.setAppUid(appUid);
+        List<LogAppConversationDO> appConversationList = conversationService.getAppConversationList(reqVO);
+        return LogAppConversationConvert.INSTANCE.convertList(appConversationList);
     }
 
     @Override
@@ -127,6 +169,18 @@ public class ChatServiceImpl implements ChatService {
             }
         });
         return emitter;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String createChatApp(String uid, String name) {
+        AppRespVO recommendApp = appService.getRecommendApp(uid);
+        String appUid = IdUtil.fastSimpleUUID();
+        AppEntity appEntity = AppConvert.INSTANCE.convertApp(recommendApp);
+        appEntity.setUid(appUid);
+        appEntity.setName(name);
+        appEntity.insert();
+        return appUid;
     }
 
     public void execute(ChatRequestVO request, Long userId, SseEmitter emitter) {
@@ -203,6 +257,16 @@ public class ChatServiceImpl implements ChatService {
         logAppMessageDO.createAppMessage(messageCreateReqVO);
         benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, messageCreateReqVO.getUid());
         log.info("chat end , Response time: {} ms", end - start);
+    }
+
+    @Override
+    public String updateAppAvatar(String appUid, InputStream inputStream) {
+        String avatar = fileApi.createFile(IoUtil.readBytes(inputStream));
+        AppUpdateReqVO appUpdateReqVO = new AppUpdateReqVO();
+        appUpdateReqVO.setUid(appUid);
+        appUpdateReqVO.setImages(Arrays.asList(avatar));
+        appService.modify(appUpdateReqVO);
+        return avatar;
     }
 
     private ChatMessageHistory preHistory(String conversationId, String appMode) {

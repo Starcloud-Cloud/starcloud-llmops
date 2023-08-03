@@ -28,6 +28,6 @@ public class UidRequest implements Serializable {
      */
     @Schema(description = "应用市场应用 uid")
     @NotBlank(message = "应用市场应用 UID 不能为空")
-    private String marketUid;
+    private String uid;
 
 }

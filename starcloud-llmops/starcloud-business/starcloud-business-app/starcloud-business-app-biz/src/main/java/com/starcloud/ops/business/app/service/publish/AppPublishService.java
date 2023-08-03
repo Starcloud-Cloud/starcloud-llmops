@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.service.publish;
 import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
-import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishAuditRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -52,14 +51,6 @@ public interface AppPublishService {
     AppPublishLatestRespVO getLatest(String appUid);
 
     /**
-     * 根据应用 UID 查询应用发布记录
-     *
-     * @param appUid 应用 UID
-     * @return 应用发布响应
-     */
-    AppPublishAuditRespVO getAuditByAppUid(String appUid);
-
-    /**
      * 创建一条应用发布记录
      *
      * @param request 请求参数
@@ -80,4 +71,11 @@ public interface AppPublishService {
      * @param request 应用 request 请求
      */
     void operate(UidStatusRequest request);
+
+    /**
+     * 删除应用发布记录
+     *
+     * @param appUid 应用 UID
+     */
+    void deleteByAppUid(String appUid);
 }

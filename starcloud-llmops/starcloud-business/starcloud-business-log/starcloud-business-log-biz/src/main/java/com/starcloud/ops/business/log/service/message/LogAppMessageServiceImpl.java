@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.log.service.message;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.starcloud.ops.business.log.api.message.vo.*;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
@@ -87,6 +88,35 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     @Override
     public PageResult<LogAppMessageDO> getAppMessagePage(LogAppMessagePageReqVO pageReqVO) {
         return appMessageMapper.selectPage(pageReqVO);
+    }
+
+    @Override
+    public PageResult<LogAppMessageDO> userMessagePage(LogAppMessagePageReqVO reqVO) {
+        return appMessageMapper.selectPage(reqVO, new LambdaQueryWrapperX<LogAppMessageDO>()
+                .eqIfPresent(LogAppMessageDO::getUid, reqVO.getUid())
+                .eqIfPresent(LogAppMessageDO::getAppConversationUid, reqVO.getAppConversationUid())
+                .eqIfPresent(LogAppMessageDO::getAppUid, reqVO.getAppUid())
+                .eqIfPresent(LogAppMessageDO::getAppMode, reqVO.getAppMode())
+                .eqIfPresent(LogAppMessageDO::getAppConfig, reqVO.getAppConfig())
+                .eqIfPresent(LogAppMessageDO::getAppStep, reqVO.getAppStep())
+                .eqIfPresent(LogAppMessageDO::getStatus, reqVO.getStatus())
+                .eqIfPresent(LogAppMessageDO::getErrorCode, reqVO.getErrorCode())
+                .eqIfPresent(LogAppMessageDO::getErrorMsg, reqVO.getErrorMsg())
+                .eqIfPresent(LogAppMessageDO::getVariables, reqVO.getVariables())
+                .eqIfPresent(LogAppMessageDO::getMessage, reqVO.getMessage())
+                .eqIfPresent(LogAppMessageDO::getMessageTokens, reqVO.getMessageTokens())
+                .eqIfPresent(LogAppMessageDO::getMessageUnitPrice, reqVO.getMessageUnitPrice())
+                .eqIfPresent(LogAppMessageDO::getAnswer, reqVO.getAnswer())
+                .eqIfPresent(LogAppMessageDO::getAnswerTokens, reqVO.getAnswerTokens())
+                .eqIfPresent(LogAppMessageDO::getAnswerUnitPrice, reqVO.getAnswerUnitPrice())
+                .eqIfPresent(LogAppMessageDO::getElapsed, reqVO.getElapsed())
+                .eqIfPresent(LogAppMessageDO::getTotalPrice, reqVO.getTotalPrice())
+                .eqIfPresent(LogAppMessageDO::getCurrency, reqVO.getCurrency())
+                .eqIfPresent(LogAppMessageDO::getFromScene, reqVO.getFromScene())
+                .eqIfPresent(LogAppMessageDO::getEndUser, reqVO.getEndUser())
+                .betweenIfPresent(LogAppMessageDO::getCreateTime, reqVO.getCreateTime())
+                .ne(LogAppMessageDO::getFromScene,"SYSTEM_SUMMARY")
+                .orderByDesc(LogAppMessageDO::getId));
     }
 
     @Override

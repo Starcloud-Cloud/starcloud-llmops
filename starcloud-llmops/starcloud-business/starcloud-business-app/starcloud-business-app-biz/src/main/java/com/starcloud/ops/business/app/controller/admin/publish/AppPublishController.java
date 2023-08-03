@@ -5,7 +5,6 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
-import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishAuditRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
@@ -40,7 +39,7 @@ public class AppPublishController {
     private AppPublishService appPublishService;
 
     @GetMapping("/pageAdmin")
-    @Operation(summary = "管理审核发布分页查询发布记录", description = "管理审核发布分页查询发布记录")
+    @Operation(summary = "市场管理分页查询发布记录", description = "市场管理分页查询发布记录")
     @ApiOperationSupport(order = 1, author = "nacoyer")
     public CommonResult<PageResp<AppPublishRespVO>> pageAdmin(@Validated AppPublishPageReqVO query) {
         query.setIsAdmin(Boolean.TRUE);
@@ -67,13 +66,6 @@ public class AppPublishController {
     @ApiOperationSupport(order = 15, author = "nacoyer")
     public CommonResult<AppPublishLatestRespVO> getLatest(@Parameter(name = "appUid", description = "应用 UID") @PathVariable("appUid") String uid) {
         return CommonResult.success(appPublishService.getLatest(uid));
-    }
-
-    @GetMapping("/getAuditByAppUid/{appUid}")
-    @Operation(summary = "根据 应用UID 获得发布状态详情", description = "根据 应用UID 获得发布状态详情")
-    @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<AppPublishAuditRespVO> getAuditByAppUid(@Parameter(name = "appUid", description = "应用 UID") @PathVariable("appUid") String appUid) {
-        return CommonResult.success(appPublishService.getAuditByAppUid(appUid));
     }
 
     @PostMapping("/create")

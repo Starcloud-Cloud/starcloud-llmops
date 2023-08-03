@@ -47,6 +47,18 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     @Schema(description = "绑定数据集")
     private List<DatesetReqVO> datesetEntities;
 
+    @Schema(description = "聊天建议")
+    private SuggestedQuestionReqVO suggestedQuestion;
+
+    @Schema(description = "聊天欢迎语")
+    private OpeningStatementReqVO openingStatement;
+
+    @Schema(description = "常用问题")
+    private CommonQuestionReqVO commonQuestion;
+
+    @Schema(description = "语音配置")
+    private AudioTransciptReqVO audioTransciptEntity;
+
 
     /**
      * 挂载的 functions 列表

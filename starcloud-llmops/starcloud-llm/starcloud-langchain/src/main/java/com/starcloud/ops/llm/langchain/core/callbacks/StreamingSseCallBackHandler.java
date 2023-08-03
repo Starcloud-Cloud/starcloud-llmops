@@ -12,15 +12,15 @@ import static org.springframework.web.servlet.mvc.method.annotation.SseEmitter.e
 public class StreamingSseCallBackHandler implements BaseCallbackHandler {
     private SseEmitter emitter;
 
-    private String conversationId;
+    private String conversationUid;
 
     public StreamingSseCallBackHandler(SseEmitter emitter) {
         this.emitter = emitter;
     }
 
-    public StreamingSseCallBackHandler(SseEmitter emitter, String conversationId) {
+    public StreamingSseCallBackHandler(SseEmitter emitter, String conversationUid) {
         this.emitter = emitter;
-        this.conversationId = conversationId;
+        this.conversationUid = conversationUid;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
         if (emitter == null) {
             return;
         }
-        StreamResult streamResult = new StreamResult(200, objects[0].toString());
+        StreamResult streamResult = new StreamResult(200, objects[0].toString(), conversationUid);
         emitter.send(streamResult);
     }
 
@@ -53,7 +53,7 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
         if (emitter == null) {
             return;
         }
-        emitter.send(new StreamResult(500, message));
+        emitter.send(new StreamResult(500, message, conversationUid));
     }
 
 
@@ -65,12 +65,12 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
         }
         if (message != null && message.contains("timeout")) {
 
-            emitter.send(new StreamResult(500, "[Timeout] " + throwable.getMessage()));
+            emitter.send(new StreamResult(500, "[Timeout] " + throwable.getMessage(), conversationUid));
 
         } else if (message != null && message.contains("Incorrect API key")) {
-            emitter.send(new StreamResult(500, "[Incorrect Key]"));
+            emitter.send(new StreamResult(500, "[Incorrect Key]", conversationUid));
         } else {
-            emitter.send(new StreamResult(500, "[Other] Please try again later"));
+            emitter.send(new StreamResult(500, "[Other] Please try again later", conversationUid));
         }
         emitter.complete();
 
@@ -98,11 +98,17 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
 
         private String content;
 
-        private String conversationId;
+        private String conversationUid;
 
         public StreamResult(int code, String content) {
             this.code = code;
             this.content = content;
+        }
+
+        public StreamResult(int code, String content, String conversationUid) {
+            this.code = code;
+            this.content = content;
+            this.conversationUid = conversationUid;
         }
 
     }

@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -32,6 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * App 实体类
@@ -421,7 +423,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             reqVO.setPageSize(100);
             reqVO.setPageNo(1);
             reqVO.setAppConversationUid(conversationId);
-            PageResult<LogAppMessageDO> pageResult = logAppMessageService.getAppMessagePage(reqVO);
+            PageResult<LogAppMessageDO> pageResult = logAppMessageService.userMessagePage(reqVO);
             return Optional.ofNullable(pageResult).map(PageResult::getList).orElse(new ArrayList<>());
         }
 

@@ -51,6 +51,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
             } else {
                 wrapper.in(AppPublishDO::getAudit, AppPublishAuditEnum.APPROVED.getCode(), AppPublishAuditEnum.REJECTED.getCode(), AppPublishAuditEnum.PENDING.getCode());
             }
+            wrapper.orderByAsc(AppPublishDO::getAudit);
         } else {
             wrapper.eq(Objects.nonNull(query.getAudit()), AppPublishDO::getAudit, query.getAudit());
         }
@@ -86,20 +87,6 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
     }
 
     /**
-     * 根据应用 UID 查询最新的应用发布记录
-     *
-     * @param appUid 应用 UID
-     * @return 应用发布记录
-     */
-    default AppPublishDO getLatest(String appUid) {
-        LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(Boolean.TRUE);
-        wrapper.eq(AppPublishDO::getAppUid, appUid);
-        wrapper.orderByDesc(AppPublishDO::getVersion);
-        wrapper.last("LIMIT 1");
-        return this.selectOne(wrapper);
-    }
-
-    /**
      * 审核发布记录
      *
      * @param uid   发布 UID
@@ -126,6 +113,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
             return wrapper;
         }
         wrapper.select(
+                AppPublishDO::getId,
                 AppPublishDO::getUid,
                 AppPublishDO::getAppUid,
                 AppPublishDO::getMarketUid,
@@ -136,8 +124,8 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
                 AppPublishDO::getLanguage,
                 AppPublishDO::getAudit,
                 AppPublishDO::getCreateTime,
-                AppPublishDO::getDescription,
-                AppPublishDO::getUpdateTime
+                AppPublishDO::getUpdateTime,
+                AppPublishDO::getDescription
         );
         return wrapper;
     }

@@ -27,6 +27,8 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -34,6 +36,7 @@ import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -54,6 +57,12 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppMapper appMapper;
+
+    @Resource
+    private AppPublishService appPublishService;
+
+    @Resource
+    private AppPublishChannelService appPublishChannelService;
 
     @Resource
     private DictDataService dictDataService;
@@ -191,8 +200,14 @@ public class AppServiceImpl implements AppService {
      * @param uid 应用 UID
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
+        // 删除应用
         appMapper.delete(uid);
+        // 删除应用发布信息
+        appPublishService.deleteByAppUid(uid);
+        // 删除应用发布渠道信息
+        appPublishChannelService.deleteByAppUid(uid);
     }
 
     /**

@@ -1,0 +1,29 @@
+package com.starcloud.ops.business.app.domain.channel;
+
+import com.starcloud.ops.business.app.enums.publish.AppPublishChannelEnum;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * 翻译器类型注解，用于获取具体的翻译器
+ *
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-07-24
+ */
+@Target({ElementType.TYPE})
+@Retention(value = RetentionPolicy.RUNTIME)
+@Documented
+public @interface AppPublishChannelConfigType {
+
+    /**
+     * 翻译器类型
+     *
+     * @return 翻译器类型
+     */
+    AppPublishChannelEnum value();
+}

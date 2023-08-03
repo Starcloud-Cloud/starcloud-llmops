@@ -1,10 +1,16 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "聊天模型参数配置")
+@Builder
 public class ModelConfigRespVO {
 
     /**

@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
@@ -127,6 +128,7 @@ public interface AppMarketConvert {
         appMarket.setLikeCount(0);
         appMarket.setViewCount(0);
         appMarket.setInstallCount(0);
+        appMarket.setAudit(AppPublishAuditEnum.APPROVED.getCode());
         appMarket.setConfig(app.getConfig());
         appMarket.setDescription(app.getDescription());
         // appMarketEntity.setExample("");

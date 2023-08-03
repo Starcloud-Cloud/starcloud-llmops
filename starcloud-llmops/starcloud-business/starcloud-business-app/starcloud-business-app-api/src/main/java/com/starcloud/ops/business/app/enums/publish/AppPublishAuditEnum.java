@@ -10,6 +10,7 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-14
  */
+@Getter
 @SuppressWarnings("unused")
 public enum AppPublishAuditEnum implements IEnumable<Integer> {
 
@@ -46,13 +47,11 @@ public enum AppPublishAuditEnum implements IEnumable<Integer> {
     /**
      * 步骤类型Code
      */
-    @Getter
     private final Integer code;
 
     /**
      * 步骤类型说明
      */
-    @Getter
     private final String label;
 
     /**

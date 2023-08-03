@@ -103,7 +103,7 @@ public interface ErrorCodeConstants {
     /**
      * 聊天应用自动编排异常
      */
-    ErrorCode CHAT_ROLE_GENERATE_ERROR = new ErrorCode(300200023,"please provide a new target audience and provide a detailed description of the problem to be address");
+    ErrorCode CHAT_ROLE_GENERATE_ERROR = new ErrorCode(300200023, "please provide a new target audience and provide a detailed description of the problem to be address");
 
     /**
      * 语音转文字异常
@@ -145,4 +145,39 @@ public interface ErrorCodeConstants {
      * 重复发布
      */
     ErrorCode APP_PUBLISH_DUPLICATE = new ErrorCode(300400006, "The app has been published, please cancel the publish and try again !");
+
+    /**
+     * 应用发布渠道 Uid 是必须的
+     */
+    ErrorCode APP_CHANNEL_UID_IS_REQUIRED = new ErrorCode(300500001, "The app publish channel uid is required, please check and try again ! ");
+
+    /**
+     * 应用渠道不存在，无法更新
+     */
+    ErrorCode APP_CHANNEL_NOT_EXIST = new ErrorCode(300500002, "The app publish channel is not exist, uid: {} ");
+
+    /**
+     * 应用发布渠道类型是必须的
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_TYPE_NOT_NULL = new ErrorCode(300500003, "The app publish channel type is not be null");
+
+    /**
+     * 不支持的应用发布渠道类型
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_TYPE_NOT_SUPPORTED = new ErrorCode(300500004, "The app publish channel type is not supported, type: {}");
+
+    /**
+     * 应用发布渠道配置 API Key 是必须的
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_CONFIG_API_KEY_IS_REQUIRED = new ErrorCode(300500005, "The app publish channel config api key is required, please check and try again ! ");
+
+    /**
+     * 应用发布渠道配置 Share Link 是必须的
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_CONFIG_SHARE_LINK_IS_REQUIRED = new ErrorCode(300500006, "The app publish channel config share link is required, please check and try again ! ");
+
+    /**
+     * 应用发布渠道配置 JS Iframe Slug 是必须的
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_CONFIG_JS_IFRAME_SLUG_IS_REQUIRED = new ErrorCode(300500007, "The app publish channel config js iframe slug is required, please check and try again ! ");
 }

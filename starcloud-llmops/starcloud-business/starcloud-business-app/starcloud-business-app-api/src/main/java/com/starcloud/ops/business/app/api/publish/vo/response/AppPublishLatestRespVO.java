@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.publish.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -68,6 +68,12 @@ public class AppPublishLatestRespVO implements Serializable {
     private Integer audit;
 
     /**
+     * 审核状态（0-未审核，1-审核通过，2-审核未通过，3-用户取消审核）
+     */
+    @Schema(description = "审核状态标识，展示用")
+    private Integer auditTag;
+
+    /**
      * 创建时间
      */
     @Schema(description = "创建时间")
@@ -92,9 +98,33 @@ public class AppPublishLatestRespVO implements Serializable {
     private Boolean needUpdate;
 
     /**
+     * 是否显示发布
+     */
+    @Schema(description = "是否显示发布，true：显示，false：不显示：即显示 取消发布 按钮")
+    private Boolean showPublish;
+
+    /**
+     * 是否可以发布
+     */
+    @Schema(description = "是否可以发布，showPublish 为 true 时，该字段才有意义，true：可以发布，false：不可以发布")
+    private Boolean enablePublish;
+
+    /**
+     * 是否需要提示
+     */
+    @Schema(description = "是否需要提示")
+    private Boolean needTips;
+
+    /**
      * 是否是第一次发布
      */
     @Schema(description = "是否是第一次生成发布记录")
     private Boolean isFirstCreatePublishRecord;
+
+    /**
+     * 发布渠道
+     */
+    @Schema(description = "发布渠道")
+    private List<AppPublishChannelRespVO> channels;
 
 }

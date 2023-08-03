@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.domain.entity.config.*;
 import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * @since 2023-06-13
  */
 @Data
+@EqualsAndHashCode
 public class ChatConfigEntity extends BaseConfigEntity {
 
     private String code;
