@@ -214,8 +214,8 @@ public class AppPublishServiceImpl implements AppPublishService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
         }
         // 查询应用，应用不存在，抛出异常
-        AppDO app = appMapper.get(request.getUid(), Boolean.FALSE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getUid());
+        AppDO app = appMapper.get(request.getAppUid(), Boolean.FALSE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
 
         // 查询发布记录
         AppPublishDO appPublish = appPublishMapper.get(request.getUid(), Boolean.FALSE);
