@@ -62,4 +62,9 @@ public interface ChatService {
      * @return
      */
     String updateAppAvatar(String appUid, InputStream inputStream);
+
+    /**
+     * 默认头像
+     */
+    List<String> defaultAvatar();
 }
