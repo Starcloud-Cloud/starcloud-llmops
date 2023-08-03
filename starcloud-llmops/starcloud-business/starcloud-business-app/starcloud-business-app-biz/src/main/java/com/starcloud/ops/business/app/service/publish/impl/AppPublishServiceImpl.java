@@ -142,10 +142,14 @@ public class AppPublishServiceImpl implements AppPublishService {
             return response;
         }
 
-        // 发布记录不为空且发布记录中不存在待审核的记录且存在审核通过的发布记录
-        boolean approvedFlag = publishList.stream().anyMatch(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()));
-        // 发布记录不为空，不存在待审核和审核通过的发布记录。
-        response.setAuditTag(approvedFlag ? AppPublishAuditEnum.APPROVED.getCode() : response.getAudit());
+        // 如果最新一条记录为审核拒绝，则为审核拒绝状态
+        if (Objects.equals(response.getAudit(), AppPublishAuditEnum.REJECTED.getCode())) {
+            response.setAuditTag(AppPublishAuditEnum.REJECTED.getCode());
+        } else {
+            boolean approvedFlag = publishList.stream().anyMatch(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()));
+            // 发布记录不为空，不存在待审核和审核通过的发布记录。
+            response.setAuditTag(approvedFlag ? AppPublishAuditEnum.APPROVED.getCode() : response.getAudit());
+        }
         if (app.getUpdateTime().isAfter(response.getCreateTime())) {
             buildNeedUpdateResponse(Boolean.TRUE, response);
         } else {
