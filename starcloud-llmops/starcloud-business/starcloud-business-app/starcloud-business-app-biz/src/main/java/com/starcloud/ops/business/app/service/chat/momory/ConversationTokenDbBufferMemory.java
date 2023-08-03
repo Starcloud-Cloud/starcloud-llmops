@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.chat.momory;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
@@ -17,7 +16,6 @@ import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
-import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
@@ -80,9 +78,12 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
             appMessageList = appMessageList.stream().filter(m -> m.getId() > summaryMessage.getId()).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(appMessageList)) {
                 // summaryMessage 和 summaryMessage 不会同时为空
+                ChatMessageHistory historySummary = new ChatMessageHistory();
+                historySummary.addMessage(new SystemMessage(summaryMessage.getAnswer()));
+                super.setChatHistory(historySummary);
                 return Collections.singletonList(BaseVariable.builder()
                         .field(MEMORY_KEY)
-                        .value(summaryMessage.getAnswer())
+                        .value(BaseMessage.getBufferString(historySummary.getMessages()))
                         .build());
             }
             appMessageList.add(summaryMessage);
