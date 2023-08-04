@@ -14,4 +14,9 @@ public class DataSourceIndoDTO {
          */
         private Long cleanId;
 
+        /**
+         * 总结
+         */
+        private String summaryContent;
+
 }

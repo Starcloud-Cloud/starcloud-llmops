@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
@@ -50,11 +51,25 @@ public class DatasetSourceDataController {
         return success(DatasetSourceDataConvert.INSTANCE.convertPage(pageResult));
     }
 
+    @GetMapping("/details/split/{datasetId}/{documentId}")
+    @Operation(summary = "获得源数据内容详情")
+    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
+    public CommonResult<PageResult<DatasetSourceDataSplitPageRespVO>> getSourceDataDetailsInfo(@Validated @RequestBody DatasetSourceDataSplitPageReqVO reqVO) {
+        return success(datasetSourceDataService.getSplitDetails(reqVO));
+    }
 
-    @GetMapping("/list/{datasetId}")
-    @Operation(summary = "获得数据集源数据列表")
+    @GetMapping("/details/{uid}")
+    @Operation(summary = "获得源数据详情")
+    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
+    public CommonResult<DatasetSourceDataDetailsInfoVO> getSourceDataDetailsInfo(@PathVariable("uid") String uid) {
+        return success(datasetSourceDataService.getSourceDataDetailsInfo(uid));
+    }
+
+
+    @GetMapping("/list/document/{datasetId}")
+    @Operation(summary = "获得数据集源数据列表-类型为文档型")
     // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:query')")
-    public CommonResult<List<DatasetSourceDataRespVO>> getDatasetSourceDataList(@PathVariable("datasetId") String datasetId) {
+    public CommonResult<List<DatasetSourceDataRespVO>> getDatasetSourceDataByDocumentList(@PathVariable("datasetId") String datasetId) {
 
         // 判断数据集是否存在，不存在则创建数据集
         try {
@@ -65,7 +80,25 @@ public class DatasetSourceDataController {
             datasetsService.createDatasetsByApplication(datasetId, datasetName);
         }
 
-        List<DatasetSourceDataDO> list = datasetSourceDataService.getDatasetSourceDataList(datasetId);
+        List<DatasetSourceDataDO> list = datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.DOCUMENT.getStatus());
+        return success(DatasetSourceDataConvert.INSTANCE.convertList(list));
+    }
+
+    @GetMapping("/list/qa/{datasetId}")
+    @Operation(summary = "获得数据集源数据列表-类型为QA型")
+    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:query')")
+    public CommonResult<List<DatasetSourceDataRespVO>> getDatasetSourceDataByQaList(@PathVariable("datasetId") String datasetId) {
+
+        // 判断数据集是否存在，不存在则创建数据集
+        try {
+            datasetsService.validateDatasetsExists(datasetId);
+        } catch (Exception e) {
+            log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", datasetId);
+            String datasetName = String.format("应用%s的数据集", "datasetId");
+            datasetsService.createDatasetsByApplication(datasetId, datasetName);
+        }
+
+        List<DatasetSourceDataDO> list = datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.QUESTION_AND_ANSWERS.getStatus());
         return success(DatasetSourceDataConvert.INSTANCE.convertList(list));
     }
 
@@ -97,7 +130,7 @@ public class DatasetSourceDataController {
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setChunkSize(500);
         splitRule.setPattern(null);
-        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadUrlsSourceData(reqVO, batch,  splitRule, datasetId);
+        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadUrlsSourceData(reqVO, batch, splitRule, datasetId);
         return success(sourceDataUrlUploadDTO);
     }
 
@@ -114,7 +147,7 @@ public class DatasetSourceDataController {
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setChunkSize(500);
         splitRule.setPattern(null);
-        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadCharactersSourceData(reqVO, batch,  splitRule, datasetId);
+        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadCharactersSourceData(reqVO, batch, splitRule, datasetId);
         return success(sourceDataUrlUploadDTO);
     }
 

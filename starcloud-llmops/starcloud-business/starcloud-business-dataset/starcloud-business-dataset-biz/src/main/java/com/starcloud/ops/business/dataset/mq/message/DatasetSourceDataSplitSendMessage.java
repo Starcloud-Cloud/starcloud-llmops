@@ -20,18 +20,17 @@ public class DatasetSourceDataSplitSendMessage extends AbstractStreamMessage {
      * 数据源 ID
      */
     @NotNull(message = " 数据源 ID")
-    private String dataSourceId;
+    private Long dataSourceId;
     /**
      * 分段规则
      */
     @NotNull(message = "分段规则")
     private SplitRule splitRule;
-
     /**
-     * 清洗后的数据
+     * 用户 ID
      */
-    @NotNull(message = "清洗后的数据")
-    private String cleanText;
+    @NotNull(message = " 用户 ID不能为空")
+    private Long userId;
 
     @Override
     public String getStreamKey() {

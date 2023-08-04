@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
-import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
 
 /**
  * 针对 {@link DatasetSourceDataCleanSendMessage} 的消费者
@@ -33,17 +32,17 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractStreamMessageLis
     public void onMessage(DatasetSourceDataIndexSendMessage message) {
 
         // 设置数据源状态为正在创建索引
-        datasetSourceDataService.updateDatasourceStatus(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_IN.getStatus());
+        datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_IN.getStatus(),null);
         try {
             // 创建索引
-            documentSegmentsService.indexDoc(message.getDatasetId(), message.getDataSourceId());
+            documentSegmentsService.indexDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()));
             // 设置数据源状态为创建索引完成
-            datasetSourceDataService.updateDatasourceStatus(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_COMPLETED.getStatus());
+            datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_COMPLETED.getStatus(),null);
 
         } catch (Exception e) {
-            log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})", getLoginUserId(), getTenantId(), message.getDataSourceId(),message.getDataSourceId());
+            log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", message.getUserId(), getTenantId(), message.getDataSourceId(),message.getDataSourceId(),e.getMessage(),e);
             // 设置数据源状态为清洗中
-            datasetSourceDataService.updateDatasourceStatus(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
+            datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(),e.getMessage());
         }
     }
 

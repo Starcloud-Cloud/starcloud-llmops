@@ -10,7 +10,6 @@ import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mapper
 public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
@@ -44,8 +43,7 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
                 .eq(DocumentSegmentDO::getDisabled, disable)
                 .eq(DocumentSegmentDO::getDocumentId,docId)
                 .eq(DocumentSegmentDO::getDatasetId, datasetId)
-                .gt(DocumentSegmentDO::getPosition,lastPosition)
-                .last("limit 10");
+                .gt(DocumentSegmentDO::getPosition,lastPosition);
         return this.selectList(queryWrapper);
     }
 

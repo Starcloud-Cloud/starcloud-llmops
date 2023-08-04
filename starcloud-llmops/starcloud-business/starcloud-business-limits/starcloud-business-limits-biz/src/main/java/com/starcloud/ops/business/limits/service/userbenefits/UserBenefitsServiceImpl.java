@@ -6,7 +6,6 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
@@ -23,7 +22,6 @@ import com.starcloud.ops.business.limits.enums.*;
 import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.limits.service.userbenefitsusagelog.UserBenefitsUsageLogService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.record.PageBreakRecord;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +34,6 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.TimeZone;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -181,7 +178,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     now = LocalDateTimeUtil.now();
                 } else {
                     now = userBenefitsDO.getExpirationTime();
-
                 }
 
                 // 如果可以使用，使用 userBenefitsMapper新增权益
@@ -196,10 +192,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             // 增加记录
             userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
         } catch (RuntimeException e) {
-            log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]｜错误为({})", userId, strategyType, e.getMessage());
+            log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]｜完整错误为({})]", userId, strategyType, e.getMessage(),e);
             return false;
         }
-        log.info("[addUserBenefitsByCode][3.增加权益结束：用户ID({})｜权益类型({})]", userId, strategyType);
+        log.info("[addUserBenefitsByCode][4.增加权益结束：用户ID({})｜权益类型({})]", userId, strategyType);
         return true;
     }
 
@@ -802,7 +798,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     @Override
     public Boolean addBenefitsAndRole(String benefitsType, Long userId, String roleCode) {
         // 增加用户权益
-        this.addUserBenefitsByStrategyType(benefitsType, userId);
+        addUserBenefitsByStrategyType(benefitsType, userId);
         // 设置用户角色
         permissionService.addUserRole(userId, roleCode);
 

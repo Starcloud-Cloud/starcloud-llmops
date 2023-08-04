@@ -6,12 +6,12 @@ import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
@@ -26,6 +26,8 @@ public class FileUploadStrategy implements UploadStrategy {
     private MultipartFile uploadFile;
     private byte[] fileContent;
 
+    private static final String PATH_OBJECT = "dataset-source-data/";
+
     // Setter方法，用于接收MultipartFile对象
     public void setFileData(MultipartFile file, byte[] fileContent) {
         this.fileContent = fileContent;
@@ -39,7 +41,7 @@ public class FileUploadStrategy implements UploadStrategy {
      * @return UploadFileRespDTO
      */
     @Override
-    public UploadFileRespDTO process() {
+    public UploadFileRespDTO process(Long userId) {
         log.info("====> 文件开始上传 ,初始化数据状态为 false");
         UploadFileRespDTO uploadFileRespDTO = new UploadFileRespDTO();
 
@@ -59,13 +61,13 @@ public class FileUploadStrategy implements UploadStrategy {
 
         fileId = SecureUtil.md5(new ByteArrayInputStream(fileContent));
 
-        log.info("文件的数据大小为:{}",fileContent.length);
         String filePath = null;
 
         String extension = getExtension(name);
         try {
+
             // 上传文件
-            filePath = uploadFile(fileId, fileContent, extension);
+            filePath = uploadFile(fileId, fileContent, extension, userId);
             // 设置文件地址
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);
@@ -97,17 +99,18 @@ public class FileUploadStrategy implements UploadStrategy {
      * @param extension 文件 扩展名
      * @return 文件路径
      */
-    private String uploadFile(String fileId, byte[] fileByte, String extension) {
+    private String uploadFile(String fileId, byte[] fileByte, String extension, Long userId) {
 
-        String path = fileId + "." + extension;
+        String fileName = fileId + "." + extension;
+        String path = String.format(PATH_OBJECT + "%s" + "/", userId) + fileName;
 
-        return fileApi.createFile(path, fileByte);
+        return fileApi.createFile(fileName, path, fileByte);
     }
 
     /**
      * 获取文件扩展名
      *
-     * @param file
+     * @param fileName
      * @return
      */
     private static String getExtension(String fileName) {
@@ -154,7 +157,7 @@ public class FileUploadStrategy implements UploadStrategy {
 
         try {
             // 将MultipartFile对象中的内容读取成字符串
-            String content = new String(inputStream, "UTF-8");
+            String content = new String(inputStream, StandardCharsets.UTF_8);
             // 计算字符串的字符数
             characterCount = content.length();
             return characterCount;

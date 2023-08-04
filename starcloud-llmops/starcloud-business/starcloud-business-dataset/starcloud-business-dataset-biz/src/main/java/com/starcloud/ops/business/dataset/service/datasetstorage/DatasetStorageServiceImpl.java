@@ -12,10 +12,8 @@ import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import org.w3c.dom.stylesheets.LinkStyle;
 
 import javax.annotation.Resource;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,27 +36,34 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
     @Resource
     private DatasetStorageMapper datasetStorageMapper;
 
+    /**
+     * @param id 源数据上传
+     * @return DatasetStorageDO
+     */
+    @Override
+    public DatasetStorageDO selectDataById(Long id) {
+        return datasetStorageMapper.selectById(id);
+    }
+
 
     /**
-     * @param  createReqVO 源数据上传
+     * @param createReqVOS 源数据上传
      * @return UID
      */
     @Override
-    public Long addStorageData(DatasetStorageCreateReqVO  createReqVOS) {
-        String uid = DatasetUID.createStorageUID();
+    public Long addStorageData(DatasetStorageCreateReqVO createReqVOS) {
         DatasetStorageDO datasetStorageDO = DatasetStorageConvert.INSTANCE.convert(createReqVOS);
         datasetStorageMapper.insert(datasetStorageDO);
         return datasetStorageDO.getId();
     }
 
 
-
     /**
-     * @param  createReqVOS 源数据上传
+     * @param createReqVOS 源数据上传
      * @return UID
      */
     @Override
-    public List<Long> addBatchStorageData(List<DatasetStorageCreateReqVO>  createReqVOS) {
+    public List<Long> addBatchStorageData(List<DatasetStorageCreateReqVO> createReqVOS) {
         String uid = DatasetUID.createStorageUID();
         List<DatasetStorageDO> datasetStorageDOS = DatasetStorageConvert.INSTANCE.convertCreateList(createReqVOS);
         datasetStorageMapper.insertBatch(datasetStorageDOS);

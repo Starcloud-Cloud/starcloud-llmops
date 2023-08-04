@@ -17,6 +17,14 @@ import java.util.List;
  */
 public interface DatasetSourceDataService {
 
+
+    /**
+     * 更新数据集状态
+     *
+     * @param id 数据集源数据ID
+     */
+    DatasetSourceDataDO selectDataById(Long id);
+
     /**
      * 创建数据集源数据
      *
@@ -28,32 +36,35 @@ public interface DatasetSourceDataService {
      */
     Long createDatasetSourceData(String datasetId, Long storageId, String sourceName, Long wordCount);
 
-
     /**
      * 上传文件-支持批量上传
+     *
      * @return 编号
      */
-    SourceDataUploadDTO uploadFilesSourceData(MultipartFile files,String batch, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadFilesSourceData(MultipartFile files, String batch, SplitRule splitRule, String datasetId);
 
     /**
      * 上传URL-支持批量上传
+     *
      * @return 编号
      */
-    SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO>urls, String batch, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO> urls, String batch, SplitRule splitRule, String datasetId);
 
     /**
      * 上传字符-支持批量上传
+     *
      * @return 编号
      */
-    SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS,String batch, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS, String batch, SplitRule splitRule, String datasetId);
 
     /**
-     * 创建数据集源数据
+     * 批量创建数据集源数据
      *
      * @param batchCreateReqVOS 创建信息
      * @return 编号
      */
     List<Long> batchCreateDatasetSourceData(String datasetId, List<SourceDataBatchCreateReqVO> batchCreateReqVOS);
+
 
     /**
      * 更新数据集源数据
@@ -69,7 +80,6 @@ public interface DatasetSourceDataService {
      */
     void deleteDatasetSourceData(String uid);
 
-
     /**
      * 获得数据集源数据分页
      *
@@ -78,14 +88,22 @@ public interface DatasetSourceDataService {
      */
     PageResult<DatasetSourceDataDO> getDatasetSourceDataPage(DatasetSourceDataPageReqVO pageReqVO);
 
-
     /**
      * 获得数据集源数据列表
      *
      * @param datasetId 数据集 ID
      * @return 数据集源数据列表
      */
-    List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId);
+    List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId, Integer dataModel);
+
+    /**
+     * 获取数据源详情
+     *
+     * @param uid 数据集源数据编号
+     */
+    DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid);
+
+    PageResult<DatasetSourceDataSplitPageRespVO> getSplitDetails(DatasetSourceDataSplitPageReqVO reqVO);
 
     /**
      * 归档数据集源数据
@@ -106,13 +124,14 @@ public interface DatasetSourceDataService {
      *
      * @param uid 数据集源数据编号
      */
-    void updateDatasourceStatus(String uid, Integer status);
+    void updateDatasourceStatusAndMessage(Long uid, Integer status, String message);
 
     /**
      * 更新数据集状态
      *
      * @param uid 数据集源数据编号
      */
-    void updateDatasourceAndSourceInfo(String uid, Integer status, String dataSourceInfo);
+    void updateDatasourceAndSourceInfo(Long uid, Integer status, String dataSourceInfo, Long userId);
+
 
 }

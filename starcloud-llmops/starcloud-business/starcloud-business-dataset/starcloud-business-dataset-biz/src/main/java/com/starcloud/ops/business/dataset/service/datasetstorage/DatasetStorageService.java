@@ -2,6 +2,7 @@ package com.starcloud.ops.business.dataset.service.datasetstorage;
 
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
+import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 
 import java.util.List;
 
@@ -11,6 +12,13 @@ import java.util.List;
  * @author 芋道源码
  */
 public interface DatasetStorageService {
+
+    /**
+     * 根据 ID 查询数据
+     * @param id
+     * @return
+     */
+    DatasetStorageDO selectDataById(Long id);
     /**
      * 上传数据集源数据
      *

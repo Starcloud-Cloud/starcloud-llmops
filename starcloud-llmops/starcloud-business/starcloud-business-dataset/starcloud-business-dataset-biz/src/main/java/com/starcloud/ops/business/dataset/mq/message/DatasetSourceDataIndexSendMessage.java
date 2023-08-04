@@ -25,7 +25,13 @@ public class DatasetSourceDataIndexSendMessage extends AbstractStreamMessage {
      * 数据源 ID
      */
     @NotNull(message = " 数据源 ID")
-    private String dataSourceId;
+    private Long dataSourceId;
+
+    /**
+     * 用户 ID
+     */
+    @NotNull(message = " 用户 ID不能为空")
+    private Long userId;
 
     /**
      * 分割后的数据集合

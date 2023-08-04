@@ -41,13 +41,13 @@ public class DatasetSourceDataCleanProducer {
      *
 
      */
-    public void sendCleanDatasetsSendMessage(String dataSetId, String dataSourceId,
-                                             SplitRule splitRule, String storageKey) {
+    public void sendCleanDatasetsSendMessage(String dataSetId, Long dataSourceId,
+                                             SplitRule splitRule, Long userId) {
         DatasetSourceDataCleanSendMessage message = new DatasetSourceDataCleanSendMessage()
                 .setDatasetId(dataSetId)
                 .setDataSourceId(dataSourceId)
                 .setSplitRule(splitRule)
-                .setStorageKey(storageKey);
+                .setUserId(userId);
         log.info("发送数据清洗信息");
         redisMQTemplate.send(message);
     }
