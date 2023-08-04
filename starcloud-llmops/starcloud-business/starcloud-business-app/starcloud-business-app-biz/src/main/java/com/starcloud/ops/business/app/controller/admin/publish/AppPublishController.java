@@ -72,7 +72,6 @@ public class AppPublishController {
     @Operation(summary = "创建应用发布记录", description = "创建应用发布记录")
     @ApiOperationSupport(order = 25, author = "nacoyer")
     public CommonResult<AppPublishRespVO> create(@Validated @RequestBody AppPublishReqVO request) {
-        request.setLanguage(LanguageEnum.ZH_CN.getCode());
         return CommonResult.success(appPublishService.create(request));
     }
 

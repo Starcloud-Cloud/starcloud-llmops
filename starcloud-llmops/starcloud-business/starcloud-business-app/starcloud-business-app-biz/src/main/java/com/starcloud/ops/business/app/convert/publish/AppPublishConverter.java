@@ -42,6 +42,7 @@ public interface AppPublishConverter {
         appPublishDO.setDescription(appDO.getDescription());
         appPublishDO.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
         appPublishDO.setDeleted(Boolean.FALSE);
+        appPublishDO.setLanguage(AppUtils.detectLanguage(appDO.getName()));
         return appPublishDO;
     }
 

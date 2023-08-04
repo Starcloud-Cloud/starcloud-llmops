@@ -7,9 +7,6 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
-import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
-import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -19,10 +16,10 @@ import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.image.VSearchImageService;
 import com.starcloud.ops.business.app.util.ImageUtils;
@@ -33,7 +30,6 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
-import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -70,7 +66,7 @@ public class ImageServiceImpl implements ImageService {
     private VSearchImageService vSearchImageService;
 
     @Resource
-    private DictDataService dictDataService;
+    private AppDictionaryService appDictionaryService;
 
     /**
      * 获取图片元数据
@@ -87,20 +83,7 @@ public class ImageServiceImpl implements ImageService {
         meta.put("sampler", ImageUtils.samplerList());
         meta.put("guidancePreset", ImageUtils.guidancePresetList());
         meta.put("stylePreset", ImageUtils.stylePresetList());
-        DictDataExportReqVO request = new DictDataExportReqVO();
-        request.setDictType(AppConstants.IMAGE_EXAMPLE_PROMPT);
-        request.setStatus(StateEnum.ENABLE.getCode());
-        List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
-        List<ImageMetaDTO> examplePromptList = CollectionUtil.emptyIfNull(dictDataList).stream()
-                .filter(Objects::nonNull)
-                .map(dictData -> {
-                    ImageMetaDTO imageMetaDTO = new ImageMetaDTO();
-                    imageMetaDTO.setLabel(dictData.getLabel());
-                    imageMetaDTO.setValue(dictData.getValue());
-                    return imageMetaDTO;
-                })
-                .collect(Collectors.toList());
-        meta.put("examplePrompt", examplePromptList);
+        meta.put("examplePrompt", appDictionaryService.examplePrompt());
         return meta;
     }
 

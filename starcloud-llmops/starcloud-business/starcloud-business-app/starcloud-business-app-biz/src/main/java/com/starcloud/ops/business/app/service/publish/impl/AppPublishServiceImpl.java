@@ -23,8 +23,8 @@ import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
-import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
@@ -53,9 +53,6 @@ public class AppPublishServiceImpl implements AppPublishService {
     private AppMapper appMapper;
 
     @Resource
-    private AppService appService;
-
-    @Resource
     private AppMarketMapper appMarketMapper;
 
     @Resource
@@ -63,6 +60,9 @@ public class AppPublishServiceImpl implements AppPublishService {
 
     @Resource
     private AppPublishChannelService appPublishChannelService;
+
+    @Resource
+    private AppDictionaryService appDictionaryService;
 
     /**
      * 分页查询应用发布记录
@@ -321,7 +321,7 @@ public class AppPublishServiceImpl implements AppPublishService {
      */
     private AppMarketDO handlerMarketApp(AppPublishDO appPublish) {
         AppMarketDO appMarketDO = AppMarketConvert.INSTANCE.convert(appPublish);
-        appMarketDO.setImages(buildImages(appPublish.getCategories()));
+        appMarketDO.setImages(buildImages(appMarketDO.getCategories()));
         // marketUid 不为空，说明已经发布过，需要更新发布记录
         if (StringUtils.isNotBlank(appPublish.getMarketUid())) {
             AppMarketDO appMarket = appMarketMapper.get(appPublish.getMarketUid(), Boolean.TRUE);
@@ -354,7 +354,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         if (CollectionUtil.isEmpty(categoryCollect)) {
             return AppConstants.APP_MARKET_DEFAULT_IMAGE;
         }
-        List<AppCategoryVO> categoryList = appService.categories();
+        List<AppCategoryVO> categoryList = appDictionaryService.categories();
         // 从 categoryList 中获取对应的图片
         List<String> images = CollectionUtil.emptyIfNull(categoryList).stream()
                 .filter(category -> categoryCollect.contains(category.getCode()))
