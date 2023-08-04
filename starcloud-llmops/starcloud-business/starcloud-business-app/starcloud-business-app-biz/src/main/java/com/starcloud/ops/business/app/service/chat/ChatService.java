@@ -7,8 +7,10 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationResp
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -61,7 +63,7 @@ public interface ChatService {
      * @param inputStream
      * @return
      */
-    String updateAppAvatar(String appUid, InputStream inputStream);
+    String updateAppAvatar(String appUid, MultipartFile file) throws IOException;
 
     /**
      * 默认头像

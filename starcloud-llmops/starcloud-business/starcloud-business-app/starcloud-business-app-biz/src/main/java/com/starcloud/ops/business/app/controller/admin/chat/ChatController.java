@@ -83,7 +83,7 @@ public class ChatController {
         if (file.isEmpty()) {
             throw exception(FILE_IS_EMPTY);
         }
-        String avatar = chatService.updateAppAvatar(appUid, file.getInputStream());
+        String avatar = chatService.updateAppAvatar(appUid, file);
         return success(avatar);
     }
 

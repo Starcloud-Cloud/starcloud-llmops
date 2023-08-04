@@ -63,9 +63,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -268,13 +270,22 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public String updateAppAvatar(String appUid, InputStream inputStream) {
-        String avatar = fileApi.createFile(IoUtil.readBytes(inputStream));
+    public String updateAppAvatar(String appUid, MultipartFile file) throws IOException {
+        String avatar = fileApi.createFile("avatar/" + IdUtil.fastSimpleUUID() + "." + getSuffix(file.getOriginalFilename()), IoUtil.readBytes(file.getInputStream()));
         AppUpdateReqVO appUpdateReqVO = new AppUpdateReqVO();
         appUpdateReqVO.setUid(appUid);
         appUpdateReqVO.setImages(Arrays.asList(avatar));
         appService.modify(appUpdateReqVO);
         return avatar;
+    }
+    private String getSuffix(String fileName) {
+        if (fileName != null) {
+            int dotIndex = fileName.lastIndexOf(".");
+            if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
+                return fileName.substring(dotIndex + 1).toLowerCase();
+            }
+        }
+        return "";
     }
 
     @Override
