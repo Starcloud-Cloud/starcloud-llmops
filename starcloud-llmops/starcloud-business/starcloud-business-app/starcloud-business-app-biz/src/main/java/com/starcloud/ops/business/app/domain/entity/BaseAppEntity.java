@@ -183,12 +183,12 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 新增应用
      */
-    protected abstract void _insert();
+    protected abstract BaseAppEntity _insert();
 
     /**
      * 更新应用
      */
-    protected abstract void _update();
+    protected abstract BaseAppEntity _update();
 
 
     protected abstract <C> C _parseConversationConfig(String conversationConfig);
@@ -339,17 +339,17 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 新增应用
      */
-    public void insert() {
+    public BaseAppEntity insert() {
         this.validate(null);
-        this._insert();
+        return this._insert();
     }
 
     /**
      * 更新应用
      */
-    public void update() {
+    public BaseAppEntity update() {
         this.validate(null);
-        this._update();
+        return this._update();
     }
 
 

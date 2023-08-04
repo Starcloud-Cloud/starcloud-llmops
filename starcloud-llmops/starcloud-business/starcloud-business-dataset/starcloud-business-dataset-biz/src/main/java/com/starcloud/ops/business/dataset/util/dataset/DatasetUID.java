@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.dataset.util.dataset;
 
+import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.IdUtil;
 
 /**
@@ -14,13 +15,50 @@ import cn.hutool.core.util.IdUtil;
  */
 @SuppressWarnings("unchecked")
 public class DatasetUID {
+
+    // 定义ID 前缀 前缀为 base 机密结果
+
+    /**
+     * 数据集
+     */
+    private final static String DATASET_PREFIX = "数据集";
+
+    /**
+     * 源数据
+     */
+    private final static String SOURCE_DATA_PREFIX = "源数据";
+
+    /**
+     * 存储集
+     */
+    private final static String STORAGE_PREFIX = "存储集";
+    
+    
     /**
      * 数据集UID
      *
      */
-    public static String getDatasetUID() {
-        //TODO 业务ID
-      return IdUtil.getSnowflakeNextIdStr();
+    public static String createDatasetUID() {
+        String encode = Base64.encode(DATASET_PREFIX);
+        return encode+IdUtil.fastSimpleUUID();
+    }
+
+    /**
+     * 数据集UID
+     *
+     */
+    public static String createSourceDataUID() {
+        String encode = Base64.encode(SOURCE_DATA_PREFIX);
+        return encode+IdUtil.fastSimpleUUID();
+    }
+
+    /**
+     * 数据集UID
+     *
+     */
+    public static String createStorageUID() {
+        String encode = Base64.encode(STORAGE_PREFIX);
+        return encode+IdUtil.fastSimpleUUID();
     }
 
 

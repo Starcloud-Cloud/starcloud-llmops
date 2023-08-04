@@ -3,7 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.market;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.base.vo.request.MarketUidRequest;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
@@ -113,7 +113,7 @@ public class AppMarketController {
     @PostMapping("/favorite")
     @Operation(summary = "收藏应用", description = "收藏应用")
     @ApiOperationSupport(order = 45, author = "nacoyer")
-    public CommonResult<Boolean> favorite(@Validated @RequestBody UidRequest request) {
+    public CommonResult<Boolean> favorite(@Validated @RequestBody MarketUidRequest request) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (loginUserId == null) {
             return CommonResult.error(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
@@ -125,7 +125,7 @@ public class AppMarketController {
     @PostMapping("/cancelFavorite")
     @Operation(summary = "取消收藏应用", description = "取消收藏应用")
     @ApiOperationSupport(order = 50, author = "nacoyer")
-    public CommonResult<Boolean> cancelFavorite(@Validated @RequestBody UidRequest request) {
+    public CommonResult<Boolean> cancelFavorite(@Validated @RequestBody MarketUidRequest request) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (loginUserId == null) {
             return CommonResult.error(ErrorCodeConstants.USER_MAY_NOT_LOGIN);

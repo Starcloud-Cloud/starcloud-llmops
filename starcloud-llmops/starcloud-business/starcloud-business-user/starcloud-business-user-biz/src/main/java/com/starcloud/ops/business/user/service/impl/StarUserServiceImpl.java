@@ -9,7 +9,6 @@ import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
@@ -20,7 +19,6 @@ import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
-import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
@@ -33,6 +31,7 @@ import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
+import com.starcloud.ops.business.user.service.InvitationRecordsService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -64,6 +64,9 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Autowired
     private MailSendServiceImpl mailSendService;
+
+    @Resource
+    private InvitationRecordsService invitationRecordsService;
 
     @Autowired
     private RegisterUserMapper registerUserMapper;
@@ -157,6 +160,7 @@ public class StarUserServiceImpl implements StarUserService {
                 // 普通注册权益
                 benefitsService.addUserBenefitsSign(currentUserId);
             }
+
         } catch (Exception e) {
             log.warn("新增权益失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
         }

@@ -5,6 +5,8 @@ import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsC
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsUpdateReqVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 
@@ -21,28 +23,44 @@ public interface DatasetsService {
      * @param createReqVO 创建信息
      * @return 编号
      */
-    String createDatasets(@Valid DatasetsCreateReqVO createReqVO);
+    String createDatasets(@Validated DatasetsCreateReqVO createReqVO);
+
+    /**
+     * 根据用户应用创建数据集
+     *
+     * @param appId 应用 ID
+     * @param appName 应用 名称
+     * @return Boolean
+     */
+    Boolean createDatasetsByApplication(String appId,String appName);
+
+    /**
+     * 创建数据集
+     *
+     * @return 编号
+     *
+     */
+    String createWechatDatasets();
 
     /**
      * 更新数据集
      *
      * @param updateReqVO 更新信息
      */
-    void updateDatasets(@Valid DatasetsUpdateReqVO updateReqVO);
-
+    void updateDatasets(@Validated DatasetsUpdateReqVO updateReqVO);
     /**
      * 启用数据集
      *
      * @param uid 数据集编号
      */
-    void enableDatasets( String uid);
+    void enableDatasets(String uid);
 
     /**
      * 停用数据集
      *
      * @param uid 数据集编号
      */
-    void offDatasets( String uid);
+    void offDatasets(String uid);
 
     /**
      * 删除数据集
@@ -69,12 +87,10 @@ public interface DatasetsService {
     PageResult<DatasetsDO> getDatasetsPage(DatasetsPageReqVO pageReqVO);
 
 
-
     void validateDatasetsExists(String UID);
 
 
     DatasetsDO getDataSetBaseDo(String UID);
-
 
 
 }

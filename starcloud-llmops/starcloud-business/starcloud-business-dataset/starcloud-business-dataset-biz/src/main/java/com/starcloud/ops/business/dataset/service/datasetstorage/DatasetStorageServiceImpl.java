@@ -1,9 +1,6 @@
 package com.starcloud.ops.business.dataset.service.datasetstorage;
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.iocoder.yudao.module.infra.dal.dataobject.file.FileDO;
-import cn.iocoder.yudao.module.infra.dal.mysql.file.FileMapper;
-import cn.iocoder.yudao.module.infra.service.file.FileConfigService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
@@ -17,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
@@ -33,27 +32,42 @@ import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASE
 @Validated
 public class DatasetStorageServiceImpl implements DatasetStorageService {
 
-//    @Resource
-//    private FileConfigService fileConfigService;
-    @Resource
-    private FileMapper fileMapper;
 
     @Resource
     private DatasetStorageMapper datasetStorageMapper;
 
+    /**
+     * @param id 源数据上传
+     * @return DatasetStorageDO
+     */
+    @Override
+    public DatasetStorageDO selectDataById(Long id) {
+        return datasetStorageMapper.selectById(id);
+    }
+
 
     /**
-     * @param  createReqVO 源数据上传
+     * @param createReqVOS 源数据上传
      * @return UID
      */
     @Override
-    public String addSourceData(DatasetStorageCreateReqVO createReqVO) {
-        String uid = DatasetUID.getDatasetUID();
-        createReqVO.setUid(uid);
-        DatasetStorageDO convert = DatasetStorageConvert.convert(createReqVO);
-        // 数据入库
-        datasetStorageMapper.insert(convert);
-        return uid;
+    public Long addStorageData(DatasetStorageCreateReqVO createReqVOS) {
+        DatasetStorageDO datasetStorageDO = DatasetStorageConvert.INSTANCE.convert(createReqVOS);
+        datasetStorageMapper.insert(datasetStorageDO);
+        return datasetStorageDO.getId();
+    }
+
+
+    /**
+     * @param createReqVOS 源数据上传
+     * @return UID
+     */
+    @Override
+    public List<Long> addBatchStorageData(List<DatasetStorageCreateReqVO> createReqVOS) {
+        String uid = DatasetUID.createStorageUID();
+        List<DatasetStorageDO> datasetStorageDOS = DatasetStorageConvert.INSTANCE.convertCreateList(createReqVOS);
+        datasetStorageMapper.insertBatch(datasetStorageDOS);
+        return datasetStorageDOS.stream().map(DatasetStorageDO::getId).collect(Collectors.toList());
     }
 
 
@@ -76,16 +90,16 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
             log.error("[getDatasetStorageInfo][获取源数据失败，文件不存在：文件UID({})|用户ID({})|租户ID({})", UID, getLoginUserId(), getLoginUser().getTenantId());
             throw exception(DATASET_STORAGE_NOT_EXISTS);
         }
-        // 根据ID获取文件信息
-        FileDO fileDO = fileMapper.selectById(datasetStorageDO.getStorageKey());
-        if (ObjectUtil.isEmpty(fileDO)) {
-            log.error("[getDatasetStorageInfo][获取源数据失败，文件不存在：文件UID({})|用户ID({})|租户ID({})", UID, getLoginUserId(), getLoginUser().getTenantId());
-            throw exception(DATASET_STORAGE_NOT_EXISTS);
-        }
-        DatasetStorageUpLoadRespVO datasetStorageUpLoadRespVO = DatasetStorageConvert.convert2LoadRespVO(datasetStorageDO);
-        datasetStorageUpLoadRespVO.setStorageKey(fileDO.getUrl());
+        // // 根据ID获取文件信息
+        // FileDO fileDO = fileMapper.selectById(datasetStorageDO.getStorageKey());
+        // if (ObjectUtil.isEmpty(fileDO)) {
+        //     log.error("[getDatasetStorageInfo][获取源数据失败，文件不存在：文件UID({})|用户ID({})|租户ID({})", UID, getLoginUserId(), getLoginUser().getTenantId());
+        //     throw exception(DATASET_STORAGE_NOT_EXISTS);
+        // }
+        // DatasetStorageUpLoadRespVO datasetStorageUpLoadRespVO = DatasetStorageConvert.convert2LoadRespVO(datasetStorageDO);
+        // datasetStorageUpLoadRespVO.setStorageKey(fileDO.getUrl());
         // 数据转换
-        return datasetStorageUpLoadRespVO;
+        return null;
     }
 
     /**

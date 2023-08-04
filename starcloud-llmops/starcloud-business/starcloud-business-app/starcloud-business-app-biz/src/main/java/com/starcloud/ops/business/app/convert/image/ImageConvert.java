@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
+import com.starcloud.ops.business.app.util.ImageUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -55,7 +56,7 @@ public interface ImageConvert {
 
         // 初始化图片
         if (StringUtils.isNotBlank(request.getInitImage())) {
-            entity.setInitImage(request.getInitImage());
+            entity.setInitImage(ImageUtils.handlerBase64Image(request.getInitImage()));
             if (request.getImageStrength() == null) {
                 entity.setStartSchedule(0.65);
                 request.setImageStrength(0.35);

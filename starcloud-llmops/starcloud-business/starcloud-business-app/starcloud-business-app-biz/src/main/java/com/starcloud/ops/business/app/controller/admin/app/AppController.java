@@ -96,25 +96,22 @@ public class AppController {
     @PostMapping("/create")
     @Operation(summary = "创建应用", description = "创建一个新的应用")
     @ApiOperationSupport(order = 16, author = "nacoyer")
-    public CommonResult<Boolean> create(@Validated @RequestBody AppReqVO request) {
-        appService.create(request);
-        return CommonResult.success(Boolean.TRUE);
+    public CommonResult<AppRespVO> create(@Validated @RequestBody AppReqVO request) {
+        return CommonResult.success(appService.create(request));
     }
 
     @PostMapping("/copy")
     @Operation(summary = "复制应用", description = "复制一个应用")
     @ApiOperationSupport(order = 18, author = "nacoyer")
-    public CommonResult<Boolean> copy(@Validated @RequestBody AppReqVO request) {
-        appService.copy(request);
-        return CommonResult.success(Boolean.TRUE);
+    public CommonResult<AppRespVO> copy(@Validated @RequestBody AppReqVO request) {
+        return CommonResult.success(appService.copy(request));
     }
 
     @PutMapping("/modify")
     @Operation(summary = "更新应用", description = "根据 UID 更新应用")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<Boolean> modify(@Validated @RequestBody AppUpdateReqVO request) {
-        appService.modify(request);
-        return CommonResult.success(Boolean.TRUE);
+    public CommonResult<AppRespVO> modify(@Validated @RequestBody AppUpdateReqVO request) {
+        return CommonResult.success(appService.modify(request));
     }
 
     @DeleteMapping("/delete/{uid}")

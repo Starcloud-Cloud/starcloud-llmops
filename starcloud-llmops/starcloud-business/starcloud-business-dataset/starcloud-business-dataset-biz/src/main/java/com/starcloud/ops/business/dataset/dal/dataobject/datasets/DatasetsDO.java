@@ -47,10 +47,6 @@ public class DatasetsDO extends TenantBaseDO {
      */
     private Integer permission;
     /**
-     * 数据源类型
-     */
-    private String sourceType;
-    /**
      * 索引技术
      */
     private String indexingModel;

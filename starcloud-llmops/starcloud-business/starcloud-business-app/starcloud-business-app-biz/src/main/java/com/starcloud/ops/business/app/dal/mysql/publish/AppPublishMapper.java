@@ -38,17 +38,22 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         // APP_UID
         wrapper.eq(StringUtils.isNotBlank(query.getAppUid()), AppPublishDO::getAppUid, query.getAppUid());
         // NAME 模糊查询
-        wrapper.likeLeft(StringUtils.isNotBlank(query.getName()), AppPublishDO::getName, query.getName());
+        wrapper.likeRight(StringUtils.isNotBlank(query.getName()), AppPublishDO::getName, query.getName());
         // MODEL
         wrapper.eq(StringUtils.isNotBlank(query.getModel()), AppPublishDO::getModel, query.getModel());
-        // 审核状态 只允许查询已审核通过和已拒绝的发布记录
-        if (query.getAudit() != null) {
-            if (Objects.equals(AppPublishAuditEnum.APPROVED.getCode(), query.getAudit()) ||
-                    Objects.equals(AppPublishAuditEnum.REJECTED.getCode(), query.getAudit())) {
-                wrapper.eq(AppPublishDO::getAudit, query.getAudit());
+        if (query.getIsAdmin()) {
+            if (query.getAudit() != null) {
+                if (Objects.equals(query.getAudit(), AppPublishAuditEnum.APPROVED.getCode()) ||
+                        Objects.equals(query.getAudit(), AppPublishAuditEnum.PENDING.getCode()) ||
+                        Objects.equals(query.getAudit(), AppPublishAuditEnum.REJECTED.getCode())) {
+                    wrapper.eq(AppPublishDO::getAudit, query.getAudit());
+                }
+            } else {
+                wrapper.in(AppPublishDO::getAudit, AppPublishAuditEnum.APPROVED.getCode(), AppPublishAuditEnum.REJECTED.getCode(), AppPublishAuditEnum.PENDING.getCode());
             }
+            wrapper.orderByAsc(AppPublishDO::getAudit);
         } else {
-            wrapper.in(AppPublishDO::getAudit, AppPublishAuditEnum.APPROVED.getCode(), AppPublishAuditEnum.REJECTED.getCode());
+            wrapper.eq(Objects.nonNull(query.getAudit()), AppPublishDO::getAudit, query.getAudit());
         }
         // 排序
         wrapper.orderByDesc(AppPublishDO::getUpdateTime);
@@ -108,6 +113,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
             return wrapper;
         }
         wrapper.select(
+                AppPublishDO::getId,
                 AppPublishDO::getUid,
                 AppPublishDO::getAppUid,
                 AppPublishDO::getMarketUid,
@@ -118,8 +124,8 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
                 AppPublishDO::getLanguage,
                 AppPublishDO::getAudit,
                 AppPublishDO::getCreateTime,
-                AppPublishDO::getDescription,
-                AppPublishDO::getUpdateTime
+                AppPublishDO::getUpdateTime,
+                AppPublishDO::getDescription
         );
         return wrapper;
     }

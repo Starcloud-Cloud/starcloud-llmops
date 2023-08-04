@@ -487,18 +487,16 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 新增应用
      */
     @Override
-    protected void _insert() {
-
-        getAppRepository().insert(this);
+    protected BaseAppEntity _insert() {
+       return getAppRepository().insert(this);
     }
 
     /**
      * 更新应用
      */
     @Override
-    protected void _update() {
-
-        getAppRepository().update(this);
+    protected BaseAppEntity _update() {
+        return getAppRepository().update(this);
     }
 
 

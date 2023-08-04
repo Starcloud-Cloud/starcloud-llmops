@@ -22,7 +22,6 @@ import com.starcloud.ops.business.limits.enums.*;
 import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.limits.service.userbenefitsusagelog.UserBenefitsUsageLogService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.record.PageBreakRecord;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +34,6 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.TimeZone;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -131,6 +129,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param userId       用户 ID
      * @return Boolean
      */
+    @Transactional
     public Boolean addUserBenefitsByStrategyType(String strategyType, Long userId) {
 
         log.info("[addUserBenefitsByCode][1.准备增加权益，根据权益类型获取权益配置：用户ID({})|租户 ID({})｜权益类型({})]", userId, getTenantId(), strategyType);
@@ -179,7 +178,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     now = LocalDateTimeUtil.now();
                 } else {
                     now = userBenefitsDO.getExpirationTime();
-
                 }
 
                 // 如果可以使用，使用 userBenefitsMapper新增权益
@@ -194,10 +192,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             // 增加记录
             userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
         } catch (RuntimeException e) {
-            log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]｜错误为({})", userId, strategyType, e.getMessage());
+            log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]｜完整错误为({})]", userId, strategyType, e.getMessage(),e);
             return false;
         }
-        log.info("[addUserBenefitsByCode][3.增加权益结束：用户ID({})｜权益类型({})]", userId, strategyType);
+        log.info("[addUserBenefitsByCode][4.增加权益结束：用户ID({})｜权益类型({})]", userId, strategyType);
         return true;
     }
 
@@ -285,6 +283,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return UserBenefitsDO
      */
     private UserBenefitsDO createUserBenefits(Long userId, UserBenefitsStrategyDO benefitsStrategy, LocalDateTime startTime) {
+
         UserBenefitsDO userBenefitsDO = new UserBenefitsDO();
         userBenefitsDO.setUid(IdUtil.fastSimpleUUID());
         userBenefitsDO.setUserId(String.valueOf(userId));
@@ -767,7 +766,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     @Override
     public Boolean addBenefitsAndRole(String benefitsType, Long userId, String roleCode) {
         // 增加用户权益
-        this.addUserBenefitsByStrategyType(benefitsType, userId);
+        addUserBenefitsByStrategyType(benefitsType, userId);
         // 设置用户角色
         permissionService.addUserRole(userId, roleCode);
 

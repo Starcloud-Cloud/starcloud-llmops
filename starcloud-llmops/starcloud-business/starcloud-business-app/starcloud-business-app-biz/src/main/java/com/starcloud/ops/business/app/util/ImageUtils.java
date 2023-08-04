@@ -292,4 +292,18 @@ public class ImageUtils {
         }
         return negativePrompt;
     }
+
+    /**
+     * 处理图片base64
+     * @param base64Image base64
+     * @return 处理后的base64
+     */
+    public static String handlerBase64Image(String base64Image) {
+        int commaIndex = base64Image.indexOf(',');
+        if (commaIndex != -1) {
+            return base64Image.substring(commaIndex + 1);
+        } else {
+            return base64Image;
+        }
+    }
 }

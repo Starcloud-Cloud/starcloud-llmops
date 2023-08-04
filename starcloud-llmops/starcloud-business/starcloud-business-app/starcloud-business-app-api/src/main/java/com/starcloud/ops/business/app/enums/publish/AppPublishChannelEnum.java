@@ -16,7 +16,7 @@ public enum AppPublishChannelEnum implements IEnumable<Integer> {
 
     JS_IFRAME(3, "JS嵌入", "JS嵌入"),
 
-    API_SDK(4, "API 调用", "API 调用"),
+    OPEN_API(4, "API 调用", "API 调用"),
 
     WX_GROUP(5, "微信群聊", "微信群聊"),
 

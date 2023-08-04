@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
@@ -215,4 +216,22 @@ public class AppUtils {
         }
     }
 
+    /**
+     * 判断字符串中是否包含中文
+     *
+     * @param input 待检测字符串
+     * @return 是否包含中文
+     */
+    public static String detectLanguage(String input) {
+        boolean containsChinese = false;
+
+        for (char c : input.toCharArray()) {
+            if (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS) {
+                containsChinese = true;
+                break;
+            }
+        }
+
+        return containsChinese ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
+    }
 }

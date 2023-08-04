@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
@@ -28,6 +29,7 @@ import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
 import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
+import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
@@ -56,6 +58,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -130,7 +133,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         }
     }
 
-    public String segmentSummary(String documentId, String text, SplitRule splitRule,Integer summarySize) {
+    public String segmentSummary(String documentId, String text, SplitRule splitRule, Integer summarySize) {
         long start = System.currentTimeMillis();
         List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
         int size = splitText.size();
@@ -225,6 +228,17 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         }
     }
 
+    @Override
+    public void splitDoc(String datasetId, String dataSourceId, SplitRule splitRule) throws IOException, TikaException {
+        DatasetStorageUpLoadRespVO datasetStorage = datasetStorageService.getDatasetStorageByUID(dataSourceId);
+        if (datasetStorage == null || StringUtils.isBlank(datasetStorage.getStorageKey())) {
+            throw exception(DATASETS_NOT_EXIST_ERROR);
+        }
+        Tika tika = new Tika();
+        tika.setMaxStringLength(-1);
+        String text = tika.parseToString(new URL(datasetStorage.getStorageKey()));
+        splitDoc(datasetId, dataSourceId,text,splitRule);
+    }
 
     @Override
     public void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule) {
@@ -369,11 +383,8 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     }
 
     @Override
-    public List<DocumentSegmentDO> segmentDetail(String datasetId, boolean disable, String docId, int lastPosition) {
-        Assert.notBlank(datasetId, "datasetId is null");
-        Assert.notBlank(docId, "documentId is null");
-        validateTenantId(docId);
-        return segmentMapper.segmentDetail(datasetId, disable, docId, lastPosition);
+    public PageResult<DocumentSegmentDO> segmentDetail(SegmentPageQuery pageQuery) {
+        return segmentMapper.page(pageQuery);
     }
 
     @Override

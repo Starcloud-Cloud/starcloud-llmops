@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.chat.controller.admin.voices.vo;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 

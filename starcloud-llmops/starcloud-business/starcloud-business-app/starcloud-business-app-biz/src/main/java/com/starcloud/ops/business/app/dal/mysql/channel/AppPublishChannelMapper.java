@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.dal.mysql.channel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -34,26 +33,55 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
     }
 
     /**
+     * 根据应用 UID 查询应用发布记录, 根据更新时间倒序
+     *
+     * @param appUid 应用 UID
+     * @return 应用发布记录
+     */
+    default List<AppPublishChannelDO> listByAppUid(String appUid) {
+        LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
+        wrapper.eq(AppPublishChannelDO::getAppUid, appUid);
+        wrapper.orderByDesc(AppPublishChannelDO::getUpdateTime);
+        return this.selectList(wrapper);
+    }
+
+    /**
      * 根据uid查询媒介
      *
      * @param uid 媒介uid
      * @return 媒介
      */
-    default AppPublishChannelDO get(String uid) {
-        LambdaQueryWrapper<AppPublishChannelDO> wrapper = Wrappers.lambdaQuery(AppPublishChannelDO.class);
+    default AppPublishChannelDO get(String uid, boolean isSimple) {
+        LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(isSimple);
         wrapper.eq(AppPublishChannelDO::getUid, uid);
-        wrapper.eq(AppPublishChannelDO::getDeleted, Boolean.FALSE);
         return this.selectOne(wrapper);
     }
 
     /**
-     * 创建 一次发布的默认媒介
+     * 查询条件
      *
-     * @param publishUid 发布uid
+     * @param isSimple 是否简单查询
+     * @return 查询条件
      */
-    default void defaultCreateChannel(String publishUid, AppPublishReqVO request) {
-
-
+    default LambdaQueryWrapper<AppPublishChannelDO> queryWrapper(boolean isSimple) {
+        LambdaQueryWrapper<AppPublishChannelDO> wrapper = Wrappers.lambdaQuery(AppPublishChannelDO.class);
+        wrapper.eq(AppPublishChannelDO::getDeleted, Boolean.FALSE);
+        if (!isSimple) {
+            return wrapper;
+        }
+        wrapper.select(
+                AppPublishChannelDO::getId,
+                AppPublishChannelDO::getUid,
+                AppPublishChannelDO::getAppUid,
+                AppPublishChannelDO::getPublishUid,
+                AppPublishChannelDO::getType,
+                AppPublishChannelDO::getConfig,
+                AppPublishChannelDO::getStatus,
+                AppPublishChannelDO::getDescription,
+                AppPublishChannelDO::getCreateTime,
+                AppPublishChannelDO::getUpdateTime
+        );
+        return wrapper;
     }
 
 

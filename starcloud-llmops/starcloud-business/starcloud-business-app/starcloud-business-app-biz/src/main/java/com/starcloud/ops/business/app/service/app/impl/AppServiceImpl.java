@@ -1,9 +1,6 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
-import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,30 +11,31 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
-import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.recommend.RecommendedAppCache;
 import com.starcloud.ops.business.app.domain.recommend.RecommendedStepWrapperFactory;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
+import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.validate.app.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
-import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -55,7 +53,13 @@ public class AppServiceImpl implements AppService {
     private AppMapper appMapper;
 
     @Resource
-    private DictDataService dictDataService;
+    private AppPublishService appPublishService;
+
+    @Resource
+    private AppPublishChannelService appPublishChannelService;
+
+    @Resource
+    private AppDictionaryService appDictionaryService;
 
     /**
      * 查询应用分类列表
@@ -65,17 +69,7 @@ public class AppServiceImpl implements AppService {
     @Override
     public List<AppCategoryVO> categories() {
         // 查询应用分类字典数据
-        DictDataExportReqVO request = new DictDataExportReqVO();
-        request.setDictType(AppConstants.APP_CATEGORY_DICT_TYPE);
-        request.setStatus(StateEnum.ENABLE.getCode());
-        List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
-
-        // 未查询到数据，返回空列表
-        if (CollectionUtil.isEmpty(dictDataList)) {
-            return Collections.emptyList();
-        }
-        // 转换为应用分类列表
-        return dictDataList.stream().map(CategoryConvert.INSTANCE::convert).filter(Objects::nonNull).collect(Collectors.toList());
+        return appDictionaryService.categories();
     }
 
     /**
@@ -129,7 +123,7 @@ public class AppServiceImpl implements AppService {
     public PageResp<AppRespVO> page(AppPageQuery query) {
         Page<AppDO> page = appMapper.page(query);
         List<AppRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppConvert.INSTANCE::convertResp).collect(Collectors.toList());
+                .map(AppConvert.INSTANCE::convertResponse).collect(Collectors.toList());
         return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
@@ -143,7 +137,7 @@ public class AppServiceImpl implements AppService {
     public AppRespVO get(String uid) {
         AppDO app = appMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return AppConvert.INSTANCE.convertResp(app);
+        return AppConvert.INSTANCE.convertResponse(app);
     }
 
     /**
@@ -152,9 +146,10 @@ public class AppServiceImpl implements AppService {
      * @param request 应用信息
      */
     @Override
-    public void create(AppReqVO request) {
+    public AppRespVO create(AppReqVO request) {
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        appEntity.insert();
+        BaseAppEntity entity = appEntity.insert();
+        return AppConvert.INSTANCE.convertResponse(entity);
     }
 
     /**
@@ -163,10 +158,11 @@ public class AppServiceImpl implements AppService {
      * @param request 模版应用
      */
     @Override
-    public void copy(AppReqVO request) {
+    public AppRespVO copy(AppReqVO request) {
         request.setName(request.getName() + " - Copy");
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        appEntity.insert();
+        BaseAppEntity entity = appEntity.insert();
+        return AppConvert.INSTANCE.convertResponse(entity);
     }
 
     /**
@@ -175,10 +171,11 @@ public class AppServiceImpl implements AppService {
      * @param request 更新请求信息
      */
     @Override
-    public void modify(AppUpdateReqVO request) {
+    public AppRespVO modify(AppUpdateReqVO request) {
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
-        appEntity.update();
+        BaseAppEntity entity = appEntity.update();
+        return AppConvert.INSTANCE.convertResponse(entity);
     }
 
     /**
@@ -187,8 +184,14 @@ public class AppServiceImpl implements AppService {
      * @param uid 应用 UID
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
+        // 删除应用
         appMapper.delete(uid);
+        // 删除应用发布信息
+        appPublishService.deleteByAppUid(uid);
+        // 删除应用发布渠道信息
+        appPublishChannelService.deleteByAppUid(uid);
     }
 
     /**
@@ -207,6 +210,6 @@ public class AppServiceImpl implements AppService {
         if (appDO == null) {
             return null;
         }
-        return AppConvert.INSTANCE.convertResp(appMapper.selectOne(wrapper));
+        return AppConvert.INSTANCE.convertResponse(appMapper.selectOne(wrapper));
     }
 }

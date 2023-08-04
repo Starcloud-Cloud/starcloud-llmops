@@ -4,12 +4,24 @@ import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
+import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
+import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
+import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.util.app.AppUtils;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -18,6 +30,8 @@ import org.springframework.context.annotation.Import;
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.mockito.Mockito.when;
 
 @Slf4j
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class})
@@ -32,10 +46,16 @@ public class AppServiceTest extends BaseDbUnitTest {
     private AppMapper appMapper;
 
     @Resource
+    private AppPublishService appPublishService;
+
+    @Resource
     private AppMarketMapper appMarketMapper;
 
     @MockBean
     private DictDataService dictDataService;
+
+    @Resource
+    private MetaObjectHandler metaObjectHandler;
 
     @MockBean
     private UserBenefitsService userBenefitsService;
@@ -61,6 +81,46 @@ public class AppServiceTest extends BaseDbUnitTest {
         dictDataDO.setSort(sort);
         dictDataDO.setRemark(remark);
         return dictDataDO;
+    }
+
+    @Test
+    public void testPublish() {
+
+        AppPageQuery query = new AppPageQuery();
+        query.setPageNo(1);
+        query.setPageSize(10000);
+        query.setModel(AppModelEnum.COMPLETION.name());
+        Page<AppDO> page = appMapper.page(query);
+        log.info("查询的应用列表：应用总数：{}", page.getTotal());
+
+        List<AppDO> records = page.getRecords();
+        log.info("准备发布应用数据");
+        for (int i = 0; i < records.size(); i++) {
+            AppDO app = records.get(i);
+            log.info("开始发布第 『{}』个应用, 名称：{}, UID: {}, 类别：{}", i + 1, app.getName(), app.getUid(), app.getCategories());
+            when(dictDataService.getDictDataList()).thenReturn(DICT_LIST);
+
+            AppPublishReqVO appPublishReqVO = new AppPublishReqVO();
+            appPublishReqVO.setAppUid(app.getUid());
+            appPublishReqVO.setLanguage(AppUtils.detectLanguage(app.getName()));
+            AppPublishRespVO appPublishRespVO = appPublishService.create(appPublishReqVO);
+            log.info("\t\t创建发布记录成功：PublishUid: {}, 审核状态：{} ", appPublishRespVO.getUid(), appPublishRespVO.getAudit());
+
+            UidStatusRequest uidStatusRequest = new UidStatusRequest();
+            uidStatusRequest.setUid(appPublishRespVO.getUid());
+            uidStatusRequest.setAppUid(app.getUid());
+            uidStatusRequest.setStatus(AppPublishAuditEnum.PENDING.getCode());
+            appPublishService.operate(uidStatusRequest);
+            log.info("\t\t提交审核成功：PublishUid: {}, 审核状态：{} ", appPublishRespVO.getUid(), appPublishRespVO.getAudit());
+
+            UidStatusRequest auditRequest = new UidStatusRequest();
+            auditRequest.setUid(appPublishRespVO.getUid());
+            auditRequest.setAppUid(app.getUid());
+            auditRequest.setStatus(AppPublishAuditEnum.APPROVED.getCode());
+            appPublishService.audit(auditRequest);
+            log.info("\t\t审核通过：PublishUid: {}, 审核状态：{} ", appPublishRespVO.getUid(), appPublishRespVO.getAudit());
+            log.info("第 『{}』发布应用数据完成。", i + 1);
+        }
     }
 
 }

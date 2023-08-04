@@ -2,8 +2,6 @@ package com.starcloud.ops.business.app.convert.market;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.alibaba.fastjson.JSON;
-import com.starcloud.ops.business.app.api.app.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -16,9 +14,9 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.util.app.AppUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
@@ -28,7 +26,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 模版市场转换器
@@ -84,17 +81,17 @@ public interface AppMarketConvert {
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
             WorkflowConfigEntity config = appMarketEntity.getWorkflowConfig();
             if (Objects.nonNull(config)) {
-                appMarket.setConfig(JSON.toJSONString(config));
+                appMarket.setConfig(JSONUtil.toJsonStr(config));
             }
         } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
             ChatConfigEntity config = appMarketEntity.getChatConfig();
             if (Objects.nonNull(config)) {
-                appMarket.setConfig(JSON.toJSONString(config));
+                appMarket.setConfig(JSONUtil.toJsonStr(config));
             }
         } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
             ImageConfigEntity config = appMarketEntity.getImageConfig();
             if (Objects.nonNull(config)) {
-                appMarket.setConfig(JSON.toJSONString(config));
+                appMarket.setConfig(JSONUtil.toJsonStr(config));
             }
         }
         return appMarket;
@@ -121,6 +118,7 @@ public interface AppMarketConvert {
         appMarket.setTags(app.getTags());
         appMarket.setCategories(app.getCategories());
         appMarket.setScenes(app.getScenes());
+        appMarket.setImages(app.getImages());
         appMarket.setIcon(app.getIcon());
         appMarket.setFree(Boolean.TRUE);
         appMarket.setCost(BigDecimal.ZERO);
@@ -128,9 +126,9 @@ public interface AppMarketConvert {
         appMarket.setLikeCount(0);
         appMarket.setViewCount(0);
         appMarket.setInstallCount(0);
+        appMarket.setAudit(AppPublishAuditEnum.APPROVED.getCode());
         appMarket.setConfig(app.getConfig());
         appMarket.setDescription(app.getDescription());
-        // appMarketEntity.setExample("");
         return appMarket;
     }
 
@@ -163,51 +161,11 @@ public interface AppMarketConvert {
         // 处理配置信息
         if (StringUtils.isNotBlank(appMarket.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
-                appMarketEntity.setWorkflowConfig(JSON.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
+                appMarketEntity.setWorkflowConfig(JSONUtil.toBean(appMarket.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
-                appMarketEntity.setChatConfig(JSON.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
+                appMarketEntity.setChatConfig(JSONUtil.toBean(appMarket.getConfig(), ChatConfigEntity.class));
             } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
-                appMarketEntity.setImageConfig(JSON.parseObject(appMarket.getConfig(), ImageConfigEntity.class));
-            }
-        }
-        return appMarketEntity;
-    }
-
-    /**
-     * AppDO 转 AppMarketEntity <br>
-     * 发布应用到应用市场时使用。首次发布
-     *
-     * @param app AppDO
-     * @return AppMarketEntity
-     */
-    default AppMarketEntity convert(AppDO app, AppPublishReqVO publishRequest) {
-        AppMarketEntity appMarketEntity = new AppMarketEntity();
-        appMarketEntity.setUid(AppUtils.generateUid(AppConstants.MARKET_PREFIX));
-        appMarketEntity.setName(app.getName());
-        appMarketEntity.setModel(app.getModel());
-        appMarketEntity.setVersion(AppConstants.DEFAULT_VERSION);
-        appMarketEntity.setLanguage(publishRequest.getLanguage());
-        appMarketEntity.setTags(AppUtils.split(app.getTags()));
-        appMarketEntity.setCategories(publishRequest.getCategories().stream().map(String::trim).distinct().collect(Collectors.toList()));
-        appMarketEntity.setScenes(AppUtils.splitScenes(app.getScenes()));
-        appMarketEntity.setImages(AppUtils.split(app.getImages()));
-        appMarketEntity.setIcon(app.getIcon());
-        appMarketEntity.setFree(Boolean.TRUE);
-        appMarketEntity.setCost(BigDecimal.ZERO);
-        appMarketEntity.setUsageCount(0);
-        appMarketEntity.setLikeCount(0);
-        appMarketEntity.setViewCount(0);
-        appMarketEntity.setInstallCount(0);
-        appMarketEntity.setDescription(app.getDescription());
-        appMarketEntity.setExample(publishRequest.getExample());
-        // 处理配置信息
-        if (StringUtils.isNotBlank(app.getConfig())) {
-            if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-                appMarketEntity.setWorkflowConfig(JSON.parseObject(app.getConfig(), WorkflowConfigEntity.class));
-            } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-                appMarketEntity.setChatConfig(JSON.parseObject(app.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
-                appMarketEntity.setImageConfig(JSON.parseObject(app.getConfig(), ImageConfigEntity.class));
+                appMarketEntity.setImageConfig(JSONUtil.toBean(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
         return appMarketEntity;
@@ -243,18 +201,18 @@ public interface AppMarketConvert {
         appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
         // 处理配置信息
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
-            WorkflowConfigRespVO config = JSON.parseObject(appMarket.getConfig(), WorkflowConfigRespVO.class);
+            WorkflowConfigRespVO config = JSONUtil.toBean(appMarket.getConfig(), WorkflowConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setWorkflowConfig(config);
                 appMarketResponse.setStepCount(Optional.of(config).map(WorkflowConfigRespVO::getSteps).map(List::size).orElse(0));
             }
         } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
-            ChatConfigRespVO config = JSON.parseObject(appMarket.getConfig(), ChatConfigRespVO.class);
+            ChatConfigRespVO config = JSONUtil.toBean(appMarket.getConfig(), ChatConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setChatConfig(config);
             }
         } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
-            ImageConfigRespVO config = JSON.parseObject(appMarket.getConfig(), ImageConfigRespVO.class);
+            ImageConfigRespVO config = JSONUtil.toBean(appMarket.getConfig(), ImageConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setImageConfig(config);
             }

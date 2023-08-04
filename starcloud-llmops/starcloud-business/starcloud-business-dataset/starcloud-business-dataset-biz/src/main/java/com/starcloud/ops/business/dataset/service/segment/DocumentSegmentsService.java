@@ -1,13 +1,19 @@
 package com.starcloud.ops.business.dataset.service.segment;
 
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
 import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
+import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
+import org.apache.tika.exception.TikaException;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
 public interface DocumentSegmentsService {
@@ -35,10 +41,12 @@ public interface DocumentSegmentsService {
      */
     void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule);
 
+    void splitDoc(String datasetId, String dataSourceId, SplitRule splitRule) throws IOException, TikaException;
+
     /**
      * 分段明细
      */
-    public List<DocumentSegmentDO> segmentDetail(String datasetId, boolean disable, String docId, int lastPosition);
+    PageResult<DocumentSegmentDO> segmentDetail(SegmentPageQuery pageQuery);
 
     /**
      * 启用/禁用分段

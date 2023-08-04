@@ -103,7 +103,7 @@ public interface ErrorCodeConstants {
     /**
      * 聊天应用自动编排异常
      */
-    ErrorCode CHAT_ROLE_GENERATE_ERROR = new ErrorCode(300200023,"please provide a new target audience and provide a detailed description of the problem to be address");
+    ErrorCode CHAT_ROLE_GENERATE_ERROR = new ErrorCode(300200023, "please provide a new target audience and provide a detailed description of the problem to be address");
 
     /**
      * 语音转文字异常

@@ -5,11 +5,10 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
-import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.ImageUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -74,6 +73,16 @@ public interface VSearchConvert {
         String negativePrompt = request.getNegativePrompt();
         if (StringUtils.isNotBlank(negativePrompt)) {
             prompts.add(TextPrompt.ofNegative(negativePrompt));
+        }
+
+        // 初始化图片
+        if (StringUtils.isNotBlank(request.getInitImage())) {
+            vSearchImageRequest.setInitImage(ImageUtils.handlerBase64Image(request.getInitImage()));
+            if (request.getImageStrength() != null) {
+                vSearchImageRequest.setStartSchedule(1 - request.getImageStrength());
+            } else {
+                vSearchImageRequest.setStartSchedule(0.65);
+            }
         }
 
         vSearchImageRequest.setPrompts(prompts);

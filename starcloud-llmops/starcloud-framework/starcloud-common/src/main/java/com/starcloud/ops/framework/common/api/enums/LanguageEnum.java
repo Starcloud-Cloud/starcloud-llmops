@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
  * @version 1.0.0
  * @since 2023-06-21
  */
+@Getter
 public enum LanguageEnum implements IEnumable<String> {
 
     /**
@@ -107,16 +108,12 @@ public enum LanguageEnum implements IEnumable<String> {
     TR_TR("tr_TR", "tr", "土耳其语", "Turkish"),
     ;
 
-    @Getter
     private final String code;
 
-    @Getter
     private final String simpleCode;
 
-    @Getter
     private final String label;
 
-    @Getter
     private final String labelEn;
 
     LanguageEnum(String code, String simpleCode, String label, String labelEn) {
