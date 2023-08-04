@@ -60,7 +60,7 @@ public class ChatVoiceController {
     }
 
 
-    @GetMapping("/example")
+    @PostMapping("/example")
     @Operation(summary = "语音事例执行", description = "语音事例执行")
     public SseEmitter example(@RequestBody SpeakConfigVO speakConfigVO) {
 

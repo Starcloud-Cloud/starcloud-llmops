@@ -289,6 +289,10 @@ public class AzureVoiceServiceImpl {
             prosodyList.add("role=\"" + speakConfigVO.getRole() + "\"");
         }
 
+        if (StrUtil.isNotBlank(speakConfigVO.getStyle())) {
+            prosodyList.add("style=\"" + speakConfigVO.getStyle() + "\"");
+        }
+
         if (prosodyList.size() > 0) {
 
             return "<mstts:express-as " + StrUtil.join(" ", prosodyList) + ">\n " +
@@ -299,7 +303,6 @@ public class AzureVoiceServiceImpl {
         }
 
     }
-
 
     private synchronized SpeechSynthesizer getSpeechSynthesizer() {
 
