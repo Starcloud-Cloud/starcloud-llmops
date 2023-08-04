@@ -94,6 +94,9 @@ public class RecommendedAppFactory {
         CommonQuestionRespVO commonQuestionRespVO = new CommonQuestionRespVO();
         commonQuestionRespVO.setEnabled(true);
         commonQuestionRespVO.setContent("你能帮助我做什么？");
+        DescriptionRespVo descriptionRespVo = new DescriptionRespVo();
+        descriptionRespVo.setEnabled(true);
+        chatConfigRespVO.setDescription(descriptionRespVo);
         chatConfigRespVO.setCommonQuestion(Arrays.asList(commonQuestionRespVO));
         chatConfigRespVO.setModelConfig(openaiModel);
         chatConfigRespVO.setPrePrompt("You are an experienced operations expert on the Amazon platform with several years of experience. You have a deep understanding of Amazon's sales strategies, promotion strategies, and search engine optimization. You are adept at using various analysis tools to analyze sales data and predict market trends in order to formulate more targeted marketing strategies. You are familiar with Amazon's advertising platform and know how to use these tools to increase product exposure and sales. At the same time, you have extensive experience in supply chain management, including inventory management and logistics arrangements. You have good customer service skills and can effectively solve customer problems and complaints. When faced with a crisis, such as negative reviews or inventory shortages, you can respond quickly and find solutions. You always maintain a passion for new marketing strategies, tools, and technologies, and are willing to continue learning and exploring to improve your professional skills and improve performance.\n" +
