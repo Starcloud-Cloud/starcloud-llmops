@@ -1,8 +1,13 @@
 package com.starcloud.ops.business.user.service.handler;
 
+import cn.iocoder.yudao.module.mp.convert.message.MpMessageConvert;
+import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpMessageDO;
+import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
+import cn.iocoder.yudao.module.mp.enums.message.MpMessageSendFromEnum;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyService;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
+import com.starcloud.ops.business.chat.service.WxMpChatService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.session.WxSessionManager;
@@ -13,10 +18,13 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -31,7 +39,17 @@ public class WeChatScanHandler implements WxMpMessageHandler {
     private MpAutoReplyService mpAutoReplyService;
 
     @Resource
+    private WxMpChatService wxMpChatService;
+
+    @Resource
     private MpUserService mpUserService;
+
+    private List<String> openIds = Arrays.asList(
+            "oyCo06RRyVQxlIAkR00Lxj4PNQXo","oyCo06X7q7kLyA-be8AAhJQqevbE","oyCo06aChvHe_ZhSXrVNRYnxWwRo"
+    );
+
+    private static final String MSG = "你好，我是魔法AI小助手，注意到您热心的邀请了朋友一起使用魔法AI，过程中是否有问题，可以加客服的微信，让我帮你一起解决。\n" +
+            "https://mp.weixin.qq.com/s/kCCbpZOx-2PumVGdJt3i7Q";
 
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
@@ -40,6 +58,15 @@ public class WeChatScanHandler implements WxMpMessageHandler {
         mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
         WxMpXmlOutTextMessage outTextMessage = WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("欢迎回到魔法AI").build();
+        try {
+            if (openIds.contains(wxMpUser.getOpenId())) {
+                String wxAppId = MpContextHolder.getAppId();
+                MpUserDO user = mpUserService.getUser(wxAppId, wxMpUser.getOpenId());
+                wxMpChatService.sendMsg(user.getId(),MSG);
+            }
+        } catch (Exception e) {
+            log.info("发消息失败",e);
+        }
         return outTextMessage;
     }
 }

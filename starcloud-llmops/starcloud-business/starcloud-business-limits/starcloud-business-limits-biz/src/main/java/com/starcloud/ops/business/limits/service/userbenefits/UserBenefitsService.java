@@ -81,7 +81,6 @@ public interface UserBenefitsService {
      */
     Boolean hasSignInBenefitToday(Long userId);
 
-
     /**
      * 新增用户权益
      *
@@ -91,7 +90,6 @@ public interface UserBenefitsService {
      * @return 编号
      */
     Boolean addBenefitsAndRole(String benefitsType, Long userId, String roleCode);
-
 
     /**
      * 用户有邀请码的情况--增加权益
