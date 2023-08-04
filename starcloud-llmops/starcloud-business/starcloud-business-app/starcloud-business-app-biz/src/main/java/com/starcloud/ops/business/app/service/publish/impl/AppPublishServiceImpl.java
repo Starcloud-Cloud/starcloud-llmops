@@ -176,7 +176,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
         // 组装应用发布记录数据
         AppPublishDO appPublish = AppPublishConverter.INSTANCE.convert(app);
-        appPublish.setLanguage(request.getLanguage());
+        // appPublish.setLanguage(request.getLanguage());
         // 查询该应用 UID 的发布记录
         List<AppPublishDO> appPublishRecords = appPublishMapper.listByAppUid(request.getAppUid());
         // 如果该应用 UID 有发布记录，说明不是第一次发布。
