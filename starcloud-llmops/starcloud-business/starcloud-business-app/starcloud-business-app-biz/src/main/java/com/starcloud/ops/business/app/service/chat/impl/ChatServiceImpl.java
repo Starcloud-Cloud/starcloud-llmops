@@ -74,6 +74,9 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.FILE_TYPE_NOT_IMAGES;
+
 /**
  * @author starcloud
  */
@@ -271,13 +274,23 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public String updateAppAvatar(String appUid, MultipartFile file) throws IOException {
-        String avatar = fileApi.createFile("avatar/" + IdUtil.fastSimpleUUID() + "." + getSuffix(file.getOriginalFilename()), IoUtil.readBytes(file.getInputStream()));
+        String suffix = getSuffix(file.getOriginalFilename());
+        checkFileType(suffix);
+        String avatar = fileApi.createFile("avatar/" + IdUtil.fastSimpleUUID() + "." + suffix, IoUtil.readBytes(file.getInputStream()));
         AppUpdateReqVO appUpdateReqVO = new AppUpdateReqVO();
         appUpdateReqVO.setUid(appUid);
         appUpdateReqVO.setImages(Arrays.asList(avatar));
         appService.modify(appUpdateReqVO);
         return avatar;
     }
+
+    private void checkFileType(String suffix) {
+        List<String> imageTypes = Arrays.asList("jpg","jpeg","png");
+        if (!imageTypes.contains(suffix.toLowerCase())) {
+            throw exception(FILE_TYPE_NOT_IMAGES);
+        }
+    }
+
     private String getSuffix(String fileName) {
         if (fileName != null) {
             int dotIndex = fileName.lastIndexOf(".");
