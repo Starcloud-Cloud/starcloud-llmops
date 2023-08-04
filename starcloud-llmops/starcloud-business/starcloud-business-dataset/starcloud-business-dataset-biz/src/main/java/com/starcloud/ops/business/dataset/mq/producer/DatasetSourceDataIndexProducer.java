@@ -40,7 +40,7 @@ public class DatasetSourceDataIndexProducer {
     /**
      * 发送 {@link DatasetSourceDataCleanSendMessage} 消息
      */
-    public void sendIndexDatasetsSendMessage(String dataSetId, String dataSourceId, List<String> splitText) {
+    public void sendIndexDatasetsSendMessage(String dataSetId, Long dataSourceId, List<String> splitText) {
         DatasetSourceDataIndexSendMessage message = new DatasetSourceDataIndexSendMessage()
                 .setDatasetId(dataSetId)
                 .setDataSourceId(dataSourceId)

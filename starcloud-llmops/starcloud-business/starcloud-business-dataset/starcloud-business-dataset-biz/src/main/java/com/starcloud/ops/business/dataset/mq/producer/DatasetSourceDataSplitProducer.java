@@ -41,13 +41,13 @@ public class DatasetSourceDataSplitProducer {
      * 发送 {@link DatasetSourceDataCleanSendMessage} 消息
      *
      */
-    public void sendSplitDatasetsSendMessage(String dataSetId, String dataSourceId,
-                                             SplitRule splitRule, String cleanText) {
+    public void sendSplitDatasetsSendMessage(String dataSetId, Long dataSourceId,
+                                             SplitRule splitRule, Long userId) {
         DatasetSourceDataSplitSendMessage message = new DatasetSourceDataSplitSendMessage()
                 .setDatasetId(dataSetId)
                 .setDataSourceId(dataSourceId)
                 .setSplitRule(splitRule)
-                . setCleanText(cleanText);
+                .setUserId(userId);
         redisMQTemplate.send(message);
     }
 

@@ -3,7 +3,6 @@ package com.starcloud.ops.business.dataset.core.handler.strategy;
 import cn.hutool.core.io.FileTypeUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -33,6 +31,8 @@ public class UrlUploadStrategy implements UploadStrategy {
     // 成员变量用于保存URL
     private String url;
 
+    private static final String PATH_OBJECT = "/dataset-source-data/";
+
     // Setter方法，用于接收MultipartFile对象
     public void setUrl(String url) {
         this.url = url;
@@ -40,10 +40,11 @@ public class UrlUploadStrategy implements UploadStrategy {
 
     /**
      * 实现URL上传的处理逻辑
+     *
      * @return
      */
     @Override
-    public UploadFileRespDTO process() {
+    public UploadFileRespDTO process(Long userId) {
 
         UploadFileRespDTO uploadFileRespDTO = new UploadFileRespDTO();
 
@@ -53,14 +54,14 @@ public class UrlUploadStrategy implements UploadStrategy {
         try {
             doc = Jsoup.connect(url).get();
         } catch (Exception e) {
-            log.error("====> 网页解析失败,数据状态为 false，网页链接为{}",url);
+            log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
             return uploadFileRespDTO;
         }
 
         // 获取网页的title
         String name = getUrlTitle(doc);
 
-        name = name.isEmpty() ?  url: name;
+        name = name.isEmpty() ? url : name;
 
         uploadFileRespDTO.setName(name);
 
@@ -73,7 +74,7 @@ public class UrlUploadStrategy implements UploadStrategy {
         String filePath = null;
         try {
             // 上传文件
-            filePath = uploadFile(fileId, inputStream, null);
+            filePath = uploadFile(fileId, inputStream, userId);
             // 设置文件名称
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);
@@ -119,10 +120,10 @@ public class UrlUploadStrategy implements UploadStrategy {
      *
      * @param fileId     文件 ID
      * @param fileStream 文件流
-     * @param path       文件 path 可以为空
+     * @param userId       文件 path 可以为空
      * @return 文件路径
      */
-    private String uploadFile(String fileId, InputStream fileStream, String path) {
+    private String uploadFile(String fileId, InputStream fileStream, Long userId) {
 
         String fileType;
         try {
@@ -135,11 +136,13 @@ public class UrlUploadStrategy implements UploadStrategy {
             fileType = "txt";
         }
 
+        String fileName = fileId + "." + fileType;
+        String path = String.format(PATH_OBJECT + "%s" + "/", userId) + fileName;
 
-        path = fileId + "." + fileType;
 
-        return fileApi.createFile(path, IoUtil.readBytes(fileStream));
+        return fileApi.createFile(fileName, path, IoUtil.readBytes(fileStream));
     }
+
     /**
      * 获取 Url 中的 title-- Jsoup
      *

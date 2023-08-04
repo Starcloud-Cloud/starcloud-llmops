@@ -27,14 +27,18 @@ public class StringUploadStrategy implements UploadStrategy {
 
     private String characters;
 
+    private static final String PATH_OBJECT = "/dataset-source-data/";
+
+
     // Setter方法，用于接收MultipartFile对象
     public void setData(String title,String characters) {
         this.title = title;
         this.characters = characters;
     }
 
+
     @Override
-    public UploadFileRespDTO process() {
+    public UploadFileRespDTO process(Long userId) {
 
         UploadFileRespDTO uploadFileRespDTO = new UploadFileRespDTO();
 
@@ -53,7 +57,7 @@ public class StringUploadStrategy implements UploadStrategy {
         String filePath;
         try {
             // 上传文件
-            filePath = uploadFile(fileId, inputStream, null);
+            filePath = uploadFile(fileId, inputStream, userId);
             // 设置文件名称
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);
@@ -98,10 +102,10 @@ public class StringUploadStrategy implements UploadStrategy {
      *
      * @param fileId     文件 ID
      * @param fileStream 文件流
-     * @param path       文件 path 可以为空
+     * @param userId
      * @return 文件路径
      */
-    private String uploadFile(String fileId, InputStream fileStream, String path) {
+    private String uploadFile(String fileId, InputStream fileStream,Long userId) {
 
         String fileType;
         try {
@@ -115,8 +119,10 @@ public class StringUploadStrategy implements UploadStrategy {
         }
 
 
-        path = fileId + "." + fileType;
+        String fileName = fileId + "." + fileType;
+        String path = String.format(PATH_OBJECT + "%s" + "/", userId)+fileName;
 
-        return fileApi.createFile(path, IoUtil.readBytes(fileStream));
+        return fileApi.createFile(fileName, path, IoUtil.readBytes(fileStream));
+
     }
 }

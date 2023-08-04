@@ -51,6 +51,20 @@ public class DatasetSourceDataController {
         return success(DatasetSourceDataConvert.INSTANCE.convertPage(pageResult));
     }
 
+    @GetMapping("/details/split/{datasetId}/{documentId}")
+    @Operation(summary = "获得源数据内容详情")
+    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
+    public CommonResult<PageResult<DatasetSourceDataSplitPageRespVO>> getSourceDataDetailsInfo(@Validated @RequestBody DatasetSourceDataSplitPageReqVO reqVO) {
+        return success(datasetSourceDataService.getSplitDetails(reqVO));
+    }
+
+    @GetMapping("/details/{uid}")
+    @Operation(summary = "获得源数据详情")
+    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
+    public CommonResult<DatasetSourceDataDetailsInfoVO> getSourceDataDetailsInfo(@PathVariable("uid") String uid) {
+        return success(datasetSourceDataService.getSourceDataDetailsInfo(uid));
+    }
+
 
     @GetMapping("/list/document/{datasetId}")
     @Operation(summary = "获得数据集源数据列表-类型为文档型")
@@ -84,7 +98,7 @@ public class DatasetSourceDataController {
             datasetsService.createDatasetsByApplication(datasetId, datasetName);
         }
 
-        List<DatasetSourceDataDO> list = datasetSourceDataService.getDatasetSourceDataList(datasetId,DataSourceDataModelEnum.QUESTION_AND_ANSWERS.getStatus());
+        List<DatasetSourceDataDO> list = datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.QUESTION_AND_ANSWERS.getStatus());
         return success(DatasetSourceDataConvert.INSTANCE.convertList(list));
     }
 
@@ -116,7 +130,7 @@ public class DatasetSourceDataController {
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setChunkSize(500);
         splitRule.setPattern(null);
-        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadUrlsSourceData(reqVO, batch,  splitRule, datasetId);
+        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadUrlsSourceData(reqVO, batch, splitRule, datasetId);
         return success(sourceDataUrlUploadDTO);
     }
 
@@ -133,7 +147,7 @@ public class DatasetSourceDataController {
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setChunkSize(500);
         splitRule.setPattern(null);
-        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadCharactersSourceData(reqVO, batch,  splitRule, datasetId);
+        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadCharactersSourceData(reqVO, batch, splitRule, datasetId);
         return success(sourceDataUrlUploadDTO);
     }
 

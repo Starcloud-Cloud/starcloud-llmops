@@ -18,19 +18,19 @@ public class DatasetSourceDataCleanSendMessage extends AbstractStreamMessage {
     /**
      * 数据源 ID
      */
-    @NotNull(message = " 数据源 ID")
-    private String dataSourceId;
+    @NotNull(message = " 数据源 ID不能为空")
+    private Long dataSourceId;
     /**
      * 分段规则
      */
-    @NotNull(message = "分段规则")
+    @NotNull(message = "分段规则不能为空")
     private SplitRule splitRule;
 
     /**
-     * 文件地址
+     * 用户 ID
      */
-    @NotNull(message = "文件地址")
-    private String storageKey;
+    @NotNull(message = " 用户 ID不能为空")
+    private Long userId;
 
 
     @Override

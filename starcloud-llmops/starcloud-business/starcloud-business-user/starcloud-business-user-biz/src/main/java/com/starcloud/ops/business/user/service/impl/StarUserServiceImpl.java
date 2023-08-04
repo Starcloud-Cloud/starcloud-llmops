@@ -19,7 +19,6 @@ import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
-import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
@@ -32,6 +31,7 @@ import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
+import com.starcloud.ops.business.user.service.InvitationRecordsService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -63,6 +64,9 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Autowired
     private MailSendServiceImpl mailSendService;
+
+    @Resource
+    private InvitationRecordsService invitationRecordsService;
 
     @Autowired
     private RegisterUserMapper registerUserMapper;
@@ -150,6 +154,8 @@ public class StarUserServiceImpl implements StarUserService {
     public void addBenefits(Long currentUserId, Long inviteUserId) {
         try {
             if (inviteUserId != null && inviteUserId > 0) {
+                // 添加邀请记录
+                invitationRecordsService.createInvitationRecords(inviteUserId,currentUserId);
                 // 邀请注册权益 邀请人
                 benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
             } else {

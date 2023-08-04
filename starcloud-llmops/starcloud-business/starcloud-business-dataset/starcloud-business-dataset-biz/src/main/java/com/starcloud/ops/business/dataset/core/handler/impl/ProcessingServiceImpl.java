@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_NOT_EXISTS;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.SOURCE_DATA_UPLOAD_SPLIT_RULE_EMPTY;
 
@@ -71,10 +72,11 @@ public class ProcessingServiceImpl implements ProcessingService {
         log.info("====> 数据集{}开始上传文件,分割规则为{}", datasetId, splitRule);
         validate(splitRule, datasetId);
         fileUploadStrategy.setFileData(file, fileContent);
-        UploadFileRespDTO process = fileUploadStrategy.process();
+
+        UploadFileRespDTO process = fileUploadStrategy.process(getUserId(datasetId));
 
         // 执行通用逻辑并且返回
-        return commonProcess(process, datasetId, splitRule);
+        return commonProcess(process, datasetId, splitRule, batch, dataModel, dataType);
     }
 
     @Override
@@ -82,9 +84,9 @@ public class ProcessingServiceImpl implements ProcessingService {
         log.info("====> 数据集{}开始上传URL,分割规则为{}", datasetId, splitRule);
         validate(splitRule, datasetId);
         urlUploadStrategy.setUrl(url);
-        UploadFileRespDTO process = urlUploadStrategy.process();
+        UploadFileRespDTO process = urlUploadStrategy.process(getUserId(datasetId));
         // 执行通用逻辑并且返回
-        return commonProcess(process, datasetId, splitRule);
+        return commonProcess(process, datasetId, splitRule, batch, dataModel, dataType);
     }
 
     @Override
@@ -92,7 +94,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         log.info("====> 数据集{}开始上传字符串,分割规则为{}", datasetId, splitRule);
         validate(splitRule, datasetId);
         stringUploadStrategy.setData(title, context);
-        UploadFileRespDTO process = stringUploadStrategy.process();
+        UploadFileRespDTO process = stringUploadStrategy.process(getUserId(datasetId));
         // 执行通用逻辑并且返回
         return commonProcess(process, datasetId, splitRule, batch, dataModel, dataType);
     }
@@ -109,7 +111,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         Long sourceDataId = this.saveSourceData(process, storageId, datasetId, batch, dataModel, dataType);
         log.info("====> 源数据保存成功,开始异步发送队列信息 ");
         // 异步发送队列信息
-        sendMQMessage(datasetId, sourceDataId, splitRule, null);
+        sendMQMessage(datasetId, sourceDataId, splitRule, getLoginUserId());
         log.info("====> 返回数据上传信息");
 
         return true;
@@ -137,8 +139,8 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Async
-    protected void sendMQMessage(String datasetId, Long dataSourceId, SplitRule splitRule, String filepath) {
-        dataSetProducer.sendCleanDatasetsSendMessage(datasetId, String.valueOf(dataSourceId), splitRule, filepath);
+    protected void sendMQMessage(String datasetId, Long dataSourceId, SplitRule splitRule, Long userID) {
+        dataSetProducer.sendCleanDatasetsSendMessage(datasetId, dataSourceId, splitRule, userID);
     }
 
 
@@ -179,6 +181,15 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataDO.setStatus(DataSetSourceDataStatusEnum.UPLOAD_COMPLETED.getStatus());
         datasetSourceDataMapper.insert(dataDO);
         return dataDO.getId();
+    }
+
+    private Long getUserId(String datasetId){
+        Long loginUserId = getLoginUserId();
+        if (loginUserId == null){
+            String  creator= datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, datasetId)).getCreator();
+            loginUserId = Long.valueOf(creator);
+        }
+        return loginUserId;
     }
 
 

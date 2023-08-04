@@ -2,22 +2,29 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
+import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadCharacterReqDTO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
+import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
+import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
+import com.starcloud.ops.business.dataset.service.dto.DataSourceIndoDTO;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
+import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
@@ -53,14 +60,25 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
     @Resource
     private ProcessingService processingService;
+
+    @Autowired
+    private DocumentSegmentsService documentSegmentsService;
+
     @Resource
     private DatasetSourceDataMapper datasetSourceDataMapper;
 
+    /**
+     * 更新数据集状态
+     *
+     * @param id 数据集源数据ID
+     */
+    @Override
+    public DatasetSourceDataDO selectDataById(Long id) {
+        return datasetSourceDataMapper.selectById(id);
+    }
+
     @Override
     public Long createDatasetSourceData(String datasetId, Long storageId, String sourceName, Long wordCount) {
-
-        // TODO 校验数据集是否存在
-
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
 
@@ -264,7 +282,57 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Override
     public List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId, Integer dataModel) {
 
-        return datasetSourceDataMapper.selectByDatasetId(datasetId,dataModel);
+        return datasetSourceDataMapper.selectByDatasetId(datasetId, dataModel);
+    }
+
+    /**
+     * 获取数据源详情
+     *
+     * @param uid 数据集源数据编号
+     */
+    @Override
+    public DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid) {
+
+        DatasetSourceDataDO sourceDataDO = datasetSourceDataMapper.selectOne(
+                Wrappers.lambdaQuery(DatasetSourceDataDO.class)
+                        .eq(DatasetSourceDataDO::getUid, uid));
+
+        DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
+
+        DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
+
+        datasetSourceDataDetailsInfoVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
+
+        return datasetSourceDataDetailsInfoVO;
+    }
+
+    /**
+     * @param reqVO
+     * @return
+     */
+    @Override
+    public PageResult<DatasetSourceDataSplitPageRespVO> getSplitDetails(DatasetSourceDataSplitPageReqVO reqVO) {
+
+        DatasetSourceDataDO sourceDataDO = datasetSourceDataMapper.selectOne(
+                Wrappers.lambdaQuery(DatasetSourceDataDO.class)
+                        .eq(DatasetSourceDataDO::getUid, reqVO.getUid()));
+
+        if (sourceDataDO != null){
+            SegmentPageQuery segmentPageQuery = BeanUtil.copyProperties(reqVO, SegmentPageQuery.class);
+
+            segmentPageQuery.setDocumentUid(String.valueOf(sourceDataDO.getId()));
+
+            PageResult<DocumentSegmentDO> documentSegmentDOPageResult = documentSegmentsService.segmentDetail(segmentPageQuery);
+
+            return DatasetSourceDataConvert.INSTANCE.convertSplitPage(documentSegmentDOPageResult);
+        }else {
+            PageResult<DatasetSourceDataSplitPageRespVO> pageResult = new PageResult<DatasetSourceDataSplitPageRespVO>();
+            pageResult.setList(null);
+            pageResult.setTotal(0L);
+            return  pageResult;
+        }
+
+
     }
 
     /**
@@ -309,30 +377,33 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     /**
      * 更新据集源数据状态
      *
-     * @param uid    数据集源数据编号
+     * @param id    数据集源数据编号
      * @param status
      */
     @Override
-    public void updateDatasourceStatus(String uid, Integer status) {
+    public void updateDatasourceStatusAndMessage(Long id, Integer status, String message) {
         // 更新数据
         LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
-        wrapper.eq(DatasetSourceDataDO::getUid, uid);
+        wrapper.eq(DatasetSourceDataDO::getId, id);
         wrapper.set(DatasetSourceDataDO::getStatus, status);
+        wrapper.set(DatasetSourceDataDO::getErrorMessage, message);
         datasetSourceDataMapper.update(null, wrapper);
     }
+
 
     /**
      * 更新数据集状态
      *
-     * @param uid 数据集源数据编号
+     * @param id 数据集源数据编号
      */
     @Override
-    public void updateDatasourceAndSourceInfo(String uid, Integer status, String dataSourceInfo) {
+    public void updateDatasourceAndSourceInfo(Long id, Integer status, String dataSourceInfo, Long userId) {
 
         // 更新数据
         LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
-        wrapper.eq(DatasetSourceDataDO::getUid, uid);
+        wrapper.eq(DatasetSourceDataDO::getId, id);
         wrapper.set(DatasetSourceDataDO::getStatus, status);
+        wrapper.set(DatasetSourceDataDO::getUpdater, userId);
         wrapper.set(DatasetSourceDataDO::getDataSourceInfo, dataSourceInfo);
         datasetSourceDataMapper.update(null, wrapper);
 
