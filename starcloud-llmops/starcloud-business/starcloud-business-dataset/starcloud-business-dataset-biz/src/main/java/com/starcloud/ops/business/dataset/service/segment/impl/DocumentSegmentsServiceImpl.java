@@ -58,6 +58,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -227,6 +228,17 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         }
     }
 
+    @Override
+    public void splitDoc(String datasetId, String dataSourceId, SplitRule splitRule) throws IOException, TikaException {
+        DatasetStorageUpLoadRespVO datasetStorage = datasetStorageService.getDatasetStorageByUID(dataSourceId);
+        if (datasetStorage == null || StringUtils.isBlank(datasetStorage.getStorageKey())) {
+            throw exception(DATASETS_NOT_EXIST_ERROR);
+        }
+        Tika tika = new Tika();
+        tika.setMaxStringLength(-1);
+        String text = tika.parseToString(new URL(datasetStorage.getStorageKey()));
+        splitDoc(datasetId, dataSourceId,text,splitRule);
+    }
 
     @Override
     public void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule) {
