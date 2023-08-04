@@ -64,7 +64,7 @@ public class ChatVoiceController {
 
     @PostMapping("/example")
     @Operation(summary = "语音事例执行", description = "语音事例执行")
-    public SseEmitter example(@RequestBody SpeakConfigVO speakConfigVO) {
+    public SseEmitter example(@RequestBody MessageSpeakConfigVO messageSpeakConfigVO) {
 
         SseEmitter emitter = new SseEmitter(60000L);
 
@@ -77,7 +77,9 @@ public class ChatVoiceController {
             }
         });
 
-        azureVoiceService.speak("魔法AI是一家专注于生成式 AI 领域的科技公司，致力于用前沿的AI技术来创造内容。", speakConfigVO);
+        String text = StrUtil.isBlank(messageSpeakConfigVO.getText()) ? "魔法AI是一家专注于生成式 AI 领域的科技公司，致力于用前沿的AI技术来创造内容。" : messageSpeakConfigVO.getText();
+
+        azureVoiceService.speak(text, messageSpeakConfigVO);
 
         return emitter;
     }
