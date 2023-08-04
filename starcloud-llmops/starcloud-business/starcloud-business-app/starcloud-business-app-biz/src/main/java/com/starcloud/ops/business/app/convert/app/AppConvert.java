@@ -202,6 +202,39 @@ public interface AppConvert {
         return appEntity;
     }
 
+    default AppEntity convertApp(AppRespVO respVO) {
+        AppEntity appEntity = new AppEntity();
+
+        appEntity.setUid(respVO.getUid());
+        appEntity.setName(respVO.getName());
+        appEntity.setModel(respVO.getModel());
+        appEntity.setType(respVO.getType());
+        appEntity.setSource(respVO.getSource());
+        appEntity.setTags(respVO.getTags());
+        appEntity.setCategories(respVO.getCategories());
+        appEntity.setScenes(respVO.getScenes());
+        appEntity.setImages(respVO.getImages());
+        appEntity.setIcon(respVO.getIcon());
+        appEntity.setDescription(respVO.getDescription());
+        appEntity.setPublishUid(respVO.getPublishUid());
+        appEntity.setInstallUid(respVO.getInstallUid());
+        appEntity.setLastPublish(respVO.getLastPublish());
+        appEntity.setCreator(respVO.getCreator());
+
+        // 处理配置
+        if (respVO.getWorkflowConfig() != null) {
+            appEntity.setWorkflowConfig(JSON.parseObject(JSON.toJSONString(respVO.getWorkflowConfig()), WorkflowConfigEntity.class));
+        }
+        if (respVO.getChatConfig() != null) {
+            appEntity.setChatConfig(JSON.parseObject(JSON.toJSONString(respVO.getChatConfig()), ChatConfigEntity.class));
+        }
+        if (respVO.getImageConfig() != null) {
+            appEntity.setImageConfig(JSON.parseObject(JSON.toJSONString(respVO.getImageConfig()), ImageConfigEntity.class));
+        }
+
+        return appEntity;
+    }
+
     /**
      * AppDO 转 AppRespVO
      *

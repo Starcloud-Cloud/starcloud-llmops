@@ -49,4 +49,10 @@ public class AppMarketPageQuery extends PageQuery {
     @Schema(description = "应用场景")
     private List<String> scenes;
 
+    /**
+     * 应用类型
+     */
+    @Schema(description = "应用类型")
+    private String model;
+
 }

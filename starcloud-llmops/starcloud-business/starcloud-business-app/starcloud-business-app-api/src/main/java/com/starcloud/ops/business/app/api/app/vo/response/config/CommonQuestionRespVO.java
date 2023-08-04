@@ -6,12 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Schema(description = "聊天欢迎语")
 @NoArgsConstructor
-public class OpeningStatementRespVO {
-
-    @Schema(description = "欢迎语内容")
-    private String statement;
+@Schema(description = "常用问题")
+public class CommonQuestionRespVO {
+    @Schema(description = "常用问题")
+    private String content;
 
     @Schema(description = "开启")
     private Boolean enabled;

@@ -43,6 +43,9 @@ public class UserExcelVO {
     @ExcelProperty("最后登录时间")
     private LocalDateTime loginDate;
 
+    @ExcelProperty("创建时间")
+    private LocalDateTime createTime;
+
     @ExcelProperty("部门名称")
     private String deptName;
 

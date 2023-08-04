@@ -69,6 +69,11 @@ public interface LogAppMessageService {
     PageResult<LogAppMessageDO> getAppMessagePage(LogAppMessagePageReqVO pageReqVO);
 
     /**
+     * 排除系统总结场景
+     */
+    PageResult<LogAppMessageDO> userMessagePage(LogAppMessagePageReqVO pageReqVO);
+
+    /**
      * 获得应用执行日志结果列表, 用于 Excel 导出
      *
      * @param exportReqVO 查询条件

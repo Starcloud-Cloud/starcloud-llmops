@@ -38,6 +38,9 @@ public class AppUtils {
      * @return 拼接后的字符串
      */
     public static String join(List<String> list) {
+        if (list == null) {
+            return null;
+        }
         return StringUtil.toString(list);
     }
 

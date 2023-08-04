@@ -140,4 +140,54 @@ public interface ErrorCodeConstants {
      * 应用发布记录不存在
      */
     ErrorCode APP_PUBLISH_APP_INFO_NOT_FOUND = new ErrorCode(300400004, "The app publish info is not exists!");
+
+    /**
+     * 重复发布
+     */
+    ErrorCode APP_PUBLISH_DUPLICATE = new ErrorCode(300400006, "The app has been published, please cancel the publish and try again !");
+
+    /**
+     * 应用发布渠道 Uid 是必须的
+     */
+    ErrorCode APP_CHANNEL_UID_IS_REQUIRED = new ErrorCode(300500001, "The app publish channel uid is required, please check and try again ! ");
+
+    /**
+     * 应用渠道不存在，无法更新
+     */
+    ErrorCode APP_CHANNEL_NOT_EXIST = new ErrorCode(300500002, "The app publish channel is not exist, uid: {} ");
+
+    /**
+     * 应用发布渠道类型是必须的
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_TYPE_NOT_NULL = new ErrorCode(300500003, "The app publish channel type is not be null");
+
+    /**
+     * 不支持的应用发布渠道类型
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_TYPE_NOT_SUPPORTED = new ErrorCode(300500004, "The app publish channel type is not supported, type: {}");
+
+    /**
+     * 应用发布渠道配置 API Key 是必须的
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_CONFIG_API_KEY_IS_REQUIRED = new ErrorCode(300500005, "The app publish channel config api key is required, please check and try again ! ");
+
+    /**
+     * 应用发布渠道配置 Share Link 是必须的
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_CONFIG_SHARE_LINK_IS_REQUIRED = new ErrorCode(300500006, "The app publish channel config share link is required, please check and try again ! ");
+
+    /**
+     * 应用发布渠道配置 JS Iframe Slug 是必须的
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_CONFIG_JS_IFRAME_SLUG_IS_REQUIRED = new ErrorCode(300500007, "The app publish channel config js iframe slug is required, please check and try again ! ");
+
+    /**
+     * 应用发布记录创建失败
+     */
+    ErrorCode APP_PUBLISH_RECORD_CREATE_FAILED = new ErrorCode(300500008, "The app publish create failed, please check and try again ! ");
+
+    /**
+     * 文件类型不是图片
+     */
+    ErrorCode FILE_TYPE_NOT_IMAGES = new ErrorCode(300500009,"The file type is not a picture");
 }

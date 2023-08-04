@@ -40,8 +40,28 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * API场景入口
      */
-    SHARE_API(5, "SHARE_API");
+    SHARE_API(5, "SHARE_API"),
 
+    /**
+     * 聊天测试场景
+     */
+    CHAT_TEST(6,"CHAT_TEST"),
+
+    /**
+     * chat 场景
+     */
+    CHAT(7,"CHAT"),
+
+
+    /**
+     * 系统总结场景
+     */
+
+    SYSTEM_SUMMARY(8,"SYSTEM_SUMMARY")
+
+
+
+    ;
     /**
      * 应用类型Code
      */

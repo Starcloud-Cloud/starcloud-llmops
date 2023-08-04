@@ -27,6 +27,8 @@ public enum PromptTempletEnum {
 
     ),
 
+    HISTORY_SUMMARY("summary","Please summarize the main content of the following conversation in concise language,Ensure to use the language in the following content as the reply language. [content] %s [END content]"),
+
 
 
     RULE_GENERATE("","Given MY INTENDED AUDIENCES and HOPING TO SOLVE using a language model, please select the model prompt that best suits the input. \n" +

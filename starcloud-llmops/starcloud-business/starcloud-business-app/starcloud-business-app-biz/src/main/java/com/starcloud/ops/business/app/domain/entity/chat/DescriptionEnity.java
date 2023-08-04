@@ -3,13 +3,8 @@ package com.starcloud.ops.business.app.domain.entity.chat;
 import lombok.Data;
 
 @Data
-public class AudioTransciptEntity {
+public class DescriptionEnity {
 
     private Boolean enabled;
 
-    private String style;
-
-    private String pitch;
-
-    private String speed;
 }

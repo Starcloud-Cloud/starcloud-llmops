@@ -73,8 +73,10 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      */
     default AppDO create(AppDO appDO) {
         // 校验应用名称是否重复
-        AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE);
-        appDO.setUid(IdUtil.fastSimpleUUID());
+        AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE,appDO.getName());
+        if (StringUtils.isBlank(appDO.getUid())) {
+            appDO.setUid(IdUtil.fastSimpleUUID());
+        }
         appDO.setDeleted(Boolean.FALSE);
         appDO.setPublishUid(null);
         appDO.setLastPublish(null);

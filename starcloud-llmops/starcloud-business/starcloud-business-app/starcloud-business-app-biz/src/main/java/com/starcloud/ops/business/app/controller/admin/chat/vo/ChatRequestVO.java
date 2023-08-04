@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.constraints.NotBlank;
@@ -25,6 +26,7 @@ public class ChatRequestVO extends AppContextReqVO {
 
     @Schema(description = "聊天内容")
     @NotBlank(message = "聊天内容 不能为空")
+    @Length(max = 100, message = "聊天内容不能超过100个字符")
     private String query;
 
     /**

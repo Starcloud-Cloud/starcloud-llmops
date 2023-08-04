@@ -6,11 +6,13 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
+import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
 import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
@@ -27,6 +29,7 @@ import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
+import com.starcloud.ops.business.app.service.chat.momory.ConversationTokenDbBufferMemory;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
@@ -48,6 +51,7 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTempla
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
+import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -234,6 +238,10 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 )
         );
 
+        int maxToken = calculateMaxTokens(chatConfig.getPrePrompt(),
+                String.valueOf(humanInput.get(PromptTempletEnum.DATASET_CONTEXT.getKey())),
+                request.getQuery(), chatConfig.getModelConfig().getCompletionParams());
+
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
         if ((chatConfig.getWebSearchConfig() != null && chatConfig.getWebSearchConfig().getEnabled()) || CollectionUtil.isNotEmpty(chatConfig.getSkills())) {
 
@@ -253,7 +261,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         } else {
 
-            LLMChain<ChatCompletionResult> llmChain = buildLlm(history, chatConfig, chatPromptTemplate, emitter);
+            LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxToken, chatConfig, chatPromptTemplate, emitter);
 
             BaseLLMResult<ChatCompletionResult> result = llmChain.call(humanInput);
 
@@ -293,6 +301,41 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     }
 
+    /**
+     * 计算除去描述，数据集，当前问题后剩余token数
+     * histroy最大剩余数
+     *
+     * @param prePrompt
+     * @param dataSetStr
+     * @param currQuery
+     * @param openaiCompletionParams      使用模型配置
+     * @return
+     */
+    public int calculateMaxTokens(String prePrompt, String dataSetStr, String currQuery, OpenaiCompletionParams openaiCompletionParams) {
+        Optional<ModelType> optionalModel = ModelType.fromName(openaiCompletionParams.getModel());
+        ModelType modelType = ModelType.GPT_3_5_TURBO;
+        if (optionalModel.isPresent()) {
+            modelType = optionalModel.get();
+        }
+        int maxTokens = modelType.getMaxContextLength();
+        if (StringUtils.isNotBlank(prePrompt)) {
+            maxTokens -= TokenUtils.intTokens(modelType, prePrompt);
+        }
+        if (StringUtils.isNotBlank(dataSetStr)) {
+            maxTokens -= TokenUtils.intTokens(modelType, dataSetStr + PromptTempletEnum.DATASET_CONTEXT.getTemp());
+        }
+
+        if (openaiCompletionParams.getMaxTokens() != null && openaiCompletionParams.getMaxTokens() > 0) {
+            // 临界值时 总结会多最后一次对话的回复 预先扣除token
+            maxTokens -= openaiCompletionParams.getMaxTokens() * 2;
+        } else {
+            maxTokens -= 500 * 2;
+        }
+
+        maxTokens -= TokenUtils.intTokens(modelType, currQuery);
+        return maxTokens;
+    }
+
 
     private Map<String, Object> getVariableItem(VariableEntity variable) {
 
@@ -316,7 +359,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         return filteredInputs;
     }
 
-    private LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> buildLlm(ChatMessageHistory history,
+    private LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> buildLlm(ChatRequestVO request, int maxTokens,
                                                                                            ChatConfigEntity chatConfig,
                                                                                            ChatPromptTemplate chatPromptTemplate,
                                                                                            SseEmitter emitter) {
@@ -327,11 +370,13 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         chatOpenAi.setStream(true);
 
-        chatOpenAi.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter));
-        ConversationBufferMemory memory = new ConversationBufferMemory();
-        memory.setChatHistory(history);
+        chatOpenAi.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter, request.getConversationUid()));
+//        ConversationBufferMemory memory = new ConversationBufferMemory();
+        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(),chatConfig.getModelConfig().getCompletionParams().getModel());
+
+//        memory.setChatHistory(history);
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = new LLMChain<>(chatOpenAi, chatPromptTemplate);
-        llmChain.setMemory(memory);
+        llmChain.setMemory(conversationTokenDbBufferMemory);
         return llmChain;
     }
 
@@ -344,7 +389,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         chatOpenAI.setStream(false);
         //gpt-3.5-turbo-0613, gpt-4-0613
         chatOpenAI.setModel("gpt-4-0613");
-        chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter));
+        chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter, request.getConversationUid()));
         ConversationBufferMemory memory = new ConversationBufferMemory();
         if (history != null) {
             memory.setChatHistory(history);
