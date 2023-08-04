@@ -162,22 +162,25 @@ public class AzureVoiceServiceImpl {
         SpeechSynthesizer speechSynthesizer = getSpeechSynthesizer();
 
         speechSynthesizer.BookmarkReached.addEventListener((o, e) -> {
-            System.out.println("BookmarkReached event:");
-            System.out.println("\tAudioOffset: " + ((e.getAudioOffset() + 5000) / 10000) + "ms");
-            System.out.println("\tText: " + e.getText());
+
+            log.info("BookmarkReached event:");
+//            System.out.println("BookmarkReached event:");
+//            System.out.println("\tAudioOffset: " + ((e.getAudioOffset() + 5000) / 10000) + "ms");
+//            System.out.println("\tText: " + e.getText());
         });
 
         speechSynthesizer.SynthesisCanceled.addEventListener((o, e) -> {
-            System.out.println("SynthesisCanceled event");
+            log.info("SynthesisCanceled event");
+
         });
 
         speechSynthesizer.SynthesisCompleted.addEventListener((o, e) -> {
             SpeechSynthesisResult result = e.getResult();
             byte[] audioData = result.getAudioData();
 
-            System.out.println("SynthesisCompleted event:");
-            System.out.println("\tAudioData: " + audioData.length + " bytes");
-            System.out.println("\tAudioDuration: " + result.getAudioDuration());
+            log.info("SynthesisCompleted event, AudioData: {} bytes", audioData.length);
+//            System.out.println("\tAudioData: " + audioData.length + " bytes");
+//            System.out.println("\tAudioDuration: " + result.getAudioDuration());
 
             if (this.eventCompletedConsumer != null) {
                 eventCompletedConsumer.accept(audioData);
@@ -187,48 +190,47 @@ public class AzureVoiceServiceImpl {
         });
 
         speechSynthesizer.SynthesisStarted.addEventListener((o, e) -> {
-            System.out.println("SynthesisStarted event");
+            log.info("SynthesisStarted event");
         });
 
         speechSynthesizer.Synthesizing.addEventListener((o, e) -> {
             SpeechSynthesisResult result = e.getResult();
             byte[] audioData = result.getAudioData();
-            System.out.println("Synthesizing event:");
-            System.out.println("\tAudioData: " + audioData.length + " bytes");
+            log.info("Synthesizing event, AudioData: {} bytes", audioData.length);
             result.close();
         });
 
         speechSynthesizer.VisemeReceived.addEventListener((o, e) -> {
-            System.out.println("VisemeReceived event:");
-            System.out.println("\tAudioOffset: " + ((e.getAudioOffset() + 5000) / 10000) + "ms");
-            System.out.println("\tVisemeId: " + e.getVisemeId());
+            log.info("VisemeReceived event:");
+//            System.out.println("\tAudioOffset: " + ((e.getAudioOffset() + 5000) / 10000) + "ms");
+//            System.out.println("\tVisemeId: " + e.getVisemeId());
         });
 
         speechSynthesizer.WordBoundary.addEventListener((o, e) -> {
-            System.out.println("WordBoundary event:");
-            System.out.println("\tBoundaryType: " + e.getBoundaryType());
-            System.out.println("\tAudioOffset: " + ((e.getAudioOffset() + 5000) / 10000) + "ms");
-            System.out.println("\tDuration: " + e.getDuration());
-            System.out.println("\tText: " + e.getText());
-            System.out.println("\tTextOffset: " + e.getTextOffset());
-            System.out.println("\tWordLength: " + e.getWordLength());
+            log.info("WordBoundary event:");
+//            System.out.println("\tBoundaryType: " + e.getBoundaryType());
+//            System.out.println("\tAudioOffset: " + ((e.getAudioOffset() + 5000) / 10000) + "ms");
+//            System.out.println("\tDuration: " + e.getDuration());
+//            System.out.println("\tText: " + e.getText());
+//            System.out.println("\tTextOffset: " + e.getTextOffset());
+//            System.out.println("\tWordLength: " + e.getWordLength());
         });
 
         // Synthesize the SSML
-        System.out.println("SSML to synthesize:");
-        System.out.println(ssml);
+        log.info("SSML to synthesize: {}", ssml);
+
         SpeechSynthesisResult speechSynthesisResult = speechSynthesizer.SpeakSsmlAsync(ssml).get();
 
         if (speechSynthesisResult.getReason() == ResultReason.SynthesizingAudioCompleted) {
-            System.out.println("SynthesizingAudioCompleted result");
+            log.info("SynthesizingAudioCompleted result");
+
         } else if (speechSynthesisResult.getReason() == ResultReason.Canceled) {
             SpeechSynthesisCancellationDetails cancellation = SpeechSynthesisCancellationDetails.fromResult(speechSynthesisResult);
-            System.out.println("CANCELED: Reason=" + cancellation.getReason());
+
+            log.warn("CANCELED: Reason=" + cancellation.getReason());
 
             if (cancellation.getReason() == CancellationReason.Error) {
-                System.out.println("CANCELED: ErrorCode=" + cancellation.getErrorCode());
-                System.out.println("CANCELED: ErrorDetails=" + cancellation.getErrorDetails());
-                System.out.println("CANCELED: Did you set the speech resource key and region values?");
+                log.error("CANCELED: ErrorCode={}, CANCELED: ErrorDetails=" + cancellation.getErrorCode(), cancellation.getErrorDetails());
             }
         }
 
