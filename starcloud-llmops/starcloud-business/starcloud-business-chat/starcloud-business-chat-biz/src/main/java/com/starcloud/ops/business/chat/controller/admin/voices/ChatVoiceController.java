@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.chat.controller.admin.voices;
 
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.ChatVoiceVO;
+import com.starcloud.ops.business.chat.controller.admin.voices.vo.MessageSpeakConfigVO;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.SpeakConfigVO;
 import com.starcloud.ops.business.chat.service.impl.AzureVoiceServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,11 +84,17 @@ public class ChatVoiceController {
 
     @PostMapping("/speak")
     @Operation(summary = "消息文本语音生成", description = "消息文本语音生成")
-    public SseEmitter speak(@RequestBody SpeakConfigVO speakConfigVO, String messageUid, String text) {
+    public SseEmitter speak(@RequestBody MessageSpeakConfigVO messageSpeakConfigVO) {
 
         SseEmitter emitter = new SseEmitter(60000L);
 
-        //messageUid 校验合法性
+        //messageUid 校验合法性, 查出配置
+
+        if (StrUtil.isBlank(messageSpeakConfigVO.getText())) {
+            emitter.completeWithError(new RuntimeException("speak text cannot be empty"));
+            return emitter;
+        }
+
 
         azureVoiceService.setEventCompletedConsumer((bytes) -> {
 
@@ -98,7 +106,7 @@ public class ChatVoiceController {
 
         });
 
-        azureVoiceService.speak(text, speakConfigVO);
+        azureVoiceService.speak(messageSpeakConfigVO.getText(), messageSpeakConfigVO);
 
         return emitter;
     }
