@@ -6,6 +6,9 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
+import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -105,6 +108,11 @@ public class ChatServiceImpl implements ChatService {
 
     @Resource
     private LogAppConversationService conversationService;
+
+    @Resource
+    private DictDataService dictDataService;
+
+    private static final String DEFAULT_AVATAR = "default_avatar";
 
 
     @Override
@@ -267,6 +275,15 @@ public class ChatServiceImpl implements ChatService {
         appUpdateReqVO.setImages(Arrays.asList(avatar));
         appService.modify(appUpdateReqVO);
         return avatar;
+    }
+
+    @Override
+    public List<String> defaultAvatar() {
+        DictDataExportReqVO dataExportReqVO = new DictDataExportReqVO();
+        dataExportReqVO.setDictType(DEFAULT_AVATAR);
+        dataExportReqVO.setStatus(0);
+        List<DictDataDO> dictDataList = dictDataService.getDictDataList(dataExportReqVO);
+        return dictDataList.stream().map(DictDataDO::getValue).collect(Collectors.toList());
     }
 
     private ChatMessageHistory preHistory(String conversationId, String appMode) {

@@ -37,6 +37,8 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private AudioTransciptEntity audioTransciptEntity;
 
+    private DescriptionEnity description;
+
     /**
      * 挂载的 技能列表
      */

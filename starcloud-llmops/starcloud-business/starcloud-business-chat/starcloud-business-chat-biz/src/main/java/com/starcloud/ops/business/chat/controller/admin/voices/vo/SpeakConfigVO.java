@@ -28,6 +28,11 @@ public class SpeakConfigVO implements Serializable {
     private String role;
 
     /**
+     * 语音风格
+     */
+    private String style;
+
+    /**
      * 语速
      * +30.00%
      */

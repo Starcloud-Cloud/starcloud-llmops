@@ -59,6 +59,9 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     @Schema(description = "语音配置")
     private AudioTransciptReqVO audioTransciptEntity;
 
+    @Schema(description = "描述配置")
+    private DescriptionReqVo description;
+
 
     /**
      * 挂载的 functions 列表
