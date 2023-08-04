@@ -10,7 +10,10 @@ import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
+import org.apache.tika.exception.TikaException;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
 public interface DocumentSegmentsService {
@@ -37,6 +40,8 @@ public interface DocumentSegmentsService {
      * @param splitRule
      */
     void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule);
+
+    void splitDoc(String datasetId, String dataSourceId, SplitRule splitRule) throws IOException, TikaException;
 
     /**
      * 分段明细
