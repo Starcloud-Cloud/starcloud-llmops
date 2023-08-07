@@ -13,7 +13,7 @@ import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
-import com.starcloud.ops.business.app.domain.recommend.AppRecommendedConsts;
+import com.starcloud.ops.business.app.recommend.RecommendAppConsts;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -21,7 +21,7 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
@@ -223,10 +223,10 @@ public class AppFactory {
     public static ImageAppEntity factory(ImageReqVO request) {
         String appUid = request.getAppUid();
         AppValidate.notBlank(appUid, ErrorCodeConstants.APP_UID_IS_REQUIRED);
-        if (AppRecommendedConsts.BASE_GENERATE_IMAGE.equals(appUid)) {
+        if (RecommendAppConsts.BASE_GENERATE_IMAGE.equals(appUid)) {
             ImageAppEntity imageAppEntity = new ImageAppEntity();
             imageAppEntity.setUid(appUid);
-            imageAppEntity.setName(AppRecommendedConsts.BASE_GENERATE_IMAGE);
+            imageAppEntity.setName(RecommendAppConsts.BASE_GENERATE_IMAGE);
             imageAppEntity.setModel(AppModelEnum.BASE_GENERATE_IMAGE.name());
             imageAppEntity.setScenes(Collections.singletonList(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : request.getScene()));
             imageAppEntity.setType(AppTypeEnum.MYSELF.name());

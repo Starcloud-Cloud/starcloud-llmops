@@ -41,8 +41,6 @@ public class AppMarketRepository {
         AppMarketDO appMarket = AppMarketConvert.INSTANCE.convert(appMarketEntity);
         appMarketMapper.create(appMarket);
         appMarketEntity.setUid(appMarket.getUid());
-        appMarketEntity.setCreateTime(appMarket.getCreateTime());
-        appMarketEntity.setUpdateTime(appMarket.getUpdateTime());
         return appMarketEntity;
     }
 
@@ -55,8 +53,6 @@ public class AppMarketRepository {
         AppMarketDO appMarket = AppMarketConvert.INSTANCE.convert(appMarketEntity);
         appMarketMapper.modify(appMarket);
         appMarketEntity.setUid(appMarket.getUid());
-        appMarketEntity.setCreateTime(appMarket.getCreateTime());
-        appMarketEntity.setUpdateTime(appMarket.getUpdateTime());
         return appMarketEntity;
     }
 

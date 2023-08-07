@@ -9,12 +9,12 @@ import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelR
 import com.starcloud.ops.business.app.convert.channel.AppPublishChannelConverter;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
 import com.starcloud.ops.business.app.dal.mysql.channel.AppPublishChannelMapper;
-import com.starcloud.ops.business.app.domain.channel.AppPublishChannelConfigFactory;
-import com.starcloud.ops.business.app.domain.channel.AppPublishChannelConfigTemplate;
+import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigFactory;
+import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.publish.AppPublishChannelEnum;
+import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

@@ -1,8 +1,8 @@
-package com.starcloud.ops.business.app.domain.recommend;
+package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.util.MessageUtil;
-import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.AppUtils;
 
 /**
  * 推荐应用Action 包装类工厂类
@@ -11,7 +11,7 @@ import com.starcloud.ops.business.app.util.app.AppUtils;
  * @version 1.0.0
  * @since 2023-06-25
  */
-public class RecommendedStepWrapperFactory {
+public class RecommendStepWrapperFactory {
 
     /**
      * 默认生成文本步骤
@@ -24,7 +24,7 @@ public class RecommendedStepWrapperFactory {
         stepWrapper.setName(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
-        stepWrapper.setFlowStep(RecommendedActionFactory.defOpenAiChatCompletionStep());
+        stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep());
         stepWrapper.setVariable(null);
         return stepWrapper;
     }
@@ -43,8 +43,8 @@ public class RecommendedStepWrapperFactory {
         stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_TITLE_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_TITLE_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendedActionFactory.defOpenAiChatCompletionStep(defaultPrompt, Boolean.FALSE, RecommendedResponseFactory.defInputResponse()));
-        stepWrapper.setVariable(RecommendedVariableFactory.defArticleGlobalVariable());
+        stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt, Boolean.FALSE, RecommendResponseFactory.defInputResponse()));
+        stepWrapper.setVariable(RecommendVariableFactory.defArticleGlobalVariable());
         return stepWrapper;
     }
 
@@ -63,8 +63,8 @@ public class RecommendedStepWrapperFactory {
         stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_SECTIONS_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_SECTIONS_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendedActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
-        stepWrapper.setVariable(RecommendedVariableFactory.defArticleSectionsVariable());
+        stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defArticleSectionsVariable());
         return stepWrapper;
     }
 
@@ -84,8 +84,8 @@ public class RecommendedStepWrapperFactory {
         stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_CONTENT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_CONTENT_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendedActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
-        stepWrapper.setVariable(RecommendedVariableFactory.defArticleParagraphs());
+        stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defArticleParagraphs());
         return stepWrapper;
     }
 
@@ -104,7 +104,7 @@ public class RecommendedStepWrapperFactory {
         stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendedActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
+        stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
         stepWrapper.setVariable(null);
         return stepWrapper;
     }

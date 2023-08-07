@@ -1,6 +1,6 @@
-package com.starcloud.ops.business.app.domain.channel;
+package com.starcloud.ops.business.app.service.channel.strategy;
 
-import com.starcloud.ops.business.app.enums.publish.AppPublishChannelEnum;
+import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

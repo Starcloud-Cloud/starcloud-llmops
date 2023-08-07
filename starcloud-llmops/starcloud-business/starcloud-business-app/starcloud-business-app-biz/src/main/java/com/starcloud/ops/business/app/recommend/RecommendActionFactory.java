@@ -1,13 +1,12 @@
-package com.starcloud.ops.business.app.domain.recommend;
+package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
-import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.util.MessageUtil;
-import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.AppUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +18,7 @@ import java.util.List;
  * @version 1.0.0
  * @since 2023-06-25
  */
-public class RecommendedActionFactory {
+public class RecommendActionFactory {
 
     /**
      * 默认生成文本步骤
@@ -48,7 +47,7 @@ public class RecommendedActionFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepRespVO defOpenAiChatCompletionStep(String defaultPrompt, Boolean isShow) {
-        return defOpenAiChatCompletionStep(defaultPrompt, isShow, RecommendedResponseFactory.defTextResponse());
+        return defOpenAiChatCompletionStep(defaultPrompt, isShow, RecommendResponseFactory.defTextResponse());
     }
 
     /**
@@ -88,7 +87,7 @@ public class RecommendedActionFactory {
         step.setIcon("open-ai");
         step.setTags(Arrays.asList("Open AI", "Completion", "Chat"));
         step.setScenes(scenes);
-        step.setVariable(RecommendedVariableFactory.defOpenAiVariable(defaultPrompt, isShow));
+        step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, isShow));
         return step;
     }
 

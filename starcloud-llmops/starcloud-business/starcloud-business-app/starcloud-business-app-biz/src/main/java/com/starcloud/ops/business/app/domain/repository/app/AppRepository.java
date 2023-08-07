@@ -1,11 +1,14 @@
 package com.starcloud.ops.business.app.domain.repository.app;
 
+import cn.hutool.core.util.IdUtil;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.validate.AppValidate;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -18,6 +21,7 @@ import javax.annotation.Resource;
  * @since 2023-06-19
  */
 @Repository
+@SuppressWarnings("all")
 public class AppRepository {
 
     @Resource
@@ -40,13 +44,9 @@ public class AppRepository {
      *
      * @param appEntity 应用实体
      */
-    public BaseAppEntity insert(BaseAppEntity appEntity) {
+    public void insert(BaseAppEntity appEntity) {
         AppDO app = AppConvert.INSTANCE.convert(appEntity);
         appMapper.create(app);
-        appEntity.setUid(app.getUid());
-        appEntity.setCreateTime(app.getCreateTime());
-        appEntity.setUpdateTime(app.getUpdateTime());
-        return appEntity;
     }
 
     /**
@@ -54,14 +54,9 @@ public class AppRepository {
      *
      * @param appEntity 应用实体
      */
-
-    public BaseAppEntity update(BaseAppEntity appEntity) {
+    public void update(BaseAppEntity appEntity) {
         AppDO app = AppConvert.INSTANCE.convert(appEntity);
         appMapper.modify(app);
-        appEntity.setUid(app.getUid());
-        appEntity.setCreateTime(app.getCreateTime());
-        appEntity.setUpdateTime(app.getUpdateTime());
-        return appEntity;
     }
 
 }

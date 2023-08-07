@@ -6,7 +6,7 @@ import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
-import com.starcloud.ops.business.app.domain.channel.AppPublishChannelConfigFactory;
+import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigFactory;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;

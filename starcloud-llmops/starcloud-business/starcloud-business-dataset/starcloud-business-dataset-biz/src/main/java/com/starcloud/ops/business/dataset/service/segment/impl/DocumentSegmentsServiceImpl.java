@@ -102,9 +102,6 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     private DatasetsService datasetsService;
 
     @Autowired
-    private DatasetSourceDataService datasetSourceDataService;
-
-    @Autowired
     private SplitRulesMapper splitRulesMapper;
 
     @Autowired
