@@ -1,10 +1,11 @@
 package com.starcloud.ops.server.config;
 
-import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.datapermission.core.rule.DataPermissionRule;
 import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Alias;
@@ -44,12 +45,9 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
 
     @Override
     public Expression getExpression(String tableName, Alias tableAlias) {
-        LoginUser loginUser = SecurityFrameworkUtils.getLoginUser();
-        if (loginUser == null) {
-            return null;
-        }
-        // 管理员，不进行数据权限过滤
-        if (Objects.equals(loginUser.getUserType(), UserTypeEnum.ADMIN.getValue())) {
+//        Long userId = SecurityFrameworkUtils.getLoginUserId();
+        Long userId = WebFrameworkUtils.getLoginUserId();
+        if (userId == null) {
             return null;
         }
         // 普通用户，只能查询自己创建的数据
