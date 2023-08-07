@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -225,7 +226,7 @@ public class AppServiceImpl implements AppService {
     @Override
     @SuppressWarnings("all")
     public void asyncExecute(AppExecuteReqVO request) {
-        AppEntity app = AppFactory.factory(request);
+        BaseAppEntity app = AppFactory.factory(request);
         app.aexecute(request);
     }
 }

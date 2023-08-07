@@ -8,6 +8,7 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.domain.entity.*;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
@@ -118,11 +119,22 @@ public class AppFactory {
      * @param appId appId
      * @return AppEntity
      */
-    public static AppEntity factoryMarket(String appId) {
-        AppMarketEntity appMarketEntity = getAppMarketRepository().get(appId);
-        return AppConvert.INSTANCE.convert(appMarketEntity);
+    public static AppMarketEntity factoryMarket(String appId) {
+        return getAppMarketRepository().get(appId);
     }
 
+    /**
+     * 通过模版市场 uid 获取 AppEntity
+     *
+     * @param appId appId
+     * @return AppEntity
+     */
+    public static AppMarketEntity factoryMarket(String appId, AppReqVO appRequest) {
+        getAppMarketRepository().get(appId);
+        AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appRequest);
+        appMarketEntity.setUid(appId);
+        return appMarketEntity;
+    }
 
     /**
      * 获取 AppEntity, 不通过数据库查询，直接通过请求参数构建。以 appRequest 为准
@@ -138,21 +150,34 @@ public class AppFactory {
         return app;
     }
 
-    public static AppEntity factory(@Valid AppExecuteReqVO executeReqVO) {
+    public static BaseAppEntity factory(@Valid AppExecuteReqVO executeReqVO) {
 
         // 获取 AppEntity
-        AppEntity app = null;
+        BaseAppEntity app = null;
         String appId = executeReqVO.getAppUid();
-
-        if (executeReqVO.getAppReqVO() == null) {
-            if (AppSceneEnum.WEB_MARKET.name().equals(executeReqVO.getScene())) {
+        if (AppSceneEnum.WEB_MARKET.name().equals(executeReqVO.getScene())) {
+            if (executeReqVO.getAppReqVO() == null) {
                 app = AppFactory.factoryMarket(appId);
             } else {
-                app = AppFactory.factory(appId);
+                app = AppFactory.factoryMarket(appId, executeReqVO.getAppReqVO());
             }
         } else {
-            app = AppFactory.factory(appId, executeReqVO.getAppReqVO());
+            if (executeReqVO.getAppReqVO() == null) {
+                app = AppFactory.factory(appId);
+            } else {
+                app = AppFactory.factory(appId, executeReqVO.getAppReqVO());
+            }
         }
+
+//        if (executeReqVO.getAppReqVO() == null) {
+//            if (AppSceneEnum.WEB_MARKET.name().equals(executeReqVO.getScene())) {
+//                app = AppFactory.factoryMarket(appId);
+//            } else {
+//                app = AppFactory.factory(appId);
+//            }
+//        } else {
+//            app = AppFactory.factory(appId, executeReqVO.getAppReqVO());
+//        }
 
         Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
         return app;

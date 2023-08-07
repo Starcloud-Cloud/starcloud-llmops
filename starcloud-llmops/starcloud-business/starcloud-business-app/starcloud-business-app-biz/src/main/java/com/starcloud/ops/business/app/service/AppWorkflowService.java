@@ -175,7 +175,6 @@ public class AppWorkflowService {
      * @param scene               场景
      * @param appRequest          请求参数
      * @param stepId              步骤 ID
-     * @param httpServletResponse Http 响应
      */
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId, SseEmitter sseEmitter) {
         // 获取 AppEntity

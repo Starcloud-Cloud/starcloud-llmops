@@ -3,6 +3,7 @@ package com.starcloud.ops.business.share.controller.app;
 import cn.hutool.core.lang.Assert;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.share.controller.app.vo.AppReq;
@@ -72,7 +73,7 @@ public class AppShareController {
 
         executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
 
-        AppEntity app = AppFactory.factory(executeReqVO);
+        BaseAppEntity app = AppFactory.factory(executeReqVO);
 
         app.aexecute(executeReqVO);
 

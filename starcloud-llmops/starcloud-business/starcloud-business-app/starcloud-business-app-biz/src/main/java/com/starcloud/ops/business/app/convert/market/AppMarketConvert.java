@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.convert.market;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -181,6 +182,8 @@ public interface AppMarketConvert {
         }
         return appMarketEntity;
     }
+
+    AppMarketEntity convert(AppReqVO appRequest);
 
     /**
      * AppMarketDO 转 AppMarketRespVO

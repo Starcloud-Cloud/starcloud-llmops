@@ -4,6 +4,8 @@ import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -29,6 +31,7 @@ public class AppMarketRepository {
      */
     public AppMarketEntity get(String uid) {
         AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid);
         return AppMarketConvert.INSTANCE.convert(appMarketDO);
     }
 
