@@ -76,7 +76,7 @@ public interface AppMarketConvert {
         appMarket.setInstallCount(appMarketEntity.getInstallCount());
         appMarket.setDescription(appMarketEntity.getDescription());
         appMarket.setExample(appMarketEntity.getExample());
-        appMarket.setAudit(appMarket.getAudit());
+        appMarket.setAudit(appMarketEntity.getAudit());
         appMarket.setDeleted(Boolean.FALSE);
         // 处理配置信息
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
@@ -167,6 +167,7 @@ public interface AppMarketConvert {
         appMarketEntity.setViewCount(appMarket.getViewCount());
         appMarketEntity.setInstallCount(appMarket.getInstallCount());
         appMarketEntity.setDescription(appMarket.getDescription());
+        appMarketEntity.setAudit(appMarket.getAudit());
         appMarketEntity.setExample(appMarket.getExample());
         // 处理配置信息
         if (StringUtils.isNotBlank(appMarket.getConfig())) {
