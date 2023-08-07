@@ -10,10 +10,12 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
@@ -213,5 +215,17 @@ public class AppServiceImpl implements AppService {
             return null;
         }
         return AppConvert.INSTANCE.convertResponse(appMapper.selectOne(wrapper));
+    }
+
+    /**
+     * 异步执行应用
+     *
+     * @param request 应用执行请求信息
+     */
+    @Override
+    @SuppressWarnings("all")
+    public void asyncExecute(AppExecuteReqVO request) {
+        AppEntity app = AppFactory.factory(request);
+        app.aexecute(request);
     }
 }
