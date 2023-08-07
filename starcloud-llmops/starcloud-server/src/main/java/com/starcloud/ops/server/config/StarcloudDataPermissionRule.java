@@ -1,7 +1,9 @@
 package com.starcloud.ops.server.config;
 
+import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.datapermission.core.rule.DataPermissionRule;
 import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
+import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -41,11 +44,16 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
 
     @Override
     public Expression getExpression(String tableName, Alias tableAlias) {
-        Long userId = SecurityFrameworkUtils.getLoginUserId();
-        if (userId == null) {
+        LoginUser loginUser = SecurityFrameworkUtils.getLoginUser();
+        if (loginUser == null) {
             return null;
         }
-        return new EqualsTo(MyBatisUtils.buildColumn(tableName, tableAlias, "creator"), new LongValue(userId));
+        // 管理员，不进行数据权限过滤
+        if (Objects.equals(loginUser.getUserType(), UserTypeEnum.ADMIN.getValue())) {
+            return null;
+        }
+        // 普通用户，只能查询自己创建的数据
+        return new EqualsTo(MyBatisUtils.buildColumn(tableName, tableAlias, "creator"), new LongValue(loginUser.getId()));
     }
 
 }
