@@ -2,10 +2,8 @@ package com.starcloud.ops.business.chat.controller.admin.voices;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.ChatVoiceVO;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.MessageSpeakConfigVO;
-import com.starcloud.ops.business.chat.controller.admin.voices.vo.SpeakConfigVO;
 import com.starcloud.ops.business.chat.service.impl.AzureVoiceServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,8 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * 语音管理接口
@@ -64,14 +64,16 @@ public class ChatVoiceController {
 
     @PostMapping("/example")
     @Operation(summary = "语音事例执行", description = "语音事例执行")
-    public SseEmitter example(@RequestBody MessageSpeakConfigVO messageSpeakConfigVO) {
+    public void example(@RequestBody MessageSpeakConfigVO messageSpeakConfigVO, HttpServletResponse httpServletResponse) {
 
-        SseEmitter emitter = new SseEmitter(60000L);
+        httpServletResponse.setContentType("application/octet-stream");
 
         azureVoiceService.setEventCompletedConsumer((bytes) -> {
-
             try {
-                emitter.send(bytes);
+
+                httpServletResponse.setContentLength(bytes.length);
+                httpServletResponse.getOutputStream().write(bytes);
+
             } catch (Exception e) {
                 log.error("example is fail: {}", e.getMessage(), e);
             }
@@ -80,8 +82,6 @@ public class ChatVoiceController {
         String text = StrUtil.isBlank(messageSpeakConfigVO.getText()) ? "魔法AI是一家专注于生成式 AI 领域的科技公司，致力于用前沿的AI技术来创造内容。" : messageSpeakConfigVO.getText();
 
         azureVoiceService.speak(text, messageSpeakConfigVO);
-
-        return emitter;
     }
 
     @PostMapping("/speak")
