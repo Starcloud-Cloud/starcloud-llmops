@@ -173,7 +173,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
     @Async
     public ListenableFuture<Boolean> executeAsyncWithUrl(UploadUrlReqVO url, String batch, SplitRule splitRule, String datasetId) {
-        return AsyncResult.forValue(processingService.urlProcessing(url.getUrl(), splitRule, datasetId, batch, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.URL.name()));
+        return AsyncResult.forValue(processingService.urlProcessing(url, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.URL.name()));
     }
 
 

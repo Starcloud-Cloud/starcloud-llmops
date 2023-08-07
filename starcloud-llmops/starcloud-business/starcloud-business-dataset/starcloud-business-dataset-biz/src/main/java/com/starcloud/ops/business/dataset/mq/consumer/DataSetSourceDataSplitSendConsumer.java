@@ -63,7 +63,16 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractStreamMessageLis
             documentSegmentsService.splitDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()), text, message.getSplitRule());
             datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus(),null);
             // 发送消息
-            dataIndexProducer.sendIndexDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), null);
+
+            if (message.getSync()) {
+
+                dataIndexProducer.sendIndexDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), null);
+
+            } else {
+                dataIndexProducer.sendIndexDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), null);
+
+            }
+
 
         } catch (Exception e) {
             log.error("[DataSetSourceDataCleanSendConsumer][数据分割失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", getLoginUserId(), getTenantId(), message.getDataSourceId(), message.getDataSourceId(),e.getMessage(),e);

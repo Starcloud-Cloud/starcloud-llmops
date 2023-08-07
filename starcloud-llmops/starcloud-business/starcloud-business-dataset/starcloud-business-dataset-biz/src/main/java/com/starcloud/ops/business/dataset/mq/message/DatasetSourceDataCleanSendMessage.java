@@ -10,6 +10,8 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode(callSuper = true)
 public class DatasetSourceDataCleanSendMessage extends AbstractStreamMessage {
 
+    private Boolean sync;
+
     /**
      * 数据集编号
      */

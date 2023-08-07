@@ -76,8 +76,15 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
             DataSourceIndoDTO DataSourceIndoDTO = new DataSourceIndoDTO();
             DataSourceIndoDTO.setCleanId(cleanId);
             datasetSourceDataService.updateDatasourceAndSourceInfo(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus(), JSONObject.toJSONString(DataSourceIndoDTO), message.getUserId());
-            // 发送消息
-            dataSplitProducer.sendSplitDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), message.getSplitRule(), message.getUserId());
+
+            if (message.getSync()) {
+                dataSplitProducer.sendMessage(message.getDataSourceId());
+            } else {
+                // 发送消息
+                dataSplitProducer.sendSplitDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), message.getSplitRule(), message.getUserId());
+
+            }
+
         } catch (Exception e) {
             log.error("[DataSetSourceDataCleanSendConsumer][数据清洗失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因 ({})", message.getUserId(), getTenantId(), message.getDataSourceId(), message.getDataSourceId(),e.getMessage(),e);
             // 设置数据源状态为清洗中

@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.dataset.mq.producer;
 
 import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
+import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataIndexSendConsumer;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataIndexSendMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -16,7 +18,10 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class DatasetSourceDataIndexProducer {
+public class DatasetSourceDataIndexProducer extends AbstractDatasetSourceProducer {
+
+    @Autowired
+    private DataSetSourceDataIndexSendConsumer indexSendConsumer;
 
     @Resource
     private RedisMQTemplate redisMQTemplate;
@@ -49,4 +54,18 @@ public class DatasetSourceDataIndexProducer {
     }
 
 
+    @Override
+    public void asyncSendMessage(Long dataSourceId) {
+
+    }
+
+    @Override
+    public void sendMessage(Long dataSourceId) {
+
+        DatasetSourceDataIndexSendMessage indexSendMessage = new DatasetSourceDataIndexSendMessage();
+        indexSendMessage.setDataSourceId(dataSourceId);
+
+        indexSendConsumer.onMessage(indexSendMessage);
+
+    }
 }

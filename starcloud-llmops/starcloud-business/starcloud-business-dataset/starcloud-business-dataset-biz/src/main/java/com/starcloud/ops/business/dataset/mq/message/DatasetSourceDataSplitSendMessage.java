@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode(callSuper = true)
 public class DatasetSourceDataSplitSendMessage extends AbstractStreamMessage {
 
+    private Boolean sync;
     /**
      * 数据集编号
      */
