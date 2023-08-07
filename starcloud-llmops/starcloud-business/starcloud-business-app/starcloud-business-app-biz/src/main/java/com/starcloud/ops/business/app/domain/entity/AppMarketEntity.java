@@ -20,30 +20,36 @@ import java.math.BigDecimal;
 @Data
 public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO> {
 
-
     private AppMarketService appMarketService = SpringUtil.getBean(AppMarketService.class);
-
 
     /**
      * 应用版本
      */
     private Integer version;
 
+    /**
+     * 版本名称
+     */
     private String language;
 
+    /**
+     * 审核状态
+     */
+    private Integer audit;
 
+    /**
+     * 示例
+     */
     private String example;
 
     /**
      * 应用是否是免费的
      */
-
     private Boolean free;
 
     /**
      * 应用收费数
      */
-
     private BigDecimal cost;
 
     /**

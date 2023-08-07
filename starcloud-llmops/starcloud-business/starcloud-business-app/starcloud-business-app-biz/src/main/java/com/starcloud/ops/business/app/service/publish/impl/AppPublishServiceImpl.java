@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -269,8 +271,8 @@ public class AppPublishServiceImpl implements AppPublishService {
         // 如果审核通过
         if (Objects.equals(request.getStatus(), AppPublishAuditEnum.APPROVED.getCode())) {
             // 处理应用市场，存在则更新，不存在则创建
-            AppMarketDO appMarketDO = this.handlerMarketApp(appPublish);
-            appPublish.setMarketUid(appMarketDO.getUid());
+            AppMarketEntity appMarketEntity = this.handlerMarketApp(appPublish);
+            appPublish.setMarketUid(appMarketEntity.getUid());
             // 更新我的应用的发布 UID
             LambdaUpdateWrapper<AppDO> appUpdateWrapper = Wrappers.lambdaUpdate(AppDO.class);
             appUpdateWrapper.eq(AppDO::getUid, appPublish.getAppUid());
@@ -356,25 +358,26 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param appPublish 应用发布记录
      * @return 应用市场记录
      */
-    private AppMarketDO handlerMarketApp(AppPublishDO appPublish) {
-        AppMarketDO appMarketDO = AppMarketConvert.INSTANCE.convert(appPublish);
-        appMarketDO.setImages(buildImages(appMarketDO.getCategories()));
+    private AppMarketEntity handlerMarketApp(AppPublishDO appPublish) {
+        AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appPublish);
+        appMarketEntity.setImages(buildImages(appMarketEntity.getCategories()));
         // marketUid 不为空，说明已经发布过，需要更新发布记录
         if (StringUtils.isNotBlank(appPublish.getMarketUid())) {
             AppMarketDO appMarket = appMarketMapper.get(appPublish.getMarketUid(), Boolean.TRUE);
             if (Objects.nonNull(appMarket)) {
-                appMarketDO.setId(appMarket.getId());
-                appMarketDO.setUid(appMarket.getUid());
-                appMarketDO.setVersion(appPublish.getVersion());
-                appMarketDO.setUsageCount(appMarket.getUsageCount());
-                appMarketDO.setLikeCount(appMarket.getLikeCount());
-                appMarketDO.setViewCount(appMarket.getViewCount());
-                appMarketDO.setInstallCount(appMarket.getInstallCount());
-                return appMarketMapper.modify(appMarketDO);
+                appMarketEntity.setUid(appMarket.getUid());
+                appMarketEntity.setVersion(appPublish.getVersion());
+                appMarketEntity.setUsageCount(appMarket.getUsageCount());
+                appMarketEntity.setLikeCount(appMarket.getLikeCount());
+                appMarketEntity.setViewCount(appMarket.getViewCount());
+                appMarketEntity.setInstallCount(appMarket.getInstallCount());
+                appMarketEntity.update();
+                return appMarketEntity;
             }
         }
         // 如果应用市场不存在该应用，说明是第一次发布，需要新增应用市场记录
-        return appMarketMapper.create(appMarketDO);
+        appMarketEntity.insert();
+        return appMarketEntity;
     }
 
     /**
@@ -383,27 +386,25 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param categories 分类
      * @return 图片列表
      */
-    private String buildImages(String categories) {
-        if (StringUtils.isBlank(categories)) {
-            return AppConstants.APP_MARKET_DEFAULT_IMAGE;
+    private List<String> buildImages(List<String> categories) {
+
+        if (CollectionUtil.isEmpty(categories)) {
+            return Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE);
         }
-        List<String> categoryCollect = AppUtils.split(categories);
-        if (CollectionUtil.isEmpty(categoryCollect)) {
-            return AppConstants.APP_MARKET_DEFAULT_IMAGE;
-        }
+
         List<AppCategoryVO> categoryList = appDictionaryService.categories();
         // 从 categoryList 中获取对应的图片
         List<String> images = CollectionUtil.emptyIfNull(categoryList).stream()
-                .filter(category -> categoryCollect.contains(category.getCode()))
+                .filter(category -> categories.contains(category.getCode()))
                 .map(AppCategoryVO::getImage)
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(images)) {
-            return AppUtils.join(images);
+            return images;
         }
 
-        return AppConstants.APP_MARKET_DEFAULT_IMAGE;
+        return Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE);
     }
 
     /**
@@ -412,6 +413,7 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param showPublish 是否显示发布按钮
      * @param response    响应
      */
+    @SuppressWarnings("all")
     private void buildNeedUpdateResponse(Boolean showPublish, Boolean enablePublish, AppPublishLatestRespVO response) {
         response.setNeedUpdate(Boolean.TRUE);
         response.setNeedTips(Boolean.TRUE);

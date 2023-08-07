@@ -72,7 +72,6 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     default AppMarketDO create(AppMarketDO appMarket) {
         // 校验应用名称是否重复
         AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, appMarket.getName());
-        appMarket.setUid(IdUtil.fastSimpleUUID());
         appMarket.setUsageCount(0);
         appMarket.setLikeCount(0);
         appMarket.setViewCount(0);

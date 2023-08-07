@@ -37,11 +37,9 @@ public class AppMarketRepository {
      *
      * @param appMarketEntity 应用实体
      */
-    public AppMarketEntity insert(AppMarketEntity appMarketEntity) {
+    public void insert(AppMarketEntity appMarketEntity) {
         AppMarketDO appMarket = AppMarketConvert.INSTANCE.convert(appMarketEntity);
         appMarketMapper.create(appMarket);
-        appMarketEntity.setUid(appMarket.getUid());
-        return appMarketEntity;
     }
 
     /**
@@ -49,11 +47,9 @@ public class AppMarketRepository {
      *
      * @param appMarketEntity 应用实体
      */
-    public AppMarketEntity update(AppMarketEntity appMarketEntity) {
+    public void update(AppMarketEntity appMarketEntity) {
         AppMarketDO appMarket = AppMarketConvert.INSTANCE.convert(appMarketEntity);
         appMarketMapper.modify(appMarket);
-        appMarketEntity.setUid(appMarket.getUid());
-        return appMarketEntity;
     }
 
 }

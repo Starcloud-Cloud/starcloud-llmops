@@ -76,6 +76,7 @@ public interface AppMarketConvert {
         appMarket.setInstallCount(appMarketEntity.getInstallCount());
         appMarket.setDescription(appMarketEntity.getDescription());
         appMarket.setExample(appMarketEntity.getExample());
+        appMarket.setAudit(appMarket.getAudit());
         appMarket.setDeleted(Boolean.FALSE);
         // 处理配置信息
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
@@ -103,33 +104,42 @@ public interface AppMarketConvert {
      * @param appPublish AppPublishDO
      * @return AppMarketDO
      */
-    default AppMarketDO convert(AppPublishDO appPublish) {
-        AppMarketDO appMarket = new AppMarketDO();
+    default AppMarketEntity convert(AppPublishDO appPublish) {
+        AppMarketEntity appMarketEntity = new AppMarketEntity();
         String appInfo = appPublish.getAppInfo();
         if (StringUtils.isBlank(appInfo)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_APP_INFO_NOT_FOUND);
         }
         AppDO app = JSONUtil.toBean(appInfo, AppDO.class);
-        appMarket.setUid(appPublish.getMarketUid());
-        appMarket.setName(app.getName());
-        appMarket.setModel(app.getModel());
-        appMarket.setVersion(appPublish.getVersion());
-        appMarket.setLanguage(appPublish.getLanguage());
-        appMarket.setTags(app.getTags());
-        appMarket.setCategories(app.getCategories());
-        appMarket.setScenes(app.getScenes());
-        appMarket.setImages(app.getImages());
-        appMarket.setIcon(app.getIcon());
-        appMarket.setFree(Boolean.TRUE);
-        appMarket.setCost(BigDecimal.ZERO);
-        appMarket.setUsageCount(0);
-        appMarket.setLikeCount(0);
-        appMarket.setViewCount(0);
-        appMarket.setInstallCount(0);
-        appMarket.setAudit(AppPublishAuditEnum.APPROVED.getCode());
-        appMarket.setConfig(app.getConfig());
-        appMarket.setDescription(app.getDescription());
-        return appMarket;
+        appMarketEntity.setUid(appPublish.getMarketUid());
+        appMarketEntity.setName(app.getName());
+        appMarketEntity.setModel(app.getModel());
+        appMarketEntity.setVersion(appPublish.getVersion());
+        appMarketEntity.setLanguage(appPublish.getLanguage());
+        appMarketEntity.setTags(AppUtils.split(app.getTags()));
+        appMarketEntity.setCategories(AppUtils.split(app.getCategories()));
+        appMarketEntity.setScenes(AppUtils.splitScenes(app.getScenes()));
+        appMarketEntity.setImages(AppUtils.split(app.getImages()));
+        appMarketEntity.setIcon(app.getIcon());
+        appMarketEntity.setFree(Boolean.TRUE);
+        appMarketEntity.setCost(BigDecimal.ZERO);
+        appMarketEntity.setUsageCount(0);
+        appMarketEntity.setLikeCount(0);
+        appMarketEntity.setViewCount(0);
+        appMarketEntity.setInstallCount(0);
+        appMarketEntity.setAudit(AppPublishAuditEnum.APPROVED.getCode());
+        appMarketEntity.setDescription(app.getDescription());
+        // 处理配置信息
+        if (StringUtils.isNotBlank(app.getConfig())) {
+            if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+                appMarketEntity.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigEntity.class));
+            } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+                appMarketEntity.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigEntity.class));
+            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
+                appMarketEntity.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigEntity.class));
+            }
+        }
+        return appMarketEntity;
     }
 
     /**
