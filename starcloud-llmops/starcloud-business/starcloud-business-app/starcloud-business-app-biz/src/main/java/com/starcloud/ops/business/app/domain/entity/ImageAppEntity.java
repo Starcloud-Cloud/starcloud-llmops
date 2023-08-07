@@ -164,7 +164,6 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     @Override
     protected void _createAppConversationLog(ImageReqVO imageRequest, LogAppConversationCreateReqVO logAppConversationRequest) {
-
         logAppConversationRequest.setAppConfig(JSONUtil.toJsonStr(imageRequest.getImageRequest()));
     }
 
@@ -191,16 +190,16 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * 新增应用
      */
     @Override
-    protected BaseAppEntity _insert() {
-        return getAppRepository().insert(this);
+    protected void _insert() {
+        getAppRepository().insert(this);
     }
 
     /**
      * 更新应用
      */
     @Override
-    protected BaseAppEntity _update() {
-        return getAppRepository().update(this);
+    protected void _update() {
+        getAppRepository().update(this);
     }
 
     /**

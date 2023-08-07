@@ -185,4 +185,9 @@ public interface ErrorCodeConstants {
      * 应用发布记录创建失败
      */
     ErrorCode APP_PUBLISH_RECORD_CREATE_FAILED = new ErrorCode(300500008, "The app publish create failed, please check and try again ! ");
+
+    /**
+     * 文件类型不是图片
+     */
+    ErrorCode FILE_TYPE_NOT_IMAGES = new ErrorCode(300500009,"The file type is not a picture");
 }

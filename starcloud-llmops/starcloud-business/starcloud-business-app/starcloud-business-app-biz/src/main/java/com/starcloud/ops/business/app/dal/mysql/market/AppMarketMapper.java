@@ -10,7 +10,7 @@ import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;

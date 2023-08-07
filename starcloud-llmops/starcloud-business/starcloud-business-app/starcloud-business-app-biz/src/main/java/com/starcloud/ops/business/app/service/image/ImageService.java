@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.image;
 
-import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
@@ -31,12 +30,10 @@ public interface ImageService {
     ImageRespVO historyGenerateImages();
 
     /**
-     * 文字生成图片
+     * 文本生成图片
      *
      * @param request 请求参数
-     * @return 图片列表
+     * @return 图片信息
      */
-    ImageMessageRespVO textToImage(ImageReqVO request);
-
-
+    ImageMessageRespVO generateImage(ImageReqVO request);
 }

@@ -1,12 +1,11 @@
-package com.starcloud.ops.business.app.util.app;
+package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
@@ -197,22 +196,21 @@ public class AppUtils {
     }
 
     /**
-     * 获取分享链接
+     * 判断字符串中是否包含中文
      *
-     * @param uid uid
-     * @return 分享链接
+     * @param input 待检测字符串
+     * @return 是否包含中文
      */
-    public static String obtainShareLink(String uid) {
-        String profile = SpringUtil.getActiveProfile();
-        if (StringUtils.equals(profile, "cn-test")) {
-            return AppConstants.APP_SHARE_LINK_CN_TEST + uid;
-        } else if (StringUtils.equals(profile, "cn-pro")) {
-            return AppConstants.APP_SHARE_LINK_CN_PROD + uid;
-        } else if (StringUtils.equals(profile, "us-pro")) {
-            return AppConstants.APP_SHARE_LINK_US_PROD + uid;
-        } else {
-            return AppConstants.APP_SHARE_LINK_CN_PROD + uid;
-        }
-    }
+    public static String detectLanguage(String input) {
+        boolean containsChinese = false;
 
+        for (char c : input.toCharArray()) {
+            if (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS) {
+                containsChinese = true;
+                break;
+            }
+        }
+
+        return containsChinese ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
+    }
 }

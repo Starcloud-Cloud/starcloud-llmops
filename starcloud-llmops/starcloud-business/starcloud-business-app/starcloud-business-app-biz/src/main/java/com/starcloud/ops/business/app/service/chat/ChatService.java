@@ -7,8 +7,10 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationResp
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -17,13 +19,12 @@ import java.util.List;
  */
 public interface ChatService {
 
+
     /**
-     * 对话
-     *
+     * 对话聊天
      * @param request
-     * @return
      */
-    SseEmitter chat(ChatRequestVO request);
+    void chat(ChatRequestVO request);
 
     /**
      * 创建聊天应用
@@ -37,7 +38,7 @@ public interface ChatService {
     /**
      * 聊天记录
      *
-     * @param pageQuery
+     * @param
      * @return
      */
     PageResult<LogAppMessageDO> chatHistory(String conversationUid, Integer pageNo, Integer pageSize);
@@ -61,7 +62,7 @@ public interface ChatService {
      * @param inputStream
      * @return
      */
-    String updateAppAvatar(String appUid, InputStream inputStream);
+    String updateAppAvatar(String appUid, MultipartFile file) throws IOException;
 
     /**
      * 默认头像

@@ -3,7 +3,7 @@ package com.starcloud.ops.business.app.api.channel.vo.request;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.starcloud.ops.business.app.api.channel.dto.BaseChannelConfigDTO;
-import com.starcloud.ops.business.app.enums.publish.AppPublishChannelEnum;
+import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

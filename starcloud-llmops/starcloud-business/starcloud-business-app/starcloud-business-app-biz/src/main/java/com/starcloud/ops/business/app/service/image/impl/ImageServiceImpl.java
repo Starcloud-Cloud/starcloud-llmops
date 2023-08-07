@@ -4,14 +4,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
-import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
-import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
@@ -19,29 +13,24 @@ import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
-import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
-import com.starcloud.ops.business.app.service.image.VSearchImageService;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
-import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StopWatch;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,19 +47,13 @@ import java.util.stream.Collectors;
 public class ImageServiceImpl implements ImageService {
 
     @Resource
-    private UserBenefitsService benefitsService;
-
-    @Resource
     private LogAppConversationMapper logAppConversationMapper;
 
     @Resource
     private LogAppMessageMapper logAppMessageMapper;
 
     @Resource
-    private VSearchImageService vSearchImageService;
-
-    @Resource
-    private DictDataService dictDataService;
+    private AppDictionaryService appDictionaryService;
 
     /**
      * 获取图片元数据
@@ -87,20 +70,7 @@ public class ImageServiceImpl implements ImageService {
         meta.put("sampler", ImageUtils.samplerList());
         meta.put("guidancePreset", ImageUtils.guidancePresetList());
         meta.put("stylePreset", ImageUtils.stylePresetList());
-        DictDataExportReqVO request = new DictDataExportReqVO();
-        request.setDictType(AppConstants.IMAGE_EXAMPLE_PROMPT);
-        request.setStatus(StateEnum.ENABLE.getCode());
-        List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
-        List<ImageMetaDTO> examplePromptList = CollectionUtil.emptyIfNull(dictDataList).stream()
-                .filter(Objects::nonNull)
-                .map(dictData -> {
-                    ImageMetaDTO imageMetaDTO = new ImageMetaDTO();
-                    imageMetaDTO.setLabel(dictData.getLabel());
-                    imageMetaDTO.setValue(dictData.getValue());
-                    return imageMetaDTO;
-                })
-                .collect(Collectors.toList());
-        meta.put("examplePrompt", examplePromptList);
+        meta.put("examplePrompt", appDictionaryService.examplePrompt());
         return meta;
     }
 
@@ -159,69 +129,24 @@ public class ImageServiceImpl implements ImageService {
     }
 
     /**
-     * 文字生成图片
+     * 文本生成图片
      *
      * @param request 请求参数
-     * @return 图片列表
+     * @return 图片信息
      */
     @Override
-    public ImageMessageRespVO textToImage(ImageReqVO request) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start("Text to Image Task");
-        Long userId = WebFrameworkUtils.getLoginUserId();
-        // 会话记录
-        LogAppConversationDO conversation = this.getConversation(request.getConversationUid(), userId);
-        try {
-            // 检测权益
-            benefitsService.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);
-            // 调用图片生成服务
-            List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
-            // 扣除权益
-            benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) imageList.size(), userId, conversation.getUid());
-            // 消息记录
-            stopWatch.stop();
-            LogAppMessageDO messageRequest = buildAppMessageLog(request, conversation, userId);
-            messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
-            messageRequest.setAnswer(JSONUtil.toJsonStr(imageList));
-            messageRequest.setAnswerTokens(imageList.size());
-            messageRequest.setMessageUnitPrice(new BigDecimal("0"));
-            messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-            messageRequest.setTotalPrice(new BigDecimal(Integer.toString(imageList.size())));
-            logAppMessageMapper.insert(messageRequest);
-            // 更新会话记录
-            this.updateAppConversation(conversation.getUid(), LogStatusEnum.SUCCESS, request);
-            ImageMessageRespVO imageResponse = new ImageMessageRespVO();
-            imageResponse.setPrompt(request.getImageRequest().getPrompt());
-            imageResponse.setCreateTime(LocalDateTime.now());
-            imageResponse.setImages(imageList);
-            return imageResponse;
-        } catch (ServiceException e) {
-            stopWatch.stop();
-            // 消息记录
-            LogAppMessageDO messageRequest = buildAppMessageLog(request, conversation, userId);
-            messageRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-            messageRequest.setErrorCode(Integer.toString(e.getCode()));
-            messageRequest.setErrorMsg(e.getMessage());
-            logAppMessageMapper.insert(messageRequest);
-            // 更新会话记录
-            this.updateAppConversation(conversation.getUid(), LogStatusEnum.ERROR, request);
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", e.getCode(), e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            stopWatch.stop();
-            // 消息记录
-            LogAppMessageDO messageRequest = buildAppMessageLog(request, conversation, userId);
-            messageRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-            messageRequest.setErrorCode("300300000");
-            messageRequest.setErrorMsg(e.getMessage());
-            logAppMessageMapper.insert(messageRequest);
-            // 更新会话记录
-            this.updateAppConversation(conversation.getUid(), LogStatusEnum.ERROR, request);
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", messageRequest.getErrorCode(), e.getMessage(), e);
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), e.getMessage());
-        }
+    public ImageMessageRespVO generateImage(ImageReqVO request) {
+        SseEmitter emitter = new SseEmitter(60000L);
+        request.setSseEmitter(emitter);
+        // 处理负面提示
+        ImageRequest imageRequest = request.getImageRequest();
+        String negativePrompt = ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.TRUE);
+        imageRequest.setNegativePrompt(negativePrompt);
+        request.setImageRequest(imageRequest);
+        // 构建 ImageAppEntity
+        ImageAppEntity factory = AppFactory.factory(request);
+        // 生成图片
+        return factory.execute(request);
     }
 
     /**
@@ -234,6 +159,7 @@ public class ImageServiceImpl implements ImageService {
      * @param userId          用户id
      * @return 会话记录
      */
+    @SuppressWarnings("all")
     private LogAppConversationDO getConversation(String conversationUid, Long userId) {
         LambdaQueryWrapper<LogAppConversationDO> conversationWrapper = Wrappers.lambdaQuery(LogAppConversationDO.class);
         conversationWrapper.eq(LogAppConversationDO::getAppMode, AppModelEnum.BASE_GENERATE_IMAGE.name());
@@ -263,50 +189,6 @@ public class ImageServiceImpl implements ImageService {
         conversation.setEndUser(Long.toString(userId));
         logAppConversationMapper.insert(conversation);
         return conversation;
-    }
-
-    /**
-     * 更新会话记录
-     *
-     * @param conversationUid 会话记录id
-     * @param status          状态
-     * @param request         请求参数
-     */
-    private void updateAppConversation(String conversationUid, LogStatusEnum status, ImageReqVO request) {
-        LambdaUpdateWrapper<LogAppConversationDO> conversationWrapper = Wrappers.lambdaUpdate(LogAppConversationDO.class);
-        conversationWrapper.eq(LogAppConversationDO::getUid, conversationUid);
-        conversationWrapper.eq(LogAppConversationDO::getDeleted, Boolean.FALSE);
-        conversationWrapper.set(LogAppConversationDO::getStatus, status.name());
-        conversationWrapper.set(LogAppConversationDO::getAppConfig, JSONUtil.toJsonStr(request));
-        logAppConversationMapper.update(null, conversationWrapper);
-    }
-
-    /**
-     * 构建消息记录
-     *
-     * @param request      请求参数
-     * @param conversation 会话记录
-     * @param userId       用户id
-     * @return 消息记录
-     */
-    private LogAppMessageDO buildAppMessageLog(ImageReqVO request,
-                                               LogAppConversationDO conversation,
-                                               Long userId) {
-        LogAppMessageDO messageRequest = new LogAppMessageDO();
-        messageRequest.setUid(IdUtil.fastSimpleUUID());
-        messageRequest.setAppConversationUid(conversation.getUid());
-        messageRequest.setAppUid(conversation.getUid());
-        messageRequest.setAppMode(conversation.getAppMode());
-        messageRequest.setAppConfig(JSONUtil.toJsonStr(request));
-        messageRequest.setAppStep("TEXT_TO_IMAGE");
-        messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
-        messageRequest.setMessage(request.getImageRequest().getPrompt());
-        messageRequest.setMessageTokens(ImageUtils.countMessageTokens(request.getImageRequest().getPrompt()));
-        messageRequest.setMessageUnitPrice(new BigDecimal("0"));
-        messageRequest.setCurrency("USD");
-        messageRequest.setFromScene(conversation.getFromScene());
-        messageRequest.setEndUser(Long.toString(userId));
-        return messageRequest;
     }
 
 }

@@ -31,7 +31,7 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

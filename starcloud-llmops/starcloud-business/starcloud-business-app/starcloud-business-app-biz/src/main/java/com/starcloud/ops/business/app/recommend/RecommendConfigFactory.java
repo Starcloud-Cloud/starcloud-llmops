@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.domain.recommend;
+package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 
@@ -12,7 +12,7 @@ import java.util.Collections;
  * @version 1.0.0
  * @since 2023-06-25
  */
-public class RecommendedConfigFactory {
+public class RecommendConfigFactory {
 
     /**
      * 生成文本默认配置
@@ -21,7 +21,7 @@ public class RecommendedConfigFactory {
      */
     public static WorkflowConfigRespVO defGenerateTextConfig() {
         WorkflowConfigRespVO config = new WorkflowConfigRespVO();
-        config.setSteps(Collections.singletonList(RecommendedStepWrapperFactory.defDefaultTextCompletionStepWrapper()));
+        config.setSteps(Collections.singletonList(RecommendStepWrapperFactory.defDefaultTextCompletionStepWrapper()));
         config.setVariable(null);
         return config;
     }
@@ -34,10 +34,10 @@ public class RecommendedConfigFactory {
     public static WorkflowConfigRespVO defGenerateArticleConfig() {
         WorkflowConfigRespVO config = new WorkflowConfigRespVO();
         config.setSteps(Arrays.asList(
-                RecommendedStepWrapperFactory.defArticleTitleStepWrapper(),
-                RecommendedStepWrapperFactory.defArticleSectionsStepWrapper(),
-                RecommendedStepWrapperFactory.defArticleContentStepWrapper(),
-                RecommendedStepWrapperFactory.defArticleExcerptStepWrapper()
+                RecommendStepWrapperFactory.defArticleTitleStepWrapper(),
+                RecommendStepWrapperFactory.defArticleSectionsStepWrapper(),
+                RecommendStepWrapperFactory.defArticleContentStepWrapper(),
+                RecommendStepWrapperFactory.defArticleExcerptStepWrapper()
         ));
         config.setVariable(null);
         return config;

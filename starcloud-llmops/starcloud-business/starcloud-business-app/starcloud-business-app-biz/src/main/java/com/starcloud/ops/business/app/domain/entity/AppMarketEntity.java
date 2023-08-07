@@ -118,16 +118,16 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      * 新增应用
      */
     @Override
-    protected AppMarketEntity _insert() {
-        return getAppMarketRepository().insert(this);
+    protected void _insert() {
+        getAppMarketRepository().insert(this);
     }
 
     /**
      * 更新应用
      */
     @Override
-    protected AppMarketEntity _update() {
-        return getAppMarketRepository().update(this);
+    protected void _update() {
+        getAppMarketRepository().update(this);
     }
 
 

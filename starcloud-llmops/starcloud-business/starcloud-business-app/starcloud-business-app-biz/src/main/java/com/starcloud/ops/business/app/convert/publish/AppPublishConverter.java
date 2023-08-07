@@ -9,7 +9,7 @@ import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
-import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.AppUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -42,6 +42,7 @@ public interface AppPublishConverter {
         appPublishDO.setDescription(appDO.getDescription());
         appPublishDO.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
         appPublishDO.setDeleted(Boolean.FALSE);
+        appPublishDO.setLanguage(AppUtils.detectLanguage(appDO.getName()));
         return appPublishDO;
     }
 

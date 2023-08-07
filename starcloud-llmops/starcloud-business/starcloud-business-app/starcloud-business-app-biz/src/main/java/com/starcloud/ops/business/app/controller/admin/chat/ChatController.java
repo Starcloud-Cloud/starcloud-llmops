@@ -3,8 +3,6 @@ package com.starcloud.ops.business.app.controller.admin.chat;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
-import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
-import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationRespVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
@@ -41,13 +39,7 @@ public class ChatController {
 
         SseEmitter emitter = new SseEmitter(60000L);
         request.setSseEmitter(emitter);
-
-        ChatAppEntity appEntity = AppFactory.factory(request);
-
-        //appEntity.execute(request);
-
-        appEntity.aexecute(request);
-
+        chatService.chat(request);
         return emitter;
     }
 
@@ -56,7 +48,6 @@ public class ChatController {
     public CommonResult<String> createChatApp(@RequestParam("uid") String uid, @RequestParam("robotName") String robotName) {
         return CommonResult.success(chatService.createChatApp(uid, robotName));
     }
-
 
     @Operation(summary = "查询所有会话")
     @GetMapping("/conversation")
@@ -83,7 +74,7 @@ public class ChatController {
         if (file.isEmpty()) {
             throw exception(FILE_IS_EMPTY);
         }
-        String avatar = chatService.updateAppAvatar(appUid, file.getInputStream());
+        String avatar = chatService.updateAppAvatar(appUid, file);
         return success(avatar);
     }
 

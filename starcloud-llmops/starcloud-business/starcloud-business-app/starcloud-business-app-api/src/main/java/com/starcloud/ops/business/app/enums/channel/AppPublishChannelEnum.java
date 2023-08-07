@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.enums.publish;
+package com.starcloud.ops.business.app.enums.channel;
 
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.domain.recommend.enums;
+package com.starcloud.ops.business.app.recommend.enums;
 
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;

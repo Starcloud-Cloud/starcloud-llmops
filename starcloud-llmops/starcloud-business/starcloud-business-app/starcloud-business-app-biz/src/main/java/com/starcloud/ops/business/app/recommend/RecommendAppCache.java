@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.domain.recommend;
+package com.starcloud.ops.business.app.recommend;
 
 import cn.hutool.cache.Cache;
 import cn.hutool.cache.CacheUtil;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * @since 2023-06-28
  */
 @Slf4j
-public class RecommendedAppCache {
+public class RecommendAppCache {
 
     /**
      * 推荐应用缓存 key
@@ -85,11 +85,11 @@ public class RecommendedAppCache {
     public static List<AppRespVO> initRecommendedApps() {
         return Arrays.asList(
                 // 生成文本应用
-                RecommendedAppFactory.defGenerateTextApp(),
+                RecommendAppFactory.defGenerateTextApp(),
                 // 生成文章应用
-                RecommendedAppFactory.defGenerateArticleApp(),
+                RecommendAppFactory.defGenerateArticleApp(),
                 // 聊天机器人
-                RecommendedAppFactory.defChatRobotApp()
+                RecommendAppFactory.defChatRobotApp()
         );
     }
 

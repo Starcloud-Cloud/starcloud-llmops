@@ -21,7 +21,7 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
-import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import org.apache.commons.lang3.StringUtils;
 
