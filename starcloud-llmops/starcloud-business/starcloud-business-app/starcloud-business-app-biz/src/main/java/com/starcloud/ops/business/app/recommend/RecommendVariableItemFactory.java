@@ -1,8 +1,8 @@
-package com.starcloud.ops.business.app.domain.recommend;
+package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.domain.recommend.enums.WritingStyleEnum;
-import com.starcloud.ops.business.app.domain.recommend.enums.WritingToneEnum;
+import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
+import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
@@ -16,7 +16,7 @@ import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
  * @version 1.0.0
  * @since 2023-06-25
  */
-public class RecommendedVariableItemFactory {
+public class RecommendVariableItemFactory {
 
     // Open AI Chat Completion Variable Item ---------------------------------------------------------------------------
 

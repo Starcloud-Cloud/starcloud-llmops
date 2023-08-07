@@ -10,22 +10,24 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
-import com.starcloud.ops.business.app.domain.recommend.RecommendedAppCache;
-import com.starcloud.ops.business.app.domain.recommend.RecommendedStepWrapperFactory;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.recommend.RecommendAppCache;
+import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
@@ -89,7 +91,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<AppRespVO> listRecommendedApps(String model) {
-        return RecommendedAppCache.get(model);
+        return RecommendAppCache.get(model);
     }
 
     /**
@@ -100,7 +102,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO getRecommendApp(String uid) {
-        return RecommendedAppCache.getRecommendApp(uid);
+        return RecommendAppCache.getRecommendApp(uid);
     }
 
     /**
@@ -110,7 +112,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<WorkflowStepWrapperRespVO> stepList() {
-        return Collections.singletonList(RecommendedStepWrapperFactory.defDefaultTextCompletionStepWrapper());
+        return Collections.singletonList(RecommendStepWrapperFactory.defDefaultTextCompletionStepWrapper());
     }
 
     /**
@@ -146,10 +148,11 @@ public class AppServiceImpl implements AppService {
      * @param request 应用信息
      */
     @Override
+    @SuppressWarnings("all")
     public AppRespVO create(AppReqVO request) {
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        BaseAppEntity entity = appEntity.insert();
-        return AppConvert.INSTANCE.convertResponse(entity);
+        appEntity.insert();
+        return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
     /**
@@ -158,11 +161,12 @@ public class AppServiceImpl implements AppService {
      * @param request 模版应用
      */
     @Override
+    @SuppressWarnings("all")
     public AppRespVO copy(AppReqVO request) {
         request.setName(request.getName() + " - Copy");
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        BaseAppEntity entity = appEntity.insert();
-        return AppConvert.INSTANCE.convertResponse(entity);
+        appEntity.insert();
+        return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
     /**
@@ -171,11 +175,12 @@ public class AppServiceImpl implements AppService {
      * @param request 更新请求信息
      */
     @Override
+    @SuppressWarnings("all")
     public AppRespVO modify(AppUpdateReqVO request) {
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
-        BaseAppEntity entity = appEntity.update();
-        return AppConvert.INSTANCE.convertResponse(entity);
+        appEntity.update();
+        return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
     /**
@@ -211,5 +216,17 @@ public class AppServiceImpl implements AppService {
             return null;
         }
         return AppConvert.INSTANCE.convertResponse(appMapper.selectOne(wrapper));
+    }
+
+    /**
+     * 异步执行应用
+     *
+     * @param request 应用执行请求信息
+     */
+    @Override
+    @SuppressWarnings("all")
+    public void asyncExecute(AppExecuteReqVO request) {
+        BaseAppEntity app = AppFactory.factory(request);
+        app.aexecute(request);
     }
 }

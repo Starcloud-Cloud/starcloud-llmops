@@ -24,7 +24,7 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.AppUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
  * @since 2023-05-29
  */
 @Mapper
+@SuppressWarnings("all")
 public interface AppConvert {
 
     /**

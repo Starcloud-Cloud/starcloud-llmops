@@ -14,8 +14,8 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
-import com.starcloud.ops.business.app.util.app.AppUtils;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -74,9 +74,6 @@ public interface AppMapper extends BaseMapperX<AppDO> {
     default AppDO create(AppDO appDO) {
         // 校验应用名称是否重复
         AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, appDO.getName());
-        if (StringUtils.isBlank(appDO.getUid())) {
-            appDO.setUid(IdUtil.fastSimpleUUID());
-        }
         appDO.setDeleted(Boolean.FALSE);
         appDO.setPublishUid(null);
         appDO.setLastPublish(null);

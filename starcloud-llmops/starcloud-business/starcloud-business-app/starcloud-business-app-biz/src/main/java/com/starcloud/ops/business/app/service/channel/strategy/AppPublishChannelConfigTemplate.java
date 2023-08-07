@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.domain.channel;
+package com.starcloud.ops.business.app.service.channel.strategy;
 
 import com.starcloud.ops.business.app.api.channel.dto.BaseChannelConfigDTO;
 import org.springframework.stereotype.Component;

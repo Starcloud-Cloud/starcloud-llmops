@@ -1,11 +1,11 @@
-package com.starcloud.ops.business.app.domain.recommend;
+package com.starcloud.ops.business.app.recommend;
 
 /**
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-06-29
  */
-public interface AppRecommendedConsts {
+public interface RecommendAppConsts {
 
     /**
      * 默认生成文本步骤的唯一标识

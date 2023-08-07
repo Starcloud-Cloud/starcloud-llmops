@@ -1,10 +1,10 @@
 package com.starcloud.ops.server.config;
 
-import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.datapermission.core.rule.DataPermissionRule;
 import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
+import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Alias;
@@ -13,6 +13,7 @@ import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Set;
 
 /**
@@ -36,6 +37,13 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "llm_log_app_message_save"
     );
 
+    @Resource
+    private final PermissionApi permissionApi;
+
+    public StarcloudDataPermissionRule(PermissionApi permissionApi) {
+        this.permissionApi = permissionApi;
+    }
+
     @Override
     public Set<String> getTableNames() {
         return TABLE_NAMES;
@@ -43,11 +51,18 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
 
     @Override
     public Expression getExpression(String tableName, Alias tableAlias) {
-//        Long userId = SecurityFrameworkUtils.getLoginUserId();
         Long userId = WebFrameworkUtils.getLoginUserId();
+
         if (userId == null) {
             return null;
         }
+
+        DeptDataPermissionRespDTO deptDataPermission = permissionApi.getDeptDataPermission(userId);
+        // 超级管理员，不进行数据权限过滤
+        if (deptDataPermission.getAll()) {
+            return null;
+        }
+        // 普通用户，只能查询自己创建的数据
         return new EqualsTo(MyBatisUtils.buildColumn(tableName, tableAlias, "creator"), new LongValue(userId));
     }
 

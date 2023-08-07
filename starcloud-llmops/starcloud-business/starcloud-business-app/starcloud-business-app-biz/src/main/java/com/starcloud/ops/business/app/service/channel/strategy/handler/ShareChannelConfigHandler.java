@@ -1,11 +1,13 @@
-package com.starcloud.ops.business.app.domain.channel;
+package com.starcloud.ops.business.app.service.channel.strategy.handler;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.channel.dto.ShareChannelConfigDTO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.publish.AppPublishChannelEnum;
+import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
+import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
+import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 

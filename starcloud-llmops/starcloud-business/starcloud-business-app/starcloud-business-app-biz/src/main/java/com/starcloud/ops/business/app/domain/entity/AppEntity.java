@@ -4,7 +4,6 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -19,10 +18,9 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
@@ -55,7 +53,6 @@ import java.util.Optional;
 @Slf4j
 @Data
 public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> {
-
 
     private AppWorkflowService appWorkflowService = SpringUtil.getBean(AppWorkflowService.class);
 
@@ -167,12 +164,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
     @Override
     protected void _createAppConversationLog(AppExecuteReqVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
-
-
         logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
-
     }
-
 
     @Override
     protected void _initHistory(AppExecuteReqVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageDOS) {
@@ -180,20 +173,19 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     }
 
     @Override
-    protected BaseAppEntity _insert() {
-       return getAppRepository().insert(this);
+    protected void _insert() {
+        getAppRepository().insert(this);
     }
 
     @Override
-    protected BaseAppEntity _update() {
-        return getAppRepository().update(this);
+    protected void _update() {
+        getAppRepository().update(this);
     }
 
     @Override
     protected <C> C _parseConversationConfig(String conversationConfig) {
         return null;
     }
-
 
     /**
      * 执行应用

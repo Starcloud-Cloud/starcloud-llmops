@@ -8,7 +8,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.AppUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

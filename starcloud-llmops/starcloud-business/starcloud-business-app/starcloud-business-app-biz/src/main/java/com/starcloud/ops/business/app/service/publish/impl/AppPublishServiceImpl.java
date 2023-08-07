@@ -20,20 +20,22 @@ import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
-import com.starcloud.ops.business.app.util.app.AppUtils;
-import com.starcloud.ops.business.app.validate.app.AppValidate;
+import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -129,36 +131,73 @@ public class AppPublishServiceImpl implements AppPublishService {
         AppPublishLatestRespVO response = AppPublishConverter.INSTANCE.convertLatest(publishList.get(0));
         response.setAppLastUpdateTime(app.getUpdateTime());
         response.setIsFirstCreatePublishRecord(Boolean.FALSE);
+        List<AppPublishChannelRespVO> channelList = appPublishChannelService.listByAppUid(appUid);
+        response.setChannels(channelList);
+
         // 发布记录不为空且存在待审核的发布记录, 不显示发布按钮，显示 取消发布按钮
-        if (publishList.stream().anyMatch(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode()))) {
+        boolean pendingFlag = publishList.stream().anyMatch(item ->
+                Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode()));
+        if (pendingFlag) {
             response.setAuditTag(AppPublishAuditEnum.PENDING.getCode());
             if (app.getUpdateTime().isAfter(response.getCreateTime())) {
                 // 应用有更新，需要更新
-                buildNeedUpdateResponse(Boolean.FALSE, response);
+                buildNeedUpdateResponse(Boolean.FALSE, Boolean.FALSE, response);
             } else {
                 // 应用无更新，不需要更新
-                buildUnNeedUpdateResponse(Boolean.FALSE, response);
+                buildUnNeedUpdateResponse(Boolean.FALSE, Boolean.FALSE, response);
             }
             return response;
         }
 
-        // 如果最新一条记录为审核拒绝，则为审核拒绝状态
-        if (Objects.equals(response.getAudit(), AppPublishAuditEnum.REJECTED.getCode())) {
-            response.setAuditTag(AppPublishAuditEnum.REJECTED.getCode());
-        } else {
-            boolean approvedFlag = publishList.stream().anyMatch(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()));
-            // 不存在待审核和最新一条记录为审核拒绝状态，若历史记录中有审核已通过的记录，则显示已通过，否则显示最新记录的审核状态。
-            response.setAuditTag(approvedFlag ? AppPublishAuditEnum.APPROVED.getCode() : response.getAudit());
-        }
-        if (app.getUpdateTime().isAfter(response.getCreateTime())) {
-            buildNeedUpdateResponse(Boolean.TRUE, response);
-        } else {
-            // 应用无更新，不需要更新
-            buildUnNeedUpdateResponse(Boolean.TRUE, response);
+        // 如果最新的一条记录为审核通过，则为审核通过状态。而且不是不允许发布，必须更新之后才能发布
+        if (Objects.equals(response.getAudit(), AppPublishAuditEnum.APPROVED.getCode())) {
+            response.setAuditTag(AppPublishAuditEnum.APPROVED.getCode());
+            if (app.getUpdateTime().isAfter(response.getCreateTime())) {
+                // 应用有更新，需要更新, 更新之后才可以发布
+                buildNeedUpdateResponse(Boolean.TRUE, Boolean.FALSE, response);
+            } else {
+                // 应用无更新，不需要更新，不可以发布
+                buildUnNeedUpdateResponse(Boolean.TRUE, Boolean.FALSE, response);
+            }
+            return response;
         }
 
-        List<AppPublishChannelRespVO> channelList = appPublishChannelService.listByAppUid(appUid);
-        response.setChannels(channelList);
+        // 如果最新一条记录为审核拒绝，则为审核拒绝状态。更新之后才可以发布
+        if (Objects.equals(response.getAudit(), AppPublishAuditEnum.REJECTED.getCode())) {
+            response.setAuditTag(AppPublishAuditEnum.REJECTED.getCode());
+            if (app.getUpdateTime().isAfter(response.getCreateTime())) {
+                // 应用有更新，需要更新, 更新之后才可以发布
+                buildNeedUpdateResponse(Boolean.TRUE, Boolean.FALSE, response);
+            } else {
+                // 应用无更新，不需要更新。可以发布
+                buildUnNeedUpdateResponse(Boolean.TRUE, Boolean.TRUE, response);
+            }
+            return response;
+        }
+
+        // 如果历史记录中存在审核通过的记录，且最新的一条记录不是审核通过。如果需要更新，则需要更新之后才可以发布
+        boolean approvedFlag = publishList.stream()
+                .anyMatch(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()));
+        if (approvedFlag && !Objects.equals(response.getAudit(), AppPublishAuditEnum.APPROVED.getCode())) {
+            response.setAuditTag(AppPublishAuditEnum.APPROVED.getCode());
+            if (app.getUpdateTime().isAfter(response.getCreateTime())) {
+                // 应用有更新，需要更新，更新之后才可以发布
+                buildNeedUpdateResponse(Boolean.TRUE, Boolean.FALSE, response);
+            } else {
+                // 应用无更新，不需要更新，不可以发布
+                buildUnNeedUpdateResponse(Boolean.TRUE, Boolean.TRUE, response);
+            }
+            return response;
+        }
+
+        response.setAuditTag(response.getAudit());
+        if (app.getUpdateTime().isAfter(response.getCreateTime())) {
+            // 应用有更新，需要更新, 更新之后才可以发布
+            buildNeedUpdateResponse(Boolean.TRUE, Boolean.FALSE, response);
+        } else {
+            // 应用无更新，不需要更新。可以发布
+            buildUnNeedUpdateResponse(Boolean.TRUE, Boolean.TRUE, response);
+        }
         return response;
     }
 
@@ -232,8 +271,8 @@ public class AppPublishServiceImpl implements AppPublishService {
         // 如果审核通过
         if (Objects.equals(request.getStatus(), AppPublishAuditEnum.APPROVED.getCode())) {
             // 处理应用市场，存在则更新，不存在则创建
-            AppMarketDO appMarketDO = this.handlerMarketApp(appPublish);
-            appPublish.setMarketUid(appMarketDO.getUid());
+            AppMarketEntity appMarketEntity = this.handlerMarketApp(appPublish);
+            appPublish.setMarketUid(appMarketEntity.getUid());
             // 更新我的应用的发布 UID
             LambdaUpdateWrapper<AppDO> appUpdateWrapper = Wrappers.lambdaUpdate(AppDO.class);
             appUpdateWrapper.eq(AppDO::getUid, appPublish.getAppUid());
@@ -319,25 +358,26 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param appPublish 应用发布记录
      * @return 应用市场记录
      */
-    private AppMarketDO handlerMarketApp(AppPublishDO appPublish) {
-        AppMarketDO appMarketDO = AppMarketConvert.INSTANCE.convert(appPublish);
-        appMarketDO.setImages(buildImages(appMarketDO.getCategories()));
+    private AppMarketEntity handlerMarketApp(AppPublishDO appPublish) {
+        AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appPublish);
+        appMarketEntity.setImages(buildImages(appMarketEntity.getCategories()));
         // marketUid 不为空，说明已经发布过，需要更新发布记录
         if (StringUtils.isNotBlank(appPublish.getMarketUid())) {
             AppMarketDO appMarket = appMarketMapper.get(appPublish.getMarketUid(), Boolean.TRUE);
             if (Objects.nonNull(appMarket)) {
-                appMarketDO.setId(appMarket.getId());
-                appMarketDO.setUid(appMarket.getUid());
-                appMarketDO.setVersion(appPublish.getVersion());
-                appMarketDO.setUsageCount(appMarket.getUsageCount());
-                appMarketDO.setLikeCount(appMarket.getLikeCount());
-                appMarketDO.setViewCount(appMarket.getViewCount());
-                appMarketDO.setInstallCount(appMarket.getInstallCount());
-                return appMarketMapper.modify(appMarketDO);
+                appMarketEntity.setUid(appMarket.getUid());
+                appMarketEntity.setVersion(appPublish.getVersion());
+                appMarketEntity.setUsageCount(appMarket.getUsageCount());
+                appMarketEntity.setLikeCount(appMarket.getLikeCount());
+                appMarketEntity.setViewCount(appMarket.getViewCount());
+                appMarketEntity.setInstallCount(appMarket.getInstallCount());
+                appMarketEntity.update();
+                return appMarketEntity;
             }
         }
         // 如果应用市场不存在该应用，说明是第一次发布，需要新增应用市场记录
-        return appMarketMapper.create(appMarketDO);
+        appMarketEntity.insert();
+        return appMarketEntity;
     }
 
     /**
@@ -346,27 +386,25 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param categories 分类
      * @return 图片列表
      */
-    private String buildImages(String categories) {
-        if (StringUtils.isBlank(categories)) {
-            return AppConstants.APP_MARKET_DEFAULT_IMAGE;
+    private List<String> buildImages(List<String> categories) {
+
+        if (CollectionUtil.isEmpty(categories)) {
+            return Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE);
         }
-        List<String> categoryCollect = AppUtils.split(categories);
-        if (CollectionUtil.isEmpty(categoryCollect)) {
-            return AppConstants.APP_MARKET_DEFAULT_IMAGE;
-        }
+
         List<AppCategoryVO> categoryList = appDictionaryService.categories();
         // 从 categoryList 中获取对应的图片
         List<String> images = CollectionUtil.emptyIfNull(categoryList).stream()
-                .filter(category -> categoryCollect.contains(category.getCode()))
+                .filter(category -> categories.contains(category.getCode()))
                 .map(AppCategoryVO::getImage)
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(images)) {
-            return AppUtils.join(images);
+            return images;
         }
 
-        return AppConstants.APP_MARKET_DEFAULT_IMAGE;
+        return Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE);
     }
 
     /**
@@ -375,11 +413,12 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param showPublish 是否显示发布按钮
      * @param response    响应
      */
-    private void buildNeedUpdateResponse(Boolean showPublish, AppPublishLatestRespVO response) {
+    @SuppressWarnings("all")
+    private void buildNeedUpdateResponse(Boolean showPublish, Boolean enablePublish, AppPublishLatestRespVO response) {
         response.setNeedUpdate(Boolean.TRUE);
         response.setNeedTips(Boolean.TRUE);
         response.setShowPublish(showPublish);
-        response.setEnablePublish(Boolean.FALSE);
+        response.setEnablePublish(enablePublish);
     }
 
     /**
@@ -388,11 +427,11 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param showPublish 是否显示发布按钮
      * @param response    响应
      */
-    private void buildUnNeedUpdateResponse(Boolean showPublish, AppPublishLatestRespVO response) {
+    private void buildUnNeedUpdateResponse(Boolean showPublish, Boolean enablePublish, AppPublishLatestRespVO response) {
         response.setNeedUpdate(Boolean.FALSE);
         response.setNeedTips(Boolean.FALSE);
         response.setShowPublish(showPublish);
-        response.setEnablePublish(Boolean.TRUE);
+        response.setEnablePublish(enablePublish);
     }
 
 }

@@ -1,14 +1,13 @@
-package com.starcloud.ops.business.app.domain.recommend;
+package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.*;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.MessageUtil;
-import com.starcloud.ops.business.app.util.app.AppUtils;
+import com.starcloud.ops.business.app.util.AppUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,7 +19,7 @@ import java.util.Collections;
  * @version 1.0.0
  * @since 2023-06-25
  */
-public class RecommendedAppFactory {
+public class RecommendAppFactory {
 
     /**
      * 生成文本应用
@@ -29,7 +28,7 @@ public class RecommendedAppFactory {
      */
     public static AppRespVO defGenerateTextApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(AppRecommendedConsts.GENERATE_TEXT);
+        app.setUid(RecommendAppConsts.GENERATE_TEXT);
         app.setName(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
         app.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_DESCRIPTION"));
         app.setModel(AppModelEnum.COMPLETION.name());
@@ -40,7 +39,7 @@ public class RecommendedAppFactory {
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
-        app.setWorkflowConfig(RecommendedConfigFactory.defGenerateTextConfig());
+        app.setWorkflowConfig(RecommendConfigFactory.defGenerateTextConfig());
         return app;
     }
 
@@ -51,7 +50,7 @@ public class RecommendedAppFactory {
      */
     public static AppRespVO defGenerateArticleApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(AppRecommendedConsts.GENERATE_ARTICLE);
+        app.setUid(RecommendAppConsts.GENERATE_ARTICLE);
         app.setName(MessageUtil.getMessage("GENERATE_ARTICLE_APP_NAME"));
         app.setDescription(MessageUtil.getMessage("GENERATE_ARTICLE_APP_DESCRIPTION"));
         app.setModel(AppModelEnum.COMPLETION.name());
@@ -62,7 +61,7 @@ public class RecommendedAppFactory {
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
-        app.setWorkflowConfig(RecommendedConfigFactory.defGenerateArticleConfig());
+        app.setWorkflowConfig(RecommendConfigFactory.defGenerateArticleConfig());
         return app;
     }
 
@@ -73,7 +72,7 @@ public class RecommendedAppFactory {
      */
     public static AppRespVO defChatRobotApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(AppRecommendedConsts.CHAT_ROBOT);
+        app.setUid(RecommendAppConsts.CHAT_ROBOT);
         app.setName("亚马逊AI助手");
         app.setDescription("作为一名亚马逊运营AI助手，我熟悉亚马逊运营中的各种基础技能，可以帮你做市场研究和分析、优化产品listing、优化广告文案、处理客户问题。");
         app.setModel(AppModelEnum.CHAT.name());

@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.domain.recommend;
+package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 
@@ -12,7 +12,7 @@ import java.util.Collections;
  * @version 1.0.0
  * @since 2023-06-25
  */
-public class RecommendedVariableFactory {
+public class RecommendVariableFactory {
 
     /**
      * Open AI Chat Completion 默认变量
@@ -23,10 +23,10 @@ public class RecommendedVariableFactory {
     public static VariableRespVO defOpenAiVariable(String defaultPrompt, Boolean isShow) {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
-                RecommendedVariableItemFactory.defMaxTokenVariable(),
-                RecommendedVariableItemFactory.defTemperatureVariable(),
-                RecommendedVariableItemFactory.defNumVariable(),
-                RecommendedVariableItemFactory.defPromptVariable(defaultPrompt, isShow)
+                RecommendVariableItemFactory.defMaxTokenVariable(),
+                RecommendVariableItemFactory.defTemperatureVariable(),
+                RecommendVariableItemFactory.defNumVariable(),
+                RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow)
         ));
         return variable;
     }
@@ -39,10 +39,10 @@ public class RecommendedVariableFactory {
     public static VariableRespVO defArticleGlobalVariable() {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
-                RecommendedVariableItemFactory.defArticleTopicVariable(),
-                RecommendedVariableItemFactory.defLanguageVariable(),
-                RecommendedVariableItemFactory.defWritingStyleVariable(),
-                RecommendedVariableItemFactory.defWritingToneVariable()
+                RecommendVariableItemFactory.defArticleTopicVariable(),
+                RecommendVariableItemFactory.defLanguageVariable(),
+                RecommendVariableItemFactory.defWritingStyleVariable(),
+                RecommendVariableItemFactory.defWritingToneVariable()
         ));
         return variable;
     }
@@ -55,7 +55,7 @@ public class RecommendedVariableFactory {
     public static VariableRespVO defArticleSectionsVariable() {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Collections.singletonList(
-                RecommendedVariableItemFactory.defArticleSectionsVariable()
+                RecommendVariableItemFactory.defArticleSectionsVariable()
         ));
         return variable;
     }
@@ -68,7 +68,7 @@ public class RecommendedVariableFactory {
     public static VariableRespVO defArticleParagraphs() {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Collections.singletonList(
-                RecommendedVariableItemFactory.defArticleParagraphsVariable()
+                RecommendVariableItemFactory.defArticleParagraphsVariable()
         ));
         return variable;
     }

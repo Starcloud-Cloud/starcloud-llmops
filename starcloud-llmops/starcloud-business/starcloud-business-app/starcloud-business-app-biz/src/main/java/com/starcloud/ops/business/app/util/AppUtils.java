@@ -1,10 +1,8 @@
-package com.starcloud.ops.business.app.util.app;
+package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
@@ -195,25 +193,6 @@ public class AppUtils {
      */
     public static String obtainField(String name) {
         return name.replace(" ", "_").toUpperCase();
-    }
-
-    /**
-     * 获取分享链接
-     *
-     * @param uid uid
-     * @return 分享链接
-     */
-    public static String obtainShareLink(String uid) {
-        String profile = SpringUtil.getActiveProfile();
-        if (StringUtils.equals(profile, "cn-test")) {
-            return AppConstants.APP_SHARE_LINK_CN_TEST + uid;
-        } else if (StringUtils.equals(profile, "cn-pro")) {
-            return AppConstants.APP_SHARE_LINK_CN_PROD + uid;
-        } else if (StringUtils.equals(profile, "us-pro")) {
-            return AppConstants.APP_SHARE_LINK_US_PROD + uid;
-        } else {
-            return AppConstants.APP_SHARE_LINK_CN_PROD + uid;
-        }
     }
 
     /**
