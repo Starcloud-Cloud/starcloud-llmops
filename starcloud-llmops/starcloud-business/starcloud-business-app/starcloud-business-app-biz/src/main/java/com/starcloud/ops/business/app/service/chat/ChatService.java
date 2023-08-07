@@ -19,13 +19,12 @@ import java.util.List;
  */
 public interface ChatService {
 
+
     /**
-     * 对话
-     *
+     * 对话聊天
      * @param request
-     * @return
      */
-    SseEmitter chat(ChatRequestVO request);
+    void chat(ChatRequestVO request);
 
     /**
      * 创建聊天应用
@@ -39,7 +38,7 @@ public interface ChatService {
     /**
      * 聊天记录
      *
-     * @param pageQuery
+     * @param
      * @return
      */
     PageResult<LogAppMessageDO> chatHistory(String conversationUid, Integer pageNo, Integer pageSize);
