@@ -19,6 +19,7 @@ import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSou
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataCleanProducer;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
@@ -147,12 +148,19 @@ public class ProcessingServiceImpl implements ProcessingService {
         // 异步发送队列信息
         //sendMQMessage(datasetId, sourceDataId, splitRule, getLoginUserId(), false);
 
+        DatasetSourceDataCleanSendMessage dataCleanSendMessage = new DatasetSourceDataCleanSendMessage();
+
+        dataCleanSendMessage.setDataSourceId(sourceDataId);
+        dataCleanSendMessage.setDatasetId(urlReqVO.getDatasetId());
+        dataCleanSendMessage.setSplitRule(urlReqVO.getSplitRule());
+
+        //@todo 应该是直接使用 当前数据集的creator
+        dataCleanSendMessage.setUserId(getLoginUserId());
+
         if (urlReqVO.getSync()) {
-
-            dataSetProducer.sendMessage(sourceDataId);
+            dataSetProducer.sendMessage(dataCleanSendMessage);
         } else {
-            dataSetProducer.sendCleanDatasetsSendMessage(urlReqVO.getDatasetId(), sourceDataId, urlReqVO.getSplitRule(), getLoginUserId());
-
+            dataSetProducer.asyncSendMessage(dataCleanSendMessage);
         }
 
 

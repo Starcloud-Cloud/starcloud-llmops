@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
 import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataSplitSendConsumer;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataSplitSendMessage;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,18 +59,22 @@ public class DatasetSourceDataSplitProducer extends AbstractDatasetSourceProduce
 
 
     @Override
-    public void asyncSendMessage(Long dataSourceId) {
+    public void asyncSendMessage(DatasetSourceSendMessage sendMessage) {
 
+        this.sendSplitDatasetsSendMessage(sendMessage.getDatasetId(), sendMessage.getDataSourceId(), sendMessage.getSplitRule(), sendMessage.getUserId());
     }
 
     @Override
-    public void sendMessage(Long dataSourceId) {
+    public void sendMessage(DatasetSourceSendMessage sendMessage) {
 
-        DatasetSourceDataSplitSendMessage splitSendMessage = new DatasetSourceDataSplitSendMessage();
+        DatasetSourceDataSplitSendMessage message = new DatasetSourceDataSplitSendMessage();
 
-        splitSendMessage.setDataSourceId(dataSourceId);
-        splitSendMessage.setSync(true);
+        message.setSync(true);
+        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setSplitRule(sendMessage.getSplitRule());
+        message.setUserId(sendMessage.getUserId());
 
-        splitSendConsumer.onMessage(splitSendMessage);
+        splitSendConsumer.onMessage(message);
     }
 }

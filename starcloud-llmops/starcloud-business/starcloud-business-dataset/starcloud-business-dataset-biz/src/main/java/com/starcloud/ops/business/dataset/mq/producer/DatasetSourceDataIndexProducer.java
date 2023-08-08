@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
 import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataIndexSendConsumer;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataIndexSendMessage;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.util.List;
 
 /**
  * 数据集 队列消息发送
+ *
  * @author Alan Cusack
  */
 
@@ -45,27 +47,32 @@ public class DatasetSourceDataIndexProducer extends AbstractDatasetSourceProduce
     /**
      * 发送 {@link DatasetSourceDataCleanSendMessage} 消息
      */
-    public void sendIndexDatasetsSendMessage(String dataSetId, Long dataSourceId, List<String> splitText) {
+    public void sendIndexDatasetsSendMessage(String dataSetId, Long dataSourceId) {
         DatasetSourceDataIndexSendMessage message = new DatasetSourceDataIndexSendMessage()
                 .setDatasetId(dataSetId)
-                .setDataSourceId(dataSourceId)
-                .setSplitText(splitText);
+                .setDataSourceId(dataSourceId);
         redisMQTemplate.send(message);
     }
 
 
     @Override
-    public void asyncSendMessage(Long dataSourceId) {
+    public void asyncSendMessage(DatasetSourceSendMessage sendMessage) {
 
+        this.sendIndexDatasetsSendMessage(sendMessage.getDatasetId(), sendMessage.getDataSourceId());
     }
 
     @Override
-    public void sendMessage(Long dataSourceId) {
+    public void sendMessage(DatasetSourceSendMessage sendMessage) {
 
-        DatasetSourceDataIndexSendMessage indexSendMessage = new DatasetSourceDataIndexSendMessage();
-        indexSendMessage.setDataSourceId(dataSourceId);
+        DatasetSourceDataIndexSendMessage message = new DatasetSourceDataIndexSendMessage();
 
-        indexSendConsumer.onMessage(indexSendMessage);
+        message.setSync(true);
+        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setSplitRule(sendMessage.getSplitRule());
+        message.setUserId(sendMessage.getUserId());
 
+        indexSendConsumer.onMessage(message);
     }
+
 }

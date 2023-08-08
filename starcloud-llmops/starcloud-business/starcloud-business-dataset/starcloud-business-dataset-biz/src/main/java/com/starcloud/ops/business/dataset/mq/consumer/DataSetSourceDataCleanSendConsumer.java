@@ -78,7 +78,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
             datasetSourceDataService.updateDatasourceAndSourceInfo(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus(), JSONObject.toJSONString(DataSourceIndoDTO), message.getUserId());
 
             if (message.getSync()) {
-                dataSplitProducer.sendMessage(message.getDataSourceId());
+                dataSplitProducer.sendMessage(message);
             } else {
                 // 发送消息
                 dataSplitProducer.sendSplitDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), message.getSplitRule(), message.getUserId());

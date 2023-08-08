@@ -3,6 +3,7 @@ package com.starcloud.ops.business.dataset.mq.producer;
 import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
 import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataCleanSendConsumer;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,21 +59,22 @@ public class DatasetSourceDataCleanProducer extends AbstractDatasetSourceProduce
 
 
     @Override
-    public void asyncSendMessage(Long dataSourceId) {
+    public void asyncSendMessage(DatasetSourceSendMessage sendMessage) {
 
-        this.sendCleanDatasetsSendMessage("",1l,null, 1l);
+        this.sendCleanDatasetsSendMessage(sendMessage.getDatasetId(), sendMessage.getDataSourceId(), sendMessage.getSplitRule(), sendMessage.getUserId());
     }
 
     @Override
-    public void sendMessage(Long dataSourceId) {
+    public void sendMessage(DatasetSourceSendMessage sendMessage) {
 
-        DatasetSourceDataCleanSendMessage datasetSourceDataCleanSendMessage = new DatasetSourceDataCleanSendMessage();
+        DatasetSourceDataCleanSendMessage message = new DatasetSourceDataCleanSendMessage();
 
-        //补齐参数
-        datasetSourceDataCleanSendMessage.setDataSourceId(dataSourceId);
-        datasetSourceDataCleanSendMessage.setSync(true);
+        message.setSync(true);
+        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setSplitRule(sendMessage.getSplitRule());
+        message.setUserId(sendMessage.getUserId());
 
-        dataSetSourceDataCleanSendConsumer.onMessage(datasetSourceDataCleanSendMessage);
-
+        dataSetSourceDataCleanSendConsumer.onMessage(message);
     }
 }

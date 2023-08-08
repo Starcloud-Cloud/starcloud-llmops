@@ -47,7 +47,7 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractStreamMessageLis
     public void onMessage(DatasetSourceDataSplitSendMessage message) {
 
         // 设置数据源状态为清洗中
-        datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_IN.getStatus(),null);
+        datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_IN.getStatus(), null);
 
         // 根据数据源 ID获取数据储存ID
         DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
@@ -61,23 +61,23 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractStreamMessageLis
             // fixme 查询清洗数据
             String text = tika.parseToString(new URL(storageDO.getStorageKey()));
             documentSegmentsService.splitDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()), text, message.getSplitRule());
-            datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus(),null);
+            datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus(), null);
             // 发送消息
 
             if (message.getSync()) {
 
-                dataIndexProducer.sendIndexDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), null);
+                dataIndexProducer.sendMessage(message);
 
             } else {
-                dataIndexProducer.sendIndexDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), null);
+                dataIndexProducer.sendIndexDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId());
 
             }
 
 
         } catch (Exception e) {
-            log.error("[DataSetSourceDataCleanSendConsumer][数据分割失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", getLoginUserId(), getTenantId(), message.getDataSourceId(), message.getDataSourceId(),e.getMessage(),e);
+            log.error("[DataSetSourceDataCleanSendConsumer][数据分割失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", getLoginUserId(), getTenantId(), message.getDataSourceId(), message.getDataSourceId(), e.getMessage(), e);
             // 设置数据源状态为清洗中
-            datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(),e.getMessage());
+            datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(), e.getMessage());
         }
     }
 
