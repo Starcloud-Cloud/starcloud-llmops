@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -261,6 +262,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         } else {
 
+            //@todo 主动创建 messageUid
+            //request.setMessageUid();
+
             LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxToken, chatConfig, chatPromptTemplate, emitter);
 
             BaseLLMResult<ChatCompletionResult> result = llmChain.call(humanInput);
@@ -370,7 +374,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         chatOpenAi.setStream(true);
 
-        chatOpenAi.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter, request.getConversationUid()));
+        chatOpenAi.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
 //        ConversationBufferMemory memory = new ConversationBufferMemory();
         ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(),chatConfig.getModelConfig().getCompletionParams().getModel());
 

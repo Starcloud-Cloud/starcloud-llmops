@@ -9,6 +9,7 @@ import static org.springframework.web.servlet.mvc.method.annotation.SseEmitter.e
 /**
  * @author starcloud
  */
+@Data
 public class StreamingSseCallBackHandler implements BaseCallbackHandler {
     private SseEmitter emitter;
 

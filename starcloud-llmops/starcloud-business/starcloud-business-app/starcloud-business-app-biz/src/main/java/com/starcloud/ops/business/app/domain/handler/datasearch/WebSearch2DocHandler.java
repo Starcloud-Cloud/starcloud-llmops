@@ -3,10 +3,10 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.llm.langchain.core.tools.RequestsGetTool;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -32,10 +32,14 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
 
+        String url = context.getRequest().getUrl();
+
+        context.sendCallbackInteractive(InteractiveInfo.buildUrlCard(url));
+
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
 
-        String url = context.getRequest().getUrl();
+
         Response result = new Response();
 
         result.setSummary("Today’s Doodle, illustrated by Frankfurt-based guest artist Cynthia Kittler, celebrates Jewish German poet and artist Else Lasker-Schüler, widely considered one of the greatest lyricists to write in the German language. On this day in 1937, a Swiss newspaper published her famous poem “Mein blaues Klavier” (“My Blue Piano”), which is referenced in today’s Doodle artwork by the piano keys depicted on the camel’s back, alongside other symbols of Lasker-Schüler’s life and work.");
