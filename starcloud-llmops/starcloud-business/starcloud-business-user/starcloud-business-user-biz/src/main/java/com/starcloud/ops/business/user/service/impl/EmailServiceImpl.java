@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import static cn.hutool.core.util.RandomUtil.randomInt;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.USER_EMAIL_EXISTS;
+import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.USER_NOT_EXISTS;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
 @Service
@@ -74,7 +75,7 @@ public class EmailServiceImpl implements CommunicationService {
         checkAccount(email);
         Long userId = WebFrameworkUtils.getLoginUserId();
         if (userId == null) {
-            //todo
+            throw exception(USER_NOT_EXISTS);
         }
         String code = String.valueOf(randomInt(smsCodeProperties.getBeginCode(), smsCodeProperties.getEndCode() + 1));
         redisTemplate.boundValueOps(email + "_code").set(code, 5, TimeUnit.MINUTES);
