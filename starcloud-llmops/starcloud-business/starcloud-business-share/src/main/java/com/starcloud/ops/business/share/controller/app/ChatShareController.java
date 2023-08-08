@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  * @since 2023-06-26
  */
 @RestController
-@RequestMapping("/share/chat")
+@RequestMapping("/s/chat")
 @Tag(name = "魔法AI-分享聊天")
 public class ChatShareController {
 

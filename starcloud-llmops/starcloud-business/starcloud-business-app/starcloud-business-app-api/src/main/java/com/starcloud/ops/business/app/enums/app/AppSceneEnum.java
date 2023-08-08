@@ -29,28 +29,28 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * iframe场景入口
      */
-    SHARE_IFRAME(3, "SHARE_IFRAME"),
+    SHARE_IFRAME(4, "SHARE_IFRAME"),
 
 
     /**
      * js页面场景入口
      */
-    SHARE_JS(4, "SHARE_JS"),
+    SHARE_JS(5, "SHARE_JS"),
 
     /**
      * API场景入口
      */
-    SHARE_API(5, "SHARE_API"),
+    SHARE_API(6, "SHARE_API"),
 
     /**
      * 聊天测试场景
      */
-    CHAT_TEST(6,"CHAT_TEST"),
+    CHAT_TEST(7,"CHAT_TEST"),
 
     /**
      * chat 场景
      */
-    CHAT(7,"CHAT"),
+    CHAT(8,"CHAT"),
 
 
     /**
