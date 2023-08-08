@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 @Data
+@Accessors(chain = true)
 public class InteractiveInfo {
 
     private String id;
@@ -21,6 +23,9 @@ public class InteractiveInfo {
 
     private String url;
 
+    /**
+     * 反馈状态，0 开始，1完成，3，失败？
+     */
     private int status;
 
     private Object data;

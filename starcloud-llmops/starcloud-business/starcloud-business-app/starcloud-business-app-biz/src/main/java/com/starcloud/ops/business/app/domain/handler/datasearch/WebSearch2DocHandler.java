@@ -34,7 +34,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
         String url = context.getRequest().getUrl();
 
-        //@todo 获取当前上下文配置的 tools 执行 tips
+        //@todo 通过上下文获取当前可能配置的 tools 执行 tips
         InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容");
 
         context.sendCallbackInteractiveStart(interactiveInfo);

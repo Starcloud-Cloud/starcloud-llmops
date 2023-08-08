@@ -32,6 +32,11 @@ public class HandlerContext<Q> {
     }
 
 
+    /**
+     * 开始交互反馈
+     *
+     * @param interactiveInfo
+     */
     public void sendCallbackInteractiveStart(InteractiveInfo interactiveInfo) {
 
         interactiveInfo.setStatus(0);
@@ -43,6 +48,11 @@ public class HandlerContext<Q> {
         this.sendCallbackInteractive(interactiveInfo);
     }
 
+    /**
+     * 完成交互反馈
+     *
+     * @param interactiveInfo
+     */
     public void sendCallbackInteractiveEnd(InteractiveInfo interactiveInfo) {
 
         interactiveInfo.setStatus(1);
