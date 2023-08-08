@@ -32,7 +32,9 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
                 .code(200)
                 .type("m")
                 .content(objects[0].toString())
-                .conversationUid(chatRequestVO.getConversationUid()).build();
+                .conversationUid(chatRequestVO.getConversationUid())
+                .messageUid(chatRequestVO.getMessageUid())
+                .build();
 
         this.getEmitter().send(streamResult);
     }
@@ -48,7 +50,9 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
                 .code(500)
                 .type("m")
                 .content(message)
-                .conversationUid(chatRequestVO.getConversationUid()).build();
+                .conversationUid(chatRequestVO.getConversationUid())
+                .messageUid(chatRequestVO.getMessageUid())
+                .build();
 
         this.getEmitter().send(streamResult);
     }
