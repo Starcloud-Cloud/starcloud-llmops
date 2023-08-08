@@ -34,7 +34,9 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
         String url = context.getRequest().getUrl();
 
-        context.sendCallbackInteractive(InteractiveInfo.buildUrlCard(url));
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容");
+
+        context.sendCallbackInteractiveStart(interactiveInfo);
 
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
@@ -52,6 +54,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
         handlerResponse.setOutput(result);
 
+        context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;
     }

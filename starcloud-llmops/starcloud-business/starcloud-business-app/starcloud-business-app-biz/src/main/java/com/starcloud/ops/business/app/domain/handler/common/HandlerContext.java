@@ -1,5 +1,8 @@
 package com.starcloud.ops.business.app.domain.handler.common;
 
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
@@ -28,13 +31,32 @@ public class HandlerContext<Q> {
     private HandlerContext() {
     }
 
+
+    public void sendCallbackInteractiveStart(InteractiveInfo interactiveInfo) {
+
+        interactiveInfo.setStatus(0);
+        //新建一个
+        if (StrUtil.isBlank(interactiveInfo.getId())) {
+            interactiveInfo.setId(RandomUtil.randomString(5));
+        }
+
+        this.sendCallbackInteractive(interactiveInfo);
+    }
+
+    public void sendCallbackInteractiveEnd(InteractiveInfo interactiveInfo) {
+
+        interactiveInfo.setStatus(1);
+        this.sendCallbackInteractive(interactiveInfo);
+
+    }
+
     /**
      * 设置回调信息，现在只有前端 SSE使用
      *
      * @param interactiveInfo
      */
     @SneakyThrows
-    public void sendCallbackInteractive(InteractiveInfo interactiveInfo) {
+    private void sendCallbackInteractive(InteractiveInfo interactiveInfo) {
 
         if (this.getSseEmitter() != null) {
 
@@ -48,7 +70,6 @@ public class HandlerContext<Q> {
 
             this.getSseEmitter().send(result);
         }
-
 
     }
 

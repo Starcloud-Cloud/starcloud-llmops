@@ -5,9 +5,13 @@ import lombok.Data;
 @Data
 public class InteractiveInfo {
 
+    private String id;
+
     private Boolean success;
 
     private String showType;
+
+    private String tips;
 
     private String title;
 
@@ -16,6 +20,8 @@ public class InteractiveInfo {
     private String picUrl;
 
     private String url;
+
+    private int status;
 
     private Object data;
 
