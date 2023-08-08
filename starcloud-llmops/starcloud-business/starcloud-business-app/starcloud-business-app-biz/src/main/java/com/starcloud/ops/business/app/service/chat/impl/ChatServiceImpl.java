@@ -148,6 +148,7 @@ public class ChatServiceImpl implements ChatService {
     public String createChatApp(String uid, String name) {
         AppRespVO recommendApp = appService.getRecommendApp(uid);
         AppEntity appEntity = AppConvert.INSTANCE.convertApp(recommendApp);
+        appEntity.setUid(null);
         appEntity.setName(name);
         appEntity.insert();
         return appEntity.getUid();
