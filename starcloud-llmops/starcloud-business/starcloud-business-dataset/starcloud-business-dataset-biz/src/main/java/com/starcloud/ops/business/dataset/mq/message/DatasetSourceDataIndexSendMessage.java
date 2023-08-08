@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DatasetSourceDataIndexSendMessage extends AbstractStreamMessage {
+public class DatasetSourceDataIndexSendMessage extends DatasetSourceSendMessage {
 
     /**
      * 数据集编号
@@ -33,11 +33,6 @@ public class DatasetSourceDataIndexSendMessage extends AbstractStreamMessage {
     @NotNull(message = " 用户 ID不能为空")
     private Long userId;
 
-    /**
-     * 分割后的数据集合
-     */
-    @NotNull(message = "分割后的数据结集合")
-    private List<String> splitText;
 
     @Override
     public String getStreamKey() {

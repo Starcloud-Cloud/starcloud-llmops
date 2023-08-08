@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 @Schema(description = "管理后台 - 字符上传 Request VO")
 @Data
 @ToString(callSuper = true)
-public class UploadCharacterReqVO {
+public class UploadCharacterReqVO extends UploadReqVO {
 
     @Schema(description = "标题", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "标题不能为空")

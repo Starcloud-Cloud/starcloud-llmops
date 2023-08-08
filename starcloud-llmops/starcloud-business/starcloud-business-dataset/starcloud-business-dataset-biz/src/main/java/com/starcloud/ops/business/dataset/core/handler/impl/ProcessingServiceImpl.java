@@ -3,6 +3,7 @@ package com.starcloud.ops.business.dataset.core.handler.impl;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
 import com.starcloud.ops.business.dataset.convert.datasetstorage.DatasetStorageConvert;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
@@ -18,6 +19,7 @@ import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSou
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataCleanProducer;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
@@ -90,6 +92,16 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
+    public Boolean urlProcessing(UploadUrlReqVO urlReqVO, Integer dataModel, String dataType) {
+        log.info("====> 数据集{}开始上传URL,分割规则为{}", urlReqVO.getDatasetId(), urlReqVO.getSplitRule());
+        validate(urlReqVO.getSplitRule(), urlReqVO.getDatasetId());
+        urlUploadStrategy.setUrl(urlReqVO.getUrl());
+        UploadFileRespDTO process = urlUploadStrategy.process(getUserId(urlReqVO.getDatasetId()));
+        // 执行通用逻辑并且返回
+        return commonProcess(process, urlReqVO, dataModel, dataType);
+    }
+
+    @Override
     public Boolean stringProcessing(String title, String context, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
         log.info("====> 数据集{}开始上传字符串,分割规则为{}", datasetId, splitRule);
         validate(splitRule, datasetId);
@@ -99,6 +111,8 @@ public class ProcessingServiceImpl implements ProcessingService {
         return commonProcess(process, datasetId, splitRule, batch, dataModel, dataType);
     }
 
+
+    @Deprecated
     private Boolean commonProcess(UploadFileRespDTO process, String datasetId, SplitRule splitRule, String batch, Integer dataModel, String dataType) {
         if (!process.getStatus()) {
             return false;
@@ -111,7 +125,45 @@ public class ProcessingServiceImpl implements ProcessingService {
         Long sourceDataId = this.saveSourceData(process, storageId, datasetId, batch, dataModel, dataType);
         log.info("====> 源数据保存成功,开始异步发送队列信息 ");
         // 异步发送队列信息
-        sendMQMessage(datasetId, sourceDataId, splitRule, getLoginUserId());
+        //sendMQMessage(datasetId, sourceDataId, splitRule, getLoginUserId(), false);
+
+        dataSetProducer.sendCleanDatasetsSendMessage(datasetId, sourceDataId, splitRule, getLoginUserId());
+
+        log.info("====> 返回数据上传信息");
+
+        return true;
+    }
+
+    private Boolean commonProcess(UploadFileRespDTO process, UploadUrlReqVO urlReqVO, Integer dataModel, String dataType) {
+        if (!process.getStatus()) {
+            return false;
+        }
+        log.info("====> 数据上传成功,开始保存数据");
+        // 保存上传记录
+        Long storageId = saveStorageData(process);
+        log.info("====> 上传记录保存成功,开始保存源数据 ");
+        // 保存源数据
+        Long sourceDataId = this.saveSourceData(process, storageId, urlReqVO.getDatasetId(), urlReqVO.getBatch(), dataModel, dataType);
+        log.info("====> 源数据保存成功,开始异步发送队列信息 ");
+        // 异步发送队列信息
+        //sendMQMessage(datasetId, sourceDataId, splitRule, getLoginUserId(), false);
+
+        DatasetSourceDataCleanSendMessage dataCleanSendMessage = new DatasetSourceDataCleanSendMessage();
+
+        dataCleanSendMessage.setDataSourceId(sourceDataId);
+        dataCleanSendMessage.setDatasetId(urlReqVO.getDatasetId());
+        dataCleanSendMessage.setSplitRule(urlReqVO.getSplitRule());
+
+        //@todo 应该是直接使用 当前数据集的creator
+        dataCleanSendMessage.setUserId(getLoginUserId());
+
+        if (urlReqVO.getSync()) {
+            dataSetProducer.sendMessage(dataCleanSendMessage);
+        } else {
+            dataSetProducer.asyncSendMessage(dataCleanSendMessage);
+        }
+
+
         log.info("====> 返回数据上传信息");
 
         return true;
@@ -138,8 +190,9 @@ public class ProcessingServiceImpl implements ProcessingService {
         log.info("====> 验证通过，执行上传逻辑");
     }
 
-    @Async
-    protected void sendMQMessage(String datasetId, Long dataSourceId, SplitRule splitRule, Long userID) {
+
+    @Deprecated
+    protected void sendMQMessage(String datasetId, Long dataSourceId, SplitRule splitRule, Long userID, Boolean sync) {
         dataSetProducer.sendCleanDatasetsSendMessage(datasetId, dataSourceId, splitRule, userID);
     }
 
@@ -183,10 +236,10 @@ public class ProcessingServiceImpl implements ProcessingService {
         return dataDO.getId();
     }
 
-    private Long getUserId(String datasetId){
+    private Long getUserId(String datasetId) {
         Long loginUserId = getLoginUserId();
-        if (loginUserId == null){
-            String  creator= datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, datasetId)).getCreator();
+        if (loginUserId == null) {
+            String creator = datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, datasetId)).getCreator();
             loginUserId = Long.valueOf(creator);
         }
         return loginUserId;

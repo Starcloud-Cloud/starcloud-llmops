@@ -74,6 +74,9 @@ public class ChatVoiceController {
                 httpServletResponse.setContentLength(bytes.length);
                 httpServletResponse.getOutputStream().write(bytes);
 
+                httpServletResponse.getOutputStream().flush();
+                httpServletResponse.getOutputStream().close();
+
             } catch (Exception e) {
                 log.error("example is fail: {}", e.getMessage(), e);
             }
