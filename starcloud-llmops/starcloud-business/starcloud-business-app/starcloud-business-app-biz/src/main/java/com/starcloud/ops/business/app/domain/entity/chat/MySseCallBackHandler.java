@@ -59,7 +59,7 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
 
     @Builder
     @Data
-    public class StreamResult {
+    public static class StreamResult {
 
         private int code;
 
