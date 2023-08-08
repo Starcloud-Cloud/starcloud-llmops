@@ -209,4 +209,10 @@ public interface AdminUserService {
      */
     boolean isPasswordMatch(String rawPassword, String encodedPassword);
 
+    /**
+     * 通过邮箱获取用户
+     * @param email
+     * @return
+     */
+    AdminUserDO getUserByEmail(String email);
 }

@@ -20,7 +20,13 @@ public enum SmsSceneEnum implements IntArrayValuable {
     MEMBER_UPDATE_MOBILE(2, "user-sms-reset-password", "会员用户 - 修改手机"),
     MEMBER_FORGET_PASSWORD(3, "user-sms-update-mobile", "会员用户 - 忘记密码"),
 
-    ADMIN_MEMBER_LOGIN(21, "admin-sms-login", "后台用户 - 手机号登录");
+    ADMIN_MEMBER_LOGIN(21, "admin-sms-login", "后台用户 - 手机号登录"),
+
+    ADMIN_MEMBER_REGISTER(22,"admin-sms-register","后台用户 - 手机号注册"),
+
+    ADMIN_MEMBER_BIND(23,"admin_member_bind","后台用户 - 手机号绑定")
+    ;
+
 
     public static final int[] ARRAYS = Arrays.stream(values()).mapToInt(SmsSceneEnum::getScene).toArray();
 

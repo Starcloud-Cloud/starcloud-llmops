@@ -444,6 +444,11 @@ public class AdminUserServiceImpl implements AdminUserService {
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 
+    @Override
+    public AdminUserDO getUserByEmail(String email) {
+        return userMapper.selectByEmail(email);
+    }
+
     /**
      * 对密码进行加密
      *

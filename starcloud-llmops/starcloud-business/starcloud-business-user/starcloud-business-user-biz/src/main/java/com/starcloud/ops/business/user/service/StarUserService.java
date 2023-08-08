@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.user.service;
 
+import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
+import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
@@ -25,12 +27,19 @@ public interface StarUserService {
     boolean activation(String activationCode);
 
     /**
-     * 增加权限
+     * 增加权益
      *
      * @param currentUserId
      * @param inviteUserId
      */
     void addBenefits(Long currentUserId, Long inviteUserId);
+
+    /**
+     * 增加权益
+     * @param currentUserId
+     * @param inviteCode 邀请码
+     */
+    void addInviteBenefits(Long currentUserId, String inviteCode);
 
     /**
      * 找回密码
@@ -75,4 +84,13 @@ public interface StarUserService {
      * @return
      */
     Boolean updateUserProfile(UserProfileUpdateRequest request);
+
+    /**
+     * 登录并记录日志
+     * @param userId
+     * @param username
+     * @param logType
+     * @return
+     */
+    AuthLoginRespVO createTokenAfterLoginSuccess(Long userId, String username, LoginLogTypeEnum logType);
 }
