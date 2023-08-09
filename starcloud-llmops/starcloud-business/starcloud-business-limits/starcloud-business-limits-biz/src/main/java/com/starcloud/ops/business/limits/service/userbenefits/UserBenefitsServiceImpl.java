@@ -595,12 +595,12 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 // throw exception(USER_BENEFITS_USELESS_INTEREST);
             }
             // 权益扣除
-            updateBenefits(resultList, getter, setter, amount);
+            List<UserBenefitsDO> usedBenefitsDOS = updateBenefits(resultList, getter, setter, amount);
 
             // 批量更新数据
             userBenefitsMapper.updateBatch(resultList, resultList.size());
 
-            benefitsIds = resultList.stream()
+            benefitsIds = usedBenefitsDOS.stream()
                     .map(UserBenefitsDO::getId)
                     .collect(Collectors.toList());
         }
@@ -628,9 +628,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param setter     setter
      * @param amount     增加或者扣减数
      */
-    private void updateBenefits(List<UserBenefitsDO> resultList, Function<UserBenefitsDO, Long> getter, BiConsumer<UserBenefitsDO, Long> setter, Long amount) {
+    private List<UserBenefitsDO> updateBenefits(List<UserBenefitsDO> resultList, Function<UserBenefitsDO, Long> getter, BiConsumer<UserBenefitsDO, Long> setter, Long amount) {
 
         long remainingAmount = amount;
+
+        List<UserBenefitsDO> usedBenefitsList = new ArrayList<>(); // 创建用于记录已使用的权益的列表
 
         for (UserBenefitsDO userBenefits : resultList) {
             // 获取当前权益已使用数量
@@ -646,14 +648,17 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
             // 如果剩余需扣除数量已为0或负数，退出循环
             if (remainingAmount <= 0) {
-
+                usedBenefitsList.add(userBenefits); // 将已使用的权益添加到列表中
                 break;
+            }else {
+                usedBenefitsList.add(userBenefits); // 将已使用的权益添加到列表中
             }
         }
 
         if (remainingAmount > 0) {
             log.warn("[expendBenefits][权益扣减成功，用户剩余权益不足扣除：用户ID({})｜权益类型({})|剩余数量({})", getLoginUserId(), getter.toString(), remainingAmount);
         }
+        return usedBenefitsList;
 
     }
 
