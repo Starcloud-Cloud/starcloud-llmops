@@ -37,6 +37,8 @@ public enum BenefitsTypeEnums {
      */
     TOKEN("TOKEN", "令牌","token"),
 
+    BOT("BOT", "机器人","bot"),
+
     ;
 
     /**

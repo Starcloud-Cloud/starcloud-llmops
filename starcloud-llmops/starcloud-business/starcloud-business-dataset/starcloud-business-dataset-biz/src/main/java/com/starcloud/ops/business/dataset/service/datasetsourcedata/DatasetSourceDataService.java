@@ -41,21 +41,28 @@ public interface DatasetSourceDataService {
      *
      * @return 编号
      */
-    SourceDataUploadDTO uploadFilesSourceData(MultipartFile files, String batch, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadFilesSourceData(MultipartFile file, UploadFileReqVO reqVO);
 
     /**
      * 上传URL-支持批量上传
      *
      * @return 编号
      */
-    SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO> urls, String batch, SplitRule splitRule, String datasetId);
+    List<SourceDataUploadDTO>  uploadUrlsSourceData(UploadUrlReqVO reqVO);
+
+    /**
+     * 上传URL-支持批量上传
+     *
+     * @return 编号
+     */
+    List<SourceDataUploadDTO> uploadUrlsAndCreateDataset(UploadUrlReqVO reqVO);
 
     /**
      * 上传字符-支持批量上传
      *
      * @return 编号
      */
-    SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS, String batch, SplitRule splitRule, String datasetId);
+    List<SourceDataUploadDTO>  uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS);
 
     /**
      * 批量创建数据集源数据
@@ -100,8 +107,9 @@ public interface DatasetSourceDataService {
      * 获取数据源详情
      *
      * @param uid 数据集源数据编号
+     * @param enable  如果 enable 为 true 则详情内容默认为清洗后的数据
      */
-    DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid);
+    DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid, Boolean enable);
 
     PageResult<DatasetSourceDataSplitPageRespVO> getSplitDetails(DatasetSourceDataSplitPageReqVO reqVO);
 

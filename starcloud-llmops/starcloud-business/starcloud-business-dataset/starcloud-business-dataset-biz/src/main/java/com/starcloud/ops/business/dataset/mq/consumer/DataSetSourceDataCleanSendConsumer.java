@@ -52,6 +52,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
 
     @Override
     public void onMessage(DatasetSourceDataCleanSendMessage message) {
+        log.info("开始清洗数据，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
 
         // 设置数据源状态为清洗中
         datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_IN.getStatus(),null);
@@ -77,17 +78,18 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
             DataSourceIndoDTO.setCleanId(cleanId);
             datasetSourceDataService.updateDatasourceAndSourceInfo(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus(), JSONObject.toJSONString(DataSourceIndoDTO), message.getUserId());
 
+            log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
             if (message.getSync()) {
                 dataSplitProducer.sendMessage(message);
             } else {
                 // 发送消息
-                dataSplitProducer.sendSplitDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), message.getSplitRule(), message.getUserId());
+                dataSplitProducer.asyncSendMessage(message);
 
             }
 
         } catch (Exception e) {
-            log.error("[DataSetSourceDataCleanSendConsumer][数据清洗失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因 ({})", message.getUserId(), getTenantId(), message.getDataSourceId(), message.getDataSourceId(),e.getMessage(),e);
-            // 设置数据源状态为清洗中
+            log.error("[DataSetSourceDataCleanSendConsumer][数据清洗失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因 ({})", message.getUserId(), getTenantId(), message.getDatasetId(), message.getDataSourceId(),e.getMessage(),e);
+            // 设置数据源状态为清洗失败
             datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(),e.getMessage());
         }
         // 设置数据源状态为清洗结束

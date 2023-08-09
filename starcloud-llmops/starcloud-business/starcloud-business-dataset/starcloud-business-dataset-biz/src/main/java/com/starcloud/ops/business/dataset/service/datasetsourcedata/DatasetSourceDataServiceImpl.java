@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.http.HtmlUtil;
+import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -9,8 +11,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadCharacterReqDTO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
+import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
@@ -18,6 +20,8 @@ import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
+import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
+import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.dto.DataSourceIndoDTO;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
@@ -61,6 +65,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Resource
     private ProcessingService processingService;
 
+    @Resource
+    private DatasetsService datasetsService;
+
+    @Resource
+    private DatasetStorageService datasetStorageService;
+
     @Autowired
     private DocumentSegmentsService documentSegmentsService;
 
@@ -103,13 +113,13 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * 上传文件-支持批量上传
      *
      * @param file
-     * @param splitRule
-     * @param datasetId
+     * @param reqVO
      * @return 编号
      */
     @Override
-    public SourceDataUploadDTO uploadFilesSourceData(MultipartFile file, String batch, SplitRule splitRule, String datasetId) {
+    public SourceDataUploadDTO uploadFilesSourceData(MultipartFile file, UploadFileReqVO reqVO) {
 
+        validateSplitRule(reqVO, DataSourceDataTypeEnum.URL.name());
         SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
         ArrayList<Boolean> source = new ArrayList<>();
@@ -121,13 +131,19 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw new RuntimeException(e);
         }
 
-        Boolean booleanFuture = processingService.fileProcessing(file, fileContent, splitRule, datasetId, batch, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.DOCUMENT.name());
-        source.add(booleanFuture);
+        String result = processingService.fileProcessing(file, fileContent, reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.DOCUMENT.name());
 
+        sourceDataUrlUploadDTO.setDatasetId(reqVO.getDatasetId());
+        sourceDataUrlUploadDTO.setBatch(reqVO.getBatch());
 
-        sourceDataUrlUploadDTO.setDatasetId(datasetId);
-        sourceDataUrlUploadDTO.setBatch(batch);
-        sourceDataUrlUploadDTO.setStatus(source);
+        if (result == null) {
+            sourceDataUrlUploadDTO.setStatus(false);
+            sourceDataUrlUploadDTO.setSourceDataId(null);
+        } else {
+            sourceDataUrlUploadDTO.setStatus(true);
+            sourceDataUrlUploadDTO.setSourceDataId(result);
+        }
+
 
         return sourceDataUrlUploadDTO;
     }
@@ -136,44 +152,75 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     /**
      * 上传文件-支持批量上传
      *
-     * @param urls
-     * @param splitRule
-     * @param datasetId
+     * @param reqVO
      * @return 编号
      */
     @Override
-    public SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO> urls, String batch, SplitRule splitRule, String datasetId) {
+    public List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO) {
 
-        // 校验 URL 是否合法
+        // UploadReqVO uploadReqVO = validateSplitRule(reqVO, DataSourceDataTypeEnum.URL.name());
+        //
+        // UploadUrlReqVO uploadUrlReqVO = (UploadUrlReqVO) uploadReqVO;
+        // uploadUrlReqVO.setUrls(reqVO.getUrls());
+        // reqVO = uploadUrlReqVO;
+        validateSplitRule(reqVO, DataSourceDataTypeEnum.URL.name());
 
-        SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
-        sourceDataUrlUploadDTO.setDatasetId(datasetId);
-        sourceDataUrlUploadDTO.setBatch(batch);
-        // 异步处理文件
-        List<Boolean> source = urls.stream()
+        // 异步处理
+        UploadUrlReqVO finalReqVO = reqVO;
+
+        List<SourceDataUploadDTO> collect = reqVO.getUrls().stream()
                 .map(url -> {
-                    ListenableFuture<Boolean> executed = this.executeAsyncWithUrl(url, batch, splitRule, datasetId);
+                    SourceDataUploadDTO sourceDataUploadDTO = new SourceDataUploadDTO();
+                    sourceDataUploadDTO.setDatasetId(finalReqVO.getDatasetId());
+                    sourceDataUploadDTO.setBatch(finalReqVO.getBatch());
+
+                    ListenableFuture<String> executed = this.executeAsyncWithUrl(url, finalReqVO);
+
                     try {
-                        return executed.get();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    } catch (ExecutionException e) {
+                        String result = executed.get();
+                        if (result == null) {
+                            sourceDataUploadDTO.setStatus(false);
+                            sourceDataUploadDTO.setSourceDataId(null);
+                        } else {
+                            sourceDataUploadDTO.setStatus(true);
+                            sourceDataUploadDTO.setSourceDataId(result);
+                        }
+
+                    } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException(e);
                     }
-                })
-                .collect(Collectors.toList());
 
-        sourceDataUrlUploadDTO.setStatus(source);
+                    return sourceDataUploadDTO;
+                }).collect(Collectors.toList());
 
 
-        return sourceDataUrlUploadDTO;
+        return collect;
+    }
+
+    /**
+     * 上传URL -
+     *
+     * @param reqVO
+     * @return 编号
+     */
+    @Override
+    public List<SourceDataUploadDTO> uploadUrlsAndCreateDataset(UploadUrlReqVO reqVO) {
+        // 判断数据集是否存在，不存在则创建数据集
+        try {
+            datasetsService.validateDatasetsExists(reqVO.getDatasetId());
+        } catch (Exception e) {
+            log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", reqVO.getDatasetId());
+            String datasetName = String.format("应用%s的数据集", reqVO.getDatasetId());
+            datasetsService.createDatasetsByApplication(reqVO.getDatasetId(), datasetName);
+        }
+        return uploadUrlsSourceData(reqVO);
     }
 
 
     @Async
-    public ListenableFuture<Boolean> executeAsyncWithUrl(UploadUrlReqVO url, String batch, SplitRule splitRule, String datasetId) {
-        return AsyncResult.forValue(processingService.urlProcessing(url, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.URL.name()));
+    public ListenableFuture<String> executeAsyncWithUrl(String url, UploadUrlReqVO reqVO) {
+        return AsyncResult.forValue(processingService.urlProcessing(url, reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.URL.name()));
     }
 
 
@@ -181,35 +228,33 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * 上传文件-支持批量上传
      *
      * @param reqVOS
-     * @param splitRule
-     * @param datasetId
      * @return 编号
      */
     @Override
-    public SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS, String batch, SplitRule splitRule, String datasetId) {
-        SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
+    public List<SourceDataUploadDTO> uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS) {
+        List<SourceDataUploadDTO> collect = reqVOS.stream().map(reqVO -> {
+            SourceDataUploadDTO sourceDataUploadDTO = new SourceDataUploadDTO();
+            sourceDataUploadDTO.setDatasetId(reqVO.getDatasetId());
+            sourceDataUploadDTO.setBatch(reqVO.getBatch());
 
-        ArrayList<Boolean> source = new ArrayList<>();
+            String result = processingService.stringProcessing(reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.CHARACTERS.name());
 
-        for (UploadCharacterReqVO reqVO : reqVOS) {
+            if (result == null) {
+                sourceDataUploadDTO.setStatus(false);
+                sourceDataUploadDTO.setSourceDataId(null);
+            } else {
+                sourceDataUploadDTO.setStatus(true);
+                sourceDataUploadDTO.setSourceDataId(result);
+            }
+            return sourceDataUploadDTO;
+        }).collect(Collectors.toList());
 
-            UploadCharacterReqDTO bean = BeanUtil.toBean(reqVO, UploadCharacterReqDTO.class);
-            Boolean aBoolean = processingService.stringProcessing(bean.getTitle(), bean.getContext(), splitRule, datasetId, batch, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.CHARACTERS.name());
-            source.add(aBoolean);
-        }
-
-        sourceDataUrlUploadDTO.setDatasetId(datasetId);
-        sourceDataUrlUploadDTO.setBatch(batch);
-        sourceDataUrlUploadDTO.setStatus(source);
-
-        return sourceDataUrlUploadDTO;
+        return collect;
     }
 
 
     @Override
     public List<Long> batchCreateDatasetSourceData(String datasetId, List<SourceDataBatchCreateReqVO> batchCreateReqVOS) {
-
-        // TODO 校验数据集是否存在
 
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
@@ -262,6 +307,29 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         }
     }
 
+    private UploadReqVO validateSplitRule(UploadReqVO reqVO, String dataType) {
+        if (reqVO.getSplitRule() == null) {
+            DataSourceDataTypeEnum dataTypeEnum = DataSourceDataTypeEnum.valueOf(dataType);
+            SplitRule splitRule = new SplitRule();
+            splitRule.setAutomatic(true);
+            splitRule.setRemoveExtraSpaces(true);
+            splitRule.setSeparator(null);
+            switch (dataTypeEnum) {
+                case URL:
+                    splitRule.setRemoveUrlsEmails(false);
+                    splitRule.setChunkSize(2000);
+                    break;
+                case DOCUMENT:
+                case CHARACTERS:
+                    splitRule.setRemoveUrlsEmails(true);
+                    splitRule.setChunkSize(3000);
+                    break;
+            }
+            reqVO.setSplitRule(splitRule);
+        }
+        return reqVO;
+    }
+
 
     private void validateDatasetSourceDataExists(String filedId, String datasetID) {
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery(DatasetSourceDataDO.class)
@@ -291,7 +359,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @param uid 数据集源数据编号
      */
     @Override
-    public DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid) {
+    public DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid, Boolean enable) {
 
         DatasetSourceDataDO sourceDataDO = datasetSourceDataMapper.selectOne(
                 Wrappers.lambdaQuery(DatasetSourceDataDO.class)
@@ -300,8 +368,18 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
 
         DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
+        if (enable) {
+            Long cleanId = dataSourceIndoDTO.getCleanId();
+            DatasetStorageDO datasetStorageDO = datasetStorageService.selectDataById(cleanId);
+            if (datasetStorageDO != null) {
+                byte[] bytes = HttpUtil.downloadBytes(datasetStorageDO.getStorageKey());
+                String result = new String(bytes);
+                datasetSourceDataDetailsInfoVO.setSummaryContent(result);
+            }
 
-        datasetSourceDataDetailsInfoVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
+        } else {
+            datasetSourceDataDetailsInfoVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
+        }
 
         return datasetSourceDataDetailsInfoVO;
     }
@@ -317,7 +395,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 Wrappers.lambdaQuery(DatasetSourceDataDO.class)
                         .eq(DatasetSourceDataDO::getUid, reqVO.getUid()));
 
-        if (sourceDataDO != null){
+        if (sourceDataDO != null) {
             SegmentPageQuery segmentPageQuery = BeanUtil.copyProperties(reqVO, SegmentPageQuery.class);
 
             segmentPageQuery.setDocumentUid(String.valueOf(sourceDataDO.getId()));
@@ -325,11 +403,11 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             PageResult<DocumentSegmentDO> documentSegmentDOPageResult = documentSegmentsService.segmentDetail(segmentPageQuery);
 
             return DatasetSourceDataConvert.INSTANCE.convertSplitPage(documentSegmentDOPageResult);
-        }else {
+        } else {
             PageResult<DatasetSourceDataSplitPageRespVO> pageResult = new PageResult<DatasetSourceDataSplitPageRespVO>();
             pageResult.setList(null);
             pageResult.setTotal(0L);
-            return  pageResult;
+            return pageResult;
         }
 
 
@@ -377,7 +455,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     /**
      * 更新据集源数据状态
      *
-     * @param id    数据集源数据编号
+     * @param id     数据集源数据编号
      * @param status
      */
     @Override

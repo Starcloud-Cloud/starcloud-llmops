@@ -4,7 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadResultDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,9 +41,9 @@ public class FileUploadStrategy implements UploadStrategy {
      * @return UploadFileRespDTO
      */
     @Override
-    public UploadFileRespDTO process(Long userId) {
+    public UploadResultDTO process(Long userId) {
         log.info("====> 文件开始上传 ,初始化数据状态为 false");
-        UploadFileRespDTO uploadFileRespDTO = new UploadFileRespDTO();
+        UploadResultDTO uploadFileRespDTO = new UploadResultDTO();
 
         // 获取文件的name
         String name = uploadFile.getOriginalFilename();

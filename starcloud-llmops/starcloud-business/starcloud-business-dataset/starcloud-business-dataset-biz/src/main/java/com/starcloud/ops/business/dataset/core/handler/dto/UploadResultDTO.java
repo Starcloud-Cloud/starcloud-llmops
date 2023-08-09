@@ -1,12 +1,31 @@
 package com.starcloud.ops.business.dataset.core.handler.dto;
 
+import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import lombok.Data;
 
 /**
  * 数据上传结果 DTO
  */
 @Data
-public class UploadFileRespDTO {
+public class UploadResultDTO {
+
+    /**
+     * 是否同步
+     */
+    private Boolean sync;
+    /**
+     * 批次
+     */
+    private String batch;
+    /**
+     * 分割规则
+     */
+    private SplitRule splitRule;
+
+    /**
+     * 数据集 ID
+     */
+    private String datasetId;
 
     /**
      * 数据名称
@@ -44,5 +63,15 @@ public class UploadFileRespDTO {
     private Boolean status = false;
 
 
+    /**
+     * 数据模型
+     */
+    private Integer dataModel;
+
+
+    /**
+     * 数据类型
+     */
+    private String dataType;
 
 }

@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -39,22 +40,19 @@ public class DatasetSourceDataController {
     @Resource
     private DatasetSourceDataService datasetSourceDataService;
 
-
-    @GetMapping("/page/{datasetId}")
+    @PostMapping("/page")
     @Operation(summary = "获得数据集源数据存储分页")
     // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
-    public CommonResult<PageResult<DatasetSourceDataRespVO>> getDatasetStoragePage(@PathVariable("datasetId") String datasetId,
-                                                                                   @Validated DatasetSourceDataPageReqVO pageVO) {
-
-        pageVO.setDatasetId(datasetId);
+    public CommonResult<PageResult<DatasetSourceDataRespVO>> getDatasetStoragePage(@RequestBody DatasetSourceDataPageReqVO pageVO) {
         PageResult<DatasetSourceDataDO> pageResult = datasetSourceDataService.getDatasetSourceDataPage(pageVO);
         return success(DatasetSourceDataConvert.INSTANCE.convertPage(pageResult));
     }
 
-    @GetMapping("/details/split/{datasetId}/{documentId}")
+    @PostMapping("/details/split")
     @Operation(summary = "获得源数据内容详情")
     // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
-    public CommonResult<PageResult<DatasetSourceDataSplitPageRespVO>> getSourceDataDetailsInfo(@Validated @RequestBody DatasetSourceDataSplitPageReqVO reqVO) {
+    public CommonResult<PageResult<DatasetSourceDataSplitPageRespVO>> getSourceDataDetailsInfo(@RequestBody DatasetSourceDataSplitPageReqVO reqVO) {
+
         return success(datasetSourceDataService.getSplitDetails(reqVO));
     }
 
@@ -62,7 +60,7 @@ public class DatasetSourceDataController {
     @Operation(summary = "获得源数据详情")
     // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
     public CommonResult<DatasetSourceDataDetailsInfoVO> getSourceDataDetailsInfo(@PathVariable("uid") String uid) {
-        return success(datasetSourceDataService.getSourceDataDetailsInfo(uid));
+        return success(datasetSourceDataService.getSourceDataDetailsInfo(uid,false));
     }
 
 
@@ -94,7 +92,7 @@ public class DatasetSourceDataController {
             datasetsService.validateDatasetsExists(datasetId);
         } catch (Exception e) {
             log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", datasetId);
-            String datasetName = String.format("应用%s的数据集", "datasetId");
+            String datasetName = String.format("应用%s的数据集", datasetId);
             datasetsService.createDatasetsByApplication(datasetId, datasetName);
         }
 
@@ -102,53 +100,50 @@ public class DatasetSourceDataController {
         return success(DatasetSourceDataConvert.INSTANCE.convertList(list));
     }
 
-    @PostMapping("/uploadFile/{datasetId}/{batch}")
-    @Operation(summary = "上传文件-支持批量上传")
+    @PostMapping("/uploadFiles")
     // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
-    public CommonResult<SourceDataUploadDTO> uploadFiles(@PathVariable("datasetId") String datasetId,
-                                                         @PathVariable("batch") String batch,
-                                                         @RequestParam(value = "files") MultipartFile files) {
+    public CommonResult<SourceDataUploadDTO> uploadFiles(@RequestParam(value = "file") MultipartFile file,
+                                                         UploadFileReqVO reqVO) {
         SplitRule splitRule = new SplitRule();
         splitRule.setAutomatic(false);
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setChunkSize(500);
         splitRule.setPattern(null);
-        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadFilesSourceData(files, batch, splitRule, datasetId);
+        reqVO.setSplitRule(splitRule);
+        reqVO.setSync(false);
+        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadFilesSourceData(file, reqVO);
         return success(sourceDataUrlUploadDTO);
     }
 
-    @PostMapping("/uploadUrls/{datasetId}/{batch}")
-    @Operation(summary = "上传URL-支持批量上传")
+    @PostMapping("/uploadUrls")
     // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
-    public CommonResult<SourceDataUploadDTO> uploadUrls(@PathVariable("datasetId") String datasetId,
-                                                        @PathVariable("batch") String batch,
-                                                        @Validated @RequestBody List<UploadUrlReqVO> reqVO) {
+    public CommonResult<List<SourceDataUploadDTO> > uploadUrls(@Validated @RequestBody UploadUrlReqVO reqVO) {
+
         SplitRule splitRule = new SplitRule();
         splitRule.setAutomatic(false);
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setChunkSize(500);
         splitRule.setPattern(null);
-        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadUrlsSourceData(reqVO, batch, splitRule, datasetId);
-        return success(sourceDataUrlUploadDTO);
+        reqVO.setSplitRule(splitRule);
+        reqVO.setSync(false);
+        return success(datasetSourceDataService.uploadUrlsSourceData(reqVO));
     }
 
 
-    @PostMapping("/uploadCharacters/{datasetId}/{batch}")
-    @Operation(summary = "上传字符-支持批量上传")
+    @PostMapping("/uploadCharacters")
     // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
-    public CommonResult<SourceDataUploadDTO> uploadCharacter(@PathVariable("datasetId") String datasetId,
-                                                             @PathVariable("batch") String batch,
-                                                             @Validated @RequestBody List<UploadCharacterReqVO> reqVO) {
+    public CommonResult<        List<SourceDataUploadDTO> > uploadCharacter(@Validated @RequestBody List<UploadCharacterReqVO> reqVO) {
         SplitRule splitRule = new SplitRule();
         splitRule.setAutomatic(false);
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setRemoveExtraSpaces(true);
         splitRule.setChunkSize(500);
         splitRule.setPattern(null);
-        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadCharactersSourceData(reqVO, batch, splitRule, datasetId);
-        return success(sourceDataUrlUploadDTO);
+        reqVO.forEach(data -> data.setSplitRule(splitRule));
+        reqVO.forEach(data -> data.setSync(false));
+        return success(datasetSourceDataService.uploadCharactersSourceData(reqVO));
     }
 
     @PutMapping("/update")

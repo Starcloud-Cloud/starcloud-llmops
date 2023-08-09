@@ -44,24 +44,16 @@ public class DatasetSourceDataSplitProducer extends AbstractDatasetSourceProduce
     //     redisMQTemplate.send(message);
     // }
 
-    /**
-     * 发送 {@link DatasetSourceDataCleanSendMessage} 消息
-     */
-    public void sendSplitDatasetsSendMessage(String dataSetId, Long dataSourceId,
-                                             SplitRule splitRule, Long userId) {
-        DatasetSourceDataSplitSendMessage message = new DatasetSourceDataSplitSendMessage()
-                .setDatasetId(dataSetId)
-                .setDataSourceId(dataSourceId)
-                .setSplitRule(splitRule)
-                .setUserId(userId);
-        redisMQTemplate.send(message);
-    }
-
 
     @Override
     public void asyncSendMessage(DatasetSourceSendMessage sendMessage) {
-
-        this.sendSplitDatasetsSendMessage(sendMessage.getDatasetId(), sendMessage.getDataSourceId(), sendMessage.getSplitRule(), sendMessage.getUserId());
+        DatasetSourceSendMessage message = new DatasetSourceDataSplitSendMessage()
+                .setDatasetId(sendMessage.getDatasetId())
+                .setDataSourceId(sendMessage.getDataSourceId())
+                .setSplitRule(sendMessage.getSplitRule())
+                .setSync(false)
+                .setUserId(sendMessage.getUserId());
+        redisMQTemplate.send(message);
     }
 
     @Override
@@ -70,7 +62,7 @@ public class DatasetSourceDataSplitProducer extends AbstractDatasetSourceProduce
         DatasetSourceDataSplitSendMessage message = new DatasetSourceDataSplitSendMessage();
 
         message.setSync(true);
-        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setDatasetId(sendMessage.getDatasetId());
         message.setDataSourceId(sendMessage.getDataSourceId());
         message.setSplitRule(sendMessage.getSplitRule());
         message.setUserId(sendMessage.getUserId());
