@@ -153,7 +153,6 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     protected void _aexecute(ImageReqVO request) {
         this._execute(request);
-        request.getSseEmitter().complete();
     }
 
     /**
