@@ -9,7 +9,7 @@ import java.util.List;
 
 public abstract class BasicTextSplitter {
 
-    private static final List<String> BACK_SEPARATORS = Arrays.asList("\n", "。", ".", "！", "!");
+    private static final List<String> BACK_SEPARATORS = Arrays.asList("\n", "。", "\\.", "！", "!"," ");
 
     private static final int DEFAULT_SIZE = 1000;
 
@@ -34,6 +34,7 @@ public abstract class BasicTextSplitter {
         for (String sep : separators) {
             if (text.contains(sep)) {
                 separator = sep;
+                break;
             }
         }
         String[] splits = text.split(separator);
