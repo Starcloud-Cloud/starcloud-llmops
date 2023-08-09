@@ -24,6 +24,12 @@ public class DatasetSourceDataDetailsInfoVO {
     @NotNull(message = "名称不能为空")
     private String name;
 
+    @Schema(description = "原始内容")
+    private String content;
+
+    @Schema(description = "清洗后的内容")
+    private String cleanContent;
+
     @Schema(description = "总结内容")
     private String summaryContent;
 

@@ -5,10 +5,8 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
-import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
-import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
@@ -78,9 +76,7 @@ public class DatasetSourceDataController {
             String datasetName = String.format("应用%s的数据集", "datasetId");
             datasetsService.createDatasetsByApplication(datasetId, datasetName);
         }
-
-        List<DatasetSourceDataDO> list = datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.DOCUMENT.getStatus());
-        return success(DatasetSourceDataConvert.INSTANCE.convertList(list));
+        return success( datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.DOCUMENT.getStatus()));
     }
 
     @GetMapping("/list/qa/{datasetId}")
@@ -96,9 +92,7 @@ public class DatasetSourceDataController {
             String datasetName = String.format("应用%s的数据集", datasetId);
             datasetsService.createDatasetsByApplication(datasetId, datasetName);
         }
-
-        List<DatasetSourceDataDO> list = datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.QUESTION_AND_ANSWERS.getStatus());
-        return success(DatasetSourceDataConvert.INSTANCE.convertList(list));
+        return success(datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.QUESTION_AND_ANSWERS.getStatus()));
     }
 
     @PostMapping("/uploadFiles")
