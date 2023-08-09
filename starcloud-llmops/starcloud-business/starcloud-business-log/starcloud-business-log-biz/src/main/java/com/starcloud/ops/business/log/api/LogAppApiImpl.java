@@ -1,76 +1,95 @@
 package com.starcloud.ops.business.log.api;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.business.log.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * @author admin
+ * @version 1.0.0
+ * @since 2021-03-30
+ */
 @Slf4j
 @Service
 public class LogAppApiImpl implements LogAppApi {
 
-    @Autowired
+    @Resource
     private LogAppConversationService logAppConversationService;
 
-    @Autowired
+    @Resource
     private LogAppMessageService logAppMessageService;
 
+    /**
+     * 创建应用会话
+     *
+     * @param logAppConversationCreateReqVO 应用会话创建请求
+     * @return 应用会话创建响应
+     */
     @Override
     public LogAppConversationCreateReqVO createAppConversation(LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
-
         if (StrUtil.isBlank(logAppConversationCreateReqVO.getUid())) {
-
             logAppConversationCreateReqVO.setUid(IdUtil.fastSimpleUUID());
-
             logAppConversationService.createAppConversation(logAppConversationCreateReqVO);
-
         } else {
-
             LogAppConversationDO logAppConversationDO = logAppConversationService.getAppConversation(logAppConversationCreateReqVO.getUid());
-
             if (logAppConversationDO == null) {
-
                 logAppConversationService.createAppConversation(logAppConversationCreateReqVO);
             }
         }
-
         return logAppConversationCreateReqVO;
     }
 
+    /**
+     * 更新应用会话状态
+     *
+     * @param uid        应用会话唯一标识
+     * @param statusEnum 应用会话状态
+     */
     @Override
     public void updateAppConversationStatus(String uid, LogStatusEnum statusEnum) {
         logAppConversationService.updateAppConversationStatus(uid, statusEnum.name());
     }
 
-
+    /**
+     * 创建日志应用消息
+     *
+     * @param logAppMessageCreateReqVO 日志应用消息创建请求
+     */
     @Override
     public void createAppMessage(LogAppMessageCreateReqVO logAppMessageCreateReqVO) {
-
         logAppMessageService.createAppMessage(logAppMessageCreateReqVO);
     }
 
-
+    /**
+     * 获取应用消息结果
+     *
+     * @param appMessageUid 应用消息唯一标识
+     * @return 应用消息结果
+     */
     @Override
     public LogAppMessageInfoRespVO getAppMessageResult(String appMessageUid) {
-
         LogAppMessageDO logAppMessageDO = logAppMessageService.getAppMessage(appMessageUid);
-
         Assert.notNull(logAppMessageDO, "appMessageResult is not found");
-
-        LogAppMessageInfoRespVO info = LogAppMessageConvert.INSTANCE.convertInfo(logAppMessageDO);
-
-        return info;
+        return LogAppMessageConvert.INSTANCE.convertInfo(logAppMessageDO);
     }
-
 }

@@ -1,9 +1,8 @@
-package com.starcloud.ops.business.app.translator;
+package com.starcloud.ops.business.core.config.translate;
 
+import cn.hutool.core.util.StrUtil;
 import com.aliyun.alimt20181012.Client;
 import com.aliyun.teaopenapi.models.Config;
-import com.starcloud.ops.business.core.config.translate.TranslatorProperties;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,13 +29,13 @@ public class TranslatorConfiguration {
         if (aliyun == null) {
             throw new IllegalArgumentException("aliyun translator properties is null");
         }
-        if (StringUtils.isBlank(aliyun.getAccessKey())) {
+        if (StrUtil.isBlank(aliyun.getAccessKey())) {
             throw new IllegalArgumentException("aliyun translator access key id is null");
         }
-        if (StringUtils.isBlank(aliyun.getSecretKey())) {
+        if (StrUtil.isBlank(aliyun.getSecretKey())) {
             throw new IllegalArgumentException("aliyun translator secret key is null");
         }
-        if (StringUtils.isBlank(aliyun.getEndpoint())) {
+        if (StrUtil.isBlank(aliyun.getEndpoint())) {
             throw new IllegalArgumentException("aliyun translator endpoint is null");
         }
 

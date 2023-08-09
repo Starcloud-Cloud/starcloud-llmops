@@ -1,21 +1,25 @@
 package com.starcloud.ops.business.log.service.message;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
-import com.starcloud.ops.business.log.api.message.vo.*;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageExportReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageUpdateReqVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
-
 import org.springframework.validation.annotation.Validated;
 
-import java.util.*;
+import javax.annotation.Resource;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.log.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.log.enums.ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS;
 
 /**
  * 应用执行日志结果 Service 实现类
@@ -29,6 +33,12 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     @Resource
     private LogAppMessageMapper appMessageMapper;
 
+    /**
+     * 创建应用执行日志结果
+     *
+     * @param createReqVO 创建信息
+     * @return 编号
+     */
     @Override
     public Long createAppMessage(LogAppMessageCreateReqVO createReqVO) {
         // 插入
@@ -47,6 +57,11 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         return appMessage.getId();
     }
 
+    /**
+     * 更新应用执行日志结果
+     *
+     * @param updateReqVO 更新信息
+     */
     @Override
     public void updateAppMessage(LogAppMessageUpdateReqVO updateReqVO) {
         // 校验存在
@@ -56,6 +71,11 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         appMessageMapper.updateById(updateObj);
     }
 
+    /**
+     * 删除应用执行日志结果
+     *
+     * @param id 编号
+     */
     @Override
     public void deleteAppMessage(Long id) {
         // 校验存在
@@ -64,32 +84,77 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         appMessageMapper.deleteById(id);
     }
 
-    private void validateAppMessageExists(Long id) {
-        if (appMessageMapper.selectById(id) == null) {
-            throw exception(APP_CONVERSATION_NOT_EXISTS);
-        }
-    }
-
+    /**
+     * 获得应用执行日志结果
+     *
+     * @param id 编号
+     * @return 应用执行日志结果
+     */
     @Override
     public LogAppMessageDO getAppMessage(Long id) {
         return appMessageMapper.selectById(id);
     }
 
+    /**
+     * 获得应用执行日志结果
+     *
+     * @param uid 编号
+     * @return 应用执行日志结果
+     */
     @Override
     public LogAppMessageDO getAppMessage(String uid) {
         return appMessageMapper.selectOne("uid", uid);
     }
 
+    /**
+     * 根据会话uid获取消息列表
+     *
+     * @param conversationUid 会话uid
+     * @return 消息列表
+     */
+    @Override
+    public List<LogAppMessageDO> getAppMessageList(String conversationUid) {
+        List<LogAppMessageDO> list = appMessageMapper.selectList(new LambdaQueryWrapperX<LogAppMessageDO>()
+                .eq(LogAppMessageDO::getAppConversationUid, conversationUid));
+
+        return CollectionUtil.emptyIfNull(list).stream().peek(item -> {
+            try {
+                Long.parseLong(item.getEndUser());
+                item.setEndUser("用户");
+            } catch (NumberFormatException e) {
+                item.setEndUser("游客");
+            }
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 获得应用执行日志结果列表
+     *
+     * @param ids 编号
+     * @return 应用执行日志结果列表
+     */
     @Override
     public List<LogAppMessageDO> getAppMessageList(Collection<Long> ids) {
         return appMessageMapper.selectBatchIds(ids);
     }
 
+    /**
+     * 获得应用执行日志结果分页
+     *
+     * @param pageReqVO 分页查询
+     * @return 应用执行日志结果分页
+     */
     @Override
     public PageResult<LogAppMessageDO> getAppMessagePage(LogAppMessagePageReqVO pageReqVO) {
         return appMessageMapper.selectPage(pageReqVO);
     }
 
+    /**
+     * 排除系统总结场景
+     *
+     * @param reqVO 分页查询
+     * @return 应用执行日志结果分页
+     */
     @Override
     public PageResult<LogAppMessageDO> userMessagePage(LogAppMessagePageReqVO reqVO) {
         return appMessageMapper.selectPage(reqVO, new LambdaQueryWrapperX<LogAppMessageDO>()
@@ -115,13 +180,25 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
                 .eqIfPresent(LogAppMessageDO::getFromScene, reqVO.getFromScene())
                 .eqIfPresent(LogAppMessageDO::getEndUser, reqVO.getEndUser())
                 .betweenIfPresent(LogAppMessageDO::getCreateTime, reqVO.getCreateTime())
-                .ne(LogAppMessageDO::getFromScene,"SYSTEM_SUMMARY")
+                .ne(LogAppMessageDO::getFromScene, "SYSTEM_SUMMARY")
                 .orderByDesc(LogAppMessageDO::getId));
     }
 
+    /**
+     * 获得应用执行日志结果列表, 用于 Excel 导出
+     *
+     * @param exportReqVO 查询条件
+     * @return 应用执行日志结果列表
+     */
     @Override
     public List<LogAppMessageDO> getAppMessageList(LogAppMessageExportReqVO exportReqVO) {
         return appMessageMapper.selectList(exportReqVO);
+    }
+
+    private void validateAppMessageExists(Long id) {
+        if (appMessageMapper.selectById(id) == null) {
+            throw exception(APP_CONVERSATION_NOT_EXISTS);
+        }
     }
 
 }

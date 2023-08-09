@@ -2,6 +2,9 @@ package com.starcloud.ops.business.app.service.publish.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -66,6 +69,9 @@ public class AppPublishServiceImpl implements AppPublishService {
     @Resource
     private AppDictionaryService appDictionaryService;
 
+    @Resource
+    private AdminUserService adminUserService;
+
     /**
      * 分页查询应用发布记录
      *
@@ -77,6 +83,27 @@ public class AppPublishServiceImpl implements AppPublishService {
         Page<AppPublishDO> page = appPublishMapper.page(query);
         List<AppPublishRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
                 .map(AppPublishConverter.INSTANCE::convert).collect(Collectors.toList());
+        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+    }
+
+    /**
+     * 分页查询应用发布记录
+     *
+     * @param query 请求参数
+     * @return 应用发布响应
+     */
+    @Override
+    public PageResp<AppPublishRespVO> pageAdmin(AppPublishPageReqVO query) {
+        Page<AppPublishDO> page = appPublishMapper.page(query);
+        List<AppPublishRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
+                .map(item -> {
+                    AppPublishRespVO responseItem = AppPublishConverter.INSTANCE.convert(item);
+                    // 获取提交人信息
+                    AdminUserDO user = adminUserService.getUser(item.getUserId());
+                    responseItem.setSubmitterUser(user.getNickname());
+                    return responseItem;
+                })
+                .collect(Collectors.toList());
         return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
@@ -215,6 +242,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
         // 组装应用发布记录数据
         AppPublishDO appPublish = AppPublishConverter.INSTANCE.convert(app);
+        appPublish.setUserId(SecurityFrameworkUtils.getLoginUserId());
         // appPublish.setLanguage(request.getLanguage());
         // 查询该应用 UID 的发布记录
         List<AppPublishDO> appPublishRecords = appPublishMapper.listByAppUid(request.getAppUid());
@@ -236,7 +264,7 @@ public class AppPublishServiceImpl implements AppPublishService {
                     .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(pendingPublishList)) {
                 for (AppPublishDO appPublishDO : pendingPublishList) {
-                    appPublishMapper.audit(appPublishDO.getUid(), AppPublishAuditEnum.CANCELED.getCode());
+                    appPublishMapper.audit(appPublishDO.getUid(), AppPublishAuditEnum.CANCELED.getCode(), null);
                 }
             }
         }
@@ -334,7 +362,7 @@ public class AppPublishServiceImpl implements AppPublishService {
             }
         }
 
-        appPublishMapper.audit(request.getUid(), request.getStatus());
+        appPublishMapper.audit(request.getUid(), request.getStatus(), SecurityFrameworkUtils.getLoginUserId());
     }
 
     /**

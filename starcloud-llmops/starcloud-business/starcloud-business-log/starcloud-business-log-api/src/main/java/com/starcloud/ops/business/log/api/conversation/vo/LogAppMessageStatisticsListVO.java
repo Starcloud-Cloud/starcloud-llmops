@@ -2,59 +2,115 @@ package com.starcloud.ops.business.log.api.conversation.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+/**
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-07-30
+ */
 @Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@ToString
+@Schema(name = "LogAppMessageStatisticsListVO", description = "应用消息统计列表响应 VO")
 public class LogAppMessageStatisticsListVO implements Serializable {
 
-    @Schema(description = "apUid", example = "10286")
-    private String appUid;
+    private static final long serialVersionUID = -1741170241906440742L;
 
-//    @Schema(description = "appMode", example = "10286")
-//    private String appMode;
+//    /**
+//     * 应用 ID
+//     */
+//    @Schema(description = "apUid")
+//    private String appUid;
 //
-//    @Schema(description = "appName", example = "10286")
+//    /**
+//     * 应用名称
+//     */
+//    @Schema(description = "应用名称")
 //    private String appName;
 //
-//    @Schema(description = "执行场景", example = "10286")
+//    /**
+//     * 应用模型
+//     */
+//    @Schema(description = "应用模型")
+//    private String appMode;
+//
+//    /**
+//     * 执行场景
+//     */
+//    @Schema(description = "执行场景")
 //    private String fromScene;
 
-
-    @Schema(description = "消息总数", example = "10286")
+    /**
+     * 消息总数
+     */
+    @Schema(description = "消息总数")
     private Integer messageCount;
 
-    @Schema(description = "消息成功总数", example = "10286")
+    /**
+     * 消息成功总数
+     */
+    @Schema(description = "消息成功总数")
     private Integer successCount;
 
-    @Schema(description = "消息失败总数", example = "10286")
+    /**
+     * 消息失败总数
+     */
+    @Schema(description = "消息失败总数")
     private Integer errorCount;
 
-    @Schema(description = "用户总数", example = "10286")
+    /**
+     * 用户总数
+     */
+    @Schema(description = "用户总数")
     private Integer userCount;
 
-    @Schema(description = "总耗时", example = "10286")
+    /**
+     * 用户满意数
+     */
+    @Schema(description = "用户满意数")
+    private Integer feedbackLikeCount;
+
+    /**
+     * 总耗时
+     */
+    @Schema(description = "总耗时")
     private BigDecimal elapsedTotal;
 
-    @Schema(description = "平均耗时", example = "10286")
+    /**
+     * 平均耗时
+     */
+    @Schema(description = "平均耗时")
     private BigDecimal elapsedAvg;
 
-
-    @Schema(description = "请求tokens总数", example = "10286")
+    /**
+     * 请求tokens总数
+     */
+    @Schema(description = "请求tokens总数")
     private Integer messageTokens;
 
-
-    @Schema(description = "回答tokens总数", example = "10286")
+    /**
+     * 回答tokens总数
+     */
+    @Schema(description = "回答tokens总数")
     private Integer answerTokens;
 
-
-    @Schema(description = "tokens总数", example = "10286")
+    /**
+     * tokens总数
+     */
+    @Schema(description = "tokens总数")
     private Integer tokens;
 
-
-    @Schema(description = "生成时间", example = "10286")
+    /**
+     * 生成时间
+     */
+    @Schema(description = "生成时间")
     private String createDate;
 
 }
