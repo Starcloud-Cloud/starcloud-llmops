@@ -100,7 +100,7 @@ public interface DatasetSourceDataService {
      * @param datasetId 数据集 ID
      * @return 数据集源数据列表
      */
-    List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId, Integer dataModel);
+    List<DatasetSourceDataRespVO>  getDatasetSourceDataList(String datasetId, Integer dataModel);
 
     /**
      * 获取数据源详情

@@ -25,9 +25,11 @@ public class DatasetSourceDataRespVO {
     @NotNull(message = "名称不能为空")
     private String name;
 
-    @Schema(description = "位置", required = true)
-    @NotNull(message = "位置不能为空")
-    private Long position;
+    @Schema(description = "原始内容")
+    private String content;
+
+    @Schema(description = "总结内容")
+    private String summaryContent;
 
     /**
      * 数据模型（0-问答，1-文档）
@@ -51,9 +53,6 @@ public class DatasetSourceDataRespVO {
 
     @Schema(description = "字数")
     private Long wordCount;
-
-    @Schema(description = "令牌数")
-    private Long tokens;
 
 
 

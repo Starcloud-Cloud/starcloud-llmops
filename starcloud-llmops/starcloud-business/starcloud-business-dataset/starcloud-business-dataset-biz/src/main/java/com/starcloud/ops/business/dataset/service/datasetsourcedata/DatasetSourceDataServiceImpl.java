@@ -348,9 +348,33 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
     @Override
-    public List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId, Integer dataModel) {
+    public List<DatasetSourceDataRespVO> getDatasetSourceDataList(String datasetId, Integer dataModel) {
 
-        return datasetSourceDataMapper.selectByDatasetId(datasetId, dataModel);
+        List<DatasetSourceDataDO> datasetSourceDataDOS = datasetSourceDataMapper.selectByDatasetId(datasetId, dataModel);
+
+        return datasetSourceDataDOS.stream().map(dataDO -> {
+
+                    DatasetSourceDataRespVO dataRespVO = new DatasetSourceDataRespVO();
+                    dataRespVO.setId(dataDO.getId());
+                    dataRespVO.setUid(dataDO.getUid());
+                    dataRespVO.setName(dataDO.getName());
+                    dataRespVO.setDataModel(dataDO.getDataModel());
+                    dataRespVO.setDataType(dataDO.getDataType());
+                    dataRespVO.setBatch(dataDO.getBatch());
+                    dataRespVO.setStatus(String.valueOf(dataDO.getStatus()));
+                    dataRespVO.setWordCount(dataDO.getWordCount());
+                    if (dataDO.getDataSourceInfo() != null) {
+                        DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(dataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
+                        if (dataSourceIndoDTO.getSummaryContent() != null) {
+                            // 设置总结内容
+                            dataRespVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
+                        }
+                    }
+
+                    return dataRespVO;
+                }
+        ).collect(Collectors.toList());
+
     }
 
     /**
@@ -365,7 +389,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 Wrappers.lambdaQuery(DatasetSourceDataDO.class)
                         .eq(DatasetSourceDataDO::getUid, uid));
 
-        if (sourceDataDO == null){
+        if (sourceDataDO == null) {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
 
@@ -375,17 +399,19 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
 
         DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
-        if (enable) {
-            Long cleanId = dataSourceIndoDTO.getCleanId();
-            DatasetStorageDO datasetStorageDO = datasetStorageService.selectDataById(cleanId);
-            if (datasetStorageDO != null) {
-                byte[] bytes = HttpUtil.downloadBytes(datasetStorageDO.getStorageKey());
-                String result = new String(bytes);
-                datasetSourceDataDetailsInfoVO.setSummaryContent(result);
-            }
+        // 设置总结内容
+        datasetSourceDataDetailsInfoVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
 
-        } else {
-            datasetSourceDataDetailsInfoVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
+        if (enable) {
+            // 设置清洗内容
+            Long cleanId = dataSourceIndoDTO.getCleanId();
+
+            DatasetStorageDO cleanDatasetDO = datasetStorageService.selectDataById(cleanId);
+            if (cleanDatasetDO != null) {
+                byte[] bytes = HttpUtil.downloadBytes(cleanDatasetDO.getStorageKey());
+                String result = new String(bytes);
+                datasetSourceDataDetailsInfoVO.setCleanContent(result);
+            }
         }
 
         return datasetSourceDataDetailsInfoVO;
