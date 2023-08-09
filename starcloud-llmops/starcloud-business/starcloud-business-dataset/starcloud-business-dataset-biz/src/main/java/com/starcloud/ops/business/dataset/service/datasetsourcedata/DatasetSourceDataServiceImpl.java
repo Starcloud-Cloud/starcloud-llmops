@@ -432,6 +432,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             SegmentPageQuery segmentPageQuery = BeanUtil.copyProperties(reqVO, SegmentPageQuery.class);
 
             segmentPageQuery.setDocumentUid(String.valueOf(sourceDataDO.getId()));
+            segmentPageQuery.setDatasetUid(sourceDataDO.getDatasetId());
 
             PageResult<DocumentSegmentDO> documentSegmentDOPageResult = documentSegmentsService.segmentDetail(segmentPageQuery);
 
