@@ -191,6 +191,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     protected abstract void _aexecute(Q req);
 
     /**
+     * 执行后执行
+     */
+    protected abstract void _afterExecute(Q req, Throwable t);
+
+    /**
      * 历史记录初始化
      */
     protected abstract void _initHistory(Q req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageList);
@@ -291,6 +296,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             }
 
             R result = this._execute(req);
+            this._afterExecute(req, null);
 
             this.updateAppConversationLog(req.getConversationUid(), true);
             log.info("app end: {} {}", this.getUid(), result);
@@ -299,11 +305,17 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.error("app execute is fail: {}", e.getMessage(), e);
             //应该没有异常的，APP内部执行抓取异常处理了 @todo 这里创建一个异常的 message 对象
             this.updateAppConversationLog(req.getConversationUid(), false);
+
+            this._afterExecute(req, e);
+
             throw e;
         } catch (Exception e) {
             log.error("app execute is fail: {}", e.getMessage(), e);
             //应该没有异常的，APP内部执行抓取异常处理了 @todo 这里创建一个异常的 message 对象
             this.updateAppConversationLog(req.getConversationUid(), false);
+
+            this._afterExecute(req, e);
+
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, e.getMessage());
         }
     }
@@ -341,19 +353,17 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             threadExecutor.asyncExecute(() -> {
 
                 this._aexecute(req);
-
-                if (req instanceof AppExecuteReqVO) {
-                    SseEmitter sseEmitter = ((AppExecuteReqVO) req).getSseEmitter();
-                    if (sseEmitter != null) {
-                        sseEmitter.complete();
-                    }
-                }
+                this._afterExecute(req, null);
 
             });
         } catch (ServiceException e) {
             log.error("app ServiceException is fail: {}", e.getMessage(), e);
 
+
             // 在这里设置 具体的 errorCode
+
+            this._afterExecute(req, e);
+
             throw e;
 
         } catch (Exception e) {
@@ -363,13 +373,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             //直接 会话异常
             this.updateAppConversationLog(req.getConversationUid(), false);
 
-            if (req instanceof AppExecuteReqVO) {
-                SseEmitter sseEmitter = ((AppExecuteReqVO) req).getSseEmitter();
-                if (sseEmitter != null) {
-                    sseEmitter.completeWithError(e);
-                }
-
-            }
+            this._afterExecute(req, e);
 
             throw e;
         }

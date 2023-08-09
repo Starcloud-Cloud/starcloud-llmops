@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -29,6 +30,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -153,6 +155,28 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     protected void _aexecute(ImageReqVO request) {
         this._execute(request);
+
+        SseEmitter sseEmitter = request.getSseEmitter();
+        if (sseEmitter != null) {
+            sseEmitter.complete();
+        }
+    }
+
+    /**
+     * 执行后执行
+     */
+    @Override
+    protected void _afterExecute(ImageReqVO req, Throwable t) {
+
+        SseEmitter sseEmitter = req.getSseEmitter();
+
+        if (sseEmitter != null) {
+            if (t != null) {
+                sseEmitter.completeWithError(t);
+            } else {
+                sseEmitter.complete();
+            }
+        }
     }
 
     /**

@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
 import com.knuddels.jtokkit.api.ModelType;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
@@ -159,6 +160,29 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     protected void _aexecute(ChatRequestVO req) {
 
         JsonData jsonParams = this._execute(req);
+
+        SseEmitter sseEmitter = req.getSseEmitter();
+        if (sseEmitter != null) {
+            sseEmitter.complete();
+        }
+
+    }
+
+    /**
+     * 执行后执行
+     */
+    @Override
+    protected void _afterExecute(ChatRequestVO req, Throwable t) {
+
+        SseEmitter sseEmitter = req.getSseEmitter();
+
+        if (sseEmitter != null) {
+            if (t != null) {
+                sseEmitter.completeWithError(t);
+            } else {
+                sseEmitter.complete();
+            }
+        }
     }
 
 
