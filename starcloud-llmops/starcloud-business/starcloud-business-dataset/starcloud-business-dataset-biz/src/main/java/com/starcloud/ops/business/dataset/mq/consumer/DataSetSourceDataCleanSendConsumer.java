@@ -14,9 +14,11 @@ import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendM
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataSplitProducer;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.DataSourceIndoDTO;
+import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -46,6 +48,9 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
     @Resource
     private DatasetSourceDataService datasetSourceDataService;
 
+    @Resource
+    private DocumentSegmentsService documentSegmentsService;
+
 
     private static final String PATH_OBJECT = "dataset-source-data/clean/";
 
@@ -72,10 +77,13 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
 
             // 清洗后数据存储 文件存储
             String cleanPath = uploadFile(cleanText, message.getUserId());
+            // 开始总结内容
+            String summary = documentSegmentsService.segmentSummary(String.valueOf(message.getDataSourceId()), cleanText, message.getSplitRule(), 500);
 
             Long cleanId = this.setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "html", message.getUserId());
             DataSourceIndoDTO DataSourceIndoDTO = new DataSourceIndoDTO();
             DataSourceIndoDTO.setCleanId(cleanId);
+            DataSourceIndoDTO.setSummaryContent(summary);
             datasetSourceDataService.updateDatasourceAndSourceInfo(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus(), JSONObject.toJSONString(DataSourceIndoDTO), message.getUserId());
 
             log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
