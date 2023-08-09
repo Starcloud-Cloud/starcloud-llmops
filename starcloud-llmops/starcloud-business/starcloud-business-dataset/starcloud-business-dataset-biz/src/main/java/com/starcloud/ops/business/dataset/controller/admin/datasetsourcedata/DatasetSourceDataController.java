@@ -5,8 +5,10 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
+import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
+import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
@@ -26,7 +28,7 @@ import java.util.List;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Slf4j
-@Tag(name = "管理后台 - 数据集源数据")
+@Tag(name = "管理后台 - 数据集（知识库）源数据")
 @RestController
 @RequestMapping("/llm/dataset-source-data")
 @Validated
@@ -47,12 +49,13 @@ public class DatasetSourceDataController {
     }
 
     @PostMapping("/details/split")
-    @Operation(summary = "获得源数据内容详情")
+    @Operation(summary = "获得源数据分块详情")
     // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
     public CommonResult<PageResult<DatasetSourceDataSplitPageRespVO>> getSourceDataDetailsInfo(@RequestBody DatasetSourceDataSplitPageReqVO reqVO) {
 
         return success(datasetSourceDataService.getSplitDetails(reqVO));
     }
+
 
     @GetMapping("/details/{uid}")
     @Operation(summary = "获得源数据详情")

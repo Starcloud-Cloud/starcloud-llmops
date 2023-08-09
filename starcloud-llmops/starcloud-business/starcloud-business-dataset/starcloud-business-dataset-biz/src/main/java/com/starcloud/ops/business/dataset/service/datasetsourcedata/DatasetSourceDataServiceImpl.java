@@ -14,6 +14,7 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.Datas
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
+import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
@@ -48,6 +49,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.module.infra.enums.ErrorCodeConstants.FILE_IS_EMPTY;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
 
 
@@ -363,6 +365,13 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 Wrappers.lambdaQuery(DatasetSourceDataDO.class)
                         .eq(DatasetSourceDataDO::getUid, uid));
 
+        if (sourceDataDO == null){
+            throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
+        }
+
+        if (sourceDataDO.getStatus() < DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus()) {
+            throw exception(DATASET_SOURCE_DATA_STUDY_IN);
+        }
         DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
 
         DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
@@ -410,6 +419,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
     }
+
 
     /**
      * 归档数据集源数据

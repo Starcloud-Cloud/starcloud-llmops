@@ -34,7 +34,7 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
      */
     CLEANING_IN(31,"数据清洗中"),
     CLEANING_ERROR(35,"数据清洗失败"),
-    CLEANING_COMPLETED(40,"数据完成"),
+    CLEANING_COMPLETED(40,"数据清洗完成"),
 
     /**
      * 41 - 50  数据清洗

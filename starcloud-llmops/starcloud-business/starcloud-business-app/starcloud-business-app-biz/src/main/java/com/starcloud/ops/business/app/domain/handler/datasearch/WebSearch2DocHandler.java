@@ -11,12 +11,16 @@ import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
+import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.llm.langchain.core.tools.RequestsGetTool;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 页面内容爬取，并创建对应索引和总结
@@ -35,7 +39,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
     private static RequestsGetTool requestsGetTool = new RequestsGetTool();
 
-    @Autowired
+    @Resource
     private DatasetSourceDataService datasetSourceDataService;
 
     @Override
@@ -59,7 +63,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
         try {
             UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
-            uploadUrlReqVO.setUrl(url);
+            uploadUrlReqVO.setUrls(Arrays.asList(url));
             uploadUrlReqVO.setDatasetId(datasetId);
 
             SplitRule splitRule = new SplitRule();
@@ -67,9 +71,10 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
             uploadUrlReqVO.setSplitRule(splitRule);
 
 
-            //datasetSourceDataService.uploadUrlsSourceData(Arrays.asList(uploadUrlReqVO));
+            List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
 
-            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId);
+
+            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId,true);
 
             //@todo 如果没有返回怎么办
 
