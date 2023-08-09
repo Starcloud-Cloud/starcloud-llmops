@@ -30,7 +30,7 @@ public class UrlUploadStrategy implements UploadStrategy {
     // 成员变量用于保存URL
     private String url;
 
-    private static final String PATH_OBJECT = "/dataset-source-data/";
+    private static final String PATH_OBJECT = "dataset-source-data/";
 
     // Setter方法，用于接收MultipartFile对象
     public void setUrl(String url) {
@@ -118,7 +118,7 @@ public class UrlUploadStrategy implements UploadStrategy {
      * 保存文件，并返回文件的访问路径
      *
      * @param fileId     文件 ID
-     * @param fileStream 文件流
+     * @param data 文件流
      * @param userId       文件 path 可以为空
      * @return 文件路径
      */

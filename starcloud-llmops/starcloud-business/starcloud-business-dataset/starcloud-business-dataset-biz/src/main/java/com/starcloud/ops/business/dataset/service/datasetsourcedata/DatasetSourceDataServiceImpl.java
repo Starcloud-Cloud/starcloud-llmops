@@ -14,7 +14,6 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.Datas
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
-import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
@@ -42,14 +41,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.infra.enums.ErrorCodeConstants.FILE_IS_EMPTY;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
 
 
@@ -232,7 +229,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public List<SourceDataUploadDTO> uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS) {
-        List<SourceDataUploadDTO> collect = reqVOS.stream().map(reqVO -> {
+
+        return reqVOS.stream().map(reqVO -> {
             SourceDataUploadDTO sourceDataUploadDTO = new SourceDataUploadDTO();
             sourceDataUploadDTO.setDatasetId(reqVO.getDatasetId());
             sourceDataUploadDTO.setBatch(reqVO.getBatch());
@@ -248,8 +246,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             }
             return sourceDataUploadDTO;
         }).collect(Collectors.toList());
-
-        return collect;
     }
 
 
