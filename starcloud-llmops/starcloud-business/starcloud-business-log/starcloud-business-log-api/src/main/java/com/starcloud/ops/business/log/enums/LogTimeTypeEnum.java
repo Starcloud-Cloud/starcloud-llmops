@@ -6,7 +6,10 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 日志时间类型枚举
@@ -15,6 +18,7 @@ import java.time.temporal.TemporalAdjusters;
  * @version 1.0.0
  * @since 2021/8/19
  */
+@Getter
 public enum LogTimeTypeEnum implements IEnumable<Integer> {
 
     /**
@@ -30,12 +34,47 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
         public LocalDateTime getEndTime() {
             return LocalDateTime.now();
         }
+
+        @Override
+        public ChronoUnit getGroupUnit() {
+            return ChronoUnit.HOURS;
+        }
+
+        @Override
+        public String getFormatByGroupUnit() {
+            return DATE_HOUR_FORMAT;
+        }
+    },
+
+    /**
+     * 过去7天，七天前的现在 ~ 现在
+     */
+    LAST_7D(2, "过去7天", "Last 7 days") {
+        @Override
+        public LocalDateTime getStartTime() {
+            return LocalDateTime.now().minusDays(7);
+        }
+
+        @Override
+        public LocalDateTime getEndTime() {
+            return LocalDateTime.now();
+        }
+
+        @Override
+        public ChronoUnit getGroupUnit() {
+            return ChronoUnit.DAYS;
+        }
+
+        @Override
+        public String getFormatByGroupUnit() {
+            return DATE_FORMAT;
+        }
     },
 
     /**
      * 过去4周，四周前的现在 ~ 现在
      */
-    LAST_4W(2, "过去4周", "Last 4 weeks") {
+    LAST_4W(3, "过去4周", "Last 4 weeks") {
         @Override
         public LocalDateTime getStartTime() {
             return LocalDateTime.now().minusWeeks(4);
@@ -45,12 +84,22 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
         public LocalDateTime getEndTime() {
             return LocalDateTime.now();
         }
+
+        @Override
+        public ChronoUnit getGroupUnit() {
+            return ChronoUnit.DAYS;
+        }
+
+        @Override
+        public String getFormatByGroupUnit() {
+            return DATE_FORMAT;
+        }
     },
 
     /**
      * 过去3月，三月前的现在 ~ 现在
      */
-    LAST_3M(3, "过去3月", "Last 3 months") {
+    LAST_3M(4, "过去3月", "Last 3 months") {
         @Override
         public LocalDateTime getStartTime() {
             return LocalDateTime.now().minusMonths(3);
@@ -60,12 +109,22 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
         public LocalDateTime getEndTime() {
             return LocalDateTime.now();
         }
+
+        @Override
+        public ChronoUnit getGroupUnit() {
+            return ChronoUnit.DAYS;
+        }
+
+        @Override
+        public String getFormatByGroupUnit() {
+            return DATE_FORMAT;
+        }
     },
 
     /**
      * 过去12月，十二月前的现在 ~ 现在
      */
-    LAST_12M(4, "过去12月", "Last 12 months") {
+    LAST_12M(5, "过去12月", "Last 12 months") {
         @Override
         public LocalDateTime getStartTime() {
             return LocalDateTime.now().minusMonths(12);
@@ -75,12 +134,22 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
         public LocalDateTime getEndTime() {
             return LocalDateTime.now();
         }
+
+        @Override
+        public ChronoUnit getGroupUnit() {
+            return ChronoUnit.MONTHS;
+        }
+
+        @Override
+        public String getFormatByGroupUnit() {
+            return MONTH_FORMAT;
+        }
     },
 
     /**
      * 本月至今，本月第一天的00:00:00 ~ 现在
      */
-    LAST_M_T(5, "本月至今", "This month to now") {
+    LAST_M_T(6, "本月至今", "This month to now") {
         @Override
         public LocalDateTime getStartTime() {
             return LocalDateTime.of(LocalDate.now().with(TemporalAdjusters.firstDayOfMonth()), LocalTime.MIN);
@@ -90,12 +159,22 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
         public LocalDateTime getEndTime() {
             return LocalDateTime.now();
         }
+
+        @Override
+        public ChronoUnit getGroupUnit() {
+            return ChronoUnit.DAYS;
+        }
+
+        @Override
+        public String getFormatByGroupUnit() {
+            return DATE_FORMAT;
+        }
     },
 
     /**
      * 本季度至今，本季度第一天的00:00:00 ~ 现在
      */
-    LAST_Q_T(6, "本季度至今", "This quarter to now") {
+    LAST_Q_T(7, "本季度至今", "This quarter to now") {
         @Override
         public LocalDateTime getStartTime() {
             // 获取当前时间
@@ -112,12 +191,22 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
         public LocalDateTime getEndTime() {
             return LocalDateTime.now();
         }
+
+        @Override
+        public ChronoUnit getGroupUnit() {
+            return ChronoUnit.DAYS;
+        }
+
+        @Override
+        public String getFormatByGroupUnit() {
+            return DATE_FORMAT;
+        }
     },
 
     /**
      * 本年至今，本年第一天的00:00:00 ~ 现在
      */
-    LAST_Y_T(7, "本年至今", "This year to now") {
+    LAST_Y_T(8, "本年至今", "This year to now") {
         @Override
         public LocalDateTime getStartTime() {
             return LocalDateTime.of(LocalDate.now().with(TemporalAdjusters.firstDayOfYear()), LocalTime.MIN);
@@ -127,40 +216,65 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
         public LocalDateTime getEndTime() {
             return LocalDateTime.now();
         }
+
+        @Override
+        public ChronoUnit getGroupUnit() {
+            // 年初到现在时间超过 3 个月。按照月分组，否则按照天分组
+            return LocalDateTime.now().minusMonths(3).isAfter(getStartTime()) ? ChronoUnit.MONTHS : ChronoUnit.DAYS;
+        }
+
+        @Override
+        public String getFormatByGroupUnit() {
+            return getGroupUnit().equals(ChronoUnit.MONTHS) ? MONTH_FORMAT : DATE_FORMAT;
+        }
     },
 
     /**
      * 所有时间，null ~ null
      */
-    ALL(8, "所有时间", "All") {
+    ALL(9, "所有时间", "All") {
         @Override
         public LocalDateTime getStartTime() {
-            return null;
+            return LogTimeTypeEnum.LAST_3M.getStartTime();
         }
 
         @Override
         public LocalDateTime getEndTime() {
-            return null;
+            return LogTimeTypeEnum.LAST_3M.getEndTime();
         }
+
+        @Override
+        public ChronoUnit getGroupUnit() {
+            return LogTimeTypeEnum.LAST_3M.getGroupUnit();
+        }
+
+        @Override
+        public String getFormatByGroupUnit() {
+            return LogTimeTypeEnum.LAST_3M.getFormatByGroupUnit();
+        }
+
     };
 
     /**
-     *
+     * 编码
      */
-    @Getter
     private final Integer code;
 
     /**
-     *
+     * 标签
      */
-    @Getter
     private final String label;
 
     /**
      * 英文标签
      */
-    @Getter
     private final String labelEn;
+
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+
+    private static final String DATE_HOUR_FORMAT = "yyyy-MM-dd HH";
+
+    private static final String MONTH_FORMAT = "yyyy-MM";
 
     /**
      * 获取开始时间
@@ -177,6 +291,20 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
     public abstract LocalDateTime getEndTime();
 
     /**
+     * 获取分组时间单位
+     *
+     * @return 分组时间单位
+     */
+    public abstract ChronoUnit getGroupUnit();
+
+    /**
+     * 获取分组的时间格式
+     *
+     * @return 时间格式
+     */
+    public abstract String getFormatByGroupUnit();
+
+    /**
      * 构造函数
      *
      * @param code  编码
@@ -189,42 +317,32 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
     }
 
     /**
-     * 根据类型获取开始时间
+     * 根据类型获取分组时间单位
      *
-     * @param type 类型
-     * @return 开始时间
+     * @param timeType 类型
+     * @return 分组时间单位
      */
-    public static LocalDateTime getStartTimeByType(String type) {
-        return getTimeByType(type, true);
+    public static List<LocalDateTime> dateTimeRange(LogTimeTypeEnum timeType) {
+        return dateTimeRange(timeType.getStartTime(), timeType.getEndTime(), timeType.getGroupUnit());
     }
 
     /**
-     * 根据类型获取结束时间
+     * 获取时间范围内的所有时间
      *
-     * @param type 类型
-     * @return 结束时间
+     * @param startDateTime 开始时间
+     * @param endDateTime   结束时间
+     * @param unit          时间单位
+     * @return 时间范围内的所有时间
      */
-    public static LocalDateTime getEndTimeByType(String type) {
-        return getTimeByType(type, false);
-    }
+    public static List<LocalDateTime> dateTimeRange(LocalDateTime startDateTime, LocalDateTime endDateTime, ChronoUnit unit) {
+        List<LocalDateTime> dateTimeRange = new ArrayList<>();
+        LocalDateTime currentDateTime = startDateTime;
 
-    /**
-     * 根据类型获取开始时间
-     *
-     * @param type    类型
-     * @param isStart 是否开始时间: true-开始时间, false-结束时间
-     * @return 开始时间
-     */
-    public static LocalDateTime getTimeByType(String type, boolean isStart) {
-        for (LogTimeTypeEnum value : LogTimeTypeEnum.values()) {
-            if (value.name().equals(type)) {
-                if (isStart) {
-                    return value.getStartTime();
-                } else {
-                    return value.getEndTime();
-                }
-            }
+        while (!currentDateTime.isAfter(endDateTime)) {
+            dateTimeRange.add(currentDateTime);
+            currentDateTime = currentDateTime.plus(1, unit);
         }
-        return null;
+
+        return dateTimeRange;
     }
 }

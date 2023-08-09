@@ -27,6 +27,14 @@ public interface AppPublishService {
     PageResp<AppPublishRespVO> page(AppPublishPageReqVO query);
 
     /**
+     * 分页查询应用发布记录
+     *
+     * @param query 请求参数
+     * @return 应用发布响应
+     */
+    PageResp<AppPublishRespVO> pageAdmin(AppPublishPageReqVO query);
+
+    /**
      * 根据应用 UID 查询应用发布记录, 根据版本号倒序排序
      *
      * @param appUid 应用 UID

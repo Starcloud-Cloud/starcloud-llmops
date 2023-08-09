@@ -53,6 +53,12 @@ public class AppPublishDO extends TenantBaseDO {
     private String marketUid;
 
     /**
+     * 用户提交人 ID
+     */
+    @TableField("user_id")
+    private Long userId;
+
+    /**
      * 应用名称
      */
     @TableField("name")

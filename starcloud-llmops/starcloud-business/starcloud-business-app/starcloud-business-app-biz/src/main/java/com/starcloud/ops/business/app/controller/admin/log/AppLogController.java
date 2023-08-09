@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.controller.admin.log;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
@@ -36,11 +35,15 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
+/**
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-07-30
+ */
 @RestController
 @RequestMapping("/llm/app/log")
-@Tag(name = "应用执行日志")
+@Tag(name = "星河云海-应用执行日志", description = "应用执行日志相关接口")
 public class AppLogController {
-
 
     @Resource
     private LogAppApi logAppApi;
@@ -68,8 +71,6 @@ public class AppLogController {
     @Operation(summary = "获得应用执行统计列表")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<List<LogAppMessageStatisticsListVO>> getAppMessageStatisticsList(@Valid @RequestBody LogAppMessageStatisticsListReqVO pageVO) {
-        // 默认查询应用市场统计数据
-        pageVO.setFromScene(AppSceneEnum.WEB_MARKET.name());
         List<LogAppMessageStatisticsListPO> pageResult = appConversationService.getAppMessageStatisticsList(pageVO);
         return success(LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult));
 
@@ -79,8 +80,6 @@ public class AppLogController {
     @Operation(summary = "获得应用执行日志信息分页")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<PageResult<LogAppConversationInfoRespVO>> getAppConversationPage(@Valid @RequestBody LogAppConversationInfoPageReqVO pageVO) {
-        // 默认查询应用市场统计数据
-        pageVO.setFromScene(AppSceneEnum.WEB_MARKET.name());
         PageResult<LogAppConversationInfoPO> pageResult = appConversationService.getAppConversationInfoPage(pageVO);
         return success(LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult));
     }

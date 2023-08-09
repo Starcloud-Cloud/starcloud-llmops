@@ -2,64 +2,87 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper">
 
-    <!--
-        一般情况下，尽可能使用 Mapper 进行 CRUD 增删改查即可。
-        无法满足的场景，例如说多表关联查询，才使用 XML 编写 SQL。
-        代码生成器暂时只生成 Mapper XML 文件本身，更多推荐 MybatisX 快速开发插件来生成查询。
-        文档可见：https://www.iocoder.cn/MyBatis/x-plugins/
-     -->
-
+    <!-- 日志统计 -->
     <select id="getAppMessageStatisticsList"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
-        SELECT count(ms.id) as messageCount,
+        SELECT
+        count(ms.id) as messageCount,
         COUNT(
-            CASE
-            WHEN ms.status = "SUCCESS"
-            THEN
-                1
-            END
+        CASE
+        WHEN ms.status = "SUCCESS"
+        THEN
+        1
+        END
         ) AS successCount,
         COUNT(
-            CASE
-            WHEN ms.status != "SUCCESS"
-            THEN
-                1
-            END
+        CASE
+        WHEN ms.status != "SUCCESS"
+        THEN
+        1
+        END
         ) AS errorCount,
+        COUNT(
+        CASE
+        WHEN fb.rating = "LIKE"
+        THEN
+        1
+        END
+        ) as feedbackLikeCount,
         COUNT(DISTINCT(ms.creator)) as userCount,
         SUM(ms.elapsed) as elapsedTotal,
         AVG(ms.elapsed) as elapsedAvg,
         SUM(message_tokens) as messageTokens,
         SUM(answer_tokens) as answerTokens,
         SUM(message_tokens + answer_tokens) as tokens,
-        date_format(ms.create_time, '%Y-%m-%d') as create_date
-        from llm_log_app_message as ms LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
+        <choose>
+            <when test="req.unit == 'HOURS'">
+                date_format(ms.create_time, '%Y-%m-%d %h') as create_date
+            </when>
+            <when test="req.unit == 'DAYS'">
+                date_format(ms.create_time, '%Y-%m-%d') as create_date
+            </when>
+            <when test="req.unit == 'MONTHS'">
+                date_format(ms.create_time, '%Y-%m') as create_date
+            </when>
+            <otherwise>
+                date_format(ms.create_time, '%Y-%m-%d') as create_date
+            </otherwise>
+        </choose>
 
+        FROM llm_log_app_message as ms
+        LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
+        LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
         <where>
-            <if test="req.appName !=null and req.appName!=''">
+            <if test="req.appUid != null and req.appUid != '' ">
+                AND ms.app_uid = #{req.appUid}
+            </if>
+            <if test="req.appName != null and req.appName != '' ">
                 <bind name="appName" value="req.appName+'%'"/>
                 AND co.app_name LIKE #{appName}
             </if>
-
-            <if test="req.appUid !=null and req.appUid!=''">
-                AND ms.app_uid = #{req.appUid}
+            <if test="req.appMode != null and req.appMode != '' ">
+                AND ms.app_mode = #{req.appMode}
             </if>
-
-            <if test="req.fromScene !=null and req.fromScene!=''">
+            <if test="req.fromScene != null and req.fromScene != '' ">
                 AND ms.from_scene = #{req.fromScene}
             </if>
-
-            <if test="req.status !=null and req.status!=''">
+            <if test="req.status != null and req.status != '' ">
                 AND ms.status = #{req.status}
             </if>
-
-            <if test="req.startTime !=null and req.endTime !=null">
+            <if test="req.startTime != null and req.endTime != null">
                 AND ms.create_time between #{req.startTime} and #{req.endTime}
             </if>
         </where>
-
-        GROUP BY date_format(ms.create_time, '%Y-%m-%d') ORDER BY create_date ;
-
+        <if test="req.unit == 'HOURS'">
+            GROUP BY date_format(ms.create_time, '%Y-%m-%d %h')
+        </if>
+        <if test="req.unit == 'DAYS'">
+            GROUP BY date_format(ms.create_time, '%Y-%m-%d')
+        </if>
+        <if test="req.unit == 'MONTHS'">
+            GROUP BY date_format(ms.create_time, '%Y-%m')
+        </if>
+        ORDER BY create_date;
     </select>
 
 
