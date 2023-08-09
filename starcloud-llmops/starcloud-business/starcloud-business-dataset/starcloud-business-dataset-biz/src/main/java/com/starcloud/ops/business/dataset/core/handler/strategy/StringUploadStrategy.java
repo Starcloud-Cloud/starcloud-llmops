@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.dataset.core.handler.strategy;
 
-import cn.hutool.core.io.FileTypeUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
@@ -13,7 +12,6 @@ import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
@@ -102,7 +100,7 @@ public class StringUploadStrategy implements UploadStrategy {
      * 保存文件，并返回文件的访问路径
      *
      * @param fileId     文件 ID
-     * @param fileStream 文件流
+     * @param data 文件
      * @param userId
      * @return 文件路径
      */

@@ -28,7 +28,6 @@ import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -104,7 +103,7 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public String urlProcessing(String url,UploadUrlReqVO reqVO, Integer dataModel, String dataType) {
+    public String urlProcessing(String url, UploadUrlReqVO reqVO, Integer dataModel, String dataType) {
         log.info("====> 数据集{}开始上传URL,分割规则为{}", reqVO.getDatasetId(), reqVO.getSplitRule());
         validate(reqVO.getDatasetId(), reqVO.getSplitRule());
         urlUploadStrategy.setUrl(url);

@@ -2,10 +2,8 @@ package com.starcloud.ops.business.dataset.mq.producer;
 
 import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
 import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataSplitSendConsumer;
-import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataSplitSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

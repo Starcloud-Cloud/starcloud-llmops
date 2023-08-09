@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.http.HtmlUtil;
 import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.alibaba.fastjson.JSONObject;
@@ -122,7 +121,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         validateSplitRule(reqVO, DataSourceDataTypeEnum.URL.name());
         SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
-        ArrayList<Boolean> source = new ArrayList<>();
         // 读取文件内容到字节数组中
         byte[] fileContent;
         try {

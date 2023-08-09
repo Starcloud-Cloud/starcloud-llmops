@@ -3,7 +3,6 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;

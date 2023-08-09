@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Schema(description = "管理后台 - 字符上传 Request VO")
 @Data

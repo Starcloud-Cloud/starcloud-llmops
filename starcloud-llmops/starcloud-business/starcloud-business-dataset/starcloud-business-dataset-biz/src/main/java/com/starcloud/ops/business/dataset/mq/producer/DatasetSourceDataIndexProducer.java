@@ -2,7 +2,6 @@ package com.starcloud.ops.business.dataset.mq.producer;
 
 import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
 import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataIndexSendConsumer;
-import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataIndexSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * 数据集 队列消息发送

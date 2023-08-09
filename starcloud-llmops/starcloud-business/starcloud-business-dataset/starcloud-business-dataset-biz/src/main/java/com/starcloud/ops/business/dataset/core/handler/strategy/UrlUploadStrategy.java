@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.dataset.core.handler.strategy;
 
-import cn.hutool.core.io.FileTypeUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.URLUtil;
@@ -15,7 +14,6 @@ import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
