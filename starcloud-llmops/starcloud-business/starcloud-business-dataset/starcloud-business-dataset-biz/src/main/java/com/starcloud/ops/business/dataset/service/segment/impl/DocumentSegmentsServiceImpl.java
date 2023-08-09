@@ -130,6 +130,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         }
     }
 
+    @Override
     public String segmentSummary(String documentId, String text, SplitRule splitRule, Integer summarySize) {
         long start = System.currentTimeMillis();
         List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());

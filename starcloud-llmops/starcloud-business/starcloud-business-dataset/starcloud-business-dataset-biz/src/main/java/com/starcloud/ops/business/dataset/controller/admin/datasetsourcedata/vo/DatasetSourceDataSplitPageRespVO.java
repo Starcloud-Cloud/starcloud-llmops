@@ -15,7 +15,7 @@ public class DatasetSourceDataSplitPageRespVO {
     @Schema(description = "源数据ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private String uid;
 
-    @Schema(description = " 文件 D", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = " 文件 ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private String id;
 
     @Schema(description = "位置", requiredMode = Schema.RequiredMode.REQUIRED)

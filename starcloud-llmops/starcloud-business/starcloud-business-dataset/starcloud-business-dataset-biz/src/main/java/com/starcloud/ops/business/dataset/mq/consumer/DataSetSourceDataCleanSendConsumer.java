@@ -14,9 +14,11 @@ import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendM
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataSplitProducer;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.DataSourceIndoDTO;
+import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -46,12 +48,16 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
     @Resource
     private DatasetSourceDataService datasetSourceDataService;
 
+    @Resource
+    private DocumentSegmentsService documentSegmentsService;
+
 
     private static final String PATH_OBJECT = "dataset-source-data/clean/";
 
 
     @Override
     public void onMessage(DatasetSourceDataCleanSendMessage message) {
+        log.info("开始清洗数据，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
 
         // 设置数据源状态为清洗中
         datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_IN.getStatus(),null);
@@ -71,23 +77,27 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
 
             // 清洗后数据存储 文件存储
             String cleanPath = uploadFile(cleanText, message.getUserId());
+            // 开始总结内容
+            String summary = documentSegmentsService.segmentSummary(String.valueOf(message.getDataSourceId()), cleanText, message.getSplitRule(), 500);
 
             Long cleanId = this.setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "html", message.getUserId());
             DataSourceIndoDTO DataSourceIndoDTO = new DataSourceIndoDTO();
             DataSourceIndoDTO.setCleanId(cleanId);
+            DataSourceIndoDTO.setSummaryContent(summary);
             datasetSourceDataService.updateDatasourceAndSourceInfo(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus(), JSONObject.toJSONString(DataSourceIndoDTO), message.getUserId());
 
+            log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
             if (message.getSync()) {
                 dataSplitProducer.sendMessage(message);
             } else {
                 // 发送消息
-                dataSplitProducer.sendSplitDatasetsSendMessage(message.getDatasetId(), message.getDataSourceId(), message.getSplitRule(), message.getUserId());
+                dataSplitProducer.asyncSendMessage(message);
 
             }
 
         } catch (Exception e) {
-            log.error("[DataSetSourceDataCleanSendConsumer][数据清洗失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因 ({})", message.getUserId(), getTenantId(), message.getDataSourceId(), message.getDataSourceId(),e.getMessage(),e);
-            // 设置数据源状态为清洗中
+            log.error("[DataSetSourceDataCleanSendConsumer][数据清洗失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因 ({})", message.getUserId(), getTenantId(), message.getDatasetId(), message.getDataSourceId(),e.getMessage(),e);
+            // 设置数据源状态为清洗失败
             datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(),e.getMessage());
         }
         // 设置数据源状态为清洗结束

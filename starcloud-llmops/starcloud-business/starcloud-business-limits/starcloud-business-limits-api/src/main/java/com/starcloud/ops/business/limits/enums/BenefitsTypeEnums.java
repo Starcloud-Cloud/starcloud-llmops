@@ -3,7 +3,6 @@ package com.starcloud.ops.business.limits.enums;
 import cn.hutool.core.util.ArrayUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.Locale;
 
@@ -36,6 +35,8 @@ public enum BenefitsTypeEnums {
      * 令牌
      */
     TOKEN("TOKEN", "令牌","token"),
+
+    BOT("BOT", "机器人","bot"),
 
     ;
 

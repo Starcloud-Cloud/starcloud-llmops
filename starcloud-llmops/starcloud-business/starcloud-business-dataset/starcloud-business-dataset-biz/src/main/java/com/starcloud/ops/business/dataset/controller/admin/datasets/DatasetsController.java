@@ -65,20 +65,20 @@ public class DatasetsController {
         return success(true);
     }
 
-    @GetMapping("/get")
+    @PostMapping("/get/{uid}")
     @Operation(summary = "获得数据集")
     @Parameter(name = "id", description = "编号", required = true)
     //@PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:query')")
-    public CommonResult<DatasetsRespVO> getDatasets(@RequestParam("uid")  @ApiParam(value = "数据集编号", required = true) String uid) {
+    public CommonResult<DatasetsRespVO> getDatasets(@PathVariable("uid")  String uid) {
         DatasetsDO datasets = datasetsService.getDatasets(uid);
         return success(DatasetsConvert.convert(datasets));
     }
 
 
-    @GetMapping("/page")
+    @PostMapping("/page")
     @Operation(summary = "获得数据集分页")
     //@PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:query')")
-    public CommonResult<PageResult<DatasetsRespVO>> getDatasetsPage(@Valid DatasetsPageReqVO pageVO) {
+    public CommonResult<PageResult<DatasetsRespVO>> getDatasetsPage(@RequestBody DatasetsPageReqVO pageVO) {
         PageResult<DatasetsDO> pageResult = datasetsService.getDatasetsPage(pageVO);
         return success(DatasetsConvert.convertPage(pageResult));
     }

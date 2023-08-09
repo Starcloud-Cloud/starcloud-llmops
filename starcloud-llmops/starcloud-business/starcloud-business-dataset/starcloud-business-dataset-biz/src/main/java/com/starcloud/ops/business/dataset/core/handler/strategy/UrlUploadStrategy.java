@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.dataset.core.handler.strategy;
 
-import cn.hutool.core.io.FileTypeUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadResultDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -14,7 +14,6 @@ import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -44,15 +43,16 @@ public class UrlUploadStrategy implements UploadStrategy {
      * @return
      */
     @Override
-    public UploadFileRespDTO process(Long userId) {
+    public UploadResultDTO process(Long userId) {
 
-        UploadFileRespDTO uploadFileRespDTO = new UploadFileRespDTO();
+        UploadResultDTO uploadFileRespDTO = new UploadResultDTO();
 
         // 判断 URL 是网页还是文件流
         // 设置文件名称
         Document doc;
         try {
-            doc = Jsoup.connect(url).get();
+            String normalize = URLUtil.normalize(url);
+            doc = Jsoup.connect(normalize).get();
         } catch (Exception e) {
             log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
             return uploadFileRespDTO;
@@ -67,14 +67,12 @@ public class UrlUploadStrategy implements UploadStrategy {
 
         String result = doc.toString();
 
-        // 将结果转换为InputStream流
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(result.getBytes(StandardCharsets.UTF_8));
         // 生成文件ID - 使用 URL SecureUtil.md5 会关闭流
         String fileId = SecureUtil.md5(url);
         String filePath = null;
         try {
             // 上传文件
-            filePath = uploadFile(fileId, inputStream, userId);
+            filePath = uploadFile(fileId, result, userId);
             // 设置文件名称
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);
@@ -87,10 +85,11 @@ public class UrlUploadStrategy implements UploadStrategy {
         // 获取文件size
         long size;
         try {
+            InputStream utf8Stream = IoUtil.toUtf8Stream(result);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
             int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
+            while ((bytesRead = utf8Stream.read(buffer)) != -1) {
                 byteArrayOutputStream.write(buffer, 0, bytesRead);
             }
             size = byteArrayOutputStream.toByteArray().length;
@@ -123,24 +122,17 @@ public class UrlUploadStrategy implements UploadStrategy {
      * @param userId       文件 path 可以为空
      * @return 文件路径
      */
-    private String uploadFile(String fileId, InputStream fileStream, Long userId) {
+    private String uploadFile(String fileId, String data, Long userId) {
 
-        String fileType;
-        try {
-            fileType = FileTypeUtil.getType(fileStream);
-            if (fileType == null || "null".equals(fileType)) {
-                fileType = "txt";
-            }
 
-        } catch (Exception e) {
-            fileType = "txt";
-        }
+        // 将结果转换为InputStream流
+        InputStream utf8Stream = IoUtil.toUtf8Stream(data);
 
-        String fileName = fileId + "." + fileType;
+
+        String fileName = fileId + "." + "txt";
         String path = String.format(PATH_OBJECT + "%s" + "/", userId) + fileName;
 
-
-        return fileApi.createFile(fileName, path, IoUtil.readBytes(fileStream));
+        return fileApi.createFile(fileName, path, IoUtil.readBytes(utf8Stream));
     }
 
     /**

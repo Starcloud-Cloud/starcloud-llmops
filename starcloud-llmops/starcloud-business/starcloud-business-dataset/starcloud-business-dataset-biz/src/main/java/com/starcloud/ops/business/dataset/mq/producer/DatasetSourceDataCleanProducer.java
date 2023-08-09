@@ -4,7 +4,6 @@ import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
 import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataCleanSendConsumer;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,25 +42,16 @@ public class DatasetSourceDataCleanProducer extends AbstractDatasetSourceProduce
     //     redisMQTemplate.send(message);
     // }
 
-    /**
-     * 发送 {@link DatasetSourceDataCleanSendMessage} 消息
-     */
-    public void sendCleanDatasetsSendMessage(String dataSetId, Long dataSourceId,
-                                             SplitRule splitRule, Long userId) {
-        DatasetSourceDataCleanSendMessage message = new DatasetSourceDataCleanSendMessage()
-                .setDatasetId(dataSetId)
-                .setDataSourceId(dataSourceId)
-                .setSplitRule(splitRule)
-                .setUserId(userId);
-        log.info("发送数据清洗信息");
-        redisMQTemplate.send(message);
-    }
-
-
     @Override
     public void asyncSendMessage(DatasetSourceSendMessage sendMessage) {
-
-        this.sendCleanDatasetsSendMessage(sendMessage.getDatasetId(), sendMessage.getDataSourceId(), sendMessage.getSplitRule(), sendMessage.getUserId());
+        DatasetSourceSendMessage message = new DatasetSourceDataCleanSendMessage()
+                .setDatasetId(sendMessage.getDatasetId())
+                .setDataSourceId(sendMessage.getDataSourceId())
+                .setSplitRule(sendMessage.getSplitRule())
+                .setUserId(sendMessage.getUserId())
+                .setSync(false);
+        log.info("发送数据清洗信息");
+        redisMQTemplate.send(message);
     }
 
     @Override
@@ -70,7 +60,7 @@ public class DatasetSourceDataCleanProducer extends AbstractDatasetSourceProduce
         DatasetSourceDataCleanSendMessage message = new DatasetSourceDataCleanSendMessage();
 
         message.setSync(true);
-        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setDatasetId(sendMessage.getDatasetId());
         message.setDataSourceId(sendMessage.getDataSourceId());
         message.setSplitRule(sendMessage.getSplitRule());
         message.setUserId(sendMessage.getUserId());

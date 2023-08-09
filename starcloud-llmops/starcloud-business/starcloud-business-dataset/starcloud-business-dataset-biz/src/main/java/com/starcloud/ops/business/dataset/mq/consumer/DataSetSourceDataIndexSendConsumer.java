@@ -31,6 +31,8 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractStreamMessageLis
     @Override
     public void onMessage(DatasetSourceDataIndexSendMessage message) {
 
+        log.info("开始创建索引，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
+
         // 设置数据源状态为正在创建索引
         datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_IN.getStatus(),null);
         try {
@@ -38,9 +40,10 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractStreamMessageLis
             documentSegmentsService.indexDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()));
             // 设置数据源状态为创建索引完成
             datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_COMPLETED.getStatus(),null);
+            log.info("创建索引成功，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
 
         } catch (Exception e) {
-            log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", message.getUserId(), getTenantId(), message.getDataSourceId(),message.getDataSourceId(),e.getMessage(),e);
+            log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", message.getUserId(), getTenantId(), message.getDatasetId(),message.getDataSourceId(),e.getMessage(),e);
             // 设置数据源状态为清洗中
             datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(),e.getMessage());
         }

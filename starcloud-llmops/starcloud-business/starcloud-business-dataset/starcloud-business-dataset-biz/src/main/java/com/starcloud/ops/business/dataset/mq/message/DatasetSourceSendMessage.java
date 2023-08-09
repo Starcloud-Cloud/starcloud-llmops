@@ -25,7 +25,6 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
      */
     @NotNull(message = " 数据源 ID不能为空")
     private Long dataSourceId;
-
     /**
      * 用户 ID
      */
