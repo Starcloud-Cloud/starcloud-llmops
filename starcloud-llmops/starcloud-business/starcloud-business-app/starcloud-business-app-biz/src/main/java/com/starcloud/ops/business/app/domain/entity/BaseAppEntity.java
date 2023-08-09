@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -24,6 +25,7 @@ import com.starcloud.ops.business.log.service.conversation.LogAppConversationSer
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -348,6 +350,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             //直接 会话异常
             this.updateAppConversationLog(req.getConversationUid(), false);
+
+            if (req instanceof AppExecuteReqVO) {
+                SseEmitter sseEmitter = ((AppExecuteReqVO) req).getSseEmitter();
+                if (sseEmitter != null) {
+                    sseEmitter.completeWithError(e);
+                }
+
+            }
 
             throw e;
         }
