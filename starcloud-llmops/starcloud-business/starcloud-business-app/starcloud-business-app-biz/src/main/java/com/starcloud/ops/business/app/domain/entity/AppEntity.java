@@ -37,6 +37,7 @@ import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -144,6 +145,24 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
         this._execute(req);
     }
+
+    /**
+     * 执行后执行
+     */
+    @Override
+    protected void _afterExecute(AppExecuteReqVO req, Throwable t) {
+
+        SseEmitter sseEmitter = req.getSseEmitter();
+
+        if (sseEmitter != null) {
+            if (t != null) {
+                sseEmitter.completeWithError(t);
+            } else {
+                sseEmitter.complete();
+            }
+        }
+    }
+
 
     @Override
     protected void _createAppConversationLog(AppExecuteReqVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {

@@ -181,7 +181,7 @@ public class ImageServiceImpl implements ImageService {
         String fastConversationUid = IdUtil.fastSimpleUUID();
         conversation.setUid(fastConversationUid);
         conversation.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
-        conversation.setAppName("基础生成图片应用：文本生成图片，图片生成图片");
+        conversation.setAppName("AI图片生成");
         conversation.setStatus(LogStatusEnum.ERROR.name());
         conversation.setAppUid(fastConversationUid);
         conversation.setAppConfig(JSONUtil.toJsonStr(new ImageReqVO()));

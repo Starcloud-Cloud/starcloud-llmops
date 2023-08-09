@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.log.service.message;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
@@ -16,7 +15,6 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.log.enums.ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS;
@@ -114,17 +112,8 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
      */
     @Override
     public List<LogAppMessageDO> getAppMessageList(String conversationUid) {
-        List<LogAppMessageDO> list = appMessageMapper.selectList(new LambdaQueryWrapperX<LogAppMessageDO>()
+        return appMessageMapper.selectList(new LambdaQueryWrapperX<LogAppMessageDO>()
                 .eq(LogAppMessageDO::getAppConversationUid, conversationUid));
-
-        return CollectionUtil.emptyIfNull(list).stream().peek(item -> {
-            try {
-                Long.parseLong(item.getEndUser());
-                item.setEndUser("用户");
-            } catch (NumberFormatException e) {
-                item.setEndUser("游客");
-            }
-        }).collect(Collectors.toList());
     }
 
     /**
