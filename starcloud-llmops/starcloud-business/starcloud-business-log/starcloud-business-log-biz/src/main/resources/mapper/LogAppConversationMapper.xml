@@ -15,6 +15,7 @@
             t.creator,
             t.end_user,
             t.create_time,
+            t.update_time,
             COUNT(t1.id) AS messageCount,
             COUNT(t2.id) AS feedbacksCount,
             SUM(t1.elapsed) AS totalElapsed,
@@ -47,7 +48,7 @@
             </if>
         </where>
         GROUP BY t.id
-        ORDER BY t.id DESC
+        ORDER BY t.update_time DESC
 
     </select>
 
