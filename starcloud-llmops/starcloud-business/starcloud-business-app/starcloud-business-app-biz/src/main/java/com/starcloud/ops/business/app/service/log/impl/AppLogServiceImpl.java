@@ -9,6 +9,7 @@ import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
+import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -73,10 +74,12 @@ public class AppLogServiceImpl implements AppLogService {
                     appLogMessageRespVO.setStatus(item.getStatus());
                     appLogMessageRespVO.setTokens(item.getMessageTokens() + item.getAnswerTokens());
                     appLogMessageRespVO.setPrice(item.getTotalPrice());
+                    appLogMessageRespVO.setCurrency(item.getCurrency());
                     appLogMessageRespVO.setErrorCode(item.getErrorCode());
+                    appLogMessageRespVO.setEndUser(identifyUser(item.getEndUser()));
                     appLogMessageRespVO.setErrorMessage(item.getErrorMsg());
                     appLogMessageRespVO.setCreateTime(item.getCreateTime());
-                    appLogMessageRespVO.setApp(JSONUtil.toBean(item.getAppConfig(), AppRespVO.class));
+                    appLogMessageRespVO.setAppInfo(JSONUtil.toBean(item.getAppConfig(), AppRespVO.class));
                     return appLogMessageRespVO;
                 }).collect(Collectors.toList());
     }
@@ -88,7 +91,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return ImageRespVO
      */
     @Override
-    public List<ImageMessageRespVO> getLogImageMessageDetail(String conversationUid) {
+    public List<ImageLogMessageRespVO> getLogImageMessageDetail(String conversationUid) {
         // 获取会话
         LogAppConversationDO appConversation = logAppConversationService.getAppConversation(conversationUid);
         if (Objects.isNull(appConversation)) {
@@ -99,6 +102,20 @@ public class AppLogServiceImpl implements AppLogService {
         List<LogAppMessageDO> appMessageList = logAppMessageService.getAppMessageList(conversationUid);
         // 处理图片消息数据
         return CollectionUtil.emptyIfNull(appMessageList).stream().map(item -> {
+            ImageLogMessageRespVO imageLogMessageRespVO = new ImageLogMessageRespVO();
+            imageLogMessageRespVO.setUid(item.getUid());
+            imageLogMessageRespVO.setConversationUid(item.getAppConversationUid());
+            imageLogMessageRespVO.setAppUid(item.getAppUid());
+            imageLogMessageRespVO.setAppName(appConversation.getAppName());
+            imageLogMessageRespVO.setAppMode(item.getAppMode());
+            imageLogMessageRespVO.setFromScene(item.getFromScene());
+            imageLogMessageRespVO.setMessage(item.getMessage());
+            imageLogMessageRespVO.setStatus(item.getStatus());
+            imageLogMessageRespVO.setErrorCode(item.getErrorCode());
+            imageLogMessageRespVO.setEndUser(identifyUser(item.getEndUser()));
+            imageLogMessageRespVO.setErrorMessage(item.getErrorMsg());
+            imageLogMessageRespVO.setCreateTime(item.getCreateTime());
+
             // 如果没有结果，返回 null
             if (StringUtils.isBlank(item.getAnswer())) {
                 return null;
@@ -123,7 +140,23 @@ public class AppLogServiceImpl implements AppLogService {
                 imageResponse.setHeight(imageRequest.getHeight());
                 imageResponse.setSteps(imageRequest.getSteps());
             }
-            return imageResponse;
+            imageLogMessageRespVO.setImageInfo(imageResponse);
+            return imageLogMessageRespVO;
         }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取用户或者游客
+     *
+     * @param input 用户输入
+     * @return 用户或者游客
+     */
+    public static String identifyUser(String input) {
+        try {
+            Long.parseLong(input);
+            return "用户";
+        } catch (NumberFormatException e) {
+            return "游客";
+        }
     }
 }

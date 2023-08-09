@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.log;
 
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
+import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 
 import java.util.List;
 
@@ -26,6 +27,6 @@ public interface AppLogService {
      * @param conversationUid 消息唯一标识
      * @return ImageRespVO
      */
-    List<ImageMessageRespVO> getLogImageMessageDetail(String conversationUid);
+    List<ImageLogMessageRespVO> getLogImageMessageDetail(String conversationUid);
 
 }
