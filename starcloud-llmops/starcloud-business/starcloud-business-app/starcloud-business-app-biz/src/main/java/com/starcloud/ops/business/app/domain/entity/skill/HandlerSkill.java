@@ -1,14 +1,22 @@
 package com.starcloud.ops.business.app.domain.entity.skill;
 
 
+import cn.hutool.core.util.TypeUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * handler 技能包装类
@@ -17,30 +25,17 @@ import java.util.Map;
 @Data
 public class HandlerSkill extends BaseSkillEntity {
 
+    private BaseHandler handler;
 
-    private String url;
+    public HandlerSkill(BaseHandler baseHandler) {
+        this.handler = baseHandler;
+    }
 
+    @Override
+    public JsonNode getInputSchemas() {
 
-    private String method;
-
-    private Boolean needConfirmation;
-
-    private List<Map<String, String>> headers;
-
-
-    private Object queryParams;
-
-    private Object requestBody;
-
-    private Object responseBody;
-
-    private Boolean validated;
-
-    private String tips;
-
-    private String mediaType;
-
-    private Map<String, String> mediaFormatMaps;
+        return null;
+    }
 
 
     @Override
@@ -48,46 +43,26 @@ public class HandlerSkill extends BaseSkillEntity {
         return null;
     }
 
+
     @Override
-    public JsonNode getInputSchemas() {
-        //根据 前端配置的参数 生成 schemas。前端上传的就已经是 schemas
+    public FunTool createFunTool(HandlerContext handlerContext) {
 
-        this.getQueryParams();
-        this.getRequestBody();
-        String name = this.getName();
-        String description = this.getDesc();
+        Type query = TypeUtil.getTypeArgument(this.getHandler().getClass());
+        Class<?> cc = (Class<?>) query;
 
-        HashMap schemas = new HashMap() {
-            {
-                put("type", "object");
-                put("properties",
-                        new HashMap() {
-                            {
-                                put("query",
-                                        new HashMap() {
-                                            {
-                                                put("type", "string");
-                                                put("description", "Parameter defines the query you want to search.");
-                                            }
-                                        });
-                            }
-                        });
-                //put("required", Arrays.asList("query"));
-            }
+        Function<Object, String> function = (input) -> {
+
+            log.info("FunTool HandlerSkill: {} {}", this.getHandler().getName(), input);
+
+            handlerContext.setRequest(input);
+
+            HandlerResponse handlerResponse = this.handler.execute(handlerContext);
+
+            return handlerResponse.toJsonOutput();
         };
 
-        return OpenAIUtils.valueToTree(schemas);
-
+        return createFunTool(this.getHandler().getName(), handler.getDescription(), cc, function);
     }
 
-    @Override
-    protected Object _execute(Object req) {
 
-        this.getAccredit();
-        log.info("_execute: {}", this.getQueryParams());
-
-        //@todo  根据 不同位子的参数，在 req 中查找具体到值，只需要在第一层找到即可
-        //@todo 最后拼装 http 请求的参数，获取最后结果，结构在 根据配置的 responseBody schemas 做个校验，并返回最后的内容
-        return null;
-    }
 }

@@ -1,14 +1,20 @@
 package com.starcloud.ops.business.app.domain.entity.skill;
 
 
+import cn.hutool.core.util.TypeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * 技能实体
@@ -81,7 +87,20 @@ public class ApiSkill extends BaseSkillEntity {
     }
 
     @Override
-    protected Object _execute(Object req) {
+    public FunTool createFunTool(HandlerContext handlerContext) {
+
+        Function<Object, String> function = (input) -> {
+
+            log.info("FunTool ApiSkill: {} {}", this.getName(), input);
+
+            return this._execute(input);
+        };
+
+        return new FunTool(this.getName(), this.getDesc(), this.getInputSchemas(), function);
+    }
+
+
+    protected String _execute(Object req) {
 
         this.getAccredit();
         log.info("_execute: {}", this.getQueryParams());

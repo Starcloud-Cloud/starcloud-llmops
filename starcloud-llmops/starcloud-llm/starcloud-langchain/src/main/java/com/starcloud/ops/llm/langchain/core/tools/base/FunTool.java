@@ -4,6 +4,7 @@ package com.starcloud.ops.llm.langchain.core.tools.base;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
+
 import java.util.function.Function;
 
 /**
@@ -25,18 +26,38 @@ public class FunTool extends BaseTool<Object, Object> {
 
     private Class<?> outputCls;
 
-//    public FunTool(String name, String description, JsonNode jsonSchema, Function<Object, String> function) {
-//        this.setFunction(function);
-//        this.setName(name);
-//        this.setDescription(description);
-//        this.setJsonSchema(jsonSchema);
-//    }
 
-    public FunTool(String name, String description, Class<?> schemaCls, Function<Object, String> function) {
+    /**
+     * 直接传入json schema
+     *
+     * @param name
+     * @param description
+     * @param jsonSchema
+     * @param function
+     */
+    public FunTool(String name, String description, JsonNode jsonSchema, Function<Object, String> function) {
         this.setFunction(function);
         this.setName(name);
         this.setDescription(description);
-        this.setInputCls(schemaCls);
+        this.setJsonSchema(jsonSchema);
+    }
+
+
+    /**
+     * 传入 Java class
+     *
+     * @param name
+     * @param description
+     * @param schemaCls
+     * @param function
+     */
+    public FunTool(String name, String description, Class<?> schemaCls, Function<Object, String> function) {
+
+        this.setFunction(function);
+        this.setName(name);
+        this.setDescription(description);
+        this.setJsonSchema(OpenAIUtils.serializeJsonSchema(this.getInputCls()));
+
     }
 
     @Override
