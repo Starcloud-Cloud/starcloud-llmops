@@ -436,7 +436,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             FunTool funTool = OpenAIToolFactory.createHandlerTool(webSearch2Doc, (input) -> {
                 log.info("funTool: {} {}", webSearch2Doc.getName(), input);
 
-                HandlerContext appContext = HandlerContext.createContext(request.getConversationUid(), request.getUserId(), input);
+                HandlerContext appContext = HandlerContext.createContext(request.getAppUid(), request.getConversationUid(), request.getUserId(), input);
                 appContext.setSseEmitter(emitter);
 
                 HandlerResponse handlerResponse = webSearch2Doc.execute(appContext);

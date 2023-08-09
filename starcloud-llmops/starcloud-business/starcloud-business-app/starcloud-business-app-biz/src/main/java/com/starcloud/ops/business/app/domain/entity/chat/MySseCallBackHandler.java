@@ -67,6 +67,10 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
 
         private int code;
 
+        /**
+         * m: AI生成内容
+         * i: AI思考交互
+         */
         private String type;
 
         private String content;

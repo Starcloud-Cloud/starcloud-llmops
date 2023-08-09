@@ -30,6 +30,8 @@ public class InteractiveInfo {
 
     private Object data;
 
+    private String errorMsg;
+
 
     /**
      * url 卡片，前端获取URL内的内容取渲染

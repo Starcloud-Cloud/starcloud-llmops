@@ -20,6 +20,8 @@ public class HandlerContext<Q> {
 
     private Long userId;
 
+    private String appUid;
+
     private String conversationUid;
 
     private String messageUid;
@@ -84,9 +86,9 @@ public class HandlerContext<Q> {
     }
 
 
-    public static <Q> HandlerContext<Q> createContext(String conversationUid, Long userId, Q request) {
+    public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId, Q request) {
 
-        return new HandlerContext<Q>().setUserId(userId).setConversationUid(conversationUid).setRequest(request);
+        return new HandlerContext<Q>().setAppUid(appUid).setUserId(userId).setConversationUid(conversationUid).setRequest(request);
     }
 
 

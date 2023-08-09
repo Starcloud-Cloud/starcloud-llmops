@@ -95,4 +95,8 @@ public abstract class BaseActionHandler<Q, R> {
     protected BenefitsTypeEnums getBenefitsType() {
         return BenefitsTypeEnums.TOKEN;
     }
+
+    protected String getAppUid() {
+        return this.getAppContext().getApp().getUid();
+    }
 }
