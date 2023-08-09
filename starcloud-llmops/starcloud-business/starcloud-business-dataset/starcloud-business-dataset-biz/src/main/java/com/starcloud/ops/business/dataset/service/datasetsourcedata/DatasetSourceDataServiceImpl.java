@@ -14,6 +14,7 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.Datas
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
+import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
@@ -391,7 +392,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
         DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
 
-        if (sourceDataDO.getDataSourceInfo() != null) {
+        if (DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus() < sourceDataDO.getStatus() && sourceDataDO.getDataSourceInfo() != null) {
             DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
 
             if (dataSourceIndoDTO.getSummaryContent() != null) {
