@@ -77,13 +77,19 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
 
             // 清洗后数据存储 文件存储
             String cleanPath = uploadFile(cleanText, message.getUserId());
-            // 开始总结内容
-            String summary = documentSegmentsService.segmentSummary(String.valueOf(message.getDataSourceId()), cleanText, message.getSplitRule(), 500);
 
             Long cleanId = this.setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "html", message.getUserId());
             DataSourceIndoDTO DataSourceIndoDTO = new DataSourceIndoDTO();
             DataSourceIndoDTO.setCleanId(cleanId);
-            DataSourceIndoDTO.setSummaryContent(summary);
+
+            try {
+                // 开始总结内容
+                String summary = documentSegmentsService.segmentSummary(String.valueOf(message.getDataSourceId()), cleanText, message.getSplitRule(), 500);
+                DataSourceIndoDTO.setSummaryContent(summary);
+            }catch (RuntimeException e){
+                log.error("清洗过程中，生成总结内容，总结内容生成失败");
+            }
+
             datasetSourceDataService.updateDatasourceAndSourceInfo(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus(), JSONObject.toJSONString(DataSourceIndoDTO), message.getUserId());
 
             log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());

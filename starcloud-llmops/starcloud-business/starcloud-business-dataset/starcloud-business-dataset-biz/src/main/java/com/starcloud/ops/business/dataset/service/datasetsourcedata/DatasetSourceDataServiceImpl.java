@@ -393,9 +393,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
 
-        if (sourceDataDO.getStatus() < DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus()) {
-            throw exception(DATASET_SOURCE_DATA_STUDY_IN);
-        }
+        // if (sourceDataDO.getStatus() < DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus()) {
+        //     throw exception(DATASET_SOURCE_DATA_STUDY_IN);
+        // }
         DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
 
         DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
