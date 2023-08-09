@@ -30,8 +30,8 @@ public interface DatasetSourceDataMapper extends BaseMapperX<DatasetSourceDataDO
     default List<DatasetSourceDataDO> selectByDatasetId(String datasetId, Integer dataModel) {
         LambdaQueryWrapper<DatasetSourceDataDO> queryWrapper = Wrappers.lambdaQuery(DatasetSourceDataDO.class)
                 .eq(DatasetSourceDataDO::getDataModel, dataModel)
-                .in(DatasetSourceDataDO::getDatasetId,datasetId)
-                .orderByAsc(DatasetSourceDataDO::getCreateTime);
+                .in(DatasetSourceDataDO::getDatasetId, datasetId)
+                .orderByDesc(Arrays.asList(DatasetSourceDataDO::getId, DatasetSourceDataDO::getCreateTime));
         return selectList(queryWrapper);
     }
 
