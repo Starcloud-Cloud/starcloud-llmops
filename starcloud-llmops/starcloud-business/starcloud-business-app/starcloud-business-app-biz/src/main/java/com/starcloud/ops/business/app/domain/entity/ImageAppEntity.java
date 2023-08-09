@@ -119,6 +119,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
             // 返回结果
             return imageResponse;
         } catch (ServiceException exception) {
+            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", exception.getCode(), exception.getMessage());
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
@@ -129,9 +130,9 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
                 messageRequest.setErrorCode(Integer.toString(exception.getCode()));
                 messageRequest.setErrorMsg(exception.getMessage());
             });
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", exception.getCode(), exception.getMessage());
             throw exception;
         } catch (Exception exception) {
+            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()), exception.getMessage());
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
@@ -142,7 +143,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
                 messageRequest.setErrorCode(Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()));
                 messageRequest.setErrorMsg(exception.getMessage());
             });
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", appMessage.getErrorCode(), exception.getMessage());
+
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
