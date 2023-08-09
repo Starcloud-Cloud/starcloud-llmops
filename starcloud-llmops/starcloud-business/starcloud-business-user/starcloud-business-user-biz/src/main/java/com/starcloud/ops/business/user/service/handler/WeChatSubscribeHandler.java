@@ -113,10 +113,19 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
             socialUserMapper.insert(socialUserDO);
 //            String password = RandomUtil.randomString(10);
-            String password = "mofaai123456";
-            String username = userName(wxMessage.getFromUser());
-            Long userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L, CommonStatusEnum.ENABLE.getStatus());
-            SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
+            Long userId = null;
+            String bindUser = redisTemplate.boundValueOps(wxMessage.getTicket() + "_userId").get();
+            String msg = StringUtils.EMPTY;
+            if (StringUtils.isNotBlank(bindUser)) {
+                userId = Long.valueOf(bindUser);
+                msg = "绑定微信公众号成功";
+            } else {
+                String password = "mofaai123456";
+                String username = userName(wxMessage.getFromUser());
+                msg = String.format("您可以使用帐号密码登录，帐号是：%s  登录密码是：%s", username, password);
+                userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L, CommonStatusEnum.ENABLE.getStatus());
+            }
+           SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
                     .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                     .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
             socialUserBindMapper.insert(socialUserBind);
@@ -142,8 +151,6 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             }
 
             starUserService.addBenefits(userId, inviteUserid);
-
-            String msg = String.format("您可以使用帐号密码登录，帐号是：%s  登录密码是：%s", username, password);
             return  mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(),msg, wxMessage);
         } catch (Exception e) {
             log.error("新增用户失败", e);
