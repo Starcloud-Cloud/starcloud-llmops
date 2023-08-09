@@ -25,7 +25,7 @@ public class StringUploadStrategy implements UploadStrategy {
 
     private String characters;
 
-    private static final String PATH_OBJECT = "/dataset-source-data/";
+    private static final String PATH_OBJECT = "dataset-source-data/";
 
 
     // Setter方法，用于接收MultipartFile对象
