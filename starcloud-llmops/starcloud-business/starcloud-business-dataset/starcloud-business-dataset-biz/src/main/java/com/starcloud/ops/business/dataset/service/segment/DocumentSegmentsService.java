@@ -43,6 +43,7 @@ public interface DocumentSegmentsService {
 
     void splitDoc(String datasetId, String dataSourceId, SplitRule splitRule) throws IOException, TikaException;
 
+    String segmentSummary(String documentId, String text, SplitRule splitRule, Integer summarySize);
     /**
      * 分段明细
      */
