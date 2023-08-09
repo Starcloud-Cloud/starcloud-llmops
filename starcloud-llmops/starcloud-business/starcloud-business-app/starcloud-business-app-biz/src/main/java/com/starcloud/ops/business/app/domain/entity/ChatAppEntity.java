@@ -152,31 +152,13 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
 
-        try {
-
-            return executeChat(req, req.getUserId());
-
-        } catch (Exception e) {
-
-            log.error("chat error:", e);
-
-        }
-
-        return new JsonData();
-
+        return executeChat(req, req.getUserId());
     }
 
     @Override
     protected void _aexecute(ChatRequestVO req) {
 
-        SseEmitter emitter = req.getSseEmitter();
         JsonData jsonParams = this._execute(req);
-
-        if (emitter != null) {
-
-            emitter.complete();
-        }
-
     }
 
 

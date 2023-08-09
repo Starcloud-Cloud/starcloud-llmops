@@ -342,7 +342,18 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
                 this._aexecute(req);
 
+                if (req instanceof AppExecuteReqVO) {
+                    SseEmitter sseEmitter = ((AppExecuteReqVO) req).getSseEmitter();
+                    if (sseEmitter != null) {
+                        sseEmitter.complete();
+                    }
+                }
+
             });
+        } catch (ServiceException e) {
+
+            // 在这里设置 具体的 errorCode
+            throw e;
 
         } catch (Exception e) {
 
