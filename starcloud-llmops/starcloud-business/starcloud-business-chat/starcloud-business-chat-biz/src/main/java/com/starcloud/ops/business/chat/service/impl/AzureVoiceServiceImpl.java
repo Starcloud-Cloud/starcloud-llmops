@@ -47,6 +47,12 @@ public class AzureVoiceServiceImpl {
      */
     private Consumer<byte[]> eventCompletedConsumer;
 
+    public void setEventSynthesizing(Consumer<byte[]> eventSynthesizing) {
+        this.eventSynthesizing = eventSynthesizing;
+    }
+
+    private Consumer<byte[]> eventSynthesizing;
+
     /**
      * 选中的语音，男女各10各
      */
@@ -186,7 +192,7 @@ public class AzureVoiceServiceImpl {
                 eventCompletedConsumer.accept(audioData);
             }
 
-            result.close();
+            //result.close();
         });
 
         speechSynthesizer.SynthesisStarted.addEventListener((o, e) -> {
@@ -197,7 +203,12 @@ public class AzureVoiceServiceImpl {
             SpeechSynthesisResult result = e.getResult();
             byte[] audioData = result.getAudioData();
             log.info("Synthesizing event, AudioData: {} bytes", audioData.length);
-            result.close();
+
+            if (this.eventSynthesizing != null) {
+                eventSynthesizing.accept(audioData);
+            }
+
+            //result.close();
         });
 
         speechSynthesizer.VisemeReceived.addEventListener((o, e) -> {
@@ -234,8 +245,7 @@ public class AzureVoiceServiceImpl {
             }
         }
 
-        speechSynthesizer.close();
-
+        //speechSynthesizer.close();
 
     }
 

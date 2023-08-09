@@ -43,6 +43,7 @@ public class OpenAIToolFactory {
     }
 
 
+    @Deprecated
     public static FunTool createHandlerTool(BaseHandler handler, Function<Object, String> function) {
 
         Type query = TypeUtil.getTypeArgument(handler.getClass());
@@ -52,6 +53,7 @@ public class OpenAIToolFactory {
     }
 
 
+    @Deprecated
     private static FunTool createFunTool(String name, String description, Class<?> inputCls, Function<Object, String> function) {
 
         FunTool funTool = new FunTool(name, description, inputCls, function);

@@ -68,52 +68,72 @@ public class ChatVoiceController {
 
         httpServletResponse.setContentType("application/octet-stream");
 
-        azureVoiceService.setEventCompletedConsumer((bytes) -> {
+        azureVoiceService.setEventSynthesizing((bytes) -> {
             try {
 
                 httpServletResponse.setContentLength(bytes.length);
                 httpServletResponse.getOutputStream().write(bytes);
-
                 httpServletResponse.getOutputStream().flush();
-                httpServletResponse.getOutputStream().close();
 
             } catch (Exception e) {
-                log.error("example is fail: {}", e.getMessage(), e);
+                log.error("example synthesizing is fail: {}", e.getMessage(), e);
             }
         });
 
         String text = StrUtil.isBlank(messageSpeakConfigVO.getText()) ? "魔法AI是一家专注于生成式 AI 领域的科技公司，致力于用前沿的AI技术来创造内容。" : messageSpeakConfigVO.getText();
 
         azureVoiceService.speak(text, messageSpeakConfigVO);
+
+        try {
+
+            httpServletResponse.getOutputStream().close();
+
+            log.error("httpServletResponse OutputStream closed");
+
+        } catch (Exception e) {
+
+            log.error("OutputStream close is fail: {}", e.getMessage(), e);
+        }
+
     }
 
     @PostMapping("/speak")
     @Operation(summary = "消息文本语音生成", description = "消息文本语音生成")
-    public SseEmitter speak(@RequestBody MessageSpeakConfigVO messageSpeakConfigVO) {
-
-        SseEmitter emitter = new SseEmitter(60000L);
+    public void speak(@RequestBody MessageSpeakConfigVO messageSpeakConfigVO, HttpServletResponse httpServletResponse) {
 
         //messageUid 校验合法性, 查出配置
-
         if (StrUtil.isBlank(messageSpeakConfigVO.getText())) {
-            emitter.completeWithError(new RuntimeException("speak text cannot be empty"));
-            return emitter;
+            throw new RuntimeException("speak text cannot be empty");
         }
 
+        httpServletResponse.setContentType("application/octet-stream");
 
-        azureVoiceService.setEventCompletedConsumer((bytes) -> {
-
+        azureVoiceService.setEventSynthesizing((bytes) -> {
             try {
-                emitter.send(bytes);
-            } catch (Exception e) {
-                log.error("example is fail: {}", e.getMessage(), e);
-            }
 
+                httpServletResponse.setContentLength(bytes.length);
+                httpServletResponse.getOutputStream().write(bytes);
+                httpServletResponse.getOutputStream().flush();
+
+            } catch (Exception e) {
+                log.error("speak synthesizing is fail: {}", e.getMessage(), e);
+            }
         });
+
 
         azureVoiceService.speak(messageSpeakConfigVO.getText(), messageSpeakConfigVO);
 
-        return emitter;
+        try {
+
+            httpServletResponse.getOutputStream().close();
+
+            log.error("httpServletResponse OutputStream closed");
+
+        } catch (Exception e) {
+
+            log.error("OutputStream close is fail: {}", e.getMessage(), e);
+        }
+
     }
 
 }

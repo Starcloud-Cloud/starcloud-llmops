@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.handler.common;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -85,6 +84,10 @@ public class HandlerContext<Q> {
 
     }
 
+    public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId) {
+
+        return new HandlerContext<Q>().setAppUid(appUid).setUserId(userId).setConversationUid(conversationUid);
+    }
 
     public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId, Q request) {
 

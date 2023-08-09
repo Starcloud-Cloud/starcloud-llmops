@@ -7,12 +7,15 @@ import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.Function;
 
 /**
  * 技能实体
@@ -68,10 +71,29 @@ public class AppWorkflowSkill extends BaseSkillEntity {
         return OpenAIUtils.valueToTree(schemas);
     }
 
+
     @Override
-    protected Object _execute(Object req) {
+    public FunTool createFunTool(HandlerContext handlerContext) {
+
+        Function<Object, String> function = (input) -> {
+
+            log.info("FunTool AppWorkflowSkill: {} {}", this.getName(), input);
+
+            handlerContext.setRequest(input);
+
+            return this._execute(handlerContext);
+        };
+
+        return new FunTool(this.getName(), this.getDesc(), this.getInputSchemas(), function);
+    }
+
+
+    protected String _execute(HandlerContext handlerContext) {
 
         log.info("_execute: {}", this.getAccredit());
+
+        handlerContext.getRequest();
+
 
         AppEntity<AppExecuteReqVO, Object> app = AppFactory.factory(this.getAppUid());
 

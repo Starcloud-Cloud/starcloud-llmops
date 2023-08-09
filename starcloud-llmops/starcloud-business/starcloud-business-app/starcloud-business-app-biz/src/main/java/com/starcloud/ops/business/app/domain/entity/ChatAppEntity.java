@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
 import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
 import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
+import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -312,7 +313,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * @param prePrompt
      * @param dataSetStr
      * @param currQuery
-     * @param openaiCompletionParams      使用模型配置
+     * @param openaiCompletionParams 使用模型配置
      * @return
      */
     public int calculateMaxTokens(String prePrompt, String dataSetStr, String currQuery, OpenaiCompletionParams openaiCompletionParams) {
@@ -376,7 +377,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         chatOpenAi.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
 //        ConversationBufferMemory memory = new ConversationBufferMemory();
-        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(),chatConfig.getModelConfig().getCompletionParams().getModel());
+        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel());
 
 //        memory.setChatHistory(history);
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = new LLMChain<>(chatOpenAi, chatPromptTemplate);
@@ -424,58 +425,32 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         WebSearchConfigEntity searchConfigEntity = chatConfig.getWebSearchConfig();
 
+        //工具入参
+        HandlerContext appContext = HandlerContext.createContext(request.getAppUid(), request.getConversationUid(), request.getUserId());
+        appContext.setSseEmitter(emitter);
+
         //web search
         if (searchConfigEntity != null && searchConfigEntity.getEnabled()) {
-//            RequestsGetTool requestsGetTool = new RequestsGetTool();
-//            String des = requestsGetTool.getDescription();
 
             WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
             String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
             webSearch2Doc.setDescription(description);
 
-            FunTool funTool = OpenAIToolFactory.createHandlerTool(webSearch2Doc, (input) -> {
-                log.info("funTool: {} {}", webSearch2Doc.getName(), input);
+            HandlerSkill handlerSkill = new HandlerSkill(webSearch2Doc);
 
-                HandlerContext appContext = HandlerContext.createContext(request.getAppUid(), request.getConversationUid(), request.getUserId(), input);
-                appContext.setSseEmitter(emitter);
-
-                HandlerResponse handlerResponse = webSearch2Doc.execute(appContext);
-
-                return handlerResponse.toJsonOutput();
-            });
-
-            loadTools.add(funTool);
+            loadTools.add(handlerSkill.createFunTool(appContext));
         }
 
         //load skill
         List<BaseTool> funTools = Optional.ofNullable(skillEntities).orElse(new ArrayList<>()).stream().map((skillEntity -> {
 
-            String name = skillEntity.getName();
-            String desc = skillEntity.getDesc();
-
             if (skillEntity instanceof ApiSkill) {
 
-                FunTool funTool = new FunTool(name, desc, skillEntity.getInputCls(), (input) -> {
-                    log.info("funTool: {} {}", name, input);
-
-                    skillEntity.execute(input, emitter);
-
-                    return null;
-                });
-
-                return funTool;
+                return skillEntity.createFunTool(appContext);
             }
 
             if (skillEntity instanceof AppWorkflowSkill) {
-                FunTool funTool = new FunTool(name, desc, skillEntity.getInputCls(), (input) -> {
-                    log.info("funTool: {} {}", name, input);
-
-                    skillEntity.execute(input, emitter);
-
-                    return null;
-                });
-
-                return funTool;
+                return skillEntity.createFunTool(appContext);
             }
 
             return null;

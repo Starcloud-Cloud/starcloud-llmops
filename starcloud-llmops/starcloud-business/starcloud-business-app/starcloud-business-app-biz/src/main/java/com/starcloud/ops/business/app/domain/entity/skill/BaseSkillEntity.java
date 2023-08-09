@@ -1,11 +1,17 @@
 package com.starcloud.ops.business.app.domain.entity.skill;
 
 
+import cn.hutool.core.util.TypeUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.skill.accredit.BaseAccredit;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import lombok.Data;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.lang.reflect.Type;
+import java.util.function.Function;
 
 /**
  * 技能实体
@@ -34,24 +40,22 @@ public abstract class BaseSkillEntity {
     @JsonIgnore
     public abstract JsonNode getInputSchemas();
 
+
+    public abstract FunTool createFunTool(HandlerContext handlerContext);
+
     /**
-     * 执行应用
+     * 包装为 GPT FunTool
+     *
+     * @param name
+     * @param description
+     * @param inputCls
+     * @param function
+     * @return
      */
-    protected abstract Object _execute(Object req);
+    protected FunTool createFunTool(String name, String description, Class<?> inputCls, Function<Object, String> function) {
 
+        FunTool funTool = new FunTool(name, description, inputCls, function);
 
-    public Object execute(Object req) {
-
-        Object result = this._execute(req);
-
-        return result;
-    }
-
-
-    public Object execute(Object req, SseEmitter emitter) {
-
-        Object result = this._execute(req);
-
-        return result;
+        return funTool;
     }
 }

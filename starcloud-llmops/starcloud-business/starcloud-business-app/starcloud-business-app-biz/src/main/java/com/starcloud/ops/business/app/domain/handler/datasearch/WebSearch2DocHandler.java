@@ -59,6 +59,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
         try {
             UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
+            uploadUrlReqVO.setSync(true);
             uploadUrlReqVO.setUrl(url);
             uploadUrlReqVO.setDatasetId(datasetId);
 
@@ -67,7 +68,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
             uploadUrlReqVO.setSplitRule(splitRule);
 
 
-            //datasetSourceDataService.uploadUrlsSourceData(Arrays.asList(uploadUrlReqVO));
+           // datasetSourceDataService.uploadUrlsSourceData(Arrays.asList(uploadUrlReqVO));
 
             DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId);
 
