@@ -71,8 +71,7 @@ public class ChatVoiceController {
         azureVoiceService.setEventSynthesizing((bytes) -> {
             try {
 
-                httpServletResponse.setContentLength(bytes.length);
-                httpServletResponse.getOutputStream().write(bytes);
+                httpServletResponse.getOutputStream().write(bytes, 0, bytes.length);
                 httpServletResponse.getOutputStream().flush();
 
             } catch (Exception e) {
@@ -88,7 +87,7 @@ public class ChatVoiceController {
 
             httpServletResponse.getOutputStream().close();
 
-            log.error("httpServletResponse OutputStream closed");
+            log.info("httpServletResponse OutputStream closed");
 
         } catch (Exception e) {
 
@@ -111,8 +110,8 @@ public class ChatVoiceController {
         azureVoiceService.setEventSynthesizing((bytes) -> {
             try {
 
-                httpServletResponse.setContentLength(bytes.length);
-                httpServletResponse.getOutputStream().write(bytes);
+
+                httpServletResponse.getOutputStream().write(bytes, 0, bytes.length);
                 httpServletResponse.getOutputStream().flush();
 
             } catch (Exception e) {
@@ -127,7 +126,7 @@ public class ChatVoiceController {
 
             httpServletResponse.getOutputStream().close();
 
-            log.error("httpServletResponse OutputStream closed");
+            log.info("httpServletResponse OutputStream closed");
 
         } catch (Exception e) {
 
