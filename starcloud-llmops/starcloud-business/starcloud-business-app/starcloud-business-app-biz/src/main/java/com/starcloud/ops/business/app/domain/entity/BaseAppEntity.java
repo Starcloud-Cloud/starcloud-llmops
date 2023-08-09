@@ -351,13 +351,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             });
         } catch (ServiceException e) {
+            log.error("app ServiceException is fail: {}", e.getMessage(), e);
 
             // 在这里设置 具体的 errorCode
             throw e;
 
         } catch (Exception e) {
 
-            log.error("app execute is fail: {}", e.getMessage(), e);
+            log.error("app exception is fail: {}", e.getMessage(), e);
 
             //直接 会话异常
             this.updateAppConversationLog(req.getConversationUid(), false);
