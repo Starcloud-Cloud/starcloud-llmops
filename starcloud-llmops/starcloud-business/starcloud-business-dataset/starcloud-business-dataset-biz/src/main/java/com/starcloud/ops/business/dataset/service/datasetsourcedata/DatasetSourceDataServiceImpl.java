@@ -389,26 +389,29 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
 
-        // if (sourceDataDO.getStatus() < DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus()) {
-        //     throw exception(DATASET_SOURCE_DATA_STUDY_IN);
-        // }
-        DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
-
         DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
-        // 设置总结内容
-        datasetSourceDataDetailsInfoVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
 
-        if (enable) {
-            // 设置清洗内容
-            Long cleanId = dataSourceIndoDTO.getCleanId();
+        if (sourceDataDO.getDataSourceInfo() != null) {
+            DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
 
-            DatasetStorageDO cleanDatasetDO = datasetStorageService.selectDataById(cleanId);
-            if (cleanDatasetDO != null) {
-                byte[] bytes = HttpUtil.downloadBytes(cleanDatasetDO.getStorageKey());
-                String result = new String(bytes);
-                datasetSourceDataDetailsInfoVO.setCleanContent(result);
+            if (dataSourceIndoDTO.getSummaryContent() != null) {
+                // 设置总结内容
+                datasetSourceDataDetailsInfoVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
+            }
+
+            if (enable && dataSourceIndoDTO.getCleanId() > 0) {
+                // 设置清洗内容
+                Long cleanId = dataSourceIndoDTO.getCleanId();
+
+                DatasetStorageDO cleanDatasetDO = datasetStorageService.selectDataById(cleanId);
+                if (cleanDatasetDO != null) {
+                    byte[] bytes = HttpUtil.downloadBytes(cleanDatasetDO.getStorageKey());
+                    String result = new String(bytes);
+                    datasetSourceDataDetailsInfoVO.setCleanContent(result);
+                }
             }
         }
+
 
         return datasetSourceDataDetailsInfoVO;
     }
