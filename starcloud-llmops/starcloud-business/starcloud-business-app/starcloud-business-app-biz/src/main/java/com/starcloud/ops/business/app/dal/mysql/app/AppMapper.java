@@ -182,6 +182,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
                 AppDO::getPublishUid,
                 AppDO::getInstallUid,
                 AppDO::getCreateTime,
+                AppDO::getImages,
                 AppDO::getUpdateTime
         );
         return wrapper;
