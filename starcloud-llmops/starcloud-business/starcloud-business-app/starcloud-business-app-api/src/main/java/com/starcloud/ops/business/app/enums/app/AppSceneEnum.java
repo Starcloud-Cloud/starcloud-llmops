@@ -52,7 +52,6 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     CHAT(8,"CHAT"),
 
-
     /**
      * 系统总结场景
      */

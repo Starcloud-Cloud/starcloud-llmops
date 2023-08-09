@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.controller.admin.log;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
+import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -48,9 +48,9 @@ public class AppLogDetailController {
 
     @GetMapping("/image/{conversationUid}")
     @Operation(summary = "获取图片生成执行日志详情")
-    public CommonResult<List<ImageMessageRespVO>> imageLogMessageDetail(@Parameter(name = "conversationUid", description = "日志会话 UID")
-                                                                        @NotBlank(message = "会话ID不能为空")
-                                                                        @PathVariable("conversationUid") String conversationUid) {
+    public CommonResult<List<ImageLogMessageRespVO>> imageLogMessageDetail(@Parameter(name = "conversationUid", description = "日志会话 UID")
+                                                                           @NotBlank(message = "会话ID不能为空")
+                                                                           @PathVariable("conversationUid") String conversationUid) {
         return CommonResult.success(appLogService.getLogImageMessageDetail(conversationUid));
     }
 
