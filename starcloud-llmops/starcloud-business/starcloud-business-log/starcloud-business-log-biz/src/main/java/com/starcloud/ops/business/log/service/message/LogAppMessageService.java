@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.log.service.message;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageExportReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
@@ -59,10 +61,10 @@ public interface LogAppMessageService {
     /**
      * 根据会话uid获取消息列表
      *
-     * @param conversationUid 会话uid
+     * @param query 查询条件
      * @return 消息列表
      */
-    List<LogAppMessageDO> getAppMessageList(String conversationUid);
+    Page<LogAppMessageDO> getAppMessageList(AppLogMessagePageReqVO query);
 
     /**
      * 获得应用执行日志结果列表
