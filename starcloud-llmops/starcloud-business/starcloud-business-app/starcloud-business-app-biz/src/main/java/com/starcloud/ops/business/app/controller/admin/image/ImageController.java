@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.controller.admin.image.vo.OptimizePromptReqVO;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
@@ -55,5 +57,18 @@ public class ImageController {
     @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<ImageMessageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
         return CommonResult.success(imageService.generateImage(request));
+    }
+
+    @PostMapping("/optimizePrompt")
+    @Operation(summary = "优化 prompt", description = "优化 prompt")
+    public SseEmitter optimizePrompt(@RequestBody OptimizePromptReqVO optimizePromptReqVO, HttpServletResponse httpServletResponse) {
+        // 设置响应头
+        httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
+        httpServletResponse.setHeader("X-Accel-Buffering", "no");
+        // 设置 SSE
+        SseEmitter emitter = new SseEmitter(60000L);
+        optimizePromptReqVO.setSseEmitter(emitter);
+        imageService.optimizePrompt(optimizePromptReqVO);
+        return emitter;
     }
 }

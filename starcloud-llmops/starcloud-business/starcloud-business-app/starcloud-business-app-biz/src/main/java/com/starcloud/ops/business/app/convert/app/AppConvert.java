@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespV
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
@@ -325,6 +326,8 @@ public interface AppConvert {
 
         return appRespVO;
     }
+
+    AppReqVO convertRequest(AppMarketRespVO appMarketRespVO);
 
     /**
      * 构建 actionIcons

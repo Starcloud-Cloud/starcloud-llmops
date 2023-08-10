@@ -151,9 +151,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      */
     @Override
     protected void _afterExecute(AppExecuteReqVO req, Throwable t) {
-
         SseEmitter sseEmitter = req.getSseEmitter();
-
         if (sseEmitter != null) {
             if (t != null) {
                 sseEmitter.completeWithError(t);
