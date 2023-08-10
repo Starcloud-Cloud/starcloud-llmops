@@ -2,6 +2,11 @@ package com.starcloud.ops.business.log.service.message;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageExportReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
@@ -107,13 +112,19 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     /**
      * 根据会话uid获取消息列表
      *
-     * @param conversationUid 会话uid
+     * @param query 查询条件
      * @return 消息列表
      */
     @Override
-    public List<LogAppMessageDO> getAppMessageList(String conversationUid) {
-        return appMessageMapper.selectList(new LambdaQueryWrapperX<LogAppMessageDO>()
-                .eq(LogAppMessageDO::getAppConversationUid, conversationUid));
+    public Page<LogAppMessageDO> getAppMessageList(AppLogMessagePageReqVO query) {
+        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
+        wrapper.eq(LogAppMessageDO::getAppConversationUid, query.getConversationUid());
+        wrapper.eq(StringUtils.isNotBlank(query.getAppMode()), LogAppMessageDO::getAppMode, query.getAppMode());
+        wrapper.eq(StringUtils.isNotBlank(query.getFromScene()), LogAppMessageDO::getFromScene, query.getFromScene());
+        wrapper.eq(StringUtils.isNotBlank(query.getStatus()), LogAppMessageDO::getStatus, query.getStatus());
+        wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
+        Page<LogAppMessageDO> page = new Page<>(query.getPageNo(), query.getPageSize());
+        return appMessageMapper.selectPage(page, wrapper);
     }
 
     /**

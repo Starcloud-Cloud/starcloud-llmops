@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
@@ -12,6 +14,7 @@ import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.ErrorCodeConstants;
@@ -22,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -45,23 +47,20 @@ public class AppLogServiceImpl implements AppLogService {
     /**
      * 获取文本生成消息详情
      *
-     * @param conversationUid 消息唯一标识
+     * @param query 查询条件
      * @return AppLogMessageRespVO
      */
     @Override
-    public List<AppLogMessageRespVO> getLogAppMessageDetail(String conversationUid) {
+    public PageResult<AppLogMessageRespVO> getLogAppMessageDetail(AppLogMessagePageReqVO query) {
         // 获取会话
-        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(conversationUid);
+        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
         if (Objects.isNull(appConversation)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, conversationUid);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
         }
-        // 获取消息列表
-        List<LogAppMessageDO> appMessageList = logAppMessageService.getAppMessageList(conversationUid);
-        // 处理文本消息数据
-        if (CollectionUtil.isEmpty(appMessageList)) {
-            return Collections.emptyList();
-        }
-        return appMessageList.stream().filter(Objects::nonNull)
+        Page<LogAppMessageDO> appMessagePage = logAppMessageService.getAppMessageList(query);
+        List<LogAppMessageDO> appMessageList = appMessagePage.getRecords();
+
+        List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(appMessageList).stream().filter(Objects::nonNull)
                 .map(item -> {
                     AppLogMessageRespVO appLogMessageRespVO = new AppLogMessageRespVO();
                     appLogMessageRespVO.setUid(item.getUid());
@@ -71,6 +70,7 @@ public class AppLogServiceImpl implements AppLogService {
                     appLogMessageRespVO.setAppMode(item.getAppMode());
                     appLogMessageRespVO.setFromScene(item.getFromScene());
                     appLogMessageRespVO.setMessage(item.getMessage());
+                    appLogMessageRespVO.setElapsed(item.getElapsed());
                     appLogMessageRespVO.setStatus(item.getStatus());
                     appLogMessageRespVO.setTokens(item.getMessageTokens() + item.getAnswerTokens());
                     appLogMessageRespVO.setPrice(item.getTotalPrice());
@@ -82,26 +82,30 @@ public class AppLogServiceImpl implements AppLogService {
                     appLogMessageRespVO.setAppInfo(JSONUtil.toBean(item.getAppConfig(), AppRespVO.class));
                     return appLogMessageRespVO;
                 }).collect(Collectors.toList());
+
+        return new PageResult<>(collect, appMessagePage.getTotal());
     }
 
     /**
      * 获取图片生成消息详情
      *
-     * @param conversationUid 消息唯一标识
+     * @param query 查询条件
      * @return ImageRespVO
      */
     @Override
-    public List<ImageLogMessageRespVO> getLogImageMessageDetail(String conversationUid) {
+    public PageResult<ImageLogMessageRespVO> getLogImageMessageDetail(AppLogMessagePageReqVO query) {
         // 获取会话
-        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(conversationUid);
+        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
         if (Objects.isNull(appConversation)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, conversationUid);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
         }
 
         // 获取消息列表
-        List<LogAppMessageDO> appMessageList = logAppMessageService.getAppMessageList(conversationUid);
+        Page<LogAppMessageDO> appMessagePage = logAppMessageService.getAppMessageList(query);
+        List<LogAppMessageDO> appMessageList = appMessagePage.getRecords();
+
         // 处理图片消息数据
-        return CollectionUtil.emptyIfNull(appMessageList).stream().map(item -> {
+        List<ImageLogMessageRespVO> collect = CollectionUtil.emptyIfNull(appMessageList).stream().map(item -> {
             ImageLogMessageRespVO imageLogMessageRespVO = new ImageLogMessageRespVO();
             imageLogMessageRespVO.setUid(item.getUid());
             imageLogMessageRespVO.setConversationUid(item.getAppConversationUid());
@@ -110,6 +114,7 @@ public class AppLogServiceImpl implements AppLogService {
             imageLogMessageRespVO.setAppMode(item.getAppMode());
             imageLogMessageRespVO.setFromScene(item.getFromScene());
             imageLogMessageRespVO.setMessage(item.getMessage());
+            imageLogMessageRespVO.setElapsed(item.getElapsed());
             imageLogMessageRespVO.setStatus(item.getStatus());
             imageLogMessageRespVO.setErrorCode(item.getErrorCode());
             imageLogMessageRespVO.setEndUser(identifyUser(item.getEndUser()));
@@ -143,6 +148,8 @@ public class AppLogServiceImpl implements AppLogService {
             imageLogMessageRespVO.setImageInfo(imageResponse);
             return imageLogMessageRespVO;
         }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        return new PageResult<>(collect, appMessagePage.getTotal());
     }
 
     /**

@@ -66,6 +66,12 @@ public class LogMessageDetailRespVO implements Serializable {
     private String message;
 
     /**
+     * 执行耗时
+     */
+    @Schema(description = "执行耗时")
+    private Long elapsed;
+
+    /**
      * 成功标志
      */
     @Schema(description = "成功标志")

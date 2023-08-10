@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.service.log;
 
-import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
+import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 
 import java.util.List;
 
@@ -16,17 +18,17 @@ public interface AppLogService {
     /**
      * 获取文本生成消息详情
      *
-     * @param conversationUid 消息唯一标识
+     * @param query 查询条件
      * @return AppLogMessageRespVO
      */
-    List<AppLogMessageRespVO> getLogAppMessageDetail(String conversationUid);
+    PageResult<AppLogMessageRespVO> getLogAppMessageDetail(AppLogMessagePageReqVO query);
 
     /**
      * 获取图片生成消息详情
      *
-     * @param conversationUid 消息唯一标识
+     * @param query 查询条件
      * @return ImageRespVO
      */
-    List<ImageLogMessageRespVO> getLogImageMessageDetail(String conversationUid);
+    PageResult<ImageLogMessageRespVO> getLogImageMessageDetail(AppLogMessagePageReqVO query);
 
 }
