@@ -54,7 +54,7 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     private OpeningStatementReqVO openingStatement;
 
     @Schema(description = "常用问题")
-    private CommonQuestionReqVO commonQuestion;
+    private List<CommonQuestionReqVO> commonQuestion;
 
     @Schema(description = "语音配置")
     private AudioTransciptReqVO audioTransciptEntity;

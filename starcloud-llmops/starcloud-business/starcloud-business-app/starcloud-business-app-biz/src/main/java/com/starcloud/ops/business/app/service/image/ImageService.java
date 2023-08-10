@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.image;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
+import com.starcloud.ops.business.app.controller.admin.image.vo.OptimizePromptReqVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
@@ -36,4 +37,11 @@ public interface ImageService {
      * @return 图片信息
      */
     ImageMessageRespVO generateImage(ImageReqVO request);
+
+    /**
+     * 优化提示
+     *
+     * @param request 请求参数
+     */
+    void optimizePrompt(OptimizePromptReqVO request);
 }

@@ -8,7 +8,6 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -25,7 +24,6 @@ import com.starcloud.ops.business.log.service.conversation.LogAppConversationSer
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -269,54 +267,51 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * 同步执行应用
      */
     public R execute(Q req) {
-
         try {
+            log.info("app start:{}, {}, {}", this.getUid(), this.getName(), req.getUserId());
 
-            this.validate(req);
-
+            // 执行用户
             if (req.getUserId() == null) {
                 req.setUserId(this.getRunUserId());
             }
 
-            log.info("app start:{}, {}, {}", this.getUid(), this.getName(), req.getUserId());
+            // 基础校验
+            this.validate(req);
 
+            // 会话记录
             if (StrUtil.isNotBlank(req.getConversationUid())) {
-
                 LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
-                List<LogAppMessageDO> logAppMessageDOS = this.getAppConversationMessages(req.getConversationUid());
-                Collections.reverse(logAppMessageDOS);
-                this._initHistory(req, logAppConversationDO, logAppMessageDOS);
-
+                List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(req.getConversationUid());
+                Collections.reverse(logAppMessageList);
+                this._initHistory(req, logAppConversationDO, logAppMessageList);
             } else {
-
                 //会话uid为空,自动创建
                 String conversationUid = this.createAppConversationLog(req);
-
                 req.setConversationUid(conversationUid);
             }
 
+            // 执行应用
             R result = this._execute(req);
             this._afterExecute(req, null);
 
+            // 更新会话记录
             this.updateAppConversationLog(req.getConversationUid(), true);
             log.info("app end: {} {}", this.getUid(), result);
             return result;
-        } catch (ServiceException e) {
-            log.error("app execute is fail: {}", e.getMessage(), e);
-            //应该没有异常的，APP内部执行抓取异常处理了 @todo 这里创建一个异常的 message 对象
+
+        } catch (ServiceException exception) {
+            log.error("app execute is fail: {}", exception.getMessage(), exception);
+            // 更新会话记录
             this.updateAppConversationLog(req.getConversationUid(), false);
+            this._afterExecute(req, exception);
+            throw exception;
 
-            this._afterExecute(req, e);
-
-            throw e;
-        } catch (Exception e) {
-            log.error("app execute is fail: {}", e.getMessage(), e);
-            //应该没有异常的，APP内部执行抓取异常处理了 @todo 这里创建一个异常的 message 对象
+        } catch (Exception exception) {
+            log.error("app execute is fail: {}", exception.getMessage(), exception);
+            // 更新会话记录
             this.updateAppConversationLog(req.getConversationUid(), false);
-
-            this._afterExecute(req, e);
-
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, e.getMessage());
+            this._afterExecute(req, exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage());
         }
     }
 
@@ -327,57 +322,51 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param req 请求参数
      */
     public void aexecute(Q req) {
-
         try {
-
             log.info("app async start:{}, {}", this.getUid(), this.getName());
-            req.setUserId(SecurityFrameworkUtils.getLoginUserId());
 
+            // 执行用户
+            req.setUserId(this.getRunUserId());
+
+            // 基础校验
             this.validate(req);
 
-            //会话uid为空
+            //会话处理
             if (StrUtil.isNotBlank(req.getConversationUid())) {
-
                 LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
-                List<LogAppMessageDO> logAppMessageDOS = this.getAppConversationMessages(req.getConversationUid());
-                Collections.reverse(logAppMessageDOS);
-                this._initHistory(req, logAppConversationDO, logAppMessageDOS);
-
+                List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(req.getConversationUid());
+                Collections.reverse(logAppMessageList);
+                this._initHistory(req, logAppConversationDO, logAppMessageList);
             } else {
-
                 String conversationUid = this.createAppConversationLog(req);
-
                 req.setConversationUid(conversationUid);
             }
 
+            // 异步执行应用
             threadExecutor.asyncExecute(() -> {
-
-                this._aexecute(req);
-                this._afterExecute(req, null);
-
+                try {
+                    this._aexecute(req);
+                    this._afterExecute(req, null);
+                    log.info("app async end: {}", this.getUid());
+                } catch (Exception exception) {
+                    log.error("app async execute is fail: {}", exception.getMessage(), exception);
+                    this.updateAppConversationLog(req.getConversationUid(), false);
+                    this._afterExecute(req, exception);
+                }
             });
-        } catch (ServiceException e) {
-            log.error("app ServiceException is fail: {}", e.getMessage(), e);
 
-
-            // 在这里设置 具体的 errorCode
-
-            this._afterExecute(req, e);
-
-            throw e;
-
-        } catch (Exception e) {
-
-            log.error("app exception is fail: {}", e.getMessage(), e);
-
+        } catch (ServiceException exception) {
+            log.error("app ServiceException is fail: {}", exception.getMessage(), exception);
             //直接 会话异常
             this.updateAppConversationLog(req.getConversationUid(), false);
+            this._afterExecute(req, exception);
 
-            this._afterExecute(req, e);
-
-            throw e;
+        } catch (Exception exception) {
+            log.error("app exception is fail: {}", exception.getMessage(), exception);
+            //直接 会话异常
+            this.updateAppConversationLog(req.getConversationUid(), false);
+            this._afterExecute(req, exception);
         }
-
     }
 
     /**
