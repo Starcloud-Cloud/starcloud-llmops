@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.chat.controller.admin.voices;
 
+import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.ChatVoiceVO;
@@ -70,6 +71,8 @@ public class ChatVoiceController {
 
         azureVoiceService.setEventSynthesizing((bytes) -> {
             try {
+
+                //Base64.encode(bytes);
 
                 httpServletResponse.getOutputStream().write(bytes, 0, bytes.length);
                 httpServletResponse.getOutputStream().flush();

@@ -324,7 +324,7 @@ public class AzureVoiceServiceImpl {
             // Set either the `SpeechSynthesisVoiceName` or `SpeechSynthesisLanguage`.
 
             // Required for WordBoundary event sentences.
-            speechConfig.setProperty(PropertyId.SpeechServiceResponse_RequestSentenceBoundary, "true");
+            //speechConfig.setProperty(PropertyId.SpeechServiceResponse_RequestSentenceBoundary, "true");
 
             //AudioConfig audioConfig = AudioConfig.fromWavFileOutput("/tmp/file123.wav");
 
