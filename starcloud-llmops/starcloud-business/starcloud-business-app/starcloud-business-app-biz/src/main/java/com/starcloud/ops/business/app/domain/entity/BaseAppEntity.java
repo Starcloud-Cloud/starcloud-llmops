@@ -360,7 +360,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.error("app ServiceException is fail: {}", e.getMessage(), e);
 
 
-            // 在这里设置 具体的 errorCode
+            //直接 会话异常
+            this.updateAppConversationLog(req.getConversationUid(), false);
 
             this._afterExecute(req, e);
 
