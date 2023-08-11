@@ -14,11 +14,9 @@ public class AppContextReqVO implements Serializable {
     private String scene;
 
     @Schema(description = "渠道ID")
-    @NotNull(message = "渠道ID")
     private String mediumUid;
 
     @Schema(description = "应用ID")
-    @NotNull(message = "应用ID 不能为空")
     private String appUid;
 
     @Schema(description = "用户ID")
