@@ -192,7 +192,7 @@ public class AzureVoiceServiceImpl {
                 eventCompletedConsumer.accept(audioData);
             }
 
-            //result.close();
+            result.close();
         });
 
         speechSynthesizer.SynthesisStarted.addEventListener((o, e) -> {
@@ -208,7 +208,7 @@ public class AzureVoiceServiceImpl {
                 eventSynthesizing.accept(audioData);
             }
 
-            //result.close();
+            result.close();
         });
 
         speechSynthesizer.VisemeReceived.addEventListener((o, e) -> {
@@ -245,7 +245,7 @@ public class AzureVoiceServiceImpl {
             }
         }
 
-        //speechSynthesizer.close();
+        speechSynthesizer.close();
 
     }
 
@@ -323,6 +323,7 @@ public class AzureVoiceServiceImpl {
             SpeechConfig speechConfig = SpeechConfig.fromSubscription(chatProperties.getSpeechSubscriptionKey(), chatProperties.getSpeechRegion());
             // Set either the `SpeechSynthesisVoiceName` or `SpeechSynthesisLanguage`.
 
+            speechConfig.setSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3);
             // Required for WordBoundary event sentences.
             //speechConfig.setProperty(PropertyId.SpeechServiceResponse_RequestSentenceBoundary, "true");
 
@@ -330,10 +331,10 @@ public class AzureVoiceServiceImpl {
 
             SpeechSynthesizer speechSynthesizer = new SpeechSynthesizer(speechConfig);
 
-            Connection connection = Connection.fromSpeechSynthesizer(speechSynthesizer);
-            connection.openConnection(true);
+            //Connection connection = Connection.fromSpeechSynthesizer(speechSynthesizer);
+            //connection.openConnection(true);
 
-            speechInstance = speechSynthesizer;
+            return speechSynthesizer;
         }
 
         return speechInstance;

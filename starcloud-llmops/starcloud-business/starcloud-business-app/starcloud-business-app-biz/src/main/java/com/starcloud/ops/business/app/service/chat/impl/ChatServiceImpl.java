@@ -88,8 +88,19 @@ public class ChatServiceImpl implements ChatService {
     private static final String DEFAULT_AVATAR = "default_avatar";
 
 
+
+    public void chatEndUser(ChatRequestVO request ) {
+
+        //分享ID，应用ID
+        ChatAppEntity appEntity = AppFactory.factory(request);
+
+        appEntity.aexecute(request);
+
+    }
+
     @Override
     public void chat(ChatRequestVO request) {
+        //分享ID，应用ID
         ChatAppEntity appEntity = AppFactory.factory(request);
         appEntity.aexecute(request);
     }

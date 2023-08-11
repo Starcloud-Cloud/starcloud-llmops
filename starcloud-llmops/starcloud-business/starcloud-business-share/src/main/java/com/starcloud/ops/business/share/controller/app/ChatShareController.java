@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.share.controller.app;
 
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.share.controller.app.vo.ChatReq;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
 import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
@@ -32,6 +34,9 @@ import javax.servlet.http.HttpServletResponse;
 public class ChatShareController {
 
     @Autowired
+    private ChatService chatService;
+
+    @Autowired
     private EndUserServiceImpl endUserService;
 
     @GetMapping("/")
@@ -50,21 +55,15 @@ public class ChatShareController {
     @PostMapping("/")
     @Operation(summary = "聊天执行")
     @PermitAll
-    public SseEmitter execute(@RequestBody ChatReq chatReq, HttpServletResponse httpServletResponse) {
+    public SseEmitter execute(@RequestBody ChatRequestVO chatRequestVO, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
 
         SseEmitter emitter = new SseEmitter(60000L);
 
-        AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
+        chatRequestVO.setSseEmitter(emitter);
 
-        executeReqVO.setSseEmitter(emitter);
-
-        executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
-
-        BaseAppEntity app = AppFactory.factory(executeReqVO);
-
-        app.aexecute(executeReqVO);
+        chatService.chat(chatRequestVO);
 
         //appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_ADMIN, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(), emitter);
         return emitter;

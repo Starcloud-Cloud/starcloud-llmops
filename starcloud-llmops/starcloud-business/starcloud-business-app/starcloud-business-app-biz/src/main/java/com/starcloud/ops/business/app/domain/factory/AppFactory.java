@@ -187,54 +187,7 @@ public class AppFactory {
 
         String appId = chatRequest.getAppUid();
 
-        if ("play".equals(appId)) {
-
-            ChatAppEntity chatAppEntity = new ChatAppEntity();
-
-            chatAppEntity.setUid(appId);
-            chatAppEntity.setName("chat-play");
-
-            ChatConfigEntity chatConfig = new ChatConfigEntity();
-
-            chatConfig.setPrePrompt("@123 can assist users in answering a wide range of professional knowledge-related queries. @123 is able to answer users' questions professionally and enthusiastically, and give professional and detailed insights. @123 can answer questions that is related to the field of .");
-//            chatConfig.setSkills(Arrays.asList(
-//                    SkillFactory.factory(ApiSkillEntity.class).setUrl("https://baidu.com").setName("search-news").setDesc("A search engine. Useful for when you need to answer questions about news. Input should be a search query."),
-//                    SkillFactory.factory(ApiSkillEntity.class).setUrl("https://baidu.com").setName("search-food").setDesc("A search engine. Useful for when you need to answer questions about food. Input should be a search query."),
-//                    SkillFactory.factoryAppWorkflow("appUid-test")
-//            ));
-
-            WebSearchConfigEntity webSearchConfig = new WebSearchConfigEntity();
-            webSearchConfig.setEnabled(true);
-            // webSearchConfig.setWebScope("https://baidu.com\nhttps://google.com");
-            webSearchConfig.setWebScope("*");
-            webSearchConfig.setWhenToUse("Search for latest news and concept");
-            chatConfig.setWebSearchConfig(webSearchConfig);
-
-
-            ModelConfigEntity modelConfig = new ModelConfigEntity();
-
-            OpenaiCompletionParams openaiCompletionParams = new OpenaiCompletionParams();
-
-            openaiCompletionParams.setModel("gpt-3.5-turbo");
-            openaiCompletionParams.setMaxTokens(500);
-            openaiCompletionParams.setTemperature(0.7);
-            openaiCompletionParams.setStream(false);
-
-            modelConfig.setCompletionParams(openaiCompletionParams);
-
-            chatConfig.setModelConfig(modelConfig);
-
-            chatAppEntity.setChatConfig(chatConfig);
-
-            chatAppEntity.setCreator("1");
-            chatAppEntity.setCreateTime(LocalDateTime.now());
-
-
-            return chatAppEntity;
-        }
-
         ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
-
 
         return appEntity;
     }
