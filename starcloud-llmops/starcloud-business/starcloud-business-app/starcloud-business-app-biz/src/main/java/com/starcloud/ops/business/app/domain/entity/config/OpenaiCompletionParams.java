@@ -8,11 +8,11 @@ public class OpenaiCompletionParams {
     /**
      * 模型  ：gpt-3.5-turbo
      */
-    private String model;
+    private String model = "gpt-3.5-turbo";
 
-    private Integer maxTokens;
+    private Integer maxTokens = 700;
 
-    private Double temperature;
+    private Double temperature = 1d;
 
     private Double topP;
 
