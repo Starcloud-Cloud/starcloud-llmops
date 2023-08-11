@@ -32,7 +32,7 @@ public class AzureVoiceServiceImpl {
 
     private static List<ChatVoiceVO> allChatVoiceList = new ArrayList<>();
 
-    private static SpeechSynthesizer speechInstance;
+    private volatile static SpeechSynthesizer speechInstance;
 
     @Autowired
     private BusinessChatProperties chatProperties;
@@ -331,10 +331,10 @@ public class AzureVoiceServiceImpl {
 
             SpeechSynthesizer speechSynthesizer = new SpeechSynthesizer(speechConfig);
 
-            //Connection connection = Connection.fromSpeechSynthesizer(speechSynthesizer);
-            //connection.openConnection(true);
+            Connection connection = Connection.fromSpeechSynthesizer(speechSynthesizer);
+            connection.openConnection(true);
 
-            return speechSynthesizer;
+            speechInstance =  speechSynthesizer;
         }
 
         return speechInstance;
