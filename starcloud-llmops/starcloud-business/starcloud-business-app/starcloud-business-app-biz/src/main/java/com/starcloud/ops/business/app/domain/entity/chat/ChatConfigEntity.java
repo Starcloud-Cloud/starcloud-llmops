@@ -27,6 +27,8 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private ModelConfigEntity modelConfig;
 
+    private SpeakConfigEntity speakConfig;
+
     private WebSearchConfigEntity webSearchConfig;
 
     private List<DatesetEntity> datesetEntities;

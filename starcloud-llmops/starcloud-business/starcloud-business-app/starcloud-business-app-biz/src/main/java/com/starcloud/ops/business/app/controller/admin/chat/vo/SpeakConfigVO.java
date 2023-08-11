@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.controller.admin.voices.vo;
+package com.starcloud.ops.business.app.controller.admin.chat.vo;
 
 import lombok.Data;
 

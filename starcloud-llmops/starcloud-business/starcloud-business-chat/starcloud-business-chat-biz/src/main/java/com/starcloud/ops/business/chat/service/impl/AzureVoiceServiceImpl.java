@@ -7,8 +7,8 @@ import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.cognitiveservices.speech.*;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.SpeakConfigVO;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.ChatVoiceVO;
-import com.starcloud.ops.business.chat.controller.admin.voices.vo.SpeakConfigVO;
 import com.starcloud.ops.business.core.config.BusinessChatProperties;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -331,8 +331,8 @@ public class AzureVoiceServiceImpl {
 
             SpeechSynthesizer speechSynthesizer = new SpeechSynthesizer(speechConfig);
 
-            Connection connection = Connection.fromSpeechSynthesizer(speechSynthesizer);
-            connection.openConnection(true);
+//            Connection connection = Connection.fromSpeechSynthesizer(speechSynthesizer);
+//            connection.openConnection(true);
 
             speechInstance =  speechSynthesizer;
         }
