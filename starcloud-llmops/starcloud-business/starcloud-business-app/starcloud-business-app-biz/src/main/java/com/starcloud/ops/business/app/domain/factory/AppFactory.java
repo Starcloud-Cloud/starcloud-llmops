@@ -2,7 +2,8 @@ package com.starcloud.ops.business.app.domain.factory;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -10,51 +11,53 @@ import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
-import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
-import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
-import com.starcloud.ops.business.app.domain.entity.*;
-import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
-import com.starcloud.ops.business.app.domain.repository.publish.AppPublishRepository;
-import com.starcloud.ops.business.app.recommend.RecommendAppConsts;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
+import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
+import com.starcloud.ops.business.app.domain.repository.publish.AppPublishRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.recommend.RecommendAppConsts;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
-import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
- * 获取步骤处理器工厂类
+ * 获取应用工厂
  *
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-05-31
  */
 @Validated
+@SuppressWarnings("all")
 public class AppFactory {
 
     /**
-     * AppRepository
+     * 应用 Repository 服务
      */
     private static AppRepository appRepository;
 
+    /**
+     * 应用市场 Repository 服务
+     */
     private static AppMarketRepository appMarketRepository;
 
     private static AppPublishRepository appPublishRepository;
 
     /**
-     * 获取 AppRepository
+     * 获取应用 Repository 服务
      *
      * @return AppRepository
      */
@@ -65,6 +68,11 @@ public class AppFactory {
         return appRepository;
     }
 
+    /**
+     * 获取应用市场 Repository 服务
+     *
+     * @return AppMarketRepository
+     */
     public static AppMarketRepository getAppMarketRepository() {
         if (appMarketRepository == null) {
             appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
@@ -80,65 +88,68 @@ public class AppFactory {
     }
 
     /**
+     * 获取 执行实体
+     *
+     * @param request 请求参数
+     * @return BaseAppEntity
+     */
+    public static BaseAppEntity factory(@Valid AppExecuteReqVO request) {
+
+        // 校验参数, appUid 和 mediumUid 不能同时为空
+        if (StringUtils.isBlank(request.getAppUid()) && StringUtils.isBlank(request.getMediumUid())) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(50000001, "appUid 和 mediumUid 不能同时为空"));
+        }
+
+        // AppUid 不为空的情况
+        if (StringUtils.isNotBlank(request.getAppUid())) {
+            String appId = request.getAppUid();
+            // 应用市场场景
+            if (AppSceneEnum.WEB_MARKET.name().equals(request.getScene())) {
+                return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(appId) : AppFactory.factoryMarket(appId, request.getAppReqVO());
+                // 应用创作中心
+            } else if (AppSceneEnum.WEB_ADMIN.name().equals(request.getScene())) {
+                return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(appId) : AppFactory.factoryApp(appId, request.getAppReqVO());
+            }
+        }
+
+        // mediumUid 不为空的情况
+        if (StringUtils.isNotBlank(request.getMediumUid())) {
+            String mediumId = request.getMediumUid();
+            // 应用市场场景
+            if (AppSceneEnum.SHARE_WEB.name().equals(request.getScene())) {
+
+                // 应用创作中心
+            } else if (AppSceneEnum.SHARE_IFRAME.name().equals(request.getScene())) {
+                return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(mediumId) : AppFactory.factoryApp(mediumId, request.getAppReqVO());
+            }
+        }
+
+
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
+    }
+
+    /**
      * 获取 AppEntity 通过 appId
      *
      * @param appId appId
      * @return AppEntity
      */
-    public static AppEntity factory(String appId) {
+    public static AppEntity factoryApp(String appId) {
         return (AppEntity) getAppRepository().getByUid(appId);
     }
 
-
     /**
-     * @param appId
-     * @return
-     * @todo 通过 发布表 获取 具体的激活中的 appUid
-     */
-    public static AppEntity factoryShareApp(String appId) {
-
-        //通过 发布表 获取 具体的激活中的 appUid
-
-        appId = "2196b6cce43f41679e15487d79bde823";
-
-
-        return factory(appId);
-    }
-
-
-    /**
-     * 获取 ChatAppEntity 通过 appId
+     * 获取 AppEntity, 不通过数据库查询，直接通过请求参数构建。以 appRequest 为准
      *
-     * @param appId appId
-     * @return ChatAppEntity
+     * @param appId      appId
+     * @param appRequest appRequest
+     * @return AppEntity
      */
-    public static ChatAppEntity factoryChatApp(String appId) {
-        return (ChatAppEntity) getAppRepository().getByUid(appId);
-    }
-
-
-    /**
-     * 通过 publishUid 查询 ChatAppEntity
-     *
-     * @param publishUid
-     * @return
-     */
-    public static ChatAppEntity factoryChatAppByPublishUid(String publishUid) {
-        AppPublishDO appPublishDO = getAppPublishRepository().getByPublishUid(publishUid);
-        String appInfo = appPublishDO.getAppInfo();
-        AppDO appDO = JSONUtil.toBean(appInfo, AppDO.class);
-        BaseAppEntity entity = AppConvert.INSTANCE.convert(appDO,false);
-        return (ChatAppEntity) entity;
-    }
-
-    /**
-     * 获取 ImageAppEntity 通过 appId
-     *
-     * @param appId appId
-     * @return ImageAppEntity
-     */
-    public static ImageAppEntity factoryImageApp(String appId) {
-        return (ImageAppEntity) getAppRepository().getByUid(appId);
+    public static AppEntity factoryApp(String appId, AppReqVO appRequest) {
+        AppEntity app = AppConvert.INSTANCE.convert(appRequest);
+        app.setUid(appId);
+        Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
+        return app;
     }
 
     /**
@@ -158,6 +169,7 @@ public class AppFactory {
      * @return AppEntity
      */
     public static AppMarketEntity factoryMarket(String appId, AppReqVO appRequest) {
+        // 需要校验 模版市场 中是否存在该模版，不存在抛出异常
         getAppMarketRepository().get(appId);
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appRequest);
         appMarketEntity.setUid(appId);
@@ -165,50 +177,28 @@ public class AppFactory {
     }
 
     /**
-     * 获取 AppEntity, 不通过数据库查询，直接通过请求参数构建。以 appRequest 为准
-     *
-     * @param appId      appId
-     * @param appRequest appRequest
-     * @return AppEntity
+     * @param appId
+     * @return
+     * @todo 通过 发布表 获取 具体的激活中的 appUid
      */
-    public static AppEntity factory(String appId, AppReqVO appRequest) {
-        AppEntity app = AppConvert.INSTANCE.convert(appRequest);
-        app.setUid(appId);
-        Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
-        return app;
+    public static AppEntity factoryShareApp(String appId) {
+
+        //通过 发布表 获取 具体的激活中的 appUid
+
+        appId = "2196b6cce43f41679e15487d79bde823";
+
+
+        return factoryApp(appId);
     }
 
-    public static BaseAppEntity factory(@Valid AppExecuteReqVO executeReqVO) {
-
-        // 获取 AppEntity
-        BaseAppEntity app = null;
-        String appId = executeReqVO.getAppUid();
-        if (AppSceneEnum.WEB_MARKET.name().equals(executeReqVO.getScene())) {
-            if (executeReqVO.getAppReqVO() == null) {
-                app = AppFactory.factoryMarket(appId);
-            } else {
-                app = AppFactory.factoryMarket(appId, executeReqVO.getAppReqVO());
-            }
-        } else {
-            if (executeReqVO.getAppReqVO() == null) {
-                app = AppFactory.factory(appId);
-            } else {
-                app = AppFactory.factory(appId, executeReqVO.getAppReqVO());
-            }
-        }
-
-//        if (executeReqVO.getAppReqVO() == null) {
-//            if (AppSceneEnum.WEB_MARKET.name().equals(executeReqVO.getScene())) {
-//                app = AppFactory.factoryMarket(appId);
-//            } else {
-//                app = AppFactory.factory(appId);
-//            }
-//        } else {
-//            app = AppFactory.factory(appId, executeReqVO.getAppReqVO());
-//        }
-
-        Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
-        return app;
+    /**
+     * 获取 ChatAppEntity 通过 appId
+     *
+     * @param appId appId
+     * @return ChatAppEntity
+     */
+    public static ChatAppEntity factoryChatApp(String appId) {
+        return (ChatAppEntity) getAppRepository().getByUid(appId);
     }
 
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
@@ -232,9 +222,9 @@ public class AppFactory {
         if (RecommendAppConsts.BASE_GENERATE_IMAGE.equals(appUid)) {
             ImageAppEntity imageAppEntity = new ImageAppEntity();
             imageAppEntity.setUid(appUid);
-            imageAppEntity.setName(RecommendAppConsts.BASE_GENERATE_IMAGE);
+            imageAppEntity.setName("AI图片生成");
             imageAppEntity.setModel(AppModelEnum.BASE_GENERATE_IMAGE.name());
-            imageAppEntity.setScenes(Collections.singletonList(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : request.getScene()));
+            imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.IMAGE.name()));
             imageAppEntity.setType(AppTypeEnum.MYSELF.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());
             imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
@@ -243,6 +233,16 @@ public class AppFactory {
         ImageAppEntity imageAppEntity = factoryImageApp(appUid);
         imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
         return imageAppEntity;
+    }
+
+    /**
+     * 获取 ImageAppEntity 通过 appId
+     *
+     * @param appId appId
+     * @return ImageAppEntity
+     */
+    public static ImageAppEntity factoryImageApp(String appId) {
+        return (ImageAppEntity) getAppRepository().getByUid(appId);
     }
 
 }

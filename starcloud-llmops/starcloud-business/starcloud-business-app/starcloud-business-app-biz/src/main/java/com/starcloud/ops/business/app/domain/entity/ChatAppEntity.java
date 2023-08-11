@@ -194,14 +194,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     @Override
     protected void _aexecute(ChatRequestVO req) {
-
         JsonData jsonParams = this._execute(req);
-
-        SseEmitter sseEmitter = req.getSseEmitter();
-        if (sseEmitter != null) {
-            sseEmitter.complete();
-        }
-
     }
 
     /**

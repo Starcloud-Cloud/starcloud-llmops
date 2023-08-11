@@ -156,11 +156,6 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     protected void _aexecute(ImageReqVO request) {
         this._execute(request);
-
-        SseEmitter sseEmitter = request.getSseEmitter();
-        if (sseEmitter != null) {
-            sseEmitter.complete();
-        }
     }
 
     /**
@@ -168,9 +163,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     @Override
     protected void _afterExecute(ImageReqVO req, Throwable t) {
-
         SseEmitter sseEmitter = req.getSseEmitter();
-
         if (sseEmitter != null) {
             if (t != null) {
                 sseEmitter.completeWithError(t);

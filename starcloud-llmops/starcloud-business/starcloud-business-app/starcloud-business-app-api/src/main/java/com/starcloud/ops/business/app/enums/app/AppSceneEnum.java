@@ -8,6 +8,7 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-13
  */
+@Getter
 public enum AppSceneEnum implements IEnumable<Integer> {
 
     /**
@@ -20,7 +21,6 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     WEB_MARKET(2, "WEB_MARKET"),
 
-
     /**
      * 分享页面场景入口
      */
@@ -30,7 +30,6 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      * iframe场景入口
      */
     SHARE_IFRAME(4, "SHARE_IFRAME"),
-
 
     /**
      * js页面场景入口
@@ -45,36 +44,37 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 聊天测试场景
      */
-    CHAT_TEST(7,"CHAT_TEST"),
+    CHAT_TEST(7, "CHAT_TEST"),
 
     /**
      * chat 场景
      */
-    CHAT(8,"CHAT"),
+    CHAT(8, "CHAT"),
+
+    /**
+     * 图片场景
+     */
+    IMAGE(9, "IMAGE"),
 
     /**
      * 系统总结场景
      */
 
-    SYSTEM_SUMMARY(8,"SYSTEM_SUMMARY"),
+    SYSTEM_SUMMARY(10,"SYSTEM_SUMMARY"),
 
     /**
      * 企业微信群
      */
-    WECOM_GROUP(9,"WECOM_GROUP")
+    WECOM_GROUP(11,"WECOM_GROUP");
 
-
-    ;
     /**
      * 应用类型Code
      */
-    @Getter
     private final Integer code;
 
     /**
      * 应用类型说明
      */
-    @Getter
     private final String label;
 
     /**
