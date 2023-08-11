@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.channel;
 
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
  * @version 1.0.0
  * @since 2023-08-02
  */
+@SuppressWarnings("all")
 public interface AppPublishChannelService {
 
     /**
@@ -29,6 +31,14 @@ public interface AppPublishChannelService {
      * @return {@link AppPublishChannelRespVO}
      */
     AppPublishChannelRespVO get(String uid);
+
+    /**
+     * 根据外部id(发布媒介 ID)获取应用信息
+     *
+     * @param outId 外部id
+     * @return {@link AppEntity}
+     */
+    AppEntity getAppEntity(String outId);
 
     /**
      * 创建发布渠道

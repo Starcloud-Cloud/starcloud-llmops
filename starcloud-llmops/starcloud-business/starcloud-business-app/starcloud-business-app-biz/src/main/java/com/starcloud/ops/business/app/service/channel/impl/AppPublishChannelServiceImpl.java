@@ -9,11 +9,12 @@ import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelR
 import com.starcloud.ops.business.app.convert.channel.AppPublishChannelConverter;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
 import com.starcloud.ops.business.app.dal.mysql.channel.AppPublishChannelMapper;
-import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigFactory;
-import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigFactory;
+import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,19 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     public AppPublishChannelRespVO get(String uid) {
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(uid, Boolean.FALSE);
         return AppPublishChannelConverter.INSTANCE.convert(appPublishChannel);
+    }
+
+    /**
+     * 根据外部id(发布媒介 ID)获取应用信息
+     *
+     * @param outId 外部id
+     * @return {@link AppEntity}
+     */
+    @Override
+    @SuppressWarnings("all")
+    public AppEntity getAppEntity(String outId) {
+
+        return null;
     }
 
     /**
