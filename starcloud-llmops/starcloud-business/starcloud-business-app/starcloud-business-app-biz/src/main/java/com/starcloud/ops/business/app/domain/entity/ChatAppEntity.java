@@ -30,6 +30,7 @@ import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.momory.ConversationTokenDbBufferMemory;
@@ -120,9 +121,25 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         //preHistory(request.getConversationUid(), AppModelEnum.CHAT.name());
 
+        //@todo 根据不同场景自动处理 应用的会话配置信息
         if (logAppConversationDO != null) {
-            ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
-            this.setChatConfig(chatConfig);
+
+            //后台执行，不走历史配置，每次都是最新的配置
+            if (!req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())) {
+                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
+                this.setChatConfig(chatConfig);
+            }
+
+            //分享场景，走最新发布内的配置
+            if (req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
+
+                //获取最新发布的配置
+                req.getMediumUid();
+
+                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
+                this.setChatConfig(chatConfig);
+            }
+
         }
 
 
