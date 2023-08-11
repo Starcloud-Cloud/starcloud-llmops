@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.domain.entity.chat.Interactive.Interactive
 import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * @version 1.0.0
  * @since 2023-05-31
  */
+@Slf4j
 @Data
 public class HandlerContext<Q> {
 
@@ -78,6 +80,8 @@ public class HandlerContext<Q> {
                     .conversationUid(this.getConversationUid())
                     .messageUid(this.getMessageUid())
                     .build();
+
+            log.debug("sendCallbackInteractive: {}", interactiveInfo);
 
             this.getSseEmitter().send(result);
         }

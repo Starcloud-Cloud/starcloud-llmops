@@ -46,7 +46,7 @@ public abstract class BaseTool<Q, R> {
 
             if (this instanceof FunTool) {
                 Class<Q> qq = (Class<Q>) ((FunTool) this).getInputCls();
-                result = this._run(JSONUtil.toBean(input.toString(), qq));
+                result = this._run(input);
             } else {
 
                 Type query = TypeUtil.getTypeArgument(this.getClass());
