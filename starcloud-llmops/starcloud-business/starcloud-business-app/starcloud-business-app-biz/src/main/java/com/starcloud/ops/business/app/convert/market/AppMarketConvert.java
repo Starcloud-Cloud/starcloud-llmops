@@ -168,6 +168,10 @@ public interface AppMarketConvert {
         appMarketEntity.setViewCount(appMarket.getViewCount());
         appMarketEntity.setInstallCount(appMarket.getInstallCount());
         appMarketEntity.setDescription(appMarket.getDescription());
+        appMarketEntity.setCreator(appMarket.getCreator());
+        appMarketEntity.setUpdater(appMarket.getUpdater());
+        appMarketEntity.setCreateTime(appMarket.getCreateTime());
+        appMarketEntity.setUpdateTime(appMarket.getUpdateTime());
         appMarketEntity.setAudit(appMarket.getAudit());
         appMarketEntity.setExample(appMarket.getExample());
         // 处理配置信息

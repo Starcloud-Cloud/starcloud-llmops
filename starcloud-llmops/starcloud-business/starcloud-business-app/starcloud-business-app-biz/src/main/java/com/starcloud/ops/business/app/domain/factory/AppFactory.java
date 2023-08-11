@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.app.domain.factory;
 
-import cn.hutool.core.lang.Assert;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -186,7 +186,7 @@ public class AppFactory {
      * @return AppEntity
      */
     public static AppEntity factoryApp(String appId) {
-        return (AppEntity) getAppRepository().getByUid(appId);
+        return (AppEntity) getAppRepository().get(appId);
     }
 
     /**
@@ -197,10 +197,26 @@ public class AppFactory {
      * @return AppEntity
      */
     public static AppEntity factoryApp(String appId, AppReqVO appRequest) {
-        AppEntity app = AppConvert.INSTANCE.convert(appRequest);
-        app.setUid(appId);
-        Assert.notNull(app, "app fire is fail, app[{0}] not found", appId);
-        return app;
+        BaseAppEntity app = getAppRepository().get(appId);
+        // 应用不存在, 还没有存入到数据库
+        String creator, updator;
+        if (Objects.isNull(app)) {
+            Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+            if (Objects.isNull(loginUserId)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+            }
+            creator = String.valueOf(loginUserId);
+            updator = String.valueOf(loginUserId);
+        } else {
+            creator = app.getCreator();
+            updator = app.getUpdater();
+        }
+
+        AppEntity appEntity = AppConvert.INSTANCE.convert(appRequest);
+        appEntity.setUid(appId);
+        appEntity.setCreator(creator);
+        appEntity.setUpdater(creator);
+        return appEntity;
     }
 
     /**
@@ -221,9 +237,11 @@ public class AppFactory {
      */
     public static AppMarketEntity factoryMarket(String appId, AppReqVO appRequest) {
         // 需要校验 模版市场 中是否存在该模版，不存在抛出异常
-        getAppMarketRepository().get(appId);
+        AppMarketEntity market = getAppMarketRepository().get(appId);
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appRequest);
         appMarketEntity.setUid(appId);
+        appMarketEntity.setCreator(market.getCreator());
+        appMarketEntity.setUpdater(market.getUpdater());
         return appMarketEntity;
     }
 
@@ -234,7 +252,7 @@ public class AppFactory {
      * @return ChatAppEntity
      */
     public static ChatAppEntity factoryChatApp(String appId) {
-        return (ChatAppEntity) getAppRepository().getByUid(appId);
+        return (ChatAppEntity) getAppRepository().get(appId);
     }
 
     /**
@@ -259,7 +277,7 @@ public class AppFactory {
      * @return ImageAppEntity
      */
     public static ImageAppEntity factoryImageApp(String appId) {
-        return (ImageAppEntity) getAppRepository().getByUid(appId);
+        return (ImageAppEntity) getAppRepository().get(appId);
     }
 
     /**

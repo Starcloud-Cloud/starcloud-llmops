@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.dal.mysql.app;
 
-import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -13,8 +12,8 @@ import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
@@ -181,8 +180,10 @@ public interface AppMapper extends BaseMapperX<AppDO> {
                 AppDO::getDescription,
                 AppDO::getPublishUid,
                 AppDO::getInstallUid,
-                AppDO::getCreateTime,
                 AppDO::getImages,
+                AppDO::getCreator,
+                AppDO::getUpdater,
+                AppDO::getCreateTime,
                 AppDO::getUpdateTime
         );
         return wrapper;

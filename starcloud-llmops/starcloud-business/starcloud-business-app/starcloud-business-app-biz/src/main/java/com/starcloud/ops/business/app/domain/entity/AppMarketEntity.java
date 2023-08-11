@@ -97,6 +97,18 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
 
     }
 
+    /**
+     * 只用 应用创建者
+     * 注意，创建应用的时候，要设置 creator 为当前用户态
+     *
+     * @param req
+     * @return
+     */
+    @Override
+    protected Long getRunUserId(AppExecuteReqVO req) {
+        return super.getRunUserId(req);
+    }
+
     @Override
     protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
 

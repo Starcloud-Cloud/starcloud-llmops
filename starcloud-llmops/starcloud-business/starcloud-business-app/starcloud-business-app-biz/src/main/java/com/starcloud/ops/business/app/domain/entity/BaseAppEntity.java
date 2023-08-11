@@ -359,6 +359,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     log.error("app async execute is fail: {}", exception.getMessage(), exception);
                     this.updateAppConversationLog(req.getConversationUid(), false);
                     this._afterExecute(req, exception);
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage());
                 }
             });
 
@@ -367,12 +368,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             //直接 会话异常
             this.updateAppConversationLog(req.getConversationUid(), false);
             this._afterExecute(req, exception);
-
+            throw exception;
         } catch (Exception exception) {
             log.error("app exception is fail: {}", exception.getMessage(), exception);
             //直接 会话异常
             this.updateAppConversationLog(req.getConversationUid(), false);
             this._afterExecute(req, exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage());
         }
     }
 

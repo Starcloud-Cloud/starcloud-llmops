@@ -93,8 +93,9 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
                 AppPublishChannelDO::getConfig,
                 AppPublishChannelDO::getStatus,
                 AppPublishChannelDO::getDescription,
-                AppPublishChannelDO::getCreateTime,
                 AppPublishChannelDO::getCreator,
+                AppPublishChannelDO::getUpdater,
+                AppPublishChannelDO::getCreateTime,
                 AppPublishChannelDO::getUpdateTime
         );
         return wrapper;
