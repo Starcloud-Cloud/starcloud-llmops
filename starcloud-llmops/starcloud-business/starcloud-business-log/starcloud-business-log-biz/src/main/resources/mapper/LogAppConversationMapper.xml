@@ -44,7 +44,7 @@
                 AND t.status = #{req.status}
             </if>
             <if test="req.startTime != null and req.endTime != null">
-                AND t.create_time between #{req.startTime} and #{req.endTime}
+                AND t.update_time between #{req.startTime} and #{req.endTime}
             </if>
         </where>
         GROUP BY t.id

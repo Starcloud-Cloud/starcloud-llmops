@@ -154,7 +154,7 @@ public interface ErrorCodeConstants {
     /**
      * 应用渠道不存在，无法更新
      */
-    ErrorCode APP_CHANNEL_NOT_EXIST = new ErrorCode(300500002, "The app publish channel is not exist, uid: {} ");
+    ErrorCode APP_CHANNEL_NOT_EXIST = new ErrorCode(300500002, "The app publish channel is not exist, uid or mediumUid: {} ");
 
     /**
      * 应用发布渠道类型是必须的

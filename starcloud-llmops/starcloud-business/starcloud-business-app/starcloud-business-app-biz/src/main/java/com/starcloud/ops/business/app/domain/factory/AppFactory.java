@@ -57,6 +57,9 @@ public class AppFactory {
      */
     private static AppMarketRepository appMarketRepository;
 
+    /**
+     * 应用发布 Repository 服务
+     */
     private static AppPublishRepository appPublishRepository;
 
     /**
@@ -83,6 +86,11 @@ public class AppFactory {
         return appMarketRepository;
     }
 
+    /**
+     * 获取应用发布 Repository 服务
+     *
+     * @return AppPublishRepository
+     */
     public static AppPublishRepository getAppPublishRepository() {
         if (appPublishRepository == null) {
             appPublishRepository = SpringUtil.getBean(AppPublishRepository.class);
@@ -123,12 +131,52 @@ public class AppFactory {
 
                 // 应用创作中心
             } else if (AppSceneEnum.SHARE_IFRAME.name().equals(request.getScene())) {
-                return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(mediumId) : AppFactory.factoryApp(mediumId, request.getAppReqVO());
+
             }
         }
 
 
         throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
+    }
+
+    /**
+     * 获取 ChatAppEntity
+     *
+     * @param chatRequest 请求参数
+     * @return ChatAppEntity
+     */
+    public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
+
+        String appId = chatRequest.getAppUid();
+
+        ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
+
+        return appEntity;
+    }
+
+    /**
+     * 构建 ImageAppEntity
+     *
+     * @param request 请求参数
+     * @return ImageAppEntity
+     */
+    public static ImageAppEntity factory(ImageReqVO request) {
+        String appUid = request.getAppUid();
+        AppValidate.notBlank(appUid, ErrorCodeConstants.APP_UID_IS_REQUIRED);
+        if (RecommendAppConsts.BASE_GENERATE_IMAGE.equals(appUid)) {
+            ImageAppEntity imageAppEntity = new ImageAppEntity();
+            imageAppEntity.setUid(appUid);
+            imageAppEntity.setName("AI图片生成");
+            imageAppEntity.setModel(AppModelEnum.BASE_GENERATE_IMAGE.name());
+            imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.IMAGE.name()));
+            imageAppEntity.setType(AppTypeEnum.MYSELF.name());
+            imageAppEntity.setSource(AppSourceEnum.WEB.name());
+            imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
+            return imageAppEntity;
+        }
+        ImageAppEntity imageAppEntity = factoryImageApp(appUid);
+        imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
+        return imageAppEntity;
     }
 
     /**
@@ -180,6 +228,16 @@ public class AppFactory {
     }
 
     /**
+     * 获取 ChatAppEntity 通过 appId
+     *
+     * @param appId appId
+     * @return ChatAppEntity
+     */
+    public static ChatAppEntity factoryChatApp(String appId) {
+        return (ChatAppEntity) getAppRepository().getByUid(appId);
+    }
+
+    /**
      * @param appId
      * @return
      * @todo 通过 发布表 获取 具体的激活中的 appUid
@@ -195,22 +253,13 @@ public class AppFactory {
     }
 
     /**
-     * 获取 ChatAppEntity 通过 appId
+     * 获取 ImageAppEntity 通过 appId
      *
      * @param appId appId
-     * @return ChatAppEntity
+     * @return ImageAppEntity
      */
-    public static ChatAppEntity factoryChatApp(String appId) {
-        return (ChatAppEntity) getAppRepository().getByUid(appId);
-    }
-
-    public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
-
-        String appId = chatRequest.getAppUid();
-
-        ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
-
-        return appEntity;
+    public static ImageAppEntity factoryImageApp(String appId) {
+        return (ImageAppEntity) getAppRepository().getByUid(appId);
     }
 
     /**
@@ -223,43 +272,9 @@ public class AppFactory {
         AppPublishDO appPublishDO = getAppPublishRepository().getByPublishUid(publishUid);
         String appInfo = appPublishDO.getAppInfo();
         AppDO appDO = JSONUtil.toBean(appInfo, AppDO.class);
-        BaseAppEntity entity = AppConvert.INSTANCE.convert(appDO,false);
+        BaseAppEntity entity = AppConvert.INSTANCE.convert(appDO, false);
         return (ChatAppEntity) entity;
     }
 
-    /**
-     * 构建 ImageAppEntity
-     *
-     * @param request 请求参数
-     * @return ImageAppEntity
-     */
-    public static ImageAppEntity factory(ImageReqVO request) {
-        String appUid = request.getAppUid();
-        AppValidate.notBlank(appUid, ErrorCodeConstants.APP_UID_IS_REQUIRED);
-        if (RecommendAppConsts.BASE_GENERATE_IMAGE.equals(appUid)) {
-            ImageAppEntity imageAppEntity = new ImageAppEntity();
-            imageAppEntity.setUid(appUid);
-            imageAppEntity.setName("AI图片生成");
-            imageAppEntity.setModel(AppModelEnum.BASE_GENERATE_IMAGE.name());
-            imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.IMAGE.name()));
-            imageAppEntity.setType(AppTypeEnum.MYSELF.name());
-            imageAppEntity.setSource(AppSourceEnum.WEB.name());
-            imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
-            return imageAppEntity;
-        }
-        ImageAppEntity imageAppEntity = factoryImageApp(appUid);
-        imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
-        return imageAppEntity;
-    }
-
-    /**
-     * 获取 ImageAppEntity 通过 appId
-     *
-     * @param appId appId
-     * @return ImageAppEntity
-     */
-    public static ImageAppEntity factoryImageApp(String appId) {
-        return (ImageAppEntity) getAppRepository().getByUid(appId);
-    }
 
 }
