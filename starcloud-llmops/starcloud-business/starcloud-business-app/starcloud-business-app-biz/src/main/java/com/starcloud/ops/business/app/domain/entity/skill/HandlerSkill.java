@@ -54,6 +54,8 @@ public class HandlerSkill extends BaseSkillEntity {
 
             log.info("FunTool HandlerSkill: {} {}", this.getHandler().getName(), input);
 
+            //转换入参
+
             handlerContext.setRequest(input);
 
             HandlerResponse handlerResponse = this.handler.execute(handlerContext);
@@ -61,7 +63,7 @@ public class HandlerSkill extends BaseSkillEntity {
             return handlerResponse.toJsonOutput();
         };
 
-        return createFunTool(this.getHandler().getName(), handler.getDescription(), cc, function);
+        return createFunTool(handler.getName(), handler.getDescription(), cc, function);
     }
 
 

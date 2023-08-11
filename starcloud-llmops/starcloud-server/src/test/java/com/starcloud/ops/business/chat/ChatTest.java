@@ -87,11 +87,14 @@ public class ChatTest extends BaseDbUnitTest {
         ChatRequestVO chatRequest = new ChatRequestVO();
 
         //带数据集的
-        chatRequest.setAppUid("69c74dfba8d345359b196e8781e395e9");
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
 
         chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
 
+
         chatRequest.setQuery("讲个关于汉堡的笑话吧。");
+
+        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
         chatService.chat(chatRequest);
 

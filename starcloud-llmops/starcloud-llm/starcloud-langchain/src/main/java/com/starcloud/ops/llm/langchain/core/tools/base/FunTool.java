@@ -1,6 +1,7 @@
 package com.starcloud.ops.llm.langchain.core.tools.base;
 
 
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
@@ -35,6 +36,7 @@ public class FunTool extends BaseTool<Object, Object> {
      * @param jsonSchema
      * @param function
      */
+    //无Java DTO作为参数的，都是动态的入参。如API，workflow，gptPlugins
     public FunTool(String name, String description, JsonNode jsonSchema, Function<Object, String> function) {
         this.setFunction(function);
         this.setName(name);
@@ -56,12 +58,18 @@ public class FunTool extends BaseTool<Object, Object> {
         this.setFunction(function);
         this.setName(name);
         this.setDescription(description);
-        this.setJsonSchema(OpenAIUtils.serializeJsonSchema(this.getInputCls()));
+        this.setInputCls(schemaCls);
+        this.setJsonSchema(OpenAIUtils.serializeJsonSchema(schemaCls));
 
     }
 
     @Override
     protected String _run(Object input) {
+
+        //@todo 转换入参 为 jsonSchema
+        Class<?> cc = this.getInputCls();
+        input = JSONUtil.toBean(input.toString(), cc);
+
         return function.apply(input);
     }
 
@@ -69,7 +77,7 @@ public class FunTool extends BaseTool<Object, Object> {
     @Override
     public JsonNode getInputSchemas() {
 
-        return OpenAIUtils.serializeJsonSchema(this.getInputCls());
+        return this.jsonSchema;
     }
 
 
