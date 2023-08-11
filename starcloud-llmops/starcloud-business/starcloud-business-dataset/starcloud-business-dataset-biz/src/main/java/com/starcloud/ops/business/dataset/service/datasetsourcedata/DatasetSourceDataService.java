@@ -141,7 +141,7 @@ public interface DatasetSourceDataService {
     /**
      * 更新数据集状态
      *
-     * @param uid 数据集源数据编号
+     * @param dataDO 数据集源数据DO
      */
     void updateDatasourceById(DatasetSourceDataDO dataDO);
 

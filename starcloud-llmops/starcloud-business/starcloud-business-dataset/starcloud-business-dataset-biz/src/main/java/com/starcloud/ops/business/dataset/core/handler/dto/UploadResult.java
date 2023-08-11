@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.dataset.core.handler.dto;
 
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import lombok.Data;
 
 /**
