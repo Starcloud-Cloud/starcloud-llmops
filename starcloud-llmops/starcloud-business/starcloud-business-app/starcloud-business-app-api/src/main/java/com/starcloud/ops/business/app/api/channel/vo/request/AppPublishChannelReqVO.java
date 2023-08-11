@@ -69,5 +69,8 @@ public class AppPublishChannelReqVO implements Serializable {
     @Schema(description = "渠道状态")
     private Integer status;
 
+    @Schema(description = "媒介Uid")
+    private String mediumUid;
+
 
 }

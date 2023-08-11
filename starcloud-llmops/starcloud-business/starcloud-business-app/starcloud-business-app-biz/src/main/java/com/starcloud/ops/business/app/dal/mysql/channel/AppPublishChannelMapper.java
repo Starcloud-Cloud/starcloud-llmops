@@ -46,6 +46,18 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
     }
 
     /**
+     * 根据 mediumUid 查询应用发布记录
+     * @param mediumUid
+     * @return
+     */
+    default AppPublishChannelDO getByMediumUid(String mediumUid) {
+        LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
+        wrapper.eq(AppPublishChannelDO::getMediumUid, mediumUid);
+        wrapper.orderByDesc(AppPublishChannelDO::getUpdateTime).last("limit 1");
+        return this.selectOne(wrapper);
+    }
+
+    /**
      * 根据uid查询媒介
      *
      * @param uid 媒介uid
@@ -79,6 +91,7 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
                 AppPublishChannelDO::getStatus,
                 AppPublishChannelDO::getDescription,
                 AppPublishChannelDO::getCreateTime,
+                AppPublishChannelDO::getCreator,
                 AppPublishChannelDO::getUpdateTime
         );
         return wrapper;

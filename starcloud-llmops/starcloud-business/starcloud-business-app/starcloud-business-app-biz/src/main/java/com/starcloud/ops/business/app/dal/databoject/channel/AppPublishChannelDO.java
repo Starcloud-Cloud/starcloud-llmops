@@ -75,4 +75,7 @@ public class AppPublishChannelDO extends TenantBaseDO {
     @TableField("status")
     private Integer status;
 
+    @TableField("medium_uid")
+    private String mediumUid;
+
 }

@@ -36,7 +36,7 @@ public interface LogAppConversationService {
      *
      * @param updateReqVO 更新信息
      */
-    void updateAppConversation(@Valid LogAppConversationUpdateReqVO updateReqVO);
+    void updateAppConversation(LogAppConversationUpdateReqVO updateReqVO);
 
     /**
      * 更新应用执行日志会话状态

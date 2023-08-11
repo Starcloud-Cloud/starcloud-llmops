@@ -38,6 +38,8 @@ public interface AppPublishChannelConverter {
         appPublishChannel.setType(request.getType());
         appPublishChannel.setConfig(JSONUtil.toJsonStr(request.getConfig()));
         appPublishChannel.setStatus(Objects.isNull(request.getStatus()) ? StateEnum.DISABLE.getCode() : request.getStatus());
+        appPublishChannel.setMediumUid(request.getMediumUid());
+        appPublishChannel.setDeleted(Boolean.FALSE);
         return appPublishChannel;
     }
 
@@ -59,6 +61,7 @@ public interface AppPublishChannelConverter {
         response.setDescription(appPublishChannel.getDescription());
         response.setCreateTime(appPublishChannel.getCreateTime());
         response.setUpdateTime(appPublishChannel.getUpdateTime());
+        response.setCreator(appPublishChannel.getCreator());
         return response;
     }
 

@@ -24,6 +24,7 @@ import com.starcloud.ops.business.log.service.conversation.LogAppConversationSer
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -281,9 +282,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             // 会话记录
             if (StrUtil.isNotBlank(req.getConversationUid())) {
                 LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
-                List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(req.getConversationUid());
-                Collections.reverse(logAppMessageList);
-                this._initHistory(req, logAppConversationDO, logAppMessageList);
+                if (logAppConversationDO == null) {
+                    this.createAppConversationLog(req);
+                } else {
+                    List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(req.getConversationUid());
+                    Collections.reverse(logAppMessageList);
+                    this._initHistory(req, logAppConversationDO, logAppMessageList);
+                }
             } else {
                 //会话uid为空,自动创建
                 String conversationUid = this.createAppConversationLog(req);
@@ -415,32 +420,29 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @return 会话 uid
      */
     protected String createAppConversationLog(Q req) {
-
-        if (StrUtil.isBlank(req.getConversationUid())) {
-
-            LogAppConversationCreateReqVO reqVO = new LogAppConversationCreateReqVO();
-            reqVO.setUid(IdUtil.fastSimpleUUID());
-
-            reqVO.setAppUid(this.getUid());
-            reqVO.setAppName(this.getName());
-            reqVO.setAppMode(this.getModel());
-            reqVO.setStatus(LogStatusEnum.ERROR.name());
-
-            reqVO.setEndUser(req.getEndUser());
-            reqVO.setCreator(String.valueOf(req.getUserId()));
-            reqVO.setUpdater(String.valueOf(req.getUserId()));
-            reqVO.setTenantId(this.getTenantId());
-
-            reqVO.setFromScene(req.getScene());
-
-            this._createAppConversationLog(req, reqVO);
-
-            logAppConversationService.createAppConversation(reqVO);
-
-            return reqVO.getUid();
+        LogAppConversationCreateReqVO reqVO = new LogAppConversationCreateReqVO();
+        String conversationUid = req.getConversationUid();
+        if (StringUtils.isBlank(conversationUid)) {
+            conversationUid = IdUtil.fastSimpleUUID();
         }
+        reqVO.setUid(conversationUid);
+        reqVO.setAppUid(this.getUid());
+        reqVO.setAppName(this.getName());
+        reqVO.setAppMode(this.getModel());
+        reqVO.setStatus(LogStatusEnum.ERROR.name());
 
-        return req.getConversationUid();
+        reqVO.setEndUser(req.getEndUser());
+        reqVO.setCreator(String.valueOf(req.getUserId()));
+        reqVO.setUpdater(String.valueOf(req.getUserId()));
+        reqVO.setTenantId(this.getTenantId());
+
+        reqVO.setFromScene(req.getScene());
+
+        this._createAppConversationLog(req, reqVO);
+
+        logAppConversationService.createAppConversation(reqVO);
+
+        return reqVO.getUid();
     }
 
     /**

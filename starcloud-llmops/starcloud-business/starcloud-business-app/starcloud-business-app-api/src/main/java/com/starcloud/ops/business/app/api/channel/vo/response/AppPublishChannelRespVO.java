@@ -66,6 +66,13 @@ public class AppPublishChannelRespVO implements Serializable {
     @Schema(description = "渠道描述")
     private String description;
 
+
+    @Schema(description = "媒介 UID")
+    private String mediumUid;
+
+    @Schema(description = "创建人")
+    private String creator;
+
     /**
      * 创建时间
      */
