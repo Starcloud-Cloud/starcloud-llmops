@@ -50,6 +50,11 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
     INDEX_ERROR(55,"创建索引失败"),
     INDEX_COMPLETED(60,"创建索引完成"),
 
+
+    /**
+     * 99 总结创建完成
+     */
+    SUMMERY_ERROR(98,"总结创建失败"),
     /**
      * 99 完成
      */

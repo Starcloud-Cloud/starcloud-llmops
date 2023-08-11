@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,15 +39,13 @@ public class DatasetSourceDataController {
 
     @PostMapping("/page")
     @Operation(summary = "获得数据集源数据存储分页")
-    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
-    public CommonResult<PageResult<DatasetSourceDataRespVO>> getDatasetStoragePage(@RequestBody DatasetSourceDataPageReqVO pageVO) {
+    public CommonResult<PageResult<ListDatasetSourceDataRespVO>> getDatasetStoragePage(@RequestBody DatasetSourceDataPageReqVO pageVO) {
         PageResult<DatasetSourceDataDO> pageResult = datasetSourceDataService.getDatasetSourceDataPage(pageVO);
         return success(DatasetSourceDataConvert.INSTANCE.convertPage(pageResult));
     }
 
     @PostMapping("/details/split")
     @Operation(summary = "获得源数据分块详情")
-    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
     public CommonResult<PageResult<DatasetSourceDataSplitPageRespVO>> getSourceDataDetailsInfo(@RequestBody DatasetSourceDataSplitPageReqVO reqVO) {
 
         return success(datasetSourceDataService.getSplitDetails(reqVO));
@@ -56,17 +53,15 @@ public class DatasetSourceDataController {
 
 
     @GetMapping("/details/{uid}")
-    @Operation(summary = "获得源数据详情")
-    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
+    @Operation(summary = "获得源数据详情内容")
     public CommonResult<DatasetSourceDataDetailsInfoVO> getSourceDataDetailsInfo(@PathVariable("uid") String uid) {
         return success(datasetSourceDataService.getSourceDataDetailsInfo(uid,false));
     }
 
 
     @GetMapping("/list/document/{datasetId}")
-    @Operation(summary = "获得数据集源数据列表-类型为文档型")
-    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:query')")
-    public CommonResult<List<DatasetSourceDataRespVO>> getDatasetSourceDataByDocumentList(@PathVariable("datasetId") String datasetId) {
+    @Operation(summary = "获取源数据列表List-类型为文档型")
+    public CommonResult<List<ListDatasetSourceDataRespVO>> getDatasetSourceDataByDocumentList(@PathVariable("datasetId") String datasetId) {
 
         // 判断数据集是否存在，不存在则创建数据集
         try {
@@ -81,8 +76,7 @@ public class DatasetSourceDataController {
 
     @GetMapping("/list/qa/{datasetId}")
     @Operation(summary = "获得数据集源数据列表-类型为QA型")
-    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:query')")
-    public CommonResult<List<DatasetSourceDataRespVO>> getDatasetSourceDataByQaList(@PathVariable("datasetId") String datasetId) {
+    public CommonResult<List<ListDatasetSourceDataRespVO>> getDatasetSourceDataByQaList(@PathVariable("datasetId") String datasetId) {
 
         // 判断数据集是否存在，不存在则创建数据集
         try {
@@ -96,7 +90,6 @@ public class DatasetSourceDataController {
     }
 
     @PostMapping("/uploadFiles")
-    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
     public CommonResult<SourceDataUploadDTO> uploadFiles(@RequestParam(value = "file") MultipartFile file,
                                                          UploadFileReqVO reqVO) {
         SplitRule splitRule = new SplitRule();
@@ -112,7 +105,6 @@ public class DatasetSourceDataController {
     }
 
     @PostMapping("/uploadUrls")
-    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
     public CommonResult<List<SourceDataUploadDTO> > uploadUrls(@Validated @RequestBody UploadUrlReqVO reqVO) {
 
         SplitRule splitRule = new SplitRule();
@@ -128,7 +120,6 @@ public class DatasetSourceDataController {
 
 
     @PostMapping("/uploadCharacters")
-    // @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:create')")
     public CommonResult<        List<SourceDataUploadDTO> > uploadCharacter(@Validated @RequestBody List<UploadCharacterReqVO> reqVO) {
         SplitRule splitRule = new SplitRule();
         splitRule.setAutomatic(false);
@@ -143,7 +134,6 @@ public class DatasetSourceDataController {
 
     @PutMapping("/update")
     @Operation(summary = "更新数据集源数据")
-    @PreAuthorize("@ss.hasPermission('llm:dataset-source-data:update')")
     public CommonResult<Boolean> updateDatasetSourceData(@Valid @RequestBody DatasetSourceDataUpdateReqVO updateReqVO) {
         datasetSourceDataService.updateDatasetSourceData(updateReqVO);
         return success(true);

@@ -1,15 +1,18 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ReUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadResult;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
@@ -22,12 +25,18 @@ import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
-import com.starcloud.ops.business.dataset.service.dto.DataSourceIndoDTO;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
+import com.sun.xml.internal.ws.api.model.CheckedException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -40,9 +49,12 @@ import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -121,6 +133,26 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         validateSplitRule(reqVO, DataSourceDataTypeEnum.URL.name());
         SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
+        sourceDataUrlUploadDTO.setDatasetId(reqVO.getDatasetId());
+        sourceDataUrlUploadDTO.setBatch(reqVO.getBatch());
+
+        // 使用Tika检测文件类型
+        MediaType mediaType;
+        String mediaTypeExtension;
+        String extName = getFileExtension(Objects.requireNonNull(file.getOriginalFilename()));
+        try (TikaInputStream tis = TikaInputStream.get(file.getInputStream())) {
+            mediaType = TikaConfig.getDefaultConfig().getDetector().detect(tis, new Metadata());
+            mediaTypeExtension = MimeTypes.getDefaultMimeTypes().forName(mediaType.toString()).getExtension();
+            mediaTypeExtension = mediaTypeExtension.replace(".", "");
+        } catch (IOException | MimeTypeException e) {
+            throw new RuntimeException("Could not read file", e);
+        }
+        if (!mediaTypeExtension.equals(extName)) {
+            sourceDataUrlUploadDTO.setStatus(false);
+            sourceDataUrlUploadDTO.setErrMsg("文件格式暂时无法适配，我们紧急处理中！");
+            return sourceDataUrlUploadDTO;
+        }
+
         // 读取文件内容到字节数组中
         byte[] fileContent;
         try {
@@ -129,20 +161,18 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw new RuntimeException(e);
         }
 
-        String result = processingService.fileProcessing(file, fileContent, reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.DOCUMENT.name());
+        UploadResult result = processingService.fileProcessing(file, fileContent, reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.DOCUMENT.name());
 
         sourceDataUrlUploadDTO.setDatasetId(reqVO.getDatasetId());
         sourceDataUrlUploadDTO.setBatch(reqVO.getBatch());
 
-        if (result == null) {
+        if (!result.getStatus()) {
             sourceDataUrlUploadDTO.setStatus(false);
-            sourceDataUrlUploadDTO.setSourceDataId(null);
+            sourceDataUrlUploadDTO.setSourceDataId(result.getErrMsg());
         } else {
             sourceDataUrlUploadDTO.setStatus(true);
-            sourceDataUrlUploadDTO.setSourceDataId(result);
+            sourceDataUrlUploadDTO.setSourceDataId(result.getSourceDataId());
         }
-
-
         return sourceDataUrlUploadDTO;
     }
 
@@ -156,13 +186,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Override
     public List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO) {
 
-        // UploadReqVO uploadReqVO = validateSplitRule(reqVO, DataSourceDataTypeEnum.URL.name());
-        //
-        // UploadUrlReqVO uploadUrlReqVO = (UploadUrlReqVO) uploadReqVO;
-        // uploadUrlReqVO.setUrls(reqVO.getUrls());
-        // reqVO = uploadUrlReqVO;
         validateSplitRule(reqVO, DataSourceDataTypeEnum.URL.name());
-
 
         // 异步处理
         UploadUrlReqVO finalReqVO = reqVO;
@@ -170,23 +194,31 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         List<SourceDataUploadDTO> collect = reqVO.getUrls().stream()
                 .map(url -> {
                     SourceDataUploadDTO sourceDataUploadDTO = new SourceDataUploadDTO();
+
+                    if (!isValidUrl(url)) {
+                        sourceDataUploadDTO.setStatus(false);
+                        sourceDataUploadDTO.setErrMsg(String.format("你的链接%s失效，请输入正确的链接",url));
+                        return sourceDataUploadDTO;
+                    }
                     sourceDataUploadDTO.setDatasetId(finalReqVO.getDatasetId());
                     sourceDataUploadDTO.setBatch(finalReqVO.getBatch());
 
-                    ListenableFuture<String> executed = this.executeAsyncWithUrl(url, finalReqVO);
+                    ListenableFuture<UploadResult> executed = this.executeAsyncWithUrl(url, finalReqVO);
 
                     try {
-                        String result = executed.get();
-                        if (result == null) {
+                        UploadResult result = executed.get();
+                        if (!result.getStatus()) {
                             sourceDataUploadDTO.setStatus(false);
-                            sourceDataUploadDTO.setSourceDataId(null);
+                            sourceDataUploadDTO.setSourceDataId(result.getErrMsg());
                         } else {
                             sourceDataUploadDTO.setStatus(true);
-                            sourceDataUploadDTO.setSourceDataId(result);
+                            sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
                         }
 
                     } catch (InterruptedException | ExecutionException e) {
-                        throw new RuntimeException(e);
+                        sourceDataUploadDTO.setStatus(false);
+                        sourceDataUploadDTO.setSourceDataId("系统异常");
+                        return sourceDataUploadDTO;
                     }
 
                     return sourceDataUploadDTO;
@@ -194,6 +226,22 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
         return collect;
+    }
+    private static boolean isValidUrl(String urlString) {
+        URI uri = null;
+        try {
+            uri = new URI(urlString);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return false;
+        }
+        if (uri.getHost() == null) {
+            return false;
+        }
+        if (uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https")) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -217,7 +265,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
     @Async
-    public ListenableFuture<String> executeAsyncWithUrl(String url, UploadUrlReqVO reqVO) {
+    public ListenableFuture<UploadResult> executeAsyncWithUrl(String url, UploadUrlReqVO reqVO) {
         return AsyncResult.forValue(processingService.urlProcessing(url, reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.URL.name()));
     }
 
@@ -236,14 +284,14 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             sourceDataUploadDTO.setDatasetId(reqVO.getDatasetId());
             sourceDataUploadDTO.setBatch(reqVO.getBatch());
 
-            String result = processingService.stringProcessing(reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.CHARACTERS.name());
+            UploadResult result = processingService.stringProcessing(reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.CHARACTERS.name());
 
-            if (result == null) {
+            if (!result.getStatus()) {
                 sourceDataUploadDTO.setStatus(false);
-                sourceDataUploadDTO.setSourceDataId(null);
+                sourceDataUploadDTO.setSourceDataId(result.getErrMsg());
             } else {
                 sourceDataUploadDTO.setStatus(true);
-                sourceDataUploadDTO.setSourceDataId(result);
+                sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
             }
             return sourceDataUploadDTO;
         }).collect(Collectors.toList());
@@ -327,6 +375,16 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         return reqVO;
     }
 
+    private static String getFileExtension(String fileName) {
+        int dotIndex = fileName.lastIndexOf(".");
+        if (dotIndex == -1) {
+            // "文件名无扩展名，无法确定文件类型"
+            throw exception(1);
+        }
+// 不包含点，所以使用dotIndex + 1
+        return fileName.substring(dotIndex + 1);
+    }
+
 
     private void validateDatasetSourceDataExists(String filedId, String datasetID) {
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery(DatasetSourceDataDO.class)
@@ -345,14 +403,13 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
     @Override
-    public List<DatasetSourceDataRespVO> getDatasetSourceDataList(String datasetId, Integer dataModel) {
+    public List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(String datasetId, Integer dataModel) {
 
         List<DatasetSourceDataDO> datasetSourceDataDOS = datasetSourceDataMapper.selectByDatasetId(datasetId, dataModel);
 
         return datasetSourceDataDOS.stream().map(dataDO -> {
 
-                    DatasetSourceDataRespVO dataRespVO = new DatasetSourceDataRespVO();
-                    dataRespVO.setId(dataDO.getId());
+                    ListDatasetSourceDataRespVO dataRespVO = new ListDatasetSourceDataRespVO();
                     dataRespVO.setUid(dataDO.getUid());
                     dataRespVO.setName(dataDO.getName());
                     dataRespVO.setDataModel(dataDO.getDataModel());
@@ -360,13 +417,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                     dataRespVO.setBatch(dataDO.getBatch());
                     dataRespVO.setStatus(String.valueOf(dataDO.getStatus()));
                     dataRespVO.setWordCount(dataDO.getWordCount());
-                    if (dataDO.getDataSourceInfo() != null) {
-                        DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(dataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
-                        if (dataSourceIndoDTO.getSummaryContent() != null) {
-                            // 设置总结内容
-                            dataRespVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
-                        }
-                    }
+                    dataRespVO.setDescription(dataDO.getDescription());
+                    dataRespVO.setSummary(dataDO.getSummary());
+                    dataRespVO.setUpdateTime(dataDO.getUpdateTime());
 
                     return dataRespVO;
                 }
@@ -392,24 +445,20 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
         DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
 
-        if (DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus() < sourceDataDO.getStatus() && sourceDataDO.getDataSourceInfo() != null) {
-            DataSourceIndoDTO dataSourceIndoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceIndoDTO.class);
+        if (DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus() < sourceDataDO.getStatus()) {
+            // 设置清洗后内容
+            DatasetStorageDO cleanDatasetDO = datasetStorageService.selectDataById(sourceDataDO.getCleanStorageId());
+            // 获取原始内容
+            DatasetStorageDO contentDo = datasetStorageService.selectDataById(sourceDataDO.getCleanStorageId());
+            // true 返回
+            if (enable) {
+                byte[] bytes = HttpUtil.downloadBytes(cleanDatasetDO.getStorageKey());
+                String result = new String(bytes);
+                datasetSourceDataDetailsInfoVO.setCleanContent(result);
 
-            if (dataSourceIndoDTO.getSummaryContent() != null) {
-                // 设置总结内容
-                datasetSourceDataDetailsInfoVO.setSummaryContent(dataSourceIndoDTO.getSummaryContent());
-            }
-
-            if (enable && dataSourceIndoDTO.getCleanId() > 0) {
-                // 设置清洗内容
-                Long cleanId = dataSourceIndoDTO.getCleanId();
-
-                DatasetStorageDO cleanDatasetDO = datasetStorageService.selectDataById(cleanId);
-                if (cleanDatasetDO != null) {
-                    byte[] bytes = HttpUtil.downloadBytes(cleanDatasetDO.getStorageKey());
-                    String result = new String(bytes);
-                    datasetSourceDataDetailsInfoVO.setCleanContent(result);
-                }
+            } else {
+                datasetSourceDataDetailsInfoVO.setContent(contentDo.getStorageKey());
+                datasetSourceDataDetailsInfoVO.setCleanContent(cleanDatasetDO.getStorageKey());
             }
         }
 
@@ -418,6 +467,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     }
 
     /**
+     * 获取分块内容
+     *
      * @param reqVO
      * @return
      */
@@ -494,12 +545,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @param status
      */
     @Override
-    public void updateDatasourceStatusAndMessage(Long id, Integer status, String message) {
+    public void updateStatusById(Long id, Integer status, String message) {
         // 更新数据
         LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
         wrapper.eq(DatasetSourceDataDO::getId, id);
         wrapper.set(DatasetSourceDataDO::getStatus, status);
-        wrapper.set(DatasetSourceDataDO::getErrorMessage, message);
+        wrapper.set(StrUtil.isNotBlank(message), DatasetSourceDataDO::getErrorMessage, message);
         datasetSourceDataMapper.update(null, wrapper);
     }
 
@@ -507,18 +558,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     /**
      * 更新数据集状态
      *
-     * @param id 数据集源数据编号
+     * @param dataDO 源数据DO
      */
     @Override
-    public void updateDatasourceAndSourceInfo(Long id, Integer status, String dataSourceInfo, Long userId) {
-
+    public void updateDatasourceById(DatasetSourceDataDO dataDO) {
         // 更新数据
-        LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
-        wrapper.eq(DatasetSourceDataDO::getId, id);
-        wrapper.set(DatasetSourceDataDO::getStatus, status);
-        wrapper.set(DatasetSourceDataDO::getUpdater, userId);
-        wrapper.set(DatasetSourceDataDO::getDataSourceInfo, dataSourceInfo);
-        datasetSourceDataMapper.update(null, wrapper);
+        datasetSourceDataMapper.updateById(dataDO);
 
     }
 

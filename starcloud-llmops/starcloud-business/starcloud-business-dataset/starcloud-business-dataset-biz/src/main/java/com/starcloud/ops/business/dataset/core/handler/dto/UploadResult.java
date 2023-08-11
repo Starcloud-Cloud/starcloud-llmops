@@ -1,13 +1,13 @@
-package com.starcloud.ops.business.dataset.service.dto;
+package com.starcloud.ops.business.dataset.core.handler.dto;
 
+import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import lombok.Data;
 
 /**
- *
- *
+ * 数据上传结果 DTO
  */
 @Data
-public class SourceDataUploadDTO {
+public class UploadResult {
 
     /**
      * 数据集 ID
@@ -15,22 +15,23 @@ public class SourceDataUploadDTO {
     private String datasetId;
 
     /**
-     * 源数据 ID
+     * 数据 ID
      */
     private String sourceDataId;
-    /**
-     * 批次
-     */
-    private String batch;
 
+    /**
+     * 数据名称
+     */
+    private String name;
 
     /**
      * 状态
      */
     private Boolean status;
 
+
     /**
-     * 状态
+     * 错误信息
      */
     private String errMsg;
 

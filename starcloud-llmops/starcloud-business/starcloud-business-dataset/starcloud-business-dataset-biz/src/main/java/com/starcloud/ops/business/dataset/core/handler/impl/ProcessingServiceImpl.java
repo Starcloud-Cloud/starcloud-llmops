@@ -9,7 +9,8 @@ import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
 import com.starcloud.ops.business.dataset.convert.datasetstorage.DatasetStorageConvert;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadResultDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadResult;
 import com.starcloud.ops.business.dataset.core.handler.strategy.FileUploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.strategy.StringUploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.strategy.UrlUploadStrategy;
@@ -73,12 +74,12 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public String fileProcessing(MultipartFile file, byte[] fileContent, UploadFileReqVO reqVO, Integer dataModel, String dataType) {
+    public UploadResult fileProcessing(MultipartFile file, byte[] fileContent, UploadFileReqVO reqVO, Integer dataModel, String dataType) {
         log.info("====> 数据集{}开始上传文件,分割规则为{}", reqVO.getDatasetId(), reqVO.getSplitRule());
         validate(reqVO.getDatasetId(), reqVO.getSplitRule());
         fileUploadStrategy.setFileData(file, fileContent);
 
-        UploadResultDTO process = fileUploadStrategy.process(getUserId(reqVO.getDatasetId()));
+        UploadContentDTO process = fileUploadStrategy.process(getUserId(reqVO.getDatasetId()));
         process.setSync(reqVO.getSync());
         process.setBatch(reqVO.getBatch());
         process.setSplitRule(reqVO.getSplitRule());
@@ -91,11 +92,11 @@ public class ProcessingServiceImpl implements ProcessingService {
 
     @Override
     @Deprecated
-    public String urlProcessing(String url, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
+    public UploadResult urlProcessing(String url, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
         log.info("====> 数据集{}开始上传URL,分割规则为{}", datasetId, splitRule);
         validate(datasetId, splitRule);
         urlUploadStrategy.setUrl(url);
-        UploadResultDTO process = urlUploadStrategy.process(getUserId(datasetId));
+        UploadContentDTO process = urlUploadStrategy.process(getUserId(datasetId));
         process.setDataModel(dataModel);
         process.setDataType(dataType);
         // 执行通用逻辑并且返回
@@ -103,11 +104,11 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public String urlProcessing(String url, UploadUrlReqVO reqVO, Integer dataModel, String dataType) {
+    public UploadResult urlProcessing(String url, UploadUrlReqVO reqVO, Integer dataModel, String dataType) {
         log.info("====> 数据集{}开始上传URL,分割规则为{}", reqVO.getDatasetId(), reqVO.getSplitRule());
         validate(reqVO.getDatasetId(), reqVO.getSplitRule());
         urlUploadStrategy.setUrl(url);
-        UploadResultDTO process = urlUploadStrategy.process(getUserId(reqVO.getDatasetId()));
+        UploadContentDTO process = urlUploadStrategy.process(getUserId(reqVO.getDatasetId()));
         process.setSync(reqVO.getSync());
         process.setBatch(reqVO.getBatch());
         process.setSplitRule(reqVO.getSplitRule());
@@ -120,11 +121,11 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public String stringProcessing(UploadCharacterReqVO reqVO, Integer dataModel, String dataType) {
+    public UploadResult stringProcessing(UploadCharacterReqVO reqVO, Integer dataModel, String dataType) {
         log.info("====> 数据集{}开始上传字符串,分割规则为{}", reqVO.getDatasetId(), reqVO.getSplitRule());
         validate(reqVO.getDatasetId(), reqVO.getSplitRule());
         stringUploadStrategy.setData(reqVO.getTitle(), reqVO.getContext());
-        UploadResultDTO process = stringUploadStrategy.process(getUserId(reqVO.getDatasetId()));
+        UploadContentDTO process = stringUploadStrategy.process(getUserId(reqVO.getDatasetId()));
         process.setSync(reqVO.getSync());
         process.setBatch(reqVO.getBatch());
         process.setSplitRule(reqVO.getSplitRule());
@@ -156,9 +157,14 @@ public class ProcessingServiceImpl implements ProcessingService {
     //     return true;
     // }
 
-    private String commonProcess(UploadResultDTO process) {
+    private UploadResult commonProcess(UploadContentDTO process) {
+        UploadResult uploadResult = new UploadResult();
+
+        uploadResult.setErrMsg(process.getErrMsg());
+        uploadResult.setStatus(process.getStatus());
         if (!process.getStatus()) {
-            return null;
+
+            return uploadResult;
         }
         log.info("====> 数据上传成功,开始保存数据");
         // 保存上传记录
@@ -182,11 +188,11 @@ public class ProcessingServiceImpl implements ProcessingService {
         } else {
             dataSetProducer.asyncSendMessage(dataCleanSendMessage);
         }
-
-
         log.info("====> 返回数据上传信息");
 
-        return sourceDataDO.getUid();
+        uploadResult.setSourceDataId(sourceDataDO.getUid());
+
+        return uploadResult;
     }
 
     /**
@@ -211,7 +217,7 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
 
-    private Long saveStorageData(UploadResultDTO process) {
+    private Long saveStorageData(UploadContentDTO process) {
         DatasetStorageCreateReqVO createReqVO = new DatasetStorageCreateReqVO();
         createReqVO.setUid(DatasetUID.createStorageUID());
         createReqVO.setName(process.getName());
@@ -226,7 +232,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         return datasetStorageDO.getId();
     }
 
-    private DatasetSourceDataDO saveSourceData(UploadResultDTO process, Long storageId, String datasetId, String batch, Integer dataModel, String dataType) {
+    private DatasetSourceDataDO saveSourceData(UploadContentDTO process, Long storageId, String datasetId, String batch, Integer dataModel, String dataType) {
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
 

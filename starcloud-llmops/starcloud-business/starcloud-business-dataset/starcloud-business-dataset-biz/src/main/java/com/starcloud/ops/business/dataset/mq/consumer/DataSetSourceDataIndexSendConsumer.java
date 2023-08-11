@@ -1,10 +1,9 @@
 package com.starcloud.ops.business.dataset.mq.consumer;
 
-import cn.iocoder.yudao.framework.mq.core.stream.AbstractStreamMessageListener;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataIndexSendMessage;
-import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,35 +17,53 @@ import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder
  *
  * @author Alan Cusack
  */
-@Component
+
 @Slf4j
-public class DataSetSourceDataIndexSendConsumer extends AbstractStreamMessageListener<DatasetSourceDataIndexSendMessage> {
+@Component
+public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<DatasetSourceDataIndexSendMessage> {
 
     @Resource
     private DocumentSegmentsService documentSegmentsService;
 
-    @Resource
-    private DatasetSourceDataService datasetSourceDataService;
-
+    /**
+     * @param message
+     */
     @Override
-    public void onMessage(DatasetSourceDataIndexSendMessage message) {
+    protected void setDataState(DatasetSourceSendMessage message) {
+        message.setStatus(DataSetSourceDataStatusEnum.INDEX_IN.getStatus());
+        message.setErrMsg(DataSetSourceDataStatusEnum.INDEX_IN.getName());
+    }
+
+    /**
+     * @param message
+     */
+    @Override
+    protected void processBusinessLogic(DatasetSourceSendMessage message) {
 
         log.info("开始创建索引，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
-
-        // 设置数据源状态为正在创建索引
-        datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_IN.getStatus(),null);
         try {
             // 创建索引
             documentSegmentsService.indexDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()));
-            // 设置数据源状态为创建索引完成
-            datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_COMPLETED.getStatus(),null);
-            log.info("创建索引成功，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
 
+            // Fixme 创建总结  总结如果创建失败 状态为 SUMMERY_COMPLETED code 98
+
+            // 设置数据状态
+            message.setStatus(DataSetSourceDataStatusEnum.COMPLETED.getStatus());
+            message.setErrMsg(DataSetSourceDataStatusEnum.COMPLETED.getName());
         } catch (Exception e) {
+            // 设置数据源状态
+            message.setStatus(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
+            message.setErrMsg(e.getMessage());
             log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", message.getUserId(), getTenantId(), message.getDatasetId(),message.getDataSourceId(),e.getMessage(),e);
-            // 设置数据源状态为清洗中
-            datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(),e.getMessage());
         }
+
+
     }
 
+    /**
+     * @param message
+     */
+    @Override
+    protected void sendMessage(DatasetSourceSendMessage message) {
+    }
 }

@@ -6,7 +6,7 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadResultDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -43,9 +43,9 @@ public class UrlUploadStrategy implements UploadStrategy {
      * @return
      */
     @Override
-    public UploadResultDTO process(Long userId) {
+    public UploadContentDTO process(Long userId) {
 
-        UploadResultDTO uploadFileRespDTO = new UploadResultDTO();
+        UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
         // 判断 URL 是网页还是文件流
         // 设置文件名称

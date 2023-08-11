@@ -47,7 +47,7 @@ public interface DatasetSourceDataService {
      *
      * @return 编号
      */
-    List<SourceDataUploadDTO>  uploadUrlsSourceData(UploadUrlReqVO reqVO);
+    List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO);
 
     /**
      * 上传URL-支持批量上传
@@ -61,7 +61,7 @@ public interface DatasetSourceDataService {
      *
      * @return 编号
      */
-    List<SourceDataUploadDTO>  uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS);
+    List<SourceDataUploadDTO> uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS);
 
     /**
      * 批量创建数据集源数据
@@ -100,16 +100,21 @@ public interface DatasetSourceDataService {
      * @param datasetId 数据集 ID
      * @return 数据集源数据列表
      */
-    List<DatasetSourceDataRespVO>  getDatasetSourceDataList(String datasetId, Integer dataModel);
+    List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(String datasetId, Integer dataModel);
 
     /**
      * 获取数据源详情
      *
-     * @param uid 数据集源数据编号
-     * @param enable  如果 enable 为 true 则详情内容默认为清洗后的数据
+     * @param uid    数据集源数据编号
+     * @param enable 如果 enable 为 true 则详情内容默认为清洗后的数据
      */
     DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid, Boolean enable);
 
+    /**
+     * 获取分块内容
+     * @param reqVO
+     * @return
+     */
     PageResult<DatasetSourceDataSplitPageRespVO> getSplitDetails(DatasetSourceDataSplitPageReqVO reqVO);
 
     /**
@@ -131,14 +136,14 @@ public interface DatasetSourceDataService {
      *
      * @param uid 数据集源数据编号
      */
-    void updateDatasourceStatusAndMessage(Long uid, Integer status, String message);
+    void updateStatusById(Long uid, Integer status, String message);
 
     /**
      * 更新数据集状态
      *
      * @param uid 数据集源数据编号
      */
-    void updateDatasourceAndSourceInfo(Long uid, Integer status, String dataSourceInfo, Long userId);
+    void updateDatasourceById(DatasetSourceDataDO dataDO);
 
 
 }

@@ -15,12 +15,10 @@ import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.llm.langchain.core.tools.RequestsGetTool;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 页面内容爬取，并创建对应索引和总结
@@ -77,11 +75,11 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
             DatasetSourceDataDetailsInfoVO detailsInfoVO = new DatasetSourceDataDetailsInfoVO();
 
-            detailsInfoVO.setSummaryContent("我是页面：" + url + "的总结.这是一个关于美食的页面内容");
+            detailsInfoVO.setSummary("我是页面：" + url + "的总结.这是一个关于美食的页面内容");
             detailsInfoVO.setUid("doc-key-abcadda");
             //@todo 如果没有返回怎么办
 
-            result.setSummary(detailsInfoVO.getSummaryContent());
+            result.setSummary(detailsInfoVO.getSummary());
             result.setDocKey(detailsInfoVO.getUid());
 
             handlerResponse.setSuccess(true);

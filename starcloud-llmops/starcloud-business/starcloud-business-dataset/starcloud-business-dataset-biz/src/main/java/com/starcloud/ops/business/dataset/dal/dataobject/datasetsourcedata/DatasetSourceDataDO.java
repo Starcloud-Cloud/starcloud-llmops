@@ -4,7 +4,6 @@ import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -39,6 +38,11 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     private String name;
 
     /**
+     * 描述
+     */
+    private String description;
+
+    /**
      * 数据集ID
      */
     private String datasetId;
@@ -60,10 +64,6 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      */
     private  String dataType;
     /**
-     * 数据源信息
-     */
-    private String dataSourceInfo;
-    /**
      * 数据集处理规则ID
      */
     private String datasetProcessRuleId;
@@ -71,6 +71,17 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      * 批次
      */
     private String batch;
+
+    /**
+     * 清洗内容存储 ID
+     */
+    private Long cleanStorageId;
+
+    /**
+     * 总结
+     */
+    private String summary;
+
     /**
      * 同步配置
      */

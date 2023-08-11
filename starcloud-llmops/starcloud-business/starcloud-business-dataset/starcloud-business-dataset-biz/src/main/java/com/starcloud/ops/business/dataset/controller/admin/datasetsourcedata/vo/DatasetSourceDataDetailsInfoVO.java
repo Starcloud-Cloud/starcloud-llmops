@@ -31,7 +31,7 @@ public class DatasetSourceDataDetailsInfoVO {
     private String cleanContent;
 
     @Schema(description = "总结内容")
-    private String summaryContent;
+    private String summary;
 
     @Schema(description = "批次", required = true)
     @NotNull(message = "批次不能为空")

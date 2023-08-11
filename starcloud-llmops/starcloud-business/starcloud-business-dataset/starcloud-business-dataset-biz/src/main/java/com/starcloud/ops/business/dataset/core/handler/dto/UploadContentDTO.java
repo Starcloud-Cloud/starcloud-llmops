@@ -7,7 +7,7 @@ import lombok.Data;
  * 数据上传结果 DTO
  */
 @Data
-public class UploadResultDTO {
+public class UploadContentDTO {
 
     /**
      * 是否同步
@@ -73,5 +73,11 @@ public class UploadResultDTO {
      * 数据类型
      */
     private String dataType;
+
+
+    /**
+     * 数据类型
+     */
+    private String errMsg;
 
 }

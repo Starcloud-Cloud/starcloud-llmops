@@ -2,39 +2,30 @@ package com.starcloud.ops.business.dataset.mq.consumer;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
-import cn.iocoder.yudao.framework.mq.core.stream.AbstractStreamMessageListener;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
-import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataSplitProducer;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
-import com.starcloud.ops.business.dataset.service.dto.DataSourceIndoDTO;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.InputStream;
 import java.net.URL;
 
-import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
-
-/**
- * 针对 {@link DatasetSourceDataCleanSendMessage} 的消费者
- *
- * @author Alan Cusack
- */
-@Component
 @Slf4j
-public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageListener<DatasetSourceDataCleanSendMessage> {
+@Component
+public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<DatasetSourceDataCleanSendMessage> {
 
     @Resource
     private FileApi fileApi;
@@ -51,16 +42,23 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
     @Resource
     private DocumentSegmentsService documentSegmentsService;
 
-
     private static final String PATH_OBJECT = "dataset-source-data/clean/";
 
 
+    /**
+     * @param message
+     */
     @Override
-    public void onMessage(DatasetSourceDataCleanSendMessage message) {
-        log.info("开始清洗数据，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
+    protected void setDataState(DatasetSourceSendMessage message) {
+        message.setStatus(DataSetSourceDataStatusEnum.CLEANING_IN.getStatus());
+        message.setErrMsg(DataSetSourceDataStatusEnum.CLEANING_IN.getName());
+    }
 
-        // 设置数据源状态为清洗中
-        datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_IN.getStatus(),null);
+    /**
+     * @param message
+     */
+    @Override
+    protected void processBusinessLogic(DatasetSourceSendMessage message) {
 
         // 根据数据源 ID获取数据储存ID
         DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
@@ -69,46 +67,61 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
         DatasetStorageDO storageDO = selectDatasetStorage(sourceDataDO.getStorageId());
 
         Tika tika = new Tika();
-        String text = null;
         try {
 
-            text = tika.parseToString(new URL(storageDO.getStorageKey()));
+            // 获取文件数据
+            String text = tika.parseToString(new URL(storageDO.getStorageKey()));
+            // 执行数据清洗
             String cleanText = TextCleanUtils.cleanText(text, message.getSplitRule());
 
-            // 清洗后数据存储 文件存储
+            // 存储清洗数据
             String cleanPath = uploadFile(cleanText, message.getUserId());
 
-            Long cleanId = this.setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "html", message.getUserId());
-            DataSourceIndoDTO DataSourceIndoDTO = new DataSourceIndoDTO();
-            DataSourceIndoDTO.setCleanId(cleanId);
-
+            // TODO 总结流程暂时不做修改
+            String summary;
             try {
                 // 开始总结内容
-                String summary = documentSegmentsService.segmentSummary(String.valueOf(message.getDataSourceId()), cleanText, message.getSplitRule(), 500);
-                DataSourceIndoDTO.setSummaryContent(summary);
-            }catch (RuntimeException e){
+                summary = documentSegmentsService.segmentSummary(String.valueOf(message.getDataSourceId()), cleanText, message.getSplitRule(), 500);
+                sourceDataDO.setSummary(summary);
+            } catch (RuntimeException e) {
+                sourceDataDO.setSummary(null);
                 log.error("清洗过程中，生成总结内容，总结内容生成失败");
             }
 
-            datasetSourceDataService.updateDatasourceAndSourceInfo(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus(), JSONObject.toJSONString(DataSourceIndoDTO), message.getUserId());
+            // 保存清洗地址
+            Long cleanId = setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "html", message.getUserId());
 
-            log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
-            if (message.getSync()) {
-                dataSplitProducer.sendMessage(message);
-            } else {
-                // 发送消息
-                dataSplitProducer.asyncSendMessage(message);
+            sourceDataDO.setDescription(truncateAndSetContent(cleanText));
+            sourceDataDO.setCleanStorageId(cleanId);
 
-            }
+            datasetSourceDataService.updateDatasourceById(sourceDataDO);
+
+            message.setStatus(DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus());
+            message.setErrMsg(DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getName());
 
         } catch (Exception e) {
-            log.error("[DataSetSourceDataCleanSendConsumer][数据清洗失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因 ({})", message.getUserId(), getTenantId(), message.getDatasetId(), message.getDataSourceId(),e.getMessage(),e);
-            // 设置数据源状态为清洗失败
-            datasetSourceDataService.updateDatasourceStatusAndMessage(message.getDataSourceId(), DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(),e.getMessage());
+            message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
+            message.setErrMsg(e.getMessage());
         }
-        // 设置数据源状态为清洗结束
 
     }
+
+
+    /**
+     * @param message
+     */
+    @Override
+    protected void sendMessage(DatasetSourceSendMessage message) {
+
+        if (message.getSync()) {
+            dataSplitProducer.sendMessage(message);
+        } else {
+            // 发送消息
+            dataSplitProducer.asyncSendMessage(message);
+
+        }
+    }
+
 
     private String uploadFile(String data, Long userId) {
 
@@ -124,7 +137,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
         return fileApi.createFile(fileName, path, IoUtil.readBytes(utf8Stream));
     }
 
-    public Long setStorageData(String sourceName, String storageAddress, Long size, String mimeType, String extension, Long userId) {
+    private Long setStorageData(String sourceName, String storageAddress, Long size, String mimeType, String extension, Long userId) {
         DatasetStorageDO datasetStorageDO = new DatasetStorageDO();
 
         datasetStorageDO.setUid(IdUtil.getSnowflakeNextIdStr());
@@ -142,9 +155,26 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractStreamMessageLis
         return datasetStorageDO.getId();
     }
 
-    public DatasetStorageDO selectDatasetStorage(Long id) {
+    private DatasetStorageDO selectDatasetStorage(Long id) {
         return datasetStorageMapper.selectById(id);
 
     }
 
+    /**
+     * 根据清洗内容 返回预设描述信息
+     *
+     * @param input
+     * @return
+     */
+    private static String truncateAndSetContent(String input) {
+        if (StrUtil.isBlank(input)) {
+            return ""; // 如果输入为空，返回空字符串
+        }
+
+        if (input.length() <= 300) {
+            return input; // 如果长度不足 300，返回全部字符串
+        }
+
+        return input.substring(0, 300); // 截取前 300 字符
+    }
 }

@@ -4,7 +4,7 @@ import cn.hutool.core.io.IoUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadResultDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -36,9 +36,9 @@ public class StringUploadStrategy implements UploadStrategy {
 
 
     @Override
-    public UploadResultDTO process(Long userId) {
+    public UploadContentDTO process(Long userId) {
 
-        UploadResultDTO uploadFileRespDTO = new UploadResultDTO();
+        UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
         // 获取资源名称
         String name = title;

@@ -2,7 +2,7 @@ package com.starcloud.ops.business.dataset.convert.datasetsourcedata;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataCreateReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataRespVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.ListDatasetSourceDataRespVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataSplitPageRespVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataUpdateReqVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
@@ -27,11 +27,11 @@ public interface DatasetSourceDataConvert {
 
     DatasetSourceDataDO convert(DatasetSourceDataUpdateReqVO bean);
 
-    DatasetSourceDataRespVO convert(DatasetSourceDataDO bean);
+    ListDatasetSourceDataRespVO convert(DatasetSourceDataDO bean);
 
-    List<DatasetSourceDataRespVO> convertList(List<DatasetSourceDataDO> list);
+    List<ListDatasetSourceDataRespVO> convertList(List<DatasetSourceDataDO> list);
 
-    PageResult<DatasetSourceDataRespVO> convertPage(PageResult<DatasetSourceDataDO> page);
+    PageResult<ListDatasetSourceDataRespVO> convertPage(PageResult<DatasetSourceDataDO> page);
 
 
 
