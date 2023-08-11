@@ -18,7 +18,6 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
-import com.starcloud.ops.business.app.domain.entity.ShareAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -122,7 +121,7 @@ public interface AppConvert {
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
 
             if (share) {
-                appEntity = new ShareAppEntity();
+                //appEntity = new ShareAppEntity();
             } else {
                 appEntity = new AppEntity();
             }

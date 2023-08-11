@@ -72,11 +72,15 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
             uploadUrlReqVO.setSplitRule(splitRule);
 
 
-            List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+            //List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
 
 
-            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
+            //DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
 
+            DatasetSourceDataDetailsInfoVO detailsInfoVO = new DatasetSourceDataDetailsInfoVO();
+
+            detailsInfoVO.setSummaryContent("我是页面：" + url + "的总结.这是一个关于美食的页面内容");
+            detailsInfoVO.setUid("doc-key-abcadda");
             //@todo 如果没有返回怎么办
 
             result.setSummary(detailsInfoVO.getSummaryContent());

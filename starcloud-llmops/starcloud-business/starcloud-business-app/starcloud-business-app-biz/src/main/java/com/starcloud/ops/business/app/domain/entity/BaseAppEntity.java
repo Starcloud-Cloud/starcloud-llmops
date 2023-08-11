@@ -259,7 +259,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @return 用户id
      */
-    protected Long getRunUserId() {
+    protected Long getRunUserId(Q req) {
         return SecurityFrameworkUtils.getLoginUserId();
     }
 
@@ -272,7 +272,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             // 执行用户
             if (req.getUserId() == null) {
-                req.setUserId(this.getRunUserId());
+                req.setUserId(this.getRunUserId(req));
             }
 
             // 基础校验
@@ -326,7 +326,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.info("app async start:{}, {}", this.getUid(), this.getName());
 
             // 执行用户
-            req.setUserId(this.getRunUserId());
+            if (req.getUserId() == null) {
+                req.setUserId(this.getRunUserId(req));
+            }
 
             // 基础校验
             this.validate(req);

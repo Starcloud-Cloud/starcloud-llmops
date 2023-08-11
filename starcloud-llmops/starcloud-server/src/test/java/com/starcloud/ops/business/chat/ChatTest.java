@@ -3,6 +3,7 @@ package com.starcloud.ops.business.chat;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
@@ -13,6 +14,8 @@ import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.service.chat.ChatService;
+import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,13 +23,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+
+import javax.annotation.Resource;
 
 @Slf4j
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class})
 @ExtendWith(MockitoExtension.class)
 public class ChatTest extends BaseDbUnitTest {
+
+    @Autowired
+    private ChatService chatService;
 
     @MockBean
     private PermissionApi permissionApi;
@@ -39,6 +48,12 @@ public class ChatTest extends BaseDbUnitTest {
 
     @MockBean
     private PermissionService permissionService;
+
+    @MockBean
+    private AppPublishService appPublishService;
+
+    @MockBean
+    private FileApi fileApi;
 
 
     @BeforeEach
@@ -63,6 +78,22 @@ public class ChatTest extends BaseDbUnitTest {
         ChatAppEntity<ChatRequestVO, JsonData> chatAppEntity = AppFactory.factory(chatRequest);
 
         JsonData jsonParams = chatAppEntity.execute(chatRequest);
+
+    }
+
+    @Test
+    public void runMyChatTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("69c74dfba8d345359b196e8781e395e9");
+
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+
+        chatRequest.setQuery("讲个关于汉堡的笑话吧。");
+
+        chatService.chat(chatRequest);
 
     }
 

@@ -110,7 +110,27 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      */
     @Override
     protected void _validate(ChatRequestVO req) {
+
+        //@todo 现在默认都挂载一个 数据集，具体是否能搜索靠后续向量搜索处理
+        DatesetEntity datesetEntity = new DatesetEntity();
+        datesetEntity.setDatasetUid(this.getUid());
+        datesetEntity.setEnabled(true);
+        //实时加载 数据集配置
+        //this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
+
+
         getChatConfig().validate();
+    }
+
+    @Override
+    protected Long getRunUserId(ChatRequestVO req) {
+
+        //如果是后台执行，肯定是当前应用创建者
+        if (req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())) {
+            return Long.valueOf(this.getCreator());
+        }
+
+        return super.getRunUserId(req);
     }
 
     /**
@@ -139,9 +159,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
                 this.setChatConfig(chatConfig);
             }
-
         }
-
 
         Optional.ofNullable(logAppMessageDOS).orElse(new ArrayList<>()).stream().forEach((logAppMessageDO -> {
 

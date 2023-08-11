@@ -109,7 +109,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @return
      */
     @Override
-    protected Long getRunUserId() {
+    protected Long getRunUserId(AppExecuteReqVO req) {
 
         return Long.valueOf(this.getCreator());
     }
