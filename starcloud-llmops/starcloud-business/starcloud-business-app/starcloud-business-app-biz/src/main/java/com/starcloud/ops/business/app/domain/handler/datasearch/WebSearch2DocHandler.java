@@ -71,9 +71,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
             splitRule.setAutomatic(true);
             uploadUrlReqVO.setSplitRule(splitRule);
 
-
             //List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
-
 
             //DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
 
