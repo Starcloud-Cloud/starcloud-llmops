@@ -126,7 +126,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     protected Long getRunUserId(ChatRequestVO req) {
 
         //如果是后台执行，肯定是当前应用创建者
-        if (req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())) {
+        if (req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
+            || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())) {
             return Long.valueOf(this.getCreator());
         }
 
@@ -338,6 +339,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 messageCreateReqVO.setCurrency("USD");
                 messageCreateReqVO.setFromScene(request.getScene());
                 messageCreateReqVO.setStatus("SUCCESS");
+                messageCreateReqVO.setCreator(String.valueOf(request.getUserId()));
 
             });
 

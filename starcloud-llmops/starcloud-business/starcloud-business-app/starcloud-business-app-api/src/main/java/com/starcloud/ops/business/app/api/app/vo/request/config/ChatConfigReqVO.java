@@ -62,6 +62,9 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     @Schema(description = "描述配置")
     private DescriptionReqVo description;
 
+    @Schema(description = "联网")
+    private WebSearchConfigReqVO webSearchConfig;
+
 
     /**
      * 挂载的 functions 列表

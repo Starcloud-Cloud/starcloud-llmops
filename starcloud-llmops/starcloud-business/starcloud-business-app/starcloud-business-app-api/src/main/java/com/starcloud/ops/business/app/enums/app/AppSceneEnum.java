@@ -56,8 +56,12 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      * 系统总结场景
      */
 
-    SYSTEM_SUMMARY(8,"SYSTEM_SUMMARY")
+    SYSTEM_SUMMARY(8,"SYSTEM_SUMMARY"),
 
+    /**
+     * 企业微信群
+     */
+    WECOM_GROUP(9,"WECOM_GROUP")
 
 
     ;

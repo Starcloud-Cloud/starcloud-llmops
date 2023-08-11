@@ -65,6 +65,13 @@ public interface AppPublishChannelService {
     AppPublishChannelRespVO changeStatus(AppPublishChannelReqVO request);
 
     /**
+     * 根据发布媒介Uid查找
+     * @param mediumUid
+     * @return
+     */
+    AppPublishChannelRespVO getByMediumUid(String mediumUid);
+
+    /**
      * 重置分享链接唯一标识
      *
      * @param uid 应用发布渠道uid

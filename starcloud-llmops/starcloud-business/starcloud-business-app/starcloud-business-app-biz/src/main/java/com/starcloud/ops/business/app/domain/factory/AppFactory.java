@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.factory;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -9,11 +10,14 @@ import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.domain.entity.*;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
+import com.starcloud.ops.business.app.domain.repository.publish.AppPublishRepository;
 import com.starcloud.ops.business.app.recommend.RecommendAppConsts;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
@@ -47,6 +51,8 @@ public class AppFactory {
 
     private static AppMarketRepository appMarketRepository;
 
+    private static AppPublishRepository appPublishRepository;
+
     /**
      * 获取 AppRepository
      *
@@ -64,6 +70,13 @@ public class AppFactory {
             appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
         }
         return appMarketRepository;
+    }
+
+    public static AppPublishRepository getAppPublishRepository() {
+        if (appPublishRepository == null) {
+            appPublishRepository = SpringUtil.getBean(AppPublishRepository.class);
+        }
+        return appPublishRepository;
     }
 
     /**
@@ -101,6 +114,21 @@ public class AppFactory {
      */
     public static ChatAppEntity factoryChatApp(String appId) {
         return (ChatAppEntity) getAppRepository().getByUid(appId);
+    }
+
+
+    /**
+     * 通过 publishUid 查询 ChatAppEntity
+     *
+     * @param publishUid
+     * @return
+     */
+    public static ChatAppEntity factoryChatAppByPublishUid(String publishUid) {
+        AppPublishDO appPublishDO = getAppPublishRepository().getByPublishUid(publishUid);
+        String appInfo = appPublishDO.getAppInfo();
+        AppDO appDO = JSONUtil.toBean(appInfo, AppDO.class);
+        BaseAppEntity entity = AppConvert.INSTANCE.convert(appDO,false);
+        return (ChatAppEntity) entity;
     }
 
     /**
