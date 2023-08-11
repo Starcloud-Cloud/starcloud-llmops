@@ -39,7 +39,7 @@ public class AppWorkflowSkill extends BaseSkillEntity {
         //根据 app配置参数，第一个step的入参 生成 schemas
 
         try {
-            AppEntity app = AppFactory.factory(this.getAppUid());
+            AppEntity app = AppFactory.factoryApp(this.getAppUid());
 
         } catch (Exception e) {
 
@@ -95,7 +95,7 @@ public class AppWorkflowSkill extends BaseSkillEntity {
         handlerContext.getRequest();
 
 
-        AppEntity<AppExecuteReqVO, Object> app = AppFactory.factory(this.getAppUid());
+        AppEntity<AppExecuteReqVO, Object> app = AppFactory.factoryApp(this.getAppUid());
 
         AppExecuteReqVO appExecuteReqVO = new AppExecuteReqVO();
 

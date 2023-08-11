@@ -22,14 +22,26 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Schema(description = "应用执行请求对象")
 public class AppExecuteReqVO extends AppContextReqVO {
 
+    private static final long serialVersionUID = -7732800112596296391L;
+
+    /**
+     * sse对象
+     */
     @Schema(description = "sse对象")
     private SseEmitter sseEmitter;
 
+    /**
+     * 应用执行步骤ID
+     */
     @Schema(description = "应用执行步骤ID")
-    String stepId;
+    private String stepId;
 
+    /**
+     * 应用参数
+     */
     @Schema(description = "应用参数")
-    AppReqVO appReqVO;
+    private AppReqVO appReqVO;
+
     /**
      * jsonSchemas 格式的数据，后面会使用这种方式传递参数
      */

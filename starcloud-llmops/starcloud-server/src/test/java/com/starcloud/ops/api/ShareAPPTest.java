@@ -87,7 +87,7 @@ public class ShareAPPTest extends BaseDbUnitTest {
 
         executeReqVO.setSseEmitter(emitter);
 
-        AppEntity app = AppFactory.factory(executeReqVO.getAppUid());
+        AppEntity app = AppFactory.factoryApp(executeReqVO.getAppUid());
 
         app.execute(executeReqVO);
 
@@ -109,7 +109,7 @@ public class ShareAPPTest extends BaseDbUnitTest {
 
         executeReqVO.setSseEmitter(emitter);
 
-        AppEntity app = AppFactory.factory(executeReqVO.getAppUid());
+        AppEntity app = AppFactory.factoryApp(executeReqVO.getAppUid());
 
         app.execute(executeReqVO);
 

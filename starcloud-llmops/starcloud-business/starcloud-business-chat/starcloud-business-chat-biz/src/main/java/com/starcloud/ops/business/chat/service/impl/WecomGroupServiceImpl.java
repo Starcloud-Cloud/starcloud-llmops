@@ -102,7 +102,7 @@ public class WecomGroupServiceImpl implements WecomGroupService {
     private String createGroup(WecomCreateGroupReqVO reqVO) {
         DictDataDO dictDataDO = dictDataService.parseDictData(WECOM_ROBOT, "robotId");
         String robotId = dictDataDO.getValue();
-        String groupRemark = IdUtil.fastSimpleUUID();
+        String groupRemark = IdUtil.nanoId(16);
         BaseReq<CreateGroupReq> baseReq = new BaseReq();
         CreateGroupReq createGroupReq = new CreateGroupReq();
         createGroupReq.setGroupRemark(groupRemark);

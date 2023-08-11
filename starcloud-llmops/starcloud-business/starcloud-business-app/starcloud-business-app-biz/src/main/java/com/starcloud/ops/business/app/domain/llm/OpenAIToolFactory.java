@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.domain.llm;
 
 
 import cn.hutool.core.util.TypeUtil;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
@@ -21,7 +20,7 @@ public class OpenAIToolFactory {
 
         //  FunTool funTool = new FunTool(name, description, schema, function);
 
-        return createAppTool(AppFactory.factory(appUid));
+        return createAppTool(AppFactory.factoryApp(appUid));
     }
 
     public static FunTool createAppTool(AppEntity appEntity) {

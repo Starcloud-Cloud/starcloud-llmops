@@ -84,7 +84,7 @@ public class AppWorkflowService {
      */
     public void fireByAppUid(String appId, AppSceneEnum scene) {
 
-        AppEntity app = AppFactory.factory(appId);
+        AppEntity app = AppFactory.factoryApp(appId);
 
         log.info("fireByAppUid app: {}", JSON.toJSON(app));
 
@@ -126,7 +126,7 @@ public class AppWorkflowService {
      */
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId) {
         // 获取 AppEntity
-        AppEntity app = AppFactory.factory(appId, appRequest);
+        AppEntity app = AppFactory.factoryApp(appId, appRequest);
         log.info("fireByApp app: {}", app);
 
         // 创建 App 执行上下文
@@ -153,7 +153,7 @@ public class AppWorkflowService {
      */
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, HttpServletResponse httpServletResponse) {
         // 获取 AppEntity
-        AppEntity app = AppFactory.factory(appId, appRequest);
+        AppEntity app = AppFactory.factoryApp(appId, appRequest);
         log.info("fireByApp app: {}", app);
 
         // 创建 App 执行上下文
@@ -183,10 +183,10 @@ public class AppWorkflowService {
             if (AppSceneEnum.WEB_MARKET.equals(scene)) {
                 app = AppFactory.factoryMarket(appId);
             } else {
-                app = AppFactory.factory(appId);
+                app = AppFactory.factoryApp(appId);
             }
         } else {
-            app = AppFactory.factory(appId, appRequest);
+            app = AppFactory.factoryApp(appId, appRequest);
         }
 
         userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), SecurityFrameworkUtils.getLoginUserId());

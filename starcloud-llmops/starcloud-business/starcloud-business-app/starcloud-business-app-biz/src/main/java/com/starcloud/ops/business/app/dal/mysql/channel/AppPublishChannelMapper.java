@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
+import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -47,12 +48,14 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
 
     /**
      * 根据 mediumUid 查询应用发布记录
-     * @param mediumUid
-     * @return
+     *
+     * @param mediumUid 媒介 uid
+     * @return 应用发布渠道记录
      */
     default AppPublishChannelDO getByMediumUid(String mediumUid) {
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.eq(AppPublishChannelDO::getMediumUid, mediumUid);
+        wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
         wrapper.orderByDesc(AppPublishChannelDO::getUpdateTime).last("limit 1");
         return this.selectOne(wrapper);
     }
