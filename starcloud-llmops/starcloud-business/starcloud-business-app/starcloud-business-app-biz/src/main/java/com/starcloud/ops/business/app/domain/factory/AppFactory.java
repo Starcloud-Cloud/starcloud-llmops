@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.factory;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
@@ -11,6 +12,8 @@ import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
@@ -208,6 +211,20 @@ public class AppFactory {
         ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
 
         return appEntity;
+    }
+
+    /**
+     * 通过 publishUid 查询 ChatAppEntity
+     *
+     * @param publishUid
+     * @return
+     */
+    public static ChatAppEntity factoryChatAppByPublishUid(String publishUid) {
+        AppPublishDO appPublishDO = getAppPublishRepository().getByPublishUid(publishUid);
+        String appInfo = appPublishDO.getAppInfo();
+        AppDO appDO = JSONUtil.toBean(appInfo, AppDO.class);
+        BaseAppEntity entity = AppConvert.INSTANCE.convert(appDO,false);
+        return (ChatAppEntity) entity;
     }
 
     /**
