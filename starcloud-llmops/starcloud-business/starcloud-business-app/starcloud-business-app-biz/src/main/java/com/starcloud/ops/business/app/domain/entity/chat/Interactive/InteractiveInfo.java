@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import java.time.LocalDateTime;
 
 @Data
 @Accessors(chain = true)
@@ -11,6 +12,9 @@ public class InteractiveInfo {
 
     private Boolean success;
 
+    /**
+     * url,pic,text
+     */
     private String showType;
 
     private String tips;
@@ -27,6 +31,8 @@ public class InteractiveInfo {
      * 反馈状态，0 开始，1完成，3，失败？
      */
     private int status;
+
+    private LocalDateTime time;
 
     private Object data;
 

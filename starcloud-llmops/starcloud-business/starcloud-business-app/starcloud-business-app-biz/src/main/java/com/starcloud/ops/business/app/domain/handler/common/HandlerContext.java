@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * @author nacoyer
@@ -42,6 +44,7 @@ public class HandlerContext<Q> {
      */
     public void sendCallbackInteractiveStart(InteractiveInfo interactiveInfo) {
 
+        interactiveInfo.setTime(LocalDateTime.now(ZoneId.of("CTT")));
         interactiveInfo.setStatus(0);
         //新建一个
         if (StrUtil.isBlank(interactiveInfo.getId())) {

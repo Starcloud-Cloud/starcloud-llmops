@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -23,6 +24,7 @@ import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
+import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
@@ -445,8 +447,18 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         if (DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus() < sourceDataDO.getStatus()) {
             // 设置清洗后内容
             DatasetStorageDO cleanDatasetDO = datasetStorageService.selectDataById(sourceDataDO.getCleanStorageId());
-            // 获取原始内容
-            DatasetStorageDO contentDo = datasetStorageService.selectDataById(sourceDataDO.getCleanStorageId());
+
+            String content =null;
+            if (DataSourceDataTypeEnum.URL.name().equals(sourceDataDO.getDataType())){
+                DataSourceInfoDTO dataSourceInfoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceInfoDTO.class);
+                content = dataSourceInfoDTO.getInitAddress();
+
+            }else {
+                // 获取原始内容
+                DatasetStorageDO contentDo = datasetStorageService.selectDataById(sourceDataDO.getCleanStorageId());
+                content =contentDo.getStorageKey();
+            }
+
             // true 返回
             if (enable) {
                 byte[] bytes = HttpUtil.downloadBytes(cleanDatasetDO.getStorageKey());
@@ -454,7 +466,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 datasetSourceDataDetailsInfoVO.setCleanContent(result);
 
             } else {
-                datasetSourceDataDetailsInfoVO.setContent(contentDo.getStorageKey());
+                datasetSourceDataDetailsInfoVO.setContent(content);
                 datasetSourceDataDetailsInfoVO.setCleanContent(cleanDatasetDO.getStorageKey());
             }
         }
