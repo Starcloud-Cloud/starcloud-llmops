@@ -81,7 +81,7 @@ public class HandlerContext<Q> {
                     .messageUid(this.getMessageUid())
                     .build();
 
-            log.debug("sendCallbackInteractive: {}", interactiveInfo);
+            log.info("sendCallbackInteractive: {}", interactiveInfo);
 
             this.getSseEmitter().send(result);
         }
