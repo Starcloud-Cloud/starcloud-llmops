@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
+import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
@@ -43,6 +44,9 @@ public class AppLogServiceImpl implements AppLogService {
 
     @Resource
     private LogAppConversationService logAppConversationService;
+
+    @Resource
+    private ChatService chatService;
 
     /**
      * 获取文本生成消息详情
@@ -153,6 +157,40 @@ public class AppLogServiceImpl implements AppLogService {
         }).filter(Objects::nonNull).collect(Collectors.toList());
 
         return new PageResult<>(collect, appMessagePage.getTotal());
+    }
+
+    @Override
+    public PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query) {
+        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
+        if (Objects.isNull(appConversation)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
+        }
+
+        PageResult<LogAppMessageDO> messageDOPageResult = chatService.chatHistory(query.getConversationUid(), query.getPageNo(), query.getPageSize());
+        List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(messageDOPageResult.getList()).stream().filter(Objects::nonNull)
+                .map(item -> {
+                    AppLogMessageRespVO appLogMessageRespVO = new AppLogMessageRespVO();
+                    appLogMessageRespVO.setUid(item.getUid());
+                    appLogMessageRespVO.setConversationUid(item.getAppConversationUid());
+                    appLogMessageRespVO.setAppUid(item.getAppUid());
+                    appLogMessageRespVO.setAppName(appConversation.getAppName());
+                    appLogMessageRespVO.setAppMode(item.getAppMode());
+                    appLogMessageRespVO.setFromScene(item.getFromScene());
+                    appLogMessageRespVO.setMessage(item.getMessage());
+                    appLogMessageRespVO.setAnswer(item.getAnswer());
+                    appLogMessageRespVO.setElapsed(item.getElapsed());
+                    appLogMessageRespVO.setStatus(item.getStatus());
+                    appLogMessageRespVO.setTokens(item.getMessageTokens() + item.getAnswerTokens());
+                    appLogMessageRespVO.setPrice(item.getTotalPrice());
+                    appLogMessageRespVO.setCurrency(item.getCurrency());
+                    appLogMessageRespVO.setErrorCode(item.getErrorCode());
+                    appLogMessageRespVO.setEndUser(identifyUser(item.getEndUser()));
+                    appLogMessageRespVO.setErrorMessage(item.getErrorMsg());
+                    appLogMessageRespVO.setCreateTime(item.getCreateTime());
+                    appLogMessageRespVO.setAppInfo(JSONUtil.toBean(item.getAppConfig(), AppRespVO.class));
+                    return appLogMessageRespVO;
+                }).collect(Collectors.toList());
+        return new PageResult<>(collect, messageDOPageResult.getTotal());
     }
 
     /**

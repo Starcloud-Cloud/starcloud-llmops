@@ -43,6 +43,7 @@ import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.InvitationRecordsService;
+import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -112,6 +113,8 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Autowired
     private RoleMapper roleMapper;
+    @Resource
+    private SendSocialMsgService sendSocialMsgService;
 
     @Value("${starcloud-llm.role.code:mofaai_free}")
     private String roleCode;
@@ -181,6 +184,7 @@ public class StarUserServiceImpl implements StarUserService {
                 invitationRecordsService.createInvitationRecords(currentUserId,inviteUserId);
                 // 邀请注册权益 邀请人
                 benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
+                sendSocialMsgService.sendInviteMsg(inviteUserId);
             } else {
                 // 普通注册权益
                 benefitsService.addUserBenefitsSign(currentUserId);

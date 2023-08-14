@@ -40,10 +40,8 @@ public class AppLogDetailController {
 
     @GetMapping("/chat/{conversationUid}")
     @Operation(summary = "获得聊天执行日志详情")
-    public CommonResult<?> chatLogMessageDetail(@Parameter(name = "conversationUid", description = "日志会话 UID")
-                                                @NotBlank(message = "会话ID不能为空")
-                                                @PathVariable("conversationUid") String conversationUid) {
-        return CommonResult.success(null);
+    public CommonResult<?> chatLogMessageDetail(@Validated AppLogMessagePageReqVO query) {
+        return CommonResult.success(appLogService.getChatMessageDetail(query));
     }
 
     @GetMapping("/image/{conversationUid}")

@@ -101,4 +101,7 @@ public class LogMessageDetailRespVO implements Serializable {
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
+    @Schema(description = "返回内容")
+    private String answer;
+
 }

@@ -31,4 +31,11 @@ public interface AppLogService {
      */
     PageResult<ImageLogMessageRespVO> getLogImageMessageDetail(AppLogMessagePageReqVO query);
 
+    /**
+     * 获取聊天详情
+     *
+     * @param query
+     * @return
+     */
+    PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query);
 }
