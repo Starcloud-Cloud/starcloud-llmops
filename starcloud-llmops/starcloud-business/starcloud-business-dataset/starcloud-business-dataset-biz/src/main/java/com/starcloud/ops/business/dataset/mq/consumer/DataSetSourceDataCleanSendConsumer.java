@@ -22,6 +22,10 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Objects;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.module.infra.enums.ErrorCodeConstants.FILE_IS_EMPTY;
 
 @Slf4j
 @Component
@@ -105,6 +109,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
         } catch (Exception e) {
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
             message.setErrMsg(e.getMessage());
+            log.info("清洗失败，错误原因是:({})",e.getMessage(),e);
         }
 
     }
@@ -115,6 +120,10 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
      */
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
+
+        if (Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())){
+            throw new RuntimeException(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName());
+        }
 
         if (message.getSync()) {
             dataSplitProducer.sendMessage(message);
