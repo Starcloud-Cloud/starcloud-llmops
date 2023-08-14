@@ -9,6 +9,12 @@ import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import retrofit2.http.POST;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -26,7 +32,7 @@ public class AppLogDetailController {
     @Resource
     private AppLogService appLogService;
 
-    @GetMapping("/app")
+    @PostMapping("/app")
     @Operation(summary = "获得应用执行日志详情")
     public CommonResult<PageResult<AppLogMessageRespVO>> appLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
         return CommonResult.success(appLogService.getLogAppMessageDetail(query));
@@ -40,7 +46,7 @@ public class AppLogDetailController {
         return CommonResult.success(appLogService.getChatMessageDetail(query));
     }
 
-    @GetMapping("/image")
+    @PostMapping("/image")
     @Operation(summary = "获取图片生成执行日志详情")
     public CommonResult<PageResult<ImageLogMessageRespVO>> imageLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
         return CommonResult.success(appLogService.getLogImageMessageDetail(query));
