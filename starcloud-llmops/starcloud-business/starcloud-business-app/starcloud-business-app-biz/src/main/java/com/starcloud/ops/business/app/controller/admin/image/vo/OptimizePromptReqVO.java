@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -33,6 +34,7 @@ public class OptimizePromptReqVO implements Serializable {
      * 应用市场UID
      */
     @Schema(description = "应用市场UID")
+    @NotBlank(message = "应用市场UID不能为空")
     private String appUid;
 
     /**

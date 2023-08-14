@@ -4,13 +4,15 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.ChatConfigReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.ImageConfigReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
@@ -326,7 +328,29 @@ public interface AppConvert {
         return appRespVO;
     }
 
-    AppReqVO convertRequest(AppMarketRespVO appMarketRespVO);
+    default AppReqVO convertRequest(AppMarketDO appMarketDO) {
+        AppReqVO appReqVO = new AppReqVO();
+        appReqVO.setName(appMarketDO.getName());
+        appReqVO.setModel(appMarketDO.getModel());
+        appReqVO.setTags(AppUtils.split(appMarketDO.getTags()));
+        appReqVO.setCategories(AppUtils.split(appMarketDO.getCategories()));
+        appReqVO.setScenes(AppUtils.splitScenes(appMarketDO.getScenes()));
+        appReqVO.setImages(AppUtils.split(appMarketDO.getImages()));
+        appReqVO.setIcon(appMarketDO.getIcon());
+        appReqVO.setDescription(appMarketDO.getDescription());
+        // 处理配置
+        if (StringUtils.isNotBlank(appMarketDO.getConfig())) {
+            if (AppModelEnum.COMPLETION.name().equals(appMarketDO.getModel())) {
+                appReqVO.setWorkflowConfig(JSONUtil.toBean(appMarketDO.getConfig(), WorkflowConfigReqVO.class));
+            } else if (AppModelEnum.CHAT.name().equals(appMarketDO.getModel())) {
+                appReqVO.setChatConfig(JSONUtil.toBean(appMarketDO.getConfig(), ChatConfigReqVO.class));
+            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarketDO.getModel())) {
+                appReqVO.setImageConfig(JSONUtil.toBean(appMarketDO.getConfig(), ImageConfigReqVO.class));
+            }
+        }
+
+        return appReqVO;
+    }
 
     /**
      * 构建 actionIcons
