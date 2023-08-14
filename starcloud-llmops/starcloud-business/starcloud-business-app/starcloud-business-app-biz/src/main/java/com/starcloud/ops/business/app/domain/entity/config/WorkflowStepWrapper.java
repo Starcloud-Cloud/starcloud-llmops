@@ -167,7 +167,7 @@ public class WorkflowStepWrapper {
      */
     @JSONField(serialize = false)
     public void buildActionResponse(String stepId, ActionResponse response) {
-        if (this.name.equals(stepId)) {
+        if (this.name.equals(stepId) || this.field.equals(stepId)) {
             this.flowStep.setResponse(response);
         }
     }
