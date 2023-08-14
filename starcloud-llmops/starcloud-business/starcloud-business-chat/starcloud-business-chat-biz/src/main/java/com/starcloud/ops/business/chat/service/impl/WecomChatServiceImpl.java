@@ -74,9 +74,11 @@ public class WecomChatServiceImpl implements WecomChatService {
         chatRequestVO.setEndUser(userNameMd5);
         chatRequestVO.setConversationUid(userNameMd5);
         chatRequestVO.setUserId(Long.valueOf(channelRespVO.getCreator()));
+        String robotId = RobotContextHolder.getRobotId();
         threadWithContext.asyncExecute(() -> {
             try {
                 TenantContextHolder.setIgnore(true);
+                RobotContextHolder.setRobotId(robotId);
                 ChatAppEntity<ChatRequestVO, JsonData> appEntity = AppFactory.factoryChatAppByPublishUid(channelRespVO.getPublishUid());
                 JsonData execute = appEntity.execute(chatRequestVO);
                 String msg = JSONUtil.parseObj(execute.getData()).getStr("text");
