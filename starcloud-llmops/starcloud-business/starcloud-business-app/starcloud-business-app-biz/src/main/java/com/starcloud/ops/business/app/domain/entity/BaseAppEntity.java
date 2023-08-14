@@ -355,6 +355,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     this._aexecute(req);
                     this._afterExecute(req, null);
                     log.info("app async end: {}", this.getUid());
+                    this.updateAppConversationLog(req.getConversationUid(), true);
                 } catch (Exception exception) {
                     log.error("app async execute is fail: {}", exception.getMessage(), exception);
                     this.updateAppConversationLog(req.getConversationUid(), false);

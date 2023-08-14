@@ -55,4 +55,13 @@ public interface MpMessageService {
      */
     MpMessageDO sendKefuMessage(MpMessageSendReqVO sendReqVO);
 
+    /**
+     * 根据openId 发送消息
+     * @param openId
+     * @param content
+     * @return
+     */
+    MpMessageDO sendMessage(String openId,MpMessageSendReqVO sendReqVO);
+
+
 }

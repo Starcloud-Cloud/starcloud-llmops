@@ -24,7 +24,6 @@ public abstract class AbstractDataProcessor<T extends DatasetSourceSendMessage> 
      */
     @Override
     public void onMessage(DatasetSourceSendMessage message) {
-        log.info("开始清洗数据，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
         // 1初始任务状态状态
         setDataState(message);
 
@@ -39,7 +38,6 @@ public abstract class AbstractDataProcessor<T extends DatasetSourceSendMessage> 
 
         // 5.发送消息
         sendMessage(message);
-        log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
     }
 
     protected abstract void setDataState(DatasetSourceSendMessage message);

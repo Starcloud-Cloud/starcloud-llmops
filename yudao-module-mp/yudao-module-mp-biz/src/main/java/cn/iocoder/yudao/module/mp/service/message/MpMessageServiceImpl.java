@@ -129,6 +129,22 @@ public class MpMessageServiceImpl implements MpMessageService {
         return message;
     }
 
+    @Override
+    public MpMessageDO sendMessage(String openId, MpMessageSendReqVO sendReqVO) {
+        WxMpKefuMessage wxMessage = MpMessageConvert.INSTANCE.convert(sendReqVO, openId);
+        WxMpService mpService = mpServiceFactory.getRequiredMpService(openId);
+        try {
+            mpService.getKefuService().sendKefuMessageWithResponse(wxMessage);
+        } catch (WxErrorException e) {
+            throw exception(MESSAGE_SEND_FAIL, e.getError().getErrorMsg());
+        }
+        MpMessageDO message = MpMessageConvert.INSTANCE.convert(wxMessage)
+                .setSendFrom(MpMessageSendFromEnum.MP_TO_USER.getFrom());
+        downloadMessageMedia(message);
+        mpMessageMapper.insert(message);
+        return message;
+    }
+
     /**
      * 下载消息使用到的媒体文件，并上传到文件服务
      *

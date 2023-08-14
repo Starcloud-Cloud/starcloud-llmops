@@ -50,6 +50,7 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
             // 设置数据状态
             message.setStatus(DataSetSourceDataStatusEnum.COMPLETED.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.COMPLETED.getName());
+            log.info("创建索引完成，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
         } catch (Exception e) {
             // 设置数据源状态
             message.setStatus(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());

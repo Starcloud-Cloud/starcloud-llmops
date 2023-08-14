@@ -3,21 +3,28 @@ package com.starcloud.ops.business.app.service.log.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
+import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +50,9 @@ public class AppLogServiceImpl implements AppLogService {
 
     @Resource
     private LogAppConversationService logAppConversationService;
+
+    @Resource
+    private ChatService chatService;
 
     /**
      * 获取文本生成消息详情
@@ -82,7 +92,9 @@ public class AppLogServiceImpl implements AppLogService {
                     appLogMessageRespVO.setEndUser(identifyUser(item.getEndUser()));
                     appLogMessageRespVO.setErrorMessage(item.getErrorMsg());
                     appLogMessageRespVO.setCreateTime(item.getCreateTime());
-                    appLogMessageRespVO.setAppInfo(JSONUtil.toBean(item.getAppConfig(), AppRespVO.class));
+                    if (LogStatusEnum.SUCCESS.name().equals(item.getStatus())) {
+                        appLogMessageRespVO.setAppInfo(buildAppResponse(item));
+                    }
                     return appLogMessageRespVO;
                 }).collect(Collectors.toList());
 
@@ -155,6 +167,40 @@ public class AppLogServiceImpl implements AppLogService {
         return new PageResult<>(collect, appMessagePage.getTotal());
     }
 
+    @Override
+    public PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query) {
+        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
+        if (Objects.isNull(appConversation)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
+        }
+
+        PageResult<LogAppMessageDO> messageDOPageResult = chatService.chatHistory(query.getConversationUid(), query.getPageNo(), query.getPageSize());
+        List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(messageDOPageResult.getList()).stream().filter(Objects::nonNull)
+                .map(item -> {
+                    AppLogMessageRespVO appLogMessageRespVO = new AppLogMessageRespVO();
+                    appLogMessageRespVO.setUid(item.getUid());
+                    appLogMessageRespVO.setConversationUid(item.getAppConversationUid());
+                    appLogMessageRespVO.setAppUid(item.getAppUid());
+                    appLogMessageRespVO.setAppName(appConversation.getAppName());
+                    appLogMessageRespVO.setAppMode(item.getAppMode());
+                    appLogMessageRespVO.setFromScene(item.getFromScene());
+                    appLogMessageRespVO.setMessage(item.getMessage());
+                    appLogMessageRespVO.setAnswer(item.getAnswer());
+                    appLogMessageRespVO.setElapsed(item.getElapsed());
+                    appLogMessageRespVO.setStatus(item.getStatus());
+                    appLogMessageRespVO.setTokens(item.getMessageTokens() + item.getAnswerTokens());
+                    appLogMessageRespVO.setPrice(item.getTotalPrice());
+                    appLogMessageRespVO.setCurrency(item.getCurrency());
+                    appLogMessageRespVO.setErrorCode(item.getErrorCode());
+                    appLogMessageRespVO.setEndUser(identifyUser(item.getEndUser()));
+                    appLogMessageRespVO.setErrorMessage(item.getErrorMsg());
+                    appLogMessageRespVO.setCreateTime(item.getCreateTime());
+                    appLogMessageRespVO.setAppInfo(JSONUtil.toBean(item.getAppConfig(), AppRespVO.class));
+                    return appLogMessageRespVO;
+                }).collect(Collectors.toList());
+        return new PageResult<>(collect, messageDOPageResult.getTotal());
+    }
+
     /**
      * 获取用户或者游客
      *
@@ -168,5 +214,45 @@ public class AppLogServiceImpl implements AppLogService {
         } catch (NumberFormatException e) {
             return "游客";
         }
+    }
+
+    /**
+     * 构建应用响应
+     *
+     * @param message 消息
+     */
+    private AppRespVO buildAppResponse(LogAppMessageDO message) {
+        AppRespVO appRespVO = JSONUtil.toBean(message.getAppConfig(), AppRespVO.class);
+        if (appRespVO == null) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
+        }
+
+        WorkflowConfigRespVO config = appRespVO.getWorkflowConfig();
+        if (config == null) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
+        }
+
+        List<WorkflowStepWrapperRespVO> steps = config.getSteps();
+        if (CollectionUtil.isEmpty(steps)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
+        }
+
+        for (WorkflowStepWrapperRespVO step : steps) {
+            String field = step.getField();
+            if (field.equals(message.getAppStep())) {
+                WorkflowStepRespVO flowStep = step.getFlowStep();
+                if (flowStep == null) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
+                }
+                ActionResponseRespVO response = flowStep.getResponse();
+                if (response == null) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
+                }
+                response.setMessage(message.getMessage());
+                response.setAnswer(message.getAnswer());
+                break;
+            }
+        }
+        return appRespVO;
     }
 }

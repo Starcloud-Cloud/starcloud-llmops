@@ -86,6 +86,7 @@ public class WecomChatServiceImpl implements WecomChatService {
                 if (USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL.getCode().intValue() == e.getCode()) {
                     sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系管理员添加。",reqVO.getReceivedName());
                 } else {
+                    log.error("execute error:",e);
                     sendMsg(reqVO.getGroupRemark(), e.getMessage(),reqVO.getReceivedName());
                 }
             } catch (Exception e) {
