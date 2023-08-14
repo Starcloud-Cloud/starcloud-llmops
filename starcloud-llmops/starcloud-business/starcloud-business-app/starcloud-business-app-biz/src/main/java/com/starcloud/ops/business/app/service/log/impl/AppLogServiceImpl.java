@@ -8,10 +8,6 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
@@ -233,32 +229,6 @@ public class AppLogServiceImpl implements AppLogService {
             throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
         }
 
-        WorkflowConfigRespVO config = appRespVO.getWorkflowConfig();
-        if (config == null) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
-        }
-
-        List<WorkflowStepWrapperRespVO> steps = config.getSteps();
-        if (CollectionUtil.isEmpty(steps)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
-        }
-
-        for (WorkflowStepWrapperRespVO step : steps) {
-            String field = step.getField();
-            if (field.equals(message.getAppStep())) {
-                WorkflowStepRespVO flowStep = step.getFlowStep();
-                if (flowStep == null) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
-                }
-                ActionResponseRespVO response = flowStep.getResponse();
-                if (response == null) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(30000012, "应用配置错误"));
-                }
-                response.setMessage(message.getMessage());
-                response.setAnswer(message.getAnswer());
-                break;
-            }
-        }
         return appRespVO;
     }
 }
