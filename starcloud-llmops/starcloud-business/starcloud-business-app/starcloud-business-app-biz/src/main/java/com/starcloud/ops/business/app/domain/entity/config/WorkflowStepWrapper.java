@@ -9,6 +9,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.util.AppUtils;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -167,7 +168,7 @@ public class WorkflowStepWrapper {
      */
     @JSONField(serialize = false)
     public void buildActionResponse(String stepId, ActionResponse response) {
-        if (this.name.equals(stepId)) {
+        if (StringUtils.equalsIgnoreCase(this.name, stepId) || StringUtils.equalsIgnoreCase(this.field, stepId)) {
             this.flowStep.setResponse(response);
         }
     }
