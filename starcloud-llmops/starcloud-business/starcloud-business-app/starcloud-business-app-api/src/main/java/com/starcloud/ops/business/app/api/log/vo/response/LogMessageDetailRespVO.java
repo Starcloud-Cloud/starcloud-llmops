@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -100,6 +101,9 @@ public class LogMessageDetailRespVO implements Serializable {
      */
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
+
+    @Schema(description = "images")
+    private List<String> images;
 
     @Schema(description = "返回内容")
     private String answer;

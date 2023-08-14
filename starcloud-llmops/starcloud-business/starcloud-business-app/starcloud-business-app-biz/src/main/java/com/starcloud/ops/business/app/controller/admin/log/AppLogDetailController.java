@@ -36,6 +36,7 @@ public class AppLogDetailController {
     @PostMapping("/chat")
     @Operation(summary = "获得聊天执行日志详情")
     public CommonResult<?> chatLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
+        query.setPageSize(1000);
         return CommonResult.success(appLogService.getChatMessageDetail(query));
     }
 
