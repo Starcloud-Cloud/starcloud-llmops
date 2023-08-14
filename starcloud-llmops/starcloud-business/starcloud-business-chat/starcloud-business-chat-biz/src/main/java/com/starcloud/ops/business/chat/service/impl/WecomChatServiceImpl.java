@@ -30,6 +30,7 @@ import com.starcloud.ops.business.chat.worktool.request.SendMessageReq;
 import com.starcloud.ops.business.chat.worktool.response.BaseResponse;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
+import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -57,12 +58,16 @@ public class WecomChatServiceImpl implements WecomChatService {
     @Resource
     private ThreadWithContext threadWithContext;
 
+    @Resource
+    private EndUserServiceImpl endUserService;
+
 
     @Override
     public void asynReplyMsg(QaCallbackReqVO reqVO) {
         TenantContextHolder.setIgnore(true);
         AppPublishChannelRespVO channelRespVO = appPublishChannelService.getByMediumUid(reqVO.getGroupRemark());
         String userNameMd5 = userNameMd5(reqVO.getReceivedName());
+        endUserService.webLogin(userNameMd5);
         ChatRequestVO chatRequestVO = new ChatRequestVO();
         chatRequestVO.setAppUid(channelRespVO.getAppUid());
         chatRequestVO.setQuery(reqVO.getSpoken());
