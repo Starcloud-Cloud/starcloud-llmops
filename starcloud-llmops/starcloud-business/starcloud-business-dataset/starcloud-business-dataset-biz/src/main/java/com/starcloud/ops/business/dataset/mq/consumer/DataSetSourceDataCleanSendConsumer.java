@@ -91,7 +91,10 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             // 保存清洗地址
             Long cleanId = setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "html", message.getUserId());
 
-            sourceDataDO.setDescription(truncateAndSetContent(cleanText));
+
+            if (StrUtil.isBlank(sourceDataDO.getDescription())){
+                sourceDataDO.setDescription(truncateAndSetContent(cleanText));
+            }
             sourceDataDO.setCleanStorageId(cleanId);
 
             datasetSourceDataService.updateDatasourceById(sourceDataDO);

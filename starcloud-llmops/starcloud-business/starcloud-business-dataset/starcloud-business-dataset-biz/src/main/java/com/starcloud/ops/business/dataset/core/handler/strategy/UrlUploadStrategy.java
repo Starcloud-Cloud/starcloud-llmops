@@ -65,6 +65,11 @@ public class UrlUploadStrategy implements UploadStrategy {
 
         uploadFileRespDTO.setName(name);
 
+        // 获取网页的描述
+        String description = doc.select("meta[name=description]").first().attr("content");
+
+        uploadFileRespDTO.setDescription(description);
+
         String result = doc.toString();
 
         // 生成文件ID - 使用 URL SecureUtil.md5 会关闭流
@@ -112,6 +117,7 @@ public class UrlUploadStrategy implements UploadStrategy {
 
         return uploadFileRespDTO;
     }
+
 
 
     /**

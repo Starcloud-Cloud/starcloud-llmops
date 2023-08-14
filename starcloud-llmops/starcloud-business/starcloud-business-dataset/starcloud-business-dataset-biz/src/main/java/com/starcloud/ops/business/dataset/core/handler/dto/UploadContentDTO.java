@@ -33,6 +33,11 @@ public class UploadContentDTO {
     private String name;
 
     /**
+     * 数据描述
+     */
+    private String description;
+
+    /**
      * 上传返回的地址
      */
     private String filepath;
@@ -67,6 +72,11 @@ public class UploadContentDTO {
      * 数据模型
      */
     private Integer dataModel;
+
+    /**
+     * 初始地址
+     */
+    private String initAddress;
 
 
     /**
