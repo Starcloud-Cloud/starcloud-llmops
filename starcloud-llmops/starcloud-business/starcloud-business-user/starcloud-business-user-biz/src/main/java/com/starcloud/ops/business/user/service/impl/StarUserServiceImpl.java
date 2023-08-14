@@ -103,6 +103,9 @@ public class StarUserServiceImpl implements StarUserService {
     private UserBenefitsService benefitsService;
 
     @Resource
+    private InvitationRecordsService invitationRecordsService;
+
+    @Resource
     private AdminUserService userService;
     @Resource
     private LoginLogService loginLogService;
@@ -173,6 +176,9 @@ public class StarUserServiceImpl implements StarUserService {
     public void addBenefits(Long currentUserId, Long inviteUserId) {
         try {
             if (inviteUserId != null && inviteUserId > 0) {
+
+                // 增加邀请记录
+                invitationRecordsService.createInvitationRecords(currentUserId,inviteUserId);
                 // 邀请注册权益 邀请人
                 benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
             } else {

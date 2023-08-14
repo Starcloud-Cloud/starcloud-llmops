@@ -24,4 +24,5 @@ public interface InvitationRecordsMapper extends BaseMapperX<InvitationRecordsDO
                 .orderByDesc(InvitationRecordsDO::getId));
     }
 
+
 }
