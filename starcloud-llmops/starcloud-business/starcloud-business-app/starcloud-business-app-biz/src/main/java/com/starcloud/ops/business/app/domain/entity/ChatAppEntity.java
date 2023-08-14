@@ -281,21 +281,22 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 request.getQuery(), chatConfig.getModelConfig().getCompletionParams());
 
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
-        if ((chatConfig.getWebSearchConfig() != null && chatConfig.getWebSearchConfig().getEnabled()) || CollectionUtil.isNotEmpty(chatConfig.getSkills())) {
+        if ((chatConfig.getWebSearchConfig() != null && chatConfig.getWebSearchConfig().getEnabled())
+                || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()))) {
 
             AgentExecutor agentExecutor = buildLLmTools(request, history, chatConfig, chatPromptTemplate, emitter);
 
-            //agentExecutor.run("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
+            String response = agentExecutor.run(request.getQuery());
+            Map result = JSONUtil.toBean(response, Map.class);
 
-            agentExecutor.run(request.getQuery());
+            log.info("result: {}", result);
 
             //GPT 在做次总结
 
             //@todo  生成 message
 
             //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
-            return null;
-
+            return JsonData.of(result.getOrDefault("output", ""));
 
         } else {
 
