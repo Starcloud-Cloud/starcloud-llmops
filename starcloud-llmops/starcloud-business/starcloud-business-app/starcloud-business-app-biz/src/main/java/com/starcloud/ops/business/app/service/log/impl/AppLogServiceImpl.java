@@ -57,9 +57,12 @@ public class AppLogServiceImpl implements AppLogService {
         if (Objects.isNull(appConversation)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
         }
+
+        // 获取消息列表
         Page<LogAppMessageDO> appMessagePage = logAppMessageService.getAppMessageList(query);
         List<LogAppMessageDO> appMessageList = appMessagePage.getRecords();
 
+        // 处理信息数据
         List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(appMessageList).stream().filter(Objects::nonNull)
                 .map(item -> {
                     AppLogMessageRespVO appLogMessageRespVO = new AppLogMessageRespVO();

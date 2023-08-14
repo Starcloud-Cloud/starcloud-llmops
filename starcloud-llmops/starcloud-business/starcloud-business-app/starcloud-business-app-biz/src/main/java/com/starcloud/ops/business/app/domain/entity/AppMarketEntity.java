@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -101,12 +102,12 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      * 只用 应用创建者
      * 注意，创建应用的时候，要设置 creator 为当前用户态
      *
-     * @param req
-     * @return
+     * @param req 请求
+     * @return 用户 id
      */
     @Override
     protected Long getRunUserId(AppExecuteReqVO req) {
-        return super.getRunUserId(req);
+        return SecurityFrameworkUtils.getLoginUserId();
     }
 
     @Override
