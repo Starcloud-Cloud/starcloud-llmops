@@ -41,11 +41,11 @@ public class OptimizePromptReqVO implements Serializable {
      * 需要优化的文本
      */
     @Schema(description = "需要优化的文本")
-    private String text;
+    private String content;
 
     /**
      * 目标语言
      */
     @Schema(description = "目标语言")
-    private String targetLanguage;
+    private String language;
 }

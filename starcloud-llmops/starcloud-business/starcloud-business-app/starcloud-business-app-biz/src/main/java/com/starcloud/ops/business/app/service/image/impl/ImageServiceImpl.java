@@ -203,8 +203,8 @@ public class ImageServiceImpl implements ImageService {
         AppReqVO appReqVO = AppConvert.INSTANCE.convertRequest(appMarketDO);
 
         Map<String, Object> variables = new HashMap<>(2);
-        variables.put("content", request.getText());
-        variables.put("language", request.getTargetLanguage());
+        variables.put("content", request.getContent());
+        variables.put("language", request.getLanguage());
         appReqVO.addVariables(variables);
         appExecuteReqVO.setAppReqVO(appReqVO);
         appExecuteReqVO.setAppUid(appMarketDO.getUid());
