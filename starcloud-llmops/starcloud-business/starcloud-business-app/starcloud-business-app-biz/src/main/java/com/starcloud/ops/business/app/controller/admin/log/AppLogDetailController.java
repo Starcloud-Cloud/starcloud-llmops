@@ -7,16 +7,13 @@ import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotBlank;
 
 /**
  * @author nacoyer
@@ -31,22 +28,20 @@ public class AppLogDetailController {
     @Resource
     private AppLogService appLogService;
 
-    @GetMapping("/app/{conversationUid}")
+    @GetMapping("/app")
     @Operation(summary = "获得应用执行日志详情")
     public CommonResult<PageResult<AppLogMessageRespVO>> appLogMessageDetail(@Validated AppLogMessagePageReqVO query) {
         return CommonResult.success(appLogService.getLogAppMessageDetail(query));
 
     }
 
-    @GetMapping("/chat/{conversationUid}")
+    @GetMapping("/chat")
     @Operation(summary = "获得聊天执行日志详情")
-    public CommonResult<?> chatLogMessageDetail(@Parameter(name = "conversationUid", description = "日志会话 UID")
-                                                @NotBlank(message = "会话ID不能为空")
-                                                @PathVariable("conversationUid") String conversationUid) {
+    public CommonResult<?> chatLogMessageDetail() {
         return CommonResult.success(null);
     }
 
-    @GetMapping("/image/{conversationUid}")
+    @GetMapping("/image")
     @Operation(summary = "获取图片生成执行日志详情")
     public CommonResult<PageResult<ImageLogMessageRespVO>> imageLogMessageDetail(@Validated AppLogMessagePageReqVO query) {
         return CommonResult.success(appLogService.getLogImageMessageDetail(query));

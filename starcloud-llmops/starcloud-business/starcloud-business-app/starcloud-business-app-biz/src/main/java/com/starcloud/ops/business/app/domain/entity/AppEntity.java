@@ -16,9 +16,11 @@ import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.monitor.NoticeTracking;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.CaseFormat;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -168,7 +170,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     }
 
     @Override
-    protected void _initHistory(AppExecuteReqVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageDOS) {
+    protected void _initHistory(AppExecuteReqVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageList) {
 
     }
 
@@ -216,7 +218,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
         this.updateAppConversationLog(appContext.getConversationId(), fire.isSuccess());
 
-        log.info("fireWorkflowContext: {}, {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc());
+        log.info("fireWorkflowContext: {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc());
 
         return new AppExecuteRespVO().setSuccess(fire.isSuccess()).setResult(fire.getResult()).setResultCode(fire.getResultCode()).setResultDesc(fire.getResultDesc());
 
@@ -230,66 +232,43 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param nodeTracking 节点跟踪
      */
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
-
-        String stepId = nodeTracking.getNodeName();
-
         this.createAppMessage((messageCreateReqVO) -> {
-
             messageCreateReqVO.setCreator(String.valueOf(appContext.getUserId()));
             messageCreateReqVO.setEndUser(appContext.getEndUser());
-
             messageCreateReqVO.setAppConversationUid(appContext.getConversationId());
-
             messageCreateReqVO.setAppStep(appContext.getStepId());
-
             messageCreateReqVO.setCreateTime(nodeTracking.getStartTime());
             messageCreateReqVO.setUpdateTime(nodeTracking.getStartTime());
-
             messageCreateReqVO.setElapsed(nodeTracking.getSpendTime());
-
             messageCreateReqVO.setFromScene(appContext.getScene().name());
             messageCreateReqVO.setCurrency("USD");
 
-            messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(appContext.getApp()));
-
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
-
-            //@todo 避免因为异常获取不到元素的值，从 appContext 中获取原始的值
-
+            // todo 避免因为异常获取不到元素的值，从 appContext 中获取原始的值
             if (actionResponse != null) {
-
-
-
+                AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
+                messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(appRespVO));
                 messageCreateReqVO.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
-
                 messageCreateReqVO.setVariables(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
-
                 messageCreateReqVO.setMessage(actionResponse.getMessage());
-
                 messageCreateReqVO.setMessageTokens(actionResponse.getMessageTokens().intValue());
                 messageCreateReqVO.setMessageUnitPrice(actionResponse.getMessageUnitPrice());
-
                 messageCreateReqVO.setAnswer(actionResponse.getAnswer());
                 messageCreateReqVO.setAnswerTokens(actionResponse.getAnswerTokens().intValue());
                 messageCreateReqVO.setAnswerUnitPrice(actionResponse.getAnswerUnitPrice());
-
                 messageCreateReqVO.setTotalPrice(actionResponse.getTotalPrice());
-
                 messageCreateReqVO.setErrorCode(actionResponse.getErrorCode());
                 messageCreateReqVO.setErrorMsg(actionResponse.getErrorMsg());
             }
-
+            // 如果异常，设置异常信息
             if (nodeTracking.getTaskException() != null) {
-
                 messageCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
                 messageCreateReqVO.setErrorMsg(nodeTracking.getTaskException().getMessage());
                 messageCreateReqVO.setErrorCode("010");
-
                 if (nodeTracking.getTaskException() instanceof KstryException) {
                     messageCreateReqVO.setErrorCode(((KstryException) nodeTracking.getTaskException()).getErrorCode());
                 }
             }
-
         });
 
     }
