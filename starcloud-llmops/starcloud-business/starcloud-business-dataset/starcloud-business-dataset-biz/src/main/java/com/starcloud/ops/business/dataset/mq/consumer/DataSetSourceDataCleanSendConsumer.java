@@ -63,6 +63,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
      */
     @Override
     protected void processBusinessLogic(DatasetSourceSendMessage message) {
+        log.info("开始清洗数据，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
 
         // 根据数据源 ID获取数据储存ID
         DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
@@ -106,6 +107,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getName());
 
+            log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
         } catch (Exception e) {
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
             message.setErrMsg(e.getMessage());
