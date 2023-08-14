@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.Opt;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
@@ -127,7 +128,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         //如果是后台执行，肯定是当前应用创建者
         if (req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
-            || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())) {
+                || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())) {
             return Long.valueOf(this.getCreator());
         }
 
@@ -280,21 +281,22 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 request.getQuery(), chatConfig.getModelConfig().getCompletionParams());
 
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
-        if ((chatConfig.getWebSearchConfig() != null && chatConfig.getWebSearchConfig().getEnabled()) || CollectionUtil.isNotEmpty(chatConfig.getSkills())) {
+        if ((chatConfig.getWebSearchConfig() != null && chatConfig.getWebSearchConfig().getEnabled())
+                || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()))) {
 
             AgentExecutor agentExecutor = buildLLmTools(request, history, chatConfig, chatPromptTemplate, emitter);
 
-            //agentExecutor.run("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
+            String response = agentExecutor.run(request.getQuery());
+            Map result = JSONUtil.toBean(response, Map.class);
 
-            agentExecutor.run(request.getQuery());
+            log.info("agentExecutor run result: {}", result);
 
             //GPT 在做次总结
 
             //@todo  生成 message
 
             //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
-            return null;
-
+            return JsonData.of(result.getOrDefault("output", ""));
 
         } else {
 
@@ -436,8 +438,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             memory.setChatHistory(history);
         }
 
-        List<BaseSkillEntity> skillEntities = chatConfig.getSkills();
-        List<BaseTool> tools = this.loadLLMTools(request, chatConfig, skillEntities, emitter);
+        List<BaseTool> tools = this.loadLLMTools(request, chatConfig, emitter);
 
         OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools);
         AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(tools, chatOpenAI, baseSingleActionAgent, baseSingleActionAgent.getCallbackManager());
@@ -455,7 +456,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      *
      * @return
      */
-    private List<BaseTool> loadLLMTools(ChatRequestVO request, ChatConfigEntity chatConfig, List<BaseSkillEntity> skillEntities, SseEmitter emitter) {
+    private List<BaseTool> loadLLMTools(ChatRequestVO request, ChatConfigEntity chatConfig, SseEmitter emitter) {
+
+        List<BaseSkillEntity> skillEntities = new ArrayList<>();
 
         List<BaseTool> loadTools = new ArrayList<>();
 
@@ -477,23 +480,17 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             loadTools.add(handlerSkill.createFunTool(appContext));
         }
 
-        //load skill
-        List<BaseTool> funTools = Optional.ofNullable(skillEntities).orElse(new ArrayList<>()).stream().map((skillEntity -> {
+        //API工具
+        List<BaseTool> apiFunTools = Optional.ofNullable(chatConfig.getApiSkills()).orElse(new ArrayList<>()).stream().filter(ApiSkill::getEnabled).map(skillEntity -> {
+            return skillEntity.createFunTool(appContext);
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        loadTools.addAll(apiFunTools);
 
-            if (skillEntity instanceof ApiSkill) {
-
-                return skillEntity.createFunTool(appContext);
-            }
-
-            if (skillEntity instanceof AppWorkflowSkill) {
-                return skillEntity.createFunTool(appContext);
-            }
-
-            return null;
-
-        })).filter(Objects::nonNull).collect(Collectors.toList());
-
-        loadTools.addAll(funTools);
+        //应用工具
+        List<BaseTool> appFunTools = Optional.ofNullable(chatConfig.getAppWorkflowSkills()).orElse(new ArrayList<>()).stream().filter(AppWorkflowSkill::getEnabled).map(skillEntity -> {
+            return skillEntity.createFunTool(appContext);
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        loadTools.addAll(appFunTools);
 
         return loadTools;
     }

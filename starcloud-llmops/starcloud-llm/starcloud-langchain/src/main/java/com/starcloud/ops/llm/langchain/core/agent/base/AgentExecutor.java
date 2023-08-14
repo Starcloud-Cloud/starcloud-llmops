@@ -38,7 +38,7 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
     private List<String> tags;
 
-    private Boolean returnIntermediateSteps = false;
+    private Boolean returnIntermediateSteps = true;
 
     private int maxIterations = 6;
 
@@ -108,7 +108,7 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
                 AgentFinish toolReturn = getToolReturn(nextStepAction);
                 if (toolReturn != null) {
-                    this._return(toolReturn, intermediateSteps);
+                    return this._return(toolReturn, intermediateSteps);
                 }
             }
             iterations += 1;

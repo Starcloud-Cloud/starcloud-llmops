@@ -57,12 +57,16 @@ public class WecomChatServiceImpl implements WecomChatService {
     @Resource
     private ThreadWithContext threadWithContext;
 
+//    @Resource
+//    private EndUserServiceImpl endUserService;
+
 
     @Override
     public void asynReplyMsg(QaCallbackReqVO reqVO) {
         TenantContextHolder.setIgnore(true);
         AppPublishChannelRespVO channelRespVO = appPublishChannelService.getByMediumUid(reqVO.getGroupRemark());
         String userNameMd5 = userNameMd5(reqVO.getReceivedName());
+//        endUserService.webLogin(userNameMd5);
         ChatRequestVO chatRequestVO = new ChatRequestVO();
         chatRequestVO.setAppUid(channelRespVO.getAppUid());
         chatRequestVO.setQuery(reqVO.getSpoken());
@@ -70,9 +74,11 @@ public class WecomChatServiceImpl implements WecomChatService {
         chatRequestVO.setEndUser(userNameMd5);
         chatRequestVO.setConversationUid(userNameMd5);
         chatRequestVO.setUserId(Long.valueOf(channelRespVO.getCreator()));
+        String robotId = RobotContextHolder.getRobotId();
         threadWithContext.asyncExecute(() -> {
             try {
                 TenantContextHolder.setIgnore(true);
+                RobotContextHolder.setRobotId(robotId);
                 ChatAppEntity<ChatRequestVO, JsonData> appEntity = AppFactory.factoryChatAppByPublishUid(channelRespVO.getPublishUid());
                 JsonData execute = appEntity.execute(chatRequestVO);
                 String msg = JSONUtil.parseObj(execute.getData()).getStr("text");
@@ -86,6 +92,7 @@ public class WecomChatServiceImpl implements WecomChatService {
                 if (USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL.getCode().intValue() == e.getCode()) {
                     sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系管理员添加。",reqVO.getReceivedName());
                 } else {
+                    log.error("execute error:",e);
                     sendMsg(reqVO.getGroupRemark(), e.getMessage(),reqVO.getReceivedName());
                 }
             } catch (Exception e) {

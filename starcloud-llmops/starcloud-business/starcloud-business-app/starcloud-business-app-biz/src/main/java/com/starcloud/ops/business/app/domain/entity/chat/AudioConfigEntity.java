@@ -3,7 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.chat;
 import lombok.Data;
 
 @Data
-public class SpeakConfigEntity {
+public class AudioConfigEntity {
 
     private Boolean enabled;
 
@@ -44,5 +44,4 @@ public class SpeakConfigEntity {
      * +20.00%
      */
     private String prosodyVolume;
-
 }

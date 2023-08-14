@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.net.URL;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
 import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
@@ -90,6 +91,11 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
      */
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
+
+        if (Objects.equals(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(), message.getStatus())){
+            throw new RuntimeException(DataSetSourceDataStatusEnum.SPLIT_ERROR.getName());
+        }
+
         if (message.getSync()) {
             dataIndexProducer.sendMessage(message);
 

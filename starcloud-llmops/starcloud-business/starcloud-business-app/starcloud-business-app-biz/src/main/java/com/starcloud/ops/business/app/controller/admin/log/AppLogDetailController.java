@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import retrofit2.http.POST;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -40,8 +41,9 @@ public class AppLogDetailController {
 
     @PostMapping("/chat")
     @Operation(summary = "获得聊天执行日志详情")
-    public CommonResult<?> chatLogMessageDetail() {
-        return CommonResult.success(null);
+    public CommonResult<?> chatLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
+        query.setPageSize(1000);
+        return CommonResult.success(appLogService.getChatMessageDetail(query));
     }
 
     @PostMapping("/image")

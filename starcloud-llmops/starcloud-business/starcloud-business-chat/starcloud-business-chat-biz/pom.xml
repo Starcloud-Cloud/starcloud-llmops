@@ -68,6 +68,13 @@
             <artifactId>starcloud-business-dataset-biz</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.starcloud.ops</groupId>-->
+<!--            <artifactId>starcloud-business-user-biz</artifactId>-->
+<!--            <version>${starcloud.revision}</version>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-module-mp-biz</artifactId>
@@ -80,6 +87,7 @@
             <version>${revision}</version>
             <scope>compile</scope>
         </dependency>
+
     </dependencies>
 
 </project>
