@@ -45,7 +45,7 @@ public class HandlerContext<Q> {
         interactiveInfo.setStatus(0);
         //新建一个
         if (StrUtil.isBlank(interactiveInfo.getId())) {
-            interactiveInfo.setId(RandomUtil.randomString(5));
+            interactiveInfo.setId(RandomUtil.randomNumbers(5));
         }
 
         this.sendCallbackInteractive(interactiveInfo);
