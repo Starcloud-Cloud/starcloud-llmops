@@ -84,8 +84,8 @@ public class AppWorkflowSkill extends BaseSkillEntity {
                 params.put("enum", optionValues);
             }
 
-            params.put("description", variableItemEntity.getLabel() + ":" + variableItemEntity.getDescription());
-            //params.put("title", variableItemEntity.getLabel());
+            params.put("description", variableItemEntity.getDescription());
+            params.put("title", variableItemEntity.getLabel());
 
             properties.put(variableItemEntity.getField(), params);
 
