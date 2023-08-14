@@ -289,7 +289,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             String response = agentExecutor.run(request.getQuery());
             Map result = JSONUtil.toBean(response, Map.class);
 
-            log.info("result: {}", result);
+            log.info("agentExecutor run result: {}", result);
 
             //GPT 在做次总结
 
