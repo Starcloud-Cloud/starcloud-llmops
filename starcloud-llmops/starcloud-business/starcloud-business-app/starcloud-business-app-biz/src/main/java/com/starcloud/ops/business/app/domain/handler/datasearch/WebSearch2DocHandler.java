@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
@@ -11,12 +12,16 @@ import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
+import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.llm.langchain.core.tools.RequestsGetTool;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * 页面内容爬取，并创建对应索引和总结
@@ -67,22 +72,26 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
             splitRule.setAutomatic(true);
             uploadUrlReqVO.setSplitRule(splitRule);
 
-            //List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+            List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+            SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
-            //DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
+            if (!sourceDataUploadDTO.getStatus()) {
+                throw new RuntimeException("URL解析失败: " + sourceDataUploadDTO.getErrMsg());
+            }
 
-            DatasetSourceDataDetailsInfoVO detailsInfoVO = new DatasetSourceDataDetailsInfoVO();
+            //查询内容
+            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
+            
+            String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
 
-            detailsInfoVO.setSummary("我是页面：" + url + "的总结.这是一个关于美食的页面内容");
-            detailsInfoVO.setUid("doc-key-abcadda");
-            //@todo 如果没有返回怎么办
-
-            result.setSummary(detailsInfoVO.getSummary());
+            //先截取
+            result.setSummary(summary);
             result.setDocKey(detailsInfoVO.getUid());
 
             handlerResponse.setSuccess(true);
-            handlerResponse.setAnswer(result.getSummary());
+            handlerResponse.setAnswer(summary);
             handlerResponse.setOutput(result);
+
 
             context.sendCallbackInteractiveEnd(interactiveInfo);
 

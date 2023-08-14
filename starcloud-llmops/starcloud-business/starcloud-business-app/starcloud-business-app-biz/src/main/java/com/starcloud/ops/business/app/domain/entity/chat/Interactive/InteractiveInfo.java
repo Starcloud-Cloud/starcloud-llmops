@@ -11,6 +11,9 @@ public class InteractiveInfo {
 
     private Boolean success;
 
+    /**
+     * url,pic,text
+     */
     private String showType;
 
     private String tips;
