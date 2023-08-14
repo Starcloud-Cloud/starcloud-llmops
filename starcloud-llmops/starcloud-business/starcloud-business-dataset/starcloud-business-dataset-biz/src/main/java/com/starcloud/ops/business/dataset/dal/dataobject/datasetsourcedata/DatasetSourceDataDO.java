@@ -83,6 +83,11 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     private String summary;
 
     /**
+     * 总结
+     */
+    private String dataSourceInfo;
+
+    /**
      * 同步配置
      */
     private String syncConfig;

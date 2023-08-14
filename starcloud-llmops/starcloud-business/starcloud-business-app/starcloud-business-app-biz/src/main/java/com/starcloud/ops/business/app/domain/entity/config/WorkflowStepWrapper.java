@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.config;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -59,6 +60,7 @@ public class WorkflowStepWrapper {
 
     /**
      * 获取当前步骤配置的 步骤Code
+     *
      * @return
      */
     public String getStepCode() {
@@ -131,6 +133,16 @@ public class WorkflowStepWrapper {
 
         return VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
             return variableItemEntity.getIsShow() ? StrUtil.isNotBlank(variableItemEntity.getDescription()) ? variableItemEntity.getDescription() : variableItemEntity.getLabel() : null;
+        }, prefixKey);
+    }
+
+    @JSONField(serialize = false)
+    public Map<String, VariableItemEntity> getContextVariableItems() {
+
+        String prefixKey = "STEP." + this.getField();
+
+        return VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
+            return variableItemEntity;
         }, prefixKey);
     }
 
