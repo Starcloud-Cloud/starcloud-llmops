@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.skill;
 
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,6 +13,7 @@ import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 技能实体
@@ -64,7 +67,7 @@ public class AppWorkflowSkill extends BaseSkillEntity {
         Optional.ofNullable(variableItemEntityMap).map(Map::values).orElse(new ArrayList<>()).forEach(variableItemEntity -> {
 
             //参数定义
-            Map<String, String> params = new HashMap<>();
+            Map<String, Object> params = new HashMap<>();
             Object val = variableItemEntity.getValue();
 
             //@todo 是否支持其他类型？
@@ -74,8 +77,16 @@ public class AppWorkflowSkill extends BaseSkillEntity {
                 params.put("type", "string");
             }
 
-            params.put("description", variableItemEntity.getDescription());
-            params.put("label", variableItemEntity.getLabel());
+            //处理枚举
+            if (CollectionUtil.isNotEmpty(variableItemEntity.getOptions())) {
+
+                List<Object> optionValues = Optional.ofNullable(variableItemEntity.getOptions()).orElse(new ArrayList<>()).stream().map(Option::getValue).collect(Collectors.toList());
+                params.put("enum", optionValues);
+            }
+
+            params.put("description", variableItemEntity.getLabel() + ":" + variableItemEntity.getDescription());
+            //params.put("title", variableItemEntity.getLabel());
+
             properties.put(variableItemEntity.getField(), params);
 
             requireds.add(variableItemEntity.getField());
