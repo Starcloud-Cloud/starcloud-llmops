@@ -59,7 +59,9 @@ public abstract class BaseActionHandler<Q, R> {
             //权益记录
             userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), actionResponse.getTotalTokens(), context.getUserId(), context.getConversationId());
         }
-
+        // 执行结果覆盖
+        this.appContext.buildActionResponse(actionResponse);
+        context.buildActionResponse(actionResponse);
         return actionResponse;
     }
 

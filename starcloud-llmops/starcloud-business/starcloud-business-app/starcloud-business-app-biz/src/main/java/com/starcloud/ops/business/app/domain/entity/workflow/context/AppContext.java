@@ -9,6 +9,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -189,6 +190,17 @@ public class AppContext {
 
         return fieldVariables;
 
+    }
+
+
+    /**
+     * 执行成功后，响应更新
+     *
+     * @param response 响应
+     */
+    @JSONField(serialize = false)
+    public void buildActionResponse(ActionResponse response) {
+        this.app.buildActionResponse(this.stepId, response);
     }
 
 }
