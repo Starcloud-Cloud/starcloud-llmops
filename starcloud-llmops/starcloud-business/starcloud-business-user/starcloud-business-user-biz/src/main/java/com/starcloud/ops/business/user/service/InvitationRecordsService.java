@@ -24,12 +24,11 @@ public interface InvitationRecordsService {
 
 
     /**
-     * 获得邀请记录
-     *
-     * @param id 编号
-     * @return 邀请记录
+     * 根据用户ID 查询邀请记录
+     * @param userId 用户ID
+     * @return  List<InvitationRecordsDO>
      */
-    InvitationRecordsDO getInvitationRecords(Long id);
+    List<InvitationRecordsDO> getInvitationRecords(Long userId);
 
     /**
      * 获得邀请记录列表
