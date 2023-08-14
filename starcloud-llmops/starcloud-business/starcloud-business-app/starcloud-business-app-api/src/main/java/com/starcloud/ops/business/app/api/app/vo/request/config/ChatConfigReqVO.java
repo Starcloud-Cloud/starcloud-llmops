@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.api.app.vo.request.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.request.action.LLMFunctionReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.skill.ApiSkillVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.skill.AppWorkflowSkillVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.skill.GptPluginSkillVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -57,7 +59,7 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     private List<CommonQuestionReqVO> commonQuestion;
 
     @Schema(description = "语音配置")
-    private AudioTransciptReqVO audioTransciptEntity;
+    private AudioConfigReqVO audioConfig;
 
     @Schema(description = "描述配置")
     private DescriptionReqVo description;
@@ -65,12 +67,22 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     @Schema(description = "联网")
     private WebSearchConfigReqVO webSearchConfig;
 
+    @Schema(description = "挂载的技能")
+    private List<GptPluginSkillVO> skillConfig;
 
     /**
-     * 挂载的 functions 列表
+     * 挂载的 gpt插件技能列表
      */
-    @Valid
-    @Schema(description = "挂载的 functions 列表")
-    private List<LLMFunctionReqVO> functions;
+    private List<GptPluginSkillVO> gptPluginSkills;
+
+    /**
+     * 挂载的 API技能列表
+     */
+    private List<ApiSkillVO> apiSkills;
+
+    /**
+     * 挂载的 应用技能列表
+     */
+    private List<AppWorkflowSkillVO> appWorkflowSkills;
 
 }

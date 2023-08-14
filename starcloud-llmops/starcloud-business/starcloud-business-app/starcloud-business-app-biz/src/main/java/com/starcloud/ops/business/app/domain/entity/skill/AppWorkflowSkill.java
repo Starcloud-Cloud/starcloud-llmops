@@ -30,14 +30,15 @@ import java.util.stream.Collectors;
 @Data
 public class AppWorkflowSkill extends BaseSkillEntity {
 
+    private SkillTypeEnum type = SkillTypeEnum.WORKFLOW;
 
     /**
      * 默认的 应用技能 描述 prompt
      */
     private String defaultPromptDesc = ". Note: Prompt or guide the user to fill in the parameters for this function if needed!";
 
-
     private String skillAppUid;
+
 
     @JsonIgnore
     @Override

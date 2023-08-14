@@ -14,6 +14,8 @@ import java.util.function.Function;
 @Data
 public abstract class BaseSkillEntity {
 
+    private Boolean enabled;
+
     private String name;
 
     private String desc;

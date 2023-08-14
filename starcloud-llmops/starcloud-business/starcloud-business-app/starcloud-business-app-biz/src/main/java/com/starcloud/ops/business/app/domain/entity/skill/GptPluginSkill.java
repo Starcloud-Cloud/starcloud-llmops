@@ -17,6 +17,8 @@ import java.util.function.Function;
 @Data
 public class GptPluginSkill extends BaseSkillEntity {
 
+    private SkillTypeEnum type = SkillTypeEnum.GPT_PLUGIN;
+
 
     private String pluginUrl;
 
