@@ -44,7 +44,7 @@ public class HandlerContext<Q> {
      */
     public void sendCallbackInteractiveStart(InteractiveInfo interactiveInfo) {
 
-        interactiveInfo.setData(LocalDateTime.now(ZoneId.of("CTT")));
+        interactiveInfo.setTime(LocalDateTime.now(ZoneId.of("CTT")));
         interactiveInfo.setStatus(0);
         //新建一个
         if (StrUtil.isBlank(interactiveInfo.getId())) {

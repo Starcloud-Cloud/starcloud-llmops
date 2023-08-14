@@ -2,10 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import sun.util.resources.LocaleData;
-
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Data
 @Accessors(chain = true)
