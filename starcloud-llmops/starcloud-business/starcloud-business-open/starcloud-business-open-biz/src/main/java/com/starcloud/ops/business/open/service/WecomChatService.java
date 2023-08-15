@@ -1,6 +1,6 @@
-package com.starcloud.ops.business.chat.service;
+package com.starcloud.ops.business.open.service;
 
-import com.starcloud.ops.business.chat.controller.admin.wecom.vo.request.QaCallbackReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.QaCallbackReqVO;
 
 public interface WecomChatService {
 

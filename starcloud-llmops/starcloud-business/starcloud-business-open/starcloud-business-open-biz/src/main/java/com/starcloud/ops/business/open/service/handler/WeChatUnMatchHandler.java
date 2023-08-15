@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.service.handler;
+package com.starcloud.ops.business.open.service.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;

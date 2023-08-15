@@ -1,48 +1,36 @@
-package com.starcloud.ops.business.chat.service.impl;
+package com.starcloud.ops.business.open.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.channel.dto.WecomGroupChannelConfigDTO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
-import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
-import com.starcloud.ops.business.app.convert.app.AppConvert;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
-import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
-import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.chat.context.RobotContextHolder;
-import com.starcloud.ops.business.chat.controller.admin.wecom.vo.request.QaCallbackReqVO;
-import com.starcloud.ops.business.chat.service.WecomChatService;
+import com.starcloud.ops.business.open.controller.admin.vo.QaCallbackReqVO;
 import com.starcloud.ops.business.chat.worktool.WorkToolClient;
 import com.starcloud.ops.business.chat.worktool.request.BaseReq;
 import com.starcloud.ops.business.chat.worktool.request.SendMessageReq;
 import com.starcloud.ops.business.chat.worktool.response.BaseResponse;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
-import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
+import com.starcloud.ops.business.open.service.WecomChatService;
+import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL;
-import static java.lang.Character.MAX_RADIX;
 
 @Slf4j
 @Service
@@ -57,8 +45,8 @@ public class WecomChatServiceImpl implements WecomChatService {
     @Resource
     private ThreadWithContext threadWithContext;
 
-//    @Resource
-//    private EndUserServiceImpl endUserService;
+    @Resource
+    private EndUserServiceImpl endUserService;
 
 
     @Override
@@ -66,17 +54,16 @@ public class WecomChatServiceImpl implements WecomChatService {
         TenantContextHolder.setIgnore(true);
         AppPublishChannelRespVO channelRespVO = appPublishChannelService.getByMediumUid(reqVO.getGroupRemark());
         String userNameMd5 = userNameMd5(reqVO.getReceivedName());
-//        endUserService.webLogin(userNameMd5);
         ChatRequestVO chatRequestVO = new ChatRequestVO();
         chatRequestVO.setAppUid(channelRespVO.getAppUid());
         chatRequestVO.setQuery(reqVO.getSpoken());
         chatRequestVO.setScene(AppSceneEnum.WECOM_GROUP.name());
         chatRequestVO.setEndUser(userNameMd5);
         chatRequestVO.setConversationUid(userNameMd5);
-        chatRequestVO.setUserId(Long.valueOf(channelRespVO.getCreator()));
         String robotId = RobotContextHolder.getRobotId();
         threadWithContext.asyncExecute(() -> {
             try {
+                endUserService.webLogin(userNameMd5);
                 TenantContextHolder.setIgnore(true);
                 RobotContextHolder.setRobotId(robotId);
                 ChatAppEntity<ChatRequestVO, JsonData> appEntity = AppFactory.factoryChatAppByPublishUid(channelRespVO.getPublishUid());

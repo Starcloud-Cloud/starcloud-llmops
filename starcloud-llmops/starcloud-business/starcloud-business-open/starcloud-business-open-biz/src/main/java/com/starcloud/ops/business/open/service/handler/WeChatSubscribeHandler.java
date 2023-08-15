@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.service.handler;
+package com.starcloud.ops.business.open.service.handler;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;

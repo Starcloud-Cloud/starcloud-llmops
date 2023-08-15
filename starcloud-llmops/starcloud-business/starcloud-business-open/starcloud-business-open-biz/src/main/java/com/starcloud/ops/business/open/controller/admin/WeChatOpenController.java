@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.controller.admin;
+package com.starcloud.ops.business.open.controller.admin;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;

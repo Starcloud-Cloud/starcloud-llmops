@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.config;
+package com.starcloud.ops.business.open.config;
 
 import cn.iocoder.yudao.module.mp.framework.mp.core.DefaultMpServiceFactory;
 import cn.iocoder.yudao.module.mp.framework.mp.core.MpServiceFactory;
@@ -7,13 +7,11 @@ import cn.iocoder.yudao.module.mp.service.handler.message.MessageAutoReplyHandle
 import cn.iocoder.yudao.module.mp.service.handler.message.MessageReceiveHandler;
 import cn.iocoder.yudao.module.mp.service.handler.other.KfSessionHandler;
 import cn.iocoder.yudao.module.mp.service.handler.other.NullHandler;
-import cn.iocoder.yudao.module.mp.service.handler.other.ScanHandler;
 import cn.iocoder.yudao.module.mp.service.handler.other.StoreCheckNotifyHandler;
 import cn.iocoder.yudao.module.mp.service.handler.user.LocationHandler;
-import cn.iocoder.yudao.module.mp.service.handler.user.SubscribeHandler;
 import cn.iocoder.yudao.module.mp.service.handler.user.UnsubscribeHandler;
 import com.binarywang.spring.starter.wxjava.mp.properties.WxMpProperties;
-import com.starcloud.ops.business.user.service.handler.*;
+import com.starcloud.ops.business.open.service.handler.*;
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.common.redis.RedisTemplateWxRedisOps;
 import me.chanjar.weixin.mp.api.WxMpMessageRouter;
@@ -39,8 +37,7 @@ public class WeChatConfiguration {
 
     @Autowired
     private WeChatScanHandler scanHandler;
-
-    //    @Bean("wxMpMessageRouter")
+//    @Bean("wxMpMessageRouter")
     public WxMpMessageRouter wxMpMessageRouter() {
         WxMpMessageRouter router = new WxMpMessageRouter(wxMpService);
 

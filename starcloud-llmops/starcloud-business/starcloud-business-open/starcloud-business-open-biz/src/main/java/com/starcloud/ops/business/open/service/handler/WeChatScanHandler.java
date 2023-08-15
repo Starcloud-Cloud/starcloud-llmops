@@ -1,13 +1,10 @@
-package com.starcloud.ops.business.user.service.handler;
+package com.starcloud.ops.business.open.service.handler;
 
-import cn.iocoder.yudao.module.mp.convert.message.MpMessageConvert;
-import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpMessageDO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
-import cn.iocoder.yudao.module.mp.enums.message.MpMessageSendFromEnum;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyService;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
-import com.starcloud.ops.business.chat.service.WxMpChatService;
+import com.starcloud.ops.business.open.service.WxMpChatService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.session.WxSessionManager;
@@ -18,7 +15,6 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
