@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.handler.common;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -44,7 +45,7 @@ public class HandlerContext<Q> {
      */
     public void sendCallbackInteractiveStart(InteractiveInfo interactiveInfo) {
 
-        interactiveInfo.setTime(LocalDateTime.now(ZoneId.of("CTT")));
+        interactiveInfo.setTime(DateUtil.date());
         interactiveInfo.setStatus(0);
         //新建一个
         if (StrUtil.isBlank(interactiveInfo.getId())) {

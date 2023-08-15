@@ -100,7 +100,7 @@ public abstract class Chain<R> {
 
         this._validateOutputs(result);
 
-        if (this.getMemory() != null) {
+        if (result != null && this.getMemory() != null) {
             this.getMemory().saveContext(baseVariables, result);
         }
         return result;
