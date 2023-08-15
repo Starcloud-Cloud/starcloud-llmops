@@ -12,7 +12,6 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
@@ -511,7 +510,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param response 响应
      */
     @JSONField(serialize = false)
-    public void buildActionResponse(String stepId, ActionResponse response) {
-        workflowConfig.buildActionResponse(stepId, response);
+    public void setActionResponse(String stepId, ActionResponse response) {
+        workflowConfig.setActionResponse(stepId, response);
     }
 }

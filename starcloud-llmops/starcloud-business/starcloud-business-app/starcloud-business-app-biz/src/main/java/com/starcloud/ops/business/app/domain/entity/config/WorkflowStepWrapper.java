@@ -7,11 +7,14 @@ import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -167,11 +170,14 @@ public class WorkflowStepWrapper {
      * @param response 响应
      */
     @JSONField(serialize = false)
-    public void buildActionResponse(String stepId, ActionResponse response) {
+    public void setActionResponse(String stepId, ActionResponse response) {
         if (StringUtils.equalsIgnoreCase(this.name, stepId) || StringUtils.equalsIgnoreCase(this.field, stepId)) {
+            ActionResponse actionResponse = this.flowStep.getResponse();
+            response.setType(Optional.of(actionResponse).map(ActionResponse::getType).orElse(AppStepResponseTypeEnum.TEXT.name()));
+            response.setStyle(Optional.of(actionResponse).map(ActionResponse::getStyle).orElse(AppStepResponseStyleEnum.TEXTAREA.name()));
+            response.setIsShow(Optional.of(actionResponse).map(ActionResponse::getIsShow).orElse(Boolean.TRUE));
             this.flowStep.setResponse(response);
         }
     }
-
 
 }

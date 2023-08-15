@@ -28,7 +28,6 @@ import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -262,7 +261,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
         messageRequest.setAnswerUnitPrice(new BigDecimal("0.0100"));
         messageRequest.setTotalPrice(new BigDecimal("0.0000"));
         messageRequest.setCurrency("USD");
-        messageRequest.setFromScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.IMAGE.name() : request.getScene());
+        messageRequest.setFromScene(AppSceneEnum.IMAGE.name());
         messageRequest.setEndUser(request.getEndUser());
     }
 }
