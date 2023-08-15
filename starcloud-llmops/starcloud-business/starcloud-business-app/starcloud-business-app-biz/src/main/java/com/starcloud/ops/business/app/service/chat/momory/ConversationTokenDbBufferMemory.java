@@ -44,11 +44,15 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
 
     private String modelType;
 
-    public ConversationTokenDbBufferMemory(int maxTokens, String conversationUid, String modelType) {
+    private String creator;
+
+    public ConversationTokenDbBufferMemory(int maxTokens, String conversationUid,
+                                           String modelType,String creator) {
         this.messageService = SpringUtil.getBean(LogAppMessageService.class);
         this.maxTokens = maxTokens;
         this.conversationUid = conversationUid;
         this.modelType = modelType;
+        this.creator = creator;
     }
 
     @Override
@@ -166,6 +170,7 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
         messageCreateReqVO.setCurrency("USD");
         messageCreateReqVO.setFromScene(AppSceneEnum.SYSTEM_SUMMARY.name());
         messageCreateReqVO.setStatus("SUCCESS");
+        messageCreateReqVO.setCreator(creator);
         messageService.createAppMessage(messageCreateReqVO);
         return openaiResult.getText();
     }

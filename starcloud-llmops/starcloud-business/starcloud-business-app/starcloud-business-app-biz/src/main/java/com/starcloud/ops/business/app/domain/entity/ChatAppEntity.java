@@ -416,7 +416,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         chatOpenAi.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
 //        ConversationBufferMemory memory = new ConversationBufferMemory();
-        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel());
+        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel(),request.getUserId().toString());
 
 //        memory.setChatHistory(history);
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = new LLMChain<>(chatOpenAi, chatPromptTemplate);
