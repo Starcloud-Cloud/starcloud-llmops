@@ -21,7 +21,15 @@ public interface AppLogService {
      * @param query 查询条件
      * @return AppLogMessageRespVO
      */
-    PageResult<AppLogMessageRespVO> getLogAppMessageDetail(AppLogMessagePageReqVO query);
+    AppLogMessageRespVO getLogAppMessageDetail(AppLogMessagePageReqVO query);
+
+    /**
+     * 获取聊天详情
+     *
+     * @param query 查询条件
+     * @return AppLogMessageRespVO
+     */
+    PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query);
 
     /**
      * 获取图片生成消息详情
@@ -31,11 +39,5 @@ public interface AppLogService {
      */
     PageResult<ImageLogMessageRespVO> getLogImageMessageDetail(AppLogMessagePageReqVO query);
 
-    /**
-     * 获取聊天详情
-     *
-     * @param query
-     * @return
-     */
-    PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query);
+
 }

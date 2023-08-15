@@ -91,10 +91,9 @@ public class LogMessageDetailRespVO implements Serializable {
     private String errorMessage;
 
     /**
-     * 消息内容
+     * 应用执行者（游客，用户，或者具体的用户）
      */
-    @Schema(description = "用户")
-    private String endUser;
+    private String appExecutor;
 
     /**
      * 创建时间
@@ -102,9 +101,15 @@ public class LogMessageDetailRespVO implements Serializable {
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
+    /**
+     * 图片
+     */
     @Schema(description = "images")
     private List<String> images;
 
+    /**
+     * 返回内容
+     */
     @Schema(description = "返回内容")
     private String answer;
 
