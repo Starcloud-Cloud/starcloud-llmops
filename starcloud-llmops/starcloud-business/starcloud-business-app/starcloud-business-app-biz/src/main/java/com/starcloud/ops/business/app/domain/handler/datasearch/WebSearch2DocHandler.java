@@ -35,14 +35,13 @@ import java.util.Optional;
 @Slf4j
 public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Request, WebSearch2DocHandler.Response> {
 
+    private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
+
     private String name = "WebSearch2DocHandler";
 
     private String description = "A portal to the internet. Use this when you need to get specific content from a website. Input should be a  url (i.e. https://www.google.com). The output should be a json string with two keys: \"content\" and\" docKey\". The value of \"content\" is a summary of the content of the website, and the value of\" docKey\" is the tag of the website to point to.";
 
-    private static RequestsGetTool requestsGetTool = new RequestsGetTool();
-
-    private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
-
+    private int summarySubSize = 300;
 
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
@@ -76,13 +75,17 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
         if (!sourceDataUploadDTO.getStatus()) {
-            throw new RuntimeException("URL解析失败: " + sourceDataUploadDTO.getErrMsg());
+            log.error("WebSearch2DocHandler uploadUrlsSourceData is fail:{}, {}", url, sourceDataUploadDTO.getErrMsg());
+
+            throw new RuntimeException("URL解析失败");
         }
 
         //查询内容
         DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
 
         String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
+
+        summary = StrUtil.subPre(summary, summarySubSize);
 
         //先截取
         result.setSummary(summary);
