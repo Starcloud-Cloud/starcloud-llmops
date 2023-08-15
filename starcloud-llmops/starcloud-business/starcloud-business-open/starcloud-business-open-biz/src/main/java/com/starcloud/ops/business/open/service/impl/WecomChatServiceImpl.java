@@ -30,7 +30,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 
-import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL;
+import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USELESS_INSUFFICIENT;
 
 @Slf4j
 @Service
@@ -75,15 +75,15 @@ public class WecomChatServiceImpl implements WecomChatService {
                 } else {
                     sendMsg(reqVO.getGroupRemark(), "机器人异常请稍后重试", reqVO.getReceivedName());
                 }
-            }catch (ServiceException e) {
-                if (USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL.getCode().intValue() == e.getCode()) {
-                    sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系管理员添加。",reqVO.getReceivedName());
+            } catch (ServiceException e) {
+                if (USER_BENEFITS_USELESS_INSUFFICIENT.getCode().intValue() == e.getCode()) {
+                    sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系管理员添加。", reqVO.getReceivedName());
                 } else {
-                    log.error("execute error:",e);
-                    sendMsg(reqVO.getGroupRemark(), e.getMessage(),reqVO.getReceivedName());
+                    log.error("execute error:", e);
+                    sendMsg(reqVO.getGroupRemark(), e.getMessage(), reqVO.getReceivedName());
                 }
             } catch (Exception e) {
-                log.error("execute error:",e);
+                log.error("execute error:", e);
                 sendMsg(reqVO.getGroupRemark(), "机器人异常请稍后重试!", reqVO.getReceivedName());
             }
         });
@@ -100,7 +100,7 @@ public class WecomChatServiceImpl implements WecomChatService {
         BaseResponse<String> resp = workToolClient.sendMsg(robotId, baseReq);
         if (resp == null || resp.getCode() != 200) {
             log.error("发送群消息失败: {}", resp);
-            throw new ServiceException(new ErrorCode(500,resp.getMessage()));
+            throw new ServiceException(new ErrorCode(500, resp.getMessage()));
         }
     }
 
