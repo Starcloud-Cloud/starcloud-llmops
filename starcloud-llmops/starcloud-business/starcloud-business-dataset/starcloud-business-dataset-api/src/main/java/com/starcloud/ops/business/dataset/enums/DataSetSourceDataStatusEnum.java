@@ -26,8 +26,8 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
      * 21 - 30 数据同步
      */
     SYNCHRONIZATION(21,"数据同步中"),
-    SYNCHRONIZATION_ERROR(25,"数据同步中"),
-    SYNCHRONIZATION__COMPLETED(30,"数据同步中"),
+    SYNCHRONIZATION_ERROR(25,"数据同步失败"),
+    SYNCHRONIZATION__COMPLETED(30,"数据同步完成"),
 
     /**
      * 31 - 40  数据清洗

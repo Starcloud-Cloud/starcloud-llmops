@@ -112,6 +112,8 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
                 llmRun.onLLMError(e.getMessage(), e);
 
+                throw e;
+
             }
         }
 

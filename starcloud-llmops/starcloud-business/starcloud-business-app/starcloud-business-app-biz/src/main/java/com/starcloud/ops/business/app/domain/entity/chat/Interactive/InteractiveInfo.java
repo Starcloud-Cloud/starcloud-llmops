@@ -2,7 +2,8 @@ package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import java.time.LocalDateTime;
+
+import java.util.Date;
 
 @Data
 @Accessors(chain = true)
@@ -32,9 +33,11 @@ public class InteractiveInfo {
      */
     private int status;
 
-    private LocalDateTime time;
+    private Date time;
 
     private Object data;
+
+    private String errorCode;
 
     private String errorMsg;
 

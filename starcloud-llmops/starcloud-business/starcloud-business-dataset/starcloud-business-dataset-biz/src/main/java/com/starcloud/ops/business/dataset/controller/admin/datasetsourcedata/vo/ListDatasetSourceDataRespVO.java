@@ -36,7 +36,10 @@ public class ListDatasetSourceDataRespVO {
     @Schema(description = "数据源类型 文档 URL 字符串", required = true)
     private  String dataType;
 
-    @Schema(description = "批次", required = true)
+    @Schema(description = "数据类型")
+    private  String type;
+
+    @Schema(description = "批次")
     private String batch;
 
     @Schema(description = "状态")
