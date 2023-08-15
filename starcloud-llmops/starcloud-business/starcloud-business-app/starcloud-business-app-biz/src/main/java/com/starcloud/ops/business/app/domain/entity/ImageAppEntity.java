@@ -249,7 +249,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     private void buildAppMessageLog(LogAppMessageCreateReqVO messageRequest, ImageReqVO request, Long userId) {
         messageRequest.setAppConversationUid(request.getConversationUid());
-        messageRequest.setAppUid(request.getAppUid());
+        messageRequest.setAppUid(request.getConversationUid());
         messageRequest.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
         messageRequest.setAppConfig(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setAppStep("BASE_GENERATE_IMAGE");
