@@ -15,9 +15,13 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Component
@@ -54,6 +58,7 @@ public class UrlUploadStrategy implements UploadStrategy {
             String normalize = URLUtil.normalize(url);
             doc = Jsoup.connect(normalize).get();
         } catch (Exception e) {
+            uploadFileRespDTO.setName(url);
             log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
             return uploadFileRespDTO;
         }
@@ -66,7 +71,7 @@ public class UrlUploadStrategy implements UploadStrategy {
         uploadFileRespDTO.setName(name);
 
         // 获取网页的描述
-        String description = doc.select("meta[name=description]").first().attr("content");
+        String description = getUrlDescription(doc);
 
         uploadFileRespDTO.setDescription(description);
 
@@ -119,13 +124,12 @@ public class UrlUploadStrategy implements UploadStrategy {
     }
 
 
-
     /**
      * 保存文件，并返回文件的访问路径
      *
-     * @param fileId     文件 ID
-     * @param data 文件流
-     * @param userId       文件 path 可以为空
+     * @param fileId 文件 ID
+     * @param data   文件流
+     * @param userId 文件 path 可以为空
      * @return 文件路径
      */
     private String uploadFile(String fileId, String data, Long userId) {
@@ -148,16 +152,41 @@ public class UrlUploadStrategy implements UploadStrategy {
      * @return title
      */
     private static String getUrlTitle(Document doc) {
-        // 获取网页的meta标签
-        Element meta = doc.select("meta[http-equiv=Content-Type], meta[charset]").first();
-        String charset = meta != null ? meta.attr("charset") : null;
+        try {
+            // 获取网页的meta标签
+            Element meta = doc.select("meta[http-equiv=Content-Type], meta[charset]").first();
+            String charset = meta != null ? meta.attr("charset") : null;
 
-        // 如果charset为空，则默认使用UTF-8
-        if (charset == null || charset.isEmpty()) {
-            charset = CharsetUtil.UTF_8;
+            // 如果charset为空，则默认使用UTF-8
+            if (charset == null || charset.isEmpty()) {
+                charset = CharsetUtil.UTF_8;
+            }
+
+            // 获取网页的title，使用实际编码进行解析
+            return new String(doc.title().getBytes(StandardCharsets.UTF_8), Charset.forName(charset));
+        } catch (RuntimeException e) {
+            return null;
         }
-
-        // 获取网页的title，使用实际编码进行解析
-        return new String(doc.title().getBytes(StandardCharsets.UTF_8), Charset.forName(charset));
     }
+
+    private String getUrlDescription(Document doc) {
+        String description = null;
+        try {
+            Element dataRhDescription = doc.selectFirst("meta[name=description]");
+            if (dataRhDescription != null) {
+                description = dataRhDescription.attr("content");
+                return description;
+            }
+            Element propertyDescription = doc.selectFirst("meta[property=description]");
+            if (dataRhDescription != null) {
+                description = propertyDescription.attr("content");
+                return description;
+            }
+            return description;
+
+        } catch (RuntimeException e) {
+            return description;
+        }
+    }
+
 }
