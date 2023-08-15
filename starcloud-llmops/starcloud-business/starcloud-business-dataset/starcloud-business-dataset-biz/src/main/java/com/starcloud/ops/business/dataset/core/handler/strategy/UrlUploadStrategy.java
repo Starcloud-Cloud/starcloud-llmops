@@ -15,13 +15,9 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Component
@@ -169,24 +165,23 @@ public class UrlUploadStrategy implements UploadStrategy {
         }
     }
 
+    /**
+     * 获取网页描述
+     * @param doc
+     * @return
+     */
     private String getUrlDescription(Document doc) {
         String description = null;
+
         try {
-            Element dataRhDescription = doc.selectFirst("meta[name=description]");
-            if (dataRhDescription != null) {
-                description = dataRhDescription.attr("content");
-                return description;
-            }
-            Element propertyDescription = doc.selectFirst("meta[property=description]");
-            if (dataRhDescription != null) {
-                description = propertyDescription.attr("content");
+            Element metaTag = doc.selectFirst("meta[property=description], meta[name=description]");
+            if (metaTag != null) {
+                description =  metaTag.attr("content");
                 return description;
             }
             return description;
-
         } catch (RuntimeException e) {
             return description;
         }
     }
-
 }

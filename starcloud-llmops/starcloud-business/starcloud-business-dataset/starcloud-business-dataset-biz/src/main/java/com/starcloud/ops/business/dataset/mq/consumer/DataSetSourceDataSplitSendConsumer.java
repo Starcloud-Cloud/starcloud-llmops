@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.dataset.mq.consumer;
 
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
@@ -31,6 +32,9 @@ import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLogi
 @Component
 public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<DatasetSourceDataSplitSendMessage> {
 
+
+    @Resource
+    private DictDataService dictDataService;
     @Resource
     private DocumentSegmentsService documentSegmentsService;
 
@@ -92,16 +96,20 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
 
-        if (Objects.equals(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(), message.getStatus())){
-            throw new RuntimeException(DataSetSourceDataStatusEnum.SPLIT_ERROR.getName());
+        if (0 == dictDataService.getDictData("QueueSwitch", "sendMessage").getStatus()) {
+
+            if (Objects.equals(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(), message.getStatus())) {
+                throw new RuntimeException(DataSetSourceDataStatusEnum.SPLIT_ERROR.getName());
+            }
+
+            if (message.getSync()) {
+                dataIndexProducer.sendMessage(message);
+
+            } else {
+                dataIndexProducer.asyncSendMessage(message);
+            }
         }
 
-        if (message.getSync()) {
-            dataIndexProducer.sendMessage(message);
-
-        } else {
-            dataIndexProducer.asyncSendMessage(message);
-        }
     }
 
 

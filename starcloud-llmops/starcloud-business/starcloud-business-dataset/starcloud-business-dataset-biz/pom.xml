@@ -89,6 +89,11 @@
             <artifactId>htmlunit</artifactId>
             <version>2.70.0</version>
         </dependency>
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-module-system-biz</artifactId>
+            <version>${revision}</version>
+        </dependency>
 
     </dependencies>
 

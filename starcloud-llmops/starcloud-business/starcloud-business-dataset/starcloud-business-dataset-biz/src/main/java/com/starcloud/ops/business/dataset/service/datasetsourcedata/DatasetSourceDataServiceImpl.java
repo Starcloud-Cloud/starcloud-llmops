@@ -263,11 +263,16 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     }
 
 
+    /**
+     * 等待 URL 返回结果
+     * @param url
+     * @param reqVO
+     * @return
+     */
     @Async
     public ListenableFuture<UploadResult> executeAsyncWithUrl(String url, UploadUrlReqVO reqVO) {
         return AsyncResult.forValue(processingService.urlProcessing(url, reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.URL.name()));
     }
-
 
     /**
      * 上传文件-支持批量上传
@@ -407,7 +412,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         List<DatasetSourceDataDO> datasetSourceDataDOS = datasetSourceDataMapper.selectByDatasetId(datasetId, dataModel);
 
         return datasetSourceDataDOS.stream().map(dataDO -> {
-
                     ListDatasetSourceDataRespVO dataRespVO = new ListDatasetSourceDataRespVO();
                     dataRespVO.setUid(dataDO.getUid());
                     dataRespVO.setName(dataDO.getName());
@@ -419,7 +423,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                     dataRespVO.setDescription(dataDO.getDescription());
                     dataRespVO.setSummary(dataDO.getSummary());
                     dataRespVO.setUpdateTime(dataDO.getUpdateTime());
-
+                    dataRespVO.setType(datasetStorageService.selectDataById(dataDO.getStorageId()).getType());
                     return dataRespVO;
                 }
         ).collect(Collectors.toList());

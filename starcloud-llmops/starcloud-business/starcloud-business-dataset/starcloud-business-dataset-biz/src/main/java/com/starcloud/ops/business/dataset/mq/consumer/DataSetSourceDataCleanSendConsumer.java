@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
@@ -24,15 +25,16 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Objects;
 
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.infra.enums.ErrorCodeConstants.FILE_IS_EMPTY;
-
 @Slf4j
 @Component
 public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<DatasetSourceDataCleanSendMessage> {
 
+
     @Resource
     private FileApi fileApi;
+
+    @Resource
+    private DictDataService dictDataService;
 
     @Resource
     private DatasetSourceDataSplitProducer dataSplitProducer;
@@ -94,10 +96,10 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             }
 
             // 保存清洗地址
-            Long cleanId = setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "html", message.getUserId());
+            Long cleanId = setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "TXT", message.getUserId());
 
 
-            if (StrUtil.isBlank(sourceDataDO.getDescription())){
+            if (StrUtil.isBlank(sourceDataDO.getDescription())) {
                 sourceDataDO.setDescription(truncateAndSetContent(cleanText));
             }
             sourceDataDO.setCleanStorageId(cleanId);
@@ -111,7 +113,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
         } catch (Exception e) {
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
             message.setErrMsg(e.getMessage());
-            log.info("清洗失败，错误原因是:({})",e.getMessage(),e);
+            log.info("清洗失败，错误原因是:({})", e.getMessage(), e);
         }
 
     }
@@ -123,17 +125,22 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
 
-        if (Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())){
-            throw new RuntimeException(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName());
+        if (0 == dictDataService.getDictData("QueueSwitch", "sendMessage").getStatus()) {
+
+            if (Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
+                throw new RuntimeException(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName());
+            }
+
+            if (message.getSync()) {
+                dataSplitProducer.sendMessage(message);
+            } else {
+                // 发送消息
+                dataSplitProducer.asyncSendMessage(message);
+
+            }
         }
 
-        if (message.getSync()) {
-            dataSplitProducer.sendMessage(message);
-        } else {
-            // 发送消息
-            dataSplitProducer.asyncSendMessage(message);
 
-        }
     }
 
 
