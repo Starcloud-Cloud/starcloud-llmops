@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.service;
+package com.starcloud.ops.business.open.service;
 
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 

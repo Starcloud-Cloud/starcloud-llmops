@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Opt;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -281,7 +282,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 request.getQuery(), chatConfig.getModelConfig().getCompletionParams());
 
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
-        if ((chatConfig.getWebSearchConfig() != null && chatConfig.getWebSearchConfig().getEnabled())
+        if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
                 || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()))) {
 
             AgentExecutor agentExecutor = buildLLmTools(request, history, chatConfig, chatPromptTemplate, emitter);
@@ -416,7 +417,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         chatOpenAi.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
 //        ConversationBufferMemory memory = new ConversationBufferMemory();
-        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel());
+        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel(),request.getUserId().toString());
 
 //        memory.setChatHistory(history);
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = new LLMChain<>(chatOpenAi, chatPromptTemplate);

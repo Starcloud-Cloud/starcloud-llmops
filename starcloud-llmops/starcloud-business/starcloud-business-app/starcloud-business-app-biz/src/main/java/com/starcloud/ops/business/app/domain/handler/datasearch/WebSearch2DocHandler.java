@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
@@ -34,14 +35,13 @@ import java.util.Optional;
 @Slf4j
 public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Request, WebSearch2DocHandler.Response> {
 
+    private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
+
     private String name = "WebSearch2DocHandler";
 
     private String description = "A portal to the internet. Use this when you need to get specific content from a website. Input should be a  url (i.e. https://www.google.com). The output should be a json string with two keys: \"content\" and\" docKey\". The value of \"content\" is a summary of the content of the website, and the value of\" docKey\" is the tag of the website to point to.";
 
-    private static RequestsGetTool requestsGetTool = new RequestsGetTool();
-
-    @Resource
-    private DatasetSourceDataService datasetSourceDataService;
+    private int summarySubSize = 300;
 
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
@@ -55,59 +55,47 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
         String datasetId = context.getAppUid();
 
-
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
         handlerResponse.setMessage(url);
 
         Response result = new Response();
 
-        try {
-            UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
-            uploadUrlReqVO.setSync(true);
-            uploadUrlReqVO.setUrls(Arrays.asList(url));
-            uploadUrlReqVO.setDatasetId(datasetId);
 
-            SplitRule splitRule = new SplitRule();
-            splitRule.setAutomatic(true);
-            uploadUrlReqVO.setSplitRule(splitRule);
+        UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
+        uploadUrlReqVO.setSync(true);
+        uploadUrlReqVO.setUrls(Arrays.asList(url));
+        uploadUrlReqVO.setDatasetId(datasetId);
 
-            List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
-            SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
+        SplitRule splitRule = new SplitRule();
+        splitRule.setAutomatic(true);
+        uploadUrlReqVO.setSplitRule(splitRule);
 
-            if (!sourceDataUploadDTO.getStatus()) {
-                throw new RuntimeException("URL解析失败: " + sourceDataUploadDTO.getErrMsg());
-            }
+        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+        SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
-            //查询内容
-            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
-            
-            String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
+        if (!sourceDataUploadDTO.getStatus()) {
+            log.error("WebSearch2DocHandler uploadUrlsSourceData is fail:{}, {}", url, sourceDataUploadDTO.getErrMsg());
 
-            //先截取
-            result.setSummary(summary);
-            result.setDocKey(detailsInfoVO.getUid());
-
-            handlerResponse.setSuccess(true);
-            handlerResponse.setAnswer(summary);
-            handlerResponse.setOutput(result);
-
-
-            context.sendCallbackInteractiveEnd(interactiveInfo);
-
-        } catch (Exception e) {
-
-            handlerResponse.setErrorCode("0");
-            handlerResponse.setErrorMsg(e.getMessage());
-
-            interactiveInfo.setStatus(1);
-            interactiveInfo.setSuccess(false);
-            interactiveInfo.setErrorMsg(e.getMessage());
-
-            context.sendCallbackInteractiveEnd(interactiveInfo);
-
-            log.error("WebSearch2DocHandler process is fail: {}", e.getMessage(), e);
+            throw new RuntimeException("URL解析失败");
         }
+
+        //查询内容
+        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
+
+        String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
+
+        summary = StrUtil.subPre(summary, summarySubSize);
+
+        //先截取
+        result.setSummary(summary);
+        result.setDocKey(detailsInfoVO.getUid());
+
+        handlerResponse.setSuccess(true);
+        handlerResponse.setAnswer(summary);
+        handlerResponse.setOutput(result);
+
+        context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;
     }

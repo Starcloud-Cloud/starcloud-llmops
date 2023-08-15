@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.service.handler;
+package com.starcloud.ops.business.open.service.handler;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.context.UserContextHolder;
@@ -14,7 +14,7 @@ import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.chat.service.WxMpChatService;
+import com.starcloud.ops.business.open.service.WxMpChatService;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import lombok.extern.slf4j.Slf4j;

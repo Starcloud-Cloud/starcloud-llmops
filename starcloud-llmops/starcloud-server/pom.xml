@@ -65,6 +65,12 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-open-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
 
         <!-- Test 测试相关 -->
         <dependency>

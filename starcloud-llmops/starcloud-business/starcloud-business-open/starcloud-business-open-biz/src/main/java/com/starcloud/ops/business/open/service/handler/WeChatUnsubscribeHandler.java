@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.service.handler;
+package com.starcloud.ops.business.open.service.handler;
 
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;

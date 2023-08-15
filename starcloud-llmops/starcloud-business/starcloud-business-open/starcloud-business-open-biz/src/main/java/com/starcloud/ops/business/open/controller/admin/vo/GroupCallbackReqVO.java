@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.controller.admin.wecom.vo.request;
+package com.starcloud.ops.business.open.controller.admin.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

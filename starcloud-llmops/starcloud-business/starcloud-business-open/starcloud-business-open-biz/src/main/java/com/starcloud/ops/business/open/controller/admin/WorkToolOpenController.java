@@ -1,11 +1,11 @@
-package com.starcloud.ops.business.chat.controller.admin.wecom;
+package com.starcloud.ops.business.open.controller.admin;
 
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.chat.context.RobotContextHolder;
-import com.starcloud.ops.business.chat.controller.admin.wecom.vo.request.GroupCallbackReqVO;
-import com.starcloud.ops.business.chat.controller.admin.wecom.vo.request.QaCallbackReqVO;
-import com.starcloud.ops.business.chat.controller.admin.wecom.vo.response.QaCallbackRespVO;
-import com.starcloud.ops.business.chat.service.WecomChatService;
+import com.starcloud.ops.business.open.controller.admin.vo.GroupCallbackReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.QaCallbackReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.QaCallbackRespVO;
+import com.starcloud.ops.business.open.service.WecomChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;

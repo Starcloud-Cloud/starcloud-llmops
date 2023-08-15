@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.controller.admin.wecom.vo.response;
+package com.starcloud.ops.business.open.controller.admin.vo;
 
 import lombok.Data;
 
