@@ -43,6 +43,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
     private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
+
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
 
@@ -55,59 +56,43 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
         String datasetId = context.getAppUid();
 
-
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
         handlerResponse.setMessage(url);
 
         Response result = new Response();
 
-        try {
-            UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
-            uploadUrlReqVO.setSync(true);
-            uploadUrlReqVO.setUrls(Arrays.asList(url));
-            uploadUrlReqVO.setDatasetId(datasetId);
 
-            SplitRule splitRule = new SplitRule();
-            splitRule.setAutomatic(true);
-            uploadUrlReqVO.setSplitRule(splitRule);
+        UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
+        uploadUrlReqVO.setSync(true);
+        uploadUrlReqVO.setUrls(Arrays.asList(url));
+        uploadUrlReqVO.setDatasetId(datasetId);
 
-            List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
-            SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
+        SplitRule splitRule = new SplitRule();
+        splitRule.setAutomatic(true);
+        uploadUrlReqVO.setSplitRule(splitRule);
 
-            if (!sourceDataUploadDTO.getStatus()) {
-                throw new RuntimeException("URL解析失败: " + sourceDataUploadDTO.getErrMsg());
-            }
+        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+        SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
-            //查询内容
-            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
-
-            String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
-
-            //先截取
-            result.setSummary(summary);
-            result.setDocKey(detailsInfoVO.getUid());
-
-            handlerResponse.setSuccess(true);
-            handlerResponse.setAnswer(summary);
-            handlerResponse.setOutput(result);
-
-
-            context.sendCallbackInteractiveEnd(interactiveInfo);
-
-        } catch (Exception e) {
-
-            handlerResponse.setErrorCode("0");
-            handlerResponse.setErrorMsg(e.getMessage());
-
-            interactiveInfo.setStatus(1);
-            interactiveInfo.setSuccess(false);
-            interactiveInfo.setErrorMsg(e.getMessage());
-
-            context.sendCallbackInteractiveEnd(interactiveInfo);
-
-            log.error("WebSearch2DocHandler process is fail: {}", e.getMessage(), e);
+        if (!sourceDataUploadDTO.getStatus()) {
+            throw new RuntimeException("URL解析失败: " + sourceDataUploadDTO.getErrMsg());
         }
+
+        //查询内容
+        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
+
+        String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
+
+        //先截取
+        result.setSummary(summary);
+        result.setDocKey(detailsInfoVO.getUid());
+
+        handlerResponse.setSuccess(true);
+        handlerResponse.setAnswer(summary);
+        handlerResponse.setOutput(result);
+
+        context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;
     }

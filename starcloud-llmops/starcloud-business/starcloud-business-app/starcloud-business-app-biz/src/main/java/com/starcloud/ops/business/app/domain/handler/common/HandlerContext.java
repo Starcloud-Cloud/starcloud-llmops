@@ -4,12 +4,14 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -34,6 +36,9 @@ public class HandlerContext<Q> {
 
     private Q request;
 
+    @JsonIgnore
+    private InteractiveInfo currentInteractive;
+
     private HandlerContext() {
     }
 
@@ -44,6 +49,8 @@ public class HandlerContext<Q> {
      * @param interactiveInfo
      */
     public void sendCallbackInteractiveStart(InteractiveInfo interactiveInfo) {
+
+        this.currentInteractive = interactiveInfo;
 
         interactiveInfo.setTime(DateUtil.date());
         interactiveInfo.setStatus(0);
