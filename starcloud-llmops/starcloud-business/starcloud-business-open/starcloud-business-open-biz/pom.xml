@@ -35,11 +35,6 @@
             <artifactId>yudao-module-mp-biz</artifactId>
             <version>${revision}</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-chat</artifactId>
-        </dependency>
     </dependencies>
 
 </project>
