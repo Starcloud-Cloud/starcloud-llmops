@@ -39,8 +39,8 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
 
     @Override
     protected ActionResponse _execute(Request request) {
-
-        OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(new StreamingSseCallBackHandler(this.getAppContext().getSseEmitter()));
+        StreamingSseCallBackHandler callBackHandler = new StreamingSseCallBackHandler(this.getAppContext().getSseEmitter(), this.getAppContext().getConversationId());
+        OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(callBackHandler);
 
 
         //获取前端传的完整字段（老结构）
