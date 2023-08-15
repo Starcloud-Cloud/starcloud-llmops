@@ -22,6 +22,7 @@ import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataCleanProducer;
@@ -271,7 +272,6 @@ public class ProcessingServiceImpl implements ProcessingService {
         // 获取当前文件位置
         long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
 
-
         DataSourceInfoDTO dataSourceInfoDTO = new DataSourceInfoDTO().setInitAddress(process.getInitAddress());
         DatasetSourceDataDO dataDO = new DatasetSourceDataDO();
         dataDO.setUid(DatasetUID.createSourceDataUID());
@@ -287,6 +287,9 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataDO.setDatasetId(datasetId);
         dataDO.setStatus(DataSetSourceDataStatusEnum.ANALYSIS_ERROR.getStatus());
         dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO));
+        if (DataSourceDataTypeEnum.URL.name().equals(dataType)){
+            dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO.setInitAddress(process.getName())));
+        }
         datasetSourceDataMapper.insert(dataDO);
     }
 
