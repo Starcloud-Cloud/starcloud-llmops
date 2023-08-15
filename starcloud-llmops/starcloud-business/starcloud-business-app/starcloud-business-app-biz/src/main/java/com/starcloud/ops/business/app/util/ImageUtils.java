@@ -232,41 +232,6 @@ public class ImageUtils {
     }
 
     /**
-     * 计算消息中的token数量
-     *
-     * @param input 消息
-     * @return token数量
-     */
-    public static int countMessageTokens(String input) {
-        byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
-        int count = 0;
-        int length = bytes.length;
-
-        for (int i = 0; i < length; i++) {
-            byte currentByte = bytes[i];
-
-            if ((currentByte & 0b10000000) == 0b00000000) {
-                // 1-byte UTF-8 character
-                count++;
-            } else if ((currentByte & 0b11100000) == 0b11000000) {
-                // 2-byte UTF-8 character
-                count++;
-                i++;
-            } else if ((currentByte & 0b11110000) == 0b11100000) {
-                // 3-byte UTF-8 character
-                count++;
-                i += 2;
-            } else if ((currentByte & 0b11111000) == 0b11110000) {
-                // 4-byte UTF-8 character
-                count++;
-                i += 3;
-            }
-        }
-
-        return count;
-    }
-
-    /**
      * 处理反义词
      *
      * @param negativePrompt 反义词

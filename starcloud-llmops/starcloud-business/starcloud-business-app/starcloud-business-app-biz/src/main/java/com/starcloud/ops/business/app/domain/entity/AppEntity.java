@@ -36,6 +36,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCrea
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -264,7 +265,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
             // 如果异常，设置异常信息
             if (nodeTracking.getTaskException() != null) {
                 messageCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
-                messageCreateReqVO.setErrorMsg(nodeTracking.getTaskException().getMessage());
+                messageCreateReqVO.setErrorMsg(ExceptionUtil.stackTraceToString(nodeTracking.getTaskException()));
                 messageCreateReqVO.setErrorCode("010");
                 if (nodeTracking.getTaskException() instanceof KstryException) {
                     messageCreateReqVO.setErrorCode(((KstryException) nodeTracking.getTaskException()).getErrorCode());

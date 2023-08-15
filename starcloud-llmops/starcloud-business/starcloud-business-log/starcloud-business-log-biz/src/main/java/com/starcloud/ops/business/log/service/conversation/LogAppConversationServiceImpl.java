@@ -240,16 +240,6 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         Page<LogAppConversationDO> page = new Page<>(query.getPageNo(), query.getPageSize());
         IPage<LogAppConversationInfoPO> infoPage = appConversationMapper.selectSqlPage(page, query);
 
-        List<LogAppConversationInfoPO> records = infoPage.getRecords();
-        List<LogAppConversationInfoPO> collect = CollectionUtil.emptyIfNull(records).stream().peek(item -> {
-            try {
-                Long.parseLong(item.getEndUser());
-                item.setEndUser("用户");
-            } catch (NumberFormatException e) {
-                item.setEndUser("游客");
-            }
-        }).collect(Collectors.toList());
-        infoPage.setRecords(collect);
         return new PageResult<>(infoPage.getRecords(), infoPage.getTotal());
     }
 
