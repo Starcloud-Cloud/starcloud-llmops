@@ -97,11 +97,11 @@ public class WecomChatServiceImpl implements WecomChatService {
         sendMessageReq.setReceivedContent(msg);
         sendMessageReq.setAtList(Collections.singletonList(endUser));
         baseReq.setList(Collections.singletonList(sendMessageReq));
-//        BaseResponse<String> resp = workToolClient.sendMsg(robotId, baseReq);
-//        if (resp == null || resp.getCode() != 200) {
-//            log.error("发送群消息失败: {}", resp);
-//            throw new ServiceException(new ErrorCode(500,resp.getMessage()));
-//        }
+        BaseResponse<String> resp = workToolClient.sendMsg(robotId, baseReq);
+        if (resp == null || resp.getCode() != 200) {
+            log.error("发送群消息失败: {}", resp);
+            throw new ServiceException(new ErrorCode(500,resp.getMessage()));
+        }
     }
 
 
