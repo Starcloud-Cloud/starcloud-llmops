@@ -48,7 +48,7 @@
             </if>
             <if test="query.type != null and query.type == 'GENERATE_RECORD' and (query.appMode == null or query.appMode == '') and query.appModeList != null and query.appModeList.size() > 0">
                 AND app_mode IN
-                <foreach collection="query.appModeList" item="query.appModeItem" open="(" separator="," close=")">
+                <foreach collection="query.appModeList" item="appModeItem" open="(" separator="," close=")">
                     #{appModeItem}
                 </foreach>
             </if>
