@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.channel.strategy.handler;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.channel.dto.OpenApiChannelConfigDTO;
@@ -23,37 +22,40 @@ import java.util.Objects;
 public class OpenApiChannelConfigHandler extends AppPublishChannelConfigTemplate<OpenApiChannelConfigDTO> {
 
     /**
-     * 基本校验
+     * 校验渠道配置信息
      *
-     * @param config 配置
+     * @param configUid 渠道配置 UID
+     * @param config    渠道配置信息
      */
     @Override
-    public void validate(OpenApiChannelConfigDTO config) {
+    public void validate(String configUid, OpenApiChannelConfigDTO config) {
         if (Objects.nonNull(config) && StringUtils.isBlank(config.getApiKey())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_CONFIG_API_KEY_IS_REQUIRED);
         }
     }
 
     /**
-     * 配置处理
+     * 处理渠道配置信息
      *
-     * @param config config
+     * @param configUid 渠道配置 UID
+     * @param config    渠道配置信息
+     * @return 渠道配置信息
      */
     @Override
-    public OpenApiChannelConfigDTO handlerConfig(OpenApiChannelConfigDTO config) {
+    public OpenApiChannelConfigDTO handlerConfig(String configUid, OpenApiChannelConfigDTO config) {
         if (Objects.isNull(config)) {
             config = new OpenApiChannelConfigDTO();
             // 生成 apiKey
-            config.setApiKey(generateApiKey());
+            config.setApiKey(generateApiKey(configUid));
         }
         return config;
     }
 
     /**
-     * 反序列化配置
+     * 反序列化渠道配置信息
      *
-     * @param config 配置
-     * @return 配置
+     * @param config 渠道配置信息
+     * @return 渠道配置信息
      */
     @Override
     public OpenApiChannelConfigDTO deserializeConfig(String config) {
@@ -65,8 +67,8 @@ public class OpenApiChannelConfigHandler extends AppPublishChannelConfigTemplate
      *
      * @return apiKey
      */
-    private String generateApiKey() {
+    private String generateApiKey(String configUid) {
         // 生成 apiKey
-        return "mf-" + IdUtil.simpleUUID();
+        return "mf-" + configUid;
     }
 }

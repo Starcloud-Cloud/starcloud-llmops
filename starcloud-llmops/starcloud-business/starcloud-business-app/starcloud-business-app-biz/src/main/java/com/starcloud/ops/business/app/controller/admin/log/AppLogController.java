@@ -2,9 +2,13 @@ package com.starcloud.ops.business.app.controller.admin.log;
 
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.util.IdentifyUserUtils;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.util.DataPermissionUtils;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
@@ -23,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,8 +36,10 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -53,23 +60,19 @@ public class AppLogController {
     @Resource
     private LogAppConversationService appConversationService;
 
-    @Resource
-    private IdentifyUserUtils identifyUserUtils;
-
-    @GetMapping("/timeType")
-    @Operation(summary = "时间类型列表")
+    @GetMapping("/logMetaData/{type}")
+    @Operation(summary = "日志元数据信息")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<List<Option>> getTimeList() {
-        List<LogTimeTypeEnum> values = IEnumable.values(LogTimeTypeEnum.class);
-        return success(values.stream().map(item -> {
-            Option option = Option.of(item.getLabelEn(), item.name());
-            Locale locale = LocaleContextHolder.getLocale();
-            if (Locale.CHINA.equals(locale)) {
-                option.setLabel(item.getLabel());
-            }
-            return option;
-        }).collect(Collectors.toList()));
+    public CommonResult<Map<String, List<Option>>> logMetaData(@PathVariable("type") String type) {
+        Map<String, List<Option>> logMetaDataMap = new HashMap<>(4);
+        // 时间类型
+        logMetaDataMap.put("timeType", LogTimeTypeEnum.getOptions());
+        // 模型类型
+        logMetaDataMap.put("appMode", AppModelEnum.getOptions());
+        // 场景类型
+        logMetaDataMap.put("appScene", getSceneOptions(type));
 
+        return success(logMetaDataMap);
     }
 
     @PostMapping("/statistics")
@@ -89,7 +92,7 @@ public class AppLogController {
         PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
         List<LogAppConversationInfoRespVO> list = result.getList();
         List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
-                .peek(item -> item.setAppExecutor(identifyUserUtils.identifyUser(item.getCreator(), item.getEndUser())))
+                .peek(item -> item.setAppExecutor(DataPermissionUtils.identify(item.getCreator(), item.getEndUser())))
                 .collect(Collectors.toList());
         result.setList(collect);
         return success(result);
@@ -103,5 +106,27 @@ public class AppLogController {
         return success(logAppApi.getAppMessageResult(appMessageUid));
     }
 
-
+    /**
+     * 获取场景列表
+     *
+     * @param type 类型
+     * @return 场景列表
+     */
+    public static List<Option> getSceneOptions(String type) {
+        if ("GENERATE_RECORD".equals(type)) {
+            String permission = DataPermissionUtils.getDeptDataPermission();
+            if (DataPermissionUtils.ALL.equals(permission)) {
+                return AppSceneEnum.getOptions();
+            } else {
+                return AppSceneEnum.getOptions(AppSceneEnum.GENERATE_RECORD_BASE_SCENES);
+            }
+        }
+        if ("APP_ANALYSIS".equals(type)) {
+            return AppSceneEnum.getOptions(AppSceneEnum.APP_ANALYSIS_SCENES);
+        }
+        if ("CHAT_ANALYSIS".equals(type)) {
+            return AppSceneEnum.getOptions(AppSceneEnum.CHAT_ANALYSIS_SCENES);
+        }
+        throw ServiceExceptionUtil.exception(new ErrorCode(1000001, "type 不支持"));
+    }
 }

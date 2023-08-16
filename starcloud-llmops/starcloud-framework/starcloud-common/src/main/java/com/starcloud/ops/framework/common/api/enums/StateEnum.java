@@ -7,7 +7,8 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-05
  */
-public enum StateEnum {
+@Getter
+public enum StateEnum implements IEnumable<Integer> {
 
     /**
      * 启用
@@ -22,18 +23,16 @@ public enum StateEnum {
     /**
      * 状态code
      */
-    @Getter
     private final Integer code;
 
     /**
      * 状态描述
      */
-    @Getter
-    private final String message;
+    private final String label;
 
-    StateEnum(Integer code, String message) {
+    StateEnum(Integer code, String label) {
         this.code = code;
-        this.message = message;
+        this.label = label;
     }
 
 

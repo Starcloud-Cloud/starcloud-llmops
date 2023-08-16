@@ -16,7 +16,7 @@ import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
-import com.starcloud.ops.business.app.util.IdentifyUserUtils;
+import com.starcloud.ops.business.app.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
@@ -54,9 +54,6 @@ public class AppLogServiceImpl implements AppLogService {
 
     @Resource
     private ChatService chatService;
-
-    @Resource
-    private IdentifyUserUtils identifyUserUtils;
 
     /**
      * 获取文本生成消息详情
@@ -112,7 +109,7 @@ public class AppLogServiceImpl implements AppLogService {
                     appLogMessageRespVO.setPrice(item.getTotalPrice());
                     appLogMessageRespVO.setCurrency(item.getCurrency());
                     appLogMessageRespVO.setErrorCode(item.getErrorCode());
-                    appLogMessageRespVO.setAppExecutor(identifyUserUtils.identifyUser(item.getCreator(), item.getEndUser()));
+                    appLogMessageRespVO.setAppExecutor(DataPermissionUtils.identify(item.getCreator(), item.getEndUser()));
                     appLogMessageRespVO.setErrorMessage(item.getErrorMsg());
                     appLogMessageRespVO.setCreateTime(item.getCreateTime());
                     appLogMessageRespVO.setImages(appRespVO.getImages());
@@ -171,7 +168,7 @@ public class AppLogServiceImpl implements AppLogService {
         appLogMessageResponse.setTokens(message.getMessageTokens() + message.getAnswerTokens());
         appLogMessageResponse.setPrice(message.getTotalPrice());
         appLogMessageResponse.setCurrency(message.getCurrency());
-        appLogMessageResponse.setAppExecutor(identifyUserUtils.identifyUser(message.getCreator(), message.getEndUser()));
+        appLogMessageResponse.setAppExecutor(DataPermissionUtils.identify(message.getCreator(), message.getEndUser()));
         appLogMessageResponse.setErrorCode(message.getErrorCode());
         appLogMessageResponse.setErrorMessage(message.getErrorMsg());
         appLogMessageResponse.setCreateTime(message.getCreateTime());
@@ -198,7 +195,7 @@ public class AppLogServiceImpl implements AppLogService {
         imageLogMessageResponse.setElapsed(message.getElapsed());
         imageLogMessageResponse.setStatus(message.getStatus());
         imageLogMessageResponse.setErrorCode(message.getErrorCode());
-        imageLogMessageResponse.setAppExecutor(identifyUserUtils.identifyUser(message.getCreator(), message.getEndUser()));
+        imageLogMessageResponse.setAppExecutor(DataPermissionUtils.identify(message.getCreator(), message.getEndUser()));
         imageLogMessageResponse.setErrorMessage(message.getErrorMsg());
         imageLogMessageResponse.setCreateTime(message.getCreateTime());
         imageLogMessageResponse.setImageInfo(transformImageMessage(message));
