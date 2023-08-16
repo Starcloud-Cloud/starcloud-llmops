@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.channel.strategy.handler;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.channel.dto.JsIframeChannelConfigDTO;
@@ -23,50 +22,44 @@ import java.util.Objects;
 public class JsIframeChannelConfigHandler extends AppPublishChannelConfigTemplate<JsIframeChannelConfigDTO> {
 
     /**
-     * 基本校验
+     * 校验渠道配置信息
      *
-     * @param config 配置
+     * @param configUid 渠道配置 UID
+     * @param config    渠道配置信息
      */
     @Override
-    public void validate(JsIframeChannelConfigDTO config) {
+    public void validate(String configUid, JsIframeChannelConfigDTO config) {
         if (Objects.nonNull(config) && StringUtils.isBlank(config.getSlug())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_CONFIG_JS_IFRAME_SLUG_IS_REQUIRED);
         }
     }
 
     /**
-     * 配置处理
+     * 处理渠道配置信息
      *
-     * @param config config
+     * @param configUid 渠道配置 UID
+     * @param config    渠道配置信息
+     * @return 渠道配置信息
      */
     @Override
-    public JsIframeChannelConfigDTO handlerConfig(JsIframeChannelConfigDTO config) {
+    public JsIframeChannelConfigDTO handlerConfig(String configUid, JsIframeChannelConfigDTO config) {
         if (Objects.isNull(config)) {
             config = new JsIframeChannelConfigDTO();
             // 生成 slug
-            config.setSlug(generateSlug());
+            config.setSlug(configUid);
         }
         return config;
     }
 
     /**
-     * 反序列化配置
+     * 反序列化渠道配置信息
      *
-     * @param config 配置
-     * @return 配置
+     * @param config 渠道配置信息
+     * @return 渠道配置信息
      */
     @Override
     public JsIframeChannelConfigDTO deserializeConfig(String config) {
         return JSONUtil.toBean(config, JsIframeChannelConfigDTO.class);
     }
 
-    /**
-     * 生成 slug
-     *
-     * @return slug
-     */
-    private String generateSlug() {
-        // 生成 slug
-        return IdUtil.fastSimpleUUID();
-    }
 }

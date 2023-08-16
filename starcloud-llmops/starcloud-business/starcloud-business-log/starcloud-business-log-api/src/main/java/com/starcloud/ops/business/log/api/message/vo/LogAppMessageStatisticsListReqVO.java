@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.log.api.message.vo;
 
 import cn.iocoder.yudao.framework.common.util.date.DateUtils;
+import com.starcloud.ops.business.log.enums.LogQueryTypeEnum;
+import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,8 +10,10 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -68,6 +72,20 @@ public class LogAppMessageStatisticsListReqVO implements Serializable {
     private String endUser;
 
     /**
+     * 查询类型
+     */
+    @Schema(description = "查询类型")
+    @NotNull(message = "查询类型不能为空")
+    @InEnum(value = LogQueryTypeEnum.class, field = InEnum.EnumField.NAME, message = "查询类型 {value}, 支持的类型为 {values}")
+    private String type;
+
+    /**
+     * 应用模型列表
+     */
+    @Schema(hidden = true)
+    private List<String> appModeList;
+
+    /**
      * 查询时间范围类型
      *
      * @see com.starcloud.ops.business.log.enums.LogTimeTypeEnum
@@ -92,6 +110,7 @@ public class LogAppMessageStatisticsListReqVO implements Serializable {
     /**
      * 时间单位
      */
+    @Schema(hidden = true)
     private String unit;
 
 }

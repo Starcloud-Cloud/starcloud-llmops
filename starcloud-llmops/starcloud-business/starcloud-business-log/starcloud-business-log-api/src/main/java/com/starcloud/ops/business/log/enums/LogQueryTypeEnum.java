@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.enums.app;
+package com.starcloud.ops.business.log.enums;
 
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
@@ -11,25 +11,25 @@ import java.util.stream.Collectors;
 /**
  * @author nacoyer
  * @version 1.0.0
- * @since 2023-06-13
+ * @since 2023-08-16
  */
 @Getter
-public enum AppModelEnum implements IEnumable<Integer> {
+public enum LogQueryTypeEnum implements IEnumable<Integer> {
 
     /**
-     * 生成内容/图片等应用
+     * 生成记录
      */
-    COMPLETION(1, "生成", "Completion"),
+    GENERATE_RECORD(1, "生成记录", "Generate Record"),
 
     /**
-     * 聊天应用
+     * 应用分析
      */
-    CHAT(2, "聊天", "Chat"),
+    APP_ANALYSIS(2, "应用分析", "App Analysis"),
 
     /**
-     * 基础图片生成模式
+     * 聊天分析
      */
-    BASE_GENERATE_IMAGE(3, "生成图片", "Generate Image"),
+    CHAT_ANALYSIS(3, "聊天分析", "Chat Analysis"),
 
     ;
 
@@ -54,7 +54,7 @@ public enum AppModelEnum implements IEnumable<Integer> {
      * @param code  枚举值
      * @param label 枚举描述
      */
-    AppModelEnum(Integer code, String label, String labelEn) {
+    LogQueryTypeEnum(Integer code, String label, String labelEn) {
         this.code = code;
         this.label = label;
         this.labelEn = labelEn;
@@ -67,8 +67,7 @@ public enum AppModelEnum implements IEnumable<Integer> {
      */
     public static List<Option> getOptions() {
         return Arrays.stream(values())
-                .map(item -> Option.of(item.name(), item.getLabel(), item.getLabelEn()))
+                .map(item -> Option.of(item.getCode(), item.getLabel(), item.getLabelEn()))
                 .collect(Collectors.toList());
     }
-
 }

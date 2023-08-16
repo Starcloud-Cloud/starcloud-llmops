@@ -58,6 +58,12 @@ public class AppPublishChannelDO extends TenantBaseDO {
     private Integer type;
 
     /**
+     * 媒介 UID
+     */
+    @TableField("medium_uid")
+    private String mediumUid;
+
+    /**
      * 媒介信息配置
      */
     @TableField("config")
@@ -74,8 +80,5 @@ public class AppPublishChannelDO extends TenantBaseDO {
      */
     @TableField("status")
     private Integer status;
-
-    @TableField("medium_uid")
-    private String mediumUid;
 
 }

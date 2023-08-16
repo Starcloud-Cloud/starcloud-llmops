@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+
 
 /**
  * 针对不同类型的技能定制的配置信息
@@ -29,5 +31,10 @@ public class SkillCustomConfig {
      * 显示的类型
      */
     private String showType;
+
+    /**
+     * 交互用显示的字段提取映射关系
+     */
+    private Map<String, String> fieldsPath;
 
 }

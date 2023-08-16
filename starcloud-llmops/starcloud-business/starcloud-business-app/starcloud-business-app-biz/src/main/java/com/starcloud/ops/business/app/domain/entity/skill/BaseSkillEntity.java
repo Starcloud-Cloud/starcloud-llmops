@@ -25,8 +25,6 @@ public abstract class BaseSkillEntity {
 
     private SkillTypeEnum type;
 
-    //private String handler;
-
     private BaseAccredit accredit;
 
 

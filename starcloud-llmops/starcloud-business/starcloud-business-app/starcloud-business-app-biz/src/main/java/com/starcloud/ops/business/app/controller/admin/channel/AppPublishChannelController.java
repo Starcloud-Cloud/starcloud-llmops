@@ -3,7 +3,9 @@ package com.starcloud.ops.business.app.controller.admin.channel;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelModifyReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
+import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelStatusReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,14 +53,14 @@ public class AppPublishChannelController {
     @PostMapping("/modify")
     @Operation(summary = "修改应用发布渠道", description = "修改应用发布渠道")
     @ApiOperationSupport(order = 25, author = "nacoyer")
-    public CommonResult<AppPublishChannelRespVO> modify(@Validated @RequestBody AppPublishChannelReqVO request) {
+    public CommonResult<AppPublishChannelRespVO> modify(@Validated @RequestBody AppPublishChannelModifyReqVO request) {
         return CommonResult.success(appPublishChannelService.modify(request));
     }
 
     @PostMapping("/changeStatus")
     @Operation(summary = "启用/禁用应用发布渠道", description = "启用/禁用应用发布渠道")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<AppPublishChannelRespVO> audit(@Validated @RequestBody AppPublishChannelReqVO request) {
+    public CommonResult<AppPublishChannelRespVO> audit(@Validated @RequestBody AppPublishChannelStatusReqVO request) {
         return CommonResult.success(appPublishChannelService.changeStatus(request));
     }
 

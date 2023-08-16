@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.service.channel;
 
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelModifyReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
+import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelStatusReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
 
 import java.util.List;
 
@@ -33,17 +35,25 @@ public interface AppPublishChannelService {
     AppPublishChannelRespVO get(String uid);
 
     /**
-     * 根据外部id(发布媒介 ID)获取应用信息
+     * 根据发布媒介Uid查找
      *
-     * @param outId 外部id
-     * @return {@link AppEntity}
+     * @param mediumUid
+     * @return
      */
-    AppEntity getAppEntity(String outId);
+    AppPublishChannelRespVO getByMediumUid(String mediumUid);
+
+    /**
+     * 根据发布媒介Uid查找应用信息
+     *
+     * @param mediumUid
+     * @return
+     */
+    AppRespVO getAppByMediumUid(String mediumUid);
 
     /**
      * 创建发布渠道
      *
-     * @param request {@link AppPublishChannelReqVO}
+     * @param request {@link AppPublishChannelReqVO} 请求参数
      * @return {@link AppPublishChannelRespVO}
      */
     AppPublishChannelRespVO create(AppPublishChannelReqVO request);
@@ -51,25 +61,18 @@ public interface AppPublishChannelService {
     /**
      * 修改发布渠道
      *
-     * @param request {@link AppPublishChannelReqVO}
+     * @param request {@link AppPublishChannelModifyReqVO } 请求参数
      * @return {@link AppPublishChannelRespVO}
      */
-    AppPublishChannelRespVO modify(AppPublishChannelReqVO request);
+    AppPublishChannelRespVO modify(AppPublishChannelModifyReqVO request);
 
     /**
      * 修改发布渠道状态, 存在修改状态，不存在创建一个新发布渠道
      *
-     * @param request {@link AppPublishChannelReqVO}
+     * @param request {@link AppPublishChannelStatusReqVO} 请求参数
      * @return {@link AppPublishChannelRespVO}
      */
-    AppPublishChannelRespVO changeStatus(AppPublishChannelReqVO request);
-
-    /**
-     * 根据发布媒介Uid查找
-     * @param mediumUid
-     * @return
-     */
-    AppPublishChannelRespVO getByMediumUid(String mediumUid);
+    AppPublishChannelRespVO changeStatus(AppPublishChannelStatusReqVO request);
 
     /**
      * 重置分享链接唯一标识

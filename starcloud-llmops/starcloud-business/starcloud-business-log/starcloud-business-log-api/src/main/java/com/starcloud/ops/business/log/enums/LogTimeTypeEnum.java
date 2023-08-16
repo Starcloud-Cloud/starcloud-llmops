@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.log.enums;
 
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
@@ -9,7 +10,9 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 日志时间类型枚举
@@ -344,5 +347,16 @@ public enum LogTimeTypeEnum implements IEnumable<Integer> {
         }
 
         return dateTimeRange;
+    }
+
+    /**
+     * 获取所有的选项
+     *
+     * @return 所有的选项
+     */
+    public static List<Option> getOptions() {
+        return Arrays.stream(values())
+                .map(item -> Option.of(item.name(), item.getLabel(), item.getLabelEn()))
+                .collect(Collectors.toList());
     }
 }

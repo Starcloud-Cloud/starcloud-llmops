@@ -7,8 +7,8 @@ import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelRe
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigFactory;
+import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
-import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -32,13 +32,14 @@ public interface AppPublishChannelConverter {
      */
     default AppPublishChannelDO convert(AppPublishChannelReqVO request) {
         AppPublishChannelDO appPublishChannel = new AppPublishChannelDO();
-        appPublishChannel.setUid(StringUtils.isBlank(request.getUid()) ? IdUtil.fastSimpleUUID() : request.getUid());
+        appPublishChannel.setUid(IdUtil.fastSimpleUUID());
         appPublishChannel.setAppUid(request.getAppUid());
         appPublishChannel.setPublishUid(request.getPublishUid());
         appPublishChannel.setType(request.getType());
+        appPublishChannel.setMediumUid(request.getMediumUid());
         appPublishChannel.setConfig(JSONUtil.toJsonStr(request.getConfig()));
         appPublishChannel.setStatus(Objects.isNull(request.getStatus()) ? StateEnum.DISABLE.getCode() : request.getStatus());
-        appPublishChannel.setMediumUid(request.getMediumUid());
+        appPublishChannel.setDescription(request.getDescription());
         appPublishChannel.setDeleted(Boolean.FALSE);
         return appPublishChannel;
     }
@@ -49,19 +50,22 @@ public interface AppPublishChannelConverter {
      * @param appPublishChannel {@link AppPublishChannelDO}
      * @return {@link AppPublishChannelRespVO}
      */
+    @SuppressWarnings("all")
     default AppPublishChannelRespVO convert(AppPublishChannelDO appPublishChannel) {
         AppPublishChannelRespVO response = new AppPublishChannelRespVO();
         response.setUid(appPublishChannel.getUid());
         response.setAppUid(appPublishChannel.getAppUid());
         response.setPublishUid(appPublishChannel.getPublishUid());
         response.setType(appPublishChannel.getType());
+        response.setMediumUid(appPublishChannel.getMediumUid());
         AppPublishChannelConfigFactory factory = SpringUtil.getBean(AppPublishChannelConfigFactory.class);
-        response.setConfig(factory.getHandler(appPublishChannel.getType()).deserializeConfig(appPublishChannel.getConfig()));
+        AppPublishChannelConfigTemplate handler = factory.getHandler(appPublishChannel.getType());
+        response.setConfig(handler.deserializeConfig(appPublishChannel.getConfig()));
         response.setStatus(appPublishChannel.getStatus());
         response.setDescription(appPublishChannel.getDescription());
+        response.setCreator(appPublishChannel.getCreator());
         response.setCreateTime(appPublishChannel.getCreateTime());
         response.setUpdateTime(appPublishChannel.getUpdateTime());
-        response.setCreator(appPublishChannel.getCreator());
         return response;
     }
 

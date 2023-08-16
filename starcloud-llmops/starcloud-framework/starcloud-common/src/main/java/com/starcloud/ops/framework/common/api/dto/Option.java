@@ -3,8 +3,10 @@ package com.starcloud.ops.framework.common.api.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.io.Serializable;
+import java.util.Locale;
 
 /**
  * 一般下拉框时使用
@@ -49,6 +51,40 @@ public class Option implements Serializable {
         Option option = new Option();
         option.setLabel(label);
         option.setValue(value);
+        return option;
+    }
+
+    /**
+     * 创建一个选项
+     *
+     * @param code    选项值
+     * @param label   选项中文名
+     * @param labelEn 选项英文名
+     * @return Option 对象
+     */
+    public static Option of(Object code, String label, String labelEn) {
+        return of(code, label, labelEn, null);
+    }
+
+    /**
+     * 创建一个选项
+     *
+     * @param code        选项值
+     * @param label       选项中文名
+     * @param labelEn     选项英文名
+     * @param description 选项描述
+     * @return Option 对象
+     */
+    public static Option of(Object code, String label, String labelEn, String description) {
+        Option option = new Option();
+        option.setValue(code);
+        Locale locale = LocaleContextHolder.getLocale();
+        if (Locale.CHINA.equals(locale)) {
+            option.setLabel(label);
+        } else {
+            option.setLabel(labelEn);
+        }
+        option.setDescription(description);
         return option;
     }
 
