@@ -25,11 +25,36 @@ import java.util.function.Function;
 @Data
 public class HandlerSkill extends BaseSkillEntity {
 
+    private SkillTypeEnum type = SkillTypeEnum.HANDLER;
+
+
     private BaseHandler handler;
 
     public HandlerSkill(BaseHandler baseHandler) {
         this.handler = baseHandler;
     }
+
+
+    @Override
+    public String getName() {
+        return this.handler.getName();
+    }
+
+    @Override
+    public String getDesc() {
+        return this.handler.getDescription();
+    }
+
+    @Override
+    public String getUserName() {
+        return this.handler.getUserName();
+    }
+
+    @Override
+    public String getUserDesc() {
+        return this.handler.getUserDescription();
+    }
+
 
     @Override
     public JsonNode getInputSchemas() {
@@ -59,6 +84,8 @@ public class HandlerSkill extends BaseSkillEntity {
             handlerContext.setRequest(input);
 
             HandlerResponse handlerResponse = this.handler.execute(handlerContext);
+
+            //@todo 这里可增加 扣权益记录
 
             return handlerResponse.toJsonOutput();
         };

@@ -6,7 +6,9 @@ public enum SkillTypeEnum {
 
     WORKFLOW("workflow"),
 
-    GPT_PLUGIN("gpt_plugin");
+    GPT_PLUGIN("gpt_plugin"),
+
+    HANDLER("handler");
 
     private String desc;
 

@@ -21,6 +21,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GoogleSearchHandler extends BaseHandler<GoogleSearchHandler.Request, GoogleSearchHandler.Response> {
 
+    private String userName = "互联网搜索";
+
+    private String userDescription = "可以自动联网查询实时信息，保证内容实时准确";
+
     private String name = "GoogleSearchHandler";
 
     private String description = "A search engine. Useful for when you need to answer questions about current events. Input should be a search query.";

@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 页面内容爬取，并创建对应索引和总结
+ * 页面内容,网络文件内容爬取，并创建对应索引和总结
  *
  * @author nacoyer
  * @version 1.0.0
@@ -36,6 +36,10 @@ import java.util.Optional;
 public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Request, WebSearch2DocHandler.Response> {
 
     private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
+
+    private String userName = "页面文档分析";
+
+    private String userDescription = "可访问网络上公开的网页，文档内容。可基于内容完成摘要，问答等。仅支持10M以内文档，不支持扫描件";
 
     private String name = "WebSearch2DocHandler";
 
@@ -69,6 +73,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
         SplitRule splitRule = new SplitRule();
         splitRule.setAutomatic(true);
+        splitRule.setRemoveExtraSpaces(true);
         uploadUrlReqVO.setSplitRule(splitRule);
 
         List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);

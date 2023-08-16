@@ -1,12 +1,15 @@
 package com.starcloud.ops.business.share.controller.app;
 
+import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatSkillVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.ChatService;
+import com.starcloud.ops.business.app.service.chat.ChatSkillService;
 import com.starcloud.ops.business.share.controller.app.vo.ChatReq;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
 import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
@@ -20,6 +23,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  * 应用执行
@@ -32,6 +36,9 @@ import javax.servlet.http.HttpServletResponse;
 @RequestMapping("/s/chat")
 @Tag(name = "魔法AI-分享聊天")
 public class ChatShareController {
+
+    @Autowired
+    private ChatSkillService chatSkillService;
 
     @Autowired
     private ChatService chatService;
@@ -69,4 +76,13 @@ public class ChatShareController {
         return emitter;
     }
 
+
+    @Operation(summary = "聊天上下文技能列表")
+    @GetMapping("/skill")
+    public CommonResult<List<ChatSkillVO>> chatSkill(@RequestParam(value = "appUid") String appUid) {
+
+        List<ChatSkillVO> chatSkillVOS = chatSkillService.chatSkill(appUid);
+
+        return CommonResult.success(chatSkillVOS);
+    }
 }

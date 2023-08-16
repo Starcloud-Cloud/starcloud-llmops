@@ -9,13 +9,13 @@ import lombok.NoArgsConstructor;
  * @todo 先直接让前端传，后面是走单独表去配置
  */
 @Data
-@Schema(description = "API类型技能配置")
+@Schema(description = "handler类型的技能配置")
 @NoArgsConstructor
-public class ApiSkillVO {
+public class HandlerSkillVO {
 
     @Schema(description = "开启")
     private Boolean enabled;
 
-
+    private String handler;
 
 }
