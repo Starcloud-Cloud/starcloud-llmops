@@ -11,6 +11,7 @@ import cn.iocoder.yudao.module.system.api.logger.LoginLogApi;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.api.oauth2.OAuth2TokenApi;
 import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +52,9 @@ public class EndUserServiceImpl {
 
     /**
      * 网页登录
+     * 1,js
+     * 2,iframe
+     * 3,单页面分析
      *
      * @param endUserCode
      * @return
@@ -61,7 +65,7 @@ public class EndUserServiceImpl {
         MemberUserDO user = memberUserMapper.selectByMobile(endUserCode);
 
         if (user == null) {
-            user = createUser(endUserCode);
+            user = createUser(endUserCode, AppSceneEnum.SHARE_WEB);
         } else {
             log.info("webLogin user: {}", user.getId());
         }
@@ -71,7 +75,29 @@ public class EndUserServiceImpl {
 
 
     /**
-     * 微信登录
+     * 微信账户登录 openId
+     * 1，微信公共号
+     *
+     * @param openId
+     * @return
+     */
+    public String weMpLogin(String openId) {
+
+        // 用户已经存在
+        MemberUserDO user = memberUserMapper.selectByMobile(openId);
+
+        if (user == null) {
+            user = createUser(openId, AppSceneEnum.MP);
+        } else {
+            log.info("weChatLogin user: {}", user.getId());
+        }
+
+        return String.valueOf(user.getId());
+    }
+
+    /**
+     * 企业微信，微信用户名md5登录
+     * 1，微信群聊天
      *
      * @param userCode
      * @return
@@ -82,7 +108,7 @@ public class EndUserServiceImpl {
         MemberUserDO user = memberUserMapper.selectByMobile(userCode);
 
         if (user == null) {
-            user = createUser(userCode);
+            user = createUser(userCode, AppSceneEnum.WECOM_GROUP);
         } else {
             log.info("weChatLogin user: {}", user.getId());
         }
@@ -103,7 +129,7 @@ public class EndUserServiceImpl {
         MemberUserDO user = memberUserMapper.selectByMobile(userCode);
 
         if (user == null) {
-            user = createUser(userCode);
+            user = createUser(userCode, null);
         } else {
             log.info("ddLogin user: {}", user.getId());
         }
@@ -123,7 +149,7 @@ public class EndUserServiceImpl {
         MemberUserDO user = memberUserMapper.selectByMobile(userCode);
 
         if (user == null) {
-            user = createUser(userCode);
+            user = createUser(userCode, null);
         } else {
             log.info("dyLogin user: {}", user.getId());
         }
@@ -133,13 +159,13 @@ public class EndUserServiceImpl {
 
 
     @Transactional
-    protected MemberUserDO createUser(String endUserCode) {
+    protected MemberUserDO createUser(String endUserCode, AppSceneEnum appScene) {
 
         // 校验验证码
         String userIp = getClientIP();
 
         // 用户不存在，则进行创建
-        MemberUserDO user = userService.createUser(endUserCode, userIp);
+        MemberUserDO user = userService.createUser(endUserCode, appScene.name(), userIp);
         // 插入登陆日志
         createLoginLog(user.getId(), endUserCode, 106, LoginResultEnum.SUCCESS);
 

@@ -42,14 +42,9 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     SHARE_API(6, "SHARE_API"),
 
     /**
-     * 聊天测试场景
+     * 聊天测试场景, 调试用，现在还没用
      */
     CHAT_TEST(7, "CHAT_TEST"),
-
-    /**
-     * chat 场景
-     */
-    CHAT(8, "CHAT"),
 
     /**
      * 图片场景
@@ -59,13 +54,17 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 系统总结场景
      */
-
-    SYSTEM_SUMMARY(10,"SYSTEM_SUMMARY"),
+    SYSTEM_SUMMARY(10, "SYSTEM_SUMMARY"),
 
     /**
      * 企业微信群
      */
-    WECOM_GROUP(11,"WECOM_GROUP");
+    WECOM_GROUP(11, "WECOM_GROUP"),
+
+    /**
+     * 微信公共号
+     */
+    MP(12, "MP");
 
     /**
      * 应用类型Code
