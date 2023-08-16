@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.request.config.skill.ApiSkillVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.skill.AppWorkflowSkillVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.skill.GptPluginSkillVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -67,22 +68,26 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     @Schema(description = "联网")
     private WebSearchConfigReqVO webSearchConfig;
 
-    @Schema(description = "挂载的技能")
-    private List<GptPluginSkillVO> skillConfig;
+
+    @Schema(description = "系统技能")
+    private List<HandlerSkillVO> handlerSkills;
 
     /**
      * 挂载的 gpt插件技能列表
      */
+    @Schema(description = "GPT插件技能")
     private List<GptPluginSkillVO> gptPluginSkills;
 
     /**
      * 挂载的 API技能列表
      */
+    @Schema(description = "API技能")
     private List<ApiSkillVO> apiSkills;
 
     /**
      * 挂载的 应用技能列表
      */
+    @Schema(description = "AI应用技能")
     private List<AppWorkflowSkillVO> appWorkflowSkills;
 
 }

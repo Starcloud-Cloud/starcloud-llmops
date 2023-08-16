@@ -32,7 +32,7 @@ public abstract class BaseSingleActionAgent {
     public AgentFinish returnStoppedResponse(String earlyStoppingMethod, List<AgentAction> intermediateSteps, List<BaseVariable> variables) {
 
         Assert.equals("force", earlyStoppingMethod, "Got unsupported early_stopping_method " + earlyStoppingMethod);
-        return new AgentFinish("Agent stopped due to iteration limit or time limit.", "");
+        return AgentFinish.error("Agent stopped due to iteration limit or time limit.");
     }
 //
 //    public static BaseSingleActionAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools, BaseCallbackManager callbackManager, List<BaseMessagePromptTemplate> extraPromptMessages, SystemMessage systemMessage) {

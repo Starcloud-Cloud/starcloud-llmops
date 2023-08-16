@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  * @todo 先直接让前端传，后面是走单独表去配置
  */
 @Data
-@Schema(description = "技能配置")
+@Schema(description = "应用类型的技能配置")
 @NoArgsConstructor
 public class AppWorkflowSkillVO {
 

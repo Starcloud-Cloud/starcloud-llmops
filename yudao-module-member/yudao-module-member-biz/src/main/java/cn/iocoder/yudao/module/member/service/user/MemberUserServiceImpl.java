@@ -72,9 +72,15 @@ public class MemberUserServiceImpl implements MemberUserService {
 
     public MemberUserDO createUser(String mobile, String registerIp) {
         // 生成密码
+        return this.createUser(mobile, "", registerIp);
+    }
+
+    public MemberUserDO createUser(String mobile, String avatar, String registerIp) {
+        // 生成密码
         String password = IdUtil.fastSimpleUUID();
         // 插入用户
         MemberUserDO user = new MemberUserDO();
+        user.setAvatar(avatar);
         user.setMobile(mobile);
         user.setStatus(CommonStatusEnum.ENABLE.getStatus()); // 默认开启
         user.setPassword(encodePassword(password)); // 加密密码
@@ -103,7 +109,7 @@ public class MemberUserServiceImpl implements MemberUserService {
     public void updateUserNickname(Long userId, String nickname) {
         MemberUserDO user = this.checkUserExists(userId);
         // 仅当新昵称不等于旧昵称时进行修改
-        if (nickname.equals(user.getNickname())){
+        if (nickname.equals(user.getNickname())) {
             return;
         }
         MemberUserDO userDO = new MemberUserDO();

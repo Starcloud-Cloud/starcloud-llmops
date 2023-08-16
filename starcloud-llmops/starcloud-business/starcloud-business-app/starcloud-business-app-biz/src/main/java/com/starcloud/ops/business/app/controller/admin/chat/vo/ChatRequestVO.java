@@ -34,7 +34,16 @@ public class ChatRequestVO extends AppContextReqVO {
      */
     private JsonData jsonParams;
 
-    @Schema(description = "临时上传都索引文档")
+    /**
+     * 临时上传的文档，默认上传到应用+会话对应的数据集中
+     */
+    @Schema(description = "上传后的文档ID")
     private List<String> docsUid;
+
+    /**
+     * 临时激活的插件信息，需要机器人本身配置了技能并开启情况下才生效
+     */
+    @Schema(description = "临时激活的插件")
+    private List<ChatSkillVO> chatSkills;
 
 }

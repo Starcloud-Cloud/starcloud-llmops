@@ -47,14 +47,18 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
+import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutorResponse;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
+import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
+import com.starcloud.ops.llm.langchain.core.memory.BaseMemory;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
@@ -286,19 +290,23 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
                 || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()))) {
 
-            AgentExecutor agentExecutor = buildLLmTools(request, history, chatConfig, chatPromptTemplate, emitter);
+            AgentExecutor agentExecutor = buildLLmTools(request, maxToken, history, chatConfig, chatPromptTemplate, emitter);
 
-            String response = agentExecutor.run(request.getQuery());
-            Map result = JSONUtil.toBean(response, Map.class);
+            AgentExecutorResponse agentExecutorResponse = agentExecutor.call(Arrays.asList(BaseVariable.newString("input", request.getQuery())));
 
-            log.info("agentExecutor run result: {}", result);
+            log.info("agentExecutor run result: {}", agentExecutorResponse);
+
+            //扣费，记录 tool 调用日志
+
 
             //GPT 在做次总结
 
             //@todo  生成 message
 
+            //记录返回日志
+
             //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
-            return JsonData.of(result.getOrDefault("output", ""));
+            return JsonData.of(agentExecutorResponse.getOutput());
 
         } else {
 
@@ -418,7 +426,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         chatOpenAi.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
 //        ConversationBufferMemory memory = new ConversationBufferMemory();
-        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel(),request.getUserId().toString());
+        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel(), request.getUserId().toString());
 
 //        memory.setChatHistory(history);
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = new LLMChain<>(chatOpenAi, chatPromptTemplate);
@@ -426,7 +434,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         return llmChain;
     }
 
-    private AgentExecutor buildLLmTools(ChatRequestVO request, ChatMessageHistory history,
+    private AgentExecutor buildLLmTools(ChatRequestVO request, int maxTokens, ChatMessageHistory history,
                                         ChatConfigEntity chatConfig,
                                         ChatPromptTemplate chatPromptTemplate,
                                         SseEmitter emitter) {
@@ -436,10 +444,18 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         //gpt-3.5-turbo-0613, gpt-4-0613
         chatOpenAI.setModel("gpt-4-0613");
         chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter, request.getConversationUid()));
-        ConversationBufferMemory memory = new ConversationBufferMemory();
-        if (history != null) {
-            memory.setChatHistory(history);
+
+        BaseChatMemory memory = null;
+        //@todo 验证测试对话历史
+        if (1 == 1) {
+            memory = new ConversationBufferMemory();
+            if (history != null) {
+                memory.setChatHistory(history);
+            }
+        } else {
+            memory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel(), request.getUserId().toString());
         }
+
 
         List<BaseTool> tools = this.loadLLMTools(request, chatConfig, emitter);
 

@@ -89,6 +89,9 @@ public class HandlerResponse<R> {
 
 
     public String toJsonOutput() {
+        if (this.getOutput() == null) {
+            return "";
+        }
         return JSONUtil.toJsonStr(this.getOutput());
     }
 

@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatSkillVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
@@ -14,6 +15,7 @@ import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.business.app.service.chat.ChatSkillService;
 import com.starcloud.ops.business.share.controller.app.vo.ChatReq;
 import com.starcloud.ops.business.share.service.ChatShareService;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
@@ -31,6 +33,7 @@ import javax.annotation.security.PermitAll;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  * 应用执行
@@ -43,6 +46,9 @@ import javax.servlet.http.HttpServletResponse;
 @RequestMapping("/share/chat")
 @Tag(name = "魔法AI-分享聊天")
 public class ChatShareController {
+
+    @Autowired
+    private ChatSkillService chatSkillService;
 
     @Autowired
     private EndUserServiceImpl endUserService;
@@ -97,4 +103,13 @@ public class ChatShareController {
         return emitter;
     }
 
+
+    @Operation(summary = "聊天上下文技能列表")
+    @GetMapping("/skill")
+    public CommonResult<List<ChatSkillVO>> chatSkill(@RequestParam(value = "appUid") String appUid) {
+
+        List<ChatSkillVO> chatSkillVOS = chatSkillService.chatSkill(appUid);
+
+        return CommonResult.success(chatSkillVOS);
+    }
 }

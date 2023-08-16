@@ -1,10 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
+import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
 import com.starcloud.ops.business.app.domain.entity.config.*;
-import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
-import com.starcloud.ops.business.app.domain.entity.skill.GptPluginSkill;
+import com.starcloud.ops.business.app.domain.entity.skill.*;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,6 +39,11 @@ public class ChatConfigEntity extends BaseConfigEntity {
     private AudioConfigEntity audioConfig;
 
     private DescriptionEnity description;
+
+    /**
+     * 挂载的 gpt插件技能列表
+     */
+    private List<HandlerSkill> handlerSkills;
 
     /**
      * 挂载的 gpt插件技能列表

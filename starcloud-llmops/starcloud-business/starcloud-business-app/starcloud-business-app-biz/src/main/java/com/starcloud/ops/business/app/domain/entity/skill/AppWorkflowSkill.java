@@ -39,6 +39,27 @@ public class AppWorkflowSkill extends BaseSkillEntity {
 
     private String skillAppUid;
 
+    @JsonIgnore
+    private AppEntity app;
+
+    /**
+     * 获取当前聊天配置的 其他名称和描述
+     *
+     * @return
+     */
+    @Override
+    public String getName() {
+        AppEntity app = this.getMyApp(this.skillAppUid);
+
+        return app.getName();
+    }
+
+    @Override
+    public String getDesc() {
+        AppEntity app = this.getMyApp(this.skillAppUid);
+        return app.getDescription();
+    }
+
 
     @JsonIgnore
     @Override
@@ -191,9 +212,10 @@ public class AppWorkflowSkill extends BaseSkillEntity {
      * @return
      */
     private AppEntity getMyApp(String appUid) {
-        AppEntity app = AppFactory.factoryApp(appUid);
-
-        return app;
+        if (this.app == null) {
+            this.app = AppFactory.factoryApp(appUid);
+        }
+        return this.app;
     }
 
 }

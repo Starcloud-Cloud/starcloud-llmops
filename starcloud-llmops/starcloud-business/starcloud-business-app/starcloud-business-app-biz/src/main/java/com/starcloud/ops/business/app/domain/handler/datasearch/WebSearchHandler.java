@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * @version 1.0.0
  * @since 2023-05-31
  */
+@Deprecated
 @Data
 @Slf4j
 public class WebSearchHandler extends BaseHandler<WebSearchHandler.Request, String> {

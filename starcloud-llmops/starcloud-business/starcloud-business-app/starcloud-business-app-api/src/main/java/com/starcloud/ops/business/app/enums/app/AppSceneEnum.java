@@ -25,7 +25,36 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 应用市场场景入口
      */
+<<<<<<< HEAD
+    WEB_MARKET(2, "WEB_MARKET"),
+
+    /**
+     * 分享页面场景入口
+     */
+    SHARE_WEB(3, "SHARE_WEB"),
+
+    /**
+     * iframe场景入口
+     */
+    SHARE_IFRAME(4, "SHARE_IFRAME"),
+
+    /**
+     * js页面场景入口
+     */
+    SHARE_JS(5, "SHARE_JS"),
+
+    /**
+     * API场景入口
+     */
+    SHARE_API(6, "SHARE_API"),
+
+    /**
+     * 聊天测试场景, 调试用，现在还没用
+     */
+    CHAT_TEST(7, "CHAT_TEST"),
+=======
     WEB_MARKET(2, "应用市场", "Application Market"),
+>>>>>>> 5303c06395c7f3367d126c874d3899042da43740
 
     /**
      * 图片场景
@@ -70,8 +99,22 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 系统总结场景
      */
+<<<<<<< HEAD
+    SYSTEM_SUMMARY(10, "SYSTEM_SUMMARY"),
+
+    /**
+     * 企业微信群
+     */
+    WECOM_GROUP(11, "WECOM_GROUP"),
+
+    /**
+     * 微信公共号
+     */
+    MP(12, "MP");
+=======
 
     SYSTEM_SUMMARY(11, "系统总结", "System Summary");
+>>>>>>> 5303c06395c7f3367d126c874d3899042da43740
 
     /**
      * 应用类型Code

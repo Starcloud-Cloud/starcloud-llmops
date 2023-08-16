@@ -40,13 +40,12 @@ public abstract class BaseTool<Q, R> {
         R result = null;
 
         try {
-
-
             //@todo input if JsonNode
 
             if (this instanceof FunTool) {
                 Class<Q> qq = (Class<Q>) ((FunTool) this).getInputCls();
                 result = this._run(input);
+
             } else {
 
                 Type query = TypeUtil.getTypeArgument(this.getClass());
