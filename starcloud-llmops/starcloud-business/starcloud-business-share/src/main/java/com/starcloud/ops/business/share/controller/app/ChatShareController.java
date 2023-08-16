@@ -90,7 +90,7 @@ public class ChatShareController {
         response.setHeader("Cache-Control", "no-cache, no-transform");
         response.setHeader("X-Accel-Buffering", "no");
         upfSId = EndUserCodeUtil.parseUserCodeAndSaveCookie(upfSId, request, response);
-        endUserService.webLogin(upfSId);
+        String endUserId = endUserService.webLogin(upfSId);
         if (StringUtils.isBlank(conversationUid)) {
             conversationUid = IdUtil.fastSimpleUUID();
             Cookie cookie = new Cookie("conversationUid", conversationUid);
@@ -101,7 +101,7 @@ public class ChatShareController {
 
         SseEmitter emitter = new SseEmitter(60000L);
         chatRequestVO.setSseEmitter(emitter);
-        chatRequestVO.setEndUser(upfSId);
+        chatRequestVO.setEndUser(endUserId);
         chatShareService.shareChat(chatRequestVO);
         return emitter;
     }

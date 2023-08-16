@@ -58,10 +58,10 @@ public class WecomChatServiceImpl implements WecomChatService {
         chatRequestVO.setAppUid(channelRespVO.getAppUid());
         chatRequestVO.setQuery(reqVO.getSpoken());
         chatRequestVO.setScene(AppSceneEnum.WECOM_GROUP.name());
-        chatRequestVO.setEndUser(userNameMd5);
+        String endUserId = endUserService.weChatLogin(userNameMd5);
+        chatRequestVO.setEndUser(endUserId);
         chatRequestVO.setConversationUid(userNameMd5);
         String robotId = RobotContextHolder.getRobotId();
-        endUserService.weChatLogin(userNameMd5);
         threadWithContext.asyncExecute(() -> {
             try {
                 TenantContextHolder.setIgnore(true);
