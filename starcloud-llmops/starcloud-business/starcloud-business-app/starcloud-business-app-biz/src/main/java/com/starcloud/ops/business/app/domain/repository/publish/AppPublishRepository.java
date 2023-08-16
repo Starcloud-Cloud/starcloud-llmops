@@ -3,11 +3,15 @@ package com.starcloud.ops.business.app.domain.repository.publish;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.dal.mysql.channel.AppPublishChannelMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
@@ -53,4 +57,18 @@ public class AppPublishRepository {
         AppValidate.notNull(appPublishDO, ErrorCodeConstants.APP_PUBLISH_APP_INFO_NOT_FOUND, publishUid);
         return appPublishDO;
     }
+
+    public ChatAppEntity getChatEntityByMediumUid(String mediumUid) {
+        AppPublishChannelDO appPublishChannelDO = appPublishChannelMapper.getByMediumUid(mediumUid);
+        AppValidate.notNull(appPublishChannelDO, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, mediumUid);
+        AppPublishDO appPublishDO = appPublishMapper.get(appPublishChannelDO.getPublishUid(), Boolean.FALSE);
+        AppValidate.notNull(appPublishDO, ErrorCodeConstants.APP_PUBLISH_APP_INFO_NOT_FOUND, appPublishChannelDO.getPublishUid());
+        if (StringUtils.isBlank(appPublishDO.getAppInfo())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
+        }
+        AppDO appDO = JSONUtil.toBean(appPublishDO.getAppInfo(), AppDO.class);
+        BaseAppEntity entity = AppConvert.INSTANCE.convert(appDO, false);
+        return (ChatAppEntity) entity;
+    }
+
 }
