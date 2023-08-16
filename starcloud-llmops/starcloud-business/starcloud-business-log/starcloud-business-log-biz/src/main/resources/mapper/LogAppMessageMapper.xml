@@ -72,10 +72,10 @@
             <if test="query.startTime != null and query.endTime != null">
                 AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
-            <if test="query.type != null and query.type == 'GENERATE_RECORD' and (query.appMode == null or query.appMode == '') and query.appModeList != null and query.appModeList.size() > 0">
-                AND ms.app_mode IN
-                <foreach collection="query.appModeList" item="appModeItem" open="(" separator="," close=")">
-                    #{appModeItem}
+            <if test="query.type != null and query.type == 'GENERATE_RECORD' and (query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
+                AND ms.from_scene IN
+                <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
+                    #{item}
                 </foreach>
             </if>
         </where>

@@ -113,7 +113,7 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     public List<LogAppMessageStatisticsListVO> appMessageStatisticsList(LogAppMessageStatisticsListReqVO query) {
-        query.setAppModeList(getAppModeList(query.getType()));
+        query.setFromSceneList(getFromSceneList(query.getType()));
         List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.getAppMessageStatisticsList(query);
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
@@ -126,7 +126,7 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     public PageResult<LogAppConversationInfoRespVO> appConversationPage(LogAppConversationInfoPageReqVO query) {
-        query.setAppModeList(getAppModeList(query.getType()));
+        query.setFromSceneList(getFromSceneList(query.getType()));
         PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.getAppConversationInfoPage(query);
         PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
         List<LogAppConversationInfoRespVO> list = result.getList();
@@ -372,7 +372,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @param type 类型
      * @return 应用模型列表
      */
-    private List<String> getAppModeList(String type) {
+    private List<String> getFromSceneList(String type) {
         if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
             String permission = DataPermissionUtils.getDeptDataPermission();
             if (!DataPermissionUtils.ALL.equals(permission)) {

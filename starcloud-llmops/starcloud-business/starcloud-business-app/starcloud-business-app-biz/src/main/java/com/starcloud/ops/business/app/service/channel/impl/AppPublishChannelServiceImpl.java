@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -65,6 +66,18 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     public List<AppPublishChannelRespVO> listByAppUid(String appUid) {
         List<AppPublishChannelDO> publishChannelList = appPublishChannelMapper.listByAppUid(appUid);
         return CollectionUtil.emptyIfNull(publishChannelList).stream().map(AppPublishChannelConverter.INSTANCE::convert).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据应用 UID 获取发布渠道 Map
+     *
+     * @param appUid 应用 UID
+     * @return 分组后的发布渠道 Map
+     */
+    @Override
+    public Map<Integer, List<AppPublishChannelRespVO>> mapByAppUidGroupByType(String appUid) {
+        List<AppPublishChannelRespVO> list = this.listByAppUid(appUid);
+        return null;
     }
 
     /**

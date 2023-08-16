@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelSt
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用发布渠道服务
@@ -25,6 +26,14 @@ public interface AppPublishChannelService {
      * @return {@link List<AppPublishChannelRespVO>}
      */
     List<AppPublishChannelRespVO> listByAppUid(String appUid);
+
+    /**
+     * 根据应用 UID 获取发布渠道 Map
+     *
+     * @param appUid 应用 UID
+     * @return {@link Map<Integer, List<AppPublishChannelRespVO>>}
+     */
+    Map<Integer, List<AppPublishChannelRespVO>> mapByAppUidGroupByType(String appUid);
 
     /**
      * 根据 Uid 获取发布渠道详情
