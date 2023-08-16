@@ -13,24 +13,40 @@ import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.log.api.LogAppApi;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import com.starcloud.ops.business.log.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.log.enums.LogQueryTypeEnum;
+import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -44,6 +60,9 @@ import java.util.stream.Collectors;
 public class AppLogServiceImpl implements AppLogService {
 
     @Resource
+    private LogAppApi logAppApi;
+
+    @Resource
     private LogAppMessageService logAppMessageService;
 
     @Resource
@@ -54,6 +73,71 @@ public class AppLogServiceImpl implements AppLogService {
 
     @Resource
     private ChatService chatService;
+
+    /**
+     * 日志元数据
+     *
+     * @param type 类型
+     * @return 日志元数据
+     */
+    @Override
+    public Map<String, List<Option>> logMetaData(String type) {
+
+        Map<String, List<Option>> logMetaMap = new HashMap<>(4);
+        // 时间类型
+        logMetaMap.put("timeType", LogTimeTypeEnum.getOptions());
+        // 模型类型
+        logMetaMap.put("appMode", AppModelEnum.getOptions());
+        // 场景类型
+        logMetaMap.put("appScene", getSceneOptions(type));
+
+        return logMetaMap;
+    }
+
+    /**
+     * 获取应用执行日志消息
+     *
+     * @param appMessageUid 应用执行日志uid
+     * @return 应用执行日志列表
+     */
+    @Override
+    public LogAppMessageInfoRespVO getAppMessageResult(String appMessageUid) {
+        return logAppApi.getAppMessageResult(appMessageUid);
+    }
+
+    /**
+     * 获取应用执行日志消息统计数据
+     *
+     * @param query 查询条件
+     * @return 日志消息统计数据
+     */
+    @Override
+    public List<LogAppMessageStatisticsListVO> appMessageStatisticsList(LogAppMessageStatisticsListReqVO query) {
+
+        query.setAppModeList(getAppModeList(query.getType()));
+
+        List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.getAppMessageStatisticsList(query);
+        return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
+    }
+
+    /**
+     * 分页查询应用执行日志会话数据
+     *
+     * @param query 查询条件
+     * @return 应用执行日志会话数据
+     */
+    @Override
+    public PageResult<LogAppConversationInfoRespVO> appConversationPage(LogAppConversationInfoPageReqVO query) {
+        query.setAppModeList(getAppModeList(query.getType()));
+        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.getAppConversationInfoPage(query);
+        PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
+        List<LogAppConversationInfoRespVO> list = result.getList();
+        List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
+                .peek(item -> item.setAppExecutor(DataPermissionUtils.identify(item.getCreator(), item.getEndUser())))
+                .collect(Collectors.toList());
+        result.setList(collect);
+        return null;
+    }
 
     /**
      * 获取文本生成消息详情
@@ -255,5 +339,48 @@ public class AppLogServiceImpl implements AppLogService {
         }
 
         return appRespVO;
+    }
+
+    /**
+     * 获取场景列表
+     *
+     * @param type 类型
+     * @return 场景列表
+     */
+    private List<Option> getSceneOptions(String type) {
+        // 生成记录
+        if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
+            String permission = DataPermissionUtils.getDeptDataPermission();
+            if (DataPermissionUtils.ALL.equals(permission)) {
+                return AppSceneEnum.getOptions();
+            } else {
+                return AppSceneEnum.getOptions(AppSceneEnum.GENERATE_RECORD_BASE_SCENES);
+            }
+        }
+        // 应用分析
+        if (LogQueryTypeEnum.APP_ANALYSIS.name().equals(type)) {
+            return AppSceneEnum.getOptions(AppSceneEnum.APP_ANALYSIS_SCENES);
+        }
+        // 聊天分析
+        if (LogQueryTypeEnum.CHAT_ANALYSIS.name().equals(type)) {
+            return AppSceneEnum.getOptions(AppSceneEnum.CHAT_ANALYSIS_SCENES);
+        }
+        throw ServiceExceptionUtil.exception(new ErrorCode(1000001, "type 不支持"));
+    }
+
+    /**
+     * 获取应用模型列表
+     *
+     * @param type 类型
+     * @return 应用模型列表
+     */
+    private List<String> getAppModeList(String type) {
+        if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
+            String permission = DataPermissionUtils.getDeptDataPermission();
+            if (!DataPermissionUtils.ALL.equals(permission)) {
+                return AppSceneEnum.GENERATE_RECORD_BASE_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
+            }
+        }
+        return null;
     }
 }

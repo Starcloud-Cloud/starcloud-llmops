@@ -61,23 +61,10 @@ public class DataPermissionUtils {
      */
     public static String getUsername(String userId) {
 
-        if (StringUtils.isBlank(userId)) {
-            return "用户";
+        AdminUserDO user = ADMIN_USER_SERVICE.getUser(Long.valueOf(userId));
+        if (Objects.nonNull(user)) {
+            return user.getNickname();
         }
-
-        String permission = getDeptDataPermission();
-        if (SELF.equals(permission)) {
-            return "用户";
-        }
-
-        if (ALL.equals(permission)) {
-            AdminUserDO user = ADMIN_USER_SERVICE.getUser(Long.valueOf(userId));
-            if (Objects.nonNull(user)) {
-                return user.getNickname();
-            }
-        }
-
-        // TODO 部门权限
 
         return "用户";
     }

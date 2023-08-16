@@ -115,9 +115,9 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
      * 分页查询会话统计列表
      *
      * @param page  分页参数
-     * @param reqVO 查询参数
+     * @param query 查询参数
      * @return 会话统计列表
      */
-    IPage<LogAppConversationInfoPO> selectSqlPage(IPage<LogAppConversationDO> page, @Param("req") LogAppConversationInfoPageReqVO reqVO);
+    IPage<LogAppConversationInfoPO> selectSqlPage(IPage<LogAppConversationDO> page, @Param("query") LogAppConversationInfoPageReqVO query);
 
 }
