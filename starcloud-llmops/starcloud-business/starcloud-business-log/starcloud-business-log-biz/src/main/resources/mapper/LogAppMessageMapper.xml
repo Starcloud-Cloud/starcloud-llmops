@@ -72,6 +72,12 @@
             <if test="req.startTime != null and req.endTime != null">
                 AND ms.create_time between #{req.startTime} and #{req.endTime}
             </if>
+            <if test="req.type != null and req.type == 'GENERATE_RECORD' and (req.appMode == null or req.appMode == '') and req.appModeList != null and req.appModeList.size() > 0">
+                AND app_mode IN
+                <foreach collection="req.appModeList" item="req.appModeItem" open="(" separator="," close=")">
+                    #{req.appModeItem}
+                </foreach>
+            </if>
         </where>
         <if test="req.unit == 'HOURS'">
             GROUP BY date_format(ms.create_time, '%Y-%m-%d %h')

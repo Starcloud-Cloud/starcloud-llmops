@@ -80,6 +80,7 @@ public class LogAppConversationInfoPageReqVO extends PageParam {
     /**
      * 应用模型列表
      */
+    @Schema(hidden = true)
     private List<String> appModeList;
 
     /**

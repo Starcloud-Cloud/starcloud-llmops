@@ -25,96 +25,49 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 应用市场场景入口
      */
-<<<<<<< HEAD
-    WEB_MARKET(2, "WEB_MARKET"),
+    WEB_MARKET(2, "应用市场", "Application Market"),
+
+    /**
+     * 图片应用场景入口
+     */
+    WEB_IMAGE(3, "AI作图", "AI Draw"),
 
     /**
      * 分享页面场景入口
      */
-    SHARE_WEB(3, "SHARE_WEB"),
+    SHARE_WEB(4, "页面分享", "Page Share"),
 
     /**
      * iframe场景入口
      */
-    SHARE_IFRAME(4, "SHARE_IFRAME"),
+    SHARE_IFRAME(5, "IFrame分享", "IFrame Share"),
 
     /**
      * js页面场景入口
      */
-    SHARE_JS(5, "SHARE_JS"),
+    SHARE_JS(6, "JS分享", "JS Share"),
 
     /**
      * API场景入口
      */
-    SHARE_API(6, "SHARE_API"),
+    SHARE_API(7, "API调用", "API Call"),
 
     /**
      * 聊天测试场景, 调试用，现在还没用
      */
-    CHAT_TEST(7, "CHAT_TEST"),
-=======
-    WEB_MARKET(2, "应用市场", "Application Market"),
->>>>>>> 5303c06395c7f3367d126c874d3899042da43740
-
-    /**
-     * 图片场景
-     */
-    IMAGE(3, "AI作图", "AI Drawing"),
-
-    /**
-     * chat 场景
-     */
-    CHAT(2, "聊天", "Chat"),
-
-    /**
-     * 聊天测试场景
-     */
-    CHAT_TEST(5, "聊天测试", "Chat Test"),
-
-    /**
-     * 分享页面场景入口
-     */
-    SHARE_WEB(6, "页面分享", "Page Share"),
-
-    /**
-     * iframe场景入口
-     */
-    SHARE_IFRAME(7, "Iframe嵌入", "Iframe Embed"),
-
-    /**
-     * js页面场景入口
-     */
-    SHARE_JS(8, "JS嵌入", "JS Embed"),
-
-    /**
-     * API场景入口
-     */
-    SHARE_API(9, "API调用", "API Call"),
+    CHAT_TEST(8, "聊天测试", "Chat Test"),
 
     /**
      * 企业微信群
      */
-    WECOM_GROUP(10, "企业微信群", "WeCom Group"),
-
-    /**
-     * 系统总结场景
-     */
-<<<<<<< HEAD
-    SYSTEM_SUMMARY(10, "SYSTEM_SUMMARY"),
-
-    /**
-     * 企业微信群
-     */
-    WECOM_GROUP(11, "WECOM_GROUP"),
+    WECOM_GROUP(9, "企业微信群", "WeCom Group"),
 
     /**
      * 微信公共号
      */
-    MP(12, "MP");
-=======
+    MP(10, "微信公共号", "WeChat Public Account"),
 
-    SYSTEM_SUMMARY(11, "系统总结", "System Summary");
->>>>>>> 5303c06395c7f3367d126c874d3899042da43740
+    ;
 
     /**
      * 应用类型Code
@@ -137,7 +90,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     public static final List<AppSceneEnum> GENERATE_RECORD_BASE_SCENES = Arrays.asList(
             AppSceneEnum.WEB_ADMIN,
             AppSceneEnum.WEB_MARKET,
-            AppSceneEnum.IMAGE
+            AppSceneEnum.WEB_IMAGE
     );
 
     /**
@@ -156,13 +109,13 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     public static final List<AppSceneEnum> CHAT_ANALYSIS_SCENES = Arrays.asList(
             AppSceneEnum.WEB_ADMIN,
-            AppSceneEnum.CHAT,
-            AppSceneEnum.CHAT_TEST,
             AppSceneEnum.SHARE_WEB,
             AppSceneEnum.SHARE_IFRAME,
             AppSceneEnum.SHARE_JS,
             AppSceneEnum.SHARE_API,
-            AppSceneEnum.WECOM_GROUP
+            AppSceneEnum.WECOM_GROUP,
+            AppSceneEnum.MP,
+            AppSceneEnum.CHAT_TEST
     );
 
     /**

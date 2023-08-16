@@ -249,7 +249,7 @@ public class ImageServiceImpl implements ImageService {
         conversation.setStatus(LogStatusEnum.ERROR.name());
         conversation.setAppUid(fastConversationUid);
         conversation.setAppConfig(JSONUtil.toJsonStr(new ImageReqVO()));
-        conversation.setFromScene(AppSceneEnum.IMAGE.name());
+        conversation.setFromScene(AppSceneEnum.WEB_IMAGE.name());
         logAppConversationMapper.insert(conversation);
         return conversation;
     }

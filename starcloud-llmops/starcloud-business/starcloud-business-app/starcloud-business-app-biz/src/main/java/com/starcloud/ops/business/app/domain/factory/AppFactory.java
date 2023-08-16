@@ -168,7 +168,7 @@ public class AppFactory {
             imageAppEntity.setUid(appUid);
             imageAppEntity.setName("AI图片生成");
             imageAppEntity.setModel(AppModelEnum.BASE_GENERATE_IMAGE.name());
-            imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.IMAGE.name()));
+            imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.WEB_IMAGE.name()));
             imageAppEntity.setType(AppTypeEnum.MYSELF.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());
             imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));

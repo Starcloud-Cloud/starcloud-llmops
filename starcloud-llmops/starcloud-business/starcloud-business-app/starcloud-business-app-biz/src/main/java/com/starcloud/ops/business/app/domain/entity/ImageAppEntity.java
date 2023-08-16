@@ -261,7 +261,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
         messageRequest.setAnswerUnitPrice(new BigDecimal("0.0100"));
         messageRequest.setTotalPrice(new BigDecimal("0.0000"));
         messageRequest.setCurrency("USD");
-        messageRequest.setFromScene(AppSceneEnum.IMAGE.name());
+        messageRequest.setFromScene(AppSceneEnum.WEB_IMAGE.name());
         messageRequest.setEndUser(request.getEndUser());
     }
 }
