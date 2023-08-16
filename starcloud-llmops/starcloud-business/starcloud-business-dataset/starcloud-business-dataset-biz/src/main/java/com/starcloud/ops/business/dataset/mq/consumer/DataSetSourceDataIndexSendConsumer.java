@@ -41,6 +41,7 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
     protected void processBusinessLogic(DatasetSourceSendMessage message) {
 
         log.info("开始创建索引，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
+        int retryCount = message.getRetryCount();
         try {
             // 创建索引
             documentSegmentsService.indexDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()));
@@ -53,6 +54,7 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
             log.info("创建索引完成，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
         } catch (Exception e) {
             // 设置数据源状态
+            message.setRetryCount(++retryCount);
             message.setStatus(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
             message.setErrMsg(e.getMessage());
             log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", message.getUserId(), getTenantId(), message.getDatasetId(),message.getDataSourceId(),e.getMessage(),e);

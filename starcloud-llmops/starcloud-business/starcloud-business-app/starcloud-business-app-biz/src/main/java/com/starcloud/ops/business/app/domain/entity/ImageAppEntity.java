@@ -25,9 +25,9 @@ import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -127,8 +127,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
                 messageRequest.setErrorCode(Integer.toString(exception.getCode()));
-                // 截取异常信息，避免过长。450 个字符
-                messageRequest.setErrorMsg(getErrorMessage(exception.getMessage(), 450));
+                messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
             });
             throw exception;
         } catch (Exception exception) {
@@ -141,8 +140,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
                 messageRequest.setErrorCode(Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()));
-                // 截取异常信息，避免过长。450 个字符
-                messageRequest.setErrorMsg(getErrorMessage(exception.getMessage(), 450));
+                messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
             });
 
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
@@ -251,7 +249,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     private void buildAppMessageLog(LogAppMessageCreateReqVO messageRequest, ImageReqVO request, Long userId) {
         messageRequest.setAppConversationUid(request.getConversationUid());
-        messageRequest.setAppUid(request.getAppUid());
+        messageRequest.setAppUid(request.getConversationUid());
         messageRequest.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
         messageRequest.setAppConfig(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setAppStep("BASE_GENERATE_IMAGE");
@@ -263,25 +261,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
         messageRequest.setAnswerUnitPrice(new BigDecimal("0.0100"));
         messageRequest.setTotalPrice(new BigDecimal("0.0000"));
         messageRequest.setCurrency("USD");
-        messageRequest.setFromScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : request.getScene());
-        messageRequest.setEndUser(Long.toString(userId));
+        messageRequest.setFromScene(AppSceneEnum.IMAGE.name());
+        messageRequest.setEndUser(request.getEndUser());
     }
-
-    /**
-     * 获取错误信息, 截取字符串，如果 错误信息超过 length ，则截取
-     *
-     * @param errorMessage
-     * @return
-     */
-    private static String getErrorMessage(String errorMessage, int length) {
-        if (StringUtils.isBlank(errorMessage)) {
-            return "请联系管理员";
-        }
-        if (errorMessage.length() > length) {
-            return errorMessage.substring(0, length);
-        }
-        return errorMessage;
-    }
-
-
 }

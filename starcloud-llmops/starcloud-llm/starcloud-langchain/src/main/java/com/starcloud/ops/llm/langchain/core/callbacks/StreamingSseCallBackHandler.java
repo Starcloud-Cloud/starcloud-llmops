@@ -73,7 +73,8 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
         } else {
             emitter.send(new StreamResult(500, "[Other] Please try again later", conversationUid));
         }
-        emitter.complete();
+        // ResponseBodyEmitter has already completed
+        // emitter.complete();
 
     }
 

@@ -12,7 +12,6 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
@@ -436,18 +435,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         reqVO.setAppName(this.getName());
         reqVO.setAppMode(this.getModel());
         reqVO.setStatus(LogStatusEnum.ERROR.name());
-
         reqVO.setEndUser(req.getEndUser());
         reqVO.setCreator(String.valueOf(req.getUserId()));
         reqVO.setUpdater(String.valueOf(req.getUserId()));
         reqVO.setTenantId(this.getTenantId());
-
         reqVO.setFromScene(req.getScene());
-
         this._createAppConversationLog(req, reqVO);
-
         logAppConversationService.createAppConversation(reqVO);
-
         return reqVO.getUid();
     }
 
@@ -460,18 +454,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     protected LogAppMessageCreateReqVO createAppMessage(Consumer<LogAppMessageCreateReqVO> consumer) {
 
         LogAppMessageCreateReqVO messageCreateReqVO = new LogAppMessageCreateReqVO();
-
 //        messageCreateReqVO.setAppConversationUid(req.getConversationUid());
         messageCreateReqVO.setUid(IdUtil.fastSimpleUUID());
-
         messageCreateReqVO.setAppUid(this.getUid());
         messageCreateReqVO.setAppMode(this.getModel());
         messageCreateReqVO.setTenantId(this.getTenantId());
 
         consumer.accept(messageCreateReqVO);
-
         logAppMessageService.createAppMessage(messageCreateReqVO);
-
         return messageCreateReqVO;
     }
 
@@ -479,10 +469,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * 判断执行情况，最最后的 会话状态更新
      */
     protected void updateAppConversationLog(String conversationUid, Boolean status) {
-
-
         logAppConversationService.updateAppConversationStatus(conversationUid, status ? "SUCCESS" : "ERROR");
-
     }
 
     /**
@@ -492,7 +479,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @return 会话对象
      */
     private LogAppConversationDO getAppConversation(String conversationId) {
-
         return logAppConversationService.getAppConversation(conversationId);
     }
 
@@ -524,7 +510,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param response 响应
      */
     @JSONField(serialize = false)
-    public void buildActionResponse(String stepId, ActionResponse response) {
-        workflowConfig.buildActionResponse(stepId, response);
+    public void setActionResponse(String stepId, ActionResponse response) {
+        workflowConfig.setActionResponse(stepId, response);
     }
 }

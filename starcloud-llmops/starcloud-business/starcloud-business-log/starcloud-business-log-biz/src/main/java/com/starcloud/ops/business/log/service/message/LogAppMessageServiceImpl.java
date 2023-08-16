@@ -14,6 +14,7 @@ import com.starcloud.ops.business.log.api.message.vo.LogAppMessageUpdateReqVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
+import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -181,6 +182,7 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
                 .eqIfPresent(LogAppMessageDO::getEndUser, reqVO.getEndUser())
                 .betweenIfPresent(LogAppMessageDO::getCreateTime, reqVO.getCreateTime())
                 .ne(LogAppMessageDO::getFromScene, "SYSTEM_SUMMARY")
+                .ne(LogAppMessageDO::getMsgType, LogMessageTypeEnum.SUMMARY.name())
                 .orderByDesc(LogAppMessageDO::getId));
     }
 

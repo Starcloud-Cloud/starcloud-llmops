@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.controller.admin.log;
 
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.util.IdentifyUserUtils;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
@@ -51,6 +53,9 @@ public class AppLogController {
     @Resource
     private LogAppConversationService appConversationService;
 
+    @Resource
+    private IdentifyUserUtils identifyUserUtils;
+
     @GetMapping("/timeType")
     @Operation(summary = "时间类型列表")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
@@ -81,7 +86,13 @@ public class AppLogController {
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<PageResult<LogAppConversationInfoRespVO>> getAppConversationPage(@Valid @RequestBody LogAppConversationInfoPageReqVO pageVO) {
         PageResult<LogAppConversationInfoPO> pageResult = appConversationService.getAppConversationInfoPage(pageVO);
-        return success(LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult));
+        PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
+        List<LogAppConversationInfoRespVO> list = result.getList();
+        List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
+                .peek(item -> item.setAppExecutor(identifyUserUtils.identifyUser(item.getCreator(), item.getEndUser())))
+                .collect(Collectors.toList());
+        result.setList(collect);
+        return success(result);
     }
 
 

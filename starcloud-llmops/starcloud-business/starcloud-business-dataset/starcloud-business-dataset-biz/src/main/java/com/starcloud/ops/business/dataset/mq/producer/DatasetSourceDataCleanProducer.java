@@ -49,6 +49,7 @@ public class DatasetSourceDataCleanProducer extends AbstractDatasetSourceProduce
                 .setDataSourceId(sendMessage.getDataSourceId())
                 .setSplitRule(sendMessage.getSplitRule())
                 .setUserId(sendMessage.getUserId())
+                .setRetryCount(0)
                 .setSync(false);
         log.info("发送数据清洗信息");
         redisMQTemplate.send(message);
@@ -60,6 +61,7 @@ public class DatasetSourceDataCleanProducer extends AbstractDatasetSourceProduce
         DatasetSourceDataCleanSendMessage message = new DatasetSourceDataCleanSendMessage();
 
         message.setSync(true);
+        message.setRetryCount(0);
         message.setDatasetId(sendMessage.getDatasetId());
         message.setDataSourceId(sendMessage.getDataSourceId());
         message.setSplitRule(sendMessage.getSplitRule());

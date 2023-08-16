@@ -36,6 +36,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCrea
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -246,7 +247,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
             // todo 避免因为异常获取不到元素的值，从 appContext 中获取原始的值
             if (actionResponse != null) {
-                appContext.buildActionResponse(actionResponse);
+                appContext.setActionResponse(actionResponse);
                 AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
                 messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(appRespVO));
                 messageCreateReqVO.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
@@ -264,7 +265,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
             // 如果异常，设置异常信息
             if (nodeTracking.getTaskException() != null) {
                 messageCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
-                messageCreateReqVO.setErrorMsg(nodeTracking.getTaskException().getMessage());
+                messageCreateReqVO.setErrorMsg(ExceptionUtil.stackTraceToString(nodeTracking.getTaskException()));
                 messageCreateReqVO.setErrorCode("010");
                 if (nodeTracking.getTaskException() instanceof KstryException) {
                     messageCreateReqVO.setErrorCode(((KstryException) nodeTracking.getTaskException()).getErrorCode());

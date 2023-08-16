@@ -343,6 +343,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 messageCreateReqVO.setCurrency("USD");
                 messageCreateReqVO.setFromScene(request.getScene());
                 messageCreateReqVO.setStatus("SUCCESS");
+                messageCreateReqVO.setEndUser(request.getEndUser());
                 messageCreateReqVO.setCreator(userId.toString());
 
             });

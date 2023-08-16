@@ -165,7 +165,6 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void indexDoc(String datasetId, String documentId) {
         Assert.notBlank(datasetId, "datasetId is null");
         Assert.notBlank(documentId, "documentId is null");
@@ -177,6 +176,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         }
         try {
             List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDocId(documentId);
+            segmentDOS = segmentDOS.stream().filter(documentSegmentDO -> !DocumentSegmentEnum.INDEXED.getCode().equals(documentSegmentDO.getStatus())).collect(Collectors.toList());
             Long tenantId = TenantContextHolder.getTenantId();
             String creator = datasets.getCreator();
             List<DocumentSegmentDTO> segments = new ArrayList<>(segmentDOS.size());

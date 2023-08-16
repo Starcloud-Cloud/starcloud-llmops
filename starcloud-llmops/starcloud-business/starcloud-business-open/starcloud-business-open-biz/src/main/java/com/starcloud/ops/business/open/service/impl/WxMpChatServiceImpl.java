@@ -34,7 +34,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL;
+import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USELESS_INSUFFICIENT;
 
 @Slf4j
 @Service
@@ -83,7 +83,7 @@ public class WxMpChatServiceImpl implements WxMpChatService {
                     sendMsg(mqUserId, "AI 异常请稍后重试");
                 }
             } catch (ServiceException e) {
-                if (USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL.getCode().intValue() == e.getCode()) {
+                if (USER_BENEFITS_USELESS_INSUFFICIENT.getCode().intValue() == e.getCode()) {
                     sendMsg(mqUserId, "令牌不足，请访问魔法AI官网获取。");
                 } else {
                     sendMsg(mqUserId, e.getMessage());

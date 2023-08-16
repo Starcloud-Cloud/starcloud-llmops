@@ -89,9 +89,9 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
      * @param response 响应
      */
     @JSONField(serialize = false)
-    public void buildActionResponse(String stepId, ActionResponse response) {
+    public void setActionResponse(String stepId, ActionResponse response) {
         for (WorkflowStepWrapper step : this.steps) {
-            step.buildActionResponse(stepId, response);
+            step.setActionResponse(stepId, response);
         }
     }
 }

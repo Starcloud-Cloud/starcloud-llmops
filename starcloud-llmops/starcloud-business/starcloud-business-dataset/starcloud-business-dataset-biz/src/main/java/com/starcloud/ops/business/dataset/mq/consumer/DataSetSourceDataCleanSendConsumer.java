@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
@@ -25,14 +26,18 @@ import java.net.URL;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.infra.enums.ErrorCodeConstants.FILE_IS_EMPTY;
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASET_SOURCE_DATA_NOT_EXISTS;
 
 @Slf4j
 @Component
 public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<DatasetSourceDataCleanSendMessage> {
 
+
     @Resource
     private FileApi fileApi;
+
+    @Resource
+    private DictDataService dictDataService;
 
     @Resource
     private DatasetSourceDataSplitProducer dataSplitProducer;
@@ -65,15 +70,19 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
     protected void processBusinessLogic(DatasetSourceSendMessage message) {
         log.info("开始清洗数据，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
 
-        // 根据数据源 ID获取数据储存ID
-        DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
-
-        // 根据储存ID 获取存储地址
-        DatasetStorageDO storageDO = selectDatasetStorage(sourceDataDO.getStorageId());
-
-        Tika tika = new Tika();
+        int retryCount = message.getRetryCount();
         try {
 
+            // 根据数据源 ID获取数据储存ID
+            DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
+
+            // 根据储存ID 获取存储地址
+            DatasetStorageDO storageDO = selectDatasetStorage(sourceDataDO.getStorageId());
+            if (storageDO ==null){
+                log.error("清洗过程中，获取数据源失败，请检查数据信息，message 是({})",message);
+                throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
+            }
+            Tika tika = new Tika();
             // 获取文件数据
             String text = tika.parseToString(new URL(storageDO.getStorageKey()));
             // 执行数据清洗
@@ -81,6 +90,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
 
             // 存储清洗数据
             String cleanPath = uploadFile(cleanText, message.getUserId());
+
 
             // TODO 总结流程暂时不做修改
             String summary;
@@ -94,10 +104,10 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             }
 
             // 保存清洗地址
-            Long cleanId = setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "html", message.getUserId());
+            Long cleanId = setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "TXT", message.getUserId());
 
 
-            if (StrUtil.isBlank(sourceDataDO.getDescription())){
+            if (StrUtil.isBlank(sourceDataDO.getDescription())) {
                 sourceDataDO.setDescription(truncateAndSetContent(cleanText));
             }
             sourceDataDO.setCleanStorageId(cleanId);
@@ -111,7 +121,8 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
         } catch (Exception e) {
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
             message.setErrMsg(e.getMessage());
-            log.info("清洗失败，错误原因是:({})",e.getMessage(),e);
+            message.setRetryCount(++retryCount);
+            log.info("清洗失败，错误原因是:({})", e.getMessage(), e);
         }
 
     }
@@ -123,17 +134,22 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
 
-        if (Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())){
-            throw new RuntimeException(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName());
+        if (0 == dictDataService.getDictData("QueueSwitch", "sendMessage").getStatus()) {
+
+            if (Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
+                throw new RuntimeException(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName());
+            }
+
+            if (message.getSync()) {
+                dataSplitProducer.sendMessage(message);
+            } else {
+                // 发送消息
+                dataSplitProducer.asyncSendMessage(message);
+
+            }
         }
 
-        if (message.getSync()) {
-            dataSplitProducer.sendMessage(message);
-        } else {
-            // 发送消息
-            dataSplitProducer.asyncSendMessage(message);
 
-        }
     }
 
 

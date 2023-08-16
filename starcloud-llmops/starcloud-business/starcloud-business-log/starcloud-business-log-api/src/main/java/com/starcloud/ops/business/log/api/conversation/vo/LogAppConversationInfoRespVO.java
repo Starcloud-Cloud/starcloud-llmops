@@ -103,16 +103,21 @@ public class LogAppConversationInfoRespVO implements Serializable {
     private String status;
 
     /**
-     * 注册用户ID
+     * 会话创建人
      */
     @Schema(description = "注册用户ID")
     private String creator;
 
     /**
-     * 注册用户ID
+     * 游客唯一标识
      */
     @Schema(description = "注册用户ID")
     private String endUser;
+
+    /**
+     * 应用执行者（游客，用户，或者具体的用户）
+     */
+    private String appExecutor;
 
     /**
      * 创建时间

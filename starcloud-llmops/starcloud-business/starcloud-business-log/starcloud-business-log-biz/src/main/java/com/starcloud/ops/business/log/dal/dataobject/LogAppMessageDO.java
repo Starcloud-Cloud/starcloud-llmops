@@ -112,4 +112,9 @@ public class LogAppMessageDO extends TenantBaseDO {
      */
     private String endUser;
 
+    /**
+     * 消息类型
+     */
+    private String msgType;
+
 }

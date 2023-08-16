@@ -48,6 +48,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService {
 
         if (invitationRecords.size() <= 3) {
             log.info("用户: {} 已邀请了{}个人", inviteUserid, invitationRecords.size());
+            return;
         }
         log.info("邀请记录超过3个，发送推广信息");
         SocialUserDO socialUserDO = socialUserList.get(0);
