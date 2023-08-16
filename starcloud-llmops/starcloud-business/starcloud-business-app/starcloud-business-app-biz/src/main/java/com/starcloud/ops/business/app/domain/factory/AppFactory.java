@@ -154,6 +154,10 @@ public class AppFactory {
         return appEntity;
     }
 
+    public static ChatAppEntity factory(String mediumUid) {
+        return getAppPublishRepository().getChatEntityByMediumUid(mediumUid);
+    }
+
     /**
      * 构建 ImageAppEntity
      *

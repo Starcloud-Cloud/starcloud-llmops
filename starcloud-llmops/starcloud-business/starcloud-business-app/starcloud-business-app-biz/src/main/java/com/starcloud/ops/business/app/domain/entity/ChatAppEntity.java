@@ -133,7 +133,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         //如果是后台执行，肯定是当前应用创建者
         if (req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
-                || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())) {
+                || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
+                || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
             return Long.valueOf(this.getCreator());
         }
 
@@ -330,7 +331,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
                 messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(chatConfig));
                 messageCreateReqVO.setVariables(JSONUtil.toJsonStr(chatConfig.getModelConfig()));
-                messageCreateReqVO.setAppUid(request.getAppUid());
+                messageCreateReqVO.setAppUid(this.getUid());
                 messageCreateReqVO.setAppStep("");
                 messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
                 messageCreateReqVO.setAppConversationUid(request.getConversationUid());

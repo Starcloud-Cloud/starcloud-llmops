@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.share.controller.app;
 
+import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatSkillVO;
@@ -9,18 +12,25 @@ import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.ChatService;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.app.service.chat.ChatSkillService;
 import com.starcloud.ops.business.share.controller.app.vo.ChatReq;
+import com.starcloud.ops.business.share.service.ChatShareService;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
 import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -33,7 +43,7 @@ import java.util.List;
  * @since 2023-06-26
  */
 @RestController
-@RequestMapping("/s/chat")
+@RequestMapping("/share/chat")
 @Tag(name = "魔法AI-分享聊天")
 public class ChatShareController {
 
@@ -41,38 +51,55 @@ public class ChatShareController {
     private ChatSkillService chatSkillService;
 
     @Autowired
-    private ChatService chatService;
-
-    @Autowired
     private EndUserServiceImpl endUserService;
 
-    @GetMapping("/")
-    @Operation(summary = "聊天详情")
-    @Parameter(name = "uid", description = "应用uuid", required = true)
+    @Resource
+    private ChatShareService chatShareService;
+
+    @Resource
+    private ChatService chatService;
+
+    @GetMapping("detail/{mediumUid}")
+    @Operation(summary = "聊天应用详情")
     @PermitAll
-    public String detail(@RequestParam(name = "uid") String appUid, @CookieValue(value = "fSId", required = false) String upfSId, HttpServletRequest request, HttpServletResponse response) {
-
+    public CommonResult<AppRespVO> detail(@PathVariable("mediumUid") String mediumUid,
+                                          @CookieValue(value = "fSId", required = false) String upfSId,
+                                          HttpServletRequest request, HttpServletResponse response) {
         upfSId = EndUserCodeUtil.parseUserCodeAndSaveCookie(upfSId, request, response);
-
         endUserService.webLogin(upfSId);
-
-        return upfSId;
+        return CommonResult.success(chatShareService.chatShareDetail(mediumUid));
     }
 
-    @PostMapping("/")
+    @GetMapping("history")
+    @Operation(summary = "聊天应用详情")
+    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@CookieValue(value = "conversationUid") String conversationUid) {
+        PageResult<LogAppMessageDO> pageResult = chatService.chatHistory(conversationUid, 1, 100);
+        return CommonResult.success(LogAppMessageConvert.INSTANCE.convertPage(pageResult));
+    }
+
+    @PostMapping("/conversation")
     @Operation(summary = "聊天执行")
     @PermitAll
-    public SseEmitter execute(@RequestBody ChatRequestVO chatRequestVO, HttpServletResponse httpServletResponse) {
-        httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
-        httpServletResponse.setHeader("X-Accel-Buffering", "no");
+    public SseEmitter execute(@RequestBody ChatRequestVO chatRequestVO,
+                              @CookieValue(value = "conversationUid", required = false) String conversationUid,
+                              @CookieValue(value = "fSId", required = false) String upfSId,
+                              HttpServletRequest request, HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-transform");
+        response.setHeader("X-Accel-Buffering", "no");
+        upfSId = EndUserCodeUtil.parseUserCodeAndSaveCookie(upfSId, request, response);
+        endUserService.webLogin(upfSId);
+        if (StringUtils.isBlank(conversationUid)) {
+            conversationUid = IdUtil.fastSimpleUUID();
+            Cookie cookie = new Cookie("conversationUid", conversationUid);
+            cookie.setMaxAge(365 * 24 * 60 * 60);
+            response.addCookie(cookie);
+            chatRequestVO.setConversationUid(conversationUid);
+        }
 
         SseEmitter emitter = new SseEmitter(60000L);
-
         chatRequestVO.setSseEmitter(emitter);
-
-        chatService.chat(chatRequestVO);
-
-        //appWorkflowService.fireByApp(executeReqVO.getAppUid(), AppSceneEnum.WEB_ADMIN, executeReqVO.getAppReqVO(), executeReqVO.getStepId(), executeReqVO.getConversationUid(), emitter);
+        chatRequestVO.setEndUser(upfSId);
+        chatShareService.shareChat(chatRequestVO);
         return emitter;
     }
 
