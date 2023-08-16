@@ -70,10 +70,13 @@ public class ChatShareController {
         return CommonResult.success(chatShareService.chatShareDetail(mediumUid));
     }
 
-    @GetMapping("history")
+    @GetMapping("/history")
     @Operation(summary = "聊天应用详情")
-    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@CookieValue(value = "conversationUid") String conversationUid) {
-        PageResult<LogAppMessageDO> pageResult = chatService.chatHistory(conversationUid, 1, 100);
+    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@CookieValue(value = "conversationUid") String conversationUid,
+                                                                 @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
+                                                                 @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize
+    ) {
+        PageResult<LogAppMessageDO> pageResult = chatService.chatHistory(conversationUid, pageNo, pageSize);
         return CommonResult.success(LogAppMessageConvert.INSTANCE.convertPage(pageResult));
     }
 
