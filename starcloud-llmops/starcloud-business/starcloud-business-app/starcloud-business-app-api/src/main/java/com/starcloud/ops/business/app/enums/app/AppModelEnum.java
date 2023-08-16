@@ -67,7 +67,7 @@ public enum AppModelEnum implements IEnumable<Integer> {
      */
     public static List<Option> getOptions() {
         return Arrays.stream(values())
-                .map(item -> Option.of(item.getCode(), item.getLabel(), item.getLabelEn()))
+                .map(item -> Option.of(item.name(), item.getLabel(), item.getLabelEn()))
                 .collect(Collectors.toList());
     }
 

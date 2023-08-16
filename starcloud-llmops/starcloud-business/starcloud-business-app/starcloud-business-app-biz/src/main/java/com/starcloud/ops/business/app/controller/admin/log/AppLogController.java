@@ -8,7 +8,6 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.log.enums.LogQueryTypeEnum;
 import com.starcloud.ops.business.app.util.DataPermissionUtils;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
@@ -19,6 +18,7 @@ import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsList
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
+import com.starcloud.ops.business.log.enums.LogQueryTypeEnum;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -77,6 +77,7 @@ public class AppLogController {
     @Operation(summary = "获得应用执行统计列表")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<List<LogAppMessageStatisticsListVO>> getAppMessageStatisticsList(@Valid @RequestBody LogAppMessageStatisticsListReqVO pageVO) {
+        pageVO.setAppModeList(getAppModeList(pageVO.getType()));
         List<LogAppMessageStatisticsListPO> pageResult = appConversationService.getAppMessageStatisticsList(pageVO);
         return success(LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult));
 
@@ -86,6 +87,7 @@ public class AppLogController {
     @Operation(summary = "获得应用执行日志信息分页")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<PageResult<LogAppConversationInfoRespVO>> getAppConversationPage(@Valid @RequestBody LogAppConversationInfoPageReqVO pageVO) {
+        pageVO.setAppModeList(getAppModeList(pageVO.getType()));
         PageResult<LogAppConversationInfoPO> pageResult = appConversationService.getAppConversationInfoPage(pageVO);
         PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
         List<LogAppConversationInfoRespVO> list = result.getList();
@@ -129,5 +131,21 @@ public class AppLogController {
             return AppSceneEnum.getOptions(AppSceneEnum.CHAT_ANALYSIS_SCENES);
         }
         throw ServiceExceptionUtil.exception(new ErrorCode(1000001, "type 不支持"));
+    }
+
+    /**
+     * 获取应用模型列表
+     *
+     * @param type 类型
+     * @return 应用模型列表
+     */
+    private static List<String> getAppModeList(String type) {
+        if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
+            String permission = DataPermissionUtils.getDeptDataPermission();
+            if (!DataPermissionUtils.ALL.equals(permission)) {
+                return AppSceneEnum.GENERATE_RECORD_BASE_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
+            }
+        }
+        return null;
     }
 }

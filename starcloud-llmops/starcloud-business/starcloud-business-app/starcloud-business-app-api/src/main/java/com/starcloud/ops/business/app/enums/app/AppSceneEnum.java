@@ -141,7 +141,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     public static List<Option> getOptions() {
         return Arrays.stream(values())
-                .map(item -> Option.of(item.getCode(), item.getLabel(), item.getLabelEn()))
+                .map(item -> Option.of(item.name(), item.getLabel(), item.getLabelEn()))
                 .collect(Collectors.toList());
     }
 
@@ -153,7 +153,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     public static List<Option> getOptions(List<AppSceneEnum> sceneEnumList) {
         return CollectionUtil.emptyIfNull(sceneEnumList).stream()
-                .map(item -> Option.of(item.getCode(), item.getLabel(), item.getLabelEn()))
+                .map(item -> Option.of(item.name(), item.getLabel(), item.getLabelEn()))
                 .collect(Collectors.toList());
     }
 
