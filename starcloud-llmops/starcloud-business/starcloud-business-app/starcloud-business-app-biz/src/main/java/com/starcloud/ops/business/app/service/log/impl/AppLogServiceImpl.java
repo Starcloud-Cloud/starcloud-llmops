@@ -113,9 +113,7 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     public List<LogAppMessageStatisticsListVO> appMessageStatisticsList(LogAppMessageStatisticsListReqVO query) {
-
         query.setAppModeList(getAppModeList(query.getType()));
-
         List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.getAppMessageStatisticsList(query);
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
@@ -136,7 +134,7 @@ public class AppLogServiceImpl implements AppLogService {
                 .peek(item -> item.setAppExecutor(DataPermissionUtils.identify(item.getCreator(), item.getEndUser())))
                 .collect(Collectors.toList());
         result.setList(collect);
-        return null;
+        return result;
     }
 
     /**
@@ -175,8 +173,8 @@ public class AppLogServiceImpl implements AppLogService {
         }
 
         AppRespVO appRespVO = appService.get(appConversation.getAppUid());
-        PageResult<LogAppMessageDO> messageDOPageResult = chatService.chatHistory(query.getConversationUid(), query.getPageNo(), query.getPageSize());
-        List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(messageDOPageResult.getList()).stream().filter(Objects::nonNull)
+        PageResult<LogAppMessageDO> messagePageResult = chatService.chatHistory(query.getConversationUid(), query.getPageNo(), query.getPageSize());
+        List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(messagePageResult.getList()).stream().filter(Objects::nonNull)
                 .map(item -> {
                     AppLogMessageRespVO appLogMessageRespVO = new AppLogMessageRespVO();
                     appLogMessageRespVO.setUid(item.getUid());
@@ -200,7 +198,7 @@ public class AppLogServiceImpl implements AppLogService {
                     appLogMessageRespVO.setAppInfo(JSONUtil.toBean(item.getAppConfig(), AppRespVO.class));
                     return appLogMessageRespVO;
                 }).collect(Collectors.toList());
-        return new PageResult<>(collect, messageDOPageResult.getTotal());
+        return new PageResult<>(collect, messagePageResult.getTotal());
     }
 
     /**

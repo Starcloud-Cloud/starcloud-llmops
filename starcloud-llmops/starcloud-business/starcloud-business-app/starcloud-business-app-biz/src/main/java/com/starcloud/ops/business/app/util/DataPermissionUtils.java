@@ -61,6 +61,10 @@ public class DataPermissionUtils {
      */
     public static String getUsername(String userId) {
 
+        if (StringUtils.isBlank(userId)) {
+            return "用户";
+        }
+
         AdminUserDO user = ADMIN_USER_SERVICE.getUser(Long.valueOf(userId));
         if (Objects.nonNull(user)) {
             return user.getNickname();
