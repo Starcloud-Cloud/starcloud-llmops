@@ -95,4 +95,7 @@ public class LogAppMessageBaseVO {
     @Schema(description = "临时用户ID")
     private String endUser;
 
+    @Schema(description = "消息类型")
+    private String msgType;
+
 }

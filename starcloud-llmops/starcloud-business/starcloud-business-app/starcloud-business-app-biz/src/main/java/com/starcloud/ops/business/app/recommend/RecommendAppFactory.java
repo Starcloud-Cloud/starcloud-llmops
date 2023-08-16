@@ -81,7 +81,7 @@ public class RecommendAppFactory {
         app.setTags(Collections.singletonList("Chat"));
         app.setCategories(Collections.singletonList("SEO_WRITING"));
         app.setScenes(AppUtils.DEFAULT_SCENES);
-        app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
+        app.setImages(Collections.singletonList("https://download.hotsalecloud.com/avatar/f88670eed0534ccd9bd80df21b92bf2c.svg"));
         app.setIcon("seo");
 
         ChatConfigRespVO chatConfigRespVO = new ChatConfigRespVO();
