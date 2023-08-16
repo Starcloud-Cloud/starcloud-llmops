@@ -37,7 +37,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
     private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
-    private String userName = "页面文档分析";
+    private String userName = "网页和文档分析";
 
     private String userDescription = "可访问网络上公开的网页，文档内容。可基于内容完成摘要，问答等。仅支持10M以内文档，不支持扫描件";
 

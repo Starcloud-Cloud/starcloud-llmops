@@ -16,6 +16,6 @@ public class HandlerSkillVO {
     @Schema(description = "开启")
     private Boolean enabled;
 
-    private String handler;
+    private String name;
 
 }

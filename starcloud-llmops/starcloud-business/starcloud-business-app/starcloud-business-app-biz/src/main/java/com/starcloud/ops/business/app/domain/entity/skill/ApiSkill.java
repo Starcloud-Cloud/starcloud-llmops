@@ -108,6 +108,9 @@ public class ApiSkill extends BaseSkillEntity {
 
             log.info("FunTool ApiSkill: {} {}", this.getName(), input);
 
+            SkillCustomConfig skillCustomConfig = this.getSkillSettingInfo(handlerContext.getAppUid(), this.getName());
+
+
             return this._execute(input);
         };
 
@@ -123,5 +126,19 @@ public class ApiSkill extends BaseSkillEntity {
         //@todo  根据 不同位子的参数，在 req 中查找具体到值，只需要在第一层找到即可
         //@todo 最后拼装 http 请求的参数，获取最后结果，结构在 根据配置的 responseBody schemas 做个校验，并返回最后的内容
         return null;
+    }
+
+
+    /**
+     * 获取在App 技能上设置的 每个API的独立交互配置信息
+     *
+     * @return
+     * @todo 读配置表
+     */
+    protected SkillCustomConfig getSkillSettingInfo(String appUid, String apiName) {
+
+        //当前应用下配置的 其他应用的技能配置
+
+        return new SkillCustomConfig();
     }
 }
