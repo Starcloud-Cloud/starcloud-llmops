@@ -35,8 +35,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.log.enums.ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS;
@@ -213,7 +215,7 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
             }
         }
 
-        return fillStatisticsList.stream()
+        return getStatisticsListStream(fillStatisticsList, logTimeTypeEnum)
                 .sorted(Comparator.comparing(LogAppMessageStatisticsListPO::getCreateDate))
                 .collect(Collectors.toList());
     }
@@ -265,6 +267,25 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         if (appConversationMapper.selectById(id) == null) {
             throw exception(APP_CONVERSATION_NOT_EXISTS);
         }
+    }
+
+    /**
+     * 处理当天的数据
+     *
+     * @param fillStatisticsList 填充的数据
+     * @param logTimeTypeEnum    日志时间类型
+     * @return 处理后的数据
+     */
+    private static Stream<LogAppMessageStatisticsListPO> getStatisticsListStream(List<LogAppMessageStatisticsListPO> fillStatisticsList, LogTimeTypeEnum logTimeTypeEnum) {
+        Stream<LogAppMessageStatisticsListPO> statisticsListStream = CollectionUtil.emptyIfNull(fillStatisticsList).stream();
+        if (Objects.equals(logTimeTypeEnum, LogTimeTypeEnum.TODAY)) {
+            statisticsListStream = statisticsListStream.peek(item -> {
+                String createDate = item.getCreateDate();
+                LocalDateTime localDateTime = LocalDateTime.parse(createDate, DateTimeFormatter.ofPattern(LogTimeTypeEnum.TODAY.getFormatByGroupUnit()));
+                item.setCreateDate(localDateTime.format(DateTimeFormatter.ofPattern("HH")));
+            });
+        }
+        return statisticsListStream;
     }
 
     /**

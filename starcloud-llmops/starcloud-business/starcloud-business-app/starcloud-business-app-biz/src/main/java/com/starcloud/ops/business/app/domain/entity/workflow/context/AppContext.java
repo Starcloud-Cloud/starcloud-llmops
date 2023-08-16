@@ -16,9 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import java.sql.Array;
 import java.util.*;
 
 /**
@@ -199,8 +197,8 @@ public class AppContext {
      * @param response 响应
      */
     @JSONField(serialize = false)
-    public void buildActionResponse(ActionResponse response) {
-        this.app.buildActionResponse(this.stepId, response);
+    public void setActionResponse(ActionResponse response) {
+        this.app.setActionResponse(this.stepId, response);
     }
 
 }
