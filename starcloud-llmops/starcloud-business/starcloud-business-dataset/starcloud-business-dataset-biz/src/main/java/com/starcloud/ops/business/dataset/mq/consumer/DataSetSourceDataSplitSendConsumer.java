@@ -19,8 +19,10 @@ import javax.annotation.Resource;
 import java.net.URL;
 import java.util.Objects;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
 import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASET_SOURCE_DATA_NOT_EXISTS;
 
 /**
  * 针对 {@link DatasetSourceDataCleanSendMessage} 的消费者
@@ -63,14 +65,19 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
     protected void processBusinessLogic(DatasetSourceSendMessage message) {
         log.info("开始分割数据，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
 
-        // 根据数据源 ID获取数据储存ID
-        DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
+        int retryCount = message.getRetryCount();
 
-        // 根据储存ID 获取存储地址
-        DatasetStorageDO storageDO = selectDatasetStorage(sourceDataDO.getCleanStorageId());
-
-        Tika tika = new Tika();
         try {
+            Tika tika = new Tika();
+            // 根据数据源 ID获取数据储存ID
+            DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
+
+            if (sourceDataDO ==null){
+                log.error("分割数据过程中，获取数据源失败，请检查数据信息，message 是({})",message);
+                throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
+            }
+            // 根据储存ID 获取存储地址
+            DatasetStorageDO storageDO = selectDatasetStorage(sourceDataDO.getCleanStorageId());
             String text = tika.parseToString(new URL(storageDO.getStorageKey()));
             // 数据分块
             documentSegmentsService.splitDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()), text, message.getSplitRule());
@@ -85,6 +92,7 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
             // 设置数据源状态
             message.setStatus(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus());
             message.setErrMsg(e.getMessage());
+            message.setRetryCount(++retryCount);
             log.error("[DataSetSourceDataCleanSendConsumer][数据分割失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", getLoginUserId(), getTenantId(), message.getDatasetId(), message.getDataSourceId(), e.getMessage(), e);
         }
     }

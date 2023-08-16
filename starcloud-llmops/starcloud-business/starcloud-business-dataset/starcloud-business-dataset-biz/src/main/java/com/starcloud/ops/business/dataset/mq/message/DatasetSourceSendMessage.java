@@ -36,4 +36,7 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
 
     @NotNull(message = "错误信息")
     private String errMsg;
+
+    @NotNull(message = "重试次数")
+    private int retryCount;
 }
