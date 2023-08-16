@@ -70,10 +70,13 @@ public class ChatShareController {
         return CommonResult.success(chatShareService.chatShareDetail(mediumUid));
     }
 
-    @GetMapping("history")
+    @GetMapping("/history")
     @Operation(summary = "聊天应用详情")
-    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@CookieValue(value = "conversationUid") String conversationUid) {
-        PageResult<LogAppMessageDO> pageResult = chatService.chatHistory(conversationUid, 1, 100);
+    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@CookieValue(value = "conversationUid") String conversationUid,
+                                                                 @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
+                                                                 @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize
+    ) {
+        PageResult<LogAppMessageDO> pageResult = chatService.chatHistory(conversationUid, pageNo, pageSize);
         return CommonResult.success(LogAppMessageConvert.INSTANCE.convertPage(pageResult));
     }
 
@@ -87,7 +90,7 @@ public class ChatShareController {
         response.setHeader("Cache-Control", "no-cache, no-transform");
         response.setHeader("X-Accel-Buffering", "no");
         upfSId = EndUserCodeUtil.parseUserCodeAndSaveCookie(upfSId, request, response);
-        endUserService.webLogin(upfSId);
+        String endUserId = endUserService.webLogin(upfSId);
         if (StringUtils.isBlank(conversationUid)) {
             conversationUid = IdUtil.fastSimpleUUID();
             Cookie cookie = new Cookie("conversationUid", conversationUid);
@@ -98,7 +101,7 @@ public class ChatShareController {
 
         SseEmitter emitter = new SseEmitter(60000L);
         chatRequestVO.setSseEmitter(emitter);
-        chatRequestVO.setEndUser(upfSId);
+        chatRequestVO.setEndUser(endUserId);
         chatShareService.shareChat(chatRequestVO);
         return emitter;
     }
