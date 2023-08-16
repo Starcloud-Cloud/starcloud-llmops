@@ -16,14 +16,23 @@ public class SplitRule {
      */
     private Boolean automatic;
 
+    /**
+     * 删除空白区域
+     */
     private Boolean removeExtraSpaces;
 
+    /**
+     * 删除链接中的邮箱
+     */
     private Boolean removeUrlsEmails;
 
     @Max(3000)
     @Min(100)
     private Integer chunkSize;
 
+    /**
+     * 分隔符
+     */
     private List<String> separator;
 
     /**
