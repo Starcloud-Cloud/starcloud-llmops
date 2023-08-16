@@ -169,7 +169,7 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
         messageCreateReqVO.setElapsed(end - start);
         messageCreateReqVO.setTotalPrice(totalPrice);
         messageCreateReqVO.setCurrency("USD");
-        messageCreateReqVO.setFromScene(AppSceneEnum.CHAT.name());
+        messageCreateReqVO.setFromScene(AppSceneEnum.CHAT_TEST.name());
         messageCreateReqVO.setStatus("SUCCESS");
         messageCreateReqVO.setCreator(creator);
         messageCreateReqVO.setMsgType(LogMessageTypeEnum.SUMMARY.name());
