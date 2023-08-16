@@ -4,7 +4,6 @@
 
     <!-- 日志统计 -->
     <select id="getAppMessageStatisticsList"
-            parameterType="com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
         SELECT
         count(ms.id) as messageCount,
@@ -36,13 +35,13 @@
         SUM(answer_tokens) as answerTokens,
         SUM(message_tokens + answer_tokens) as tokens,
         <choose>
-            <when test="unit == 'HOURS'">
+            <when test="query.unit == 'HOURS'">
                 date_format(ms.create_time, '%Y-%m-%d %h') as create_date
             </when>
-            <when test="unit == 'DAYS'">
+            <when test="query.unit == 'DAYS'">
                 date_format(ms.create_time, '%Y-%m-%d') as create_date
             </when>
-            <when test="unit == 'MONTHS'">
+            <when test="query.unit == 'MONTHS'">
                 date_format(ms.create_time, '%Y-%m') as create_date
             </when>
             <otherwise>
@@ -54,39 +53,39 @@
         LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
         LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
         <where>
-            <if test="appUid != null and appUid != '' ">
-                AND ms.app_uid = #{appUid}
+            <if test="query.appUid != null and query.appUid != '' ">
+                AND ms.app_uid = #{query.appUid}
             </if>
-            <if test="appName != null and appName != '' ">
-                <bind name="appName" value="appName+'%'"/>
+            <if test="query.appName != null and query.appName != '' ">
+                <bind name="appName" value="query.appName+'%'"/>
                 AND co.app_name LIKE #{appName}
             </if>
-            <if test="appMode != null and appMode != '' ">
-                AND ms.app_mode = #{appMode}
+            <if test="query.appMode != null and query.appMode != '' ">
+                AND ms.app_mode = #{query.appMode}
             </if>
-            <if test="fromScene != null and fromScene != '' ">
-                AND ms.from_scene = #{fromScene}
+            <if test="query.fromScene != null and query.fromScene != '' ">
+                AND ms.from_scene = #{query.fromScene}
             </if>
-            <if test="status != null and status != '' ">
-                AND ms.status = #{status}
+            <if test="query.status != null and query.status != '' ">
+                AND ms.status = #{query.status}
             </if>
-            <if test="startTime != null and endTime != null">
-                AND ms.create_time between #{startTime} and #{endTime}
+            <if test="query.startTime != null and query.endTime != null">
+                AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
-            <if test="type != null and type == 'GENERATE_RECORD' and (appMode == null or appMode == '') and appModeList != null and appModeList.size() > 0">
+            <if test="query.type != null and query.type == 'GENERATE_RECORD' and (query.appMode == null or query.appMode == '') and query.appModeList != null and query.appModeList.size() > 0">
                 AND app_mode IN
-                <foreach collection="appModeList" item="appModeItem" open="(" separator="," close=")">
+                <foreach collection="query.appModeList" item="query.appModeItem" open="(" separator="," close=")">
                     #{appModeItem}
                 </foreach>
             </if>
         </where>
-        <if test="unit == 'HOURS'">
+        <if test="query.unit == 'HOURS'">
             GROUP BY date_format(ms.create_time, '%Y-%m-%d %h')
         </if>
-        <if test="unit == 'DAYS'">
+        <if test="query.unit == 'DAYS'">
             GROUP BY date_format(ms.create_time, '%Y-%m-%d')
         </if>
-        <if test="unit == 'MONTHS'">
+        <if test="query.unit == 'MONTHS'">
             GROUP BY date_format(ms.create_time, '%Y-%m')
         </if>
         ORDER BY create_date;
