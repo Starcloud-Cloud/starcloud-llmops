@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.log.enums.LogQueryTypeEnum;
 import com.starcloud.ops.business.app.util.DataPermissionUtils;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
@@ -21,10 +22,8 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsList
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.framework.common.api.dto.Option;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +37,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -112,8 +110,9 @@ public class AppLogController {
      * @param type 类型
      * @return 场景列表
      */
-    public static List<Option> getSceneOptions(String type) {
-        if ("GENERATE_RECORD".equals(type)) {
+    private static List<Option> getSceneOptions(String type) {
+        // 生成记录
+        if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
             String permission = DataPermissionUtils.getDeptDataPermission();
             if (DataPermissionUtils.ALL.equals(permission)) {
                 return AppSceneEnum.getOptions();
@@ -121,10 +120,12 @@ public class AppLogController {
                 return AppSceneEnum.getOptions(AppSceneEnum.GENERATE_RECORD_BASE_SCENES);
             }
         }
-        if ("APP_ANALYSIS".equals(type)) {
+        // 应用分析
+        if (LogQueryTypeEnum.APP_ANALYSIS.name().equals(type)) {
             return AppSceneEnum.getOptions(AppSceneEnum.APP_ANALYSIS_SCENES);
         }
-        if ("CHAT_ANALYSIS".equals(type)) {
+        // 聊天分析
+        if (LogQueryTypeEnum.CHAT_ANALYSIS.name().equals(type)) {
             return AppSceneEnum.getOptions(AppSceneEnum.CHAT_ANALYSIS_SCENES);
         }
         throw ServiceExceptionUtil.exception(new ErrorCode(1000001, "type 不支持"));
