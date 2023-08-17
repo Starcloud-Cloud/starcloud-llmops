@@ -181,7 +181,7 @@ public class StarUserServiceImpl implements StarUserService {
             if (inviteUserId != null && inviteUserId > 0) {
 
                 // 增加邀请记录
-                invitationRecordsService.createInvitationRecords(currentUserId,inviteUserId);
+                invitationRecordsService.createInvitationRecords(inviteUserId,currentUserId);
                 // 邀请注册权益 邀请人
                 benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
                 sendSocialMsgService.sendInviteMsg(inviteUserId);
