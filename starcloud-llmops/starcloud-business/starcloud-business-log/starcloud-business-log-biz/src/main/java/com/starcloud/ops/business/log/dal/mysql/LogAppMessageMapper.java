@@ -1,18 +1,17 @@
 package com.starcloud.ops.business.log.dal.mysql;
 
-import java.util.*;
-
-import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.starcloud.ops.business.core.mybatis.query.MPJLambdaWrapperX;
-import com.starcloud.ops.business.log.api.message.vo.*;
-import com.starcloud.ops.business.log.dal.dataobject.*;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageExportReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * 应用执行日志结果 Mapper
@@ -76,6 +75,12 @@ public interface LogAppMessageMapper extends BaseMapperX<LogAppMessageDO> {
                 .orderByDesc(LogAppMessageDO::getId));
     }
 
-    List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(@Param("req") LogAppMessageStatisticsListReqVO reqVO);
+    /**
+     * 获得应用执行日志消息统计列表
+     *
+     * @param query 查询条件
+     * @return 应用执行日志消息统计列表
+     */
+    List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(@Param("query") LogAppMessageStatisticsListReqVO query);
 
 }

@@ -21,7 +21,7 @@ import java.util.List;
 public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO> {
 
     /**
-     * 根据发布uid查询该发布下的媒介列表
+     * 根据发布 UID 查询该发布下的媒介列表
      *
      * @param publishUid 发布uid
      * @return 媒介列表
@@ -29,7 +29,8 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
     default List<AppPublishChannelDO> listByPublishUid(String publishUid) {
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = Wrappers.lambdaQuery(AppPublishChannelDO.class);
         wrapper.eq(AppPublishChannelDO::getPublishUid, publishUid);
-        wrapper.eq(AppPublishChannelDO::getDeleted, Boolean.FALSE);
+        wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
+        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime);
         return this.selectList(wrapper);
     }
 
@@ -42,7 +43,8 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
     default List<AppPublishChannelDO> listByAppUid(String appUid) {
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.eq(AppPublishChannelDO::getAppUid, appUid);
-        wrapper.orderByDesc(AppPublishChannelDO::getUpdateTime);
+        wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
+        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime);
         return this.selectList(wrapper);
     }
 
@@ -56,7 +58,7 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.eq(AppPublishChannelDO::getMediumUid, mediumUid);
         wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
-        wrapper.orderByDesc(AppPublishChannelDO::getUpdateTime).last("limit 1");
+        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime).last("limit 1");
         return this.selectOne(wrapper);
     }
 

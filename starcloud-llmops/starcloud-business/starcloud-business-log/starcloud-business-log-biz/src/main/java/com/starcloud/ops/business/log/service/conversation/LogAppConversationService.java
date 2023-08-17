@@ -98,19 +98,19 @@ public interface LogAppConversationService {
     /**
      * app message 统计列表数据
      *
-     * @param statisticsListReqVO 查询条件
+     * @param query 查询条件
      * @return 应用执行日志会话列表
      */
-    List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO statisticsListReqVO);
+    List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO query);
 
 
     /**
      * 获取 应用执行分页信息
      *
-     * @param pageReqVO 分页查询
+     * @param query 分页查询
      * @return 应用执行日志会话分页
      */
-    PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO);
+    PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO query);
 
     /**
      * 获取最新的会话

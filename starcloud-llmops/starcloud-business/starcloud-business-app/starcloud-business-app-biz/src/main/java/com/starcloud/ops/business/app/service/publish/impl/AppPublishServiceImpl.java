@@ -96,13 +96,7 @@ public class AppPublishServiceImpl implements AppPublishService {
     public PageResp<AppPublishRespVO> pageAdmin(AppPublishPageReqVO query) {
         Page<AppPublishDO> page = appPublishMapper.page(query);
         List<AppPublishRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(item -> {
-                    AppPublishRespVO responseItem = AppPublishConverter.INSTANCE.convert(item);
-                    // 获取提交人信息
-                    AdminUserDO user = adminUserService.getUser(item.getUserId());
-                    responseItem.setSubmitterUser(user.getNickname());
-                    return responseItem;
-                })
+                .map(AppPublishConverter.INSTANCE::convert)
                 .collect(Collectors.toList());
         return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
     }

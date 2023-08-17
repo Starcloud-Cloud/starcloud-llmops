@@ -35,13 +35,13 @@
         SUM(answer_tokens) as answerTokens,
         SUM(message_tokens + answer_tokens) as tokens,
         <choose>
-            <when test="req.unit == 'HOURS'">
+            <when test="query.unit == 'HOURS'">
                 date_format(ms.create_time, '%Y-%m-%d %h') as create_date
             </when>
-            <when test="req.unit == 'DAYS'">
+            <when test="query.unit == 'DAYS'">
                 date_format(ms.create_time, '%Y-%m-%d') as create_date
             </when>
-            <when test="req.unit == 'MONTHS'">
+            <when test="query.unit == 'MONTHS'">
                 date_format(ms.create_time, '%Y-%m') as create_date
             </when>
             <otherwise>
@@ -53,39 +53,39 @@
         LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
         LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
         <where>
-            <if test="req.appUid != null and req.appUid != '' ">
-                AND ms.app_uid = #{req.appUid}
+            <if test="query.appUid != null and query.appUid != '' ">
+                AND ms.app_uid = #{query.appUid}
             </if>
-            <if test="req.appName != null and req.appName != '' ">
-                <bind name="appName" value="req.appName+'%'"/>
+            <if test="query.appName != null and query.appName != '' ">
+                <bind name="appName" value="query.appName+'%'"/>
                 AND co.app_name LIKE #{appName}
             </if>
-            <if test="req.appMode != null and req.appMode != '' ">
-                AND ms.app_mode = #{req.appMode}
+            <if test="query.appMode != null and query.appMode != '' ">
+                AND ms.app_mode = #{query.appMode}
             </if>
-            <if test="req.fromScene != null and req.fromScene != '' ">
-                AND ms.from_scene = #{req.fromScene}
+            <if test="query.fromScene != null and query.fromScene != '' ">
+                AND ms.from_scene = #{query.fromScene}
             </if>
-            <if test="req.status != null and req.status != '' ">
-                AND ms.status = #{req.status}
+            <if test="query.status != null and query.status != '' ">
+                AND ms.status = #{query.status}
             </if>
-            <if test="req.startTime != null and req.endTime != null">
-                AND ms.create_time between #{req.startTime} and #{req.endTime}
+            <if test="query.startTime != null and query.endTime != null">
+                AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
-            <if test="req.type != null and req.type == 'GENERATE_RECORD' and (req.appMode == null or req.appMode == '') and req.appModeList != null and req.appModeList.size() > 0">
-                AND app_mode IN
-                <foreach collection="req.appModeList" item="req.appModeItem" open="(" separator="," close=")">
-                    #{req.appModeItem}
+            <if test="query.type != null and query.type == 'GENERATE_RECORD' and (query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
+                AND ms.from_scene IN
+                <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
+                    #{item}
                 </foreach>
             </if>
         </where>
-        <if test="req.unit == 'HOURS'">
+        <if test="query.unit == 'HOURS'">
             GROUP BY date_format(ms.create_time, '%Y-%m-%d %h')
         </if>
-        <if test="req.unit == 'DAYS'">
+        <if test="query.unit == 'DAYS'">
             GROUP BY date_format(ms.create_time, '%Y-%m-%d')
         </if>
-        <if test="req.unit == 'MONTHS'">
+        <if test="query.unit == 'MONTHS'">
             GROUP BY date_format(ms.create_time, '%Y-%m')
         </if>
         ORDER BY create_date;
