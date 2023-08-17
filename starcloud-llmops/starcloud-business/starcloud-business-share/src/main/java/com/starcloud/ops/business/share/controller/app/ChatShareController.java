@@ -72,10 +72,13 @@ public class ChatShareController {
 
     @GetMapping("/history")
     @Operation(summary = "聊天应用详情")
-    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@CookieValue(value = "conversationUid") String conversationUid,
+    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@CookieValue(value = "conversationUid",required = false) String conversationUid,
                                                                  @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
                                                                  @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize
     ) {
+        if (StringUtils.isBlank(conversationUid)) {
+            return CommonResult.success(new PageResult<LogAppMessageRespVO>());
+        }
         PageResult<LogAppMessageDO> pageResult = chatService.chatHistory(conversationUid, pageNo, pageSize);
         return CommonResult.success(LogAppMessageConvert.INSTANCE.convertPage(pageResult));
     }
@@ -96,8 +99,8 @@ public class ChatShareController {
             Cookie cookie = new Cookie("conversationUid", conversationUid);
             cookie.setMaxAge(365 * 24 * 60 * 60);
             response.addCookie(cookie);
-            chatRequestVO.setConversationUid(conversationUid);
         }
+        chatRequestVO.setConversationUid(conversationUid);
 
         SseEmitter emitter = new SseEmitter(60000L);
         chatRequestVO.setSseEmitter(emitter);
