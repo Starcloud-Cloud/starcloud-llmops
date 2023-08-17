@@ -1,12 +1,17 @@
 package com.starcloud.ops.business.dataset.core.handler.impl;
 
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadCharacterReqVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadFileReqVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
 import com.starcloud.ops.business.dataset.convert.datasetstorage.DatasetStorageConvert;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadResult;
 import com.starcloud.ops.business.dataset.core.handler.strategy.FileUploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.strategy.StringUploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.strategy.UrlUploadStrategy;
@@ -17,13 +22,16 @@ import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataCleanProducer;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
+import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -48,6 +56,7 @@ public class ProcessingServiceImpl implements ProcessingService {
     private final StringUploadStrategy stringUploadStrategy;
 
     @Resource
+    @Lazy
     private DatasetSourceDataCleanProducer dataSetProducer;
 
     @Resource
@@ -68,53 +77,127 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public Boolean fileProcessing(MultipartFile file, byte[] fileContent, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
-        log.info("====> 数据集{}开始上传文件,分割规则为{}", datasetId, splitRule);
-        validate(splitRule, datasetId);
+    public UploadResult fileProcessing(MultipartFile file, byte[] fileContent, UploadFileReqVO reqVO, Integer dataModel, String dataType) {
+        log.info("====> 数据集{}开始上传文件,分割规则为{}", reqVO.getDatasetId(), reqVO.getSplitRule());
+        validate(reqVO.getDatasetId(), reqVO.getSplitRule());
         fileUploadStrategy.setFileData(file, fileContent);
 
-        UploadFileRespDTO process = fileUploadStrategy.process(getUserId(datasetId));
-
+        UploadContentDTO process = fileUploadStrategy.process(getUserId(reqVO.getDatasetId()));
+        process.setSync(reqVO.getSync());
+        process.setBatch(reqVO.getBatch());
+        process.setSplitRule(reqVO.getSplitRule());
+        process.setDatasetId(reqVO.getDatasetId());
+        process.setDataModel(dataModel);
+        process.setDataType(dataType);
         // 执行通用逻辑并且返回
-        return commonProcess(process, datasetId, splitRule, batch, dataModel, dataType);
+        return commonProcess(process);
     }
 
     @Override
-    public Boolean urlProcessing(String url, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
+    @Deprecated
+    public UploadResult urlProcessing(String url, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
         log.info("====> 数据集{}开始上传URL,分割规则为{}", datasetId, splitRule);
-        validate(splitRule, datasetId);
+        validate(datasetId, splitRule);
         urlUploadStrategy.setUrl(url);
-        UploadFileRespDTO process = urlUploadStrategy.process(getUserId(datasetId));
+        UploadContentDTO process = urlUploadStrategy.process(getUserId(datasetId));
+        process.setDataModel(dataModel);
+        process.setDataType(dataType);
         // 执行通用逻辑并且返回
-        return commonProcess(process, datasetId, splitRule, batch, dataModel, dataType);
+        return commonProcess(process);
     }
 
     @Override
-    public Boolean stringProcessing(String title, String context, SplitRule splitRule, String datasetId, String batch, Integer dataModel, String dataType) {
-        log.info("====> 数据集{}开始上传字符串,分割规则为{}", datasetId, splitRule);
-        validate(splitRule, datasetId);
-        stringUploadStrategy.setData(title, context);
-        UploadFileRespDTO process = stringUploadStrategy.process(getUserId(datasetId));
+    public UploadResult urlProcessing(String url, UploadUrlReqVO reqVO, Integer dataModel, String dataType) {
+        log.info("====> 数据集{}开始上传URL,分割规则为{}", reqVO.getDatasetId(), reqVO.getSplitRule());
+        validate(reqVO.getDatasetId(), reqVO.getSplitRule());
+        urlUploadStrategy.setUrl(url);
+        UploadContentDTO process = urlUploadStrategy.process(getUserId(reqVO.getDatasetId()));
+        process.setInitAddress(url);
+        process.setSync(reqVO.getSync());
+        process.setBatch(reqVO.getBatch());
+        process.setSplitRule(reqVO.getSplitRule());
+        process.setDatasetId(reqVO.getDatasetId());
+        process.setDataModel(dataModel);
+        process.setDataType(dataType);
         // 执行通用逻辑并且返回
-        return commonProcess(process, datasetId, splitRule, batch, dataModel, dataType);
+        return commonProcess(process);
     }
 
-    private Boolean commonProcess(UploadFileRespDTO process, String datasetId, SplitRule splitRule, String batch, Integer dataModel, String dataType) {
+    @Override
+    public UploadResult stringProcessing(UploadCharacterReqVO reqVO, Integer dataModel, String dataType) {
+        log.info("====> 数据集{}开始上传字符串,分割规则为{}", reqVO.getDatasetId(), reqVO.getSplitRule());
+        validate(reqVO.getDatasetId(), reqVO.getSplitRule());
+        stringUploadStrategy.setData(reqVO.getTitle(), reqVO.getContext());
+        UploadContentDTO process = stringUploadStrategy.process(getUserId(reqVO.getDatasetId()));
+        process.setSync(reqVO.getSync());
+        process.setBatch(reqVO.getBatch());
+        process.setSplitRule(reqVO.getSplitRule());
+        process.setDatasetId(reqVO.getDatasetId());
+        process.setDataModel(dataModel);
+        process.setDataType(dataType);
+        // 执行通用逻辑并且返回
+        return commonProcess(process);
+    }
+
+
+    // @Deprecated
+    // private Boolean commonProcess(UploadResultDTO process, String datasetId, SplitRule splitRule, String batch, Integer dataModel, String dataType) {
+    //     if (!process.getStatus()) {
+    //         return false;
+    //     }
+    //     log.info("====> 数据上传成功,开始保存数据");
+    //     // 保存上传记录
+    //     Long storageId = saveStorageData(process);
+    //     log.info("====> 上传记录保存成功,开始保存源数据 ");
+    //     // 保存源数据
+    //     Long sourceDataId = this.saveSourceData(process, storageId, datasetId, batch, dataModel, dataType);
+    //     log.info("====> 源数据保存成功,开始异步发送队列信息 ");
+    //     // 异步发送队列信息
+    //     dataSetProducer.sendCleanDatasetsSendMessage(datasetId, sourceDataId, splitRule, getLoginUserId(),true);
+    //
+    //     log.info("====> 返回数据上传信息");
+    //
+    //     return true;
+    // }
+
+    private UploadResult commonProcess(UploadContentDTO process) {
+        UploadResult uploadResult = new UploadResult();
+
+        uploadResult.setErrMsg(process.getErrMsg());
+        uploadResult.setStatus(process.getStatus());
+
         if (!process.getStatus()) {
-            return false;
+            // 如果上传或者解析出错 则保留数据记录
+            saveErrorSourceData(process, process.getDatasetId(), process.getBatch(), process.getDataModel(), process.getDataType());
+            return uploadResult;
         }
-        log.info("====> 数据上传成功,开始保存数据");
+        log.info("====> 数据上传操作执行完毕,开始保存数据");
+
         // 保存上传记录
         Long storageId = saveStorageData(process);
         log.info("====> 上传记录保存成功,开始保存源数据 ");
         // 保存源数据
-        Long sourceDataId = this.saveSourceData(process, storageId, datasetId, batch, dataModel, dataType);
+        DatasetSourceDataDO sourceDataDO = this.saveSourceData(process, storageId, process.getDatasetId(), process.getBatch(), process.getDataModel(), process.getDataType());
         log.info("====> 源数据保存成功,开始异步发送队列信息 ");
         // 异步发送队列信息
-        sendMQMessage(datasetId, sourceDataId, splitRule, getLoginUserId());
+
+        DatasetSourceDataCleanSendMessage dataCleanSendMessage = new DatasetSourceDataCleanSendMessage();
+
+        dataCleanSendMessage.setDatasetId(process.getDatasetId());
+        dataCleanSendMessage.setDataSourceId(sourceDataDO.getId());
+        dataCleanSendMessage.setSplitRule(process.getSplitRule());
+        dataCleanSendMessage.setUserId(getUserId(process.getDatasetId()));
+
+        if (process.getSync()) {
+            dataSetProducer.sendMessage(dataCleanSendMessage);
+        } else {
+            dataSetProducer.asyncSendMessage(dataCleanSendMessage);
+        }
         log.info("====> 返回数据上传信息");
 
-        return true;
+        uploadResult.setSourceDataId(sourceDataDO.getUid());
+
+        return uploadResult;
     }
 
     /**
@@ -125,7 +208,7 @@ public class ProcessingServiceImpl implements ProcessingService {
      */
     @Override
     @TenantIgnore
-    public void validate(SplitRule splitRule, String datasetId) {
+    public void validate(String datasetId, SplitRule splitRule) {
         log.info("====> 验证数据集和分割规则");
         if (splitRule == null) {
             throw exception(SOURCE_DATA_UPLOAD_SPLIT_RULE_EMPTY);
@@ -138,13 +221,8 @@ public class ProcessingServiceImpl implements ProcessingService {
         log.info("====> 验证通过，执行上传逻辑");
     }
 
-    @Async
-    protected void sendMQMessage(String datasetId, Long dataSourceId, SplitRule splitRule, Long userID) {
-        dataSetProducer.sendCleanDatasetsSendMessage(datasetId, dataSourceId, splitRule, userID);
-    }
 
-
-    private Long saveStorageData(UploadFileRespDTO process) {
+    private Long saveStorageData(UploadContentDTO process) {
         DatasetStorageCreateReqVO createReqVO = new DatasetStorageCreateReqVO();
         createReqVO.setUid(DatasetUID.createStorageUID());
         createReqVO.setName(process.getName());
@@ -159,13 +237,14 @@ public class ProcessingServiceImpl implements ProcessingService {
         return datasetStorageDO.getId();
     }
 
-    private Long saveSourceData(UploadFileRespDTO process, Long storageId, String datasetId, String batch, Integer dataModel, String dataType) {
+    private DatasetSourceDataDO saveSourceData(UploadContentDTO process, Long storageId, String datasetId, String batch, Integer dataModel, String dataType) {
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
-
         wrapper.eq(DatasetSourceDataDO::getDatasetId, datasetId);
         // 获取当前文件位置
         long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
+
+        DataSourceInfoDTO dataSourceInfoDTO = new DataSourceInfoDTO().setInitAddress(process.getInitAddress());
 
         DatasetSourceDataDO dataDO = new DatasetSourceDataDO();
         dataDO.setUid(DatasetUID.createSourceDataUID());
@@ -173,20 +252,53 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataDO.setStorageId(storageId);
         dataDO.setPosition(position);
         dataDO.setBatch(batch);
+        dataDO.setDescription(process.getDescription());
         dataDO.setDataModel(dataModel);
         dataDO.setDataType(dataType);
         dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
         dataDO.setWordCount(process.getCharacterCount());
         dataDO.setDatasetId(datasetId);
         dataDO.setStatus(DataSetSourceDataStatusEnum.UPLOAD_COMPLETED.getStatus());
+        dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO));
         datasetSourceDataMapper.insert(dataDO);
-        return dataDO.getId();
+        return dataDO;
     }
 
-    private Long getUserId(String datasetId){
+    private void saveErrorSourceData(UploadContentDTO process, String datasetId, String batch, Integer dataModel, String dataType) {
+        // 封装查询条件
+        LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
+
+        wrapper.eq(DatasetSourceDataDO::getDatasetId, datasetId);
+        // 获取当前文件位置
+        long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
+
+        DataSourceInfoDTO dataSourceInfoDTO = new DataSourceInfoDTO().setInitAddress(process.getInitAddress());
+        DatasetSourceDataDO dataDO = new DatasetSourceDataDO();
+        dataDO.setUid(DatasetUID.createSourceDataUID());
+        dataDO.setName(process.getName());
+        dataDO.setStorageId(null);
+        dataDO.setPosition(position);
+        dataDO.setBatch(batch);
+        dataDO.setDataModel(dataModel);
+        dataDO.setDescription(process.getDescription());
+        dataDO.setDataType(dataType);
+        dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
+        dataDO.setWordCount(process.getCharacterCount());
+        dataDO.setDatasetId(datasetId);
+        dataDO.setStatus(DataSetSourceDataStatusEnum.ANALYSIS_ERROR.getStatus());
+        dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO));
+        if (DataSourceDataTypeEnum.URL.name().equals(dataType)){
+            dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO.setInitAddress(process.getName())));
+        }
+        datasetSourceDataMapper.insert(dataDO);
+    }
+
+
+
+    private Long getUserId(String datasetId) {
         Long loginUserId = getLoginUserId();
-        if (loginUserId == null){
-            String  creator= datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, datasetId)).getCreator();
+        if (loginUserId == null) {
+            String creator = datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, datasetId)).getCreator();
             loginUserId = Long.valueOf(creator);
         }
         return loginUserId;

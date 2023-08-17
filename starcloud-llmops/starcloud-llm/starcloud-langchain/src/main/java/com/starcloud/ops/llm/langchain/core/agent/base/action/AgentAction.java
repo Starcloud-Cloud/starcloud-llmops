@@ -6,6 +6,8 @@ import lombok.Data;
 @Data
 public class AgentAction {
 
+    private Boolean status;
+
     private String tool;
 
     private Object toolInput;

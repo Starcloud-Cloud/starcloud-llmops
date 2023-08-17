@@ -1,14 +1,22 @@
 package com.starcloud.ops.business.app.domain.entity.skill;
 
 
+import cn.hutool.core.util.TypeUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * handler 技能包装类
@@ -17,30 +25,52 @@ import java.util.Map;
 @Data
 public class HandlerSkill extends BaseSkillEntity {
 
-
-    private String url;
-
-
-    private String method;
-
-    private Boolean needConfirmation;
-
-    private List<Map<String, String>> headers;
+    private SkillTypeEnum type = SkillTypeEnum.HANDLER;
 
 
-    private Object queryParams;
+    private BaseHandler handler;
 
-    private Object requestBody;
+    public HandlerSkill(BaseHandler baseHandler) {
+        this.handler = baseHandler;
+    }
 
-    private Object responseBody;
 
-    private Boolean validated;
+    @Override
+    public String getName() {
+        return this.handler.getName();
+    }
 
-    private String tips;
+    @Override
+    public String getDesc() {
+        return this.handler.getDescription();
+    }
 
-    private String mediaType;
+    @Override
+    public String getUserName() {
+        return this.handler.getUserName();
+    }
 
-    private Map<String, String> mediaFormatMaps;
+    @Override
+    public String getUserDesc() {
+        return this.handler.getUserDescription();
+    }
+
+
+    /**
+     * 根据 handler name 初始化
+     *
+     * @param name
+     * @return
+     */
+    public static HandlerSkill of(String name) {
+        return new HandlerSkill(BaseHandler.of(name));
+    }
+
+    @Override
+    public JsonNode getInputSchemas() {
+
+        return null;
+    }
 
 
     @Override
@@ -48,46 +78,51 @@ public class HandlerSkill extends BaseSkillEntity {
         return null;
     }
 
+
     @Override
-    public JsonNode getInputSchemas() {
-        //根据 前端配置的参数 生成 schemas。前端上传的就已经是 schemas
+    public FunTool createFunTool(HandlerContext handlerContext) {
 
-        this.getQueryParams();
-        this.getRequestBody();
-        String name = this.getName();
-        String description = this.getDesc();
+        Type query = TypeUtil.getTypeArgument(this.getHandler().getClass());
+        Class<?> cc = (Class<?>) query;
 
-        HashMap schemas = new HashMap() {
-            {
-                put("type", "object");
-                put("properties",
-                        new HashMap() {
-                            {
-                                put("query",
-                                        new HashMap() {
-                                            {
-                                                put("type", "string");
-                                                put("description", "Parameter defines the query you want to search.");
-                                            }
-                                        });
-                            }
-                        });
-                //put("required", Arrays.asList("query"));
-            }
+        Function<Object, String> function = (input) -> {
+
+            log.info("FunTool HandlerSkill: {} {}", this.getHandler().getName(), input);
+
+            //转换入参
+
+            handlerContext.setRequest(input);
+
+            //获取当前 应用下 配置的 技能交互信息
+            SkillCustomConfig skillCustomConfig = this.getSkillSettingInfo(handlerContext.getAppUid(), this.handler.getName());
+
+            skillCustomConfig.getName();
+            skillCustomConfig.getDescription();
+            skillCustomConfig.getShowType();
+
+            HandlerResponse handlerResponse = this.handler.execute(handlerContext);
+
+            //@todo 这里可增加 扣权益记录
+
+            return handlerResponse.toJsonOutput();
         };
 
-        return OpenAIUtils.valueToTree(schemas);
-
+        return createFunTool(handler.getName(), handler.getDescription(), cc, function);
     }
 
-    @Override
-    protected Object _execute(Object req) {
 
-        this.getAccredit();
-        log.info("_execute: {}", this.getQueryParams());
+    /**
+     * 获取在App 技能上设置的 每个应用的独立配置信息
+     *
+     * @return
+     * @todo 读配置表
+     */
+    protected SkillCustomConfig getSkillSettingInfo(String appUid, String handlerName) {
 
-        //@todo  根据 不同位子的参数，在 req 中查找具体到值，只需要在第一层找到即可
-        //@todo 最后拼装 http 请求的参数，获取最后结果，结构在 根据配置的 responseBody schemas 做个校验，并返回最后的内容
-        return null;
+        //当前应用下配置的 其他应用的技能配置
+
+        return new SkillCustomConfig();
     }
+
+
 }

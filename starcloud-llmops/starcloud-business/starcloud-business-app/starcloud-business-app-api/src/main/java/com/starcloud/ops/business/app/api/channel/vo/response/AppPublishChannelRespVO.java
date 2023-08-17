@@ -49,6 +49,12 @@ public class AppPublishChannelRespVO implements Serializable {
     private Integer type;
 
     /**
+     * 媒介 UID
+     */
+    @Schema(description = "媒介 UID")
+    private String mediumUid;
+
+    /**
      * 渠道配置
      */
     @Schema(description = "渠道配置")
@@ -65,6 +71,12 @@ public class AppPublishChannelRespVO implements Serializable {
      */
     @Schema(description = "渠道描述")
     private String description;
+
+    /**
+     * 创建人
+     */
+    @Schema(description = "创建人")
+    private String creator;
 
     /**
      * 创建时间

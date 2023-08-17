@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
@@ -78,12 +79,16 @@ public class WeChatServiceImpl implements WeChatService {
     @Override
     public QrCodeTicketVO qrCodeCreate(String inviteCode) {
         try {
+            Long loginUserId = WebFrameworkUtils.getLoginUserId();
             WxMpQrCodeTicket wxMpQrCodeTicket = wxMpService.getQrcodeService().qrCodeCreateTmpTicket("login", 60 * 5);
             String url = wxMpService.getQrcodeService().qrCodePictureUrl(wxMpQrCodeTicket.getTicket());
             QrCodeTicketVO ticketVO = QrCodeConvert.INSTANCE.toVO(wxMpQrCodeTicket);
             ticketVO.setUrl(url);
             if (StringUtils.isNotBlank(inviteCode)) {
                 redisTemplate.boundValueOps(ticketVO.getTicket() + "_inviteCode").set(inviteCode, 10, TimeUnit.MINUTES);
+            }
+            if (loginUserId != null) {
+                redisTemplate.boundValueOps(ticketVO.getTicket() + "_userId").set(String.valueOf(loginUserId), 10, TimeUnit.MINUTES);
             }
             return ticketVO;
         } catch (WxErrorException e) {

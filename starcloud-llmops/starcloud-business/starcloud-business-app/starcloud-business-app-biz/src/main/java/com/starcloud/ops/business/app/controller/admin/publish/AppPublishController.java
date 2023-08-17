@@ -43,7 +43,7 @@ public class AppPublishController {
     @ApiOperationSupport(order = 1, author = "nacoyer")
     public CommonResult<PageResp<AppPublishRespVO>> pageAdmin(@Validated AppPublishPageReqVO query) {
         query.setIsAdmin(Boolean.TRUE);
-        return CommonResult.success(appPublishService.page(query));
+        return CommonResult.success(appPublishService.pageAdmin(query));
     }
 
     @GetMapping("/page")

@@ -154,7 +154,7 @@ public interface ErrorCodeConstants {
     /**
      * 应用渠道不存在，无法更新
      */
-    ErrorCode APP_CHANNEL_NOT_EXIST = new ErrorCode(300500002, "The app publish channel is not exist, uid: {} ");
+    ErrorCode APP_CHANNEL_NOT_EXIST = new ErrorCode(300500002, "The app publish channel is not exist, uid or mediumUid: {} ");
 
     /**
      * 应用发布渠道类型是必须的
@@ -189,5 +189,15 @@ public interface ErrorCodeConstants {
     /**
      * 文件类型不是图片
      */
-    ErrorCode FILE_TYPE_NOT_IMAGES = new ErrorCode(300500009,"The file type is not a picture");
+    ErrorCode FILE_TYPE_NOT_IMAGES = new ErrorCode(300500009, "The file type is not a picture");
+
+    /**
+     * 应用发布渠道配置 UID 是必须的
+     */
+    ErrorCode APP_PUBLISH_CHANNEL_CONFIG_UID_IS_REQUIRED = new ErrorCode(300500010, "The app publish channel config uid is required, please check and try again ! ");
+
+    /**
+     * 应用发布记录不存在
+     */
+    ErrorCode APP_PUBLISH_NOT_EXISTS_UID = new ErrorCode(300500011, "The app publish is not exists! [UID: {}]");
 }

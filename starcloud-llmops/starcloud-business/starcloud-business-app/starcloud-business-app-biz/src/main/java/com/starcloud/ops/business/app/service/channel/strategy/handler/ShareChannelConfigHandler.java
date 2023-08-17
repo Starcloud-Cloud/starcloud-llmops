@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.channel.strategy.handler;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.channel.dto.ShareChannelConfigDTO;
@@ -23,50 +22,44 @@ import java.util.Objects;
 public class ShareChannelConfigHandler extends AppPublishChannelConfigTemplate<ShareChannelConfigDTO> {
 
     /**
-     * 基本校验
+     * 校验渠道配置信息
      *
-     * @param config 配置
+     * @param configUid 渠道配置 UID
+     * @param config    渠道配置信息
      */
     @Override
-    public void validate(ShareChannelConfigDTO config) {
+    public void validate(String configUid, ShareChannelConfigDTO config) {
         if (Objects.nonNull(config) && StringUtils.isBlank(config.getSlug())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_CONFIG_SHARE_LINK_IS_REQUIRED);
         }
     }
 
     /**
-     * 配置处理
+     * 处理渠道配置信息
      *
-     * @param config config
+     * @param configUid 渠道配置 UID
+     * @param config    渠道配置信息
+     * @return 渠道配置信息
      */
     @Override
-    public ShareChannelConfigDTO handlerConfig(ShareChannelConfigDTO config) {
+    public ShareChannelConfigDTO handlerConfig(String configUid, ShareChannelConfigDTO config) {
         if (Objects.isNull(config)) {
             config = new ShareChannelConfigDTO();
             // 生成分享链接
-            config.setSlug(generateShareSlug());
+            config.setSlug(configUid);
         }
         return config;
     }
 
     /**
-     * 反序列化配置
+     * 反序列化渠道配置信息
      *
-     * @param config 配置
-     * @return 配置
+     * @param config 渠道配置信息
+     * @return 渠道配置信息
      */
     @Override
     public ShareChannelConfigDTO deserializeConfig(String config) {
         return JSONUtil.toBean(config, ShareChannelConfigDTO.class);
     }
 
-    /**
-     * 生成分享链接
-     *
-     * @return 分享链接
-     */
-    private String generateShareSlug() {
-        // 生成分享链接唯一标识
-        return IdUtil.fastSimpleUUID();
-    }
 }

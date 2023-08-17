@@ -43,6 +43,9 @@ public class AppPublishRespVO implements Serializable {
     @Schema(description = "应用市场 UID")
     private String marketUid;
 
+    @Schema(description = "提交人名称")
+    private String submitterUser;
+
     /**
      * 应用名称
      */

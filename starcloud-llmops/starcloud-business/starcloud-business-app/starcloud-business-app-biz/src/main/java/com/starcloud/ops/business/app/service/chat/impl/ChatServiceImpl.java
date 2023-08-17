@@ -88,10 +88,25 @@ public class ChatServiceImpl implements ChatService {
     private static final String DEFAULT_AVATAR = "default_avatar";
 
 
+    public void chatEndUser(ChatRequestVO request) {
+
+        //分享ID，应用ID
+        ChatAppEntity appEntity = AppFactory.factory(request);
+
+        appEntity.aexecute(request);
+
+    }
+
     @Override
     public void chat(ChatRequestVO request) {
+        //分享ID，应用ID
         ChatAppEntity appEntity = AppFactory.factory(request);
-        appEntity.aexecute(request);
+
+        if (request.getSseEmitter() != null) {
+            appEntity.aexecute(request);
+        } else {
+            appEntity.execute(request);
+        }
     }
 
     @Override
@@ -167,7 +182,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private void checkFileType(String suffix) {
-        List<String> imageTypes = Arrays.asList("jpg","jpeg","png");
+        List<String> imageTypes = Arrays.asList("jpg", "jpeg", "png");
         if (!imageTypes.contains(suffix.toLowerCase())) {
             throw exception(FILE_TYPE_NOT_IMAGES);
         }
@@ -209,9 +224,6 @@ public class ChatServiceImpl implements ChatService {
         }
         return history;
     }
-
-
-
 
 
 }

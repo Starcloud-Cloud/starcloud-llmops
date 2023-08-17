@@ -3,12 +3,18 @@ package com.starcloud.ops.business.app.domain.entity.config;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -59,6 +65,7 @@ public class WorkflowStepWrapper {
 
     /**
      * 获取当前步骤配置的 步骤Code
+     *
      * @return
      */
     public String getStepCode() {
@@ -134,6 +141,16 @@ public class WorkflowStepWrapper {
         }, prefixKey);
     }
 
+    @JSONField(serialize = false)
+    public Map<String, VariableItemEntity> getContextVariableItems() {
+
+        String prefixKey = "STEP." + this.getField();
+
+        return VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
+            return variableItemEntity;
+        }, prefixKey);
+    }
+
     /**
      * 获取当前步骤的变量Keys列表
      *
@@ -146,5 +163,21 @@ public class WorkflowStepWrapper {
         return null;
     }
 
+    /**
+     * 执行成功后，响应更新
+     *
+     * @param stepId   步骤ID
+     * @param response 响应
+     */
+    @JSONField(serialize = false)
+    public void setActionResponse(String stepId, ActionResponse response) {
+        if (StringUtils.equalsIgnoreCase(this.name, stepId) || StringUtils.equalsIgnoreCase(this.field, stepId)) {
+            ActionResponse actionResponse = this.flowStep.getResponse();
+            response.setType(Optional.of(actionResponse).map(ActionResponse::getType).orElse(AppStepResponseTypeEnum.TEXT.name()));
+            response.setStyle(Optional.of(actionResponse).map(ActionResponse::getStyle).orElse(AppStepResponseStyleEnum.TEXTAREA.name()));
+            response.setIsShow(Optional.of(actionResponse).map(ActionResponse::getIsShow).orElse(Boolean.TRUE));
+            this.flowStep.setResponse(response);
+        }
+    }
 
 }

@@ -82,16 +82,15 @@ public abstract class Chain<R> {
 
             result = this._call(baseVariables);
 
+            chainRun.onChainEnd(this.getClass(), result);
+            this.prepOutputs(baseVariables, result);
+
         } catch (Exception e) {
 
             chainRun.onChainError(e.getMessage(), e);
 
             //this.getCallbackManager().onChainError(e.getMessage(), e);
         }
-
-        chainRun.onChainEnd(this.getClass(), result);
-
-        this.prepOutputs(baseVariables, result);
 
         return result;
     }
@@ -100,7 +99,7 @@ public abstract class Chain<R> {
 
         this._validateOutputs(result);
 
-        if (this.getMemory() != null) {
+        if (result != null && this.getMemory() != null) {
             this.getMemory().saveContext(baseVariables, result);
         }
         return result;

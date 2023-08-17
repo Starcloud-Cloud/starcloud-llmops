@@ -2,6 +2,8 @@ package com.starcloud.ops.business.user.service.impl;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.invitationrecords.vo.InvitationRecordsPageReqVO;
 import com.starcloud.ops.business.user.dal.dataObject.InvitationRecordsDO;
 import com.starcloud.ops.business.user.dal.mysql.InvitationRecordsMapper;
@@ -47,8 +49,11 @@ public class InvitationRecordsServiceImpl implements InvitationRecordsService {
 
 
     @Override
-    public InvitationRecordsDO getInvitationRecords(Long id) {
-        return invitationRecordsMapper.selectById(id);
+    public List<InvitationRecordsDO> getInvitationRecords(Long userId) {
+        LambdaQueryWrapper<InvitationRecordsDO> queryWrapper = Wrappers.lambdaQuery(InvitationRecordsDO.class)
+                .eq(InvitationRecordsDO::getInviterId, userId)
+                .orderByAsc(InvitationRecordsDO::getId);
+        return invitationRecordsMapper.selectList(queryWrapper);
     }
 
     @Override

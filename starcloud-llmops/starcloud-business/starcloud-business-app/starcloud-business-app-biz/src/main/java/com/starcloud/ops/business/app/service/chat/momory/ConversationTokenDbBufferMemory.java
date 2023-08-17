@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
@@ -44,11 +45,15 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
 
     private String modelType;
 
-    public ConversationTokenDbBufferMemory(int maxTokens, String conversationUid, String modelType) {
+    private String creator;
+
+    public ConversationTokenDbBufferMemory(int maxTokens, String conversationUid,
+                                           String modelType,String creator) {
         this.messageService = SpringUtil.getBean(LogAppMessageService.class);
         this.maxTokens = maxTokens;
         this.conversationUid = conversationUid;
         this.modelType = modelType;
+        this.creator = creator;
     }
 
     @Override
@@ -68,7 +73,7 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
         }
 
         Optional<LogAppMessageDO> summaryMessageOptional = appMessageList.stream()
-                .filter(logAppMessageDO -> AppSceneEnum.SYSTEM_SUMMARY.name().equals(logAppMessageDO.getFromScene()))
+                .filter(logAppMessageDO -> LogMessageTypeEnum.SUMMARY.name().equals(logAppMessageDO.getMsgType()))
                 .findFirst();
 
         LogAppMessageDO summaryMessage;
@@ -93,7 +98,7 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
         Collections.reverse(appMessageList);
         ChatMessageHistory history = new ChatMessageHistory();
         for (LogAppMessageDO logAppMessageDO : appMessageList) {
-            if (AppSceneEnum.SYSTEM_SUMMARY.name().equals(logAppMessageDO.getFromScene())) {
+            if (LogMessageTypeEnum.SUMMARY.name().equals(logAppMessageDO.getMsgType())) {
                 history.addMessage(new SystemMessage(logAppMessageDO.getAnswer()));
             } else {
                 history.addUserMessage(logAppMessageDO.getMessage());
@@ -164,8 +169,10 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
         messageCreateReqVO.setElapsed(end - start);
         messageCreateReqVO.setTotalPrice(totalPrice);
         messageCreateReqVO.setCurrency("USD");
-        messageCreateReqVO.setFromScene(AppSceneEnum.SYSTEM_SUMMARY.name());
+        messageCreateReqVO.setFromScene(AppSceneEnum.CHAT_TEST.name());
         messageCreateReqVO.setStatus("SUCCESS");
+        messageCreateReqVO.setCreator(creator);
+        messageCreateReqVO.setMsgType(LogMessageTypeEnum.SUMMARY.name());
         messageService.createAppMessage(messageCreateReqVO);
         return openaiResult.getText();
     }

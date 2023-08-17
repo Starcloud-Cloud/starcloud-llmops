@@ -3,7 +3,6 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,21 +40,28 @@ public interface DatasetSourceDataService {
      *
      * @return 编号
      */
-    SourceDataUploadDTO uploadFilesSourceData(MultipartFile files, String batch, SplitRule splitRule, String datasetId);
+    SourceDataUploadDTO uploadFilesSourceData(MultipartFile file, UploadFileReqVO reqVO);
 
     /**
      * 上传URL-支持批量上传
      *
      * @return 编号
      */
-    SourceDataUploadDTO uploadUrlsSourceData(List<UploadUrlReqVO> urls, String batch, SplitRule splitRule, String datasetId);
+    List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO);
+
+    /**
+     * 上传URL-支持批量上传
+     *
+     * @return 编号
+     */
+    List<SourceDataUploadDTO> uploadUrlsAndCreateDataset(UploadUrlReqVO reqVO);
 
     /**
      * 上传字符-支持批量上传
      *
      * @return 编号
      */
-    SourceDataUploadDTO uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS, String batch, SplitRule splitRule, String datasetId);
+    List<SourceDataUploadDTO> uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS);
 
     /**
      * 批量创建数据集源数据
@@ -94,15 +100,21 @@ public interface DatasetSourceDataService {
      * @param datasetId 数据集 ID
      * @return 数据集源数据列表
      */
-    List<DatasetSourceDataDO> getDatasetSourceDataList(String datasetId, Integer dataModel);
+    List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(String datasetId, Integer dataModel);
 
     /**
      * 获取数据源详情
      *
-     * @param uid 数据集源数据编号
+     * @param uid    数据集源数据编号
+     * @param enable 如果 enable 为 true 则详情内容默认为清洗后的数据
      */
-    DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid);
+    DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid, Boolean enable);
 
+    /**
+     * 获取分块内容
+     * @param reqVO
+     * @return
+     */
     PageResult<DatasetSourceDataSplitPageRespVO> getSplitDetails(DatasetSourceDataSplitPageReqVO reqVO);
 
     /**
@@ -124,14 +136,14 @@ public interface DatasetSourceDataService {
      *
      * @param uid 数据集源数据编号
      */
-    void updateDatasourceStatusAndMessage(Long uid, Integer status, String message);
+    void updateStatusById(Long uid, Integer status, String message);
 
     /**
      * 更新数据集状态
      *
-     * @param uid 数据集源数据编号
+     * @param dataDO 数据集源数据DO
      */
-    void updateDatasourceAndSourceInfo(Long uid, Integer status, String dataSourceInfo, Long userId);
+    void updateDatasourceById(DatasetSourceDataDO dataDO);
 
 
 }

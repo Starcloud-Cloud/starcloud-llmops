@@ -152,6 +152,9 @@ yudao:
       - /admin-api/system/auth/refresh-token # 刷新缓存
       - /admin-api/llm/wechat/** # 微信回调
       - /admin-api/system/auth/logout # 登出
+      - /admin-api/llm/Communication/code/**  # 发送验证码
+      - /admin-api/llm/worktool/callback/**   # 平台回调
+      - /app-api/share/**       # 游客访问
     ignore-tables:
       - system_tenant
       - system_tenant_package
@@ -199,7 +202,7 @@ yudao:
     expire-times: 10m
     send-frequency: 1m
     send-maximum-quantity-per-day: 10
-    begin-code: 9999 # 这里配置 9999 的原因是，测试方便。
+    begin-code: 0 # 这里配置 9999 的原因是，测试方便。
     end-code: 9999 # 这里配置 9999 的原因是，测试方便。
   trade:
     order:

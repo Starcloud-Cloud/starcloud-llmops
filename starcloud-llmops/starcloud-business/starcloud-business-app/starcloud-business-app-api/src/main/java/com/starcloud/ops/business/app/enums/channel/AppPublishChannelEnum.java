@@ -8,6 +8,7 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-07-27
  */
+@Getter
 public enum AppPublishChannelEnum implements IEnumable<Integer> {
 
     MARKET(1, "应用市场", "应用市场"),
@@ -34,13 +35,10 @@ public enum AppPublishChannelEnum implements IEnumable<Integer> {
 
     ;
 
-    @Getter
     private final Integer code;
 
-    @Getter
     private final String label;
 
-    @Getter
     private final String description;
 
     AppPublishChannelEnum(Integer code, String label, String description) {

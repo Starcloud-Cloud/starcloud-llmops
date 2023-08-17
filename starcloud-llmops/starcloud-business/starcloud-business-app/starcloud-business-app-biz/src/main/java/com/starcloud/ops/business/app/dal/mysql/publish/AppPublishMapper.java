@@ -89,14 +89,16 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
     /**
      * 审核发布记录
      *
-     * @param uid   发布 UID
-     * @param audit 审核状态
+     * @param uid    发布 UID
+     * @param audit  审核状态
+     * @param userId 用户 ID
      */
-    default void audit(String uid, Integer audit) {
+    default void audit(String uid, Integer audit, Long userId) {
         LambdaUpdateWrapper<AppPublishDO> wrapper = Wrappers.lambdaUpdate(AppPublishDO.class);
         wrapper.eq(AppPublishDO::getUid, uid);
         wrapper.eq(AppPublishDO::getDeleted, Boolean.FALSE);
         wrapper.set(AppPublishDO::getAudit, audit);
+        wrapper.set(Objects.nonNull(userId), AppPublishDO::getUserId, userId);
         this.update(null, wrapper);
     }
 
@@ -117,12 +119,15 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
                 AppPublishDO::getUid,
                 AppPublishDO::getAppUid,
                 AppPublishDO::getMarketUid,
+                AppPublishDO::getUserId,
                 AppPublishDO::getName,
                 AppPublishDO::getModel,
                 AppPublishDO::getVersion,
                 AppPublishDO::getCategories,
                 AppPublishDO::getLanguage,
                 AppPublishDO::getAudit,
+                AppPublishDO::getCreator,
+                AppPublishDO::getUpdater,
                 AppPublishDO::getCreateTime,
                 AppPublishDO::getUpdateTime,
                 AppPublishDO::getDescription

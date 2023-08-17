@@ -1,21 +1,27 @@
 package com.starcloud.ops.business.dataset.mq.producer;
 
 import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
+import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataCleanSendConsumer;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
 /**
  * 数据集 队列消息发送
+ *
  * @author Alan Cusack
  */
 
 @Slf4j
 @Component
-public class DatasetSourceDataCleanProducer {
+public class DatasetSourceDataCleanProducer extends AbstractDatasetSourceProducer {
+
+    @Autowired
+    private DataSetSourceDataCleanSendConsumer dataSetSourceDataCleanSendConsumer;
 
     @Resource
     private RedisMQTemplate redisMQTemplate;
@@ -36,21 +42,31 @@ public class DatasetSourceDataCleanProducer {
     //     redisMQTemplate.send(message);
     // }
 
-    /**
-     * 发送 {@link DatasetSourceDataCleanSendMessage} 消息
-     *
-
-     */
-    public void sendCleanDatasetsSendMessage(String dataSetId, Long dataSourceId,
-                                             SplitRule splitRule, Long userId) {
-        DatasetSourceDataCleanSendMessage message = new DatasetSourceDataCleanSendMessage()
-                .setDatasetId(dataSetId)
-                .setDataSourceId(dataSourceId)
-                .setSplitRule(splitRule)
-                .setUserId(userId);
+    @Override
+    public void asyncSendMessage(DatasetSourceSendMessage sendMessage) {
+        DatasetSourceSendMessage message = new DatasetSourceDataCleanSendMessage()
+                .setDatasetId(sendMessage.getDatasetId())
+                .setDataSourceId(sendMessage.getDataSourceId())
+                .setSplitRule(sendMessage.getSplitRule())
+                .setUserId(sendMessage.getUserId())
+                .setRetryCount(0)
+                .setSync(false);
         log.info("发送数据清洗信息");
         redisMQTemplate.send(message);
     }
 
+    @Override
+    public void sendMessage(DatasetSourceSendMessage sendMessage) {
 
+        DatasetSourceDataCleanSendMessage message = new DatasetSourceDataCleanSendMessage();
+
+        message.setSync(true);
+        message.setRetryCount(0);
+        message.setDatasetId(sendMessage.getDatasetId());
+        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setSplitRule(sendMessage.getSplitRule());
+        message.setUserId(sendMessage.getUserId());
+
+        dataSetSourceDataCleanSendConsumer.onMessage(message);
+    }
 }

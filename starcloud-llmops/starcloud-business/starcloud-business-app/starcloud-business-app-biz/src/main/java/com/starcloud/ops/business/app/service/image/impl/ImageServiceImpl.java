@@ -7,24 +7,34 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.controller.admin.image.vo.OptimizePromptReqVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
+import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -45,6 +55,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class ImageServiceImpl implements ImageService {
+
+    @Resource
+    private AppService appService;
+
+    @Resource
+    private AppMarketMapper appMarketMapper;
 
     @Resource
     private LogAppConversationMapper logAppConversationMapper;
@@ -150,6 +166,54 @@ public class ImageServiceImpl implements ImageService {
     }
 
     /**
+     * 获取优化提示应用列表
+     *
+     * @return 应用列表
+     */
+    @Override
+    public List<Option> getOptimizePromptAppList() {
+        LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class);
+        wrapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
+        wrapper.like(AppMarketDO::getTags, "Optimize Prompt");
+        List<AppMarketDO> appMarketList = appMarketMapper.selectList(wrapper);
+        return CollectionUtil.emptyIfNull(appMarketList).stream().map(item -> {
+            Option option = new Option();
+            option.setLabel(item.getName());
+            option.setValue(item.getUid());
+            option.setDescription(item.getDescription());
+            return option;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 优化提示
+     *
+     * @param request 请求参数
+     */
+    @Override
+    public void optimizePrompt(OptimizePromptReqVO request) {
+        AppExecuteReqVO appExecuteReqVO = new AppExecuteReqVO();
+        appExecuteReqVO.setSseEmitter(request.getSseEmitter());
+        appExecuteReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
+        String appUid = request.getAppUid();
+        AppValidate.notBlank(appUid, ErrorCodeConstants.APP_UID_IS_REQUIRED, appUid);
+
+        AppMarketDO appMarketDO = appMarketMapper.get(appUid, Boolean.FALSE);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, appUid);
+        AppReqVO appReqVO = AppConvert.INSTANCE.convertRequest(appMarketDO);
+
+        Map<String, Object> variables = new HashMap<>(2);
+        variables.put("content", request.getContent());
+        variables.put("language", request.getLanguage());
+        appReqVO.addVariables(variables);
+        appExecuteReqVO.setAppReqVO(appReqVO);
+        appExecuteReqVO.setAppUid(appMarketDO.getUid());
+        appMarketDO.setScenes(AppSceneEnum.WEB_MARKET.name());
+
+        appService.asyncExecute(appExecuteReqVO);
+    }
+
+    /**
      * 获取会话记录 <br>
      * 1. 如果会话记录id不为空，则根据会话记录id查询 <br>
      * 2. 如果会话记录id为空，则根据用户id查询最新的一条会话记录
@@ -181,12 +245,11 @@ public class ImageServiceImpl implements ImageService {
         String fastConversationUid = IdUtil.fastSimpleUUID();
         conversation.setUid(fastConversationUid);
         conversation.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
-        conversation.setAppName("基础生成图片应用：文本生成图片，图片生成图片");
+        conversation.setAppName("AI图片生成");
         conversation.setStatus(LogStatusEnum.ERROR.name());
         conversation.setAppUid(fastConversationUid);
         conversation.setAppConfig(JSONUtil.toJsonStr(new ImageReqVO()));
-        conversation.setFromScene(AppSceneEnum.WEB_ADMIN.name());
-        conversation.setEndUser(Long.toString(userId));
+        conversation.setFromScene(AppSceneEnum.WEB_IMAGE.name());
         logAppConversationMapper.insert(conversation);
         return conversation;
     }

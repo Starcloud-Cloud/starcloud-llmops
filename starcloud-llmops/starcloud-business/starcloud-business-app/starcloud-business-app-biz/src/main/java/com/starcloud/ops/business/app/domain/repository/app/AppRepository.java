@@ -1,14 +1,9 @@
 package com.starcloud.ops.business.app.domain.repository.app;
 
-import cn.hutool.core.util.IdUtil;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.util.AppUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -33,9 +28,12 @@ public class AppRepository {
      * @param uid 应用唯一标识
      * @return 应用实体
      */
-    public BaseAppEntity getByUid(String uid) {
+    public BaseAppEntity get(String uid) {
         AppDO app = appMapper.get(uid, Boolean.FALSE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        // AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        if (app == null) {
+            return null;
+        }
         return AppConvert.INSTANCE.convert(app, Boolean.FALSE);
     }
 

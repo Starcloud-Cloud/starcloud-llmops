@@ -80,8 +80,17 @@ public class VariableEntity {
     @JSONField(serialize = false)
     public static <V> Map<String, V> coverMergeVariables(VariableEntity coverVariableEntity, VariableEntity variableEntity, Function<VariableItemEntity, V> consumer, String prefixKey) {
 
-        List<VariableItemEntity> self = Optional.ofNullable(variableEntity).map(VariableEntity::getVariables).orElse(new ArrayList<>());
-        self.addAll(Optional.ofNullable(coverVariableEntity).map(VariableEntity::getVariables).orElse(new ArrayList<>()));
+        List<VariableItemEntity> self = new ArrayList<>();
+
+        List<VariableItemEntity> variablesList = variableEntity.getVariables();
+        if (CollectionUtil.isNotEmpty(variablesList)) {
+            self.addAll(variablesList);
+        }
+
+        List<VariableItemEntity> coverVariablesList = coverVariableEntity.getVariables();
+        if (CollectionUtil.isNotEmpty(coverVariablesList)) {
+            self.addAll(coverVariablesList);
+        }
 
         Map<String, V> variablesValues = MapUtil.newHashMap();
 

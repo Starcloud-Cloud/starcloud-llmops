@@ -192,7 +192,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             // 增加记录
             userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
         } catch (RuntimeException e) {
-            log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]｜完整错误为({})]", userId, strategyType, e.getMessage(),e);
+            log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]｜完整错误为({})]", userId, strategyType, e.getMessage(), e);
             return false;
         }
         log.info("[addUserBenefitsByCode][4.增加权益结束：用户ID({})｜权益类型({})]", userId, strategyType);
@@ -399,6 +399,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         userBenefitsInfoResultVO.setQueryTime(now);
 
+        int botNums = 3;
         // 根据用户权限判断用户等级
         if (securityFrameworkService.hasRole("MOFAAI_PRO") && (CollUtil.isNotEmpty(monthBenefitsStrategyDOS) || CollUtil.isNotEmpty(yearBenefitsStrategyDOS))) {
             userBenefitsInfoResultVO.setUserLevel("pro");
@@ -416,6 +417,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.TOKEN, totalTokenCountUsed, totalTokenCount));
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.IMAGE, totalImageCountUsed, totalImageCount));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.BOT, 0, botNums));
 //        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.APP, totalAppCountUsed, totalAppCount));
 //        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.DATASET, totalDatasetCountUsed, totalDatasetCount));
 
@@ -593,12 +595,12 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 // throw exception(USER_BENEFITS_USELESS_INTEREST);
             }
             // 权益扣除
-            updateBenefits(resultList, getter, setter, amount);
+            List<UserBenefitsDO> usedBenefitsDOS = updateBenefits(resultList, getter, setter, amount);
 
             // 批量更新数据
             userBenefitsMapper.updateBatch(resultList, resultList.size());
 
-            benefitsIds = resultList.stream()
+            benefitsIds = usedBenefitsDOS.stream()
                     .map(UserBenefitsDO::getId)
                     .collect(Collectors.toList());
         }
@@ -626,9 +628,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param setter     setter
      * @param amount     增加或者扣减数
      */
-    private void updateBenefits(List<UserBenefitsDO> resultList, Function<UserBenefitsDO, Long> getter, BiConsumer<UserBenefitsDO, Long> setter, Long amount) {
+    private List<UserBenefitsDO> updateBenefits(List<UserBenefitsDO> resultList, Function<UserBenefitsDO, Long> getter, BiConsumer<UserBenefitsDO, Long> setter, Long amount) {
 
         long remainingAmount = amount;
+
+        List<UserBenefitsDO> usedBenefitsList = new ArrayList<>(); // 创建用于记录已使用的权益的列表
 
         for (UserBenefitsDO userBenefits : resultList) {
             // 获取当前权益已使用数量
@@ -644,14 +648,17 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
             // 如果剩余需扣除数量已为0或负数，退出循环
             if (remainingAmount <= 0) {
-
+                usedBenefitsList.add(userBenefits); // 将已使用的权益添加到列表中
                 break;
+            }else {
+                usedBenefitsList.add(userBenefits); // 将已使用的权益添加到列表中
             }
         }
 
         if (remainingAmount > 0) {
             log.warn("[expendBenefits][权益扣减成功，用户剩余权益不足扣除：用户ID({})｜权益类型({})|剩余数量({})", getLoginUserId(), getter.toString(), remainingAmount);
         }
+        return usedBenefitsList;
 
     }
 
@@ -793,14 +800,14 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     /**
      * 用户普通注册--增加权益
      *
-     * @param userId  用户 ID
+     * @param userId 用户 ID
      */
     @Transactional
     public void addUserBenefitsSign(Long userId) {
         log.info("[addUserBenefitsSign][增加注册权益：注册人用户ID({})]", userId);
         // 普通注册权益
         Boolean signResult = this.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.SIGN_IN.getName(), userId);
-        log.info("[addUserBenefitsSign][增加注册权益结束：注册人用户ID({})｜增加状态为({})]", userId,signResult);
+        log.info("[addUserBenefitsSign][增加注册权益结束：注册人用户ID({})｜增加状态为({})]", userId, signResult);
     }
 
     /**

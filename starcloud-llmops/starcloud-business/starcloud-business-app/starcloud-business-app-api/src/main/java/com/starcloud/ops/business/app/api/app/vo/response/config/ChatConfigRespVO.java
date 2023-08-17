@@ -40,6 +40,9 @@ public class ChatConfigRespVO extends BaseConfigRespVO {
     @Schema(description = "聊天模型参数配置")
     private ModelConfigRespVO modelConfig;
 
+    @Schema(description = "聊天语音参数配置")
+    private SpeakConfigRespVO speakConfig;
+
     @Schema(description = "绑定数据集")
     private List<DatesetRespVO> datesetEntities;
 
@@ -57,6 +60,9 @@ public class ChatConfigRespVO extends BaseConfigRespVO {
 
     @Schema(description = "描述配置")
     private DescriptionRespVo description;
+
+    @Schema(description = "联网")
+    private WebSearchConfigRespVO webSearchConfig;
 
     /**
      * 挂载的 functions 列表

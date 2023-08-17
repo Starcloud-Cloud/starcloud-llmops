@@ -26,7 +26,7 @@ import java.util.Optional;
 @Data
 public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
 
-    private String name = "Search";
+    private String name = "GoogleSearch";
 
     private String description = "A search engine. Useful for when you need to answer questions about current events. Input should be a search query.";
 

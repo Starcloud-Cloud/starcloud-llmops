@@ -8,9 +8,13 @@ import lombok.Data;
 @Data
 public class InvalidTool extends BaseTool<Object, String> implements BaseRequestsTool {
 
-    private String name = "invalid_tool";
+    private String name = "{invalid_tool}";
 
     private String description = "Called when tool name is invalid.";
+
+    public InvalidTool(String name) {
+        this.name = name;
+    }
 
     @Override
     protected String _run(Object input) {

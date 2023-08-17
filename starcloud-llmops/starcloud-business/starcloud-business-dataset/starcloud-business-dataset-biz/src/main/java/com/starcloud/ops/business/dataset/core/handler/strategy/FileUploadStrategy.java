@@ -4,7 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,9 +41,9 @@ public class FileUploadStrategy implements UploadStrategy {
      * @return UploadFileRespDTO
      */
     @Override
-    public UploadFileRespDTO process(Long userId) {
+    public UploadContentDTO process(Long userId) {
         log.info("====> 文件开始上传 ,初始化数据状态为 false");
-        UploadFileRespDTO uploadFileRespDTO = new UploadFileRespDTO();
+        UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
         // 获取文件的name
         String name = uploadFile.getOriginalFilename();
@@ -73,8 +73,8 @@ public class FileUploadStrategy implements UploadStrategy {
             uploadFileRespDTO.setStatus(true);
         } catch (Exception e) {
             log.error("====> 文件开始上传失败 ,返回数据状态为 false");
+            uploadFileRespDTO.setErrMsg("文件开始上传失败");
             return uploadFileRespDTO;
-            // throw exception(SOURCE_DATA_UPLOAD_URL_ERROR);
         }
 
         // 设置扩展名

@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.domain.entity.skill;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * 技能实体
@@ -17,6 +20,7 @@ import java.util.Map;
 @Data
 public class ApiSkill extends BaseSkillEntity {
 
+    private SkillTypeEnum type = SkillTypeEnum.API;
 
     private String url;
 
@@ -42,6 +46,23 @@ public class ApiSkill extends BaseSkillEntity {
 
     private Map<String, String> mediaFormatMaps;
 
+
+    /**
+     * 获取当前聊天配置的 其他名称和描述
+     *
+     * @return
+     */
+    @Override
+    public String getName() {
+
+        return "api name";
+    }
+
+    @Override
+    public String getDesc() {
+
+        return "api desc";
+    }
 
     @Override
     public Class<?> getInputCls() {
@@ -81,7 +102,23 @@ public class ApiSkill extends BaseSkillEntity {
     }
 
     @Override
-    protected Object _execute(Object req) {
+    public FunTool createFunTool(HandlerContext handlerContext) {
+
+        Function<Object, String> function = (input) -> {
+
+            log.info("FunTool ApiSkill: {} {}", this.getName(), input);
+
+            SkillCustomConfig skillCustomConfig = this.getSkillSettingInfo(handlerContext.getAppUid(), this.getName());
+
+
+            return this._execute(input);
+        };
+
+        return new FunTool(this.getName(), this.getDesc(), this.getInputSchemas(), function);
+    }
+
+
+    protected String _execute(Object req) {
 
         this.getAccredit();
         log.info("_execute: {}", this.getQueryParams());
@@ -89,5 +126,19 @@ public class ApiSkill extends BaseSkillEntity {
         //@todo  根据 不同位子的参数，在 req 中查找具体到值，只需要在第一层找到即可
         //@todo 最后拼装 http 请求的参数，获取最后结果，结构在 根据配置的 responseBody schemas 做个校验，并返回最后的内容
         return null;
+    }
+
+
+    /**
+     * 获取在App 技能上设置的 每个API的独立交互配置信息
+     *
+     * @return
+     * @todo 读配置表
+     */
+    protected SkillCustomConfig getSkillSettingInfo(String appUid, String apiName) {
+
+        //当前应用下配置的 其他应用的技能配置
+
+        return new SkillCustomConfig();
     }
 }

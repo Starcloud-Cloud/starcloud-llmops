@@ -16,7 +16,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.AppWorkflowService;
@@ -143,7 +142,7 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         executeReqVO.setSseEmitter(emitter);
 
-        AppEntity app = AppFactory.factory(executeReqVO.getAppUid());
+        AppEntity app = AppFactory.factoryApp(executeReqVO.getAppUid());
 
         app.execute(executeReqVO);
 

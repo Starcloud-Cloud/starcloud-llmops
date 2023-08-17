@@ -5,6 +5,8 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Data
-public class AgentExecutor extends Chain<Map<String, Object>> {
+public class AgentExecutor extends Chain<AgentExecutorResponse> {
 
     private BaseSingleActionAgent actionAgent;
 
@@ -38,10 +40,12 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
     private List<String> tags;
 
-    private Boolean returnIntermediateSteps = false;
+    private Boolean returnIntermediateSteps = true;
 
+    //最大工具执行次数
     private int maxIterations = 6;
 
+    //最大工具执行总耗时
     private float maxExecutionTime = 1000 * 60 * 5;
 
     private String earlyStoppingMethod = "force";
@@ -81,7 +85,7 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
     }
 
     @Override
-    protected Map<String, Object> _call(List<BaseVariable> variables) {
+    protected AgentExecutorResponse _call(List<BaseVariable> variables) {
 
         List<AgentAction> intermediateSteps = new ArrayList<>();
 
@@ -95,26 +99,30 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
             List<AgentAction> nextStepOutput = this._takeNextStep(toolMap, variables, intermediateSteps);
 
+            //检查是否直接有完成的AgentFinish
             AgentFinish agentFinish = this.checkGetAgentFinish(nextStepOutput);
 
+            //增加到actions执行记录
+            intermediateSteps.addAll(nextStepOutput);
+
+            //有AgentFinish 直接返回
             if (agentFinish != null) {
                 return this._return(agentFinish, intermediateSteps);
             }
-
-            intermediateSteps.addAll(nextStepOutput);
 
             if (CollectionUtil.size(nextStepOutput) == 1) {
                 AgentAction nextStepAction = nextStepOutput.get(0);
 
                 AgentFinish toolReturn = getToolReturn(nextStepAction);
                 if (toolReturn != null) {
-                    this._return(toolReturn, intermediateSteps);
+                    return this._return(toolReturn, intermediateSteps);
                 }
             }
             iterations += 1;
             timeElapsed = timer.interval();
         }
 
+        //执行到这说明已经超时了，返回一个超时的 AgentFinish
         AgentFinish stopAgent = this.actionAgent.returnStoppedResponse("force", intermediateSteps, variables);
 
         return this._return(stopAgent, intermediateSteps);
@@ -123,17 +131,20 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
     @Override
     public String run(List<BaseVariable> baseVariables) {
 
-        Map<String, Object> result = this.call(baseVariables);
-        return result.toString();
+        AgentExecutorResponse response = this.call(baseVariables);
+        if (response != null) {
+            return String.valueOf(response.getOutput());
+        }
+        return "";
     }
 
     @Override
-    protected Map<String, Object> prepOutputs(List<BaseVariable> baseVariables, Map<String, Object> result) {
+    protected AgentExecutorResponse prepOutputs(List<BaseVariable> baseVariables, AgentExecutorResponse result) {
 
         this._validateOutputs(result);
 
         if (this.getMemory() != null) {
-            this.getMemory().saveContext(baseVariables, BaseLLMResult.builder().text((String) result.getOrDefault("output", "")).build());
+            this.getMemory().saveContext(baseVariables, BaseLLMResult.builder().text((String) result.getOutput()).build());
         }
         return result;
     }
@@ -148,10 +159,11 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
 
     /**
      * 判断执行条件是否满足
-     * @todo 返回异常，让上游感知到
+     *
      * @param iterations
      * @param timeElapsed
      * @return
+     * @todo 返回异常，让上游感知到
      */
     protected Boolean _shouldContinue(Integer iterations, long timeElapsed) {
         if (iterations > this.getMaxIterations()) {
@@ -195,12 +207,8 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
         } catch (OutputParserException e) {
 
             log.error("plan is fail: {}", e.getMessage(), e);
-
-            //ExceptionTool
-
-            return Arrays.asList(new AgentFinish(new HashMap() {{
-                put("error", e.getMessage());
-            }}, ""));
+            //@todo ExceptionTool
+            return Arrays.asList(AgentFinish.error(e.getMessage()));
         }
 
         //todo multistep AgentAction
@@ -228,13 +236,19 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
                     toolRunKwargs.put("llm_prefix", "");
                 }
 
+                //@todo 捕获工具执行异常
                 observation = baseTool.run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
+                //为空，可能执行异常，告诉LLM 此次调用失败，无效
+                if (ObjectUtil.isEmpty(observation)) {
+                    agentAction.setStatus(false);
+                    observation = "Calling the tool failed and returned nothing.";
+                }
 
             } else {
 
                 Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
-
-                observation = new InvalidTool().setCallbackManager(this.callbackManager).run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
+                //LLM 返回了错误工具的情况
+                observation = new InvalidTool(agentAction.getTool()).setCallbackManager(this.callbackManager).run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
             }
 
             agentAction.setObservation(observation);
@@ -273,17 +287,23 @@ public class AgentExecutor extends Chain<Map<String, Object>> {
         return null;
     }
 
-    private Map<String, Object> _return(AgentFinish agentFinish, List<AgentAction> agentActions) {
+    //对返回对AgentFinish增加 执行历史的 AgentAction 的记录，其中也包括了LLM执行消耗
+    private AgentExecutorResponse _return(AgentFinish agentFinish, List<AgentAction> agentActions) {
 
         this.callbackManager.onAgentFinish(this.getClass(), agentFinish);
 
         Map<String, Object> returnValue = agentFinish.getReturnValues();
 
+        AgentExecutorResponse agentExecutorResponse = new AgentExecutorResponse();
+        agentExecutorResponse.setOutput(agentFinish.getOutput());
+
         if (this.returnIntermediateSteps) {
             returnValue.put("intermediate_steps", agentActions);
             //set agentActions
+
+            agentExecutorResponse.setIntermediateSteps(agentActions);
         }
 
-        return returnValue;
+        return agentExecutorResponse;
     }
 }

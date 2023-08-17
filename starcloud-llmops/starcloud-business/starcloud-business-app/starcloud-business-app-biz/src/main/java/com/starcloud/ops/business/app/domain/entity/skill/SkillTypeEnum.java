@@ -4,7 +4,11 @@ public enum SkillTypeEnum {
 
     API("api"),
 
-    WORKFLOW("workflow");
+    WORKFLOW("workflow"),
+
+    GPT_PLUGIN("gpt_plugin"),
+
+    HANDLER("handler");
 
     private String desc;
 

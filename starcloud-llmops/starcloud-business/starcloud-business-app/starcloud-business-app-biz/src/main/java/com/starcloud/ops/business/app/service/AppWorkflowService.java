@@ -18,9 +18,9 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.ExecuteAppRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
-import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -33,6 +33,7 @@ import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +85,7 @@ public class AppWorkflowService {
      */
     public void fireByAppUid(String appId, AppSceneEnum scene) {
 
-        AppEntity app = AppFactory.factory(appId);
+        AppEntity app = AppFactory.factoryApp(appId);
 
         log.info("fireByAppUid app: {}", JSON.toJSON(app));
 
@@ -126,7 +127,7 @@ public class AppWorkflowService {
      */
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId) {
         // 获取 AppEntity
-        AppEntity app = AppFactory.factory(appId, appRequest);
+        AppEntity app = AppFactory.factoryApp(appId, appRequest);
         log.info("fireByApp app: {}", app);
 
         // 创建 App 执行上下文
@@ -153,7 +154,7 @@ public class AppWorkflowService {
      */
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, HttpServletResponse httpServletResponse) {
         // 获取 AppEntity
-        AppEntity app = AppFactory.factory(appId, appRequest);
+        AppEntity app = AppFactory.factoryApp(appId, appRequest);
         log.info("fireByApp app: {}", app);
 
         // 创建 App 执行上下文
@@ -171,10 +172,10 @@ public class AppWorkflowService {
     /**
      * 根据传入的配置 执行
      *
-     * @param appId               应用 UID
-     * @param scene               场景
-     * @param appRequest          请求参数
-     * @param stepId              步骤 ID
+     * @param appId      应用 UID
+     * @param scene      场景
+     * @param appRequest 请求参数
+     * @param stepId     步骤 ID
      */
     public void fireByApp(String appId, AppSceneEnum scene, AppReqVO appRequest, String stepId, String requestId, SseEmitter sseEmitter) {
         // 获取 AppEntity
@@ -183,10 +184,10 @@ public class AppWorkflowService {
             if (AppSceneEnum.WEB_MARKET.equals(scene)) {
                 app = AppFactory.factoryMarket(appId);
             } else {
-                app = AppFactory.factory(appId);
+                app = AppFactory.factoryApp(appId);
             }
         } else {
-            app = AppFactory.factory(appId, appRequest);
+            app = AppFactory.factoryApp(appId, appRequest);
         }
 
         userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), SecurityFrameworkUtils.getLoginUserId());
@@ -377,7 +378,7 @@ public class AppWorkflowService {
         if (nodeTracking.getTaskException() != null) {
 
             messageCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateReqVO.setErrorMsg(nodeTracking.getTaskException().getMessage());
+            messageCreateReqVO.setErrorMsg(ExceptionUtil.stackTraceToString(nodeTracking.getTaskException()));
             messageCreateReqVO.setErrorCode("010");
 
             if (nodeTracking.getTaskException() instanceof KstryException) {

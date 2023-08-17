@@ -1,11 +1,10 @@
 package com.starcloud.ops.business.dataset.core.handler.strategy;
 
-import cn.hutool.core.io.FileTypeUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +12,6 @@ import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
@@ -27,48 +25,49 @@ public class StringUploadStrategy implements UploadStrategy {
 
     private String characters;
 
-    private static final String PATH_OBJECT = "/dataset-source-data/";
+    private static final String PATH_OBJECT = "dataset-source-data/";
 
 
     // Setter方法，用于接收MultipartFile对象
-    public void setData(String title,String characters) {
+    public void setData(String title, String characters) {
         this.title = title;
         this.characters = characters;
     }
 
 
     @Override
-    public UploadFileRespDTO process(Long userId) {
+    public UploadContentDTO process(Long userId) {
 
-        UploadFileRespDTO uploadFileRespDTO = new UploadFileRespDTO();
+        UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
         // 获取资源名称
-        String name =title;
-        String character =characters;
+        String name = title;
+        String character = characters;
 
 
         // 设置数据名称
         uploadFileRespDTO.setName(name);
 
-        // 将结果转换为InputStream流
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(character.getBytes(StandardCharsets.UTF_8));
+        ByteArrayInputStream inputStream = IoUtil.toUtf8Stream(character);
         // 生成文件ID - 使用 String SecureUtil.md5 会关闭流
         String fileId = SecureUtil.md5(character);
         String filePath;
         try {
+            // 将结果转换为InputStream流
             // 上传文件
-            filePath = uploadFile(fileId, inputStream, userId);
+            filePath = uploadFile(fileId, character, userId);
             // 设置文件名称
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);
         } catch (Exception e) {
-            log.error("====> 字符串上传失败,数据状态为 false");
-
+            log.error("====> 字符串上传失败,数据状态为 false", e);
+            return uploadFileRespDTO;
         }
 
         // 获取文件size
         long size;
         try {
+
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
             int bytesRead;
@@ -101,28 +100,20 @@ public class StringUploadStrategy implements UploadStrategy {
      * 保存文件，并返回文件的访问路径
      *
      * @param fileId     文件 ID
-     * @param fileStream 文件流
+     * @param data 文件
      * @param userId
      * @return 文件路径
      */
-    private String uploadFile(String fileId, InputStream fileStream,Long userId) {
+    private String uploadFile(String fileId, String data, Long userId) {
 
-        String fileType;
-        try {
-            fileType = FileTypeUtil.getType(fileStream);
-            if (fileType == null || "null".equals(fileType)) {
-                fileType = "txt";
-            }
+        // 将结果转换为InputStream流
+        InputStream utf8Stream = IoUtil.toUtf8Stream(data);
 
-        } catch (Exception e) {
-            fileType = "txt";
-        }
+        String fileName = fileId + "." + "txt";
+        String path = String.format(PATH_OBJECT + "%s" + "/", userId) + fileName;
 
+        return fileApi.createFile(fileName, path, IoUtil.readBytes(utf8Stream));
 
-        String fileName = fileId + "." + fileType;
-        String path = String.format(PATH_OBJECT + "%s" + "/", userId)+fileName;
-
-        return fileApi.createFile(fileName, path, IoUtil.readBytes(fileStream));
 
     }
 }

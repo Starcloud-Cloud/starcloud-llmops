@@ -5,13 +5,14 @@ import lombok.Data;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Schema(description = "管理后台 - 字符上传 Request VO")
 @Data
 @ToString(callSuper = true)
-public class UploadUrlReqVO {
+public class UploadUrlReqVO extends UploadReqVO {
 
     @Schema(description = "url 链接", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "标题不能为空")
-    private String url;
+    private List<String> urls;
 }

@@ -159,4 +159,7 @@ public class AppRespVO implements Serializable {
     @Schema(description = "最后一次上传到应用市场时间")
     private LocalDateTime lastPublish;
 
+    @Schema(description = "租户Id")
+    private Long tenantId;
+
 }

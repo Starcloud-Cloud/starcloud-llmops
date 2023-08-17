@@ -1,18 +1,27 @@
 package com.starcloud.ops.business.app.domain.entity.skill;
 
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.framework.common.api.dto.Option;
+import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 技能实体
@@ -21,8 +30,36 @@ import java.util.HashMap;
 @Data
 public class AppWorkflowSkill extends BaseSkillEntity {
 
+    private SkillTypeEnum type = SkillTypeEnum.WORKFLOW;
 
-    private String appUid;
+    /**
+     * 默认的 应用技能 描述 prompt
+     */
+    private String defaultPromptDesc = ". Note: Prompt or guide the user to fill in the parameters for this function if needed!";
+
+    private String skillAppUid;
+
+    @JsonIgnore
+    private AppEntity app;
+
+    /**
+     * 获取当前聊天配置的 其他名称和描述
+     *
+     * @return
+     */
+    @Override
+    public String getName() {
+        AppEntity app = this.getMyApp(this.skillAppUid);
+
+        return app.getName();
+    }
+
+    @Override
+    public String getDesc() {
+        AppEntity app = this.getMyApp(this.skillAppUid);
+        return app.getDescription();
+    }
+
 
     @JsonIgnore
     @Override
@@ -30,50 +67,129 @@ public class AppWorkflowSkill extends BaseSkillEntity {
         return null;
     }
 
+
+    /**
+     * 流程现在默认入参 结构都是 Map
+     *
+     * @return
+     */
     @JsonIgnore
     @Override
     public JsonNode getInputSchemas() {
         //根据 app配置参数，第一个step的入参 生成 schemas
 
-        try {
-            AppEntity app = AppFactory.factory(this.getAppUid());
+        //我的应用
+        AppEntity app = this.getMyApp(this.getSkillAppUid());
+        Map<String, VariableItemEntity> variableItemEntityMap = app.getWorkflowConfig().getFirstStep().getContextVariableItems();
 
-        } catch (Exception e) {
 
-        }
+        Map<String, Map> properties = new HashMap<>();
+        List<String> requireds = new ArrayList<>();
 
-        //@todo 查询信息
-        this.setName("search workflow");
-        this.setDesc("workflow run command");
+        Optional.ofNullable(variableItemEntityMap).map(Map::values).orElse(new ArrayList<>()).forEach(variableItemEntity -> {
+
+            //参数定义
+            Map<String, Object> params = new HashMap<>();
+            Object val = variableItemEntity.getValue();
+
+            //@todo 是否支持其他类型？
+            if (val instanceof Number) {
+                params.put("type", "number");
+            } else {
+                params.put("type", "string");
+            }
+
+            //处理枚举
+            if (CollectionUtil.isNotEmpty(variableItemEntity.getOptions())) {
+
+                List<Object> optionValues = Optional.ofNullable(variableItemEntity.getOptions()).orElse(new ArrayList<>()).stream().map(Option::getValue).collect(Collectors.toList());
+                params.put("enum", optionValues);
+            }
+
+            params.put("description", variableItemEntity.getDescription());
+            params.put("title", variableItemEntity.getLabel());
+
+            properties.put(variableItemEntity.getField(), params);
+
+            requireds.add(variableItemEntity.getField());
+        });
 
         HashMap schemas = new HashMap() {
             {
                 put("type", "object");
-                put("properties",
-                        new HashMap() {
-                            {
-                                put("query",
-                                        new HashMap() {
-                                            {
-                                                put("type", "string");
-                                                put("description", "Parameter defines the query you want to run workflow.");
-                                            }
-                                        });
-                            }
-                        });
-                put("required", Arrays.asList("query"));
+                put("properties", properties);
+                //现在step参数默认都必填
+                put("required", requireds);
             }
         };
 
         return OpenAIUtils.valueToTree(schemas);
     }
 
+
+    /**
+     * 获取在App 技能上设置的 每个应用的独立配置信息
+     *
+     * @return
+     * @todo 读配置表
+     */
+    protected SkillCustomConfig getAppSkillSettingInfo(String appUid, String skillAppUid) {
+
+        //当前应用下配置的 其他应用的技能配置
+
+        return new SkillCustomConfig();
+    }
+
     @Override
-    protected Object _execute(Object req) {
+    public FunTool createFunTool(HandlerContext handlerContext) {
+
+        try {
+            //我的应用
+            AppEntity app = this.getMyApp(this.getSkillAppUid());
+
+            SkillCustomConfig skillCustomConfig = this.getAppSkillSettingInfo(handlerContext.getAppUid(), this.getSkillAppUid());
+
+            //走配置，获取用户配置的内容
+            String appName = Optional.ofNullable(skillCustomConfig).map(SkillCustomConfig::getName).orElse(app.getName());
+            String appDesc = Optional.ofNullable(skillCustomConfig).map(SkillCustomConfig::getDescription).orElse(app.getDescription());
+            appDesc = appDesc + this.defaultPromptDesc;
+
+            //处理 step 中的变量
+            //app.getWorkflowConfig().getFirstStep().getContextVariableItems();
+
+            JsonNode schemas = null;
+
+            Function<Object, String> function = (input) -> {
+
+                log.info("FunTool AppWorkflowSkill: {} {}", this.getName(), input);
+
+                handlerContext.setRequest(input);
+
+                handlerContext.sendCallbackInteractiveStart(InteractiveInfo.buildText("AI应用执行中:(" + appName + ")"));
+
+                Object result = this._execute(app, handlerContext);
+
+                handlerContext.sendCallbackInteractiveEnd(InteractiveInfo.buildText("AI应用执行完成:(" + appName + ")"));
+
+                return String.valueOf(result);
+            };
+
+            return new FunTool(appName, appDesc, schemas, function);
+
+        } catch (Exception e) {
+
+            log.error("AppWorkflowSkill createFunTool is fail: {}", e.getMessage(), e);
+        }
+
+        return null;
+    }
+
+
+    protected Object _execute(AppEntity app, HandlerContext handlerContext) {
 
         log.info("_execute: {}", this.getAccredit());
 
-        AppEntity<AppExecuteReqVO, Object> app = AppFactory.factory(this.getAppUid());
+        handlerContext.getRequest();
 
         AppExecuteReqVO appExecuteReqVO = new AppExecuteReqVO();
 
@@ -87,8 +203,19 @@ public class AppWorkflowSkill extends BaseSkillEntity {
 
         //appExecuteReqVO.setJsonParams(jsonParams);
 
-        Object result = app.execute(appExecuteReqVO);
-
-        return null;
+        return app.execute(appExecuteReqVO);
     }
+
+    /**
+     * 获取我的应用
+     *
+     * @return
+     */
+    private AppEntity getMyApp(String appUid) {
+        if (this.app == null) {
+            this.app = AppFactory.factoryApp(appUid);
+        }
+        return this.app;
+    }
+
 }

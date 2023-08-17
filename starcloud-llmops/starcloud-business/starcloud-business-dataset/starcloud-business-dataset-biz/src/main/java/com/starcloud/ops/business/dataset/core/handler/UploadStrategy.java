@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.dataset.core.handler;
 
-import com.starcloud.ops.business.dataset.core.handler.dto.UploadFileRespDTO;
+import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
 
 public interface UploadStrategy {
-    UploadFileRespDTO process(Long userId);
+    UploadContentDTO process(Long userId);
 }

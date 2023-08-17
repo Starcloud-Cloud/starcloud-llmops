@@ -1,7 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
+import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
 import com.starcloud.ops.business.app.domain.entity.config.*;
-import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
+import com.starcloud.ops.business.app.domain.entity.skill.*;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,14 +36,30 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private OpeningStatementEntity openingStatement;
 
-    private AudioTransciptEntity audioTransciptEntity;
+    private AudioConfigEntity audioConfig;
 
     private DescriptionEnity description;
 
     /**
-     * 挂载的 技能列表
+     * 挂载的 gpt插件技能列表
      */
-    private List<BaseSkillEntity> skills;
+    private List<HandlerSkill> handlerSkills;
+
+    /**
+     * 挂载的 gpt插件技能列表
+     */
+    private List<GptPluginSkill> gptPluginSkills;
+
+    /**
+     * 挂载的 API技能列表
+     */
+    private List<ApiSkill> apiSkills;
+
+    /**
+     * 挂载的 应用技能列表
+     */
+    private List<AppWorkflowSkill> appWorkflowSkills;
+
 
     /**
      * 校验实体，对一写复杂逻辑的校验，可以在这里实现

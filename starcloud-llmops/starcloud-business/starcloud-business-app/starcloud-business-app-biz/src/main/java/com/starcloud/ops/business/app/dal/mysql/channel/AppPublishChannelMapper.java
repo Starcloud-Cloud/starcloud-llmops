@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
+import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
 public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO> {
 
     /**
-     * 根据发布uid查询该发布下的媒介列表
+     * 根据发布 UID 查询该发布下的媒介列表
      *
      * @param publishUid 发布uid
      * @return 媒介列表
@@ -28,7 +29,8 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
     default List<AppPublishChannelDO> listByPublishUid(String publishUid) {
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = Wrappers.lambdaQuery(AppPublishChannelDO.class);
         wrapper.eq(AppPublishChannelDO::getPublishUid, publishUid);
-        wrapper.eq(AppPublishChannelDO::getDeleted, Boolean.FALSE);
+        wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
+        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime);
         return this.selectList(wrapper);
     }
 
@@ -41,8 +43,23 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
     default List<AppPublishChannelDO> listByAppUid(String appUid) {
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.eq(AppPublishChannelDO::getAppUid, appUid);
-        wrapper.orderByDesc(AppPublishChannelDO::getUpdateTime);
+        wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
+        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime);
         return this.selectList(wrapper);
+    }
+
+    /**
+     * 根据 mediumUid 查询应用发布记录
+     *
+     * @param mediumUid 媒介 uid
+     * @return 应用发布渠道记录
+     */
+    default AppPublishChannelDO getByMediumUid(String mediumUid) {
+        LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
+        wrapper.eq(AppPublishChannelDO::getMediumUid, mediumUid);
+        wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
+        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime).last("limit 1");
+        return this.selectOne(wrapper);
     }
 
     /**
@@ -78,6 +95,8 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
                 AppPublishChannelDO::getConfig,
                 AppPublishChannelDO::getStatus,
                 AppPublishChannelDO::getDescription,
+                AppPublishChannelDO::getCreator,
+                AppPublishChannelDO::getUpdater,
                 AppPublishChannelDO::getCreateTime,
                 AppPublishChannelDO::getUpdateTime
         );

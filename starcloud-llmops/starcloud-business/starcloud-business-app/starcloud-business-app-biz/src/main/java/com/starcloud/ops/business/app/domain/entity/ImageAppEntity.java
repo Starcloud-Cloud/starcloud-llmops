@@ -25,10 +25,11 @@ import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -117,6 +118,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
             // 返回结果
             return imageResponse;
         } catch (ServiceException exception) {
+            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", exception.getCode(), exception.getMessage());
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
@@ -125,11 +127,11 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
                 messageRequest.setErrorCode(Integer.toString(exception.getCode()));
-                messageRequest.setErrorMsg(exception.getMessage());
+                messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
             });
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", exception.getCode(), exception.getMessage());
             throw exception;
         } catch (Exception exception) {
+            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()), exception.getMessage());
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
@@ -138,9 +140,9 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
                 messageRequest.setErrorCode(Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()));
-                messageRequest.setErrorMsg(exception.getMessage());
+                messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
             });
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", appMessage.getErrorCode(), exception.getMessage());
+
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -153,7 +155,21 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     protected void _aexecute(ImageReqVO request) {
         this._execute(request);
-        request.getSseEmitter().complete();
+    }
+
+    /**
+     * 执行后执行
+     */
+    @Override
+    protected void _afterExecute(ImageReqVO req, Throwable t) {
+        SseEmitter sseEmitter = req.getSseEmitter();
+        if (sseEmitter != null) {
+            if (t != null) {
+                sseEmitter.completeWithError(t);
+            } else {
+                sseEmitter.complete();
+            }
+        }
     }
 
     /**
@@ -233,7 +249,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     private void buildAppMessageLog(LogAppMessageCreateReqVO messageRequest, ImageReqVO request, Long userId) {
         messageRequest.setAppConversationUid(request.getConversationUid());
-        messageRequest.setAppUid(request.getAppUid());
+        messageRequest.setAppUid(request.getConversationUid());
         messageRequest.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
         messageRequest.setAppConfig(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setAppStep("BASE_GENERATE_IMAGE");
@@ -245,9 +261,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
         messageRequest.setAnswerUnitPrice(new BigDecimal("0.0100"));
         messageRequest.setTotalPrice(new BigDecimal("0.0000"));
         messageRequest.setCurrency("USD");
-        messageRequest.setFromScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_ADMIN.name() : request.getScene());
-        messageRequest.setEndUser(Long.toString(userId));
+        messageRequest.setFromScene(AppSceneEnum.WEB_IMAGE.name());
+        messageRequest.setEndUser(request.getEndUser());
     }
-
-
 }

@@ -9,6 +9,7 @@ import static org.springframework.web.servlet.mvc.method.annotation.SseEmitter.e
 /**
  * @author starcloud
  */
+@Data
 public class StreamingSseCallBackHandler implements BaseCallbackHandler {
     private SseEmitter emitter;
 
@@ -72,7 +73,8 @@ public class StreamingSseCallBackHandler implements BaseCallbackHandler {
         } else {
             emitter.send(new StreamResult(500, "[Other] Please try again later", conversationUid));
         }
-        emitter.complete();
+        // ResponseBodyEmitter has already completed
+        // emitter.complete();
 
     }
 

@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHa
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 import java.util.Map;
 
@@ -38,8 +39,8 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
 
     @Override
     protected ActionResponse _execute(Request request) {
-
-        OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(new StreamingSseCallBackHandler(this.getAppContext().getSseEmitter()));
+        StreamingSseCallBackHandler callBackHandler = new StreamingSseCallBackHandler(this.getAppContext().getSseEmitter(), this.getAppContext().getConversationId());
+        OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(callBackHandler);
 
 
         //获取前端传的完整字段（老结构）
@@ -64,8 +65,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
             handlerRequest.setDocsUid(request.getDatesetList());
         }
 
-
-        HandlerContext handlerContext = HandlerContext.createContext(conversationId, userId, handlerRequest);
+        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, handlerRequest);
 
         HandlerResponse<String> handlerResponse = openAIChatHandler.execute(handlerContext);
 

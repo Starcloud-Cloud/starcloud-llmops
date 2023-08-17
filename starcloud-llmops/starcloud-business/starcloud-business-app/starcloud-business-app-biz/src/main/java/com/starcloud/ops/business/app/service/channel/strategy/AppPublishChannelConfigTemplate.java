@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.app.service.channel.strategy;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.channel.dto.BaseChannelConfigDTO;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,36 +15,44 @@ import org.springframework.stereotype.Component;
 public abstract class AppPublishChannelConfigTemplate<C extends BaseChannelConfigDTO> {
 
     /**
-     * 基本校验
+     * 校验渠道配置信息
      *
-     * @param config 配置
+     * @param configUid 渠道配置 UID
+     * @param config    渠道配置信息
      */
-    protected abstract void validate(C config);
+    protected abstract void validate(String configUid, C config);
 
     /**
-     * 配置处理
+     * 处理渠道配置信息
      *
-     * @param config config
+     * @param configUid 渠道配置 UID
+     * @param config    渠道配置信息
      */
-    protected abstract C handlerConfig(C config);
+    protected abstract C handlerConfig(String configUid, C config);
 
     /**
-     * 反序列化配置
+     * 反序列化渠道配置信息
      *
-     * @param config 配置
-     * @return 配置
+     * @param config 渠道配置信息
+     * @return 渠道配置信息
      */
     public abstract C deserializeConfig(String config);
 
     /**
-     * 处理配置
+     * 处理渠道配置信息
      *
-     * @param config 配置
-     * @return 配置
+     * @param configUid 渠道配置 UID
+     * @param config    渠道配置信息
+     * @return 渠道配置信息
      */
-    public C handler(C config) {
-        validate(config);
-        return handlerConfig(config);
+    public C handler(String configUid, C config) {
+        if (StringUtils.isBlank(configUid)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_CONFIG_UID_IS_REQUIRED);
+        }
+        // 校验渠道配置信息
+        validate(configUid, config);
+        // 处理渠道配置信息
+        return handlerConfig(configUid, config);
     }
 
 }

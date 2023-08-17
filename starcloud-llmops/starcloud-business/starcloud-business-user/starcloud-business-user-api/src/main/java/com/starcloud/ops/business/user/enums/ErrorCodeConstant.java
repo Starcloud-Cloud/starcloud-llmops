@@ -26,5 +26,14 @@ public interface ErrorCodeConstant {
 
     ErrorCode ACTIVATION_USER_ERROR = new ErrorCode(2000100010, "激活用户失败，请联系管理员激活");
 
+    ErrorCode INVALID_PHONE_NUMBER = new ErrorCode(2000100011, "请填入正确的手机号");
+
+    ErrorCode INVALID_EMAIL = new ErrorCode(2000100012, "请填入正确的邮箱地址");
+
+    ErrorCode VERIFICATION_CODE_OVERDUE = new ErrorCode(2000100013, "无效的验证码，请重新发送验证码");
+
+    ErrorCode INVALID_VERIFICATION_CODE = new ErrorCode(2000100013, "无效的验证码，请重新输入");
+
+
 
 }

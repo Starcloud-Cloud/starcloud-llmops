@@ -7,8 +7,8 @@ import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.cognitiveservices.speech.*;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.SpeakConfigVO;
 import com.starcloud.ops.business.chat.controller.admin.voices.vo.ChatVoiceVO;
-import com.starcloud.ops.business.chat.controller.admin.voices.vo.SpeakConfigVO;
 import com.starcloud.ops.business.core.config.BusinessChatProperties;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class AzureVoiceServiceImpl {
 
     private static List<ChatVoiceVO> allChatVoiceList = new ArrayList<>();
 
-    private static SpeechSynthesizer speechInstance;
+    private volatile static SpeechSynthesizer speechInstance;
 
     @Autowired
     private BusinessChatProperties chatProperties;
@@ -46,6 +46,12 @@ public class AzureVoiceServiceImpl {
      * 回调实现
      */
     private Consumer<byte[]> eventCompletedConsumer;
+
+    public void setEventSynthesizing(Consumer<byte[]> eventSynthesizing) {
+        this.eventSynthesizing = eventSynthesizing;
+    }
+
+    private Consumer<byte[]> eventSynthesizing;
 
     /**
      * 选中的语音，男女各10各
@@ -197,6 +203,11 @@ public class AzureVoiceServiceImpl {
             SpeechSynthesisResult result = e.getResult();
             byte[] audioData = result.getAudioData();
             log.info("Synthesizing event, AudioData: {} bytes", audioData.length);
+
+            if (this.eventSynthesizing != null) {
+                eventSynthesizing.accept(audioData);
+            }
+
             result.close();
         });
 
@@ -235,7 +246,6 @@ public class AzureVoiceServiceImpl {
         }
 
         speechSynthesizer.close();
-
 
     }
 
@@ -313,17 +323,18 @@ public class AzureVoiceServiceImpl {
             SpeechConfig speechConfig = SpeechConfig.fromSubscription(chatProperties.getSpeechSubscriptionKey(), chatProperties.getSpeechRegion());
             // Set either the `SpeechSynthesisVoiceName` or `SpeechSynthesisLanguage`.
 
+            speechConfig.setSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3);
             // Required for WordBoundary event sentences.
-            speechConfig.setProperty(PropertyId.SpeechServiceResponse_RequestSentenceBoundary, "true");
+            //speechConfig.setProperty(PropertyId.SpeechServiceResponse_RequestSentenceBoundary, "true");
 
             //AudioConfig audioConfig = AudioConfig.fromWavFileOutput("/tmp/file123.wav");
 
             SpeechSynthesizer speechSynthesizer = new SpeechSynthesizer(speechConfig);
 
-            Connection connection = Connection.fromSpeechSynthesizer(speechSynthesizer);
-            connection.openConnection(true);
+//            Connection connection = Connection.fromSpeechSynthesizer(speechSynthesizer);
+//            connection.openConnection(true);
 
-            speechInstance = speechSynthesizer;
+            speechInstance =  speechSynthesizer;
         }
 
         return speechInstance;

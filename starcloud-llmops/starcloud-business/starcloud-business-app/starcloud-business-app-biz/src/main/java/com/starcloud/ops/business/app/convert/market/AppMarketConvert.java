@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.convert.market;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -15,6 +16,7 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
@@ -168,6 +170,10 @@ public interface AppMarketConvert {
         appMarketEntity.setViewCount(appMarket.getViewCount());
         appMarketEntity.setInstallCount(appMarket.getInstallCount());
         appMarketEntity.setDescription(appMarket.getDescription());
+        appMarketEntity.setCreator(appMarket.getCreator());
+        appMarketEntity.setUpdater(appMarket.getUpdater());
+        appMarketEntity.setCreateTime(appMarket.getCreateTime());
+        appMarketEntity.setUpdateTime(appMarket.getUpdateTime());
         appMarketEntity.setAudit(appMarket.getAudit());
         appMarketEntity.setExample(appMarket.getExample());
         // 处理配置信息
@@ -233,6 +239,20 @@ public interface AppMarketConvert {
         }
 
         return appMarketResponse;
+    }
+
+
+    /**
+     * handlerSkillVO 转 HandlerSkill
+     *
+     * @param handlerSkillVO HandlerSkillVO
+     * @return AppMarketEntity
+     */
+    default HandlerSkill convert(HandlerSkillVO handlerSkillVO) {
+
+        HandlerSkill handlerSkill = HandlerSkill.of(handlerSkillVO.getName());
+        handlerSkill.setEnabled(handlerSkill.getEnabled());
+        return handlerSkill;
     }
 
 }

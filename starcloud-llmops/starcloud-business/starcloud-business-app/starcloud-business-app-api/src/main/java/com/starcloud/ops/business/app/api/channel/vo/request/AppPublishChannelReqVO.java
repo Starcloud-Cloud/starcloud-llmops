@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.starcloud.ops.business.app.api.channel.dto.BaseChannelConfigDTO;
 import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
+import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -29,12 +30,6 @@ public class AppPublishChannelReqVO implements Serializable {
     private static final long serialVersionUID = -1428829532085814206L;
 
     /**
-     * 渠道 uid
-     */
-    @Schema(description = "Uid")
-    private String uid;
-
-    /**
      * 应用 Uid
      */
     @Schema(description = "应用 Uid")
@@ -57,6 +52,12 @@ public class AppPublishChannelReqVO implements Serializable {
     private Integer type;
 
     /**
+     * 媒介Uid
+     */
+    @Schema(description = "媒介Uid")
+    private String mediumUid;
+
+    /**
      * 渠道配置
      */
     @Schema(description = "渠道配置")
@@ -67,7 +68,14 @@ public class AppPublishChannelReqVO implements Serializable {
      * 渠道状态
      */
     @Schema(description = "渠道状态")
+    @InEnum(value = StateEnum.class, field = InEnum.EnumField.CODE, message = "渠道状态{value}, 必须在 {values} 范围内")
     private Integer status;
+
+    /**
+     * 渠道描述
+     */
+    @Schema(description = "渠道描述")
+    private String description;
 
 
 }

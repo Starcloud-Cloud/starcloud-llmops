@@ -1,19 +1,29 @@
 package com.starcloud.ops.llm.langchain.core.model.embeddings;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.EmbeddingDetail;
+import com.theokanning.openai.OpenAiApi;
 import com.theokanning.openai.embedding.Embedding;
 import com.theokanning.openai.embedding.EmbeddingRequest;
 import com.theokanning.openai.embedding.EmbeddingResult;
 import com.theokanning.openai.service.OpenAiService;
-import org.springframework.beans.factory.annotation.Value;
+import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import retrofit2.Retrofit;
 
+import java.io.IOException;
+import java.net.*;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.theokanning.openai.service.OpenAiService.*;
 
 @Component
 @ConditionalOnProperty(value = "starcloud.llm.embedding.model", havingValue = "opeanai", matchIfMissing = true)
@@ -21,12 +31,9 @@ public class OpenaiEmbedding implements BasicEmbedding {
 
     private static final String MODEL = "text-embedding-ada-002";
 
-    @Value("${starcloud-langchain.model.llm.openai.apiKey:}")
-    private String chatAiKey;
-
     @Override
     public List<List<Float>> embedTexts(List<String> texts) {
-        OpenAiService service = new OpenAiService(chatAiKey, Duration.ofSeconds(60L));
+        OpenAiService service =  buildClient();
         EmbeddingRequest request = EmbeddingRequest.builder()
                 .input(texts)
                 .model(MODEL).build();
@@ -42,7 +49,7 @@ public class OpenaiEmbedding implements BasicEmbedding {
 
     @Override
     public EmbeddingDetail embedText(String text) {
-        OpenAiService service = new OpenAiService(chatAiKey, Duration.ofSeconds(60L));
+        OpenAiService service = buildClient();
         EmbeddingRequest request = EmbeddingRequest.builder()
                 .input(Arrays.asList(text))
                 .model(MODEL).build();
@@ -52,6 +59,23 @@ public class OpenaiEmbedding implements BasicEmbedding {
                 .promptTokens(embeddingResult.getUsage().getPromptTokens())
                 .completionTokens(embeddingResult.getUsage().getCompletionTokens())
                 .totalTokens(embeddingResult.getUsage().getTotalTokens()).build();
+    }
+
+    private OpenAiService buildClient() {
+        OpenAIConfig openAIConfig = SpringUtil.getBean(OpenAIConfig.class);
+        if (openAIConfig == null || StrUtil.isBlank(openAIConfig.getProxyHost())) {
+            return new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()));
+        }
+        ObjectMapper mapper = defaultObjectMapper();
+
+        OkHttpClient client = defaultClient(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()))
+                .newBuilder()
+                .proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(openAIConfig.getProxyHost(), openAIConfig.getProxyPort())))
+                .build();
+        Retrofit retrofit = defaultRetrofit(client, mapper);
+        OpenAiApi api = retrofit.create(OpenAiApi.class);
+
+        return new OpenAiService(api, client.dispatcher().executorService());
     }
 }
 

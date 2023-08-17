@@ -4,12 +4,17 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
+import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
+import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -17,8 +22,14 @@ import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
+import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
+import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
+import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
+import cn.iocoder.yudao.module.system.service.logger.LoginLogService;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
+import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
@@ -32,9 +43,11 @@ import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.InvitationRecordsService;
+import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,6 +63,7 @@ import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
@@ -66,7 +80,7 @@ public class StarUserServiceImpl implements StarUserService {
     private MailSendServiceImpl mailSendService;
 
     @Resource
-    private InvitationRecordsService invitationRecordsService;
+    private OAuth2TokenService oauth2TokenService;
 
     @Autowired
     private RegisterUserMapper registerUserMapper;
@@ -89,8 +103,18 @@ public class StarUserServiceImpl implements StarUserService {
     @Autowired
     private UserBenefitsService benefitsService;
 
+    @Resource
+    private InvitationRecordsService invitationRecordsService;
+
+    @Resource
+    private AdminUserService userService;
+    @Resource
+    private LoginLogService loginLogService;
+
     @Autowired
     private RoleMapper roleMapper;
+    @Resource
+    private SendSocialMsgService sendSocialMsgService;
 
     @Value("${starcloud-llm.role.code:mofaai_free}")
     private String roleCode;
@@ -151,13 +175,16 @@ public class StarUserServiceImpl implements StarUserService {
         return servletRequest.getHeader("Origin");
     }
 
+    @Override
     public void addBenefits(Long currentUserId, Long inviteUserId) {
         try {
             if (inviteUserId != null && inviteUserId > 0) {
+
                 // 增加邀请记录
                 invitationRecordsService.createInvitationRecords(currentUserId,inviteUserId);
                 // 邀请注册权益 邀请人
                 benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
+                sendSocialMsgService.sendInviteMsg(inviteUserId);
             } else {
                 // 普通注册权益
                 benefitsService.addUserBenefitsSign(currentUserId);
@@ -166,6 +193,19 @@ public class StarUserServiceImpl implements StarUserService {
         } catch (Exception e) {
             log.warn("新增权益失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
         }
+    }
+
+    @Override
+    public void addInviteBenefits(Long currentUserId, String inviteCode) {
+        Long inviteUserid = null;
+        try {
+            if (StringUtils.isNotBlank(inviteCode)) {
+                inviteUserid = EncryptionUtils.decrypt(inviteCode);
+            }
+        } catch (Exception e) {
+            log.warn("解析邀请用户失败，currentUserId={},inviteCode={}", currentUserId, inviteCode, e);
+        }
+        addBenefits(currentUserId,inviteUserid);
     }
 
     @Override
@@ -229,6 +269,36 @@ public class StarUserServiceImpl implements StarUserService {
         userRoleDO.setTenantId(userDO.getTenantId());
         userRoleMapper.insert(userRoleDO);
         return userDO.getId();
+    }
+
+    @Override
+    public AuthLoginRespVO createTokenAfterLoginSuccess(Long userId, String username, LoginLogTypeEnum logType) {
+        // 插入登陆日志
+        createLoginLog(userId, username, logType, LoginResultEnum.SUCCESS);
+        // 创建访问令牌
+        OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.createAccessToken(userId, UserTypeEnum.ADMIN.getValue(),
+                OAuth2ClientConstants.CLIENT_ID_DEFAULT, null);
+        // 构建返回结果
+        return AuthConvert.INSTANCE.convert(accessTokenDO);
+    }
+
+    private void createLoginLog(Long userId, String username,
+                                LoginLogTypeEnum logTypeEnum, LoginResultEnum loginResult) {
+        // 插入登录日志
+        LoginLogCreateReqDTO reqDTO = new LoginLogCreateReqDTO();
+        reqDTO.setTraceId(TracerUtils.getTraceId());
+        reqDTO.setLogType(logTypeEnum.getType());
+        reqDTO.setUsername(username);
+        reqDTO.setUserId(userId);
+        reqDTO.setUserType(UserTypeEnum.ADMIN.getValue());
+        reqDTO.setUserAgent(ServletUtils.getUserAgent());
+        reqDTO.setResult(loginResult.getResult());
+        reqDTO.setUserIp(ServletUtils.getClientIP());
+        loginLogService.createLoginLog(reqDTO);
+        // 更新最后登录时间
+        if (userId != null && Objects.equals(LoginResultEnum.SUCCESS.getResult(), loginResult.getResult())) {
+            userService.updateUserLogin(userId, ServletUtils.getClientIP());
+        }
     }
 
     @Override

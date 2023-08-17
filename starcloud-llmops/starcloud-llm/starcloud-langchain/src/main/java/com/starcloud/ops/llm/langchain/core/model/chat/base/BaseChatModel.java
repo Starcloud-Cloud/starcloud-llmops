@@ -89,7 +89,7 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
         List<CallbackManagerForLLMRun> llmRuns = this.getCallbackManager().onChatModelStart(this.getClass(), chatMessages);
 
-        log.debug("BaseChatModel.generate: {}", chatMessages);
+        log.debug("BaseChatModel.generate: {}, \n{}", chatMessages, functions);
 
         List<ChatResult<R>> chatResults = new ArrayList<>();
 
@@ -111,6 +111,8 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
             } catch (Exception e) {
 
                 llmRun.onLLMError(e.getMessage(), e);
+
+                throw e;
 
             }
         }

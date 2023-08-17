@@ -48,6 +48,8 @@ public class AppShareController {
 
         endUserService.webLogin(upfSId);
 
+        //xxxxxxxxx
+
         return upfSId;
     }
 
@@ -69,9 +71,11 @@ public class AppShareController {
         AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
 
 
+        executeReqVO.setEndUser(upfSId);
+
         executeReqVO.setSseEmitter(emitter);
 
-        executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
+        executeReqVO.setScene(AppSceneEnum.SHARE_WEB.name());
 
         BaseAppEntity app = AppFactory.factory(executeReqVO);
 

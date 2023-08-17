@@ -151,7 +151,7 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
     protected FunctionMessage createFunctionMessage(AgentAction agentAction, Object observation) {
 
-        return new FunctionMessage(agentAction.getTool(), observation.toString());
+        return new FunctionMessage(agentAction.getTool(), String.valueOf(observation));
     }
 
     protected static AgentAction parseAiMessage(BaseMessage baseMessage) {

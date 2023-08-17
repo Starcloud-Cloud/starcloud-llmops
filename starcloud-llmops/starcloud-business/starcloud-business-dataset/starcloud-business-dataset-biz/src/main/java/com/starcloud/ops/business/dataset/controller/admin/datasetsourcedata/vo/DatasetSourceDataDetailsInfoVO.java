@@ -20,14 +20,24 @@ public class DatasetSourceDataDetailsInfoVO {
     @NotNull(message = "编号不能为空")
     private String uid;
 
-    @Schema(description = "名称", required = true)
+    @Schema(description = "名称",  requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "名称不能为空")
     private String name;
 
-    @Schema(description = "总结内容")
-    private String summaryContent;
+    @Schema(description = " 描述",  requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "描述不能为空")
+    private String description;
 
-    @Schema(description = "批次", required = true)
+    @Schema(description = "原始内容")
+    private String content;
+
+    @Schema(description = "清洗后的内容")
+    private String cleanContent;
+
+    @Schema(description = "总结内容")
+    private String summary;
+
+    @Schema(description = "批次")
     @NotNull(message = "批次不能为空")
     private String batch;
 

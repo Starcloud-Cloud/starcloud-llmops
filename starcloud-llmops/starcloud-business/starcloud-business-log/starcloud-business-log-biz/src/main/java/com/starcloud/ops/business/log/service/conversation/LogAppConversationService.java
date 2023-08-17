@@ -13,7 +13,6 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsList
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,7 +36,7 @@ public interface LogAppConversationService {
      *
      * @param updateReqVO 更新信息
      */
-    void updateAppConversation(@Valid LogAppConversationUpdateReqVO updateReqVO);
+    void updateAppConversation(LogAppConversationUpdateReqVO updateReqVO);
 
     /**
      * 更新应用执行日志会话状态
@@ -99,22 +98,25 @@ public interface LogAppConversationService {
     /**
      * app message 统计列表数据
      *
-     * @param statisticsListReqVO
-     * @return
+     * @param query 查询条件
+     * @return 应用执行日志会话列表
      */
-    List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO statisticsListReqVO);
+    List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO query);
 
 
     /**
      * 获取 应用执行分页信息
      *
-     * @param pageReqVO
-     * @return
+     * @param query 分页查询
+     * @return 应用执行日志会话分页
      */
-    PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO pageReqVO);
+    PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO query);
 
     /**
      * 获取最新的会话
+     *
+     * @param appUid 应用编号
+     * @return 应用执行日志会话
      */
     LogAppConversationDO getRecentlyConversation(String appUid);
 

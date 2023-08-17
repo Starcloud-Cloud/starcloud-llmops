@@ -26,15 +26,15 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
      * 21 - 30 数据同步
      */
     SYNCHRONIZATION(21,"数据同步中"),
-    SYNCHRONIZATION_ERROR(25,"数据同步中"),
-    SYNCHRONIZATION__COMPLETED(30,"数据同步中"),
+    SYNCHRONIZATION_ERROR(25,"数据同步失败"),
+    SYNCHRONIZATION__COMPLETED(30,"数据同步完成"),
 
     /**
      * 31 - 40  数据清洗
      */
     CLEANING_IN(31,"数据清洗中"),
     CLEANING_ERROR(35,"数据清洗失败"),
-    CLEANING_COMPLETED(40,"数据完成"),
+    CLEANING_COMPLETED(40,"数据清洗完成"),
 
     /**
      * 41 - 50  数据清洗
@@ -50,6 +50,11 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
     INDEX_ERROR(55,"创建索引失败"),
     INDEX_COMPLETED(60,"创建索引完成"),
 
+
+    /**
+     * 99 总结创建完成
+     */
+    SUMMERY_ERROR(98,"总结创建失败"),
     /**
      * 99 完成
      */

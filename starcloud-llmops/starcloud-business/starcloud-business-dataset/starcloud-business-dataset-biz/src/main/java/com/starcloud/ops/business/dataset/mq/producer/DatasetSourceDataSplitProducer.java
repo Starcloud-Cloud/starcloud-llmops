@@ -1,22 +1,27 @@
 package com.starcloud.ops.business.dataset.mq.producer;
 
 import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
-import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
+import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataSplitSendConsumer;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataSplitSendMessage;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
 /**
  * 数据集 队列消息发送
+ *
  * @author Alan Cusack
  */
 
 @Slf4j
 @Component
-public class DatasetSourceDataSplitProducer {
+public class DatasetSourceDataSplitProducer extends AbstractDatasetSourceProducer {
+
+    @Autowired
+    private DataSetSourceDataSplitSendConsumer splitSendConsumer;
 
     @Resource
     private RedisMQTemplate redisMQTemplate;
@@ -37,19 +42,31 @@ public class DatasetSourceDataSplitProducer {
     //     redisMQTemplate.send(message);
     // }
 
-    /**
-     * 发送 {@link DatasetSourceDataCleanSendMessage} 消息
-     *
-     */
-    public void sendSplitDatasetsSendMessage(String dataSetId, Long dataSourceId,
-                                             SplitRule splitRule, Long userId) {
-        DatasetSourceDataSplitSendMessage message = new DatasetSourceDataSplitSendMessage()
-                .setDatasetId(dataSetId)
-                .setDataSourceId(dataSourceId)
-                .setSplitRule(splitRule)
-                .setUserId(userId);
+
+    @Override
+    public void asyncSendMessage(DatasetSourceSendMessage sendMessage) {
+        DatasetSourceSendMessage message = new DatasetSourceDataSplitSendMessage()
+                .setDatasetId(sendMessage.getDatasetId())
+                .setDataSourceId(sendMessage.getDataSourceId())
+                .setSplitRule(sendMessage.getSplitRule())
+                .setSync(false)
+                .setRetryCount(0)
+                .setUserId(sendMessage.getUserId());
         redisMQTemplate.send(message);
     }
 
+    @Override
+    public void sendMessage(DatasetSourceSendMessage sendMessage) {
 
+        DatasetSourceDataSplitSendMessage message = new DatasetSourceDataSplitSendMessage();
+
+        message.setSync(true);
+        message.setRetryCount(0);
+        message.setDatasetId(sendMessage.getDatasetId());
+        message.setDataSourceId(sendMessage.getDataSourceId());
+        message.setSplitRule(sendMessage.getSplitRule());
+        message.setUserId(sendMessage.getUserId());
+
+        splitSendConsumer.onMessage(message);
+    }
 }

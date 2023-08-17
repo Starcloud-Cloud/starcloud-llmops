@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.config;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -79,5 +80,18 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
 
         this.validate();
 
+    }
+
+    /**
+     * 执行成功后，响应更新
+     *
+     * @param stepId   步骤ID
+     * @param response 响应
+     */
+    @JSONField(serialize = false)
+    public void setActionResponse(String stepId, ActionResponse response) {
+        for (WorkflowStepWrapper step : this.steps) {
+            step.setActionResponse(stepId, response);
+        }
     }
 }

@@ -39,6 +39,7 @@ public class ThreadWithContext {
         Long tenantId = TenantContextHolder.getTenantId();
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         Long userId = UserContextHolder.getUserId();
+
         threadPoolExecutor.execute(() -> {
             TenantContextHolder.setIgnore(false);
             TenantContextHolder.setTenantId(tenantId);
