@@ -81,6 +81,13 @@ public interface AppPublishService {
     void operate(UidStatusRequest request);
 
     /**
+     * 根据 UID 删除应用发布记录
+     *
+     * @param uid 应用发布记录 UID
+     */
+    void delete(String uid);
+
+    /**
      * 删除应用发布记录
      *
      * @param appUid 应用 UID

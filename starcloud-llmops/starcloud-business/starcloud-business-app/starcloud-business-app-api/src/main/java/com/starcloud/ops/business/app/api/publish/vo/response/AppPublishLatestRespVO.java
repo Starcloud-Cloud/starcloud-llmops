@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -125,6 +126,6 @@ public class AppPublishLatestRespVO implements Serializable {
      * 发布渠道
      */
     @Schema(description = "发布渠道")
-    private List<AppPublishChannelRespVO> channels;
+    private Map<Integer, List<AppPublishChannelRespVO>> channelMap;
 
 }
