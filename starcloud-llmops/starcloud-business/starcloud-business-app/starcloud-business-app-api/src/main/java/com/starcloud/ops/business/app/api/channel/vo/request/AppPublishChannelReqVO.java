@@ -44,6 +44,13 @@ public class AppPublishChannelReqVO implements Serializable {
     private String publishUid;
 
     /**
+     * 发布渠道名称
+     */
+    @Schema(description = "发布渠道名称")
+    @NotBlank(message = "发布渠道名称不能为空")
+    private String name;
+
+    /**
      * 渠道类型
      */
     @Schema(description = "渠道类型")

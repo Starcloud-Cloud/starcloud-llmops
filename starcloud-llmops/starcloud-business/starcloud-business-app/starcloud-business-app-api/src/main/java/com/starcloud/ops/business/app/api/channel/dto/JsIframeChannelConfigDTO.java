@@ -24,4 +24,5 @@ public class JsIframeChannelConfigDTO extends BaseChannelConfigDTO {
      * slug
      */
     private String slug;
+
 }

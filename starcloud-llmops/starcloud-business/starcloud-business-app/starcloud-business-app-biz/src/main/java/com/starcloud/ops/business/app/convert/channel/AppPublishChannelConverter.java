@@ -35,6 +35,7 @@ public interface AppPublishChannelConverter {
         appPublishChannel.setUid(IdUtil.fastSimpleUUID());
         appPublishChannel.setAppUid(request.getAppUid());
         appPublishChannel.setPublishUid(request.getPublishUid());
+        appPublishChannel.setName(request.getName());
         appPublishChannel.setType(request.getType());
         appPublishChannel.setMediumUid(request.getMediumUid());
         appPublishChannel.setConfig(JSONUtil.toJsonStr(request.getConfig()));
@@ -56,6 +57,7 @@ public interface AppPublishChannelConverter {
         response.setUid(appPublishChannel.getUid());
         response.setAppUid(appPublishChannel.getAppUid());
         response.setPublishUid(appPublishChannel.getPublishUid());
+        response.setName(appPublishChannel.getName());
         response.setType(appPublishChannel.getType());
         response.setMediumUid(appPublishChannel.getMediumUid());
         AppPublishChannelConfigFactory factory = SpringUtil.getBean(AppPublishChannelConfigFactory.class);

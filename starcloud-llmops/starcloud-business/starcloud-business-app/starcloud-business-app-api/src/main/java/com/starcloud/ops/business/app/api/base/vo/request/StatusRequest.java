@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.channel.vo.request;
+package com.starcloud.ops.business.app.api.base.vo.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
@@ -15,30 +15,30 @@ import java.io.Serializable;
 /**
  * @author nacoyer
  * @version 1.0.0
- * @since 2023-08-02
+ * @since 2023-06-12
  */
 @Data
-@EqualsAndHashCode
 @NoArgsConstructor
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "AppPublishChannelStatusReqVO", description = "应用发布渠道状态修改请求")
-public class AppPublishChannelStatusReqVO implements Serializable {
+@Schema(description = "状态修改请求实体")
+public class StatusRequest implements Serializable {
 
-    private static final long serialVersionUID = 4483656710807092993L;
+    private static final long serialVersionUID = 8163385596242554926L;
 
     /**
-     * 渠道 uid
+     * 应用 uid
      */
     @Schema(description = "uid")
-    @NotBlank(message = "发布渠道 uid 不能为空")
+    @NotBlank(message = "UID 不能为空")
     private String uid;
 
     /**
-     * 渠道状态
+     * 状态
      */
-    @Schema(description = "渠道状态")
-    @NotNull(message = "渠道状态不能为空")
-    @InEnum(value = StateEnum.class, field = InEnum.EnumField.CODE, message = "渠道状态{value}, 必须在 {values} 范围内")
+    @Schema(description = "状态")
+    @NotNull(message = "状态 不能为空")
+    @InEnum(value = StateEnum.class, message = "状态 {value} 不支持，支持的值为：{values}")
     private Integer status;
 
 }
