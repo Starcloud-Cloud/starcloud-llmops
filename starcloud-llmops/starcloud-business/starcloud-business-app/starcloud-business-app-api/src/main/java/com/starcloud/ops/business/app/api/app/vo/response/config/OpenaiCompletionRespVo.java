@@ -14,7 +14,7 @@ public class OpenaiCompletionRespVo {
     private Integer maxTokens = 500;
 
     @Schema(description = "多样性")
-    private Double temperature = 0.7d;
+    private Double temperature = 1.0d;
 
     @Schema(description = "采样范围")
     private Double topP = 1d;

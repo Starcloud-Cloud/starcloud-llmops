@@ -184,6 +184,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
                 AppDO::getCreator,
                 AppDO::getUpdater,
                 AppDO::getCreateTime,
+                AppDO::getImages,
                 AppDO::getUpdateTime
         );
         return wrapper;
