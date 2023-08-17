@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.user.service.impl;
 
+import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
 import cn.iocoder.yudao.module.mp.service.message.MpMessageService;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
@@ -40,7 +41,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService {
 
     @Override
     public void sendInviteMsg(Long inviteUserid) {
-        List<SocialUserDO> socialUserList = socialUserService.getSocialUserList(inviteUserid, SocialTypeEnum.WECHAT_MP.getType());
+        List<SocialUserDO> socialUserList = socialUserService.getSocialUserList(inviteUserid, UserTypeEnum.ADMIN.getValue());
         if (CollectionUtils.isEmpty(socialUserList)) {
             return;
         }
