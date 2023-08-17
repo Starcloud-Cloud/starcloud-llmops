@@ -19,19 +19,17 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.channel.AppPublishChannelMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigFactory;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -45,11 +43,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class AppPublishChannelServiceImpl implements AppPublishChannelService {
-
-    /**
-     * 特殊处理 1.分享链接 2.js iframe 3.开放API
-     */
-    private static final List<Integer> TYPES = Arrays.asList(AppPublishChannelEnum.SHARE_LINK.getCode(), AppPublishChannelEnum.JS_IFRAME.getCode(), AppPublishChannelEnum.OPEN_API.getCode());
 
     @Resource
     private AppMapper appMapper;
@@ -73,6 +66,18 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     public List<AppPublishChannelRespVO> listByAppUid(String appUid) {
         List<AppPublishChannelDO> publishChannelList = appPublishChannelMapper.listByAppUid(appUid);
         return CollectionUtil.emptyIfNull(publishChannelList).stream().map(AppPublishChannelConverter.INSTANCE::convert).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据应用 UID 获取发布渠道 Map
+     *
+     * @param appUid 应用 UID
+     * @return 分组后的发布渠道 Map
+     */
+    @Override
+    public Map<Integer, List<AppPublishChannelRespVO>> mapByAppUidGroupByType(String appUid) {
+        List<AppPublishChannelRespVO> list = this.listByAppUid(appUid);
+        return null;
     }
 
     /**
@@ -169,6 +174,14 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
         AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getUid());
 
+        // 校验应用是否存在
+        AppDO app = appMapper.get(appPublishChannel.getAppUid(), Boolean.TRUE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, appPublishChannel.getAppUid());
+
+        // 校验应用发布信息是否存在
+        AppPublishDO appPublish = appPublishMapper.get(appPublishChannel.getPublishUid(), Boolean.TRUE);
+        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, appPublishChannel.getPublishUid());
+
         // 处理配置信息
         AppPublishChannelConfigTemplate handler = appPublishChannelConfigFactory.getHandler(appPublishChannel.getType());
         request.setConfig(handler.handler(appPublishChannel.getMediumUid(), request.getConfig()));
@@ -195,44 +208,23 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     @SuppressWarnings("all")
     public AppPublishChannelRespVO changeStatus(AppPublishChannelStatusReqVO request) {
 
-        // 校验应用是否存在
-        AppDO app = appMapper.get(request.getAppUid(), Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
-
-        // 校验应用发布信息是否存在
-        AppPublishDO appPublish = appPublishMapper.get(request.getPublishUid(), Boolean.TRUE);
-        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, request.getPublishUid());
-
         // 校验发布渠道是否存在
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
-
-        // 如果发布渠道不存在，且类型为分享链接、js iframe、开放API，则创建一个新发布的已经启用的渠道
-        if (Objects.isNull(appPublishChannel) && TYPES.contains(request.getType())) {
-            AppPublishChannelDO createAppPublishChannel = new AppPublishChannelDO();
-            createAppPublishChannel.setUid(IdUtil.fastSimpleUUID());
-            createAppPublishChannel.setAppUid(request.getAppUid());
-            createAppPublishChannel.setPublishUid(request.getPublishUid());
-            createAppPublishChannel.setType(request.getType());
-            // 生成配置信息唯一标识
-            String configUid = IdUtil.fastSimpleUUID();
-            createAppPublishChannel.setMediumUid(configUid);
-            // 处理配置信息
-            AppPublishChannelConfigTemplate handler = appPublishChannelConfigFactory.getHandler(request.getType());
-            createAppPublishChannel.setConfig(JSONUtil.toJsonStr(handler.handler(configUid, null)));
-            createAppPublishChannel.setDescription(request.getDescription());
-            createAppPublishChannel.setStatus(StateEnum.ENABLE.getCode());
-            createAppPublishChannel.setDeleted(Boolean.FALSE);
-            appPublishChannelMapper.insert(createAppPublishChannel);
-            return AppPublishChannelConverter.INSTANCE.convert(createAppPublishChannel);
-        }
-
-        // 如果发布渠道不存在，且类型不为分享链接、js iframe、开放API，则抛出异常
         AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getUid());
+
+        // 校验应用是否存在
+        AppDO app = appMapper.get(appPublishChannel.getAppUid(), Boolean.TRUE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, appPublishChannel.getAppUid());
+
+        // 校验应用发布信息是否存在
+        AppPublishDO appPublish = appPublishMapper.get(appPublishChannel.getPublishUid(), Boolean.TRUE);
+        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, appPublishChannel.getPublishUid());
 
         // 修改发布渠道状态
         AppPublishChannelDO updateAppPublishChannel = new AppPublishChannelDO();
         updateAppPublishChannel.setId(appPublishChannel.getId());
         updateAppPublishChannel.setStatus(request.getStatus());
+        updateAppPublishChannel.setDeleted(Boolean.FALSE);
         appPublishChannelMapper.updateById(updateAppPublishChannel);
 
         // 返回发布渠道信息

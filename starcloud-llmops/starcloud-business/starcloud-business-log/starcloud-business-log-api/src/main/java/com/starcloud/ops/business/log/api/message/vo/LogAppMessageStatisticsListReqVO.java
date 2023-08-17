@@ -67,10 +67,10 @@ public class LogAppMessageStatisticsListReqVO implements Serializable {
     private String type;
 
     /**
-     * 应用模型列表
+     * 应用场景列表
      */
     @Schema(hidden = true)
-    private List<String> appModeList;
+    private List<String> fromSceneList;
 
     /**
      * 查询时间范围类型

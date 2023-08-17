@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.api.channel.vo.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,40 +34,11 @@ public class AppPublishChannelStatusReqVO implements Serializable {
     private String uid;
 
     /**
-     * 应用 Uid
-     */
-    @Schema(description = "应用 Uid")
-    @NotBlank(message = "应用 Uid 不能为空")
-    private String appUid;
-
-    /**
-     * 发布 Uid
-     */
-    @Schema(description = "发布 Uid")
-    @NotBlank(message = "发布 Uid 不能为空")
-    private String publishUid;
-
-    /**
-     * 渠道类型
-     */
-    @Schema(description = "渠道类型")
-    @NotNull(message = "渠道类型不能为空")
-    @InEnum(value = AppPublishChannelEnum.class, field = InEnum.EnumField.CODE, message = "渠道类型{value}, 必须在 {values} 范围内")
-    private Integer type;
-
-    /**
      * 渠道状态
      */
     @Schema(description = "渠道状态")
     @NotNull(message = "渠道状态不能为空")
     @InEnum(value = StateEnum.class, field = InEnum.EnumField.CODE, message = "渠道状态{value}, 必须在 {values} 范围内")
     private Integer status;
-
-    /**
-     * 渠道描述
-     */
-    @Schema(description = "渠道描述")
-    private String description;
-
 
 }
