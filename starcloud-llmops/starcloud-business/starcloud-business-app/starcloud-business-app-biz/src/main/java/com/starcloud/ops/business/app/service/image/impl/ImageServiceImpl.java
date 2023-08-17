@@ -7,12 +7,13 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
+import com.starcloud.ops.business.app.api.image.vo.request.HistoryGenerateImagePageQuery;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.OptimizePromptReqVO;
@@ -28,6 +29,7 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
@@ -35,6 +37,7 @@ import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
+import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -96,23 +99,14 @@ public class ImageServiceImpl implements ImageService {
      * @return 图片列表
      */
     @Override
-    public ImageRespVO historyGenerateImages() {
-        ImageRespVO response = new ImageRespVO();
-        Long loginUserId = WebFrameworkUtils.getLoginUserId();
-        LogAppConversationDO conversation = this.getConversation(null, loginUserId);
-        response.setConversationUid(conversation.getUid());
-        // 查询会话下的消息
-        LambdaQueryWrapper<LogAppMessageDO> messageWrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer, LogAppMessageDO::getAppConfig);
-        messageWrapper.eq(LogAppMessageDO::getAppConversationUid, conversation.getUid());
-        messageWrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.BASE_GENERATE_IMAGE.name());
-        messageWrapper.eq(LogAppMessageDO::getCreator, Long.toString(WebFrameworkUtils.getLoginUserId()));
-        messageWrapper.eq(LogAppMessageDO::getStatus, LogStatusEnum.SUCCESS.name());
-        messageWrapper.eq(LogAppMessageDO::getDeleted, Boolean.FALSE);
-        messageWrapper.orderByDesc(LogAppMessageDO::getCreateTime);
-        List<LogAppMessageDO> messageList = logAppMessageMapper.selectList(messageWrapper);
+    public PageResp<ImageMessageRespVO> historyGenerateImages(HistoryGenerateImagePageQuery query) {
+
+        // 查询日志消息记录
+        Page<LogAppMessageDO> page = pageHistoryGenerateImageMessage(query);
+        List<LogAppMessageDO> records = page.getRecords();
+
         // 处理图片消息数据
-        List<ImageMessageRespVO> list = CollectionUtil.emptyIfNull(messageList).stream().map(item -> {
+        List<ImageMessageRespVO> list = CollectionUtil.emptyIfNull(records).stream().map(item -> {
             // 如果没有结果，返回 null
             if (StringUtils.isBlank(item.getAnswer())) {
                 return null;
@@ -140,8 +134,7 @@ public class ImageServiceImpl implements ImageService {
             return imageResponse;
         }).filter(Objects::nonNull).collect(Collectors.toList());
 
-        response.setMessages(list);
-        return response;
+        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
     /**
@@ -214,44 +207,20 @@ public class ImageServiceImpl implements ImageService {
     }
 
     /**
-     * 获取会话记录 <br>
-     * 1. 如果会话记录id不为空，则根据会话记录id查询 <br>
-     * 2. 如果会话记录id为空，则根据用户id查询最新的一条会话记录
-     * 3. 如果没有会话记录，则创建一条会话记录
+     * 查询历史图片列表
      *
-     * @param conversationUid 会话记录id
-     * @param userId          用户id
-     * @return 会话记录
+     * @return 图片列表
      */
-    @SuppressWarnings("all")
-    private LogAppConversationDO getConversation(String conversationUid, Long userId) {
-        LambdaQueryWrapper<LogAppConversationDO> conversationWrapper = Wrappers.lambdaQuery(LogAppConversationDO.class);
-        conversationWrapper.eq(LogAppConversationDO::getAppMode, AppModelEnum.BASE_GENERATE_IMAGE.name());
-        conversationWrapper.eq(LogAppConversationDO::getCreator, Long.toString(userId));
-        conversationWrapper.eq(LogAppConversationDO::getDeleted, Boolean.FALSE);
-        if (StringUtils.isNotBlank(conversationUid)) {
-            conversationWrapper.eq(LogAppConversationDO::getUid, conversationUid);
-        } else {
-            conversationWrapper.orderByDesc(LogAppConversationDO::getCreateTime);
-            conversationWrapper.last("limit 1");
-        }
-        LogAppConversationDO conversation = logAppConversationMapper.selectOne(conversationWrapper);
-        if (conversation != null) {
-            return conversation;
-        }
-
-        // 新增一条会话记录
-        conversation = new LogAppConversationDO();
-        String fastConversationUid = IdUtil.fastSimpleUUID();
-        conversation.setUid(fastConversationUid);
-        conversation.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
-        conversation.setAppName("AI图片生成");
-        conversation.setStatus(LogStatusEnum.ERROR.name());
-        conversation.setAppUid(fastConversationUid);
-        conversation.setAppConfig(JSONUtil.toJsonStr(new ImageReqVO()));
-        conversation.setFromScene(AppSceneEnum.WEB_IMAGE.name());
-        logAppConversationMapper.insert(conversation);
-        return conversation;
+    private Page<LogAppMessageDO> pageHistoryGenerateImageMessage(HistoryGenerateImagePageQuery query) {
+        Long loginUserId = WebFrameworkUtils.getLoginUserId();
+        LambdaQueryWrapper<LogAppMessageDO> messageWrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
+        messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer, LogAppMessageDO::getAppConfig);
+        messageWrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.BASE_GENERATE_IMAGE.name());
+        messageWrapper.eq(LogAppMessageDO::getCreator, Long.toString(loginUserId));
+        messageWrapper.eq(LogAppMessageDO::getStatus, LogStatusEnum.SUCCESS.name());
+        messageWrapper.eq(LogAppMessageDO::getDeleted, Boolean.FALSE);
+        messageWrapper.orderByDesc(LogAppMessageDO::getCreateTime);
+        return logAppMessageMapper.selectPage(PageUtil.page(query), messageWrapper);
     }
 
 }
