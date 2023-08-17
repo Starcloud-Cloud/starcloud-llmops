@@ -3,12 +3,13 @@ package com.starcloud.ops.business.app.controller.admin.image;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
+import com.starcloud.ops.business.app.api.image.vo.request.HistoryGenerateImagePageQuery;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.OptimizePromptReqVO;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.framework.common.api.dto.Option;
+import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -49,8 +50,8 @@ public class ImageController {
     @GetMapping("/history")
     @Operation(summary = "查询历史图片列表", description = "查询历史图片列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<ImageRespVO> historyGenerateImages() {
-        return CommonResult.success(imageService.historyGenerateImages());
+    public CommonResult<PageResp<ImageMessageRespVO>> historyGenerateImages(HistoryGenerateImagePageQuery query) {
+        return CommonResult.success(imageService.historyGenerateImages(query));
     }
 
     @PostMapping("/text-to-image")
