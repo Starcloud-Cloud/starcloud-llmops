@@ -59,7 +59,7 @@ public class ChatShareController {
     @Resource
     private ChatService chatService;
 
-    @GetMapping("detail/{mediumUid}")
+    @GetMapping("/detail/{mediumUid}")
     @Operation(summary = "聊天应用详情")
     @PermitAll
     public CommonResult<AppRespVO> detail(@PathVariable("mediumUid") String mediumUid,

@@ -44,7 +44,7 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
         int retryCount = message.getRetryCount();
         try {
             // 创建索引
-            // documentSegmentsService.indexDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()));
+             documentSegmentsService.indexDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()));
 
             // Fixme 创建总结  总结如果创建失败 状态为 SUMMERY_COMPLETED code 98
 
