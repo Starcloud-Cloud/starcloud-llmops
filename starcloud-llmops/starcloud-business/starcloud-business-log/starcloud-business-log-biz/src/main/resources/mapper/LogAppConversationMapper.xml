@@ -49,7 +49,7 @@
             <if test="query.startTime != null and query.endTime != null">
                 AND t.update_time between #{query.startTime} and #{query.endTime}
             </if>
-            <if test="query.type != null and query.type == 'GENERATE_RECORD' and (query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
+            <if test="(query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
                 AND t.from_scene IN
                 <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
                     #{item}
