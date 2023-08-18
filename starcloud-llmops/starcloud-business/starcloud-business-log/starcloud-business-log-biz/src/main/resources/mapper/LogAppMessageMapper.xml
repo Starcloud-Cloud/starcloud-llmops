@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper">
 
-    <sql id="listLogMessageStatisticsColumns">
+    <sql id="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF">
         COUNT(ms.id) AS messageCount,
         COUNT(CASE WHEN ms.status = "SUCCESS" THEN 1 END) AS successCount,
         COUNT(CASE WHEN ms.status != "SUCCESS" THEN 1 END) AS errorCount,
@@ -15,48 +15,53 @@
         SUM(ms.message_tokens + ms.answer_tokens) AS tokens,
         <choose>
             <when test="query.unit == 'HOURS'">
-                date_format(ms.create_time, '%Y-%m-%d %h') as create_date
+                DATE_FORMAT(ms.create_time, '%Y-%m-%d %h') as create_date
             </when>
             <when test="query.unit == 'DAYS'">
-                date_format(ms.create_time, '%Y-%m-%d') as create_date
+                DATE_FORMAT(ms.create_time, '%Y-%m-%d') as create_date
             </when>
             <when test="query.unit == 'MONTHS'">
-                date_format(ms.create_time, '%Y-%m') as create_date
+                DATE_FORMAT(ms.create_time, '%Y-%m') as create_date
             </when>
             <otherwise>
-                date_format(ms.create_time, '%Y-%m-%d') as create_date
+                DATE_FORMAT(ms.create_time, '%Y-%m-%d') as create_date
             </otherwise>
         </choose>
     </sql>
 
-    <sql id="listLogMessageStatisticsOrderBy">
-        <if test="query.unit == 'HOURS'">
-            GROUP BY date_format(ms.create_time, '%Y-%m-%d %h')
-        </if>
-        <if test="query.unit == 'DAYS'">
-            GROUP BY date_format(ms.create_time, '%Y-%m-%d')
-        </if>
-        <if test="query.unit == 'MONTHS'">
-            GROUP BY date_format(ms.create_time, '%Y-%m')
-        </if>
+    <sql id="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF">
+        <choose>
+            <when test="query.unit == 'HOURS'">
+                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d %h')
+            </when>
+            <when test="query.unit == 'DAYS'">
+                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d')
+            </when>
+            <when test="query.unit == 'MONTHS'">
+                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m')
+            </when>
+            <otherwise>
+                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d')
+            </otherwise>
+        </choose>
     </sql>
 
-    <sql id="tempPublishUidCTE">
-        WITH temp_publish_uid AS (
-            SELECT
-                market_uid
-            FROM llm_log_app_publish
-            WHERE
-                app_uid = #{appUid}
-            AND uid = (COALESCE(SUBSTRING_INDEX((SELECT publish_uid FROM llm_app WHERE uid = #{appUid}), '-', 1), ''))
-        )
+    <sql id="TEMPORARY_MARKET_UID_CTE_REF">
+        SELECT
+            market_uid
+        FROM llm_log_app_publish
+        WHERE
+            app_uid = #{appUid}
+          AND uid = (COALESCE(SUBSTRING_INDEX((SELECT publish_uid FROM llm_app WHERE uid = #{appUid}), '-', 1), ''))
+          AND market_uid IS NOT NULL
+        LIMIT 1
     </sql>
 
     <!-- 生成记录日志统计 -->
     <select id="listLogMessageStatistics"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
         SELECT
-        <include refid="listLogMessageStatisticsColumns"/>
+        <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
         FROM llm_log_app_message as ms
         LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
         LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
@@ -80,14 +85,14 @@
             <if test="query.startTime != null and query.endTime != null">
                 AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
-            <if test="query.type != null and query.type == 'GENERATE_RECORD' and (query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
+            <if test="(query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
                 AND ms.from_scene IN
                 <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
                     #{item}
                 </foreach>
             </if>
         </where>
-        <include refid="listLogMessageStatisticsOrderBy"/>
+        <include refid="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF"/>
         ORDER BY create_date;
     </select>
 
@@ -95,15 +100,32 @@
     <select id="listLogMessageStatisticsByAppUid"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
 
+        /* 获取模版市场 UID */
+        <include refid="TEMPORARY_MARKET_UID_CTE_REF"/>
+
         SELECT
-        <include refid="listLogMessageStatisticsColumns"/>
+        <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
         FROM llm_log_app_message as ms
         LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
         LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
         <where>
-            <if test="query.appUid != null and query.appUid != '' ">
-                AND ms.app_uid = #{query.appUid}
-            </if>
+            <choose>
+                <when test="query.fromScene != null and query.fromScene != '' ">
+                    AND ms.from_scene = #{query.fromScene}
+                    <choose>
+                        <when test="query.fromScene == 'WEB_MARKET' ">
+                            AND ms.app_uid = (SELECT market_uid FROM <include refid="TEMPORARY_MARKET_UID_CTE_REF"/>)
+                        </when>
+                        <otherwise>
+                            AND ms.app_uid = #{query.appUid}
+                        </otherwise>
+                    </choose>
+                </when>
+                <otherwise>
+                    AND ms.app_uid IN (#{query.appUid}, <include refid="TEMPORARY_MARKET_UID_CTE_REF"/>)
+                </otherwise>
+            </choose>
+
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND ms.from_scene = #{query.fromScene}
             </if>
@@ -114,7 +136,7 @@
                 AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
         </where>
-        <include refid="listLogMessageStatisticsOrderBy"/>
+        <include refid="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF"/>
         ORDER BY create_date;
     </select>
 

@@ -59,12 +59,6 @@ public class LogAppMessageStatisticsListReqVO implements Serializable {
     private String status;
 
     /**
-     * 查询类型
-     */
-    @Schema(description = "查询类型")
-    private String type;
-
-    /**
      * 应用场景列表
      */
     @Schema(hidden = true)

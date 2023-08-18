@@ -34,12 +34,6 @@ public class LogAppConversationInfoPageAppUidReqVO extends PageParam {
     private String appUid;
 
     /**
-     * 应用模型
-     */
-    @Schema(description = "应用模型")
-    private String appMode;
-
-    /**
      * 应用场景
      */
     @Schema(description = "应用场景")
@@ -50,19 +44,6 @@ public class LogAppConversationInfoPageAppUidReqVO extends PageParam {
      */
     @Schema(description = "应用状态")
     private String status;
-
-    /**
-     * 创建人, 只有当场景为 WEB_ADMIN 时候生效
-     */
-    @Schema(description = "创建人, 只有当场景为 WEB_ADMIN 时候生效", hidden = true)
-    private String creator;
-
-    /**
-     * 查询类型
-     */
-    @Schema(description = "查询类型")
-    @NotBlank(message = "查询类型不能为空")
-    private String type;
 
     /**
      * 查询时间范围类型
