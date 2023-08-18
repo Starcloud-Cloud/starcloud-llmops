@@ -138,65 +138,22 @@ public class AppLogServiceImpl implements AppLogService {
     public List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(LogAppMessageStatisticsListAppUidReqVO query) {
         // 应用 UID 不能为空
         AppValidate.notBlank(query.getAppUid(), new ErrorCode(3000001, "应用分析时，应用UID[appUid]为必填项"));
+        // 查询应用类型
+        AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
+        AppValidate.notNull(app, APP_NO_EXISTS_UID, query.getAppUid());
 
-        // 应用模型
-        if (StringUtils.isNotBlank(query.getAppMode()) && !AppModelEnum.BASE_APP_MODEL_NAME.contains(query.getAppMode())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用模型[appMode]不正确，支持的模型为：" + AppModelEnum.BASE_APP_MODEL_NAME));
-        }
-
-        // 查询类型
-        if (!LogQueryTypeEnum.BASE_LOG_QUERY_TYPE.contains(query.getType())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，查询类型[type]不正确，支持的类型为：" + LogQueryTypeEnum.BASE_LOG_QUERY_TYPE));
-        }
-
-        // 查询类型为 APP_ANALYSIS 时，应用场景
-        if (LogQueryTypeEnum.APP_ANALYSIS.name().equals(query.getType())) {
+        // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
+        if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
             if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.APP_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.APP_ANALYSIS_SCENES_NAME));
             }
         }
 
-        // 查询类型为 CHAT_ANALYSIS 时，应用场景
-        if (LogQueryTypeEnum.CHAT_ANALYSIS.name().equals(query.getType())) {
+        // 应用模型为 CHAT 时，说明为聊天场景下的应用分析
+        if (AppModelEnum.CHAT.name().equals(app.getModel())) {
             if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME));
             }
-        }
-
-        // 场景为 WEB_ADMIN 时候处理
-        if (AppSceneEnum.WEB_ADMIN.name().equals(query.getFromScene())) {
-            query.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
-        }
-
-        // 场景为 WEB_MARKET 时候处理
-        if (AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene())) {
-            // 查询应用信息并校验是否存在
-            AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
-            AppValidate.notNull(app, APP_NO_EXISTS_UID, query.getAppUid());
-
-            // 如果 publishUid 为空，说明此应用未发布成功到应用市场过，直接返回空数据
-            String publishUid = app.getPublishUid();
-            if (StringUtils.isBlank(publishUid)) {
-                return Collections.emptyList();
-            }
-
-            // 查询发布信息并校验是否存在
-            String appPublishUid = AppUtils.obtainUid(publishUid);
-            AppPublishDO appPublish = appPublishMapper.get(appPublishUid, Boolean.TRUE);
-            AppValidate.notNull(appPublish, APP_PUBLISH_NOT_EXISTS_UID, appPublishUid);
-
-            // marketUid 为空，说明可能数据有问题，直接返回空数据
-            String marketUid = appPublish.getMarketUid();
-            if (StringUtils.isBlank(marketUid)) {
-                return Collections.emptyList();
-            }
-
-            // 查询应用市场信息并校验是否存在
-            AppMarketDO appMarket = appMarketMapper.get(marketUid, Boolean.TRUE);
-            AppValidate.notNull(appMarket, APP_MARKET_NO_EXISTS_UID, marketUid);
-
-            // 设置应用市场 UID
-            query.setAppUid(appMarket.getUid());
         }
 
         // 时间类型默认值
