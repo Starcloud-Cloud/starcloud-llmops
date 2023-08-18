@@ -98,9 +98,7 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
                 .eq(ObjectUtil.isNotEmpty(reqVO.getAppName()), LogAppConversationDO::getAppName, reqVO.getAppName())
 
                 .eq(ObjectUtil.isNotEmpty(reqVO.getStatus()), LogAppConversationDO::getStatus, reqVO.getStatus())
-                .eq(ObjectUtil.isNotEmpty(reqVO.getFromScene()), LogAppConversationDO::getFromScene, reqVO.getFromScene())
-                .eq(ObjectUtil.isNotEmpty(reqVO.getUser()), LogAppConversationDO::getCreator, reqVO.getUser())
-                .eq(ObjectUtil.isNotEmpty(reqVO.getEndUser()), LogAppConversationDO::getEndUser, reqVO.getEndUser());
+                .eq(ObjectUtil.isNotEmpty(reqVO.getFromScene()), LogAppConversationDO::getFromScene, reqVO.getFromScene());
 
         lambdaWrapperX.betweenIfPresent(LogAppConversationDO::getCreateTime, reqVO.getStartTime(), reqVO.getEndTime())
                 .orderByDesc(LogAppConversationDO::getId)
