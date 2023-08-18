@@ -208,6 +208,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         // 构建修改发布渠道对象
         AppPublishChannelDO updateAppPublishChannel = new AppPublishChannelDO();
         updateAppPublishChannel.setName(request.getName());
+        updateAppPublishChannel.setStatus(request.getStatus());
         updateAppPublishChannel.setConfig(JSON.toJSONString(request.getConfig()));
         updateAppPublishChannel.setDescription(request.getDescription());
         updateAppPublishChannel.setDeleted(Boolean.FALSE);
