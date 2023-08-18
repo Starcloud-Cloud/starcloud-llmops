@@ -153,7 +153,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         if (logAppConversationDO != null) {
 
             //后台执行，不走历史配置，每次都是最新的配置
-            if (!req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())) {
+            if (!(req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
+                    || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
+                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name()))) {
                 ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
                 this.setChatConfig(chatConfig);
             }
