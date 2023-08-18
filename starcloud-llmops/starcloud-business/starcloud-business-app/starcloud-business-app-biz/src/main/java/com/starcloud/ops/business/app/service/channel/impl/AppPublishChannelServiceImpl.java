@@ -167,7 +167,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
      */
     @Override
     @SuppressWarnings("all")
-    public AppPublishChannelRespVO create(AppPublishChannelReqVO request) {
+    public void create(AppPublishChannelReqVO request) {
         // 校验应用是否存在
         AppDO app = appMapper.get(request.getAppUid(), Boolean.TRUE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
@@ -186,7 +186,6 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         // 创建发布渠道
         AppPublishChannelDO appPublishChannel = AppPublishChannelConverter.INSTANCE.convert(request);
         appPublishChannelMapper.insert(appPublishChannel);
-        return AppPublishChannelConverter.INSTANCE.convert(appPublishChannel);
     }
 
     /**
@@ -197,7 +196,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
      */
     @Override
     @SuppressWarnings("all")
-    public AppPublishChannelRespVO modify(AppPublishChannelModifyReqVO request) {
+    public void modify(AppPublishChannelModifyReqVO request) {
         // 校验发布渠道是否存在
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
         AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getUid());
@@ -216,7 +215,6 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
 
         // 修改发布渠道
         appPublishChannelMapper.updateById(updateAppPublishChannel);
-        return AppPublishChannelConverter.INSTANCE.convert(updateAppPublishChannel);
     }
 
     /**
