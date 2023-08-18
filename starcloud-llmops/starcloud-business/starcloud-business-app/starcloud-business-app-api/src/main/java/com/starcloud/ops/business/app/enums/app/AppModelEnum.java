@@ -49,6 +49,13 @@ public enum AppModelEnum implements IEnumable<Integer> {
     private final String labelEn;
 
     /**
+     * 基础应用模型
+     */
+    public static final List<AppModelEnum> BASE_APP_MODEL = Arrays.asList(COMPLETION, CHAT);
+
+    public static final List<String> BASE_APP_MODEL_NAME = Arrays.asList(COMPLETION.name(), CHAT.name());
+
+    /**
      * 构造函数
      *
      * @param code  枚举值

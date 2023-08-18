@@ -2,8 +2,8 @@ package com.starcloud.ops.business.app.service.image.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -31,13 +31,10 @@ import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
-import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -64,9 +61,6 @@ public class ImageServiceImpl implements ImageService {
 
     @Resource
     private AppMarketMapper appMarketMapper;
-
-    @Resource
-    private LogAppConversationMapper logAppConversationMapper;
 
     @Resource
     private LogAppMessageMapper logAppMessageMapper;
@@ -99,12 +93,10 @@ public class ImageServiceImpl implements ImageService {
      * @return 图片列表
      */
     @Override
-    public PageResp<ImageMessageRespVO> historyGenerateImages(HistoryGenerateImagePageQuery query) {
-
+    public PageResult<ImageMessageRespVO> historyGenerateImages(HistoryGenerateImagePageQuery query) {
         // 查询日志消息记录
         Page<LogAppMessageDO> page = pageHistoryGenerateImageMessage(query);
         List<LogAppMessageDO> records = page.getRecords();
-
         // 处理图片消息数据
         List<ImageMessageRespVO> list = CollectionUtil.emptyIfNull(records).stream().map(item -> {
             // 如果没有结果，返回 null
@@ -133,8 +125,7 @@ public class ImageServiceImpl implements ImageService {
             }
             return imageResponse;
         }).filter(Objects::nonNull).collect(Collectors.toList());
-
-        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+        return new PageResult<>(list, page.getTotal());
     }
 
     /**

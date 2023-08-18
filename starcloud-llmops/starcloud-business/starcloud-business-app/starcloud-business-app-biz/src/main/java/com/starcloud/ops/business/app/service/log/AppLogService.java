@@ -3,11 +3,13 @@ package com.starcloud.ops.business.app.service.log;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 
@@ -37,20 +39,42 @@ public interface AppLogService {
     LogAppMessageInfoRespVO getAppMessageResult(String appMessageUid);
 
     /**
-     * 获取应用执行日志消息统计数据
+     * 根据应用 UID 获取应用执行日志消息统计数据列表 <br>
+     * 1. 应用分析 <br>
+     * 2. 聊天分析 <br>
      *
      * @param query 查询条件
      * @return 日志消息统计数据
      */
-    List<LogAppMessageStatisticsListVO> appMessageStatisticsList(LogAppMessageStatisticsListReqVO query);
+    List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(LogAppMessageStatisticsListAppUidReqVO query);
 
     /**
-     * 分页查询应用执行日志会话数据
+     * 获取应用执行日志消息统计数据列表 <br>
+     * 1. 生成记录 <br>
+     *
+     * @param query 查询条件
+     * @return 日志消息统计数据
+     */
+    List<LogAppMessageStatisticsListVO> listLogMessageStatistics(LogAppMessageStatisticsListReqVO query);
+
+    /**
+     * 根据 应用 UID 分页查询应用执行日志会话数据 <br>
+     * 1. 应用分析 <br>
+     * 2. 聊天分析 <br>
      *
      * @param query 查询条件
      * @return 应用执行日志会话数据
      */
-    PageResult<LogAppConversationInfoRespVO> appConversationPage(LogAppConversationInfoPageReqVO query);
+    PageResult<LogAppConversationInfoRespVO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query);
+
+    /**
+     * 分页查询应用执行日志会话数据
+     * 1. 生成记录 <br>
+     *
+     * @param query 查询条件
+     * @return 应用执行日志会话数据
+     */
+    PageResult<LogAppConversationInfoRespVO> pageLogConversation(LogAppConversationInfoPageReqVO query);
 
     /**
      * 获取文本生成消息详情
