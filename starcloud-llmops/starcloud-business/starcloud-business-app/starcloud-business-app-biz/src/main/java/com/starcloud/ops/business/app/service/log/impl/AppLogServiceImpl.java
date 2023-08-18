@@ -15,6 +15,8 @@ import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
+import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
@@ -51,13 +53,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_NO_EXISTS_UID;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID;
 
 /**
  * @author nacoyer
@@ -150,13 +155,54 @@ public class AppLogServiceImpl implements AppLogService {
             }
         }
 
+        // 执行场景不为空的情况
+        if (StringUtils.isNotBlank(query.getFromScene())) {
+            // 如果执行场景不是 WEB_MARKET，则不需要查询应用市场执行信息。如果是 WEB_MARKET，则需要查询应用市场执行信息。
+            if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene())) {
+                query.setMarketUid(null);
+            } else {
+                String marketUid = getMarketUidByApp(app);
+                // 未获取到应用市场 UID，则直接返回空数据。不需要再走数据库查询
+                if (StringUtils.isBlank(marketUid)) {
+                    return Collections.emptyList();
+                }
+                query.setMarketUid(marketUid);
+            }
+        } else {
+            // 执行场景为空的情况，需要查询应用市场执行信息。
+            query.setMarketUid(getMarketUidByApp(app));
+        }
+
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-
         List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.listLogMessageStatisticsByAppUid(query);
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
 
+    private String getMarketUidByApp(AppDO app) {
+        // 如果 publishUid 为空，说明此应用未发布成功到应用市场过，直接返回空数据
+        String publishUid = app.getPublishUid();
+        if (StringUtils.isBlank(publishUid)) {
+            return null;
+        }
+
+        // 查询发布信息并校验是否存在
+        String appPublishUid = AppUtils.obtainUid(publishUid);
+        AppPublishDO appPublish = appPublishMapper.get(appPublishUid, Boolean.TRUE);
+        AppValidate.notNull(appPublish, APP_PUBLISH_NOT_EXISTS_UID, appPublishUid);
+
+        // marketUid 为空，说明可能数据有问题，直接返回空数据
+        String marketUid = appPublish.getMarketUid();
+        if (StringUtils.isBlank(marketUid)) {
+            return null;
+        }
+
+        // 查询应用市场信息并校验是否存在
+        AppMarketDO appMarket = appMarketMapper.get(marketUid, Boolean.TRUE);
+        AppValidate.notNull(appMarket, APP_MARKET_NO_EXISTS_UID, marketUid);
+
+        return appMarket.getUid();
+    }
 
     /**
      * 获取应用执行日志消息统计数据
@@ -201,6 +247,24 @@ public class AppLogServiceImpl implements AppLogService {
             if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME));
             }
+        }
+
+        // 执行场景不为空的情况
+        if (StringUtils.isNotBlank(query.getFromScene())) {
+            // 如果执行场景不是 WEB_MARKET，则不需要查询应用市场执行信息。如果是 WEB_MARKET，则需要查询应用市场执行信息。
+            if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene())) {
+                query.setMarketUid(null);
+            } else {
+                String marketUid = getMarketUidByApp(app);
+                // 未获取到应用市场 UID，则直接返回空数据。不需要再走数据库查询
+                if (StringUtils.isBlank(marketUid)) {
+                    return new PageResult<>(Collections.emptyList(), 0L);
+                }
+                query.setMarketUid(marketUid);
+            }
+        } else {
+            // 执行场景为空的情况，需要查询应用市场执行信息。
+            query.setMarketUid(getMarketUidByApp(app));
         }
 
         // 时间类型默认值

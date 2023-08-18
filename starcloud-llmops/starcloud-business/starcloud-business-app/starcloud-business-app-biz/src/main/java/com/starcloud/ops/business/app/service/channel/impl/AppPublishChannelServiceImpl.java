@@ -186,6 +186,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
                 configUid = generateConfigUid();
             }
         }
+        request.setMediumUid(configUid);
 
         // 处理配置信息
         AppPublishChannelConfigTemplate handler = appPublishChannelConfigFactory.getHandler(request.getType());

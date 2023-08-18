@@ -34,6 +34,12 @@ public class LogAppMessageStatisticsListAppUidReqVO implements Serializable {
     private String appUid;
 
     /**
+     * 应用市场 UID
+     */
+    @Schema(description = "应用市场 UID", hidden = true)
+    private String marketUid;
+
+    /**
      * 应用场景
      */
     @Schema(description = "应用场景")
