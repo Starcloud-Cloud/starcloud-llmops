@@ -2,7 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper">
 
-    <sql id="pageLogConversationColumns">
+    <!-- 需要查询的字段信息 -->
+    <sql id="PAGE_LOG_CONVERSATION_COLUMNS_REF">
         co.uid,
         co.app_uid,
         co.app_name,
@@ -23,32 +24,59 @@
     </sql>
 
     <!-- 分页查询会话列表 -->
-    <select id="pageLogConversation" resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO">
+    <select id="pageLogConversation"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO">
         SELECT
-        <include refid="pageLogConversationColumns"/>
+        <include refid="PAGE_LOG_CONVERSATION_COLUMNS_REF"/>
         FROM llm_log_app_conversation co
         LEFT JOIN llm_log_app_message msg ON (msg.app_conversation_uid = co.uid)
         LEFT JOIN llm_log_app_message_feedbacks fb ON (fb.app_message_uid = msg.uid)
         <where>
+            /* 应用 UID 条件 */
             <if test="query.appUid != null and query.appUid != '' ">
                 AND co.app_uid = #{query.appUid}
             </if>
+
+            /* 应用名称条件 */
             <if test="query.appName != null and query.appName != '' ">
                 <bind name="appName" value="query.appName+'%'"/>
                 AND co.app_name LIKE #{appName}
             </if>
+
+            /* 应用模式条件 */
             <if test="query.appMode != null and query.appMode != '' ">
                 AND co.app_mode = #{query.appMode}
             </if>
+
+            /* 执行场景条件 */
+            <choose>
+                <when test="query.fromScene != null and query.fromScene != '' ">
+                    AND co.from_scene = #{query.fromScene}
+                </when>
+                <when test="query.fromSceneList != null and query.fromSceneList.size() > 0">
+                    AND co.from_scene IN
+                    <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </when>
+                <otherwise>
+                    AND co.from_scene != 'UNKNOWN'
+                </otherwise>
+            </choose>
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND co.from_scene = #{query.fromScene}
             </if>
+
+            /* 执行状态条件 */
             <if test="query.status != null and query.status != '' ">
                 AND co.status = #{query.status}
             </if>
+
+            /* 时间范围 */
             <if test="query.startTime != null and query.endTime != null">
                 AND co.update_time between #{query.startTime} and #{query.endTime}
             </if>
+
             <if test="(query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
                 AND co.from_scene IN
                 <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
@@ -62,30 +90,37 @@
     </select>
 
     <!-- 分页查询会话列表 -->
-    <select id="pageLogConversationByAppUid" resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO">
+    <select id="pageLogConversationByAppUid"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO">
         SELECT
-        <include refid="pageLogConversationColumns"/>
+        <include refid="PAGE_LOG_CONVERSATION_COLUMNS_REF"/>
         FROM llm_log_app_conversation co
         LEFT JOIN llm_log_app_message msg ON (msg.app_conversation_uid = co.uid)
         LEFT JOIN llm_log_app_message_feedbacks fb ON (fb.app_message_uid = msg.uid)
         <where>
-            <if test="query.appUid != null and query.appUid != '' ">
-                AND co.app_uid = #{query.appUid}
-            </if>
-            <if test="query.appMode != null and query.appMode != '' ">
-                AND co.app_mode = #{query.appMode}
-            </if>
+            /* 应用 UID 条件 */
+            <choose>
+                <when test="query.marketUid != null and query.marketUid != '' ">
+                    AND co.app_uid IN (#{query.appUid}, #{query.marketUid})
+                </when>
+                <otherwise>
+                    AND co.app_uid = #{query.appUid}
+                </otherwise>
+            </choose>
+
+            /* 执行场景条件 */
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND co.from_scene = #{query.fromScene}
             </if>
+
+            /* 执行状态条件 */
             <if test="query.status != null and query.status != '' ">
                 AND co.status = #{query.status}
             </if>
-            <if test="query.creator != null and query.creator != '' ">
-                AND co.creator = #{query.creator}
-            </if>
+
+            /* 时间范围条件 */
             <if test="query.startTime != null and query.endTime != null">
-                AND co.update_time between #{query.startTime} and #{query.endTime}
+                AND co.create_time between #{query.startTime} and #{query.endTime}
             </if>
         </where>
         GROUP BY co.id

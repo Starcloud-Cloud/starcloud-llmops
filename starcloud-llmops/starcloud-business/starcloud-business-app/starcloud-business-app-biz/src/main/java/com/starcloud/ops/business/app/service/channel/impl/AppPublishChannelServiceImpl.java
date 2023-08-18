@@ -182,16 +182,16 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         if (StringUtils.isBlank(configUid)) {
             if (AppPublishChannelEnum.OPEN_API.getCode().equals(request.getType())) {
                 configUid = generateOpenApiKey();
-            } else if (AppPublishChannelEnum.OPEN_API.getCode().equals(request.getType())) {
+            } else {
                 configUid = generateConfigUid();
             }
         }
-        request.setMediumUid(configUid);
 
         // 处理配置信息
+        request.setMediumUid(configUid);
         AppPublishChannelConfigTemplate handler = appPublishChannelConfigFactory.getHandler(request.getType());
         request.setConfig(handler.handler(configUid, request.getConfig()));
-        request.setMediumUid(configUid);
+
 
         // 创建发布渠道
         AppPublishChannelDO appPublishChannel = AppPublishChannelConverter.INSTANCE.convert(request);
