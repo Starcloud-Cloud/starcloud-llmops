@@ -30,7 +30,7 @@ public class InEnumValidator implements ConstraintValidator<InEnum, Object> {
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
         // 如果值为空，直接返回 true, 交给 @NotNull 或者 @NotBlank 校验
-        if (Objects.isNull(value)) {
+        if (Objects.isNull(value) || "".equals(value) || "null".equals(value)) {
             return true;
         }
 
