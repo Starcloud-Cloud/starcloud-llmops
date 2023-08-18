@@ -104,17 +104,11 @@
             <if test="query.appUid != null and query.appUid != '' ">
                 AND ms.app_uid = #{query.appUid}
             </if>
-            <if test="query.appMode != null and query.appMode != '' ">
-                AND ms.app_mode = #{query.appMode}
-            </if>
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND ms.from_scene = #{query.fromScene}
             </if>
             <if test="query.status != null and query.status != '' ">
                 AND ms.status = #{query.status}
-            </if>
-            <if test="query.creator != null and query.creator != '' ">
-                AND ms.creator = #{query.creator}
             </if>
             <if test="query.startTime != null and query.endTime != null">
                 AND ms.create_time between #{query.startTime} and #{query.endTime}
