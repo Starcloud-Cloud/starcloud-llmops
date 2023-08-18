@@ -412,8 +412,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
     @Override
     public MatchQueryVO matchQuery(MatchQueryRequest request) {
-        validateTenantId(request.getDocumentId());
-        List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDocId(request.getDocumentId());
+        List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDatasetIds(request.getDatasetUid());
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
         EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().segmentIds(segmentIds).k(request.getK()).build();
