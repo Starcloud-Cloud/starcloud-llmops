@@ -6,16 +6,21 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.dataset.controller.admin.datasethandlerules.vo.DatasetHandleRulesRespVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataSplitProducer;
+import com.starcloud.ops.business.dataset.pojo.dto.CleanRule;
+import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
+import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
-import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
+import com.starcloud.ops.business.dataset.util.dataset.TextCleanAndSplitUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
@@ -23,6 +28,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -51,6 +57,13 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
     @Resource
     private DocumentSegmentsService documentSegmentsService;
 
+
+    @Resource
+    private DatasetsService datasetsService;
+
+    @Resource
+    private DatasetDataHandleRulesService datasetDataHandleRulesService;
+
     private static final String PATH_OBJECT = "dataset-source-data/clean/";
 
 
@@ -72,45 +85,52 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
 
         int retryCount = message.getRetryCount();
         try {
+            // 获取数据集下的处理规则
+            DatasetHandleRulesRespVO rulesRespVO = datasetDataHandleRulesService.getRuleByDatasetId(message.getDatasetId());
 
             // 根据数据源 ID获取数据储存ID
             DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
 
             // 根据储存ID 获取存储地址
             DatasetStorageDO storageDO = selectDatasetStorage(sourceDataDO.getStorageId());
-            if (storageDO ==null){
-                log.error("清洗过程中，获取数据源失败，请检查数据信息，message 是({})",message);
+            if (storageDO == null) {
+                log.error("清洗过程中，获取数据源失败，请检查数据信息，message 是({})", message);
                 throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
             }
             Tika tika = new Tika();
             // 获取文件数据
             String text = tika.parseToString(new URL(storageDO.getStorageKey()));
+
+            CleanRule cleanRule = getCleanRuleBySourceType(sourceDataDO.getDataType(), rulesRespVO);
             // 执行数据清洗
-            String cleanText = TextCleanUtils.cleanText(text, message.getSplitRule());
+            String cleanText = TextCleanAndSplitUtils.cleanText(text, sourceDataDO.getDataType(), cleanRule);
 
-            // 存储清洗数据
-            String cleanPath = uploadFile(cleanText, message.getUserId());
+            // 格式转换
+            String formatText = TextCleanAndSplitUtils.processFormat(cleanText, cleanRule.getConvertFormat(),sourceDataDO.getDataType() );
 
+            // 数据上传
+            String cleanPath = uploadFile(cleanText, message.getUserId(), formatText);
 
-            // TODO 总结流程暂时不做修改
-            String summary;
-            try {
-                // 开始总结内容
-                summary = documentSegmentsService.segmentSummary(String.valueOf(message.getDataSourceId()), cleanText, message.getSplitRule(), 500);
-                sourceDataDO.setSummary(summary);
-            } catch (RuntimeException e) {
-                sourceDataDO.setSummary(null);
-                log.error("清洗过程中，生成总结内容，总结内容生成失败");
-            }
+            // // TODO 总结流程暂时不做修改
+            // String summary;
+            // try {
+            //     // 开始总结内容
+            //     summary = documentSegmentsService.segmentSummary(String.valueOf(message.getDataSourceId()), cleanText, message.getSplitRule(), 500);
+            //     sourceDataDO.setSummary(summary);
+            // } catch (RuntimeException e) {
+            //     sourceDataDO.setSummary(null);
+            //     log.error("清洗过程中，生成总结内容，总结内容生成失败");
+            // }
 
             // 保存清洗地址
-            Long cleanId = setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) cleanPath.getBytes().length, "text/html", "TXT", message.getUserId());
+            Long cleanId = setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) formatText.length(), "text/html", cleanRule.getConvertFormat(), message.getUserId());
 
 
             if (StrUtil.isBlank(sourceDataDO.getDescription())) {
                 sourceDataDO.setDescription(truncateAndSetContent(cleanText));
             }
             sourceDataDO.setCleanStorageId(cleanId);
+            sourceDataDO.setDatasetProcessRuleId(Arrays.asList(rulesRespVO.getId()).toString());
 
             datasetSourceDataService.updateDatasourceById(sourceDataDO);
 
@@ -153,7 +173,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
     }
 
 
-    private String uploadFile(String data, Long userId) {
+    private String uploadFile(String data, Long userId, String formatSuffix) {
 
         // 将结果转换为InputStream流
         InputStream utf8Stream = IoUtil.toUtf8Stream(data);
@@ -161,7 +181,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
         String fileId = SecureUtil.md5(data);
 
 
-        String fileName = fileId + "." + "txt";
+        String fileName = fileId + "." + "formatSuffix";
         String path = String.format(PATH_OBJECT + "%s" + "/", userId) + fileName;
 
         return fileApi.createFile(fileName, path, IoUtil.readBytes(utf8Stream));
@@ -207,4 +227,27 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
 
         return input.substring(0, 300); // 截取前 300 字符
     }
+
+    /**
+     * 根据数据类型返回清洗规则
+     *
+     * @param dataType
+     * @param rulesRespVO
+     * @return
+     */
+    private CleanRule getCleanRuleBySourceType(String dataType, DatasetHandleRulesRespVO rulesRespVO) {
+        DataSourceDataTypeEnum dataSourceDataTypeEnum = DataSourceDataTypeEnum.valueOf(dataType);
+
+        switch (dataSourceDataTypeEnum) {
+            case URL:
+                return rulesRespVO.getCleanRuleVO().getURL();
+            case CHARACTERS:
+                return rulesRespVO.getCleanRuleVO().getCHARACTERS();
+            case DOCUMENT:
+                return rulesRespVO.getCleanRuleVO().getDOCUMENT();
+            default:
+                return rulesRespVO.getCleanRuleVO().getCHARACTERS();
+        }
+    }
+
 }

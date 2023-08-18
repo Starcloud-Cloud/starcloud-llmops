@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.dataset.core.handler.strategy;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
@@ -48,7 +49,7 @@ public class FileUploadStrategy implements UploadStrategy {
         // 获取文件的name
         String name = uploadFile.getOriginalFilename();
         // 读取输入流到临时缓冲区
-        name = name.isEmpty() ? "文件" + IdUtil.fastSimpleUUID().substring(0, 8) : name;
+        name = StrUtil.isBlank(name) ? "文件" + IdUtil.fastSimpleUUID().substring(0, 8) : name;
         // 设置文件名称
         uploadFileRespDTO.setName(name);
 
@@ -68,6 +69,10 @@ public class FileUploadStrategy implements UploadStrategy {
 
             // 上传文件
             filePath = uploadFile(fileId, fileContent, extension, userId);
+
+            if (StrUtil.isBlank(filePath)) {
+                return uploadFileRespDTO;
+            }
             // 设置文件地址
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);

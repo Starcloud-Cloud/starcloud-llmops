@@ -47,5 +47,8 @@ public interface ErrorCodeConstants {
     ErrorCode SOURCE_DATA_UPLOAD_SPLIT_RULE_EMPTY = new ErrorCode(2007004002, "上传失败，分割规则不可以为空");
     ErrorCode SOURCE_DATA_UPLOAD_DATASET_NO_EXIST = new ErrorCode(2007004002, "上传失败，数据集不存在");
 
+    //======================================数据集源数据上传======================================
+    ErrorCode DATASET_HANDLE_RULE_EXISTS = new ErrorCode(2007005001, "知识库预处理规则不存在");
+
 
 }

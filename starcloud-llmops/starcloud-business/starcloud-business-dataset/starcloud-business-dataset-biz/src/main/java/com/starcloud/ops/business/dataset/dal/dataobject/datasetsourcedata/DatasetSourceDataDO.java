@@ -45,7 +45,7 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     /**
      * 数据集ID
      */
-    private String datasetId;
+    private Long datasetId;
     /**
      * 存储ID
      */

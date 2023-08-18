@@ -2,23 +2,24 @@ package com.starcloud.ops.business.dataset.dal.dataobject.segment;
 
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName("llm_split_rules")
-@KeySequence("llm_split_rules")
-public class SplitRulesDO extends TenantBaseDO {
+@TableName("llm_dataset_handle_rules")
+@KeySequence("llm_dataset_handle_rules")
+public class DatasetHandleRulesDO extends TenantBaseDO {
 
     private static final long serialVersionUID = -9155374188984988756L;
 
-    private String id;
+    @TableId
+    private Long id;
 
-    private String datasetId;
+    private Long datasetId;
 
-    private String documentId;
+    private String cleanRule;
 
-    private Boolean automatic;
+    private String splitRule;
 
-    private String rules;
 }

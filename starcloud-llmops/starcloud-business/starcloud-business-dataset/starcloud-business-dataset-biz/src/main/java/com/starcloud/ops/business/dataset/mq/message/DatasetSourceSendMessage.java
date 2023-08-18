@@ -19,7 +19,7 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
      * 数据集编号
      */
     @NotNull(message = " 数据集编号 不能为空")
-    private String datasetId;
+    private Long datasetId;
     /**
      * 数据源 ID
      */
