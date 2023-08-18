@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.channel.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
@@ -26,6 +25,7 @@ import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannel
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -177,7 +177,16 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, request.getPublishUid());
 
         // 生成配置信息唯一标识
-        String configUid = StringUtils.isBlank(request.getMediumUid()) ? IdUtil.fastSimpleUUID() : request.getMediumUid();
+        String configUid = request.getMediumUid();
+        // 如果为空，则生成新的配置 UID
+        if (StringUtils.isBlank(configUid)) {
+            if (AppPublishChannelEnum.OPEN_API.getCode().equals(request.getType())) {
+                configUid = generateOpenApiKey();
+            } else if (AppPublishChannelEnum.OPEN_API.getCode().equals(request.getType())) {
+                configUid = generateConfigUid();
+            }
+        }
+
         // 处理配置信息
         AppPublishChannelConfigTemplate handler = appPublishChannelConfigFactory.getHandler(request.getType());
         request.setConfig(handler.handler(configUid, request.getConfig()));
@@ -232,7 +241,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, uid);
 
         // 生成分享链接唯一标识
-        String configUid = IdUtil.fastSimpleUUID();
+        String configUid = generateConfigUid();
         AppPublishChannelDO updateAppPublishChannel = new AppPublishChannelDO();
         updateAppPublishChannel.setId(appPublishChannel.getId());
         updateAppPublishChannel.setMediumUid(configUid);
@@ -328,6 +337,49 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         }
         List<Long> idList = publishChannelList.stream().map(AppPublishChannelDO::getId).collect(Collectors.toList());
         appPublishChannelMapper.deleteBatchIds(idList);
+    }
+
+    /**
+     * 生成 OpenApi 密钥唯一标识
+     *
+     * @return 密钥 uid
+     */
+    private String generateOpenApiKey() {
+        return generateConfigUid(32);
+    }
+
+    /**
+     * 生成配置信息唯一标识
+     *
+     * @return 配置信息唯一标识
+     */
+    private String generateConfigUid() {
+        return generateConfigUid(9);
+    }
+
+    /**
+     * 生成配置信息唯一标识
+     *
+     * @param number 随机数位数
+     * @return 配置信息唯一标识
+     */
+    private String generateConfigUid(int number) {
+        String uid = generateRandom(number);
+        long count = appPublishChannelMapper.countByMediumUid(uid);
+        while (count > 0) {
+            uid = generateRandom(number);
+            count = appPublishChannelMapper.countByMediumUid(uid);
+        }
+        return uid;
+    }
+
+    /**
+     * 随机生成配置信息唯一标识
+     *
+     * @return 配置信息唯一标识
+     */
+    private String generateRandom(final int count) {
+        return RandomStringUtils.random(count, Boolean.TRUE, Boolean.TRUE);
     }
 
 }
