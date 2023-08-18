@@ -48,6 +48,8 @@ public enum LogQueryTypeEnum implements IEnumable<Integer> {
      */
     private final String labelEn;
 
+    public static final List<String> BASE_LOG_QUERY_TYPE = Arrays.asList(APP_ANALYSIS.name(), CHAT_ANALYSIS.name());
+
     /**
      * 构造函数
      *

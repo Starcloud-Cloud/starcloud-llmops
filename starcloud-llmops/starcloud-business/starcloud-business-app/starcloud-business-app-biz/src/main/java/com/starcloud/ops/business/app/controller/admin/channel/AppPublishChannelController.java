@@ -52,21 +52,21 @@ public class AppPublishChannelController {
 
     @PostMapping("/modify")
     @Operation(summary = "修改应用发布渠道", description = "修改应用发布渠道")
-    @ApiOperationSupport(order = 25, author = "nacoyer")
+    @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<AppPublishChannelRespVO> modify(@Validated @RequestBody AppPublishChannelModifyReqVO request) {
         return CommonResult.success(appPublishChannelService.modify(request));
     }
 
     @PostMapping("/resetShareSlug")
     @Operation(summary = "重置分享链接唯一标识", description = "重置分享链接唯一标识")
-    @ApiOperationSupport(order = 25, author = "nacoyer")
+    @ApiOperationSupport(order = 35, author = "nacoyer")
     public CommonResult<String> modify(@Validated @RequestBody UidRequest request) {
         return CommonResult.success(appPublishChannelService.resetShareSlug(request.getUid()));
     }
 
     @PostMapping("/operate")
     @Operation(summary = "启用/禁用应用发布渠道", description = "启用/禁用应用发布渠道")
-    @ApiOperationSupport(order = 30, author = "nacoyer")
+    @ApiOperationSupport(order = 40, author = "nacoyer")
     public CommonResult<String> operate(@Validated @RequestBody StatusRequest request) {
         appPublishChannelService.operate(request);
         return CommonResult.success("启用/禁用应用发布渠道成功");
@@ -74,7 +74,7 @@ public class AppPublishChannelController {
 
     @PostMapping("/delete")
     @Operation(summary = "删除应用发布渠道", description = "删除应用发布渠道")
-    @ApiOperationSupport(order = 35, author = "nacoyer")
+    @ApiOperationSupport(order = 45, author = "nacoyer")
     public CommonResult<String> delete(@Validated @RequestBody UidRequest request) {
         appPublishChannelService.delete(request.getUid());
         return CommonResult.success("删除应用发布渠道成功");

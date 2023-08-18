@@ -177,7 +177,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, request.getPublishUid());
 
         // 生成配置信息唯一标识
-        String configUid = IdUtil.fastSimpleUUID();
+        String configUid = StringUtils.isBlank(request.getMediumUid()) ? IdUtil.fastSimpleUUID() : request.getMediumUid();
         // 处理配置信息
         AppPublishChannelConfigTemplate handler = appPublishChannelConfigFactory.getHandler(request.getType());
         request.setConfig(handler.handler(configUid, request.getConfig()));

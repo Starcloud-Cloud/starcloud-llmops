@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.log.api.conversation.vo;
 
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
-import com.starcloud.ops.business.log.enums.LogQueryTypeEnum;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,7 +9,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -74,8 +72,6 @@ public class LogAppConversationInfoPageReqVO extends PageParam {
      * 查询类型
      */
     @Schema(description = "查询类型")
-    @NotNull(message = "查询类型不能为空")
-    @InEnum(value = LogQueryTypeEnum.class, field = InEnum.EnumField.NAME, message = "查询类型 {value}, 支持的类型为 {values}")
     private String type;
 
     /**
