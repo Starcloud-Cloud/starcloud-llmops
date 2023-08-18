@@ -5,6 +5,8 @@ public enum LogMessageTypeEnum {
 
     CHAT(1,"普通聊天"),
 
+    CHAT_FUN(1,"LLM函数调用"),
+
     SUMMARY(2,"总结")
 
     ;

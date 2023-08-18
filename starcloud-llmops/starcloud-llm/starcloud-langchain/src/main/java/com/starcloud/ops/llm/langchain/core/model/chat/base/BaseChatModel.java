@@ -25,6 +25,8 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseChatModel.class);
 
+    private long elapsed;
+
     private Boolean verbose = false;
 
     public Boolean getVerbose() {
@@ -99,12 +101,15 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
             try {
 
+                long start = System.currentTimeMillis();
                 llmRun.onLLMStart(this.getClass(), chatMessages.get(i), stops, functions);
 
                 ChatResult<R> chatResult = this._generate(chatMessages.get(i), stops, functions, llmRun);
                 chatResults.add(chatResult);
 
                 llmRun.onLLMEnd(this.getClass(), chatResult.getText(), chatResult.getUsage());
+
+                this.elapsed = System.currentTimeMillis() - start;
 
                 //llmRun.onLLMEnd();
 
@@ -123,35 +128,6 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
         return this.combineLLMOutputs(chatResults);
     }
-
-
-//    @Deprecated
-//    public ChatResult<R> generate(List<List<BaseChatMessage>> chatMessages) {
-//
-//        this.getCallbackManager().onLLMStart("BaseChatModel.generate.start", chatMessages);
-//
-//        try {
-//
-//            log.debug("BaseChatModel.generate: {}", chatMessages);
-//
-//            List<ChatResult<R>> chatResults = Optional.ofNullable(chatMessages).orElse(new ArrayList<>()).stream().map((chatMessageList -> {
-//
-//                return this._generate(chatMessageList);
-//            })).collect(Collectors.toList());
-//
-//            log.debug("BaseChatModel.generate result: {}", chatResults);
-//
-//            this.getCallbackManager().onLLMEnd("BaseChatModel.generate.end", chatResults);
-//
-//            return this.combineLLMOutputs(chatResults);
-//
-//        } catch (Exception e) {
-//
-//            this.getCallbackManager().onLLMError(e.getMessage(), e);
-//
-//            throw e;
-//        }
-//    }
 
     @Override
     public BaseLLMResult<R> generatePrompt(List<PromptValue> promptValues) {

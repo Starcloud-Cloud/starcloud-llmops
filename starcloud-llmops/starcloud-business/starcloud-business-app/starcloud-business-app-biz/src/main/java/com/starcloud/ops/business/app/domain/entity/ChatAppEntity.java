@@ -1,22 +1,21 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.Opt;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
-import com.knuddels.jtokkit.api.ModelType;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
+import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrePrompt;
+import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrompt;
+import com.starcloud.ops.business.app.domain.entity.chat.prompts.ContextPrompt;
+import com.starcloud.ops.business.app.domain.entity.chat.prompts.HistoryPrompt;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
 import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
@@ -25,7 +24,6 @@ import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
-import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
 import com.starcloud.ops.business.app.domain.llm.OpenAIToolFactory;
 import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
@@ -36,6 +34,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.momory.ConversationTokenDbBufferMemory;
+import com.starcloud.ops.business.app.service.chat.momory.ConversationTokenDbMessageMemory;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
@@ -44,24 +43,19 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCrea
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutorResponse;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
-import com.starcloud.ops.llm.langchain.core.memory.BaseMemory;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
-import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
-import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
-import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
-import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -93,11 +87,13 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
-
     private static AppRepository appRepository;
 
 
-    private ChatMessageHistory chatMessageHistory = new ChatMessageHistory();
+    /**
+     * 自定义memory 处理总结和tool历史问题。历史初始化时候新建
+     */
+    private ConversationTokenDbMessageMemory messageMemory = new ConversationTokenDbMessageMemory();
 
     /**
      * 获取 AppRepository
@@ -169,13 +165,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             }
         }
 
-        Optional.ofNullable(logAppMessageDOS).orElse(new ArrayList<>()).stream().forEach((logAppMessageDO -> {
+        //有历史初始化一个 memory
+        this.messageMemory = new ConversationTokenDbMessageMemory(logAppMessageDOS, req, this);
 
-            //@todo 判断状态，获取function记录？
-            chatMessageHistory.addUserMessage(logAppMessageDO.getMessage());
-            chatMessageHistory.addAiMessage(logAppMessageDO.getAnswer());
-
-        }));
 
     }
 
@@ -232,67 +224,34 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         // 从表单配置中筛选输入变量，处理必填字段、默认值和选项值
         Map<String, Object> cleanInputs = getVariableItem(chatConfig.getVariable());
-        ChatMessageHistory history = this.chatMessageHistory;
 
+        ChatMessageHistory history = this.getMessageMemory().getChatHistory();
 
-        StringJoiner messageTemp = new StringJoiner(StringUtils.LF);
+        ChatPrePrompt chatPrePrompt = new ChatPrePrompt(chatConfig.getPrePrompt());
+        ContextPrompt contextPrompt = new ContextPrompt(chatConfig.getDatesetEntities(), request.getQuery());
+        HistoryPrompt historyPrompt = new HistoryPrompt(history != null && history.limitMessage(1).size() > 0);
 
-        // 配置项
-        if (StringUtils.isNotBlank(chatConfig.getPrePrompt())) {
-            messageTemp.add(chatConfig.getPrePrompt());
-        }
+        ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
+        int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
 
-        // 数据集
-        List<String> datasetUid = Optional.ofNullable(chatConfig.getDatesetEntities()).orElse(new ArrayList<>())
-                .stream().filter(DatesetEntity::getEnabled).map(DatesetEntity::getDatasetUid).collect(Collectors.toList());
+        ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate();
 
-        List<String> context = new ArrayList<>();
+        BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
 
-        if (CollectionUtil.isNotEmpty(datasetUid)) {
-            //@todo 需要 block 对象
-            SimilarQueryRequest similarQueryRequest = new SimilarQueryRequest();
-            similarQueryRequest.setQuery(request.getQuery());
-            similarQueryRequest.setK(2L);
-            similarQueryRequest.setDatasetUid(datasetUid);
-            context = documentSegmentsService.similarQuery(similarQueryRequest);
-        }
+        log.info("chatPromptTemplate: {}, \n\n humanInput: {}", chatPromptTemplate, humanInput);
 
-        Map<String, Object> humanInput = new HashMap<>(cleanInputs);
-        if (!CollectionUtils.isEmpty(context)) {
-            messageTemp.add(PromptTempletEnum.DATASET_CONTEXT.getTemp());
+        //设置 memory 必要参数
+        this.getMessageMemory().setModelType(chatConfig.getModelConfig().getCompletionParams().getModel());
+        this.getMessageMemory().setMaxTokens(maxTokens);
 
-            //@todo 上下文走模版配置
-            StringJoiner contextSj = new StringJoiner(StringUtils.LF);
-            for (String c : context) {
-                contextSj.add(c);
-            }
-            humanInput.put(PromptTempletEnum.DATASET_CONTEXT.getKey(), contextSj.toString());
-        }
-
-        // 历史记录
-        if (history != null && history.limitMessage(1).size() > 0) {
-            messageTemp.add(PromptTempletEnum.HISTORY_TEMP.getTemp());
-        }
-
-        humanInput.put(PromptTempletEnum.INPUT_TEMP.getKey(), request.getQuery());
-        messageTemp.add(PromptTempletEnum.INPUT_TEMP.getTemp());
-
-        ChatPromptTemplate chatPromptTemplate = ChatPromptTemplate.fromMessages(Collections.singletonList(
-                        HumanMessagePromptTemplate.fromTemplate(messageTemp.toString())
-                )
-        );
-
-        int maxToken = calculateMaxTokens(chatConfig.getPrePrompt(),
-                String.valueOf(humanInput.get(PromptTempletEnum.DATASET_CONTEXT.getKey())),
-                request.getQuery(), chatConfig.getModelConfig().getCompletionParams());
 
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
         if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
                 || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()))) {
 
-            AgentExecutor agentExecutor = buildLLmTools(request, maxToken, history, chatConfig, chatPromptTemplate, emitter);
+            AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, emitter);
 
-            AgentExecutorResponse agentExecutorResponse = agentExecutor.call(Arrays.asList(BaseVariable.newString("input", request.getQuery())));
+            AgentExecutorResponse agentExecutorResponse = agentExecutor.call(Arrays.asList(humanInput));
 
             log.info("agentExecutor run result: {}", agentExecutorResponse);
 
@@ -313,81 +272,50 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             //@todo 主动创建 messageUid
             //request.setMessageUid();
 
-            LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxToken, chatConfig, chatPromptTemplate, emitter);
+            LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
 
-            BaseLLMResult<ChatCompletionResult> result = llmChain.call(humanInput);
+            BaseLLMResult<ChatCompletionResult> result = llmChain.call(Arrays.asList(humanInput));
 
             long end = System.currentTimeMillis();
-            BigDecimal totalPrice = BigDecimal.valueOf(result.getUsage().getTotalTokens()).multiply(new BigDecimal("0.0200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+            //@todo 不同模型价格不一样
+            BigDecimal messagePrice = BigDecimal.valueOf(result.getUsage().getPromptTokens()).multiply(new BigDecimal("0.00150")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+            BigDecimal answerPrice = BigDecimal.valueOf(result.getUsage().getCompletionTokens()).multiply(new BigDecimal("0.00200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
 
-            LogAppMessageCreateReqVO message = this.createAppMessage((messageCreateReqVO) -> {
+            //@todo 应该放到 messageMemory 中去保存，不方便暂时不动
+//            LogAppMessageCreateReqVO message = this.createAppMessage((messageCreateReqVO) -> {
+//
+//                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
+//
+//
+//                messageCreateReqVO.setMessage(request.getQuery());
+//                messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
+//                messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.00150"));
+//
+//                messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(chatConfig));
+//                messageCreateReqVO.setVariables(JSONUtil.toJsonStr(chatConfig.getModelConfig()));
+//                messageCreateReqVO.setAppUid(this.getUid());
+//                messageCreateReqVO.setAppStep("");
+//                messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
+//                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
+//
+//                messageCreateReqVO.setAnswer(result.getText());
+//                messageCreateReqVO.setAnswerTokens(Math.toIntExact(result.getUsage().getCompletionTokens()));
+//                messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.00200"));
+//                messageCreateReqVO.setElapsed(end - start);
+//                messageCreateReqVO.setTotalPrice(messagePrice.add(answerPrice));
+//                messageCreateReqVO.setCurrency("USD");
+//                messageCreateReqVO.setFromScene(request.getScene());
+//                messageCreateReqVO.setStatus("SUCCESS");
+//                messageCreateReqVO.setEndUser(request.getEndUser());
+//                messageCreateReqVO.setCreator(userId.toString());
+//                messageCreateReqVO.setMsgType(LogMessageTypeEnum.CHAT.name());
+//
+//            });
 
-                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
-
-
-                messageCreateReqVO.setMessage(request.getQuery());
-                messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
-                messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.0200"));
-
-                messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(chatConfig));
-                messageCreateReqVO.setVariables(JSONUtil.toJsonStr(chatConfig.getModelConfig()));
-                messageCreateReqVO.setAppUid(this.getUid());
-                messageCreateReqVO.setAppStep("");
-                messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
-                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
-
-                messageCreateReqVO.setAnswer(result.getText());
-                messageCreateReqVO.setAnswerTokens(Math.toIntExact(result.getUsage().getCompletionTokens()));
-                messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.0200"));
-                messageCreateReqVO.setElapsed(end - start);
-                messageCreateReqVO.setTotalPrice(totalPrice);
-                messageCreateReqVO.setCurrency("USD");
-                messageCreateReqVO.setFromScene(request.getScene());
-                messageCreateReqVO.setStatus("SUCCESS");
-                messageCreateReqVO.setEndUser(request.getEndUser());
-                messageCreateReqVO.setCreator(userId.toString());
-
-            });
-
-            benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
+            //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
             return JsonData.of(result);
         }
 
-    }
-
-    /**
-     * 计算除去描述，数据集，当前问题后剩余token数
-     * histroy最大剩余数
-     *
-     * @param prePrompt
-     * @param dataSetStr
-     * @param currQuery
-     * @param openaiCompletionParams 使用模型配置
-     * @return
-     */
-    public int calculateMaxTokens(String prePrompt, String dataSetStr, String currQuery, OpenaiCompletionParams openaiCompletionParams) {
-        Optional<ModelType> optionalModel = ModelType.fromName(openaiCompletionParams.getModel());
-        ModelType modelType = ModelType.GPT_3_5_TURBO;
-        if (optionalModel.isPresent()) {
-            modelType = optionalModel.get();
-        }
-        int maxTokens = modelType.getMaxContextLength();
-        if (StringUtils.isNotBlank(prePrompt)) {
-            maxTokens -= TokenUtils.intTokens(modelType, prePrompt);
-        }
-        if (StringUtils.isNotBlank(dataSetStr)) {
-            maxTokens -= TokenUtils.intTokens(modelType, dataSetStr + PromptTempletEnum.DATASET_CONTEXT.getTemp());
-        }
-
-        if (openaiCompletionParams.getMaxTokens() != null && openaiCompletionParams.getMaxTokens() > 0) {
-            // 临界值时 总结会多最后一次对话的回复 预先扣除token
-            maxTokens -= openaiCompletionParams.getMaxTokens() * 2;
-        } else {
-            maxTokens -= 500 * 2;
-        }
-
-        maxTokens -= TokenUtils.intTokens(modelType, currQuery);
-        return maxTokens;
     }
 
 
@@ -425,18 +353,15 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         chatOpenAi.setStream(true);
 
         chatOpenAi.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
-//        ConversationBufferMemory memory = new ConversationBufferMemory();
-        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel(), request.getUserId().toString());
-
-//        memory.setChatHistory(history);
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = new LLMChain<>(chatOpenAi, chatPromptTemplate);
-        llmChain.setMemory(conversationTokenDbBufferMemory);
+
+        this.getMessageMemory().setChatLlm(chatOpenAi);
+        llmChain.setMemory(this.getMessageMemory());
         return llmChain;
     }
 
-    private AgentExecutor buildLLmTools(ChatRequestVO request, int maxTokens, ChatMessageHistory history,
+    private AgentExecutor buildLLmTools(ChatRequestVO request,
                                         ChatConfigEntity chatConfig,
-                                        ChatPromptTemplate chatPromptTemplate,
                                         SseEmitter emitter) {
 
         ChatOpenAI chatOpenAI = new ChatOpenAI();
@@ -445,24 +370,12 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         chatOpenAI.setModel("gpt-4-0613");
         chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter, request.getConversationUid()));
 
-        BaseChatMemory memory = null;
-        //@todo 验证测试对话历史
-        if (1 == 1) {
-            memory = new ConversationBufferMemory();
-            if (history != null) {
-                memory.setChatHistory(history);
-            }
-        } else {
-            memory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel(), request.getUserId().toString());
-        }
-
-
         List<BaseTool> tools = this.loadLLMTools(request, chatConfig, emitter);
 
         OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools);
         AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(tools, chatOpenAI, baseSingleActionAgent, baseSingleActionAgent.getCallbackManager());
 
-        agentExecutor.setMemory(memory);
+        agentExecutor.setMemory(this.getMessageMemory());
 
         log.info("tools: {}", JSONUtil.parse(tools).toStringPretty());
 

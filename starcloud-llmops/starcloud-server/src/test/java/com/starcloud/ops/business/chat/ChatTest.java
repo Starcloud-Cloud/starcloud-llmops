@@ -74,7 +74,7 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
 
-        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
         ChatAppEntity<ChatRequestVO, JsonData> chatAppEntity = AppFactory.factory(chatRequest);
 
         JsonData jsonParams = chatAppEntity.execute(chatRequest);
@@ -89,10 +89,47 @@ public class ChatTest extends BaseDbUnitTest {
         //带数据集的
         chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
 
+
+        chatRequest.setAppUid("03a48ee3b3664e808c650d541f04d494");
+        chatRequest.setConversationUid("c610cd4011d248f4902e455a668cb66e");
+
         chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
 
 
-        chatRequest.setQuery("讲个关于汉堡的笑话吧。");
+        chatRequest.setQuery("继续");
+
+        chatRequest.setQuery("亚马逊新手如何开店，详细点说明，2000个字");
+
+        chatRequest.setQuery("新手如何上架商品？详细点说明，2000个字");
+
+        chatRequest.setQuery("新手如何退货尼？详细点说明，1000个字");
+
+        chatRequest.setQuery("新手如何发货尼？详细点说明，1000个字");
+
+        chatRequest.setQuery("亚马逊新手如何开店，详细点说明，1000个字");
+
+        chatRequest.setQuery("我的名字叫 大飞");
+
+
+        chatRequest.setQuery("你还记得我的名字嘛？");
+
+
+
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatService.chat(chatRequest);
+
+    }
+
+    @Test
+    public void runMyChatToolTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
 
         chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
