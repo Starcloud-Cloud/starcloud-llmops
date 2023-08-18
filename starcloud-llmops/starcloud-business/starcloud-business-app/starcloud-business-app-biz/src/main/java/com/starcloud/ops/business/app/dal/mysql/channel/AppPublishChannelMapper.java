@@ -79,7 +79,7 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
      * @param mediumUid 媒介 UID
      * @return 数量
      */
-    @Select("SELECT COUNT(*) FROM app_publish_channel WHERE medium_uid = #{mediumUid}")
+    @Select("SELECT COUNT(*) FROM llm_app_publish_channel WHERE medium_uid = #{mediumUid}")
     long countByMediumUid(String mediumUid);
 
     /**
