@@ -29,9 +29,17 @@ public class JsIframeChannelConfigHandler extends AppPublishChannelConfigTemplat
      */
     @Override
     public void validate(String configUid, JsIframeChannelConfigDTO config) {
-        if (Objects.nonNull(config) && StringUtils.isBlank(config.getSlug())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_CONFIG_JS_IFRAME_SLUG_IS_REQUIRED);
+        if (Objects.nonNull(config)) {
+            // 校验 slug
+            if (StringUtils.isBlank(config.getSlug())) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_CONFIG_JS_IFRAME_SLUG_IS_REQUIRED);
+            }
+            // 校验 configUid 和 slug 是否一致
+            if (!configUid.equals(config.getSlug())) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PUBLISH_CHANNEL_UNKNOWN_ERROR);
+            }
         }
+
     }
 
     /**

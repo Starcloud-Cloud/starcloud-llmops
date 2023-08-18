@@ -27,7 +27,7 @@ import java.io.Serializable;
 @Schema(name = "AppPublishChannelReqVO", description = "应用发布渠道请求")
 public class AppPublishChannelReqVO implements Serializable {
 
-    private static final long serialVersionUID = -1428829532085814206L;
+    private static final long serialVersionUID = -7701554689333106033L;
 
     /**
      * 应用 Uid
@@ -42,6 +42,13 @@ public class AppPublishChannelReqVO implements Serializable {
     @Schema(description = "发布 Uid")
     @NotBlank(message = "发布 Uid 不能为空")
     private String publishUid;
+
+    /**
+     * 发布渠道名称
+     */
+    @Schema(description = "发布渠道名称")
+    @NotBlank(message = "发布渠道名称不能为空")
+    private String name;
 
     /**
      * 渠道类型

@@ -98,17 +98,21 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     public static final List<AppSceneEnum> APP_ANALYSIS_SCENES = Arrays.asList(
             AppSceneEnum.WEB_ADMIN,
+            AppSceneEnum.WEB_MARKET,
             AppSceneEnum.SHARE_WEB,
             AppSceneEnum.SHARE_IFRAME,
             AppSceneEnum.SHARE_JS,
             AppSceneEnum.SHARE_API
     );
 
+    public static final List<String> APP_ANALYSIS_SCENES_NAME = APP_ANALYSIS_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
+
     /**
      * 聊天分析场景
      */
     public static final List<AppSceneEnum> CHAT_ANALYSIS_SCENES = Arrays.asList(
             AppSceneEnum.WEB_ADMIN,
+            AppSceneEnum.WEB_MARKET,
             AppSceneEnum.SHARE_WEB,
             AppSceneEnum.SHARE_IFRAME,
             AppSceneEnum.SHARE_JS,
@@ -117,6 +121,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             AppSceneEnum.MP,
             AppSceneEnum.CHAT_TEST
     );
+
+    public static final List<String> CHAT_ANALYSIS_SCENES_NAME = CHAT_ANALYSIS_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
 
     /**
      * 构造函数

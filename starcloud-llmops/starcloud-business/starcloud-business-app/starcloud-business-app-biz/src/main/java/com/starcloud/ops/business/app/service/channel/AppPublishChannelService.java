@@ -1,9 +1,9 @@
 package com.starcloud.ops.business.app.service.channel;
 
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.base.vo.request.StatusRequest;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelModifyReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
-import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelStatusReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 
 import java.util.List;
@@ -84,20 +84,20 @@ public interface AppPublishChannelService {
     AppPublishChannelRespVO modify(AppPublishChannelModifyReqVO request);
 
     /**
-     * 修改发布渠道状态
-     *
-     * @param request 请求参数
-     * @return 修改状态后的发布渠道详情
-     */
-    AppPublishChannelRespVO changeStatus(AppPublishChannelStatusReqVO request);
-
-    /**
      * 重置分享链接唯一标识
      *
      * @param uid 应用发布渠道 UID
      * @return 重置后的分享链接唯一标识
      */
     String resetShareSlug(String uid);
+
+    /**
+     * 修改发布渠道状态
+     *
+     * @param request 请求参数
+     * @return 修改状态后的发布渠道详情
+     */
+    void operate(StatusRequest request);
 
     /**
      * 根据应用 UID 批量修改发布渠道的发布 UID
@@ -108,11 +108,11 @@ public interface AppPublishChannelService {
     void updatePublishUidByAppUid(String appUid, String publishUid);
 
     /**
-     * 根据应用 UID 批量删除 发布渠道记录
+     * 根据发布 UID 删除
      *
-     * @param appUid 应用 UID
+     * @param uid 发布 UID
      */
-    void deleteByAppUid(String publishUid);
+    void delete(String uid);
 
     /**
      * 根据应用发布记录 UID 批量删除 发布渠道记录
@@ -122,10 +122,11 @@ public interface AppPublishChannelService {
     void deleteByAppPublishUid(String publishUid);
 
     /**
-     * 根据发布 UID 删除
+     * 根据应用 UID 批量删除 发布渠道记录
      *
-     * @param uid 发布 UID
+     * @param appUid 应用 UID
      */
-    void delete(String uid);
+    void deleteByAppUid(String appUid);
+
 
 }

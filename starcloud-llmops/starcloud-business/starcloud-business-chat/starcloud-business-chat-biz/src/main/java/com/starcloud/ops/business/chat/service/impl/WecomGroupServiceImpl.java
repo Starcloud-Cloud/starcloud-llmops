@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,6 +75,7 @@ public class WecomGroupServiceImpl implements WecomGroupService {
         WecomGroupChannelConfigDTO channelConfigDTO = new WecomGroupChannelConfigDTO();
         channelConfigDTO.setGroupRemark(groupRemark);
         channelConfigDTO.setGroupName(reqVO.getGroupName());
+        channelReqVO.setName(reqVO.getGroupName());
         channelReqVO.setStatus(0);
         channelReqVO.setAppUid(appUid);
         channelReqVO.setPublishUid(appPublishRespVO.getUid());
@@ -111,7 +111,7 @@ public class WecomGroupServiceImpl implements WecomGroupService {
         BaseResponse<String> resp = workToolClient.createGroup(robotId, baseReq);
         if (resp == null || resp.getCode() != 200) {
             log.error("发送建群指令失败: {}", resp);
-            throw new ServiceException(new ErrorCode(500,resp.getMessage()));
+            throw new ServiceException(new ErrorCode(500, resp.getMessage()));
         }
         return groupRemark;
     }

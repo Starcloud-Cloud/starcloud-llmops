@@ -59,7 +59,7 @@ public class ChatShareController {
     @Resource
     private ChatService chatService;
 
-    @GetMapping("detail/{mediumUid}")
+    @GetMapping("/detail/{mediumUid}")
     @Operation(summary = "聊天应用详情")
     @PermitAll
     public CommonResult<AppRespVO> detail(@PathVariable("mediumUid") String mediumUid,
@@ -72,7 +72,7 @@ public class ChatShareController {
 
     @GetMapping("/history")
     @Operation(summary = "聊天应用详情")
-    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@CookieValue(value = "conversationUid",required = false) String conversationUid,
+    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@RequestParam(value = "conversationUid",required = false) String conversationUid,
                                                                  @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
                                                                  @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize
     ) {
@@ -87,20 +87,15 @@ public class ChatShareController {
     @Operation(summary = "聊天执行")
     @PermitAll
     public SseEmitter execute(@RequestBody ChatRequestVO chatRequestVO,
-                              @CookieValue(value = "conversationUid", required = false) String conversationUid,
                               @CookieValue(value = "fSId", required = false) String upfSId,
                               HttpServletRequest request, HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-cache, no-transform");
         response.setHeader("X-Accel-Buffering", "no");
         upfSId = EndUserCodeUtil.parseUserCodeAndSaveCookie(upfSId, request, response);
         String endUserId = endUserService.webLogin(upfSId);
-        if (StringUtils.isBlank(conversationUid)) {
-            conversationUid = IdUtil.fastSimpleUUID();
-            Cookie cookie = new Cookie("conversationUid", conversationUid);
-            cookie.setMaxAge(365 * 24 * 60 * 60);
-            response.addCookie(cookie);
+        if (StringUtils.isBlank(chatRequestVO.getConversationUid())) {
+            chatRequestVO.setConversationUid(IdUtil.fastSimpleUUID());
         }
-        chatRequestVO.setConversationUid(conversationUid);
 
         SseEmitter emitter = new SseEmitter(60000L);
         chatRequestVO.setSseEmitter(emitter);

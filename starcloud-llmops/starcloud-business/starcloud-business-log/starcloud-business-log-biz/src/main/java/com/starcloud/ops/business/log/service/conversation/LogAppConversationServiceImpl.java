@@ -9,9 +9,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -171,53 +173,68 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     }
 
     /**
+     * 根据应用 UID 获取应用执行日志消息统计数据列表 <br>
+     * 1. 应用分析 <br>
+     * 2. 聊天分析 <br>
+     *
+     * @param query 查询条件
+     * @return 日志消息统计数据
+     */
+    @Override
+    public List<LogAppMessageStatisticsListPO> listLogMessageStatisticsByAppUid(LogAppMessageStatisticsListAppUidReqVO query) {
+        // 日志时间类型
+        LogTimeTypeEnum logTimeTypeEnum = IEnumable.nameOf(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType(), LogTimeTypeEnum.class);
+        // 设置日期单位
+        query.setUnit(logTimeTypeEnum.getGroupUnit().name());
+        // 设置开始时间和结束时间
+        query.setStartTime(logTimeTypeEnum.getStartTime());
+        query.setEndTime(logTimeTypeEnum.getEndTime());
+        // 查询数据
+        List<LogAppMessageStatisticsListPO> statisticsList = logAppMessageMapper.listLogMessageStatisticsByAppUid(query);
+        // 填充数据
+        return listLogAppMessageStatistics(statisticsList, logTimeTypeEnum);
+    }
+
+    /**
      * app message 统计列表数据
      *
      * @param query 查询条件
      * @return 应用执行日志会话列表
      */
     @Override
-    public List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO query) {
-        String timeType = query.getTimeType();
-        if (StringUtils.isBlank(timeType)) {
-            timeType = LogTimeTypeEnum.ALL.name();
-        }
+    public List<LogAppMessageStatisticsListPO> listLogMessageStatistics(LogAppMessageStatisticsListReqVO query) {
         // 日志时间类型
-        LogTimeTypeEnum logTimeTypeEnum = IEnumable.nameOf(timeType, LogTimeTypeEnum.class);
-
+        LogTimeTypeEnum logTimeTypeEnum = IEnumable.nameOf(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType(), LogTimeTypeEnum.class);
+        // 设置日期单位
         query.setUnit(logTimeTypeEnum.getGroupUnit().name());
         // 设置开始时间和结束时间
         query.setStartTime(logTimeTypeEnum.getStartTime());
         query.setEndTime(logTimeTypeEnum.getEndTime());
-
-        List<LogAppMessageStatisticsListPO> statisticsList = logAppMessageMapper.getAppMessageStatisticsList(query);
-        // 如果没有数据，就返回空
-        if (CollectionUtils.isEmpty(statisticsList)) {
-            return Collections.emptyList();
-        }
-
-        // 生成获取时间范围。
-        List<LocalDateTime> dateRange = LogTimeTypeEnum.dateTimeRange(logTimeTypeEnum);
+        // 查询数据
+        List<LogAppMessageStatisticsListPO> statisticsList = logAppMessageMapper.listLogMessageStatistics(query);
         // 填充数据
-        List<LogAppMessageStatisticsListPO> fillStatisticsList = new ArrayList<>();
-        for (LocalDateTime localDateTime : dateRange) {
-            // 格式化时间
-            String formatDate = localDateTime.format(DateTimeFormatter.ofPattern(logTimeTypeEnum.getFormatByGroupUnit()));
-            // 匹配是否存在
-            Optional<LogAppMessageStatisticsListPO> logMessageStatisticsOptional = statisticsList.stream()
-                    .filter(statistics -> formatDate.equals(statistics.getCreateDate())).findFirst();
+        return listLogAppMessageStatistics(statisticsList, logTimeTypeEnum);
+    }
 
-            // 存在就添加，不存在就创建
-            if (logMessageStatisticsOptional.isPresent()) {
-                fillStatisticsList.add(logMessageStatisticsOptional.get());
-            } else {
-                fillStatisticsList.add(getFillLogAppMessageStatistics(formatDate));
-            }
-        }
+    /**
+     * 根据 应用 UID 分页查询应用执行日志会话数据 <br>
+     * 1. 应用分析 <br>
+     * 2. 聊天分析 <br>
+     *
+     * @param query 查询条件
+     * @return 应用执行日志会话数据
+     */
+    @Override
+    public PageResult<LogAppConversationInfoPO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query) {
+        // 日志时间类型
+        LogTimeTypeEnum logTimeTypeEnum = IEnumable.nameOf(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType(), LogTimeTypeEnum.class);
+        // 设置开始时间和结束时间
+        query.setStartTime(logTimeTypeEnum.getStartTime());
+        query.setEndTime(logTimeTypeEnum.getEndTime());
 
-        return getStatisticsListStream(fillStatisticsList, logTimeTypeEnum)
-                .sorted(Comparator.comparing(LogAppMessageStatisticsListPO::getCreateDate))
-                .collect(Collectors.toList());
+        Page<LogAppConversationDO> page = new Page<>(query.getPageNo(), query.getPageSize());
+        IPage<LogAppConversationInfoPO> infoPage = appConversationMapper.pageLogConversationByAppUid(page, query);
+        return new PageResult<>(infoPage.getRecords(), infoPage.getTotal());
     }
 
     /**
@@ -227,21 +244,15 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
      * @return 应用执行日志会话分页
      */
     @Override
-    public PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO query) {
-        String timeType = query.getTimeType();
-        if (StringUtils.isBlank(timeType)) {
-            timeType = LogTimeTypeEnum.ALL.name();
-        }
+    public PageResult<LogAppConversationInfoPO> pageLogConversation(LogAppConversationInfoPageReqVO query) {
         // 日志时间类型
-        LogTimeTypeEnum logTimeTypeEnum = IEnumable.nameOf(timeType, LogTimeTypeEnum.class);
-
+        LogTimeTypeEnum logTimeTypeEnum = IEnumable.nameOf(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType(), LogTimeTypeEnum.class);
         // 设置开始时间和结束时间
         query.setStartTime(logTimeTypeEnum.getStartTime());
         query.setEndTime(logTimeTypeEnum.getEndTime());
 
         Page<LogAppConversationDO> page = new Page<>(query.getPageNo(), query.getPageSize());
-        IPage<LogAppConversationInfoPO> infoPage = appConversationMapper.selectSqlPage(page, query);
-
+        IPage<LogAppConversationInfoPO> infoPage = appConversationMapper.pageLogConversation(page, query);
         return new PageResult<>(infoPage.getRecords(), infoPage.getTotal());
     }
 
@@ -267,6 +278,43 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         if (appConversationMapper.selectById(id) == null) {
             throw exception(APP_CONVERSATION_NOT_EXISTS);
         }
+    }
+
+    /**
+     * 根据日志时间类型，填充数据
+     *
+     * @param statisticsList  数据
+     * @param logTimeTypeEnum 日志时间类型
+     * @return 填充后的数据
+     */
+    @NotNull
+    private static List<LogAppMessageStatisticsListPO> listLogAppMessageStatistics(List<LogAppMessageStatisticsListPO> statisticsList, LogTimeTypeEnum logTimeTypeEnum) {
+
+        if (CollectionUtils.isEmpty(statisticsList)) {
+            return Collections.emptyList();
+        }
+        // 生成获取时间范围。
+        List<LocalDateTime> dateRange = LogTimeTypeEnum.dateTimeRange(logTimeTypeEnum);
+        // 填充数据
+        List<LogAppMessageStatisticsListPO> fillStatisticsList = new ArrayList<>();
+        for (LocalDateTime localDateTime : dateRange) {
+            // 格式化时间
+            String formatDate = localDateTime.format(DateTimeFormatter.ofPattern(logTimeTypeEnum.getFormatByGroupUnit()));
+            // 匹配是否存在
+            Optional<LogAppMessageStatisticsListPO> logMessageStatisticsOptional = statisticsList.stream()
+                    .filter(statistics -> formatDate.equals(statistics.getCreateDate())).findFirst();
+            // 存在就添加，不存在就创建
+            if (logMessageStatisticsOptional.isPresent()) {
+                fillStatisticsList.add(logMessageStatisticsOptional.get());
+            } else {
+                fillStatisticsList.add(getFillLogAppMessageStatistics(formatDate));
+            }
+        }
+
+        // 处理并且返回数据
+        return getStatisticsListStream(fillStatisticsList, logTimeTypeEnum)
+                .sorted(Comparator.comparing(LogAppMessageStatisticsListPO::getCreateDate))
+                .collect(Collectors.toList());
     }
 
     /**

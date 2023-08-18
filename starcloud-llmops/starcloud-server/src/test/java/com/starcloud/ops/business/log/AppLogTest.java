@@ -40,7 +40,7 @@ public class AppLogTest extends BaseDbUnitTest {
         pageReqVO.setPageNo(1);
         pageReqVO.setPageSize(3);
 
-        PageResult<LogAppConversationInfoPO> result = logAppConversationService.getAppConversationInfoPage(pageReqVO);
+        PageResult<LogAppConversationInfoPO> result = logAppConversationService.pageLogConversation(pageReqVO);
 
         log.info("result: {}", result);
     }
@@ -54,7 +54,7 @@ public class AppLogTest extends BaseDbUnitTest {
         reqVO.setAppName("app");
         //reqVO.setAppUid("appId-test66");
 
-        List<LogAppMessageStatisticsListPO> result = logAppConversationService.getAppMessageStatisticsList(reqVO);
+        List<LogAppMessageStatisticsListPO> result = logAppConversationService.listLogMessageStatistics(reqVO);
 
         log.info("result: {}", result);
     }

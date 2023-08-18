@@ -43,6 +43,12 @@ public class AppPublishChannelRespVO implements Serializable {
     private String publishUid;
 
     /**
+     * 发布渠道名称
+     */
+    @Schema(description = "发布渠道名称")
+    private String name;
+
+    /**
      * 渠道类型
      */
     @Schema(description = "渠道类型")

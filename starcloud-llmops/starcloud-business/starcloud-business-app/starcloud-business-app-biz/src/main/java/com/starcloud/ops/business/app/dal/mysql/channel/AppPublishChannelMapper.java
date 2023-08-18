@@ -29,7 +29,6 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
     default List<AppPublishChannelDO> listByPublishUid(String publishUid) {
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = Wrappers.lambdaQuery(AppPublishChannelDO.class);
         wrapper.eq(AppPublishChannelDO::getPublishUid, publishUid);
-        wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
         wrapper.orderByDesc(AppPublishChannelDO::getCreateTime);
         return this.selectList(wrapper);
     }
@@ -43,7 +42,6 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
     default List<AppPublishChannelDO> listByAppUid(String appUid) {
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.eq(AppPublishChannelDO::getAppUid, appUid);
-        wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
         wrapper.orderByDesc(AppPublishChannelDO::getCreateTime);
         return this.selectList(wrapper);
     }
@@ -91,7 +89,9 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
                 AppPublishChannelDO::getUid,
                 AppPublishChannelDO::getAppUid,
                 AppPublishChannelDO::getPublishUid,
+                AppPublishChannelDO::getName,
                 AppPublishChannelDO::getType,
+                AppPublishChannelDO::getMediumUid,
                 AppPublishChannelDO::getConfig,
                 AppPublishChannelDO::getStatus,
                 AppPublishChannelDO::getDescription,

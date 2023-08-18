@@ -6,10 +6,10 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.base.vo.request.StatusRequest;
 import com.starcloud.ops.business.app.api.channel.dto.ShareChannelConfigDTO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelModifyReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
-import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelStatusReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.convert.channel.AppPublishChannelConverter;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
@@ -177,7 +177,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, request.getPublishUid());
 
         // 生成配置信息唯一标识
-        String configUid = IdUtil.fastSimpleUUID();
+        String configUid = StringUtils.isBlank(request.getMediumUid()) ? IdUtil.fastSimpleUUID() : request.getMediumUid();
         // 处理配置信息
         AppPublishChannelConfigTemplate handler = appPublishChannelConfigFactory.getHandler(request.getType());
         request.setConfig(handler.handler(configUid, request.getConfig()));
@@ -202,20 +202,13 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
         AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getUid());
 
-        // 校验应用是否存在
-        AppDO app = appMapper.get(appPublishChannel.getAppUid(), Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, appPublishChannel.getAppUid());
-
-        // 校验应用发布信息是否存在
-        AppPublishDO appPublish = appPublishMapper.get(appPublishChannel.getPublishUid(), Boolean.TRUE);
-        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, appPublishChannel.getPublishUid());
-
         // 处理配置信息
         AppPublishChannelConfigTemplate handler = appPublishChannelConfigFactory.getHandler(appPublishChannel.getType());
         request.setConfig(handler.handler(appPublishChannel.getMediumUid(), request.getConfig()));
 
         // 构建修改发布渠道对象
         AppPublishChannelDO updateAppPublishChannel = new AppPublishChannelDO();
+        updateAppPublishChannel.setName(request.getName());
         updateAppPublishChannel.setConfig(JSON.toJSONString(request.getConfig()));
         updateAppPublishChannel.setDescription(request.getDescription());
         updateAppPublishChannel.setDeleted(Boolean.FALSE);
@@ -224,40 +217,6 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         // 修改发布渠道
         appPublishChannelMapper.updateById(updateAppPublishChannel);
         return AppPublishChannelConverter.INSTANCE.convert(updateAppPublishChannel);
-    }
-
-    /**
-     * 修改发布渠道状态
-     *
-     * @param request 请求参数
-     * @return 修改状态后的发布渠道详情
-     */
-    @Override
-    @SuppressWarnings("all")
-    public AppPublishChannelRespVO changeStatus(AppPublishChannelStatusReqVO request) {
-
-        // 校验发布渠道是否存在
-        AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
-        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getUid());
-
-        // 校验应用是否存在
-        AppDO app = appMapper.get(appPublishChannel.getAppUid(), Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, appPublishChannel.getAppUid());
-
-        // 校验应用发布信息是否存在
-        AppPublishDO appPublish = appPublishMapper.get(appPublishChannel.getPublishUid(), Boolean.TRUE);
-        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, appPublishChannel.getPublishUid());
-
-        // 修改发布渠道状态
-        AppPublishChannelDO updateAppPublishChannel = new AppPublishChannelDO();
-        updateAppPublishChannel.setId(appPublishChannel.getId());
-        updateAppPublishChannel.setStatus(request.getStatus());
-        updateAppPublishChannel.setDeleted(Boolean.FALSE);
-        appPublishChannelMapper.updateById(updateAppPublishChannel);
-
-        // 返回发布渠道信息
-        appPublishChannel.setStatus(request.getStatus());
-        return AppPublishChannelConverter.INSTANCE.convert(appPublishChannel);
     }
 
     /**
@@ -289,6 +248,27 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     }
 
     /**
+     * 修改发布渠道状态
+     *
+     * @param request 请求参数
+     * @return 修改状态后的发布渠道详情
+     */
+    @Override
+    @SuppressWarnings("all")
+    public void operate(StatusRequest request) {
+        // 校验发布渠道是否存在
+        AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getUid());
+
+        // 修改发布渠道状态
+        AppPublishChannelDO updateAppPublishChannel = new AppPublishChannelDO();
+        updateAppPublishChannel.setId(appPublishChannel.getId());
+        updateAppPublishChannel.setStatus(request.getStatus());
+        updateAppPublishChannel.setDeleted(Boolean.FALSE);
+        appPublishChannelMapper.updateById(updateAppPublishChannel);
+    }
+
+    /**
      * 根据应用 UID 批量修改发布渠道的发布 UID
      *
      * @param appUid     应用 UID
@@ -310,18 +290,15 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     }
 
     /**
-     * 根据应用 UID 删除所有发布渠道
+     * 根据发布 UID 删除应用发布渠道
      *
-     * @param appUid 应用 UID
+     * @param uid 发布 UID
      */
     @Override
-    public void deleteByAppUid(String appUid) {
-        List<AppPublishChannelDO> publishChannelList = appPublishChannelMapper.listByAppUid(appUid);
-        if (CollectionUtil.isEmpty(publishChannelList)) {
-            return;
-        }
-        List<Long> idList = publishChannelList.stream().map(AppPublishChannelDO::getId).collect(Collectors.toList());
-        appPublishChannelMapper.deleteBatchIds(idList);
+    public void delete(String uid) {
+        AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(uid, Boolean.TRUE);
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, uid);
+        appPublishChannelMapper.deleteById(appPublishChannel.getId());
     }
 
     /**
@@ -340,15 +317,18 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     }
 
     /**
-     * 根据发布 UID 删除应用发布渠道
+     * 根据应用 UID 删除所有发布渠道
      *
-     * @param uid 发布 UID
+     * @param appUid 应用 UID
      */
     @Override
-    public void delete(String uid) {
-        AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(uid, Boolean.TRUE);
-        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, uid);
-        appPublishChannelMapper.deleteById(appPublishChannel.getId());
+    public void deleteByAppUid(String appUid) {
+        List<AppPublishChannelDO> publishChannelList = appPublishChannelMapper.listByAppUid(appUid);
+        if (CollectionUtil.isEmpty(publishChannelList)) {
+            return;
+        }
+        List<Long> idList = publishChannelList.stream().map(AppPublishChannelDO::getId).collect(Collectors.toList());
+        appPublishChannelMapper.deleteBatchIds(idList);
     }
 
 }

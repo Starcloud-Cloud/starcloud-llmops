@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.core.mybatis.query.MPJLambdaWrapperX;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -118,6 +119,14 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
      * @param query 查询参数
      * @return 会话统计列表
      */
-    IPage<LogAppConversationInfoPO> selectSqlPage(IPage<LogAppConversationDO> page, @Param("query") LogAppConversationInfoPageReqVO query);
+    IPage<LogAppConversationInfoPO> pageLogConversation(IPage<LogAppConversationDO> page, @Param("query") LogAppConversationInfoPageReqVO query);
 
+    /**
+     * 根据应用 UID 分页查询应用执行日志会话数据 <br>
+     *
+     * @param page  分页参数
+     * @param query 查询参数
+     * @return 应用执行日志会话数据
+     */
+    IPage<LogAppConversationInfoPO> pageLogConversationByAppUid(Page<LogAppConversationDO> page, @Param("query") LogAppConversationInfoPageAppUidReqVO query);
 }
