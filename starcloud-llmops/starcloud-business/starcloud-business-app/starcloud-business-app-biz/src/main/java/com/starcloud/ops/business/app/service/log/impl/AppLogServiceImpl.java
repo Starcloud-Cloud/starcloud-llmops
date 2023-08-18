@@ -382,7 +382,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return ImageRespVO
      */
     @Override
-    public PageResult<ImageLogMessageRespVO> getLogImageMessageDetail(AppLogMessagePageReqVO query) {
+    public ImageLogMessageRespVO getLogImageMessageDetail(AppLogMessagePageReqVO query) {
         // 获取会话
         LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
         AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
@@ -393,12 +393,10 @@ public class AppLogServiceImpl implements AppLogService {
         // 校验日志消息是否存在
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
 
-        // 处理图片消息数据
-        List<ImageLogMessageRespVO> collect = CollectionUtil.emptyIfNull(appMessageList).stream()
-                .filter(Objects::nonNull)
-                .map(item -> transformImageLogMessage(item, appConversation))
-                .collect(Collectors.toList());
-        return new PageResult<>(collect, appMessagePage.getTotal());
+        // 取第一条数据
+        LogAppMessageDO logAppMessageDO = appMessageList.get(0);
+
+        return transformImageLogMessage(logAppMessageDO, appConversation);
     }
 
     /**

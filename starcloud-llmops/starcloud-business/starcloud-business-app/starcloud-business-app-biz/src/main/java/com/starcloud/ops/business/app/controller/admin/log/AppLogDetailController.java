@@ -51,7 +51,7 @@ public class AppLogDetailController {
 
     @PostMapping("/image")
     @Operation(summary = "获取图片生成执行日志详情")
-    public CommonResult<PageResult<ImageLogMessageRespVO>> imageLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
+    public CommonResult<ImageLogMessageRespVO> imageLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
         // 默认查询图片式模型的日志，即应用的执行记录
         query.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
         return CommonResult.success(appLogService.getLogImageMessageDetail(query));

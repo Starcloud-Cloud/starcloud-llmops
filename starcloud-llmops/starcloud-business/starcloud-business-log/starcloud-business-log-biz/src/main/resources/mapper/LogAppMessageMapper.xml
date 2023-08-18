@@ -3,34 +3,16 @@
 <mapper namespace="com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper">
 
     <sql id="listLogMessageStatisticsColumns">
-        count(ms.id) as messageCount,
-        COUNT(
-        CASE
-        WHEN ms.status = "SUCCESS"
-        THEN
-        1
-        END
-        ) AS successCount,
-        COUNT(
-        CASE
-        WHEN ms.status != "SUCCESS"
-        THEN
-        1
-        END
-        ) AS errorCount,
-        COUNT(
-        CASE
-        WHEN fb.rating = "LIKE"
-        THEN
-        1
-        END
-        ) as feedbackLikeCount,
-        COUNT(DISTINCT(ms.creator)) as userCount,
-        SUM(ms.elapsed) as elapsedTotal,
-        AVG(ms.elapsed) as elapsedAvg,
-        SUM(message_tokens) as messageTokens,
-        SUM(answer_tokens) as answerTokens,
-        SUM(message_tokens + answer_tokens) as tokens,
+        COUNT(ms.id) AS messageCount,
+        COUNT(CASE WHEN ms.status = "SUCCESS" THEN 1 END) AS successCount,
+        COUNT(CASE WHEN ms.status != "SUCCESS" THEN 1 END) AS errorCount,
+        COUNT(CASE WHEN fb.rating = "LIKE" THEN 1 END) AS feedbackLikeCount,
+        COUNT(DISTINCT ms.creator) AS userCount,
+        SUM(ms.elapsed) AS elapsedTotal,
+        AVG(ms.elapsed) AS elapsedAvg,
+        SUM(ms.message_tokens) AS messageTokens,
+        SUM(ms.answer_tokens) AS answerTokens,
+        SUM(ms.message_tokens + ms.answer_tokens) AS tokens,
         <choose>
             <when test="query.unit == 'HOURS'">
                 date_format(ms.create_time, '%Y-%m-%d %h') as create_date
@@ -59,7 +41,18 @@
         </if>
     </sql>
 
-    <!-- 日志统计 -->
+    <sql id="tempPublishUidCTE">
+        WITH temp_publish_uid AS (
+            SELECT
+                market_uid
+            FROM llm_log_app_publish
+            WHERE
+                app_uid = #{appUid}
+            AND uid = (COALESCE(SUBSTRING_INDEX((SELECT publish_uid FROM llm_app WHERE uid = #{appUid}), '-', 1), ''))
+        )
+    </sql>
+
+    <!-- 生成记录日志统计 -->
     <select id="listLogMessageStatistics"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
         SELECT
@@ -101,6 +94,7 @@
     <!-- 根据应用 UID 日志统计 -->
     <select id="listLogMessageStatisticsByAppUid"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
+
         SELECT
         <include refid="listLogMessageStatisticsColumns"/>
         FROM llm_log_app_message as ms
