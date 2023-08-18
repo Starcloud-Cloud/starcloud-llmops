@@ -57,7 +57,7 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.eq(AppPublishChannelDO::getMediumUid, mediumUid);
         wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
-        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime).last("limit 1");
+        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime).last("LIMIT 1");
         return this.selectOne(wrapper);
     }
 

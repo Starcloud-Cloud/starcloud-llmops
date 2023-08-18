@@ -60,27 +60,34 @@
             <if test="query.appUid != null and query.appUid != '' ">
                 AND ms.app_uid = #{query.appUid}
             </if>
+
             <if test="query.appName != null and query.appName != '' ">
                 <bind name="appName" value="query.appName+'%'"/>
                 AND co.app_name LIKE #{appName}
             </if>
+
             <if test="query.appMode != null and query.appMode != '' ">
                 AND ms.app_mode = #{query.appMode}
             </if>
-            <if test="query.fromScene != null and query.fromScene != '' ">
-                AND ms.from_scene = #{query.fromScene}
-            </if>
+
+            <choose>
+                <when test="query.fromScene != null and query.fromScene != '' ">
+                    AND ms.from_scene = #{query.fromScene}
+                </when>
+                <when test="query.fromSceneList != null and query.fromSceneList.size() > 0">
+                    AND ms.from_scene IN
+                    <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </when>
+            </choose>
+
             <if test="query.status != null and query.status != '' ">
                 AND ms.status = #{query.status}
             </if>
+
             <if test="query.startTime != null and query.endTime != null">
                 AND ms.create_time between #{query.startTime} and #{query.endTime}
-            </if>
-            <if test="(query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
-                AND ms.from_scene IN
-                <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
             </if>
         </where>
         <include refid="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF"/>
@@ -96,7 +103,6 @@
         LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
         LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
         <where>
-            /* 应用 UID 条件 */
             <choose>
                 <when test="query.marketUid != null and query.marketUid != '' ">
                     AND ms.app_uid IN (#{query.appUid}, #{query.marketUid})
@@ -106,17 +112,14 @@
                 </otherwise>
             </choose>
 
-            /* 执行场景条件 */
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND ms.from_scene = #{query.fromScene}
             </if>
 
-            /* 执行状态条件 */
             <if test="query.status != null and query.status != '' ">
                 AND ms.status = #{query.status}
             </if>
 
-            /* 时间范围条件 */
             <if test="query.startTime != null and query.endTime != null">
                 AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
