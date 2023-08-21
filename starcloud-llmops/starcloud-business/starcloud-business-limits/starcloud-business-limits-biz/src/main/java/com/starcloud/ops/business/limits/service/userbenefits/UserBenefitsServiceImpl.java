@@ -156,8 +156,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 }
             }
             // 判断是支付权益
+            LocalDateTime now;
+            // 判断是支付权益
             if (StrUtil.equalsAny(strategyType, BenefitsStrategyTypeEnums.PAY_PLUS_MONTH.getName(), BenefitsStrategyTypeEnums.PAY_PLUS_YEAR.getName(),
-                    BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName(), BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName())) {
+                    BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName(), BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName())) {
                 log.info("[addUserBenefitsByCode][用户增加支付权益：用户ID({})｜权益类型({})]", userId, strategyType);
 
                 // 获取用户当前时间下生效的权益
@@ -173,24 +175,22 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
                 UserBenefitsDO userBenefitsDO = userBenefitsMapper.selectOne(wrapper);
                 // 用户新增权益与目前权益相同则按照目前权益的过期时间未开始时间新增一条权益
-                LocalDateTime now;
+
                 if (userBenefitsDO == null) {
                     now = LocalDateTimeUtil.now();
                 } else {
                     now = userBenefitsDO.getExpirationTime();
                 }
-
-                // 如果可以使用，使用 userBenefitsMapper新增权益
-                UserBenefitsDO userBenefitsDONew = createUserBenefits(userId, benefitsStrategy, now);
-                userBenefitsMapper.insert(userBenefitsDONew);
-
+            } else {
+                now = LocalDateTimeUtil.now();
             }
 
             // 如果可以使用，使用 userBenefitsMapper新增权益
-            UserBenefitsDO userBenefitsDO = createUserBenefits(userId, benefitsStrategy, LocalDateTimeUtil.now());
+            UserBenefitsDO userBenefitsDO = createUserBenefits(userId, benefitsStrategy, now);
             userBenefitsMapper.insert(userBenefitsDO);
             // 增加记录
             userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
+
         } catch (RuntimeException e) {
             log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]｜完整错误为({})]", userId, strategyType, e.getMessage(), e);
             return false;
@@ -650,7 +650,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             if (remainingAmount <= 0) {
                 usedBenefitsList.add(userBenefits); // 将已使用的权益添加到列表中
                 break;
-            }else {
+            } else {
                 usedBenefitsList.add(userBenefits); // 将已使用的权益添加到列表中
             }
         }
