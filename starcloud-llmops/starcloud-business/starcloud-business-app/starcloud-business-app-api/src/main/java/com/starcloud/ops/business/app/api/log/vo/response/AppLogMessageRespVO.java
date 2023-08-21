@@ -46,4 +46,10 @@ public class AppLogMessageRespVO extends LogMessageDetailRespVO {
     @Schema(description = "应用信息")
     private AppRespVO appInfo;
 
+
+    /**
+     * 消息类型
+     */
+    private String msgType;
+
 }

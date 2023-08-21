@@ -417,6 +417,7 @@ public class AppLogServiceImpl implements AppLogService {
         appLogMessageResponse.setErrorMessage(message.getErrorMsg());
         appLogMessageResponse.setCreateTime(message.getCreateTime());
         appLogMessageResponse.setAppInfo(buildAppResponse(message));
+        appLogMessageResponse.setMsgType(message.getMsgType());
         return appLogMessageResponse;
     }
 
