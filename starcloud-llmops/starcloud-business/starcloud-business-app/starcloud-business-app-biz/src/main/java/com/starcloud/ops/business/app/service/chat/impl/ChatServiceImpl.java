@@ -93,7 +93,7 @@ public class ChatServiceImpl implements ChatService {
         //分享ID，应用ID
         ChatAppEntity appEntity = AppFactory.factory(request);
 
-        appEntity.aexecute(request);
+        appEntity.asyncExecute(request);
 
     }
 
@@ -103,7 +103,7 @@ public class ChatServiceImpl implements ChatService {
         ChatAppEntity appEntity = AppFactory.factory(request);
 
         if (request.getSseEmitter() != null) {
-            appEntity.aexecute(request);
+            appEntity.asyncExecute(request);
         } else {
             appEntity.execute(request);
         }

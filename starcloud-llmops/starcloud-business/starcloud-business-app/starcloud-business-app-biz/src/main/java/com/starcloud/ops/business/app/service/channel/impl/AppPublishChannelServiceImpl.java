@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.api.channel.dto.ShareChannelConfigDTO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelModifyReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.channel.AppPublishChannelConverter;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
@@ -152,11 +153,13 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         if (StringUtils.isBlank(appPublish.getAppInfo())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appPublish.getAppUid());
         }
-        AppRespVO appRespVO = JSONUtil.toBean(appPublish.getAppInfo(), AppRespVO.class);
-        if (Objects.isNull(appRespVO)) {
+
+        AppDO appDO = JSONUtil.toBean(appPublish.getAppInfo(), AppDO.class);
+        if (Objects.isNull(appDO)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appPublish.getAppUid());
         }
-        return appRespVO;
+
+        return AppConvert.INSTANCE.convertResponse(appDO);
     }
 
     /**

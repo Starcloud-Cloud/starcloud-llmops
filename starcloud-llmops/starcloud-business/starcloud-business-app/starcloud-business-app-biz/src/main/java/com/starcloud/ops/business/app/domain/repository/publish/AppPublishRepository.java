@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 @Repository
 @SuppressWarnings("all")
@@ -43,7 +44,13 @@ public class AppPublishRepository {
         if (StringUtils.isBlank(appPublishDO.getAppInfo())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
         }
-        return JSONUtil.toBean(appPublishDO.getAppInfo(), AppEntity.class);
+
+        AppDO appDO = JSONUtil.toBean(appPublishDO.getAppInfo(), AppDO.class);
+        if (Objects.isNull(appDO)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appDO.getUid());
+        }
+
+        return (AppEntity) AppConvert.INSTANCE.convert(appDO, Boolean.FALSE);
     }
 
     /**
