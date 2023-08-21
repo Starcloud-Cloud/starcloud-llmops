@@ -5,6 +5,7 @@ import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
+import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseMessagePromptTemplate;
@@ -29,6 +30,8 @@ public class ChatPrompt extends BasePromptConfig {
     private String promptV1 = "{ContextPrompt}\n" +
             "{HistoryPrompt}\n" +
             "Human: {input}\n" +
+            //工具调用历史，只显示一次完整工具调用的历史，不包含用户输入
+            "{" + BaseSingleActionAgent.TEMP_VARIABLE_SCRATCHPAD + "}" +
             "AI: \n";
 
 

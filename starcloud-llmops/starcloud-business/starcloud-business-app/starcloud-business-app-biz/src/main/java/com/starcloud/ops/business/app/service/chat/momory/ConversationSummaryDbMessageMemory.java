@@ -18,6 +18,7 @@ import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
@@ -62,7 +63,6 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
      */
     private List<LogAppMessageDO> logAppMessage;
 
-
     public ConversationSummaryDbMessageMemory() {
         super();
     }
@@ -84,7 +84,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         //总结用模型
         ChatOpenAI chatOpenAi = new ChatOpenAI();
         //16k 去总结
-        chatOpenAi.setModel("gpt-3.5-turbo-16k");
+        chatOpenAi.setModel(ModelType.GPT_3_5_TURBO_16K.getName());
         chatOpenAi.setMaxTokens(500);
         chatOpenAi.setTemperature(0d);
 
@@ -102,13 +102,12 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             String existingSummary = "";
             List<BaseMessage> restMessages = new ArrayList<>();
 
+            //@todo 这里假设第一个是 总结，需要补上标识
             if (CollectionUtil.isNotEmpty(baseMessages) && baseMessages.get(0) instanceof AIMessage) {
                 existingSummary = baseMessages.get(0).getContent();
 
-                //@todo 注意，总结的 prompt 数量也可能超过原始的 prompt量
-                //剩余的 message + 第一的总结
-                //总返回数量的控制
-                //@todo 后面会改成调用 应用市场的
+                //最后一次总结 + 剩余的 message
+                //@todo 后面会改成调用 应用市场的总结应用
                 int limit = 1 - CollectionUtil.size(chatMessageHistory.getMessages());
                 restMessages = chatMessageHistory.limitMessage(limit);
 
@@ -142,7 +141,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             }
         }
 
-        //对总结 message再次处理下
+        //  //@todo 这里假设第一个是 总结，需要补上标识，对总结 message再次处理下
         if (CollectionUtil.isNotEmpty(chatMessageHistory.getMessages()) && chatMessageHistory.getMessages().get(0) instanceof AIMessage) {
             //肯定是总结message
             chatMessageHistory.getMessages().get(0).setContent("Summary of the previous conversation ```" + chatMessageHistory.getMessages().get(0).getContent() + "```");
@@ -239,6 +238,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
                         //落盘成功后 加入到 memory
                         this.getChatHistory().addMessage(humanMessage);
                         this.getChatHistory().addMessage(aiMessage);
+
                     }
                 }
             }
@@ -383,7 +383,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         //取出上一条message，是 fun_message
         ChatMessage chatMessage = (com.theokanning.openai.completion.chat.ChatMessage) CollectionUtil.getLast((ArrayList) llmParams.getOrDefault("messages", new ArrayList<>()));
         //上次函数调用的返回结果,fun执行结果
-        String message = chatMessage.getContent();
+        String message = String.valueOf(aiMessage.getAdditionalArgs().getOrDefault(AgentExecutor.AgentFinishInputKey, chatMessage.getContent()));
 
         LogAppMessageCreateReqVO logVo = this.getChatAppEntity().createAppMessage((reqVo) -> {
 
@@ -396,7 +396,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             messageCreateReqVO.setStatus("SUCCESS");
 
-            messageCreateReqVO.setMsgType(LogMessageTypeEnum.FUN_DONE.name());
+            messageCreateReqVO.setMsgType(LogMessageTypeEnum.CHAT_DONE.name());
 
         });
 
@@ -494,11 +494,46 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             // summaryMessage 和 summaryMessage 不会同时为空
 
             for (LogAppMessageDO logAppMessageDO : appMessageList) {
+
+                //这里只初始化了 普通聊天内容
                 if (LogMessageTypeEnum.CHAT.name().equals(logAppMessageDO.getMsgType())) {
 
                     history.addUserMessage(logAppMessageDO.getMessage());
                     history.addAiMessage(logAppMessageDO.getAnswer());
                 }
+
+                //llm激活函数调用
+                if (LogMessageTypeEnum.CHAT_FUN.name().equals(logAppMessageDO.getMsgType())) {
+
+                    history.addUserMessage(logAppMessageDO.getMessage());
+
+                    AIMessage aiMessage = new AIMessage("");
+                    Map params = JSONUtil.toBean(logAppMessageDO.getAnswer(), Map.class);
+                    aiMessage.getAdditionalArgs().putAll(new HashMap() {{
+                        put("function_call", params);
+                    }});
+
+                    history.addMessage(aiMessage);
+                }
+
+                //函数调用
+                if (LogMessageTypeEnum.FUN_CALL.name().equals(logAppMessageDO.getMsgType())) {
+
+                    String tool = logAppMessageDO.getMessage();
+                    FunctionMessage functionMessage = new FunctionMessage(tool, logAppMessageDO.getAnswer());
+                    functionMessage.setArguments(logAppMessageDO.getVariables());
+                    functionMessage.setStatus("SUCCESS".equals(logAppMessageDO.getStatus()));
+                    functionMessage.setElapsed(logAppMessageDO.getElapsed());
+                    history.addMessage(functionMessage);
+                }
+
+                //LLM根据函数结果回答
+                if (LogMessageTypeEnum.CHAT_DONE.name().equals(logAppMessageDO.getMsgType())) {
+
+                    AIMessage aiMessage = new AIMessage(logAppMessageDO.getAnswer());
+                    history.addMessage(aiMessage);
+                }
+
             }
         }
 

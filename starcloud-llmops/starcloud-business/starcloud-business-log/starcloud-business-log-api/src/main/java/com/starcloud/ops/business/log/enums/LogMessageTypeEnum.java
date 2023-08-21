@@ -9,7 +9,7 @@ public enum LogMessageTypeEnum {
 
     FUN_CALL(12,"函数执行"),
 
-    FUN_DONE(13,"LLM函数执行完毕"),
+    CHAT_DONE(13,"根据函数结果LLM生成内容"),
 
     FUN_SUMMARY(14,"LLM函数执行总结"),
 
