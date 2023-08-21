@@ -120,7 +120,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         //如果是后台执行，肯定是当前应用创建者
         if (req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
                 || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
-                || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
+                || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
+                || req.getScene().equals(AppSceneEnum.SHARE_JS.name())) {
             return Long.valueOf(this.getCreator());
         }
 
@@ -141,7 +142,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             //后台执行，不走历史配置，每次都是最新的配置
             if (!(req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
                     || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
-                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name()))) {
+                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
+                    || req.getScene().equals(AppSceneEnum.SHARE_JS.name()))) {
                 ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
                 this.setChatConfig(chatConfig);
             }
