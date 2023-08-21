@@ -1,5 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.agent;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,8 +35,6 @@ import java.util.stream.Collectors;
 
 @Data
 public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
-
-    private static final String TEMP_VARIABLE_SCRATCHPAD = "agent_scratchpad";
 
     private BaseChatModel llm;
 
@@ -88,19 +87,21 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
          *  保存时
          * AgentAction => BaseLLMResult => saveContext => db => history
          */
-
         List<BaseMessage> chatMessages = this.formatIntermediateSteps(intermediateSteps);
 
         List<BaseVariable> selectedInputs = Optional.ofNullable(variables).orElse(new ArrayList<>()).stream().filter(baseVariable -> !baseVariable.getField().equals(TEMP_VARIABLE_SCRATCHPAD)).collect(Collectors.toList());
 
-        selectedInputs.add(BaseVariable.newObject(TEMP_VARIABLE_SCRATCHPAD, chatMessages));
+        String historyStr = BaseMessage.getBufferString(chatMessages);
+
+        //字符串 agent调用历史
+        selectedInputs.add(BaseVariable.newObject(TEMP_VARIABLE_SCRATCHPAD, historyStr));
 
         PromptValue promptValue = this.promptTemplate.formatPrompt(selectedInputs);
 
         List<BaseMessage> messages = promptValue.toMessage();
         BaseMessage predictedMessage = this.llm.predictMessages(messages, null, this.getFunctions(), callbackManager);
 
-        AgentAction agentAction = parseAiMessage(predictedMessage);
+        AgentAction agentAction = parseAiMessage(predictedMessage, intermediateSteps);
 
         return Arrays.asList(agentAction);
     }
@@ -173,7 +174,7 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
      * @param baseMessage
      * @return
      */
-    protected static AgentAction parseAiMessage(BaseMessage baseMessage) {
+    protected static AgentAction parseAiMessage(BaseMessage baseMessage, List<AgentAction> intermediateSteps) {
 
         Assert.isInstanceOf(AIMessage.class, baseMessage, "Expected an AI message got");
 
@@ -192,7 +193,17 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
         } else {
 
-            AgentFinish agentFinish = new AgentFinish(baseMessage.getContent(), baseMessage.getContent());
+            String log = "";
+            //获取上一步调用LLM的参数
+            AgentAction lastAgentAction = CollectionUtil.getLast(intermediateSteps);
+            if (lastAgentAction != null && lastAgentAction instanceof FunctionsAgentAction) {
+
+                //函数调用的返回结果
+                log = ((FunctionsAgentAction) lastAgentAction).getTool() + " " + lastAgentAction.getObservation();
+            }
+
+            //@todo 最好把 functionMessage 的str 作为 log，保存到DB中
+            AgentFinish agentFinish = new AgentFinish(baseMessage.getContent(), log);
             agentFinish.setMessagesLog(Arrays.asList(baseMessage));
             return agentFinish;
         }

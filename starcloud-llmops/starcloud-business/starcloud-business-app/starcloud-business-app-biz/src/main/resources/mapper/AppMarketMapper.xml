@@ -41,14 +41,14 @@
 
             <if test="query.scenes != null and query.scenes.size() > 0">
                 AND
-                <foreach collection='query.scenes' item='scene' separator=' OR '>
+                <foreach collection='query.scenes' item='scene' separator=' AND '>
                     FIND_IN_SET(#{scene}, scenes)
                 </foreach>
             </if>
 
             <if test="query.tags != null and query.tags.size() > 0 ">
                 AND
-                <foreach collection='query.tags' item='tag' separator=' OR '>
+                <foreach collection='query.tags' item='tag' separator=' AND '>
                     FIND_IN_SET(#{tag}, tags)
                 </foreach>
             </if>

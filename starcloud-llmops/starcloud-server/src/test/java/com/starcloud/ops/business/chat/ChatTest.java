@@ -83,6 +83,9 @@ public class ChatTest extends BaseDbUnitTest {
 
     }
 
+    /**
+     * 普通带历史聊天
+     */
     @Test
     public void runMyChatTest() {
 
@@ -118,6 +121,7 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("亚马逊新手如何开店，详细点说明，100个字");
 
+        chatRequest.setQuery("你还记得我的名字嘛？");
 
 
         //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
@@ -128,7 +132,7 @@ public class ChatTest extends BaseDbUnitTest {
 
 
     /**
-     * 网页爬取测试
+     * 带工具聊天
      */
     @Test
     public void runMyChatToolTest() {
@@ -148,5 +152,30 @@ public class ChatTest extends BaseDbUnitTest {
 
     }
 
+
+    /**
+     * 工具调用 并 包含 工具调用历史
+     */
+    @Test
+    public void runMyChatToolHistoryTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+        chatRequest.setConversationUid("0275a13139424142bad11d215c9e89cf");
+
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+
+
+        chatRequest.setQuery("今天杭州的天气怎么样？");
+
+        chatRequest.setQuery("今天北京的天气怎么样？");
+
+        chatRequest.setQuery("今天天津的天气怎么样？");
+
+        chatService.chat(chatRequest);
+
+    }
 
 }

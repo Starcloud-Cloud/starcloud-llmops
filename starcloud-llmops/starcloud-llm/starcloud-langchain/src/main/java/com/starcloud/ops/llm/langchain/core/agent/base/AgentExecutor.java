@@ -60,6 +60,8 @@ public class AgentExecutor extends Chain<AgentAction> {
 
     private String earlyStoppingMethod = "force";
 
+    public static String AgentFinishInputKey = "agentFinish_input";
+
     private List<Object> handleParsingErrors;
 
     private AgentExecutor(BaseSingleActionAgent actionAgent, List<BaseTool> tools, BaseCallbackManager callbackManager, List<String> tags) {
@@ -95,7 +97,7 @@ public class AgentExecutor extends Chain<AgentAction> {
 
     protected Map<String, BaseTool> getToolMaps() {
 
-        Map<String, BaseTool> toolMap = Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().map(tool -> tool.setCallbackManager(this.getCallbackManager())).collect(Collectors.toMap(BaseTool::getName, Function.identity()));
+        Map<String, BaseTool> toolMap = Optional.ofNullable(this.getTools()).orElse(new ArrayList<>()).stream().collect(Collectors.toMap(BaseTool::getName, Function.identity()));
         return toolMap;
     }
 
@@ -110,13 +112,7 @@ public class AgentExecutor extends Chain<AgentAction> {
 
         Map<String, BaseTool> toolMap = this.getToolMaps();
 
-        //@todo 增加第一条message
-        //this.getMemory().getChatHistory().addMessage();
-
         while (this._shouldContinue(iterations, timeElapsed)) {
-
-            //刷新chatHistory变量
-            variables = this.prepInputs(variables);
 
             List<AgentAction> nextStepOutput = this._takeNextStep(toolMap, variables, intermediateSteps);
 
@@ -231,7 +227,10 @@ public class AgentExecutor extends Chain<AgentAction> {
                 //LLM 用函数结果调用后返回最终结果
                 List<BaseMessage> messageList = ((AgentFinish) actionAgent).getMessagesLog();
 
-                generations.add(ChatGeneration.builder().chatMessage((AIMessage) messageList.get(0)).build());
+                AIMessage aiMessage = (AIMessage) messageList.get(0);
+                aiMessage.getAdditionalArgs().put(AgentFinishInputKey, actionAgent.getLog());
+
+                generations.add(ChatGeneration.builder().chatMessage(aiMessage).build());
 
             } else {
                 //agent 是异常，提前结束了，如LLM超时
@@ -306,23 +305,23 @@ public class AgentExecutor extends Chain<AgentAction> {
      */
     private List<AgentAction> _takeNextStep(Map<String, BaseTool> toolMap, List<BaseVariable> variables, List<AgentAction> intermediateSteps) {
 
+        //llm执行的任何异常都应阻断流程，所以此处无catch
 
-        //llm执行的任何异常都将阻断流程，所以全部抛出
         List<AgentAction> agentActions = this.getActionAgent().plan(intermediateSteps, variables, this.getCallbackManager());
 
         if (CollectionUtil.size(agentActions) != 1) {
             throw new OutputParserException("plan return is error, agetAction more 1");
         }
 
-        //判断是否完成了，现在只有会一个元素
+        //判断是否完成了，现在只会有一个元素
         if (CollectionUtil.size(agentActions) == 1) {
             if (agentActions.get(0) instanceof AgentFinish) {
                 return agentActions;
             }
         }
 
-        //只有 FunctionsAgentAction 执行到这里
-        //第一次增加 用户请求 message
+        //只有 FunctionsAgentAction 会 执行到后面
+        //为空说明 第一次执行
         if (CollectionUtil.isEmpty(intermediateSteps)) {
 
             //保存第一条 history, 带用户输入
