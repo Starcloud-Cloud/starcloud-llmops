@@ -99,7 +99,7 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      */
     @Override
     @JSONField(serialize = false)
-    protected void _validate(AppExecuteReqVO req) {
+    protected void _validate(AppExecuteReqVO request) {
 
     }
 
@@ -118,9 +118,9 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
 
     @Override
     @JSONField(serialize = false)
-    protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
+    protected AppExecuteRespVO _execute(AppExecuteReqVO request) {
 
-        AppExecuteRespVO appExecuteRespVO = super._execute(req);
+        AppExecuteRespVO appExecuteRespVO = super._execute(request);
 
         if (appExecuteRespVO != null) {
 
@@ -136,9 +136,9 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
 
     @Override
     @JSONField(serialize = false)
-    protected void _aexecute(AppExecuteReqVO req) {
+    protected void _aexecute(AppExecuteReqVO request) {
 
-        super._aexecute(req);
+        super._aexecute(request);
     }
 
     /**

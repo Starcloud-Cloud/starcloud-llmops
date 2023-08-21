@@ -109,7 +109,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      */
     @Override
     @JSONField(serialize = false)
-    protected void _validate(ChatRequestVO req) {
+    protected void _validate(ChatRequestVO request) {
 
         //@todo 现在默认都挂载一个 数据集，具体是否能搜索靠后续向量搜索处理
         DatesetEntity datesetEntity = new DatesetEntity();
@@ -142,29 +142,29 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      */
     @Override
     @JSONField(serialize = false)
-    protected void _initHistory(ChatRequestVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageDOS) {
+    protected void _initHistory(ChatRequestVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageDOS) {
 
         //preHistory(request.getConversationUid(), AppModelEnum.CHAT.name());
 
         //@todo 根据不同场景自动处理 应用的会话配置信息
-        if (logAppConversationDO != null) {
+        if (logAppConversation != null) {
 
             //后台执行，不走历史配置，每次都是最新的配置
-            if (!(req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
-                    || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
-                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
-                    || req.getScene().equals(AppSceneEnum.SHARE_JS.name()))) {
-                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
+            if (!(request.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
+                    || request.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
+                    || request.getScene().equals(AppSceneEnum.SHARE_WEB.name())
+                    || request.getScene().equals(AppSceneEnum.SHARE_JS.name()))) {
+                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversation.getAppConfig());
                 this.setChatConfig(chatConfig);
             }
 
             //分享场景，走最新发布内的配置
-            if (req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
+            if (request.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
 
                 //获取最新发布的配置
-                req.getMediumUid();
+                request.getMediumUid();
 
-                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
+                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversation.getAppConfig());
                 this.setChatConfig(chatConfig);
             }
         }
@@ -177,9 +177,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     @Override
     @JSONField(serialize = false)
-    protected void _createAppConversationLog(ChatRequestVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
+    protected void _createAppConversationLog(ChatRequestVO request, LogAppConversationCreateReqVO createRequest) {
 
-        logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getChatConfig()));
+        createRequest.setAppConfig(JSONUtil.toJsonStr(this.getChatConfig()));
     }
 
     @Override
@@ -191,16 +191,16 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     @Override
     @JSONField(serialize = false)
-    protected JsonData _execute(ChatRequestVO req) {
+    protected JsonData _execute(ChatRequestVO request) {
 
-        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
+        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
 
-        return executeChat(req, req.getUserId());
+        return executeChat(request, request.getUserId());
     }
 
     @Override
-    protected void _aexecute(ChatRequestVO req) {
-        JsonData jsonParams = this._execute(req);
+    protected void _aexecute(ChatRequestVO request) {
+        JsonData jsonParams = this._execute(request);
     }
 
     /**
@@ -208,13 +208,13 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      */
     @Override
     @JSONField(serialize = false)
-    protected void _afterExecute(ChatRequestVO req, Throwable t) {
+    protected void _afterExecute(ChatRequestVO request, Throwable throwable) {
 
-        SseEmitter sseEmitter = req.getSseEmitter();
+        SseEmitter sseEmitter = request.getSseEmitter();
 
         if (sseEmitter != null) {
-            if (t != null) {
-                sseEmitter.completeWithError(t);
+            if (throwable != null) {
+                sseEmitter.completeWithError(throwable);
             } else {
                 sseEmitter.complete();
             }
