@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.chat.service.impl;
+package com.starcloud.ops.business.open.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -7,6 +7,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.channel.dto.BaseChannelConfigDTO;
 import com.starcloud.ops.business.app.api.channel.dto.WecomGroupChannelConfigDTO;
+import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelModifyReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
@@ -18,15 +19,25 @@ import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.AppUtils;
-import com.starcloud.ops.business.chat.controller.admin.wecom.vo.request.WecomCreateGroupReqVO;
-import com.starcloud.ops.business.chat.controller.admin.wecom.vo.response.WecomGroupRespVO;
-import com.starcloud.ops.business.chat.convert.WecomGroupDetailConvert;
-import com.starcloud.ops.business.chat.service.WecomGroupService;
+import com.starcloud.ops.business.chat.context.RobotContextHolder;
+import com.starcloud.ops.business.chat.worktool.dto.WorktoolFriendDTO;
+import com.starcloud.ops.business.chat.worktool.request.AddFriendReq;
+import com.starcloud.ops.business.chat.worktool.request.ModifyGroupReq;
+import com.starcloud.ops.business.chat.worktool.response.ExecuteResultResp;
+import com.starcloud.ops.business.open.controller.admin.vo.request.AddFriendReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.GroupCallbackReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.QaCallbackReqVO;
+import com.starcloud.ops.business.open.convert.WecomGroupDetailConvert;
 import com.starcloud.ops.business.chat.worktool.WorkToolClient;
 import com.starcloud.ops.business.chat.worktool.request.BaseReq;
 import com.starcloud.ops.business.chat.worktool.request.CreateGroupReq;
 import com.starcloud.ops.business.chat.worktool.response.BaseResponse;
+import com.starcloud.ops.business.open.controller.admin.vo.request.WecomCreateGroupReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.response.WecomGroupRespVO;
+import com.starcloud.ops.business.open.service.WecomChatService;
+import com.starcloud.ops.business.open.service.WecomGroupService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +45,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.starcloud.ops.business.app.enums.app.AppSceneEnum.WECOM_GROUP;
 import static com.starcloud.ops.business.chat.enums.DictTypeConstants.WECOM_ROBOT;
@@ -53,6 +65,9 @@ public class WecomGroupServiceImpl implements WecomGroupService {
 
     @Resource
     private DictDataService dictDataService;
+
+    @Resource
+    private WecomChatService wecomChatService;
 
 
     @Override
@@ -97,6 +112,80 @@ public class WecomGroupServiceImpl implements WecomGroupService {
         }
         return groupRespVOS;
     }
+
+    @Override
+    public void addFriend(AddFriendReqVO reqVO) {
+        DictDataDO dictDataDO = dictDataService.parseDictData(WECOM_ROBOT, "robotId");
+        String robotId = dictDataDO.getValue();
+        BaseReq<AddFriendReq> baseReq = new BaseReq();
+        AddFriendReq addFriendReq = new AddFriendReq();
+        addFriendReq.setFriend(WorktoolFriendDTO.newInstance(reqVO.getMobile()));
+        baseReq.setList(Collections.singletonList(addFriendReq));
+        BaseResponse<String> response = workToolClient.addFriend(robotId, baseReq);
+        if (response == null || response.getCode() != 200) {
+            log.error("发送加指令失败: {}", response);
+            throw new ServiceException(new ErrorCode(500, response.getMessage()));
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void bindPublishChannel(QaCallbackReqVO qaCallbackReqVO) {
+        if (StringUtils.isNotBlank(qaCallbackReqVO.getGroupRemark())) {
+            log.info("此群已绑定发布渠道 {}", qaCallbackReqVO.getGroupRemark());
+            wecomChatService.sendMsg(qaCallbackReqVO.getGroupRemark(), "此群已绑定发布渠道", qaCallbackReqVO.getReceivedName());
+            return;
+        }
+        String robotId = RobotContextHolder.getRobotId();
+
+        String mediumUid = qaCallbackReqVO.getSpoken().replace("绑定应用:", StringUtils.EMPTY).trim();
+        try {
+            AppPublishChannelRespVO publishChannel = appPublishChannelService.getByMediumUid(mediumUid);
+            if (publishChannel == null
+                    || !(publishChannel.getConfig() instanceof WecomGroupChannelConfigDTO)) {
+
+                wecomChatService.sendMsg(qaCallbackReqVO.getGroupName(), "此渠道不支持绑定群聊", qaCallbackReqVO.getReceivedName());
+                return;
+            }
+
+            WecomGroupChannelConfigDTO config = (WecomGroupChannelConfigDTO) publishChannel.getConfig();
+            if (StringUtils.isNotBlank(config.getGroupName())) {
+                log.info("此渠道已绑定群聊");
+                wecomChatService.sendMsg(qaCallbackReqVO.getGroupName(), "此发布渠道已绑定群聊", qaCallbackReqVO.getReceivedName());
+                return;
+            }
+
+            config.setRobotId(robotId);
+            config.setGroupName(qaCallbackReqVO.getGroupName());
+            config.setGroupRemark(mediumUid);
+            AppPublishChannelModifyReqVO reqVO = new AppPublishChannelModifyReqVO();
+            reqVO.setConfig(config);
+            reqVO.setUid(publishChannel.getUid());
+            reqVO.setName(publishChannel.getName());
+            reqVO.setStatus(publishChannel.getStatus());
+            reqVO.setDescription(publishChannel.getDescription());
+            reqVO.setUpdater(publishChannel.getCreator());
+            appPublishChannelService.modify(reqVO);
+
+            BaseReq<ModifyGroupReq> baseReq = new BaseReq<>();
+            ModifyGroupReq modifyGroupReq = new ModifyGroupReq();
+            modifyGroupReq.setGroupName(qaCallbackReqVO.getGroupName());
+            modifyGroupReq.setGroupRemark(mediumUid);
+            baseReq.setList(Collections.singletonList(modifyGroupReq));
+            // 修改群备注
+            BaseResponse<String> modified = workToolClient.modifyGroup(robotId, baseReq);
+            if (modified == null || modified.getCode() != 200) {
+                log.error("修改群备注失败: {}", modified);
+                throw new ServiceException(new ErrorCode(500, modified.getMessage()));
+            }
+        } catch (Exception e) {
+            log.info("修改群备注失败", e);
+            wecomChatService.sendMsg(qaCallbackReqVO.getGroupName(), "修改群备注失败，联系管理员", qaCallbackReqVO.getReceivedName());
+            throw e;
+        }
+        wecomChatService.sendMsg(mediumUid, "绑定应用成功", qaCallbackReqVO.getReceivedName());
+    }
+
 
     private String createGroup(WecomCreateGroupReqVO reqVO) {
         DictDataDO dictDataDO = dictDataService.parseDictData(WECOM_ROBOT, "robotId");
