@@ -193,18 +193,22 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
         } else {
 
-            String log = "";
-            //获取上一步调用LLM的参数
+            AgentFinish agentFinish = new AgentFinish(baseMessage.getContent());
+
+            //获取上一步调用调用记录
             AgentAction lastAgentAction = CollectionUtil.getLast(intermediateSteps);
             if (lastAgentAction != null && lastAgentAction instanceof FunctionsAgentAction) {
-
                 //函数调用的返回结果
-                log = ((FunctionsAgentAction) lastAgentAction).getTool() + " " + lastAgentAction.getObservation();
+                String log = ((FunctionsAgentAction) lastAgentAction).getTool() + " " + lastAgentAction.getObservation();
+                agentFinish.setLog(log);
+
+            } else {
+                //如果为空，说明LLM直接返回了未触发fun
+                agentFinish.setNoFunLLm(true);
             }
 
-            //@todo 最好把 functionMessage 的str 作为 log，保存到DB中
-            AgentFinish agentFinish = new AgentFinish(baseMessage.getContent(), log);
             agentFinish.setMessagesLog(Arrays.asList(baseMessage));
+
             return agentFinish;
         }
 
