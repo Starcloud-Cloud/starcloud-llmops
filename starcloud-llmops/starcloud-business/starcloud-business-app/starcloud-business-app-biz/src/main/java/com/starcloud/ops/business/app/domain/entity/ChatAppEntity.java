@@ -146,27 +146,27 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         //preHistory(request.getConversationUid(), AppModelEnum.CHAT.name());
 
-        //@todo 根据不同场景自动处理 应用的会话配置信息
+        //所有场景都走最新发布的配置，不读取会话上的配置
         if (logAppConversationDO != null) {
 
-            //后台执行，不走历史配置，每次都是最新的配置
-            if (!(req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
-                    || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
-                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
-                    || req.getScene().equals(AppSceneEnum.SHARE_JS.name()))) {
-                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
-                this.setChatConfig(chatConfig);
-            }
-
-            //分享场景，走最新发布内的配置
-            if (req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
-
-                //获取最新发布的配置
-                req.getMediumUid();
-
-                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
-                this.setChatConfig(chatConfig);
-            }
+//            //后台执行，不走历史配置，每次都是最新的配置
+//            if (!(req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
+//                    || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
+//                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
+//                    || req.getScene().equals(AppSceneEnum.SHARE_JS.name()))) {
+//                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
+//                this.setChatConfig(chatConfig);
+//            }
+//
+//            //分享场景，走最新发布内的配置
+//            if (req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
+//
+//                //获取最新发布的配置
+//                req.getMediumUid();
+//
+//                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
+//                this.setChatConfig(chatConfig);
+//            }
         }
 
         //有历史初始化一个 memory

@@ -132,6 +132,26 @@ public class ChatTest extends BaseDbUnitTest {
 
 
     /**
+     * 普通带历史聊天
+     */
+    @Test
+    public void runMyChatUrlTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+
+        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatService.chat(chatRequest);
+
+
+    }
+
+    /**
      * 带工具聊天
      */
     @Test
