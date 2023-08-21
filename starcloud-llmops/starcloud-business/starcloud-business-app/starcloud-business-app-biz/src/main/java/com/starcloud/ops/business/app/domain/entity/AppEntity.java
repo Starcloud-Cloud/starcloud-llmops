@@ -15,6 +15,7 @@ import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.monitor.NoticeTracking;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
@@ -28,7 +29,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.service.AppWorkflowService;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -58,21 +58,20 @@ import java.util.Optional;
 @Data
 public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> {
 
-    private AppWorkflowService appWorkflowService = SpringUtil.getBean(AppWorkflowService.class);
-
-
+    @JSONField(serialize = false)
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
-
+    @JSONField(serialize = false)
     private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
-
+    @JSONField(serialize = false)
     private StoryEngine storyEngine = SpringUtil.getBean(StoryEngine.class);
 
 
     /**
      * AppRepository
      */
+    @JSONField(serialize = false)
     private static AppRepository appRepository;
 
     /**
@@ -88,6 +87,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     }
 
     @Override
+    @JSONField(serialize = false)
     protected void _validate(AppExecuteReqVO req) {
         WorkflowConfigEntity config = this.getWorkflowConfig();
         if (config == null) {
@@ -112,12 +112,14 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @return
      */
     @Override
+    @JSONField(serialize = false)
     protected Long getRunUserId(AppExecuteReqVO req) {
 
         return Long.valueOf(this.getCreator());
     }
 
     @Override
+    @JSONField(serialize = false)
     protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
 
         //权益放在这里是为了包装 可以执行完整的一次应用
@@ -144,6 +146,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
 
     @Override
+    @JSONField(serialize = false)
     protected void _aexecute(AppExecuteReqVO req) {
 
         this._execute(req);
@@ -153,6 +156,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * 执行后执行
      */
     @Override
+    @JSONField(serialize = false)
     protected void _afterExecute(AppExecuteReqVO req, Throwable t) {
         SseEmitter sseEmitter = req.getSseEmitter();
         if (sseEmitter != null) {
@@ -166,26 +170,31 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
 
     @Override
+    @JSONField(serialize = false)
     protected void _createAppConversationLog(AppExecuteReqVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
         logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
     }
 
     @Override
+    @JSONField(serialize = false)
     protected void _initHistory(AppExecuteReqVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageList) {
 
     }
 
     @Override
+    @JSONField(serialize = false)
     protected void _insert() {
         getAppRepository().insert(this);
     }
 
     @Override
+    @JSONField(serialize = false)
     protected void _update() {
         getAppRepository().update(this);
     }
 
     @Override
+    @JSONField(serialize = false)
     protected <C> C _parseConversationConfig(String conversationConfig) {
         return null;
     }
@@ -195,6 +204,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      *
      * @param appContext 执行应用上下文
      */
+    @JSONField(serialize = false)
     protected AppExecuteRespVO fireWorkflowContext(@Valid AppContext appContext) {
 
         StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
@@ -232,6 +242,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param appContext   应用上下文
      * @param nodeTracking 节点跟踪
      */
+    @JSONField(serialize = false)
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
         this.createAppMessage((messageCreateReqVO) -> {
             messageCreateReqVO.setCreator(String.valueOf(appContext.getUserId()));
@@ -283,6 +294,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param <T>             类型
      * @return 追踪
      */
+    @JSONField(serialize = false)
     private <T> T getTracking(List<NoticeTracking> noticeTrackings, Class<T> cls) {
 
         String clsName = cls.getSimpleName();

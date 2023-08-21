@@ -6,12 +6,14 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.MarketUidRequest;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,9 +46,16 @@ public class AppMarketController {
 
     @GetMapping("/page")
     @Operation(summary = "分页查询应用市场应用列表", description = "分页查询应用市场应用列表")
-    @ApiOperationSupport(order = 5, author = "nacoyer")
+    @ApiOperationSupport(order = 1, author = "nacoyer")
     public CommonResult<PageResp<AppMarketRespVO>> page(@Validated AppMarketPageQuery query) {
         return CommonResult.success(appMarketService.page(query));
+    }
+
+    @GetMapping("/listMarketAppOption")
+    @Operation(summary = "获取应用列表选项", description = "获取应用列表选项")
+    @ApiOperationSupport(order = 5, author = "nacoyer")
+    public CommonResult<List<Option>> listMarketAppOption(AppMarketListQuery query) {
+        return CommonResult.success(appMarketService.listMarketAppOption(query));
     }
 
     @GetMapping("/get/{uid}")

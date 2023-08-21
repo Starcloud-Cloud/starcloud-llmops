@@ -1,16 +1,9 @@
 package com.starcloud.ops.business.app.api.app.vo.request;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ChatConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ImageConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowConfigReqVO;
-import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowStepWrapperReqVO;
-import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableItemReqVO;
-import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableReqVO;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
@@ -24,7 +17,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 /**
  * App 请求实体
@@ -129,43 +121,5 @@ public class AppReqVO implements Serializable {
      */
     @Schema(description = "应用描述")
     private String description;
-
-    @JsonIgnore
-    public void addVariables(Map<String, Object> variables) {
-        WorkflowConfigReqVO config = this.getWorkflowConfig();
-        if (config == null) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(300002, "应用配置不能为空"));
-        }
-        List<WorkflowStepWrapperReqVO> steps = config.getSteps();
-        if (CollectionUtil.isEmpty(steps)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(300003, "应用步骤不能为空"));
-        }
-        WorkflowStepWrapperReqVO stepWrapperReqVO = steps.get(0);
-        if (stepWrapperReqVO == null) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(300004, "应用步骤不能为空"));
-        }
-        VariableReqVO variable = stepWrapperReqVO.getVariable();
-        if (variable == null) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(300005, "应用变量不能为空"));
-        }
-        List<VariableItemReqVO> variableList = variable.getVariables();
-        if (CollectionUtil.isEmpty(variableList)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(300006, "应用变量不能为空"));
-        }
-
-        for (VariableItemReqVO variableItemReqVO : variableList) {
-            String field = variableItemReqVO.getField();
-            if (!variables.containsKey(field)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300007, "应用配置，变量[" + field + "]是必须的，需要配置该变量信息"));
-            }
-            variableItemReqVO.setValue(variables.get(field));
-        }
-
-        variable.setVariables(variableList);
-        stepWrapperReqVO.setVariable(variable);
-        steps.set(0, stepWrapperReqVO);
-        config.setSteps(steps);
-        this.setWorkflowConfig(config);
-    }
 
 }

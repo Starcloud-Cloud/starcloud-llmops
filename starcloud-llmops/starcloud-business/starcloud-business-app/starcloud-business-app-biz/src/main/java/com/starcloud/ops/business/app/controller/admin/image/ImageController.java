@@ -7,9 +7,7 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.HistoryGenerateImagePageQuery;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
-import com.starcloud.ops.business.app.controller.admin.image.vo.OptimizePromptReqVO;
 import com.starcloud.ops.business.app.service.image.ImageService;
-import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -18,10 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
@@ -61,24 +57,4 @@ public class ImageController {
         return CommonResult.success(imageService.generateImage(request));
     }
 
-    @GetMapping("/optimizePromptAppList")
-    @Operation(summary = "获取优化提示应用列表", description = "获取优化提示应用列表")
-    @ApiOperationSupport(order = 40, author = "nacoyer")
-    public CommonResult<List<Option>> getOptimizePromptAppList() {
-        return CommonResult.success(imageService.getOptimizePromptAppList());
-    }
-
-    @PostMapping("/optimizePrompt")
-    @Operation(summary = "优化 prompt", description = "优化 prompt")
-    @ApiOperationSupport(order = 50, author = "nacoyer")
-    public SseEmitter optimizePrompt(@RequestBody OptimizePromptReqVO optimizePromptReqVO, HttpServletResponse httpServletResponse) {
-        // 设置响应头
-        httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
-        httpServletResponse.setHeader("X-Accel-Buffering", "no");
-        // 设置 SSE
-        SseEmitter emitter = new SseEmitter(60000L);
-        optimizePromptReqVO.setSseEmitter(emitter);
-        imageService.optimizePrompt(optimizePromptReqVO);
-        return emitter;
-    }
 }

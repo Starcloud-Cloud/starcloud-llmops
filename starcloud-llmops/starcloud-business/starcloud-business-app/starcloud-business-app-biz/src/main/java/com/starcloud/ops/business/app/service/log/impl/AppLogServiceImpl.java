@@ -212,7 +212,9 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     public List<LogAppMessageStatisticsListVO> listLogMessageStatistics(LogAppMessageStatisticsListReqVO query) {
-        query.setFromSceneList(getFromSceneList());
+        if (StringUtils.isBlank(query.getFromScene())) {
+            query.setFromSceneList(getFromSceneList());
+        }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.listLogMessageStatistics(query);
@@ -288,7 +290,9 @@ public class AppLogServiceImpl implements AppLogService {
     @Override
     @DataPermission
     public PageResult<LogAppConversationInfoRespVO> pageLogConversation(LogAppConversationInfoPageReqVO query) {
-        query.setFromSceneList(getFromSceneList());
+        if (StringUtils.isBlank(query.getFromScene())) {
+            query.setFromSceneList(getFromSceneList());
+        }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversation(query);
@@ -338,7 +342,11 @@ public class AppLogServiceImpl implements AppLogService {
         AppValidate.notNull(app, APP_NO_EXISTS_UID, appConversation.getAppUid());
 
         PageResult<LogAppMessageDO> messagePageResult = chatService.chatHistory(query.getConversationUid(), query.getPageNo(), query.getPageSize());
-        List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(messagePageResult.getList()).stream()
+        List<LogAppMessageDO> chatMessageList = messagePageResult.getList();
+        // 校验日志消息是否存在
+        AppValidate.notEmpty(chatMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
+
+        List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(chatMessageList).stream()
                 .filter(Objects::nonNull)
                 .map(item -> transformAppLogMessage(item, appConversation, app))
                 .collect(Collectors.toList());

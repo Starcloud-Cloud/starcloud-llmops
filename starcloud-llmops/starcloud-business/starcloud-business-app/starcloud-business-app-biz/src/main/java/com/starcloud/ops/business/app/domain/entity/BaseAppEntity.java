@@ -30,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -179,26 +178,31 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 基础校验
      */
+    @JSONField(serialize = false)
     protected abstract void _validate(Q req);
 
     /**
      * 执行应用
      */
+    @JSONField(serialize = false)
     protected abstract R _execute(Q req);
 
     /**
      * 执行应用
      */
+    @JSONField(serialize = false)
     protected abstract void _aexecute(Q req);
 
     /**
      * 执行后执行
      */
+    @JSONField(serialize = false)
     protected abstract void _afterExecute(Q req, Throwable t);
 
     /**
      * 历史记录初始化
      */
+    @JSONField(serialize = false)
     protected abstract void _initHistory(Q req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageList);
 
     /**
@@ -206,16 +210,19 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param reqVO 请求参数
      */
+    @JSONField(serialize = false)
     protected abstract void _createAppConversationLog(Q req, LogAppConversationCreateReqVO reqVO);
 
     /**
      * 新增应用
      */
+    @JSONField(serialize = false)
     protected abstract void _insert();
 
     /**
      * 更新应用
      */
+    @JSONField(serialize = false)
     protected abstract void _update();
 
     /**
@@ -225,6 +232,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param <C>                会话配置
      * @return 会话配置
      */
+    @JSONField(serialize = false)
     protected abstract <C> C _parseConversationConfig(String conversationConfig);
 
     /**
@@ -232,6 +240,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param consumer 消费者
      */
+    @JSONField(serialize = false)
     protected void updateLogConversation(Consumer<LogAppConversationDO> consumer) {
         LogAppConversationDO appConversationDO = new LogAppConversationDO();
         consumer.accept(appConversationDO);
@@ -243,6 +252,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param conversationUid 会话 uid
      * @return 会话
      */
+    @JSONField(serialize = false)
     private String parseConversationUid(String conversationUid) {
 
         //@todo 判断是否需要过期
@@ -262,6 +272,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @return 用户id
      */
+    @JSONField(serialize = false)
     protected Long getRunUserId(Q req) {
         return SecurityFrameworkUtils.getLoginUserId();
     }
@@ -269,6 +280,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 同步执行应用
      */
+    @JSONField(serialize = false)
     public R execute(Q req) {
         try {
             log.info("app start:{}, {}, {}", this.getUid(), this.getName(), req.getUserId());
@@ -329,6 +341,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param req 请求参数
      */
+    @JSONField(serialize = false)
     public void aexecute(Q req) {
         try {
             log.info("app async start:{}, {}", this.getUid(), this.getName());
@@ -394,6 +407,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param benefitsType 权益类型
      * @param userId       用户id
      */
+    @JSONField(serialize = false)
     protected void allowExpendBenefits(String benefitsType, Long userId) {
         userBenefitsService.allowExpendBenefits(benefitsType, userId);
     }
@@ -401,6 +415,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 校验
      */
+    @JSONField(serialize = false)
     public void validate(Q req) {
         this._validate(req);
     }
@@ -408,6 +423,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 新增应用
      */
+    @JSONField(serialize = false)
     public void insert() {
         // 设置 uid
         if (StrUtil.isBlank(this.getUid())) {
@@ -420,6 +436,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 更新应用
      */
+    @JSONField(serialize = false)
     public void update() {
         this.validate(null);
         this._update();
@@ -431,6 +448,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param req 请求参数
      * @return 会话 uid
      */
+    @JSONField(serialize = false)
     protected String createAppConversationLog(Q req) {
         LogAppConversationCreateReqVO reqVO = new LogAppConversationCreateReqVO();
         String conversationUid = req.getConversationUid();
@@ -458,6 +476,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param consumer 消息创建
      * @return 消息对象
      */
+    @JSONField(serialize = false)
     public LogAppMessageCreateReqVO createAppMessage(Consumer<LogAppMessageCreateReqVO> consumer) {
 
         LogAppMessageCreateReqVO messageCreateReqVO = new LogAppMessageCreateReqVO();
@@ -475,6 +494,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 判断执行情况，最最后的 会话状态更新
      */
+    @JSONField(serialize = false)
     protected void updateAppConversationLog(String conversationUid, Boolean status) {
         logAppConversationService.updateAppConversationStatus(conversationUid, status ? "SUCCESS" : "ERROR");
     }
@@ -485,6 +505,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param conversationId 会话id
      * @return 会话对象
      */
+    @JSONField(serialize = false)
     private LogAppConversationDO getAppConversation(String conversationId) {
         return logAppConversationService.getAppConversation(conversationId);
     }
@@ -495,6 +516,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param conversationId 会话id
      * @return 会话消息列表
      */
+    @JSONField(serialize = false)
     private List<LogAppMessageDO> getAppConversationMessages(String conversationId) {
 
         if (StrUtil.isNotBlank(conversationId)) {
