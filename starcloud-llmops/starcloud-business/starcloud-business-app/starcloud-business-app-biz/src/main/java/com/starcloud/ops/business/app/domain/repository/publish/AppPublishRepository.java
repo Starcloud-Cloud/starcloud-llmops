@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.repository.publish;
 
 
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -12,12 +13,17 @@ import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 @Repository
 @SuppressWarnings("all")
@@ -43,7 +49,25 @@ public class AppPublishRepository {
         if (StringUtils.isBlank(appPublishDO.getAppInfo())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
         }
-        return JSONUtil.toBean(appPublishDO.getAppInfo(), AppEntity.class);
+        JSONObject jsonObject = JSONUtil.parseObj(appPublishDO.getAppInfo());
+        if (StringUtils.isBlank(jsonObject.getStr("config"))) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appPublishDO.getAppUid());
+        }
+
+        AppEntity appEntity = JSONUtil.toBean(appPublishDO.getAppInfo(), AppEntity.class);
+        if (Objects.isNull(appEntity)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appEntity.getUid());
+        }
+
+        if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
+            appEntity.setWorkflowConfig(JSONUtil.toBean(jsonObject.getStr("config"), WorkflowConfigEntity.class));
+        } else if (AppModelEnum.CHAT.name().equals(appEntity.getModel())) {
+            appEntity.setChatConfig(JSONUtil.toBean(jsonObject.getStr("config"), ChatConfigEntity.class));
+        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appEntity.getModel())) {
+            appEntity.setImageConfig(JSONUtil.toBean(jsonObject.getStr("config"), ImageConfigEntity.class));
+        }
+
+        return appEntity;
     }
 
     /**

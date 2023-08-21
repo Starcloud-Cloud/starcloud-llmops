@@ -58,34 +58,35 @@ import java.util.Optional;
 @Data
 public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> {
 
+    /**
+     * 应用 AppRepository 服务
+     */
     @JSONField(serialize = false)
-    private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
+    private static AppRepository appRepository = SpringUtil.getBean(AppRepository.class);
 
+    /**
+     * 用户权益服务
+     */
     @JSONField(serialize = false)
-    private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
+    private static UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
+    /**
+     * 工作流引擎
+     */
     @JSONField(serialize = false)
     private StoryEngine storyEngine = SpringUtil.getBean(StoryEngine.class);
 
-
     /**
-     * AppRepository
+     * 应用执行线程池
      */
     @JSONField(serialize = false)
-    private static AppRepository appRepository;
+    private static ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
     /**
-     * 获取 AppRepository
+     * 模版方法：基础校验
      *
-     * @return AppRepository
+     * @param request 请求参数
      */
-    public static AppRepository getAppRepository() {
-        if (appRepository == null) {
-            appRepository = SpringUtil.getBean(AppRepository.class);
-        }
-        return appRepository;
-    }
-
     @Override
     @JSONField(serialize = false)
     protected void _validate(AppExecuteReqVO request) {
@@ -106,18 +107,24 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     }
 
     /**
-     * 只用 应用创建者
-     * 注意，创建应用的时候，要设置 creator 为当前用户态
+     * 获取当前执行记录的主体用户，会做主体用户做如下操作。默认是当前用户态
+     * 1，扣除权益
+     * 2，记录日志
      *
-     * @return
+     * @return 用户 ID
      */
     @Override
     @JSONField(serialize = false)
     protected Long getRunUserId(AppExecuteReqVO req) {
-
         return Long.valueOf(this.getCreator());
     }
 
+    /**
+     * 同步执行应用
+     *
+     * @param request 请求参数
+     * @return 执行结果
+     */
     @Override
     @JSONField(serialize = false)
     protected AppExecuteRespVO _execute(AppExecuteReqVO request) {
@@ -144,16 +151,23 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
         return this.fireWorkflowContext(appContext);
     }
 
-
+    /**
+     * 异步执行
+     * log 交由具体类去实现
+     *
+     * @param request 请求参数
+     */
     @Override
     @JSONField(serialize = false)
     protected void _aexecute(AppExecuteReqVO request) {
-
         this._execute(request);
     }
 
     /**
-     * 执行后执行
+     * 模版方法：执行应用后置处理方法
+     *
+     * @param request   请求参数
+     * @param throwable 异常
      */
     @Override
     @JSONField(serialize = false)
@@ -168,31 +182,56 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
         }
     }
 
-
+    /**
+     * 模版方法：创建会话记录
+     *
+     * @param request       请求参数
+     * @param createRequest 请求参数
+     */
     @Override
     @JSONField(serialize = false)
     protected void _createAppConversationLog(AppExecuteReqVO request, LogAppConversationCreateReqVO createRequest) {
         createRequest.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
     }
 
+    /**
+     * 模版方法：历史记录初始化
+     *
+     * @param request            请求参数
+     * @param logAppConversation 会话记录
+     * @param logAppMessageList  消息记录
+     */
     @Override
     @JSONField(serialize = false)
     protected void _initHistory(AppExecuteReqVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
 
     }
 
+    /**
+     * 模版方法：新增应用
+     */
     @Override
     @JSONField(serialize = false)
     protected void _insert() {
-        getAppRepository().insert(this);
+        appRepository.insert(this);
     }
 
+    /**
+     * 模版方法：更新应用
+     */
     @Override
     @JSONField(serialize = false)
     protected void _update() {
-        getAppRepository().update(this);
+        appRepository.update(this);
     }
 
+    /**
+     * 模版方法：解析会话配置
+     *
+     * @param conversationConfig 会话配置
+     * @param <C>                会话配置
+     * @return 会话配置
+     */
     @Override
     @JSONField(serialize = false)
     protected <C> C _parseConversationConfig(String conversationConfig) {
@@ -283,27 +322,24 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
                 }
             }
         });
-
     }
 
     /**
      * 获取追踪
      *
-     * @param noticeTrackings 追踪列表
-     * @param cls             类
-     * @param <T>             类型
+     * @param noticeTrackingList 追踪列表
+     * @param clazz              类
+     * @param <T>                类型
      * @return 追踪
      */
     @JSONField(serialize = false)
-    private <T> T getTracking(List<NoticeTracking> noticeTrackings, Class<T> cls) {
-
-        String clsName = cls.getSimpleName();
-
+    private <T> T getTracking(List<NoticeTracking> noticeTrackingList, Class<T> clazz) {
+        String clsName = clazz.getSimpleName();
         String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
-
-        return Optional.ofNullable(noticeTrackings).orElse(new ArrayList<>()).stream().filter(noticeTracking -> noticeTracking.getFieldName().equals(field)).map(noticeTracking -> {
-            return JSON.parseObject(noticeTracking.getValue(), cls);
-        }).findFirst().orElse(null);
+        return Optional.ofNullable(noticeTrackingList).orElse(new ArrayList<>()).stream()
+                .filter(noticeTracking -> noticeTracking.getFieldName().equals(field))
+                .map(noticeTracking -> JSON.parseObject(noticeTracking.getValue(), clazz))
+                .findFirst().orElse(null);
     }
 
 }
