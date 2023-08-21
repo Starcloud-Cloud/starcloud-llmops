@@ -1,19 +1,16 @@
 package com.starcloud.ops.business.app.service.channel.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.StatusRequest;
 import com.starcloud.ops.business.app.api.channel.dto.ShareChannelConfigDTO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelModifyReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.channel.AppPublishChannelConverter;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
@@ -22,7 +19,6 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.channel.AppPublishChannelMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigFactory;
@@ -158,25 +154,12 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appPublish.getAppUid());
         }
 
-        JSONObject jsonObject = JSONUtil.parseObj(appPublish.getAppInfo());
-        if (StringUtils.isBlank(jsonObject.getStr("config"))) {
+        AppDO appDO = JSONUtil.toBean(appPublish.getAppInfo(), AppDO.class);
+        if (Objects.isNull(appDO)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appPublish.getAppUid());
         }
 
-        AppRespVO appResponse = JSONUtil.toBean(appPublish.getAppInfo(), AppRespVO.class);
-        if (Objects.isNull(appResponse)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appPublish.getAppUid());
-        }
-
-        if (AppModelEnum.COMPLETION.name().equals(appResponse.getModel())) {
-            appResponse.setWorkflowConfig(JSONUtil.toBean(jsonObject.getStr("config"), WorkflowConfigRespVO.class));
-        } else if (AppModelEnum.CHAT.name().equals(appResponse.getModel())) {
-            appResponse.setChatConfig(JSONUtil.toBean(jsonObject.getStr("config"), ChatConfigRespVO.class));
-        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appResponse.getModel())) {
-            appResponse.setImageConfig(JSONUtil.toBean(jsonObject.getStr("config"), ImageConfigRespVO.class));
-        }
-
-        return appResponse;
+        return AppConvert.INSTANCE.convertResponse(appDO);
     }
 
     /**

@@ -227,6 +227,6 @@ public class AppServiceImpl implements AppService {
     @SuppressWarnings("all")
     public void asyncExecute(AppExecuteReqVO request) {
         BaseAppEntity app = AppFactory.factory(request);
-        app.aexecute(request);
+        app.asyncExecute(request);
     }
 }

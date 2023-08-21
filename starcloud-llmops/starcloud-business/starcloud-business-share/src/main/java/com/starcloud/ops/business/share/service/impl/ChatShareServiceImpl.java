@@ -3,7 +3,6 @@ package com.starcloud.ops.business.share.service.impl;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import com.github.xiaoymin.knife4j.core.util.Assert;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -32,6 +31,6 @@ public class ChatShareServiceImpl implements ChatShareService {
         }
         ChatAppEntity chatAppEntity = AppFactory.factory(chatRequestVO.getMediumUid());
         TenantContextHolder.setTenantId(chatAppEntity.getTenantId());
-        chatAppEntity.aexecute(chatRequestVO);
+        chatAppEntity.asyncExecute(chatRequestVO);
     }
 }

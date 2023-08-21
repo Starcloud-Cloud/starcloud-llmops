@@ -330,7 +330,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param request 请求参数
      */
     @JSONField(serialize = false)
-    public void aexecute(Q request) {
+    public void asyncExecute(Q request) {
         try {
             log.info("app async start:{}, {}", this.getUid(), this.getName());
 
