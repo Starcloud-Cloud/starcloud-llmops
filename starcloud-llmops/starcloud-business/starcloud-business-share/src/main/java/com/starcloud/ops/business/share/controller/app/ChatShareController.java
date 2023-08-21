@@ -33,6 +33,7 @@ import javax.annotation.security.PermitAll;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -71,8 +72,8 @@ public class ChatShareController {
     }
 
     @GetMapping("/history")
-    @Operation(summary = "聊天应用详情")
-    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@RequestParam(value = "conversationUid",required = false) String conversationUid,
+    @Operation(summary = "会话历史")
+    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@RequestParam(value = "conversationUid", required = false) String conversationUid,
                                                                  @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
                                                                  @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize
     ) {
@@ -86,7 +87,7 @@ public class ChatShareController {
     @PostMapping("/conversation")
     @Operation(summary = "聊天执行")
     @PermitAll
-    public SseEmitter execute(@RequestBody ChatRequestVO chatRequestVO,
+    public SseEmitter execute(@RequestBody @Valid ChatRequestVO chatRequestVO,
                               @CookieValue(value = "fSId", required = false) String upfSId,
                               HttpServletRequest request, HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-cache, no-transform");

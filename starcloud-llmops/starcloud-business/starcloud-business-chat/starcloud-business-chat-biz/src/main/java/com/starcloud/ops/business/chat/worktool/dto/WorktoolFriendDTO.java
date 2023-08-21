@@ -30,4 +30,11 @@ public class WorktoolFriendDTO {
      */
     private List<String> tagList;
 
+    public static WorktoolFriendDTO newInstance(String phone) {
+        WorktoolFriendDTO worktoolFriendDTO = new WorktoolFriendDTO();
+        worktoolFriendDTO.setPhone(phone);
+        worktoolFriendDTO.setLeavingMsg("魔法ai机器人群助手");
+        return worktoolFriendDTO;
+    }
+
 }

@@ -30,7 +30,7 @@ public interface WorkToolClient {
      * @return
      */
     @PostMapping(value = "/wework/sendRawMessage?robotId={robotId}")
-    BaseResponse<String> createGroup(@PathVariable("robotId") String robotId, @RequestBody BaseReq<CreateGroupReq> sendMessageReqBaseReq);
+    BaseResponse<String> createGroup(@PathVariable("robotId") String robotId, @RequestBody BaseReq<CreateGroupReq> createGroupReqBaseReq);
 
     /**
      * 修改群信息/拉人/踢人
@@ -40,7 +40,7 @@ public interface WorkToolClient {
      * @return
      */
     @PostMapping(value = "/wework/sendRawMessage?robotId={robotId}")
-    BaseResponse<String> modifyGroup(@PathVariable("robotId") String robotId, @RequestBody BaseReq<ModifyGroupReq> sendMessageReqBaseReq);
+    BaseResponse<String> modifyGroup(@PathVariable("robotId") String robotId, @RequestBody BaseReq<ModifyGroupReq> modifyGroupReqBaseReq);
 
 
     /**
@@ -51,7 +51,7 @@ public interface WorkToolClient {
      * @return
      */
     @PostMapping(value = "/wework/sendRawMessage?robotId={robotId}")
-    BaseResponse<String> addFriend(@PathVariable("robotId") String robotId, @RequestBody BaseReq<AddFriendReq> sendMessageReqBaseReq);
+    BaseResponse<String> addFriend(@PathVariable("robotId") String robotId, @RequestBody BaseReq<AddFriendReq> addFriendReqBaseReq);
 
 
     /**
