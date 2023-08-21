@@ -9,6 +9,11 @@ package com.starcloud.ops.business.app.domain.entity.config;
  */
 public abstract class BaseConfigEntity {
 
+    public void init() {
+
+    }
+
     public abstract void validate();
+
 
 }

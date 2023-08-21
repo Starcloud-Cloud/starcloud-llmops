@@ -48,7 +48,11 @@ public abstract class SummarizerMixin extends BaseChatMemory {
             "{summary}\n" +
             "\n" +
             "New lines of conversation:\n" +
+            "[lines]\n" +
             "{new_lines}\n" +
+            "[End lines]" +
+            "\n" +
+            "Identify the language used in the conversation and use the same language in the summary! The summary is limited to 500 characters!" +
             "\n" +
             "New summary:";
 
@@ -82,6 +86,16 @@ public abstract class SummarizerMixin extends BaseChatMemory {
         BaseMessage message = (BaseMessage) c.getConstructor(String.class).newInstance(text);
 
         return message;
+    }
+
+    protected String renderPrompt(List<BaseMessage> messages, String existingSummary) {
+
+        String newLines = BaseMessage.getBufferString(messages);
+
+        return this.prompt.format(Arrays.asList(
+                BaseVariable.newString("new_lines", newLines),
+                BaseVariable.newString("summary", existingSummary)
+        ));
     }
 
     protected BaseLLMResult predictNewSummary(List<BaseMessage> messages, String existingSummary) {

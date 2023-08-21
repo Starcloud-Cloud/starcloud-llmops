@@ -8,6 +8,21 @@ import java.util.List;
 @Data
 public class FunctionsAgentAction extends AgentAction {
 
+    /**
+     * 执行耗时
+     */
+    private Long elapsed = 0l;
+
+
+    private String errorCode;
+
+    private String error;
+
+    private String tool;
+
+    private Object toolInput;
+
+
     private List<BaseMessage> messagesLog;
 
     public FunctionsAgentAction(List<BaseMessage> messagesLog) {

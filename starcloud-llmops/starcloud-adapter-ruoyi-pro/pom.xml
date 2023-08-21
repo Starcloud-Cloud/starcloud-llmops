@@ -28,6 +28,14 @@
             <artifactId>yudao-spring-boot-starter-web</artifactId>
         </dependency>
 
+<!--        &lt;!&ndash; 依赖文件服务做测试&ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>cn.iocoder.boot</groupId>-->
+<!--            <artifactId>yudao-module-infra-biz</artifactId>-->
+<!--            <version>${revision}</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-spring-boot-starter-security</artifactId>

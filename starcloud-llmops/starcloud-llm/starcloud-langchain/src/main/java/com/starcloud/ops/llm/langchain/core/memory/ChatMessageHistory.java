@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.FunctionMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import lombok.Data;
 
@@ -31,6 +32,12 @@ public class ChatMessageHistory {
     public void addAiMessage(String content) {
 
         this.messages.add(new AIMessage(content));
+    }
+
+
+    public void addFunMessage(String name, Object arguments) {
+
+        this.messages.add(new FunctionMessage(name, arguments));
     }
 
     public List<BaseMessage> limitMessage(long limit) {

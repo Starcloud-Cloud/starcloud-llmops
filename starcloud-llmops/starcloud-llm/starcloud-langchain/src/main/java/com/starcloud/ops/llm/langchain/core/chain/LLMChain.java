@@ -52,12 +52,5 @@ public class LLMChain<R> extends Chain<BaseLLMResult<R>> {
 
         return this.call(Arrays.asList(BaseVariable.newString(text))).getText();
     }
-//
-//    protected BaseLLMResult<R> _call(List<BaseVariable> baseVariables, CallbackManagerForChainRun chainRun) {
-//        PromptValue promptValue = this.promptTemplate.formatPrompt(baseVariables);
-//
-//        this.getLlm().setVerbose(this.getVerbose());
-//        return this.getLlm().generatePrompt(Arrays.asList(promptValue));
-//    }
 
 }

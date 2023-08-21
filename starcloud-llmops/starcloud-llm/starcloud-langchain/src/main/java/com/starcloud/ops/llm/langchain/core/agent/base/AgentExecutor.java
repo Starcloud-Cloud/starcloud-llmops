@@ -4,23 +4,31 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentAction;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
 import com.starcloud.ops.llm.langchain.core.chain.base.Chain;
+import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
+import com.starcloud.ops.llm.langchain.core.model.chat.base.BaseChatModel;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
-import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForChainRun;
+import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.FunctionMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.schema.parser.OutputParserException;
+import com.starcloud.ops.llm.langchain.core.tools.FailTool;
 import com.starcloud.ops.llm.langchain.core.tools.InvalidTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
+import com.starcloud.ops.llm.langchain.core.tools.exception.ToolContinuesExecution;
+import com.theokanning.openai.completion.chat.ChatFunctionCall;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +38,9 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Data
-public class AgentExecutor extends Chain<AgentExecutorResponse> {
+public class AgentExecutor extends Chain<AgentAction> {
+
+    private BaseChatMemory memory;
 
     private BaseSingleActionAgent actionAgent;
 
@@ -57,26 +67,31 @@ public class AgentExecutor extends Chain<AgentExecutorResponse> {
         this.tools = tools;
         this.callbackManager = callbackManager;
         this.tags = tags;
+        Optional.ofNullable(this.tools).orElse(new ArrayList<>()).forEach(tool -> {
+            tool.setCallbackManager(callbackManager);
+        });
+        actionAgent.setAgentExecutor(this);
     }
 
-    public static AgentExecutor fromAgentAndTools(List<BaseTool> tools, BaseLanguageModel llm, BaseSingleActionAgent agent, BaseCallbackManager callbackManager) {
+    public static AgentExecutor fromAgentAndTools(BaseSingleActionAgent agent, List<BaseTool> tools, BaseCallbackManager callbackManager) {
 
         Assert.notNull(agent);
-
         return new AgentExecutor(agent, tools, callbackManager, new ArrayList<>());
     }
 
-    public static AgentExecutor fromAgentAndTools(List<BaseTool> tools, BaseLanguageModel llm, BaseSingleActionAgent agent) {
+    public static AgentExecutor fromAgentAndTools(BaseSingleActionAgent agent, List<BaseTool> tools, BaseCallbackManager callbackManager, BaseChatMemory chatMemory) {
 
         Assert.notNull(agent);
+        AgentExecutor agentExecutor = new AgentExecutor(agent, tools, callbackManager, new ArrayList<>());
+        agentExecutor.setMemory(chatMemory);
 
-        return new AgentExecutor(agent, tools, new CallbackManager(), new ArrayList<>());
+        return agentExecutor;
     }
+
 
     protected static AgentExecutor loadAgent() {
         return null;
     }
-
 
     protected Map<String, BaseTool> getToolMaps() {
 
@@ -85,7 +100,7 @@ public class AgentExecutor extends Chain<AgentExecutorResponse> {
     }
 
     @Override
-    protected AgentExecutorResponse _call(List<BaseVariable> variables) {
+    protected AgentAction _call(List<BaseVariable> variables) {
 
         List<AgentAction> intermediateSteps = new ArrayList<>();
 
@@ -95,24 +110,31 @@ public class AgentExecutor extends Chain<AgentExecutorResponse> {
 
         Map<String, BaseTool> toolMap = this.getToolMaps();
 
+        //@todo 增加第一条message
+        //this.getMemory().getChatHistory().addMessage();
+
         while (this._shouldContinue(iterations, timeElapsed)) {
+
+            //刷新chatHistory变量
+            variables = this.prepInputs(variables);
 
             List<AgentAction> nextStepOutput = this._takeNextStep(toolMap, variables, intermediateSteps);
 
             //检查是否直接有完成的AgentFinish
             AgentFinish agentFinish = this.checkGetAgentFinish(nextStepOutput);
 
-            //增加到actions执行记录
-            intermediateSteps.addAll(nextStepOutput);
-
             //有AgentFinish 直接返回
             if (agentFinish != null) {
                 return this._return(agentFinish, intermediateSteps);
             }
 
-            if (CollectionUtil.size(nextStepOutput) == 1) {
-                AgentAction nextStepAction = nextStepOutput.get(0);
+            //FunctionAction 增加到actions执行记录
+            intermediateSteps.addAll(nextStepOutput);
 
+            if (CollectionUtil.size(nextStepOutput) == 1) {
+                FunctionsAgentAction nextStepAction = (FunctionsAgentAction) nextStepOutput.get(0);
+
+                //@todo 无用不会返回
                 AgentFinish toolReturn = getToolReturn(nextStepAction);
                 if (toolReturn != null) {
                     return this._return(toolReturn, intermediateSteps);
@@ -131,22 +153,100 @@ public class AgentExecutor extends Chain<AgentExecutorResponse> {
     @Override
     public String run(List<BaseVariable> baseVariables) {
 
-        AgentExecutorResponse response = this.call(baseVariables);
+        AgentAction response = this.call(baseVariables);
         if (response != null) {
-            return String.valueOf(response.getOutput());
+            return String.valueOf(response.getObservation());
         }
         return "";
     }
 
     @Override
-    protected AgentExecutorResponse prepOutputs(List<BaseVariable> baseVariables, AgentExecutorResponse result) {
+    protected AgentAction prepOutputs(List<BaseVariable> baseVariables, AgentAction result) {
 
         this._validateOutputs(result);
 
         if (this.getMemory() != null) {
-            this.getMemory().saveContext(baseVariables, BaseLLMResult.builder().text((String) result.getOutput()).build());
+            //只会是 AgentFinish
+            if (result instanceof AgentFinish) {
+                BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(result);
+                this.getMemory().saveContext(null, baseLLMResult);
+            }
         }
+
         return result;
+    }
+
+    protected BaseLLMResult parseAgentAction2LLmResult(List<BaseVariable> variables, AgentAction actionAgent) {
+
+
+        BaseVariable variable = this.getMemory().getPromptInputKey(variables);
+        HumanMessage humanMessage = new HumanMessage(String.valueOf(variable.getValue()));
+
+        BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(actionAgent);
+
+        //用户请求放在第一个
+        baseLLMResult.getGenerations().add(0, ChatGeneration.builder().chatMessage(humanMessage).build());
+
+        return baseLLMResult;
+    }
+
+    protected BaseLLMResult parseAgentAction2LLmResult(AgentAction actionAgent) {
+
+        List<ChatGeneration<Object>> generations = new ArrayList<>();
+
+        /**
+         * 一个 FunctionsAgentAction 有两种状态，执行前，执行后
+         */
+        if (actionAgent instanceof FunctionsAgentAction) {
+
+            AIMessage aiMessage = (AIMessage) ((FunctionsAgentAction) actionAgent).getMessagesLog().stream().findFirst().get();
+
+            if (aiMessage.getAdditionalArgs() != null && aiMessage.getAdditionalArgs().get("function_call") != null) {
+                //有状态，执行过
+                if (actionAgent.getStatus() != null) {
+
+                    ChatFunctionCall functionCall = (ChatFunctionCall) aiMessage.getAdditionalArgs().get("function_call");
+                    JsonNode params = functionCall.getArguments();
+
+                    FunctionMessage functionMessage = new FunctionMessage(((FunctionsAgentAction) actionAgent).getTool(), params);
+                    functionMessage.setContent(JSONUtil.toJsonStr(actionAgent.getObservation()));
+                    functionMessage.setStatus(actionAgent.getStatus());
+                    functionMessage.setElapsed(((FunctionsAgentAction) actionAgent).getElapsed());
+
+                    //@todo 如果要增加工具消耗，还没有地方加
+                    generations.add(ChatGeneration.builder().chatMessage(functionMessage).build());
+
+                } else {
+
+                    //未执行过，即 请求LLM返回fun_call
+                    generations.add(ChatGeneration.builder().chatMessage(aiMessage).build());
+                }
+            }
+
+        } else if (actionAgent instanceof AgentFinish) {
+
+
+            if (Boolean.TRUE.equals(actionAgent.getStatus())) {
+
+                //LLM 用函数结果调用后返回最终结果
+                List<BaseMessage> messageList = ((AgentFinish) actionAgent).getMessagesLog();
+
+                generations.add(ChatGeneration.builder().chatMessage((AIMessage) messageList.get(0)).build());
+
+            } else {
+                //agent 是异常，提前结束了，如LLM超时
+
+            }
+
+
+        } else {
+
+            log.error("agentExecutor parseAgentAction2LLmResult is fail, Unsupported actionAgent: {}", actionAgent);
+        }
+
+        BaseLLMResult baseLLMResult = BaseLLMResult.builder().generations(generations).build();
+
+        return baseLLMResult;
     }
 
 
@@ -196,62 +296,173 @@ public class AgentExecutor extends Chain<AgentExecutorResponse> {
     }
 
 
+    /**
+     * 执行LLM，包装成不同类型的AgentAction
+     *
+     * @param toolMap
+     * @param variables
+     * @param intermediateSteps
+     * @return
+     */
     private List<AgentAction> _takeNextStep(Map<String, BaseTool> toolMap, List<BaseVariable> variables, List<AgentAction> intermediateSteps) {
 
-        List<AgentAction> agentActions = new ArrayList<>();
 
-        try {
+        //llm执行的任何异常都将阻断流程，所以全部抛出
+        List<AgentAction> agentActions = this.getActionAgent().plan(intermediateSteps, variables, this.getCallbackManager());
 
-            agentActions = this.getActionAgent().plan(intermediateSteps, variables, this.callbackManager);
-
-        } catch (OutputParserException e) {
-
-            log.error("plan is fail: {}", e.getMessage(), e);
-            //@todo ExceptionTool
-            return Arrays.asList(AgentFinish.error(e.getMessage()));
+        if (CollectionUtil.size(agentActions) != 1) {
+            throw new OutputParserException("plan return is error, agetAction more 1");
         }
 
-        //todo multistep AgentAction
+        //判断是否完成了，现在只有会一个元素
         if (CollectionUtil.size(agentActions) == 1) {
-
             if (agentActions.get(0) instanceof AgentFinish) {
                 return agentActions;
             }
         }
 
+        //只有 FunctionsAgentAction 执行到这里
+        //第一次增加 用户请求 message
+        if (CollectionUtil.isEmpty(intermediateSteps)) {
+
+            //保存第一条 history, 带用户输入
+            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(variables, agentActions.get(0));
+
+            this.getMemory().saveContext(null, baseLLMResult);
+        } else {
+
+            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(agentActions.get(0));
+
+            this.getMemory().saveContext(null, baseLLMResult);
+        }
+
+
         List<AgentAction> result = new ArrayList<>();
 
+        //现在只有会一个元素
         for (AgentAction agentAction : agentActions) {
+            FunctionsAgentAction funAgentAction = (FunctionsAgentAction) agentAction;
 
-            Object observation = null;
-
+            long start = System.currentTimeMillis();
             this.callbackManager.onAgentAction(this.getClass(), agentAction, this.getVerbose());
 
-            if (toolMap.containsKey(agentAction.getTool())) {
+            String tool = funAgentAction.getTool();
+            Object toolInput = funAgentAction.getToolInput();
+            Object observation = null;
 
-                BaseTool baseTool = toolMap.get(agentAction.getTool());
+            /**
+             * 执行函数调用，异常catch，保存下来.并且设置返回内容，好让LLM继续做判断
+             */
+
+            try {
+
+                if (toolMap.containsKey(tool)) {
+
+                    BaseTool baseTool = toolMap.get(tool);
+                    Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
+
+                    if (baseTool.getReturnDirect()) {
+                        toolRunKwargs.put("llm_prefix", "");
+                    }
+
+
+                    //@todo 捕获工具执行异常
+                    observation = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
+                    //为空，可能执行异常，告诉LLM 此次调用失败，无效
+                    if (ObjectUtil.isEmpty(observation)) {
+                        throw new ToolContinuesExecution(tool, toolInput, null, null, new FailTool(tool).setCallbackManager(this.callbackManager));
+                    }
+
+                    funAgentAction.setStatus(true);
+                    funAgentAction.setObservation(observation);
+
+                } else {
+
+                    throw new ToolContinuesExecution(tool, toolInput, null, null, new InvalidTool(tool).setCallbackManager(this.callbackManager));
+                }
+
+            } catch (ToolContinuesExecution toolContinuesExecution) {
+
+                log.error("AgentExecutor tool run is fail: {}", toolContinuesExecution);
+
+                funAgentAction.setObservation(toolContinuesExecution.getObservation());
+                funAgentAction.setStatus(false);
+
+                funAgentAction.setErrorCode("-1");
+                funAgentAction.setError(toolContinuesExecution.getMessage());
+
+            } catch (Exception e) {
+
+                log.error("AgentExecutor tool run is error: {}", e.getMessage(), e);
+
+                funAgentAction.setStatus(false);
+                funAgentAction.setError(e.getMessage());
+                funAgentAction.setErrorCode("-2");
+                funAgentAction.setObservation("");
+            }
+
+            funAgentAction.setElapsed(System.currentTimeMillis() - start);
+
+            //增加 fun 调用日志
+            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(funAgentAction);
+            this.getMemory().saveContext(null, baseLLMResult);
+
+            result.add(funAgentAction);
+        }
+
+        return result;
+    }
+
+
+    private List<AgentAction> runTool(Map<String, BaseTool> toolMap, List<AgentAction> agentActions) {
+
+        List<AgentAction> result = new ArrayList<>();
+
+        //现在只有会一个元素
+        for (AgentAction agentAction : agentActions) {
+
+            long start = System.currentTimeMillis();
+            this.callbackManager.onAgentAction(this.getClass(), agentAction, this.getVerbose());
+
+            FunctionsAgentAction funAgentAction = (FunctionsAgentAction) agentAction;
+            String tool = funAgentAction.getTool();
+            Object toolInput = funAgentAction.getToolInput();
+            Object observation = null;
+
+            if (toolMap.containsKey(tool)) {
+
+                BaseTool baseTool = toolMap.get(tool);
                 Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
 
                 if (baseTool.getReturnDirect()) {
                     toolRunKwargs.put("llm_prefix", "");
                 }
 
+
                 //@todo 捕获工具执行异常
-                observation = baseTool.run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
+                observation = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
                 //为空，可能执行异常，告诉LLM 此次调用失败，无效
                 if (ObjectUtil.isEmpty(observation)) {
-                    agentAction.setStatus(false);
-                    observation = "Calling the tool failed and returned nothing.";
+                    funAgentAction.setStatus(false);
+                    observation = new FailTool(tool).setCallbackManager(this.callbackManager).run(toolInput);
+                } else {
+                    funAgentAction.setStatus(true);
                 }
+
 
             } else {
 
                 Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
                 //LLM 返回了错误工具的情况
-                observation = new InvalidTool(agentAction.getTool()).setCallbackManager(this.callbackManager).run(agentAction.getToolInput(), this.getVerbose(), toolRunKwargs);
+                observation = new InvalidTool(tool).setCallbackManager(this.callbackManager).run(toolInput);
             }
 
-            agentAction.setObservation(observation);
+            funAgentAction.setObservation(observation);
+            funAgentAction.setElapsed(System.currentTimeMillis() - start);
+
+            //增加 fun 调用日志
+            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(agentAction);
+            this.getMemory().saveContext(null, baseLLMResult);
 
             result.add(agentAction);
         }
@@ -272,7 +483,7 @@ public class AgentExecutor extends Chain<AgentExecutorResponse> {
         return null;
     }
 
-    private AgentFinish getToolReturn(AgentAction nextStepAction) {
+    private AgentFinish getToolReturn(FunctionsAgentAction nextStepAction) {
 
         Map<String, BaseTool> toolMap = this.getToolMaps();
 
@@ -287,8 +498,14 @@ public class AgentExecutor extends Chain<AgentExecutorResponse> {
         return null;
     }
 
-    //对返回对AgentFinish增加 执行历史的 AgentAction 的记录，其中也包括了LLM执行消耗
-    private AgentExecutorResponse _return(AgentFinish agentFinish, List<AgentAction> agentActions) {
+    /**
+     * 对返回对AgentFinish增加 执行历史的 AgentAction 的记录，其中也包括了LLM执行消耗
+     *
+     * @param agentFinish
+     * @param agentActions
+     * @return
+     */
+    private AgentAction _return(AgentFinish agentFinish, List<AgentAction> agentActions) {
 
         this.callbackManager.onAgentFinish(this.getClass(), agentFinish);
 
@@ -304,6 +521,6 @@ public class AgentExecutor extends Chain<AgentExecutorResponse> {
             agentExecutorResponse.setIntermediateSteps(agentActions);
         }
 
-        return agentExecutorResponse;
+        return agentFinish;
     }
 }

@@ -285,10 +285,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             if (StrUtil.isNotBlank(req.getConversationUid())) {
                 LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
                 if (logAppConversationDO == null) {
-                    this.createAppConversationLog(req);
+                    String conversationUid = this.createAppConversationLog(req);
+                    req.setConversationUid(conversationUid);
                 } else {
                     List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(req.getConversationUid());
-                    Collections.reverse(logAppMessageList);
+
                     this._initHistory(req, logAppConversationDO, logAppMessageList);
                 }
             } else {
@@ -343,9 +344,15 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             //会话处理
             if (StrUtil.isNotBlank(req.getConversationUid())) {
                 LogAppConversationDO logAppConversationDO = this.getAppConversation(req.getConversationUid());
-                List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(req.getConversationUid());
-                Collections.reverse(logAppMessageList);
-                this._initHistory(req, logAppConversationDO, logAppMessageList);
+                if (logAppConversationDO == null) {
+                    String conversationUid = this.createAppConversationLog(req);
+                    req.setConversationUid(conversationUid);
+                } else {
+                    List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(req.getConversationUid());
+
+                    this._initHistory(req, logAppConversationDO, logAppMessageList);
+                }
+
             } else {
                 String conversationUid = this.createAppConversationLog(req);
                 req.setConversationUid(conversationUid);
@@ -451,7 +458,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param consumer 消息创建
      * @return 消息对象
      */
-    protected LogAppMessageCreateReqVO createAppMessage(Consumer<LogAppMessageCreateReqVO> consumer) {
+    public LogAppMessageCreateReqVO createAppMessage(Consumer<LogAppMessageCreateReqVO> consumer) {
 
         LogAppMessageCreateReqVO messageCreateReqVO = new LogAppMessageCreateReqVO();
 //        messageCreateReqVO.setAppConversationUid(req.getConversationUid());
@@ -495,7 +502,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             reqVO.setPageSize(100);
             reqVO.setPageNo(1);
             reqVO.setAppConversationUid(conversationId);
-            PageResult<LogAppMessageDO> pageResult = logAppMessageService.userMessagePage(reqVO);
+            PageResult<LogAppMessageDO> pageResult = logAppMessageService.getAppMessagePage(reqVO);
             return Optional.ofNullable(pageResult).map(PageResult::getList).orElse(new ArrayList<>());
         }
 
