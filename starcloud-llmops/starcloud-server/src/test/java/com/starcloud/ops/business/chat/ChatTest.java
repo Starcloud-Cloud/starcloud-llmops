@@ -25,11 +25,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 
 import javax.annotation.Resource;
 
 @Slf4j
+@ComponentScan(basePackages = "cn.iocoder.yudao.module.infra")
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class})
 @ExtendWith(MockitoExtension.class)
 public class ChatTest extends BaseDbUnitTest {
@@ -114,6 +116,9 @@ public class ChatTest extends BaseDbUnitTest {
         chatRequest.setQuery("你还记得我的名字嘛？");
 
 
+        chatRequest.setQuery("亚马逊新手如何开店，详细点说明，100个字");
+
+
 
         //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
@@ -121,6 +126,10 @@ public class ChatTest extends BaseDbUnitTest {
 
     }
 
+
+    /**
+     * 网页爬取测试
+     */
     @Test
     public void runMyChatToolTest() {
 
@@ -133,8 +142,11 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
+        chatRequest.setQuery("今天杭州的天气怎么样？");
+
         chatService.chat(chatRequest);
 
     }
+
 
 }

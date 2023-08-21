@@ -1,5 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.model.llm.base;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +29,7 @@ public class BaseLLMResult<R> {
 
 
     public String getText() {
-        return StrUtil.isNotBlank(this.text) ? this.text : generations.get(0).getText();
+        return StrUtil.isNotBlank(this.text) ? this.text : CollectionUtil.getLast(generations).getText();
     }
 
     public static <R> BaseLLMResult<R> data(String str) {

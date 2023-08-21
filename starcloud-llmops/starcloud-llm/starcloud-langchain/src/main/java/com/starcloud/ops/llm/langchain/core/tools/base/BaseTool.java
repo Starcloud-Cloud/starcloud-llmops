@@ -4,6 +4,7 @@ import cn.hutool.core.util.TypeUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
+import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForToolRun;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import kotlin.jvm.Transient;
@@ -25,7 +26,7 @@ public abstract class BaseTool<Q, R> {
     private Boolean returnDirect = false;
 
     @Transient
-    private BaseCallbackManager callbackManager;
+    private BaseCallbackManager callbackManager = new CallbackManager();
 
     protected abstract R _run(Q input);
 
@@ -50,7 +51,7 @@ public abstract class BaseTool<Q, R> {
 
                 Type query = TypeUtil.getTypeArgument(this.getClass());
                 Class<Q> cc = (Class<Q>) query;
-                result = this._run(JSONUtil.toBean(input.toString(), cc));
+                result = this._run(input);
             }
 
             toolRun.onToolEnd(this.getName(), result, input, verbose);

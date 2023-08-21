@@ -6,6 +6,7 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
@@ -25,31 +26,23 @@ import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
-import com.starcloud.ops.business.app.domain.llm.OpenAIToolFactory;
 import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
-import com.starcloud.ops.business.app.enums.PromptTempletEnum;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
-import com.starcloud.ops.business.app.service.chat.momory.ConversationTokenDbBufferMemory;
-import com.starcloud.ops.business.app.service.chat.momory.ConversationTokenDbMessageMemory;
-import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
+import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
-import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutorResponse;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
-import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
@@ -59,12 +52,9 @@ import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -93,7 +83,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     /**
      * 自定义memory 处理总结和tool历史问题。历史初始化时候新建
      */
-    private ConversationTokenDbMessageMemory messageMemory = new ConversationTokenDbMessageMemory();
+    private ConversationSummaryDbMessageMemory messageMemory = new ConversationSummaryDbMessageMemory();
 
     /**
      * 获取 AppRepository
@@ -168,7 +158,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         }
 
         //有历史初始化一个 memory
-        this.messageMemory = new ConversationTokenDbMessageMemory(logAppMessageDOS, req, this);
+        this.messageMemory = new ConversationSummaryDbMessageMemory(logAppMessageDOS);
 
 
     }
@@ -218,6 +208,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     private JsonData executeChat(ChatRequestVO request, Long userId) {
 
+        this.getMessageMemory().setChatAppEntity(this);
+        this.getMessageMemory().setChatRequestVO(request);
+
         SseEmitter emitter = request.getSseEmitter();
 
         long start = System.currentTimeMillis();
@@ -243,19 +236,18 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         log.info("chatPromptTemplate: {}, \n\n humanInput: {}", chatPromptTemplate, humanInput);
 
         //设置 memory 必要参数
-        this.getMessageMemory().setModelType(chatConfig.getModelConfig().getCompletionParams().getModel());
-        this.getMessageMemory().setMaxTokens(maxTokens);
+        this.getMessageMemory().setSummaryMaxTokens(maxTokens);
 
 
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
         if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
                 || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()))) {
 
-            AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, emitter);
+            AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, chatPromptTemplate, emitter);
 
-            AgentExecutorResponse agentExecutorResponse = agentExecutor.call(Arrays.asList(humanInput));
+            AgentAction agentAction = agentExecutor.call(Arrays.asList(humanInput));
 
-            log.info("agentExecutor run result: {}", agentExecutorResponse);
+            log.info("agentExecutor run result: {}", agentAction);
 
             //扣费，记录 tool 调用日志
 
@@ -267,7 +259,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             //记录返回日志
 
             //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
-            return JsonData.of(agentExecutorResponse.getOutput());
+            return JsonData.of(agentAction.getObservation());
 
         } else {
 
@@ -278,41 +270,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
             BaseLLMResult<ChatCompletionResult> result = llmChain.call(Arrays.asList(humanInput));
 
-            long end = System.currentTimeMillis();
-            //@todo 不同模型价格不一样
-            BigDecimal messagePrice = BigDecimal.valueOf(result.getUsage().getPromptTokens()).multiply(new BigDecimal("0.00150")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
-            BigDecimal answerPrice = BigDecimal.valueOf(result.getUsage().getCompletionTokens()).multiply(new BigDecimal("0.00200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
-
-            //@todo 应该放到 messageMemory 中去保存，不方便暂时不动
-//            LogAppMessageCreateReqVO message = this.createAppMessage((messageCreateReqVO) -> {
-//
-//                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
-//
-//
-//                messageCreateReqVO.setMessage(request.getQuery());
-//                messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
-//                messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.00150"));
-//
-//                messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(chatConfig));
-//                messageCreateReqVO.setVariables(JSONUtil.toJsonStr(chatConfig.getModelConfig()));
-//                messageCreateReqVO.setAppUid(this.getUid());
-//                messageCreateReqVO.setAppStep("");
-//                messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
-//                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
-//
-//                messageCreateReqVO.setAnswer(result.getText());
-//                messageCreateReqVO.setAnswerTokens(Math.toIntExact(result.getUsage().getCompletionTokens()));
-//                messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.00200"));
-//                messageCreateReqVO.setElapsed(end - start);
-//                messageCreateReqVO.setTotalPrice(messagePrice.add(answerPrice));
-//                messageCreateReqVO.setCurrency("USD");
-//                messageCreateReqVO.setFromScene(request.getScene());
-//                messageCreateReqVO.setStatus("SUCCESS");
-//                messageCreateReqVO.setEndUser(request.getEndUser());
-//                messageCreateReqVO.setCreator(userId.toString());
-//                messageCreateReqVO.setMsgType(LogMessageTypeEnum.CHAT.name());
-//
-//            });
+            llmChain.getMemory();
 
             //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
             return JsonData.of(result);
@@ -357,29 +315,28 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         chatOpenAi.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = new LLMChain<>(chatOpenAi, chatPromptTemplate);
 
-        this.getMessageMemory().setChatLlm(chatOpenAi);
         llmChain.setMemory(this.getMessageMemory());
         return llmChain;
     }
 
     private AgentExecutor buildLLmTools(ChatRequestVO request,
                                         ChatConfigEntity chatConfig,
+                                        ChatPromptTemplate chatPromptTemplate,
                                         SseEmitter emitter) {
 
         ChatOpenAI chatOpenAI = new ChatOpenAI();
         chatOpenAI.setStream(false);
-        //gpt-3.5-turbo-0613, gpt-4-0613
-        chatOpenAI.setModel("gpt-4-0613");
+
+        chatOpenAI.setModel(ModelType.GPT_4.getName());
         chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter, request.getConversationUid()));
 
         List<BaseTool> tools = this.loadLLMTools(request, chatConfig, emitter);
 
-        OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools);
-        AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(tools, chatOpenAI, baseSingleActionAgent, baseSingleActionAgent.getCallbackManager());
+        //增加 统一的 promptTemplate
+        OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools, chatPromptTemplate);
+        AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(baseSingleActionAgent, tools, chatOpenAI.getCallbackManager());
 
         agentExecutor.setMemory(this.getMessageMemory());
-
-        log.info("tools: {}", JSONUtil.parse(tools).toStringPretty());
 
         return agentExecutor;
     }
@@ -413,6 +370,16 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
             loadTools.add(handlerSkill.createFunTool(appContext));
         }
+
+        List<BaseTool> handlerFunTools = Optional.ofNullable(chatConfig.getHandlerSkills()).orElse(new ArrayList<>()).stream().filter(HandlerSkill::getEnabled).map(handlerSkill -> {
+
+            if (handlerSkill.getHandler() != null) {
+                return handlerSkill.createFunTool(appContext);
+            }
+            return null;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        loadTools.addAll(handlerFunTools);
+
 
         //API工具
         List<BaseTool> apiFunTools = Optional.ofNullable(chatConfig.getApiSkills()).orElse(new ArrayList<>()).stream().filter(ApiSkill::getEnabled).map(skillEntity -> {

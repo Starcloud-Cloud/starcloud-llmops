@@ -8,13 +8,14 @@ import org.apache.ibatis.annotations.Mapper;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springdoc.core.GroupedOpenApi;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Slf4j
-@Configuration
+@AutoConfiguration
 @MapperScan(value = "com.starcloud.ops", annotationClass = Mapper.class, lazyInitialization = "false")
 public class AdapterRuoyiProConfiguration implements ApplicationListener<ApplicationStartedEvent> {
 

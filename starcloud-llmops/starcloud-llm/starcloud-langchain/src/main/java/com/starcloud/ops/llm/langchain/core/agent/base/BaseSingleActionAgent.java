@@ -8,6 +8,8 @@ import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentAction;
+import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
+import com.starcloud.ops.llm.langchain.core.memory.BaseMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
@@ -17,9 +19,12 @@ import com.starcloud.ops.llm.langchain.core.schema.message.FunctionMessage;
 import lombok.Data;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 public abstract class BaseSingleActionAgent {
+
+    private AgentExecutor agentExecutor;
 
     private List<String> returnValues;
 
@@ -32,7 +37,10 @@ public abstract class BaseSingleActionAgent {
     public AgentFinish returnStoppedResponse(String earlyStoppingMethod, List<AgentAction> intermediateSteps, List<BaseVariable> variables) {
 
         Assert.equals("force", earlyStoppingMethod, "Got unsupported early_stopping_method " + earlyStoppingMethod);
-        return AgentFinish.error("Agent stopped due to iteration limit or time limit.");
+
+        String log = Optional.ofNullable(intermediateSteps).orElse(new ArrayList<>()).stream().map(AgentAction::getLog).collect(Collectors.joining("\n"));
+
+        return AgentFinish.error("Agent stopped due to iteration limit or time limit.", log);
     }
 //
 //    public static BaseSingleActionAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools, BaseCallbackManager callbackManager, List<BaseMessagePromptTemplate> extraPromptMessages, SystemMessage systemMessage) {

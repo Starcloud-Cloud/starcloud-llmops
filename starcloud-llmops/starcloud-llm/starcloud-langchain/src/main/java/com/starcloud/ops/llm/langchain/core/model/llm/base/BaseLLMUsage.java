@@ -14,10 +14,13 @@ import lombok.NoArgsConstructor;
 @Data
 public class BaseLLMUsage {
 
-    private Long promptTokens;
+    @Builder.Default
+    private Long promptTokens = 0l;
 
-    private Long completionTokens;
+    @Builder.Default
+    private Long completionTokens = 0l;
 
-    private Long totalTokens;
+    @Builder.Default
+    private Long totalTokens = 0l;
 
 }

@@ -34,6 +34,9 @@ public class HandlerSkill extends BaseSkillEntity {
         this.handler = baseHandler;
     }
 
+    public String getSkillName() {
+        return super.getName();
+    }
 
     @Override
     public String getName() {

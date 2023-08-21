@@ -2,6 +2,7 @@ package com.starcloud.ops.llm.langchain.core.model.chat.base;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.llm.langchain.core.callbacks.*;
 import com.starcloud.ops.llm.langchain.core.model.llm.LLMUtils;
@@ -25,6 +26,7 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseChatModel.class);
 
+    @Deprecated
     private long elapsed;
 
     private Boolean verbose = false;
@@ -79,10 +81,9 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
     public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, List<FunctionDescription> functionDescriptions, BaseCallbackManager callbackManager) {
 
         this.setCallbackManager(callbackManager);
-        ChatResult<R> chatResult = this.generate(Arrays.asList(baseMessages), null, functionDescriptions);
 
+        ChatResult<R> chatResult = this.generate(Arrays.asList(baseMessages), null, functionDescriptions);
         BaseMessage baseMessage = chatResult.getChatGenerations().get(0).getChatMessage();
-        baseMessage.getAdditionalArgs().put("usage", chatResult.getUsage());
 
         return baseMessage;
     }
@@ -111,6 +112,12 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
                 this.elapsed = System.currentTimeMillis() - start;
 
+                BaseMessage baseMessage = chatResult.getChatGenerations().get(0).getChatMessage();
+                baseMessage.getAdditionalArgs().put("usage", chatResult.getUsage());
+                baseMessage.getAdditionalArgs().put("llm_elapsed", this.elapsed);
+                baseMessage.getAdditionalArgs().put("fun", functions);
+                baseMessage.getAdditionalArgs().put("llm_params", BeanUtil.beanToMap(this));
+                baseMessage.getAdditionalArgs().put("llm_model", this.getModelType());
                 //llmRun.onLLMEnd();
 
             } catch (Exception e) {

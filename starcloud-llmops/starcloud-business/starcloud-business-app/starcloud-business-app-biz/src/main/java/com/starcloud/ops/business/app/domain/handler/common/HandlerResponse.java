@@ -23,6 +23,11 @@ public class HandlerResponse<R> {
     private Boolean success;
 
     /**
+     * 执行耗时
+     */
+    private long elapsed;
+
+    /**
      * 响应错误码
      */
     private String errorCode;

@@ -86,7 +86,7 @@ public class ContextPrompt extends BasePromptConfig {
             similarQueryRequest.setQuery(query);
             similarQueryRequest.setK(3L);
             similarQueryRequest.setDatasetUid(datasetUid);
-            //documentSegmentsService.similarQuery(similarQueryRequest);
+            //documentSegmentsService.matchQuery(similarQueryRequest);
 
             this.searchResult = null;
 

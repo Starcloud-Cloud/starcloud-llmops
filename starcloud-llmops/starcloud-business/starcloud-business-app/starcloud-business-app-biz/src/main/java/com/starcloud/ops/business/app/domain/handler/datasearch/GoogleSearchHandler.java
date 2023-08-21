@@ -9,6 +9,7 @@ import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.llm.langchain.core.tools.SerpAPITool;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * google 搜索内容，只返回 主要的结果摘要
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Data
 @Slf4j
+@Component
 public class GoogleSearchHandler extends BaseHandler<GoogleSearchHandler.Request, GoogleSearchHandler.Response> {
 
     private String userName = "互联网搜索";
