@@ -88,7 +88,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
     @Override
     @JSONField(serialize = false)
-    protected void _validate(AppExecuteReqVO req) {
+    protected void _validate(AppExecuteReqVO request) {
         WorkflowConfigEntity config = this.getWorkflowConfig();
         if (config == null) {
             return;
@@ -120,25 +120,25 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
     @Override
     @JSONField(serialize = false)
-    protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
+    protected AppExecuteRespVO _execute(AppExecuteReqVO request) {
 
         //权益放在这里是为了包装 可以执行完整的一次应用
-        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
+        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
 
         // 创建 App 执行上下文
-        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(req.getScene()));
-        appContext.setUserId(req.getUserId());
-        appContext.setEndUser(req.getEndUser());
+        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
+        appContext.setUserId(request.getUserId());
+        appContext.setEndUser(request.getEndUser());
 
-        appContext.setSseEmitter(req.getSseEmitter());
+        appContext.setSseEmitter(request.getSseEmitter());
 
-        if (StringUtils.isNotBlank(req.getStepId())) {
-            appContext.setStepId(req.getStepId());
+        if (StringUtils.isNotBlank(request.getStepId())) {
+            appContext.setStepId(request.getStepId());
         }
         //appContext.setHttpServletResponse(httpServletResponse);
 
-        if (StringUtils.isNotBlank(req.getConversationUid())) {
-            appContext.setConversationId(req.getConversationUid());
+        if (StringUtils.isNotBlank(request.getConversationUid())) {
+            appContext.setConversationId(request.getConversationUid());
         }
 
         return this.fireWorkflowContext(appContext);
@@ -147,9 +147,9 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
     @Override
     @JSONField(serialize = false)
-    protected void _aexecute(AppExecuteReqVO req) {
+    protected void _aexecute(AppExecuteReqVO request) {
 
-        this._execute(req);
+        this._execute(request);
     }
 
     /**
@@ -157,11 +157,11 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      */
     @Override
     @JSONField(serialize = false)
-    protected void _afterExecute(AppExecuteReqVO req, Throwable t) {
-        SseEmitter sseEmitter = req.getSseEmitter();
+    protected void _afterExecute(AppExecuteReqVO request, Throwable throwable) {
+        SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
-            if (t != null) {
-                sseEmitter.completeWithError(t);
+            if (throwable != null) {
+                sseEmitter.completeWithError(throwable);
             } else {
                 sseEmitter.complete();
             }
@@ -171,13 +171,13 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
     @Override
     @JSONField(serialize = false)
-    protected void _createAppConversationLog(AppExecuteReqVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
-        logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
+    protected void _createAppConversationLog(AppExecuteReqVO request, LogAppConversationCreateReqVO createRequest) {
+        createRequest.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
     }
 
     @Override
     @JSONField(serialize = false)
-    protected void _initHistory(AppExecuteReqVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageList) {
+    protected void _initHistory(AppExecuteReqVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
 
     }
 

@@ -55,7 +55,8 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService {
         SocialUserDO socialUserDO = socialUserList.get(0);
         DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_MSG, "invite_reply");
         MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
-        messageSendReqVO.setContent(dictDataDO.getValue());
+        String format = String.format(dictDataDO.getValue(), invitationRecords.size());
+        messageSendReqVO.setContent(format);
         messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
         messageService.sendMessage(socialUserDO.getOpenid(), messageSendReqVO);
     }

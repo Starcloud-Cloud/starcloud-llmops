@@ -84,7 +84,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     @Override
     @JSONField(serialize = false)
-    protected void _validate(ImageReqVO req) {
+    protected void _validate(ImageReqVO request) {
         getImageConfig().validate();
     }
 
@@ -171,11 +171,11 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     @Override
     @JSONField(serialize = false)
-    protected void _afterExecute(ImageReqVO req, Throwable t) {
-        SseEmitter sseEmitter = req.getSseEmitter();
+    protected void _afterExecute(ImageReqVO request, Throwable throwable) {
+        SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
-            if (t != null) {
-                sseEmitter.completeWithError(t);
+            if (throwable != null) {
+                sseEmitter.completeWithError(throwable);
             } else {
                 sseEmitter.complete();
             }
@@ -185,13 +185,13 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     /**
      * 创建会话日志记录准备，属性赋值
      *
-     * @param imageRequest
-     * @param logAppConversationRequest
+     * @param request
+     * @param createRequest
      */
     @Override
     @JSONField(serialize = false)
-    protected void _createAppConversationLog(ImageReqVO imageRequest, LogAppConversationCreateReqVO logAppConversationRequest) {
-        logAppConversationRequest.setAppConfig(JSONUtil.toJsonStr(imageRequest.getImageRequest()));
+    protected void _createAppConversationLog(ImageReqVO request, LogAppConversationCreateReqVO createRequest) {
+        createRequest.setAppConfig(JSONUtil.toJsonStr(request.getImageRequest()));
     }
 
     /**
@@ -199,7 +199,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     @Override
     @JSONField(serialize = false)
-    protected void _initHistory(ImageReqVO imageRequest, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
+    protected void _initHistory(ImageReqVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
 
     }
 

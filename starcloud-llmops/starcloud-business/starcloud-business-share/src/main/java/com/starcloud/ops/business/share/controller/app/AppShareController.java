@@ -66,18 +66,22 @@ public class AppShareController {
     @ApiOperationSupport(order = 1, author = "nacoyer")
     public SseEmitter execute(@RequestBody AppExecuteReqVO executeRequest,
                               @CookieValue(value = "fSId", required = false) String upfSId,
-                              HttpServletResponse httpServletResponse) {
+                              HttpServletRequest request,
+                              HttpServletResponse response) {
         // 用户必须存在
-        Assert.notNull(endUserService.checkUser(upfSId), "用户状态异常，请刷新页面重试");
         Assert.notNull(executeRequest.getMediumUid(), "应用分享唯一标识不能为空");
 
         // 设置响应头
-        httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
-        httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
+        response.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
+        response.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
+
+        // 设置 EndUser
+        upfSId = EndUserCodeUtil.parseUserCodeAndSaveCookie(upfSId, request, response);
+        String endUserId = endUserService.webLogin(upfSId);
+        executeRequest.setEndUser(endUserId);
 
         // 设置 SSE
         SseEmitter emitter = new SseEmitter(60000L);
-        executeRequest.setEndUser(upfSId);
         executeRequest.setSseEmitter(emitter);
 
         // 执行应用
