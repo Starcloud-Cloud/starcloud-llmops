@@ -6,6 +6,7 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
@@ -69,14 +70,19 @@ import java.util.stream.Collectors;
 @Data
 public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> {
 
+    @JSONField(serialize = false)
     private static ChatService chatService = SpringUtil.getBean(ChatService.class);
 
+    @JSONField(serialize = false)
     private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
+    @JSONField(serialize = false)
     private static DocumentSegmentsService documentSegmentsService = SpringUtil.getBean(DocumentSegmentsService.class);
 
+    @JSONField(serialize = false)
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
+    @JSONField(serialize = false)
     private static AppRepository appRepository;
 
 
@@ -90,6 +96,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      *
      * @return AppRepository
      */
+    @JSONField(serialize = false)
     public static AppRepository getAppRepository() {
         if (appRepository == null) {
             appRepository = SpringUtil.getBean(AppRepository.class);
@@ -101,6 +108,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 校验
      */
     @Override
+    @JSONField(serialize = false)
     protected void _validate(ChatRequestVO req) {
 
         //@todo 现在默认都挂载一个 数据集，具体是否能搜索靠后续向量搜索处理
@@ -115,12 +123,14 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     }
 
     @Override
+    @JSONField(serialize = false)
     protected Long getRunUserId(ChatRequestVO req) {
 
         //如果是后台执行，肯定是当前应用创建者
         if (req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
                 || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
-                || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
+                || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
+                || req.getScene().equals(AppSceneEnum.SHARE_JS.name())) {
             return Long.valueOf(this.getCreator());
         }
 
@@ -131,6 +141,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 历史记录初始化
      */
     @Override
+    @JSONField(serialize = false)
     protected void _initHistory(ChatRequestVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageDOS) {
 
         //preHistory(request.getConversationUid(), AppModelEnum.CHAT.name());
@@ -141,7 +152,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             //后台执行，不走历史配置，每次都是最新的配置
             if (!(req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
                     || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
-                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name()))) {
+                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
+                    || req.getScene().equals(AppSceneEnum.SHARE_JS.name()))) {
                 ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
                 this.setChatConfig(chatConfig);
             }
@@ -164,18 +176,21 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     }
 
     @Override
+    @JSONField(serialize = false)
     protected void _createAppConversationLog(ChatRequestVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
 
         logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getChatConfig()));
     }
 
     @Override
+    @JSONField(serialize = false)
     protected ChatConfigEntity _parseConversationConfig(String conversationConfig) {
         ChatConfigEntity chatConfig = JSON.parseObject(conversationConfig, ChatConfigEntity.class);
         return chatConfig;
     }
 
     @Override
+    @JSONField(serialize = false)
     protected JsonData _execute(ChatRequestVO req) {
 
         this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
@@ -192,6 +207,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 执行后执行
      */
     @Override
+    @JSONField(serialize = false)
     protected void _afterExecute(ChatRequestVO req, Throwable t) {
 
         SseEmitter sseEmitter = req.getSseEmitter();
@@ -205,7 +221,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         }
     }
 
-
+    @JSONField(serialize = false)
     private JsonData executeChat(ChatRequestVO request, Long userId) {
 
         this.getMessageMemory().setChatAppEntity(this);
@@ -278,7 +294,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     }
 
-
+    @JSONField(serialize = false)
     private Map<String, Object> getVariableItem(VariableEntity variable) {
 
         if (variable == null) {
@@ -301,6 +317,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         return filteredInputs;
     }
 
+    @JSONField(serialize = false)
     private LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> buildLlm(ChatRequestVO request, int maxTokens,
                                                                                            ChatConfigEntity chatConfig,
                                                                                            ChatPromptTemplate chatPromptTemplate,
@@ -319,6 +336,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         return llmChain;
     }
 
+    @JSONField(serialize = false)
     private AgentExecutor buildLLmTools(ChatRequestVO request,
                                         ChatConfigEntity chatConfig,
                                         ChatPromptTemplate chatPromptTemplate,
@@ -347,6 +365,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      *
      * @return
      */
+    @JSONField(serialize = false)
     private List<BaseTool> loadLLMTools(ChatRequestVO request, ChatConfigEntity chatConfig, SseEmitter emitter) {
 
         List<BaseSkillEntity> skillEntities = new ArrayList<>();
@@ -401,6 +420,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 新增应用
      */
     @Override
+    @JSONField(serialize = false)
     protected void _insert() {
         getAppRepository().insert(this);
     }
@@ -409,6 +429,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 更新应用
      */
     @Override
+    @JSONField(serialize = false)
     protected void _update() {
         getAppRepository().update(this);
     }

@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 @Data
 public abstract class BaseSingleActionAgent {
 
+    public static final String TEMP_VARIABLE_SCRATCHPAD = "agent_scratchpad";
+
     private AgentExecutor agentExecutor;
 
     private List<String> returnValues;

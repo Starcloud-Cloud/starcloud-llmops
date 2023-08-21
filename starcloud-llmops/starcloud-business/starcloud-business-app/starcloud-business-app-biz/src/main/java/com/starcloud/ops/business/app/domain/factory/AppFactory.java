@@ -126,16 +126,9 @@ public class AppFactory {
         // mediumUid 不为空的情况
         if (StringUtils.isNotBlank(request.getMediumUid())) {
             String mediumId = request.getMediumUid();
-            // 应用市场场景
-            if (AppSceneEnum.SHARE_WEB.name().equals(request.getScene())) {
-
-                // 应用创作中心
-            } else if (AppSceneEnum.SHARE_IFRAME.name().equals(request.getScene())) {
-
-            }
+            return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryShareApp(mediumId) : AppFactory.factoryShareApp(mediumId, request.getAppReqVO());
         }
-
-
+        
         throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
     }
 
@@ -260,18 +253,44 @@ public class AppFactory {
     }
 
     /**
-     * @param appId
-     * @return
-     * @todo 通过 发布表 获取 具体的激活中的 appUid
+     * 获取 AppEntity 通过 mediumUid
+     *
+     * @param mediumUid
+     * @return AppEntity
      */
-    public static AppEntity factoryShareApp(String appId) {
+    public static AppEntity factoryShareApp(String mediumUid) {
+        return getAppPublishRepository().getAppEntityByMediumUid(mediumUid);
+    }
 
-        //通过 发布表 获取 具体的激活中的 appUid
+    /**
+     * 获取 AppEntity 通过 mediumUid
+     *
+     * @param mediumUid  mediumUid
+     * @param appRequest appRequest
+     * @return AppEntity
+     */
+    public static AppEntity factoryShareApp(String mediumUid, AppReqVO appRequest) {
+        // 需要校验 模版市场 中是否存在该模版，不存在抛出异常
+        AppEntity app = factoryShareApp(mediumUid);
+        // 应用不存在, 还没有存入到数据库
+        String creator, updator;
+        if (Objects.isNull(app)) {
+            Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+            if (Objects.isNull(loginUserId)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+            }
+            creator = String.valueOf(loginUserId);
+            updator = String.valueOf(loginUserId);
+        } else {
+            creator = app.getCreator();
+            updator = app.getUpdater();
+        }
 
-        appId = "2196b6cce43f41679e15487d79bde823";
-
-
-        return factoryApp(appId);
+        AppEntity appEntity = AppConvert.INSTANCE.convert(appRequest);
+        appEntity.setUid(appEntity.getUid());
+        appEntity.setCreator(creator);
+        appEntity.setUpdater(creator);
+        return appEntity;
     }
 
     /**

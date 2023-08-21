@@ -4,16 +4,25 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import com.starcloud.ops.business.app.api.channel.dto.WecomGroupChannelConfigDTO;
+import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
+import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.chat.context.RobotContextHolder;
-import com.starcloud.ops.business.open.controller.admin.vo.QaCallbackReqVO;
+import com.starcloud.ops.business.chat.worktool.request.ModifyGroupReq;
+import com.starcloud.ops.business.open.controller.admin.vo.request.GroupCallbackReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.QaCallbackReqVO;
 import com.starcloud.ops.business.chat.worktool.WorkToolClient;
 import com.starcloud.ops.business.chat.worktool.request.BaseReq;
 import com.starcloud.ops.business.chat.worktool.request.SendMessageReq;
@@ -23,6 +32,7 @@ import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
@@ -89,6 +99,7 @@ public class WecomChatServiceImpl implements WecomChatService {
         });
     }
 
+    @Override
     public void sendMsg(String groupRemark, String msg, String endUser) {
         String robotId = RobotContextHolder.getRobotId();
         BaseReq<SendMessageReq> baseReq = new BaseReq<>();

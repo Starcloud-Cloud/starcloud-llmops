@@ -1,10 +1,11 @@
-package com.starcloud.ops.business.chat.controller.admin.wecom;
+package com.starcloud.ops.business.open.controller.admin;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.chat.controller.admin.wecom.vo.request.WecomCreateGroupReqVO;
-import com.starcloud.ops.business.chat.controller.admin.wecom.vo.response.WecomGroupRespVO;
-import com.starcloud.ops.business.chat.service.WecomGroupService;
+import com.starcloud.ops.business.open.controller.admin.vo.request.AddFriendReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.WecomCreateGroupReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.response.WecomGroupRespVO;
+import com.starcloud.ops.business.open.service.WecomGroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -36,5 +37,13 @@ public class WecomGroupController {
         List<WecomGroupRespVO> wecomGroupRespVOS = groupService.listGroupDetail(appUid);
         return CommonResult.success(wecomGroupRespVOS);
     }
+
+    @PostMapping("/add/friend")
+    @Operation(summary = "添加好友", description = "添加企业微信好友")
+    public CommonResult<Boolean> addFriend(@RequestBody @Valid AddFriendReqVO reqVO) {
+        groupService.addFriend(reqVO);
+        return CommonResult.success(true);
+    }
+
 
 }

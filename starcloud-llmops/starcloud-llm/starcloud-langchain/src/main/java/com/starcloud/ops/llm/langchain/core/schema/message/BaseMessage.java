@@ -2,6 +2,7 @@ package com.starcloud.ops.llm.langchain.core.schema.message;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,34 +40,34 @@ public abstract class BaseMessage implements Serializable {
     }
 
     public static String getBufferString(List<BaseMessage> messages) {
-        return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(message -> {
+        return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(BaseMessage::getBufferString).collect(Collectors.joining("\n"));
+    }
 
-            String role = message.getType();
-            String content = message.getContent();
+    public static String getBufferString(BaseMessage message) {
+        String role = message.getType();
+        String content = message.getContent();
 
-            if (message instanceof HumanMessage) {
-                role = "Human";
-            } else if (message instanceof AIMessage) {
-                role = "AI";
-                Object call = message.getAdditionalArgs().get("function_call");
-                if (ObjectUtil.isNotNull(call)) {
-                    //这时候 message.getContent() 其实为空
-                    content += "{" + call.toString() + "}";
-                }
-            } else if (message instanceof SystemMessage) {
-                role = "System";
-            } else if (message instanceof FunctionMessage) {
-                role = "Function";
-                content = ((FunctionMessage) message).getName() + " returns ```" + content + "```";
-            } else {
-                role = "Human";
+        if (message instanceof HumanMessage) {
+            role = "Human";
+        } else if (message instanceof AIMessage) {
+            role = "AI";
+            Object call = message.getAdditionalArgs().get("function_call");
+            if (ObjectUtil.isNotNull(call)) {
+                //这时候 message.getContent() 其实为空
+                content += "function_call " + JSONUtil.toJsonStr(call);
             }
+        } else if (message instanceof SystemMessage) {
+            role = "System";
+        } else if (message instanceof FunctionMessage) {
+            role = "Function";
+            content = ((FunctionMessage) message).getName() + " returns ```" + content + "```";
+        } else {
+            role = "Human";
+        }
 
-            content = role + ": " + content;
+        content = role + ": " + content;
 
-            return content;
-
-        }).collect(Collectors.joining("\n"));
+        return content;
     }
 
 }
