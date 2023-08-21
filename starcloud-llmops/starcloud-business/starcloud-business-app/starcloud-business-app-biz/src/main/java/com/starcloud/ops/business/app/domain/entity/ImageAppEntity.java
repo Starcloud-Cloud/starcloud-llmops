@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
@@ -50,16 +51,19 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     /**
      * 用户权益服务
      */
+    @JSONField(serialize = false)
     private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
     /**
      * 图片生成服务
      */
+    @JSONField(serialize = false)
     private static VSearchImageService vSearchImageService = SpringUtil.getBean(VSearchImageService.class);
 
     /**
      * AppRepository
      */
+    @JSONField(serialize = false)
     private static AppRepository appRepository;
 
     /**
@@ -67,6 +71,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      *
      * @return {@link AppRepository}
      */
+    @JSONField(serialize = false)
     public static AppRepository getAppRepository() {
         if (appRepository == null) {
             appRepository = SpringUtil.getBean(AppRepository.class);
@@ -78,6 +83,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * 基础数据校验
      */
     @Override
+    @JSONField(serialize = false)
     protected void _validate(ImageReqVO req) {
         getImageConfig().validate();
     }
@@ -89,6 +95,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * @return {@link JsonData}
      */
     @Override
+    @JSONField(serialize = false)
     protected ImageMessageRespVO _execute(ImageReqVO request) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start("Text to Image Task");
@@ -154,6 +161,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * @param request 请求参数
      */
     @Override
+    @JSONField(serialize = false)
     protected void _aexecute(ImageReqVO request) {
         this._execute(request);
     }
@@ -162,6 +170,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * 执行后执行
      */
     @Override
+    @JSONField(serialize = false)
     protected void _afterExecute(ImageReqVO req, Throwable t) {
         SseEmitter sseEmitter = req.getSseEmitter();
         if (sseEmitter != null) {
@@ -180,6 +189,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * @param logAppConversationRequest
      */
     @Override
+    @JSONField(serialize = false)
     protected void _createAppConversationLog(ImageReqVO imageRequest, LogAppConversationCreateReqVO logAppConversationRequest) {
         logAppConversationRequest.setAppConfig(JSONUtil.toJsonStr(imageRequest.getImageRequest()));
     }
@@ -188,6 +198,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * 历史记录初始化
      */
     @Override
+    @JSONField(serialize = false)
     protected void _initHistory(ImageReqVO imageRequest, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
 
     }
@@ -199,6 +210,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * @return {@link ImageConfigEntity}
      */
     @Override
+    @JSONField(serialize = false)
     protected ImageConfigEntity _parseConversationConfig(String conversationConfig) {
         return null;
     }
@@ -207,6 +219,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * 新增应用
      */
     @Override
+    @JSONField(serialize = false)
     protected void _insert() {
         getAppRepository().insert(this);
     }
@@ -215,6 +228,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * 更新应用
      */
     @Override
+    @JSONField(serialize = false)
     protected void _update() {
         getAppRepository().update(this);
     }
@@ -225,6 +239,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * @param request 请求参数
      * @return {@link ImageMessageRespVO}
      */
+    @JSONField(serialize = false)
     private ImageMessageRespVO textToImage(ImageReqVO request) {
         ImageRequest imageRequest = request.getImageRequest();
         List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
@@ -248,6 +263,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      * @param userId       用户id
      * @return 消息记录
      */
+    @JSONField(serialize = false)
     private void buildAppMessageLog(LogAppMessageCreateReqVO messageRequest, ImageReqVO request, Long userId) {
         messageRequest.setAppConversationUid(request.getConversationUid());
         messageRequest.setAppUid(request.getConversationUid());

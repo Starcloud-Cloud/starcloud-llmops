@@ -2,11 +2,13 @@ package com.starcloud.ops.business.app.service.market;
 
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;
@@ -27,6 +29,14 @@ public interface AppMarketService {
      * @return 应用市场列表
      */
     PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
+
+    /**
+     * 获取优化提示应用列表
+     *
+     * @param query 查询条件
+     * @return 应用列表
+     */
+    List<Option> listMarketAppOption(AppMarketListQuery query);
 
     /**
      * 获取应用详情

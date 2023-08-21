@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.app.dal.mysql.market;
 
-import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -14,7 +14,10 @@ import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.context.i18n.LocaleContextHolder;
+
+import java.util.List;
 
 /**
  * <p>
@@ -49,6 +52,14 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         // 分页查询
         return this.selectPage(PageUtil.page(query), queryMapper);
     }
+
+    /**
+     * 获取应用市场列表选项
+     *
+     * @param query 查询条件
+     * @return 应用列表
+     */
+    List<AppMarketDO> listMarketApp(@Param("query") AppMarketListQuery query);
 
     /**
      * 根据应用 uid 获取应用详情
@@ -127,7 +138,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
      * @param isSimple 是否查询部分字段
      * @return 查询包装器
      */
-    static LambdaQueryWrapper<AppMarketDO> queryMapper(boolean isSimple) {
+    default LambdaQueryWrapper<AppMarketDO> queryMapper(boolean isSimple) {
         LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class);
         wrapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
         if (!isSimple) {
@@ -158,4 +169,6 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         );
         return wrapper;
     }
+
+
 }
