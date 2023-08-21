@@ -101,7 +101,7 @@ public abstract class BaseHandler<Q, R> {
 
             //设置入参
             handlerResponse.setType(this.getClass().getSimpleName());
-            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
+//            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
             handlerResponse.setSuccess(true);
             handlerResponse.setAnswer(JSONUtil.toJsonStr(source.getOutput()));
 
