@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
@@ -32,6 +33,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -78,6 +81,25 @@ public class AppMarketServiceImpl implements AppMarketService {
         List<AppMarketRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
                 .map(AppMarketConvert.INSTANCE::convertResp).collect(Collectors.toList());
         return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+    }
+
+    /**
+     * 获取优化提示应用列表
+     *
+     * @param query 查询条件
+     * @return 应用列表
+     */
+    @Override
+    public List<Option> listMarketAppOption(AppMarketListQuery query) {
+        // 查询应用市场列表
+        List<AppMarketDO> list = appMarketMapper.listMarketApp(query);
+        // 转换并且返回数据
+        return CollectionUtil.emptyIfNull(list).stream().filter(Objects::nonNull).map(item -> {
+            Option option = new Option();
+            option.setLabel(item.getName());
+            option.setValue(item.getUid());
+            return option;
+        }).collect(Collectors.toList());
     }
 
     /**
