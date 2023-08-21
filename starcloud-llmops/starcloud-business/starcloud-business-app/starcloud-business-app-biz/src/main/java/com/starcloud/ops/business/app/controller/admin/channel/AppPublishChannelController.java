@@ -46,15 +46,17 @@ public class AppPublishChannelController {
     @PostMapping("/create")
     @Operation(summary = "创建应用发布渠道", description = "创建应用发布渠道")
     @ApiOperationSupport(order = 25, author = "nacoyer")
-    public CommonResult<AppPublishChannelRespVO> create(@Validated @RequestBody AppPublishChannelReqVO request) {
-        return CommonResult.success(appPublishChannelService.create(request));
+    public CommonResult<String> create(@Validated @RequestBody AppPublishChannelReqVO request) {
+        appPublishChannelService.create(request);
+        return CommonResult.success("创建应用发布渠道成功");
     }
 
     @PostMapping("/modify")
     @Operation(summary = "修改应用发布渠道", description = "修改应用发布渠道")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<AppPublishChannelRespVO> modify(@Validated @RequestBody AppPublishChannelModifyReqVO request) {
-        return CommonResult.success(appPublishChannelService.modify(request));
+    public CommonResult<String> modify(@Validated @RequestBody AppPublishChannelModifyReqVO request) {
+        appPublishChannelService.modify(request);
+        return CommonResult.success("修改应用发布渠道成功");
     }
 
     @PostMapping("/resetShareSlug")

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 
-@Tag(name = "星河云海-数据集源数据存储")
+@Tag(name = "星河云海 - 数据集 - 源数据存储", description = "星河云海数据集管理")
 @RestController
 @RequestMapping("/llm/dataset-storage")
 @Validated

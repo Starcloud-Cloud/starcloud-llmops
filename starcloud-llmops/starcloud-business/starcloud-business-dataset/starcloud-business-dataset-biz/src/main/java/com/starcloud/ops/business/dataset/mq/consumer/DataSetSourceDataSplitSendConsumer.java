@@ -80,7 +80,7 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
             DatasetStorageDO storageDO = selectDatasetStorage(sourceDataDO.getCleanStorageId());
             String text = tika.parseToString(new URL(storageDO.getStorageKey()));
             // 数据分块
-            documentSegmentsService.splitDoc(message.getDatasetId(), String.valueOf(message.getDataSourceId()), text, message.getSplitRule());
+            documentSegmentsService.splitDoc(String.valueOf(message.getDatasetId()), String.valueOf(message.getDataSourceId()), text, message.getSplitRule());
 
             // 设置数据源状态
             message.setStatus(DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus());

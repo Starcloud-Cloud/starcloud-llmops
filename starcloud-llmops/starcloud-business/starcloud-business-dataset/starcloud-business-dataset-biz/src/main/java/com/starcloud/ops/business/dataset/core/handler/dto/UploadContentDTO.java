@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.dataset.core.handler.dto;
 
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import lombok.Data;
 
 /**
@@ -17,15 +16,11 @@ public class UploadContentDTO {
      * 批次
      */
     private String batch;
-    /**
-     * 分割规则
-     */
-    private SplitRule splitRule;
 
     /**
      * 数据集 ID
      */
-    private String datasetId;
+    private Long datasetId;
 
     /**
      * 数据名称

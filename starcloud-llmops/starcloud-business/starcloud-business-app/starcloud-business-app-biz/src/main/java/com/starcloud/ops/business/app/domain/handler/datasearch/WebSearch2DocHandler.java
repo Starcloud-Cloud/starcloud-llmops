@@ -20,7 +20,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -77,7 +76,6 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
         SplitRule splitRule = new SplitRule();
         splitRule.setAutomatic(true);
         splitRule.setRemoveExtraSpaces(true);
-        uploadUrlReqVO.setSplitRule(splitRule);
 
         List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();

@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.dataset.core.handler.strategy;
 
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
@@ -53,9 +54,12 @@ public class StringUploadStrategy implements UploadStrategy {
         String fileId = SecureUtil.md5(character);
         String filePath;
         try {
-            // 将结果转换为InputStream流
             // 上传文件
             filePath = uploadFile(fileId, character, userId);
+
+            if (StrUtil.isBlank(filePath)) {
+                return uploadFileRespDTO;
+            }
             // 设置文件名称
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);

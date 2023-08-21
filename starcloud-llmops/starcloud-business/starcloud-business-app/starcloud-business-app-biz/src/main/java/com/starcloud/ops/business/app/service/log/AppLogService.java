@@ -98,7 +98,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return ImageRespVO
      */
-    PageResult<ImageLogMessageRespVO> getLogImageMessageDetail(AppLogMessagePageReqVO query);
+    ImageLogMessageRespVO getLogImageMessageDetail(AppLogMessagePageReqVO query);
 
 
 }

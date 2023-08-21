@@ -5,10 +5,7 @@ import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsC
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsUpdateReqVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.validation.annotation.Validated;
-
-import javax.validation.Valid;
 
 /**
  * 数据集 Service 接口
@@ -32,7 +29,7 @@ public interface DatasetsService {
      * @param appName 应用 名称
      * @return Boolean
      */
-    Boolean createDatasetsByApplication(String appId,String appName);
+    Long createDatasetsByApplication(String appId,String appName);
 
     /**
      * 创建数据集
@@ -89,8 +86,7 @@ public interface DatasetsService {
 
     void validateDatasetsExists(String UID);
 
-
-    DatasetsDO getDataSetBaseDo(String UID);
+    void validateDatasetsExists(Long id);
 
 
 }

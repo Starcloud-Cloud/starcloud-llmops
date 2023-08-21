@@ -2,12 +2,14 @@ package com.starcloud.ops.business.dataset.core.handler.strategy;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -30,11 +32,15 @@ public class UrlUploadStrategy implements UploadStrategy {
     // 成员变量用于保存URL
     private String url;
 
+    private String language;
+
+
     private static final String PATH_OBJECT = "dataset-source-data/";
 
     // Setter方法，用于接收MultipartFile对象
-    public void setUrl(String url) {
+    public void setUrl(String url,String language) {
         this.url = url;
+        this.language = language;
     }
 
     /**
@@ -51,8 +57,17 @@ public class UrlUploadStrategy implements UploadStrategy {
         // 设置文件名称
         Document doc;
         try {
+
             String normalize = URLUtil.normalize(url);
-            doc = Jsoup.connect(normalize).get();
+
+            Connection connection = Jsoup.connect(normalize);
+
+            // 设置请求头中的 Accept-Language 属性
+            connection.header("Accept-Language", language);
+
+            doc = connection.get();
+
+
         } catch (Exception e) {
             uploadFileRespDTO.setName(url);
             log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
@@ -79,6 +94,9 @@ public class UrlUploadStrategy implements UploadStrategy {
         try {
             // 上传文件
             filePath = uploadFile(fileId, result, userId);
+            if (StrUtil.isBlank(filePath)) {
+                return uploadFileRespDTO;
+            }
             // 设置文件名称
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);
@@ -167,6 +185,7 @@ public class UrlUploadStrategy implements UploadStrategy {
 
     /**
      * 获取网页描述
+     *
      * @param doc
      * @return
      */
@@ -176,7 +195,7 @@ public class UrlUploadStrategy implements UploadStrategy {
         try {
             Element metaTag = doc.selectFirst("meta[property=description], meta[name=description]");
             if (metaTag != null) {
-                description =  metaTag.attr("content");
+                description = metaTag.attr("content");
                 return description;
             }
             return description;

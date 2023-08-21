@@ -38,7 +38,7 @@ public class StatusRequest implements Serializable {
      */
     @Schema(description = "状态")
     @NotNull(message = "状态 不能为空")
-    @InEnum(value = StateEnum.class, message = "状态 {value} 不支持，支持的值为：{values}")
+    @InEnum(value = StateEnum.class, field = InEnum.EnumField.CODE, message = "状态 {value} 不支持，支持的值为：{values}")
     private Integer status;
 
 }

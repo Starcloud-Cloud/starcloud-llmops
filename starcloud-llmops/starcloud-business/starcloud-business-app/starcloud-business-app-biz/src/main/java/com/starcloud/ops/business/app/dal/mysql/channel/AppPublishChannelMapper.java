@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -56,7 +57,7 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.eq(AppPublishChannelDO::getMediumUid, mediumUid);
         wrapper.eq(AppPublishChannelDO::getStatus, StateEnum.ENABLE.getCode());
-        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime).last("limit 1");
+        wrapper.orderByDesc(AppPublishChannelDO::getCreateTime).last("LIMIT 1");
         return this.selectOne(wrapper);
     }
 
@@ -71,6 +72,15 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
         wrapper.eq(AppPublishChannelDO::getUid, uid);
         return this.selectOne(wrapper);
     }
+
+    /**
+     * 根据 媒介 UID 查询 数量
+     *
+     * @param mediumUid 媒介 UID
+     * @return 数量
+     */
+    @Select("SELECT COUNT(*) FROM llm_app_publish_channel WHERE medium_uid = #{mediumUid}")
+    long countByMediumUid(String mediumUid);
 
     /**
      * 查询条件

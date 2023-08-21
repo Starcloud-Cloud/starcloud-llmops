@@ -73,7 +73,7 @@ public interface AppPublishChannelService {
      * @param request 请求参数
      * @return 创建的发布渠道详情
      */
-    AppPublishChannelRespVO create(AppPublishChannelReqVO request);
+    void create(AppPublishChannelReqVO request);
 
     /**
      * 修改发布渠道
@@ -81,7 +81,7 @@ public interface AppPublishChannelService {
      * @param request 请求参数
      * @return 修改后的发布渠道详情
      */
-    AppPublishChannelRespVO modify(AppPublishChannelModifyReqVO request);
+    void modify(AppPublishChannelModifyReqVO request);
 
     /**
      * 重置分享链接唯一标识

@@ -2,12 +2,12 @@ package com.starcloud.ops.business.dataset.service.segment.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -19,11 +19,11 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.SegmentsEmbeddingsDO;
-import com.starcloud.ops.business.dataset.dal.dataobject.segment.SplitRulesDO;
+import com.starcloud.ops.business.dataset.dal.dataobject.segment.DatasetHandleRulesDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.DocumentSegmentMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.SegmentsEmbeddingsDOMapper;
-import com.starcloud.ops.business.dataset.dal.mysql.segment.SplitRulesMapper;
+import com.starcloud.ops.business.dataset.dal.mysql.segment.DatasetHandleRulesMapper;
 import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
@@ -34,12 +34,11 @@ import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
-import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.service.task.SummaryEntity;
 import com.starcloud.ops.business.dataset.service.task.SummaryTask;
-import com.starcloud.ops.business.dataset.util.dataset.TextCleanUtils;
+import com.starcloud.ops.business.dataset.util.dataset.TextCleanAndSplitUtils;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.*;
@@ -53,12 +52,10 @@ import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -102,7 +99,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     private DatasetsService datasetsService;
 
     @Autowired
-    private SplitRulesMapper splitRulesMapper;
+    private DatasetHandleRulesMapper splitRulesMapper;
 
     @Autowired
     private DatasetSourceDataMapper sourceDataMapper;
@@ -119,7 +116,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             DatasetStorageUpLoadRespVO upLoadRespVO = datasetStorageService.getDatasetStorageByUID(fileSplitRequest.getDocumentId());
             String text = tika.parseToString(new URL(upLoadRespVO.getStorageKey()));
             SplitRule splitRule = fileSplitRequest.getSplitRule();
-            String cleanText = TextCleanUtils.cleanText(text, splitRule);
+            String cleanText = TextCleanAndSplitUtils.splitText(text, splitRule);
             List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(cleanText, splitRule.getChunkSize(), splitRule.getSeparator());
             Long totalTokens = splitText.stream().mapToLong(split -> TokenUtils.tokens(ModelType.TEXT_DAVINCI_002, split)).sum();
             BigDecimal totalPrice = TokenCalculator.getTextPrice(totalTokens, ModelType.TEXT_EMBEDDING_ADA_002);
@@ -167,8 +164,8 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Override
     public void indexDoc(String datasetId, String documentId) {
         Assert.notBlank(datasetId, "datasetId is null");
-        Assert.notBlank(documentId, "documentId is null");
-        log.info("start embedding index,datasetId={},documentId={}", datasetId, documentId);
+        Assert.notBlank(documentId, "dataId is null");
+        log.info("start embedding index,datasetId={},dataId={}", datasetId, documentId);
         long start = System.currentTimeMillis();
         DatasetsDO datasets = datasetsService.getDatasets(datasetId);
         if (datasets == null) {
@@ -269,8 +266,8 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Override
     public void splitAndIndex(SplitRule splitRule, String datasetId, String documentId, String url) {
         Assert.notBlank(datasetId, "datasetId is null");
-        Assert.notBlank(documentId, "documentId is null");
-        log.info("start split and index,datasetId={},documentId={},url={},splitRule={}", datasetId, documentId, url, splitRule);
+        Assert.notBlank(documentId, "dataId is null");
+        log.info("start split and index,datasetId={},dataId={},url={},splitRule={}", datasetId, documentId, url, splitRule);
         long start = System.currentTimeMillis();
         validateTenantId(documentId);
         Tika tika = new Tika();
@@ -282,7 +279,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             String text = tika.parseToString(new URL(url));
             long parseEnd = System.currentTimeMillis();
             log.info("parse text finished , time consume {}", parseEnd - start);
-            String cleanText = TextCleanUtils.cleanText(text, splitRule);
+            String cleanText = TextCleanAndSplitUtils.splitText(text, splitRule);
             long cleanEnd = System.currentTimeMillis();
             log.info("clean text finished , time consume {}", cleanEnd - parseEnd);
             List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(cleanText, splitRule.getChunkSize(), splitRule.getSeparator());
@@ -346,14 +343,13 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             long embeddingEnd = System.currentTimeMillis();
             log.info("embedding finished , time consume {}", embeddingEnd - splitEnd);
             String ruleId = IdUtil.getSnowflakeNextIdStr();
-            SplitRulesDO splitRulesDO = new SplitRulesDO();
-            splitRulesDO.setAutomatic(splitRule.getAutomatic());
-            splitRulesDO.setRules(JSON.toJSONString(splitRule));
-            splitRulesDO.setId(ruleId);
-            splitRulesDO.setDatasetId(datasetId);
+            DatasetHandleRulesDO splitRulesDO = new DatasetHandleRulesDO();
+            splitRulesDO.setCleanRule(JSONUtil.toJsonStr(splitRule));
+            splitRulesDO.setSplitRule(JSONUtil.toJsonStr(splitRule));
+            splitRulesDO.setId(Long.valueOf(ruleId));
+            splitRulesDO.setDatasetId(Long.valueOf(datasetId));
             splitRulesDO.setTenantId(tenantId);
             splitRulesDO.setCreator(creator);
-            splitRulesDO.setDocumentId(documentId);
             splitRulesDO.setUpdater(creator);
 
             splitRulesMapper.insert(splitRulesDO);
@@ -397,7 +393,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Override
     public boolean deleteSegment(String datasetId, String documentId) {
         Assert.notBlank(datasetId, "datasetId is null");
-        Assert.notBlank(documentId, "documentId is null");
+        Assert.notBlank(documentId, "dataId is null");
         validateTenantId(documentId);
         int i = segmentMapper.deleteSegment(datasetId, documentId);
         return i > 0;
@@ -412,8 +408,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
     @Override
     public MatchQueryVO matchQuery(MatchQueryRequest request) {
-        validateTenantId(request.getDocumentId());
-        List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDocId(request.getDocumentId());
+        List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDatasetIds(request.getDatasetUid());
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
         EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().segmentIds(segmentIds).k(request.getK()).build();

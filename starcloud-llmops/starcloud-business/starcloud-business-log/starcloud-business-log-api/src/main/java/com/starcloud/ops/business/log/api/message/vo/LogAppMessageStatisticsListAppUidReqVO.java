@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 public class LogAppMessageStatisticsListAppUidReqVO implements Serializable {
 
     private static final long serialVersionUID = -4470639861956307329L;
-    
+
     /**
      * 应用 UID
      */
@@ -34,10 +34,10 @@ public class LogAppMessageStatisticsListAppUidReqVO implements Serializable {
     private String appUid;
 
     /**
-     * 应用模型
+     * 应用市场 UID
      */
-    @Schema(description = "应用模型")
-    private String appMode;
+    @Schema(description = "应用市场 UID", hidden = true)
+    private String marketUid;
 
     /**
      * 应用场景
@@ -50,19 +50,6 @@ public class LogAppMessageStatisticsListAppUidReqVO implements Serializable {
      */
     @Schema(description = "应用状态")
     private String status;
-
-    /**
-     * 创建人, 只有当场景为 WEB_ADMIN 时候生效
-     */
-    @Schema(description = "创建人, 只有当场景为 WEB_ADMIN 时候生效", hidden = true)
-    private String creator;
-
-    /**
-     * 查询类型
-     */
-    @Schema(description = "查询类型")
-    @NotBlank(message = "查询类型不能为空")
-    private String type;
 
     /**
      * 查询时间范围类型

@@ -6,7 +6,7 @@ import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.
 import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
+import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
@@ -25,7 +25,7 @@ import java.util.List;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Slf4j
-@Tag(name = "管理后台 - 数据集（知识库）源数据")
+@Tag(name = "星河云海 - 数据集 - 源数据", description = "星河云海数据集管理")
 @RestController
 @RequestMapping("/llm/dataset-source-data")
 @Validated
@@ -36,6 +36,10 @@ public class DatasetSourceDataController {
 
     @Resource
     private DatasetSourceDataService datasetSourceDataService;
+
+
+    @Resource
+    private DatasetDataHandleRulesService datasetDataHandleRules;
 
     @PostMapping("/page")
     @Operation(summary = "获得数据集源数据存储分页")
@@ -69,7 +73,9 @@ public class DatasetSourceDataController {
         } catch (Exception e) {
             log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", datasetId);
             String datasetName = String.format("应用%s的数据集", "datasetId");
-            datasetsService.createDatasetsByApplication(datasetId, datasetName);
+            Long datasetsId = datasetsService.createDatasetsByApplication(datasetId, datasetName);
+            //     初始化处理规则
+            datasetDataHandleRules.createDefaultRules(datasetsId);
         }
         return success( datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.DOCUMENT.getStatus()));
     }
@@ -84,7 +90,10 @@ public class DatasetSourceDataController {
         } catch (Exception e) {
             log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", datasetId);
             String datasetName = String.format("应用%s的数据集", datasetId);
-            datasetsService.createDatasetsByApplication(datasetId, datasetName);
+            Long datasetsId = datasetsService.createDatasetsByApplication(datasetId, datasetName);
+            //     初始化处理规则
+            datasetDataHandleRules.createDefaultRules(datasetsId);
+
         }
         return success(datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.QUESTION_AND_ANSWERS.getStatus()));
     }
@@ -92,13 +101,6 @@ public class DatasetSourceDataController {
     @PostMapping("/uploadFiles")
     public CommonResult<SourceDataUploadDTO> uploadFiles(@RequestParam(value = "file") MultipartFile file,
                                                          UploadFileReqVO reqVO) {
-        SplitRule splitRule = new SplitRule();
-        splitRule.setAutomatic(false);
-        splitRule.setRemoveExtraSpaces(true);
-        splitRule.setRemoveExtraSpaces(true);
-        splitRule.setChunkSize(500);
-        splitRule.setPattern(null);
-        reqVO.setSplitRule(splitRule);
         reqVO.setSync(false);
         SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadFilesSourceData(file, reqVO);
         return success(sourceDataUrlUploadDTO);
@@ -107,27 +109,19 @@ public class DatasetSourceDataController {
     @PostMapping("/uploadUrls")
     public CommonResult<List<SourceDataUploadDTO> > uploadUrls(@Validated @RequestBody UploadUrlReqVO reqVO) {
 
-        SplitRule splitRule = new SplitRule();
-        splitRule.setAutomatic(false);
-        splitRule.setRemoveExtraSpaces(true);
-        splitRule.setRemoveExtraSpaces(true);
-        splitRule.setChunkSize(500);
-        splitRule.setPattern(null);
-        reqVO.setSplitRule(splitRule);
         reqVO.setSync(false);
+        return success(datasetSourceDataService.uploadUrlsSourceData(reqVO));
+    }
+
+    @PostMapping("/uploadUrl")
+    public CommonResult<List<SourceDataUploadDTO> > uploadUrl(@Validated @RequestBody UploadUrlReqVO reqVO) {
+        reqVO.setSync(true);
         return success(datasetSourceDataService.uploadUrlsSourceData(reqVO));
     }
 
 
     @PostMapping("/uploadCharacters")
     public CommonResult<        List<SourceDataUploadDTO> > uploadCharacter(@Validated @RequestBody List<UploadCharacterReqVO> reqVO) {
-        SplitRule splitRule = new SplitRule();
-        splitRule.setAutomatic(false);
-        splitRule.setRemoveExtraSpaces(true);
-        splitRule.setRemoveExtraSpaces(true);
-        splitRule.setChunkSize(500);
-        splitRule.setPattern(null);
-        reqVO.forEach(data -> data.setSplitRule(splitRule));
         reqVO.forEach(data -> data.setSync(false));
         return success(datasetSourceDataService.uploadCharactersSourceData(reqVO));
     }

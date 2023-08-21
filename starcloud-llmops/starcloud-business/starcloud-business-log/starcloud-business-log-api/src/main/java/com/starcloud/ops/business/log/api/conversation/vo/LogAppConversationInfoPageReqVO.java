@@ -57,24 +57,6 @@ public class LogAppConversationInfoPageReqVO extends PageParam {
     private String status;
 
     /**
-     * 用户
-     */
-    @Schema(description = "用户")
-    private String user;
-
-    /**
-     * 终端用户
-     */
-    @Schema(description = "终端用户")
-    private String endUser;
-
-    /**
-     * 查询类型
-     */
-    @Schema(description = "查询类型")
-    private String type;
-
-    /**
      * 应用场景列表
      */
     @Schema(hidden = true)

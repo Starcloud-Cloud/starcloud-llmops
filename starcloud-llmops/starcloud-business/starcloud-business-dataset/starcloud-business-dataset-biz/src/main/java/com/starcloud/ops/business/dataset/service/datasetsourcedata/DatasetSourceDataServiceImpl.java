@@ -19,15 +19,12 @@ import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSou
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
-import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
-import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.config.TikaConfig;
@@ -55,7 +52,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -96,29 +92,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     public DatasetSourceDataDO selectDataById(Long id) {
         return datasetSourceDataMapper.selectById(id);
     }
-
-    @Override
-    public Long createDatasetSourceData(String datasetId, Long storageId, String sourceName, Long wordCount) {
-        // 封装查询条件
-        LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
-
-        wrapper.eq(DatasetSourceDataDO::getDatasetId, datasetId);
-        // 获取当前文件位置
-        long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
-
-        DatasetSourceDataDO dataDO = new DatasetSourceDataDO();
-        dataDO.setUid(DatasetUID.createSourceDataUID());
-        dataDO.setName(sourceName);
-        dataDO.setStorageId(storageId);
-        dataDO.setPosition(position);
-        dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
-        dataDO.setWordCount(wordCount);
-        dataDO.setDatasetId(datasetId);
-
-        datasetSourceDataMapper.insert(dataDO);
-        return dataDO.getId();
-    }
-
     /**
      * 上传文件-支持批量上传
      *
@@ -129,7 +102,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Override
     public SourceDataUploadDTO uploadFilesSourceData(MultipartFile file, UploadFileReqVO reqVO) {
 
-        validateSplitRule(reqVO, DataSourceDataTypeEnum.URL.name());
         SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
 
         sourceDataUrlUploadDTO.setDatasetId(reqVO.getDatasetId());
@@ -184,8 +156,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO) {
-
-        validateSplitRule(reqVO, DataSourceDataTypeEnum.URL.name());
 
         // 异步处理
         UploadUrlReqVO finalReqVO = reqVO;
@@ -243,25 +213,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         return false;
     }
 
-    /**
-     * 上传URL -
-     *
-     * @param reqVO
-     * @return 编号
-     */
-    @Override
-    public List<SourceDataUploadDTO> uploadUrlsAndCreateDataset(UploadUrlReqVO reqVO) {
-        // 判断数据集是否存在，不存在则创建数据集
-        try {
-            datasetsService.validateDatasetsExists(reqVO.getDatasetId());
-        } catch (Exception e) {
-            log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", reqVO.getDatasetId());
-            String datasetName = String.format("应用%s的数据集", reqVO.getDatasetId());
-            datasetsService.createDatasetsByApplication(reqVO.getDatasetId(), datasetName);
-        }
-        return uploadUrlsSourceData(reqVO);
-    }
-
 
     /**
      * 等待 URL 返回结果
@@ -302,35 +253,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     }
 
 
-    @Override
-    public List<Long> batchCreateDatasetSourceData(String datasetId, List<SourceDataBatchCreateReqVO> batchCreateReqVOS) {
-
-        // 封装查询条件
-        LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
-
-        wrapper.eq(DatasetSourceDataDO::getDatasetId, datasetId);
-        // 获取当前文件位置
-        AtomicLong position = new AtomicLong(datasetSourceDataMapper.selectCount(wrapper) + 1);
-
-        // 批量封装数据
-        List<DatasetSourceDataDO> datasetSourceDataDOList = batchCreateReqVOS.stream()
-                .map(reqVO -> {
-                            DatasetSourceDataDO dataDO = new DatasetSourceDataDO();
-                            dataDO.setUid(DatasetUID.createSourceDataUID());
-                            dataDO.setName(reqVO.getSourceName());
-                            dataDO.setStorageId(reqVO.getStorageId());
-                            dataDO.setPosition(position.getAndIncrement());
-                            dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
-                            dataDO.setWordCount(reqVO.getWordCount());
-                            dataDO.setDatasetId(datasetId);
-                            return dataDO;
-                        }
-                )
-                .collect(Collectors.toList());
-        datasetSourceDataMapper.insertBatch(datasetSourceDataDOList);
-        return datasetSourceDataDOList.stream().map(DatasetSourceDataDO::getId).collect(Collectors.toList());
-    }
-
     /**
      * 更新数据集源数据
      *
@@ -354,29 +276,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         if (datasetSourceDataMapper.selectOne(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid)) == null) {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
-    }
-
-    private UploadReqVO validateSplitRule(UploadReqVO reqVO, String dataType) {
-        if (reqVO.getSplitRule() == null) {
-            DataSourceDataTypeEnum dataTypeEnum = DataSourceDataTypeEnum.valueOf(dataType);
-            SplitRule splitRule = new SplitRule();
-            splitRule.setAutomatic(true);
-            splitRule.setRemoveExtraSpaces(true);
-            splitRule.setSeparator(null);
-            switch (dataTypeEnum) {
-                case URL:
-                    splitRule.setRemoveUrlsEmails(false);
-                    splitRule.setChunkSize(2000);
-                    break;
-                case DOCUMENT:
-                case CHARACTERS:
-                    splitRule.setRemoveUrlsEmails(true);
-                    splitRule.setChunkSize(3000);
-                    break;
-            }
-            reqVO.setSplitRule(splitRule);
-        }
-        return reqVO;
     }
 
     private static String getFileExtension(String fileName) {
@@ -496,7 +395,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             SegmentPageQuery segmentPageQuery = BeanUtil.copyProperties(reqVO, SegmentPageQuery.class);
 
             segmentPageQuery.setDocumentUid(String.valueOf(sourceDataDO.getId()));
-            segmentPageQuery.setDatasetUid(sourceDataDO.getDatasetId());
+            segmentPageQuery.setDatasetUid(String.valueOf(sourceDataDO.getDatasetId()));
 
             PageResult<DocumentSegmentDO> documentSegmentDOPageResult = documentSegmentsService.segmentDetail(segmentPageQuery);
 
