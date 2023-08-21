@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.open.controller.admin.vo;
+package com.starcloud.ops.business.open.controller.admin.vo.response;
 
 import lombok.Data;
 

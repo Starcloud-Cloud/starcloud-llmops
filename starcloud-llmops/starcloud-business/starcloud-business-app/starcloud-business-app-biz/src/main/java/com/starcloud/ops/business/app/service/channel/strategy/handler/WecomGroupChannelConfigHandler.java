@@ -7,6 +7,8 @@ import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannel
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigType;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 /**
  * @author fanmiao
  * @version 1.0.0
@@ -37,6 +39,13 @@ public class WecomGroupChannelConfigHandler extends AppPublishChannelConfigTempl
      */
     @Override
     protected WecomGroupChannelConfigDTO handlerConfig(String configUid, WecomGroupChannelConfigDTO config) {
+
+        if (Objects.isNull(config)) {
+            config = new WecomGroupChannelConfigDTO();
+            // 生成 群备注
+            config.setGroupRemark(configUid);
+        }
+
         return config;
     }
 

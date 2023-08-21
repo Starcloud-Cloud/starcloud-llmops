@@ -63,4 +63,6 @@ public class AppPublishChannelModifyReqVO implements Serializable {
     @Schema(description = "渠道描述")
     private String description;
 
+    private String updater;
+
 }

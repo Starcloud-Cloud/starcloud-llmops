@@ -223,6 +223,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         updateAppPublishChannel.setDescription(request.getDescription());
         updateAppPublishChannel.setDeleted(Boolean.FALSE);
         updateAppPublishChannel.setId(appPublishChannel.getId());
+        updateAppPublishChannel.setUpdater(request.getUpdater());
 
         // 修改发布渠道
         appPublishChannelMapper.updateById(updateAppPublishChannel);
