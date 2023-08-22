@@ -4,24 +4,15 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import com.starcloud.ops.business.app.api.channel.dto.WecomGroupChannelConfigDTO;
-import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
-import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
-import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
-import com.starcloud.ops.business.app.service.publish.AppPublishService;
-import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.chat.context.RobotContextHolder;
-import com.starcloud.ops.business.chat.worktool.request.ModifyGroupReq;
-import com.starcloud.ops.business.open.controller.admin.vo.request.GroupCallbackReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.request.QaCallbackReqVO;
 import com.starcloud.ops.business.chat.worktool.WorkToolClient;
 import com.starcloud.ops.business.chat.worktool.request.BaseReq;
@@ -32,7 +23,6 @@ import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
@@ -62,7 +52,15 @@ public class WecomChatServiceImpl implements WecomChatService {
     @Override
     public void asynReplyMsg(QaCallbackReqVO reqVO) {
         TenantContextHolder.setIgnore(true);
-        AppPublishChannelRespVO channelRespVO = appPublishChannelService.getByMediumUid(reqVO.getGroupRemark());
+        AppPublishChannelRespVO channelRespVO = appPublishChannelService.getAllByMediumUid(reqVO.getGroupRemark());
+        if (channelRespVO == null) {
+            sendMsg(reqVO.getGroupRemark(), "渠道绑定异常，请联系管理员", reqVO.getReceivedName());
+        }
+
+        if (channelRespVO.getStatus() == null || channelRespVO.getStatus() != 0) {
+            sendMsg(reqVO.getGroupRemark(), "此渠道已禁用", reqVO.getReceivedName());
+        }
+
         String userNameMd5 = userNameMd5(reqVO.getReceivedName());
         ChatRequestVO chatRequestVO = new ChatRequestVO();
         chatRequestVO.setAppUid(channelRespVO.getAppUid());
@@ -71,6 +69,7 @@ public class WecomChatServiceImpl implements WecomChatService {
         String endUserId = endUserService.weChatLogin(userNameMd5);
         chatRequestVO.setEndUser(endUserId);
         chatRequestVO.setConversationUid(userNameMd5);
+        chatRequestVO.setMediumUid(channelRespVO.getMediumUid());
         String robotId = RobotContextHolder.getRobotId();
         threadWithContext.asyncExecute(() -> {
             try {
@@ -87,7 +86,7 @@ public class WecomChatServiceImpl implements WecomChatService {
                 }
             } catch (ServiceException e) {
                 if (USER_BENEFITS_USELESS_INSUFFICIENT.getCode().intValue() == e.getCode()) {
-                    sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系管理员添加。", reqVO.getReceivedName());
+                    sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系群管理员添加。", reqVO.getReceivedName());
                 } else {
                     log.error("execute error:", e);
                     sendMsg(reqVO.getGroupRemark(), e.getMessage(), reqVO.getReceivedName());

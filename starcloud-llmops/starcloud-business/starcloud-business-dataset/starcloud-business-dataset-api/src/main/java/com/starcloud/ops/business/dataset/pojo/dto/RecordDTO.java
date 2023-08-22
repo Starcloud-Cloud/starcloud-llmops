@@ -8,34 +8,64 @@ import java.util.Date;
 @Data
 public class RecordDTO {
 
+    /**
+     * 相似度
+     */
     private Double score;
 
+    /**
+     * 数据库id
+     */
     private String id;
 
+    /**
+     * 数据集id
+     */
     private String datasetId;
 
+    /**
+     * 文档Id
+     */
     private String documentId;
 
+    /**
+     * 分段序号
+     */
     private Integer position;
 
+    /**
+     * 字数
+     */
     private Integer wordCount;
 
+    /**
+     * tokens
+     */
     private Long tokens;
 
+    /**
+     * 内容hash
+     */
     private String segmentHash;
 
-    private Integer hitCount;
-
+    /**
+     * 状态
+     */
     private String status;
 
-    private Date indexingTime;
-
+    /**
+     * 内容
+     */
     private String content;
 
-    private String error;
-
+    /**
+     * 启用/禁用
+     */
     private Boolean disabled;
 
+    /**
+     * 租户id
+     */
     private Long tenantId;
 
     private LocalDateTime createTime;

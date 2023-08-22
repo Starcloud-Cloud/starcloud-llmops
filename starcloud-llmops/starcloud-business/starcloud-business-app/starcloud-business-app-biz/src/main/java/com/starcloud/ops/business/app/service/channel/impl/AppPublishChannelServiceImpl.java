@@ -134,6 +134,16 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         return AppPublishChannelConverter.INSTANCE.convert(byMediumUid);
     }
 
+
+    @Override
+    public AppPublishChannelRespVO getAllByMediumUid(String mediumUid) {
+        AppPublishChannelDO byMediumUid = appPublishChannelMapper.getAllByMediumUid(mediumUid);
+        if (byMediumUid == null) {
+            return null;
+        }
+        return AppPublishChannelConverter.INSTANCE.convert(byMediumUid);
+    }
+
     /**
      * 根据发布媒介 UID 查找应用信息
      *

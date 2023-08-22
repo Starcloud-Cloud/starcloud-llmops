@@ -52,12 +52,19 @@ public interface AppPublishChannelService {
     AppPublishChannelRespVO get(String uid);
 
     /**
-     * 根据发布媒介 UID 查找发布渠道详情
+     * 根据发布媒介 UID 查找已启用发布渠道详情
      *
      * @param mediumUid 发布媒介 UID
      * @return 发布渠道详情
      */
     AppPublishChannelRespVO getByMediumUid(String mediumUid);
+
+    /**
+     * 根据发布媒介 UID 查找发布渠道详情
+     * @param mediumUid
+     * @return
+     */
+    AppPublishChannelRespVO getAllByMediumUid(String mediumUid);
 
     /**
      * 根据发布媒介 UID 查找应用信息

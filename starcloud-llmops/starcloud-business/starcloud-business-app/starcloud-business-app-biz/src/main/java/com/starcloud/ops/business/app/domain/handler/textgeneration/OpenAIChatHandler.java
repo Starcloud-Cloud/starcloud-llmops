@@ -2,16 +2,15 @@ package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
-import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
@@ -19,10 +18,9 @@ import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -75,8 +73,8 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
             //数据集支持
 
-            List<List<BaseMessage>> chatMessages = Arrays.asList(
-                    Arrays.asList(new HumanMessage(prompt))
+            List<List<BaseMessage>> chatMessages = Collections.singletonList(
+                    Collections.singletonList(new HumanMessage(prompt))
             );
 
 

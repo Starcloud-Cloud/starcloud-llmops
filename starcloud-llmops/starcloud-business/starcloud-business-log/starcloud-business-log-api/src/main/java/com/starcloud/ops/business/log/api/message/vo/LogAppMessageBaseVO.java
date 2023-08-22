@@ -98,4 +98,7 @@ public class LogAppMessageBaseVO {
     @Schema(description = "消息类型")
     private String msgType;
 
+    @Schema(description = "渠道uid")
+    private String mediumUid;
+
 }
