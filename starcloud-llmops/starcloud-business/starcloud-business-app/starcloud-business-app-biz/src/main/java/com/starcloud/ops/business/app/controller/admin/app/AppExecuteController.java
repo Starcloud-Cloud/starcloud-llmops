@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,7 +57,9 @@ public class AppExecuteController {
         SseEmitter emitter = new SseEmitter(60000L);
         executeReqVO.setSseEmitter(emitter);
         // WEB_MARKET 场景, 应用市场专用
-        executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
+        if (StringUtils.isBlank(executeReqVO.getScene())) {
+            executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
+        }
         // 异步执行应用
         appService.asyncExecute(executeReqVO);
         return emitter;
