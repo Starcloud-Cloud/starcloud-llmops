@@ -183,6 +183,10 @@ public class WecomGroupServiceImpl implements WecomGroupService {
                 log.error("修改群备注失败: {}", modified);
                 throw new ServiceException(new ErrorCode(500, modified.getMessage()));
             }
+            TimeUnit.SECONDS.sleep(1L);
+        } catch (InterruptedException e) {
+            log.info("休眠失败", e);
+            throw new ServiceException(new ErrorCode(500, "休眠失败"));
         } catch (Exception e) {
             log.info("修改群备注失败", e);
             wecomChatService.sendMsg(qaCallbackReqVO.getGroupName(), "修改群备注失败，联系管理员", qaCallbackReqVO.getReceivedName());

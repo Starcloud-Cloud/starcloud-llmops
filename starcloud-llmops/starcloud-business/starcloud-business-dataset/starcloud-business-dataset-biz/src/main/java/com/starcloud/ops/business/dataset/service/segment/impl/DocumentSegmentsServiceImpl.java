@@ -410,6 +410,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     public MatchQueryVO matchQuery(MatchQueryRequest request) {
         List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDatasetIds(request.getDatasetUid());
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(segmentIds)) {
+            return MatchQueryVO.builder().queryText(request.getText()).build();
+        }
         EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().segmentIds(segmentIds).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);

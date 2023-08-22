@@ -36,11 +36,6 @@ public interface ErrorCodeConstants {
     ErrorCode APP_MARKET_NO_EXISTS_UID = new ErrorCode(300200000, "The app is not exists in the market ! [UID: {}]");
 
     /**
-     * 应用市场应用不能安装
-     */
-    ErrorCode APP_MARKET_CANNOT_INSTALL = new ErrorCode(300200003, "The app is not exists in the market or the audit fails ! [UID: {}, version: {}]");
-
-    /**
      * 应用市场操作不支持
      */
     ErrorCode APP_MARKET_OPERATE_NOT_SUPPORTED = new ErrorCode(300200004, "The [{}] operate is not supported");
@@ -69,26 +64,6 @@ public interface ErrorCodeConstants {
      * 应用市场版本为必须的
      */
     ErrorCode APP_MARKET_UID_REQUIRED = new ErrorCode(300200014, "The app uid is required, please check and try again ! ");
-
-    /**
-     * 应用市场版本为必须的
-     */
-    ErrorCode APP_MARKET_VERSION_REQUIRED = new ErrorCode(300200014, "The app version is required, please check and try again ! ");
-
-    /**
-     * 应用市场审核为必须的
-     */
-    ErrorCode APP_MARKET_AUDIT_IS_REQUIRED = new ErrorCode(300200016, "The app audit is required, please check and try again ! ");
-
-    /**
-     * 应用已经发布
-     */
-    ErrorCode APP_ALREADY_PUBLISH = new ErrorCode(300200017, "The app has been published, place wait for the audit result or cancel the publish ! [name: {}]");
-
-    /**
-     * 应用市场审核不支持
-     */
-    ErrorCode APP_MARKET_AUDIT_IS_NOT_SUPPORT = new ErrorCode(300200018, "The app audit is not support, please check and try again! [audit: {}]");
 
     /**
      * 该应用已经被收藏了
@@ -186,12 +161,6 @@ public interface ErrorCodeConstants {
      */
     ErrorCode PUBLISH_CHANNEL_UNKNOWN_ERROR = new ErrorCode(300500007, "Publish channel unknown error, please check and try again ! ");
 
-
-    /**
-     * 应用发布记录创建失败
-     */
-    ErrorCode APP_PUBLISH_RECORD_CREATE_FAILED = new ErrorCode(300500008, "The app publish create failed, please check and try again ! ");
-
     /**
      * 文件类型不是图片
      */
@@ -206,4 +175,29 @@ public interface ErrorCodeConstants {
      * 应用发布记录不存在
      */
     ErrorCode APP_PUBLISH_NOT_EXISTS_UID = new ErrorCode(300500011, "The app publish is not exists! [UID: {}]");
+
+    /**
+     * 应用执行步骤
+     */
+    ErrorCode APP_EXECUTE_STEP_ID_IS_REQUIRED = new ErrorCode(300600010, "应用执行步骤ID(stepId)不能为空!");
+
+    /**
+     * 应用执行配置信息不能为空
+     */
+    ErrorCode APP_EXECUTE_APP_CONFIG_IS_NULL = new ErrorCode(300600011, "应用执行配置信息不能为空！");
+
+    /**
+     * 应用执行应用信息不能为空
+     */
+    ErrorCode APP_EXECUTE_APP_IS_NULL = new ErrorCode(300600012, "应用执行应用信息不能为空！");
+
+    /**
+     * 应用执行步骤不能为空
+     */
+    ErrorCode APP_EXECUTE_STEPS_CANT_BE_EMPTY = new ErrorCode(300600013, "应用执行步骤不能为空！");
+
+    /**
+     * 应用执行步骤不存在
+     */
+    ErrorCode APP_EXECUTE_STEPS_NOT_FOUND = new ErrorCode(300600014, "应用执行步骤[{}]不存在！");
 }

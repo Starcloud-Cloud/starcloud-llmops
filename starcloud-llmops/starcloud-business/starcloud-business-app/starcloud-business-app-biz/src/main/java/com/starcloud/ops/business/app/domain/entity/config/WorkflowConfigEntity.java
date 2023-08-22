@@ -1,13 +1,20 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * App 配置实体类
@@ -17,6 +24,10 @@ import java.util.Optional;
  * @since 2023-05-31
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@SuppressWarnings("all")
 public class WorkflowConfigEntity extends BaseConfigEntity {
 
     /**
@@ -29,57 +40,61 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
      */
     private VariableEntity variable;
 
-
     /**
-     * 模版步骤
+     * 基础校验模版
      */
+    @Override
+    @JsonIgnore
     @JSONField(serialize = false)
-    public WorkflowStepWrapper getFirstStep() {
-
-        return Optional.ofNullable(steps).orElse(new ArrayList<>()).stream().findFirst().orElse(null);
+    public void validate() {
+        AppValidate.notEmpty(this.steps, ErrorCodeConstants.APP_EXECUTE_STEPS_CANT_BE_EMPTY);
     }
 
     /**
      * 模版步骤
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapper getFirstStepWrapper() {
+        return CollectionUtil.emptyIfNull(steps).stream()
+                .findFirst()
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_STEPS_CANT_BE_EMPTY));
+    }
+
+    /**
+     * 根据 StepId 获取指定步骤
+     *
+     * @param stepId 步骤ID
+     * @return 指定步骤
+     */
+    @JsonIgnore
     @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapper(String stepId) {
-        return Optional.ofNullable(steps).orElse(new ArrayList<>()).stream().filter((wrapper) -> {
-            return wrapper.getField().equals(stepId);
-        }).findFirst().orElse(null);
+        return CollectionUtil.emptyIfNull(steps).stream()
+                .filter(item -> (item.getName().equals(stepId) || item.getField().equals(stepId)))
+                .findFirst()
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_STEPS_NOT_FOUND, stepId));
     }
 
-
     /**
-     * 获取指定步骤之前的所有步骤
+     * 获取指定步骤之前的所有步骤，包括指定步骤
+     *
+     * @param stepId 步骤ID
+     * @return 指定步骤之前的所有步骤
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public List<WorkflowStepWrapper> getPreStepWrappers(String stepId) {
-
-        List<WorkflowStepWrapper> preWorkflowStepWrappers = new ArrayList<>();
-
+        List<WorkflowStepWrapper> preStepList = new ArrayList<>();
         for (WorkflowStepWrapper wrapper : steps) {
-
-            if (!wrapper.getField().equals(stepId)) {
-                preWorkflowStepWrappers.add(wrapper);
+            if (!wrapper.getField().equals(stepId) || !wrapper.getName().equals(stepId)) {
+                preStepList.add(wrapper);
             } else {
-                preWorkflowStepWrappers.add(wrapper);
+                preStepList.add(wrapper);
                 break;
             }
         }
-
-        return preWorkflowStepWrappers;
-    }
-
-    @Override
-    public void validate() {
-
-    }
-
-    public void validateStep() {
-
-        this.validate();
-
+        return preStepList;
     }
 
     /**
@@ -88,6 +103,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
      * @param stepId   步骤ID
      * @param response 响应
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public void setActionResponse(String stepId, ActionResponse response) {
         for (WorkflowStepWrapper step : this.steps) {
