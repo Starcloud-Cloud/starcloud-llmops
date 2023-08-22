@@ -16,6 +16,7 @@ import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.app.service.chat.ChatSkillService;
+import com.starcloud.ops.business.share.controller.app.vo.ChatDetailReqVO;
 import com.starcloud.ops.business.share.controller.app.vo.ChatReq;
 import com.starcloud.ops.business.share.service.ChatShareService;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
@@ -70,6 +71,14 @@ public class ChatShareController {
         endUserService.webLogin(upfSId);
         return CommonResult.success(chatShareService.chatShareDetail(mediumUid));
     }
+
+    @PostMapping("/detail")
+    @Operation(summary = "聊天应用详情")
+    @PermitAll
+    public CommonResult<List<AppRespVO>> listDetail(@RequestBody @Valid ChatDetailReqVO reqVO) {
+        return CommonResult.success(chatShareService.detailList(reqVO));
+    }
+
 
     @GetMapping("/history")
     @Operation(summary = "会话历史")
