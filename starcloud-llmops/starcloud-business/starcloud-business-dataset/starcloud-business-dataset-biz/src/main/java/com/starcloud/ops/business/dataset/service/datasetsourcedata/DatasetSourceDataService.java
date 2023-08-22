@@ -73,7 +73,7 @@ public interface DatasetSourceDataService {
      * @param datasetId 数据集 ID
      * @return 数据集源数据列表
      */
-    List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(String datasetId, Integer dataModel);
+    List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(Long datasetId, Integer dataModel);
 
     /**
      * 获取数据源详情

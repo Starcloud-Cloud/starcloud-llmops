@@ -27,7 +27,7 @@ public interface DatasetSourceDataMapper extends BaseMapperX<DatasetSourceDataDO
     }
 
 
-    default List<DatasetSourceDataDO> selectByDatasetId(String datasetId, Integer dataModel) {
+    default List<DatasetSourceDataDO> selectByDatasetId(Long datasetId, Integer dataModel) {
         LambdaQueryWrapper<DatasetSourceDataDO> queryWrapper = Wrappers.lambdaQuery(DatasetSourceDataDO.class)
                 .eq(DatasetSourceDataDO::getDataModel, dataModel)
                 .in(DatasetSourceDataDO::getDatasetId, datasetId)
