@@ -103,6 +103,7 @@
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-module-system-biz</artifactId>
+            <version>${revision}</version>
         </dependency>
     </dependencies>
 
