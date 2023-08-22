@@ -89,7 +89,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _validate(AppExecuteReqVO request) {
+    protected void doValidate(AppExecuteReqVO request) {
         WorkflowConfigEntity config = this.getWorkflowConfig();
         if (config == null) {
             return;
@@ -129,7 +129,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected AppExecuteRespVO _execute(AppExecuteReqVO request) {
+    protected AppExecuteRespVO doExecute(AppExecuteReqVO request) {
 
         //权益放在这里是为了包装 可以执行完整的一次应用
         this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
@@ -149,7 +149,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
         }
 
         // 执行应用
-        return this.fireWorkflowContext(appContext);
+        return this.fire(appContext);
     }
 
     /**
@@ -161,8 +161,18 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _aexecute(AppExecuteReqVO request) {
-        this._execute(request);
+    protected void doAsyncExecute(AppExecuteReqVO request) {
+        this.doExecute(request);
+    }
+
+    /**
+     * 模版方法：执行应用前置处理方法
+     *
+     * @param appExecuteReqVO 请求参数
+     */
+    @Override
+    protected void beforeExecute(AppExecuteReqVO appExecuteReqVO) {
+
     }
 
     /**
@@ -174,7 +184,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _afterExecute(AppExecuteReqVO request, Throwable throwable) {
+    protected void afterExecute(AppExecuteReqVO request, Throwable throwable) {
         SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
             if (throwable != null) {
@@ -194,7 +204,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _createAppConversationLog(AppExecuteReqVO request, LogAppConversationCreateReqVO createRequest) {
+    protected void buildAppConversationLog(AppExecuteReqVO request, LogAppConversationCreateReqVO createRequest) {
         createRequest.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
     }
 
@@ -208,7 +218,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _initHistory(AppExecuteReqVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
+    protected void initHistory(AppExecuteReqVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
 
     }
 
@@ -218,7 +228,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _insert() {
+    protected void doInsert() {
         appRepository.insert(this);
     }
 
@@ -228,22 +238,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _update() {
+    protected void doUpdate() {
         appRepository.update(this);
-    }
-
-    /**
-     * 模版方法：解析会话配置
-     *
-     * @param conversationConfig 会话配置
-     * @param <C>                会话配置
-     * @return 会话配置
-     */
-    @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected <C> C _parseConversationConfig(String conversationConfig) {
-        return null;
     }
 
     /**
@@ -253,8 +249,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected AppExecuteRespVO fireWorkflowContext(@Valid AppContext appContext) {
-        // 组装请求体
+    protected AppExecuteRespVO fire(@Valid AppContext appContext) {
+        // 组装请信息
         StoryRequest<Void> fireRequest = ReqBuilder.returnType(Void.class).build();
         fireRequest.setTrackingType(TrackingTypeEnum.SERVICE_DETAIL);
         fireRequest.setTimeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT);
@@ -265,16 +261,25 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
         // 执行工作流
         TaskResponse<Void> fire = storyEngine.fire(fireRequest);
 
+        // 如果异常，抛出异常
         if (fire.getResultException() != null) {
-
+            log.info("应用执行异常: 步骤 ID: {}, 应用 UID: {}, 应用名称: {}, 错误信息: {}", appContext.getStepId(), appContext.getApp().getUid(), appContext.getApp().getName(), fire.getResultDesc());
+            this.updateAppConversationLog(appContext.getConversationId(), Boolean.FALSE);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, fire.getResultException());
         }
 
+        // 如果执行失败，抛出异常
+        if (!fire.isSuccess()) {
+            log.info("应用执行异常: 步骤 ID: {}, 应用 UID: {}, 应用名称: {}, 错误信息: {}", appContext.getStepId(), appContext.getApp().getUid(), appContext.getApp().getName(), fire.getResultDesc());
+            this.updateAppConversationLog(appContext.getConversationId(), Boolean.FALSE);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, fire.getResultDesc());
+        }
+
+        log.info("应用执行成功: 步骤 ID: {}, 应用ID: {}, 应用名称: {}", appContext.getStepId(), appContext.getApp().getUid(), appContext.getApp().getName());
+
         // 更新会话记录
-        // this.updateAppConversationLog(appContext.getConversationId(), fire.isSuccess());
-
-        log.info("fireWorkflowContext: {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc());
-
-        return new AppExecuteRespVO().setSuccess(fire.isSuccess()).setResult(fire.getResult()).setResultCode(fire.getResultCode()).setResultDesc(fire.getResultDesc());
+        this.updateAppConversationLog(appContext.getConversationId(), Boolean.TRUE);
+        return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), fire.getResult());
 
     }
 
@@ -287,17 +292,20 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @JsonIgnore
     @JSONField(serialize = false)
     public Consumer<RecallStory> recallStoryHook(AppContext appContext) {
+        log.info("应用执行回调开始 参数：{}", appContext.getContextVariablesValues());
         return (story) -> {
             List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking)
                     .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, "unknown result"));
 
-            log.info("recallStory: {} {} {} \n {}", story.getBusinessId(), story.getStartId(), story.getResult().isPresent(), JSONUtil.parse(story.getReq()).toJSONString(4));
-
+            log.info("应用执行回调基本信息: {} {} {} \n {}", story.getBusinessId(), story.getStartId(), story.getResult().isPresent(), JSONUtil.parse(story.getReq()).toJSONString(4));
             for (NodeTracking nodeTracking : nodeTrackingList) {
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
+                    log.info("应用执行回调: 记录日志消息开始");
                     this.createAppMessageLog(appContext, nodeTracking);
+                    log.info("应用执行回调: 记录日志消息结束");
                 }
             }
+            log.info("应用执行回调结束");
         };
     }
 
