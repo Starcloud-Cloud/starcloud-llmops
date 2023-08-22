@@ -7,8 +7,11 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -80,30 +83,31 @@ public class VariableEntity {
     @JSONField(serialize = false)
     public static <V> Map<String, V> coverMergeVariables(VariableEntity coverVariableEntity, VariableEntity variableEntity, Function<VariableItemEntity, V> consumer, String prefixKey) {
 
-        List<VariableItemEntity> self = new ArrayList<>();
+        // 定义一个合并的变量集合。逐个添加，防止出现引用问题
+        List<VariableItemEntity> mergeVariableList = new ArrayList<>();
 
-        List<VariableItemEntity> variablesList = variableEntity.getVariables();
+        // variableEntity 变量集合
+        List<VariableItemEntity> variablesList = Optional.ofNullable(variableEntity).map(VariableEntity::getVariables).orElse(new ArrayList<>());
         if (CollectionUtil.isNotEmpty(variablesList)) {
-            self.addAll(variablesList);
+            mergeVariableList.addAll(variablesList);
         }
 
-        List<VariableItemEntity> coverVariablesList = coverVariableEntity.getVariables();
+        // coverVariableEntity 变量集合
+        List<VariableItemEntity> coverVariablesList = Optional.ofNullable(coverVariableEntity).map(VariableEntity::getVariables).orElse(new ArrayList<>());
         if (CollectionUtil.isNotEmpty(coverVariablesList)) {
-            self.addAll(coverVariablesList);
+            mergeVariableList.addAll(coverVariablesList);
         }
 
-        Map<String, V> variablesValues = MapUtil.newHashMap();
-
-        Optional.ofNullable(self).orElse(new ArrayList<>()).forEach(variableItemEntity -> {
-
-            String allKey = generateKey(prefixKey, variableItemEntity.getField());
-
-            if (consumer.apply(variableItemEntity) != null) {
-                variablesValues.put(allKey.toUpperCase(), consumer.apply(variableItemEntity));
+        // 合并变量集合
+        Map<String, V> variablesMap = MapUtil.newHashMap();
+        mergeVariableList.forEach(item -> {
+            String allKey = generateKey(prefixKey, item.getField());
+            if (consumer.apply(item) != null) {
+                variablesMap.put(allKey.toUpperCase(), consumer.apply(item));
             }
         });
 
-        return variablesValues;
+        return variablesMap;
     }
 
     public static String generateKey(String... keys) {

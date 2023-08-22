@@ -169,9 +169,7 @@ public class AppContext {
 
             Map<String, Object> variablesValues = wrapper.getContextVariablesValues(prefixKey);
 
-            Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()).entrySet().forEach(stringObjectEntry -> {
-                allVariablesValues.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
-            });
+            allVariablesValues.putAll(Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()));
         });
 
         WorkflowStepWrapper wrapper = this.getStepWrapper(this.stepId);
@@ -179,7 +177,7 @@ public class AppContext {
         Map<String, Object> variables = wrapper.getContextVariablesValues(null);
 
         Map<String, Object> fieldVariables = new HashMap<>();
-        Optional.ofNullable(variables.entrySet()).orElse(new HashSet<Map.Entry<String, Object>>()).forEach(entrySet -> {
+        Optional.ofNullable(variables.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
 
             String filedKey = StrUtil.replace(entrySet.getKey(), this.stepId + ".", "");
             filedKey = StrUtil.replace(filedKey, this.stepId, "");

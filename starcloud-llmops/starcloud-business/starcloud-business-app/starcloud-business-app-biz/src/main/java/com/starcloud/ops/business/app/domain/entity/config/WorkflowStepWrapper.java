@@ -110,9 +110,7 @@ public class WorkflowStepWrapper {
     public Map<String, Object> getContextVariablesValues(String prefixKey) {
 
 
-        Map<String, Object> variables = VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
-            return !ObjectUtil.isEmpty(variableItemEntity.getValue()) ? variableItemEntity.getValue() : variableItemEntity.getDefaultValue();
-        }, VariableEntity.generateKey(prefixKey, this.getField()));
+        Map<String, Object> variables = VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> !ObjectUtil.isEmpty(variableItemEntity.getValue()) ? variableItemEntity.getValue() : variableItemEntity.getDefaultValue(), VariableEntity.generateKey(prefixKey, this.getField()));
 
         variables.put(VariableEntity.generateKey(prefixKey, this.getField(), "_OUT"), this.flowStep.getValue());
 
