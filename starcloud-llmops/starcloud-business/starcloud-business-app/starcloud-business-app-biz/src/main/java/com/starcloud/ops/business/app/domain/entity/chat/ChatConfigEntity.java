@@ -39,6 +39,8 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private String prePrompt;
 
+    private PrePromptConfigEntity prePromptConfig;
+
     private VariableEntity variable;
 
     private ModelConfigEntity modelConfig;

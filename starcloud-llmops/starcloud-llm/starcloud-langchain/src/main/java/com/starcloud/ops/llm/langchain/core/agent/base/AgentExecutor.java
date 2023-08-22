@@ -164,8 +164,9 @@ public class AgentExecutor extends Chain<AgentAction> {
         if (this.getMemory() != null) {
             //只会是 AgentFinish
             if (result instanceof AgentFinish) {
-                BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(result);
-                this.getMemory().saveContext(null, baseLLMResult);
+                //已经在 上游流程中saveContext了，这里不在处理了
+//                BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(result);
+//                this.getMemory().saveContext(null, baseLLMResult);
             }
         }
 
@@ -234,7 +235,7 @@ public class AgentExecutor extends Chain<AgentAction> {
 
             } else {
                 //agent 是异常，提前结束了，如LLM超时
-
+                log.error("agentExecutor parseAgentAction2LLmResult is fail, AgentFinish status Illegal: {}", actionAgent);
             }
 
 
@@ -313,28 +314,24 @@ public class AgentExecutor extends Chain<AgentAction> {
             throw new OutputParserException("plan return is error, agetAction more 1");
         }
 
+        //为空说明 第一次执行
+        if (CollectionUtil.isEmpty(intermediateSteps)) {
+
+            //保存第一条 history, 带用户输入
+            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(variables, agentActions.get(0));
+            this.getMemory().saveContext(null, baseLLMResult);
+        } else {
+
+            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(agentActions.get(0));
+            this.getMemory().saveContext(null, baseLLMResult);
+        }
+
         //判断是否完成了，现在只会有一个元素
         if (CollectionUtil.size(agentActions) == 1) {
             if (agentActions.get(0) instanceof AgentFinish) {
                 return agentActions;
             }
         }
-
-        //只有 FunctionsAgentAction 会 执行到后面
-        //为空说明 第一次执行
-        if (CollectionUtil.isEmpty(intermediateSteps)) {
-
-            //保存第一条 history, 带用户输入
-            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(variables, agentActions.get(0));
-
-            this.getMemory().saveContext(null, baseLLMResult);
-        } else {
-
-            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(agentActions.get(0));
-
-            this.getMemory().saveContext(null, baseLLMResult);
-        }
-
 
         List<AgentAction> result = new ArrayList<>();
 

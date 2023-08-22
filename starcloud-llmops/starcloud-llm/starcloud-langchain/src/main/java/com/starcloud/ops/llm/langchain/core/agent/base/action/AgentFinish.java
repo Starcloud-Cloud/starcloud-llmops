@@ -1,6 +1,5 @@
 package com.starcloud.ops.llm.langchain.core.agent.base.action;
 
-import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import lombok.Data;
 
@@ -14,6 +13,11 @@ public class AgentFinish extends AgentAction {
     private String errorCode;
 
     private String error;
+
+    /**
+     * 非LLM结果触发的LLM，即未调用fun 就返回结束了
+     */
+    private Boolean noFunLLm;
 
     private List<BaseMessage> messagesLog;
 
@@ -43,6 +47,12 @@ public class AgentFinish extends AgentAction {
         this.setStatus(true);
         this.returnValues.put("output", returnValues);
         this.setLog(log);
+    }
+
+
+    public AgentFinish(Object returnValues) {
+        this.setStatus(true);
+        this.returnValues.put("output", returnValues);
     }
 
 }

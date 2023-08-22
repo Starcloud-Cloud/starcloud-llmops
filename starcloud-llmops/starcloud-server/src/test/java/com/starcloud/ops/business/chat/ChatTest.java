@@ -168,6 +168,8 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("今天杭州的天气怎么样？");
 
+        chatRequest.setQuery("1+1=？");
+
         chatService.chat(chatRequest);
 
     }
@@ -193,6 +195,8 @@ public class ChatTest extends BaseDbUnitTest {
         chatRequest.setQuery("今天北京的天气怎么样？");
 
         chatRequest.setQuery("今天天津的天气怎么样？");
+
+        chatRequest.setQuery("今天南京的天气怎么样？");
 
         chatService.chat(chatRequest);
 
