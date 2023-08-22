@@ -2,6 +2,8 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -21,6 +23,8 @@ import java.math.BigDecimal;
 @Data
 public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO> {
 
+    @JsonIgnore
+    @JSONField(serialize = false)
     private AppMarketService appMarketService = SpringUtil.getBean(AppMarketService.class);
 
     /**
@@ -76,6 +80,8 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
     /**
      * 应用市场数据库操作类
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private static AppMarketRepository appMarketRepository;
 
     /**
@@ -83,6 +89,8 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      *
      * @return 应用市场数据库操作类
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static AppMarketRepository getAppMarketRepository() {
         if (appMarketRepository == null) {
             appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
@@ -94,8 +102,10 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      * 校验
      */
     @Override
-    protected void _validate(AppExecuteReqVO req) {
-
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _validate(AppExecuteReqVO request) {
+        super._validate(request);
     }
 
     /**
@@ -106,14 +116,18 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      * @return 用户 id
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected Long getRunUserId(AppExecuteReqVO req) {
         return SecurityFrameworkUtils.getLoginUserId();
     }
 
     @Override
-    protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected AppExecuteRespVO _execute(AppExecuteReqVO request) {
 
-        AppExecuteRespVO appExecuteRespVO = super._execute(req);
+        AppExecuteRespVO appExecuteRespVO = super._execute(request);
 
         if (appExecuteRespVO != null) {
 
@@ -128,15 +142,18 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
     }
 
     @Override
-    protected void _aexecute(AppExecuteReqVO req) {
-
-        super._aexecute(req);
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _aexecute(AppExecuteReqVO request) {
+        super._aexecute(request);
     }
 
     /**
      * 新增应用
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void _insert() {
         getAppMarketRepository().insert(this);
     }
@@ -145,6 +162,8 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      * 更新应用
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void _update() {
         getAppMarketRepository().update(this);
     }

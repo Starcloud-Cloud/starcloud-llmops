@@ -1,6 +1,8 @@
 package com.starcloud.ops.llm.langchain.core.schema.message;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,50 +16,58 @@ import java.util.stream.Collectors;
 @Data
 public abstract class BaseMessage implements Serializable {
 
-    private String content;
+    private String content = "";
 
     private Map<String, Object> additionalArgs = new HashMap<>();
 
     public abstract String getType();
 
     public BaseMessage(String content) {
-        this.content = content;
+        if (!StrUtil.isEmpty(content)) {
+            this.content = content;
+        } else {
+            this.content = "";
+        }
     }
 
-
     public BaseMessage(String content, Map<String, Object> additionalArgs) {
-        this.content = content;
+        if (!StrUtil.isEmpty(content)) {
+            this.content = content;
+        } else {
+            this.content = "";
+        }
         this.additionalArgs = additionalArgs;
     }
 
     public static String getBufferString(List<BaseMessage> messages) {
-        return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(message -> {
+        return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(BaseMessage::getBufferString).collect(Collectors.joining("\n"));
+    }
 
-            String role = message.getType();
-            if (message instanceof HumanMessage) {
-                role = "Human";
-            } else if (message instanceof AIMessage) {
-                role = "AI";
-            } else if (message instanceof SystemMessage) {
-                role = "System";
-            } else if (message instanceof FunctionMessage) {
-                role = "Function";
-            } else {
-                role = "Human";
+    public static String getBufferString(BaseMessage message) {
+        String role = message.getType();
+        String content = message.getContent();
+
+        if (message instanceof HumanMessage) {
+            role = "Human";
+        } else if (message instanceof AIMessage) {
+            role = "AI";
+            Object call = message.getAdditionalArgs().get("function_call");
+            if (ObjectUtil.isNotNull(call)) {
+                //这时候 message.getContent() 其实为空
+                content += "function_call " + JSONUtil.toJsonStr(call);
             }
+        } else if (message instanceof SystemMessage) {
+            role = "System";
+        } else if (message instanceof FunctionMessage) {
+            role = "Function";
+            content = ((FunctionMessage) message).getName() + " returns ```" + content + "```";
+        } else {
+            role = "Human";
+        }
 
-            String content = role + ": " + message.getContent();
+        content = role + ": " + content;
 
-            if (message instanceof AIMessage) {
-                String call = (String) message.getAdditionalArgs().get("function_call");
-                if (StrUtil.isNotBlank(call)) {
-                    content += "{" + call + "}";
-                }
-            }
-
-            return content;
-
-        }).collect(Collectors.joining("\n"));
+        return content;
     }
 
 }

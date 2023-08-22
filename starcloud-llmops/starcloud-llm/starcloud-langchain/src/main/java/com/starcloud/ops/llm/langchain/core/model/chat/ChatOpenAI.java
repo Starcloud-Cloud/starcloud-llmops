@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.BaseChatModel;
@@ -52,7 +53,7 @@ import java.util.stream.Collectors;
 @Data
 public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
-    private String model = "gpt-3.5-turbo";
+    private String model = ModelType.GPT_3_5_TURBO.getName();
 
     private List<ChatMessage> messages;
 
@@ -76,6 +77,11 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
 
     @Override
+    public String getModelType() {
+        return this.getModel();
+    }
+
+    @Override
     public ChatResult<ChatCompletionResult> _generate(List<BaseMessage> messages, List<String> tops, List<FunctionDescription> functions, CallbackManagerForLLMRun callbackManagerForLLMRun) {
 
         OpenAIConfig openAIConfig = SpringUtil.getBean(OpenAIConfig.class);
@@ -95,6 +101,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
         List<ChatMessage> chatMessages = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(MessageConvert::BaseMessage2ChatMessage).collect(Collectors.toList());
 
         chatCompletionRequest.setMessages(chatMessages);
+        this.setMessages(chatMessages);
 
         if (chatCompletionRequest.getStream()) {
 
@@ -241,6 +248,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                 }).collect(Collectors.toList());
 
+                this.setFunctions(chatFunctions);
                 chatCompletionRequest.setFunctions(chatFunctions);
             }
 
@@ -342,7 +350,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 //                if (chatMessage.getFunctionCall() != null) {
 //                    return new FunctionMessage(chatMessage.getFunctionCall().getName(), chatMessage.getFunctionCall().getArguments());
 //                }
-                AIMessage aiMessage =  new AIMessage(chatMessage.getContent());
+                AIMessage aiMessage = new AIMessage(chatMessage.getContent());
                 if (chatMessage.getFunctionCall() != null) {
                     aiMessage.getAdditionalArgs().put("function_call", chatMessage.getFunctionCall());
                 }

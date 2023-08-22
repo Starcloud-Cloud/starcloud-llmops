@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ChatConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ImageConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowConfigReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
@@ -23,6 +24,7 @@ import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
@@ -169,7 +171,10 @@ public interface AppConvert {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
                 appEntity.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+
                 appEntity.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigEntity.class));
+                appEntity.getChatConfig().init();
+
             } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
                 appEntity.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigEntity.class));
             }
@@ -363,6 +368,20 @@ public interface AppConvert {
                 .map(WorkflowStepWrapperRespVO::getFlowStep)
                 .map(WorkflowStepRespVO::getIcon)
                 .collect(Collectors.toList());
+    }
+
+
+    /**
+     * handlerSkillVO 转 HandlerSkill
+     *
+     * @param handlerSkillVO HandlerSkillVO
+     * @return AppMarketEntity
+     */
+    default HandlerSkill convert(HandlerSkillVO handlerSkillVO) {
+
+        HandlerSkill handlerSkill = HandlerSkill.of(handlerSkillVO.getName());
+        handlerSkill.setEnabled(handlerSkill.getEnabled());
+        return handlerSkill;
     }
 
 }

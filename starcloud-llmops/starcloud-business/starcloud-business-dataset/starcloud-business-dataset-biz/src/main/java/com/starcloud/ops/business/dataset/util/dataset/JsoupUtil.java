@@ -13,10 +13,8 @@ public class JsoupUtil {
 
         try {
             String normalize = URLUtil.normalize(url);
-            Document doc = Jsoup.connect(normalize).get();
-            return doc;
+            return Jsoup.connect(normalize).get();
         } catch (Exception e) {
-
             log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
         }
 

@@ -17,6 +17,8 @@ import java.util.*;
 @Data
 public abstract class BaseLanguageModel<R> {
 
+    public abstract String getModelType();
+
     public abstract BaseLLMResult<R> generatePrompt(List<PromptValue> promptValues);
 
     public Long getNumTokens(String text) {

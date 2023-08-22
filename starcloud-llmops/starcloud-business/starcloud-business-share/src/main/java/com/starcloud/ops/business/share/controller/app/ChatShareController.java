@@ -16,6 +16,7 @@ import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.app.service.chat.ChatSkillService;
+import com.starcloud.ops.business.share.controller.app.vo.ChatDetailReqVO;
 import com.starcloud.ops.business.share.controller.app.vo.ChatReq;
 import com.starcloud.ops.business.share.service.ChatShareService;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
@@ -33,7 +34,9 @@ import javax.annotation.security.PermitAll;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用执行
@@ -59,7 +62,7 @@ public class ChatShareController {
     @Resource
     private ChatService chatService;
 
-    @GetMapping("detail/{mediumUid}")
+    @GetMapping("/detail/{mediumUid}")
     @Operation(summary = "聊天应用详情")
     @PermitAll
     public CommonResult<AppRespVO> detail(@PathVariable("mediumUid") String mediumUid,
@@ -70,9 +73,17 @@ public class ChatShareController {
         return CommonResult.success(chatShareService.chatShareDetail(mediumUid));
     }
 
-    @GetMapping("/history")
+    @PostMapping("/detail")
     @Operation(summary = "聊天应用详情")
-    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@CookieValue(value = "conversationUid",required = false) String conversationUid,
+    @PermitAll
+    public CommonResult<Map<String, AppRespVO>> listDetail(@RequestBody @Valid ChatDetailReqVO reqVO) {
+        return CommonResult.success(chatShareService.detailList(reqVO));
+    }
+
+
+    @GetMapping("/history")
+    @Operation(summary = "会话历史")
+    public CommonResult<PageResult<LogAppMessageRespVO>> histroy(@RequestParam(value = "conversationUid", required = false) String conversationUid,
                                                                  @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
                                                                  @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize
     ) {
@@ -86,21 +97,16 @@ public class ChatShareController {
     @PostMapping("/conversation")
     @Operation(summary = "聊天执行")
     @PermitAll
-    public SseEmitter execute(@RequestBody ChatRequestVO chatRequestVO,
-                              @CookieValue(value = "conversationUid", required = false) String conversationUid,
+    public SseEmitter execute(@RequestBody @Valid ChatRequestVO chatRequestVO,
                               @CookieValue(value = "fSId", required = false) String upfSId,
                               HttpServletRequest request, HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-cache, no-transform");
         response.setHeader("X-Accel-Buffering", "no");
         upfSId = EndUserCodeUtil.parseUserCodeAndSaveCookie(upfSId, request, response);
         String endUserId = endUserService.webLogin(upfSId);
-        if (StringUtils.isBlank(conversationUid)) {
-            conversationUid = IdUtil.fastSimpleUUID();
-            Cookie cookie = new Cookie("conversationUid", conversationUid);
-            cookie.setMaxAge(365 * 24 * 60 * 60);
-            response.addCookie(cookie);
+        if (StringUtils.isBlank(chatRequestVO.getConversationUid())) {
+            chatRequestVO.setConversationUid(IdUtil.fastSimpleUUID());
         }
-        chatRequestVO.setConversationUid(conversationUid);
 
         SseEmitter emitter = new SseEmitter(60000L);
         chatRequestVO.setSseEmitter(emitter);

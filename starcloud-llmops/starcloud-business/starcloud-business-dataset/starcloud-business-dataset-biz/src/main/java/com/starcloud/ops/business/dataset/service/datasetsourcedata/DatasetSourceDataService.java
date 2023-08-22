@@ -25,17 +25,6 @@ public interface DatasetSourceDataService {
     DatasetSourceDataDO selectDataById(Long id);
 
     /**
-     * 创建数据集源数据
-     *
-     * @param datasetId  数据集 ID
-     * @param storageId  存储 ID
-     * @param sourceName 资源名称
-     * @param wordCount  字符数
-     * @return 编号
-     */
-    Long createDatasetSourceData(String datasetId, Long storageId, String sourceName, Long wordCount);
-
-    /**
      * 上传文件-支持批量上传
      *
      * @return 编号
@@ -50,27 +39,11 @@ public interface DatasetSourceDataService {
     List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO);
 
     /**
-     * 上传URL-支持批量上传
-     *
-     * @return 编号
-     */
-    List<SourceDataUploadDTO> uploadUrlsAndCreateDataset(UploadUrlReqVO reqVO);
-
-    /**
      * 上传字符-支持批量上传
      *
      * @return 编号
      */
     List<SourceDataUploadDTO> uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS);
-
-    /**
-     * 批量创建数据集源数据
-     *
-     * @param batchCreateReqVOS 创建信息
-     * @return 编号
-     */
-    List<Long> batchCreateDatasetSourceData(String datasetId, List<SourceDataBatchCreateReqVO> batchCreateReqVOS);
-
 
     /**
      * 更新数据集源数据
@@ -100,7 +73,7 @@ public interface DatasetSourceDataService {
      * @param datasetId 数据集 ID
      * @return 数据集源数据列表
      */
-    List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(String datasetId, Integer dataModel);
+    List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(Long datasetId, Integer dataModel);
 
     /**
      * 获取数据源详情

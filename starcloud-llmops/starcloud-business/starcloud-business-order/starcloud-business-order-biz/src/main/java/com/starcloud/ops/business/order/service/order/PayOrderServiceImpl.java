@@ -12,10 +12,14 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.databind.util.IgnorePropertiesUtil;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductTimeEnum;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -46,7 +50,6 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -74,6 +77,9 @@ public class PayOrderServiceImpl implements PayOrderService {
     private PayProperties payProperties;
 
     @Resource
+    private SmsSendApi smsSendApi;
+
+    @Resource
     private PayClientFactory payClientFactory;
 
     @Resource
@@ -92,8 +98,8 @@ public class PayOrderServiceImpl implements PayOrderService {
     @Resource
     private UserBenefitsService userBenefitsService;
 
-    // @Resource
-    // private PayOrderApi payOrderApi;
+    @Resource
+    private AdminUserService userService;
 
 
     @Override
@@ -371,7 +377,8 @@ public class PayOrderServiceImpl implements PayOrderService {
             // 3. 插入支付通知记录
             notifyService.createPayNotifyTask(PayNotifyTaskCreateReqDTO.builder()
                     .type(PayNotifyTypeEnum.ORDER.getType()).dataId(order.getId()).build());
-
+            // 发送钉钉通知消息
+            sendMessage(order.getCreator(), order.getProductCode(), order.getAmount());
             // 根据商品 code 获取商品预设用户等级
             String roleCode = ProductEnum.getRoleCodeByCode(order.getProductCode());
             // 根据商品 code 获取权益类型
@@ -381,6 +388,24 @@ public class PayOrderServiceImpl implements PayOrderService {
             // TODO 设置用户角色 异常处理 日志
             userBenefitsService.addBenefitsAndRole(benefitsType, Long.valueOf(order.getCreator()), roleCode);
         });
+    }
+
+
+    @TenantIgnore
+    private void sendMessage(String userId, String productType, Integer amount) {
+
+        AdminUserDO user = userService.getUser(Long.valueOf(userId));
+        ProductEnum productEnum = ProductEnum.getByCode(productType);
+        Map<String, Object> templateParams = new HashMap<>();
+        templateParams.put("userName", user.getNickname());
+        templateParams.put("productName", productEnum.getName());
+        templateParams.put("amount", amount / 100);
+        smsSendApi.sendSingleSmsToAdmin(
+                new SmsSendSingleToUserReqDTO()
+                        .setUserId(1L).setMobile("17835411844")
+                        // .setTemplateCode("SMS_2023_PAY")
+                        .setTemplateCode("pay")
+                        .setTemplateParams(templateParams));
     }
 
     /**

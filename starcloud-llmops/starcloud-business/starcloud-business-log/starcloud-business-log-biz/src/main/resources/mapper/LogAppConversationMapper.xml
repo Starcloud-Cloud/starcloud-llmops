@@ -2,60 +2,107 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper">
 
+    <!-- 需要查询的字段信息 -->
+    <sql id="PAGE_LOG_CONVERSATION_COLUMNS_REF">
+        co.uid,
+        co.app_uid,
+        co.app_name,
+        co.app_mode,
+        co.from_scene,
+        co.status,
+        co.creator,
+        co.end_user,
+        co.create_time,
+        co.update_time,
+        COUNT(msg.id) AS messageCount,
+        COUNT(fb.id) AS feedbacksCount,
+        SUM(msg.elapsed) AS totalElapsed,
+        SUM(msg.total_price) AS totalPrice,
+        SUM(msg.message_tokens) AS totalMessageTokens,
+        SUM(msg.answer_tokens) AS totalAnswerTokens,
+        SUM(msg.message_tokens + msg.answer_tokens) AS tokens
+    </sql>
+
     <!-- 分页查询会话列表 -->
-    <select id="selectSqlPage"
+    <select id="pageLogConversation"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO">
         SELECT
-        t.uid,
-        t.app_uid,
-        t.app_name,
-        t.app_mode,
-        t.from_scene,
-        t.status,
-        t.creator,
-        t.end_user,
-        t.create_time,
-        t.update_time,
-        COUNT(t1.id) AS messageCount,
-        COUNT(t2.id) AS feedbacksCount,
-        SUM(t1.elapsed) AS totalElapsed,
-        SUM(t1.total_price) AS totalPrice,
-        SUM(t1.message_tokens) AS totalMessageTokens,
-        SUM(t1.answer_tokens) AS totalAnswerTokens,
-        SUM(t1.message_tokens + t1.answer_tokens) AS tokens
-        FROM llm_log_app_conversation t
-        LEFT JOIN llm_log_app_message t1 ON (t1.app_conversation_uid = t.uid)
-        LEFT JOIN llm_log_app_message_feedbacks t2 ON (t2.app_message_uid = t1.uid)
+        <include refid="PAGE_LOG_CONVERSATION_COLUMNS_REF"/>
+        FROM llm_log_app_conversation co
+        LEFT JOIN llm_log_app_message msg ON (msg.app_conversation_uid = co.uid)
+        LEFT JOIN llm_log_app_message_feedbacks fb ON (fb.app_message_uid = msg.uid)
         <where>
             <if test="query.appUid != null and query.appUid != '' ">
-                AND t.app_uid = #{query.appUid}
+                AND co.app_uid = #{query.appUid}
             </if>
+
             <if test="query.appName != null and query.appName != '' ">
                 <bind name="appName" value="query.appName+'%'"/>
-                AND t.app_name LIKE #{appName}
+                AND co.app_name LIKE #{appName}
             </if>
+
             <if test="query.appMode != null and query.appMode != '' ">
-                AND t.app_mode = #{query.appMode}
+                AND co.app_mode = #{query.appMode}
             </if>
-            <if test="query.fromScene != null and query.fromScene != '' ">
-                AND t.from_scene = #{query.fromScene}
-            </if>
+
+            <choose>
+                <when test="query.fromScene != null and query.fromScene != '' ">
+                    AND co.from_scene = #{query.fromScene}
+                </when>
+                <when test="query.fromSceneList != null and query.fromSceneList.size() > 0">
+                    AND co.from_scene IN
+                    <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </when>
+            </choose>
+
             <if test="query.status != null and query.status != '' ">
-                AND t.status = #{query.status}
+                AND co.status = #{query.status}
             </if>
+
             <if test="query.startTime != null and query.endTime != null">
-                AND t.update_time between #{query.startTime} and #{query.endTime}
+                AND co.update_time between #{query.startTime} and #{query.endTime}
             </if>
-            <if test="query.type != null and query.type == 'GENERATE_RECORD' and (query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
-                AND t.from_scene IN
-                <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
+
+        </where>
+        GROUP BY co.id
+        ORDER BY co.update_time DESC
+
+    </select>
+
+    <!-- 分页查询会话列表 -->
+    <select id="pageLogConversationByAppUid"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO">
+        SELECT
+        <include refid="PAGE_LOG_CONVERSATION_COLUMNS_REF"/>
+        FROM llm_log_app_conversation co
+        LEFT JOIN llm_log_app_message msg ON (msg.app_conversation_uid = co.uid)
+        LEFT JOIN llm_log_app_message_feedbacks fb ON (fb.app_message_uid = msg.uid)
+        <where>
+            <choose>
+                <when test="query.marketUid != null and query.marketUid != '' ">
+                    AND co.app_uid IN (#{query.appUid}, #{query.marketUid})
+                </when>
+                <otherwise>
+                    AND co.app_uid = #{query.appUid}
+                </otherwise>
+            </choose>
+
+            <if test="query.fromScene != null and query.fromScene != '' ">
+                AND co.from_scene = #{query.fromScene}
+            </if>
+
+            <if test="query.status != null and query.status != '' ">
+                AND co.status = #{query.status}
+            </if>
+
+            <if test="query.startTime != null and query.endTime != null">
+                AND co.create_time between #{query.startTime} and #{query.endTime}
             </if>
         </where>
-        GROUP BY t.id
-        ORDER BY t.update_time DESC
-
+        GROUP BY co.id
+        ORDER BY co.update_time DESC
     </select>
 
 

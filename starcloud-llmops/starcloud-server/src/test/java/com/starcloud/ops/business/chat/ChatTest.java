@@ -25,11 +25,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 
 import javax.annotation.Resource;
 
 @Slf4j
+@ComponentScan(basePackages = "cn.iocoder.yudao.module.infra")
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class})
 @ExtendWith(MockitoExtension.class)
 public class ChatTest extends BaseDbUnitTest {
@@ -74,13 +76,16 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("Who is Leo DiCaprio's girlfriend Or ex-girlfriend? What is her current age raised to the 0.43 power?");
 
-        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
         ChatAppEntity<ChatRequestVO, JsonData> chatAppEntity = AppFactory.factory(chatRequest);
 
         JsonData jsonParams = chatAppEntity.execute(chatRequest);
 
     }
 
+    /**
+     * 普通带历史聊天
+     */
     @Test
     public void runMyChatTest() {
 
@@ -89,12 +94,130 @@ public class ChatTest extends BaseDbUnitTest {
         //带数据集的
         chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
 
+
+        chatRequest.setAppUid("03a48ee3b3664e808c650d541f04d494");
+        chatRequest.setConversationUid("c610cd4011d248f4902e455a668cb66e");
+
         chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
 
 
-        chatRequest.setQuery("讲个关于汉堡的笑话吧。");
+        chatRequest.setQuery("继续");
+
+        chatRequest.setQuery("亚马逊新手如何开店，详细点说明，2000个字");
+
+        chatRequest.setQuery("新手如何上架商品？详细点说明，2000个字");
+
+        chatRequest.setQuery("新手如何退货尼？详细点说明，1000个字");
+
+        chatRequest.setQuery("新手如何发货尼？详细点说明，1000个字");
+
+        chatRequest.setQuery("亚马逊新手如何开店，详细点说明，1000个字");
+
+        chatRequest.setQuery("我的名字叫 大飞");
+
+
+        chatRequest.setQuery("你还记得我的名字嘛？");
+
+
+        chatRequest.setQuery("亚马逊新手如何开店，详细点说明，100个字");
+
+        chatRequest.setQuery("你还记得我的名字嘛？");
+
+
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+    /**
+     * 普通带历史聊天
+     */
+    @Test
+    public void runMyChatUrlTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
 
         chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatService.chat(chatRequest);
+
+
+    }
+
+    /**
+     * 带工具聊天
+     */
+    @Test
+    public void runMyChatToolTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+
+        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("今天杭州的天气怎么样？");
+
+        chatRequest.setQuery("1+1=？");
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+    /**
+     * 工具调用 并 包含 工具调用历史
+     */
+    @Test
+    public void runMyChatToolHistoryTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+        chatRequest.setConversationUid("0275a13139424142bad11d215c9e89cf");
+
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+
+
+        chatRequest.setQuery("今天杭州的天气怎么样？");
+
+        chatRequest.setQuery("今天北京的天气怎么样？");
+
+        chatRequest.setQuery("今天天津的天气怎么样？");
+
+        chatRequest.setQuery("今天南京的天气怎么样？");
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+    /**
+     * 查询带文档的chat
+     */
+    @Test
+    public void runMyDocTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("971e790946d04513aad3b29e695720f0");
+
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+
+        chatRequest.setQuery("亚马逊发货规则是什么？");
+
 
         chatService.chat(chatRequest);
 

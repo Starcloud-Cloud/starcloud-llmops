@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.api.app.vo.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
@@ -20,7 +21,6 @@ public class AppContextReqVO implements Serializable {
      * 执行场景
      */
     @Schema(description = "场景")
-    @NotNull(message = "场景Code 不能为空")
     private String scene;
 
     /**

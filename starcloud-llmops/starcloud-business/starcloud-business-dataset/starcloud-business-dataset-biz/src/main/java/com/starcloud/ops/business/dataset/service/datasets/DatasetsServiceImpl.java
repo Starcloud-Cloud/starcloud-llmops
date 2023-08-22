@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.dataset.service.datasets;
 
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -59,7 +58,7 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @return Boolean
      */
     @Override
-    public Boolean createDatasetsByApplication(String appId, String appName) {
+    public Long createDatasetsByApplication(String appId, String appName) {
         DatasetsDO datasetsDO = new DatasetsDO();
         datasetsDO.setUid(appId);
         datasetsDO.setName(appName);
@@ -69,9 +68,9 @@ public class DatasetsServiceImpl implements DatasetsService {
         datasetsDO.setEnabled(true);
 
         // 数据插入
-        int result = datasetsMapper.insert(datasetsDO);
+        datasetsMapper.insert(datasetsDO);
 
-        return BooleanUtil.isTrue(1 == result);
+        return datasetsDO.getId();
     }
 
     @Override
@@ -150,6 +149,15 @@ public class DatasetsServiceImpl implements DatasetsService {
         return datasetsDO;
     }
 
+    /**
+     * @param id
+     * @return
+     */
+    @Override
+    public DatasetsDO getDataById(Long id) {
+        return datasetsMapper.selectById(id);
+    }
+
 
     @Override
     public PageResult<DatasetsDO> getDatasetsPage(DatasetsPageReqVO pageReqVO) {
@@ -164,20 +172,16 @@ public class DatasetsServiceImpl implements DatasetsService {
      */
     @Override
     public void validateDatasetsExists(String uid) {
-
         if (datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, uid)) == null) {
             throw exception(DATASETS_NOT_EXISTS);
         }
     }
 
 
-    /**
-     * @param UID
-     * @return
-     */
     @Override
-    public DatasetsDO getDataSetBaseDo(String UID) {
-        this.validateDatasetsExists(UID);
-        return datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, UID));
+    public void validateDatasetsExists(Long id) {
+        if (datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getId, id)) == null) {
+            throw exception(DATASETS_NOT_EXISTS);
+        }
     }
 }

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper">
+
+    <!-- 根据条件查询应用市场列表 -->
+    <select id="listMarketApp" resultType="com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO">
+        SELECT id,
+        uid,
+        name,
+        model,
+        version,
+        language,
+        tags,
+        categories,
+        scenes,
+        images,
+        icon,
+        free,
+        cost,
+        usage_count,
+        like_count,
+        view_count,
+        install_count,
+        description,
+        audit,
+        deleted,
+        creator,
+        updater,
+        create_time,
+        update_time,
+        tenant_id
+        FROM llm_app_market
+        <where>
+            <if test="query.name != null and query.name != '' ">
+                AND name LIKE CONCAT(#{query.name}, '%')
+            </if>
+
+            <if test="query.model != null and query.model != '' ">
+                AND model = #{query.model}
+            </if>
+
+            <if test="query.scenes != null and query.scenes.size() > 0">
+                AND
+                <foreach collection='query.scenes' item='scene' separator=' AND '>
+                    FIND_IN_SET(#{scene}, scenes)
+                </foreach>
+            </if>
+
+            <if test="query.tags != null and query.tags.size() > 0 ">
+                AND
+                <foreach collection='query.tags' item='tag' separator=' AND '>
+                    FIND_IN_SET(#{tag}, tags)
+                </foreach>
+            </if>
+            AND deleted = 0
+        </where>
+    </select>
+</mapper>

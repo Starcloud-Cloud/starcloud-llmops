@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -11,11 +11,14 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Function;
 
 /**
  * App 步骤实体包装类
@@ -25,6 +28,9 @@ import java.util.Set;
  * @since 2023-05-31
  */
 @Data
+@ToString
+@NoArgsConstructor
+@EqualsAndHashCode
 public class WorkflowStepWrapper {
 
     /**
@@ -33,24 +39,20 @@ public class WorkflowStepWrapper {
     @Deprecated
     private String field;
 
-
     /**
      * 步骤label
      */
     private String name;
-
 
     /**
      * 步骤按钮label
      */
     private String buttonLabel;
 
-
     /**
      * 步骤描述
      */
     private String description;
-
 
     /**
      * 具体的步骤配置
@@ -62,105 +64,47 @@ public class WorkflowStepWrapper {
      */
     private VariableEntity variable;
 
-
     /**
-     * 获取当前步骤配置的 步骤Code
-     *
-     * @return
+     * 基础校验模版
      */
-    public String getStepCode() {
-        return this.field;
-    }
-
-
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void validate() {
         this.field = AppUtils.obtainField(this.name);
     }
 
     /**
-     * 获取当前步骤的变量值
+     * 获取当前步骤配置的 步骤 Code
      *
-     * @return
+     * @return 步骤Code
      */
+    @JsonIgnore
     @JSONField(serialize = false)
-    public Object getContextVariablesValue(String field) {
-
-        Map<String, Object> variables = this.getContextVariablesValues(null);
-
-        return variables.get(VariableEntity.generateKey(this.getField(), field));
+    public String getStepCode() {
+        return this.field;
     }
 
     /**
-     * 获取当前步骤的变量值
+     * 获取当前步骤的所有变量的 values 集合
      *
-     * @return
+     * @return 变量的 values 集合
      */
-    @JSONField(serialize = false)
-    public <T> T getContextVariablesValue(String key, T def) {
-
-        return def;
-    }
-
-    /**
-     * 获取当前步骤的所有变量的values
-     *
-     * @return
-     */
+    @JsonIgnore
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues(String prefixKey) {
-
-
-        Map<String, Object> variables = VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
-            return !ObjectUtil.isEmpty(variableItemEntity.getValue()) ? variableItemEntity.getValue() : variableItemEntity.getDefaultValue();
-        }, VariableEntity.generateKey(prefixKey, this.getField()));
-
-        variables.put(VariableEntity.generateKey(prefixKey, this.getField(), "_OUT"), this.flowStep.getValue());
-
-        return variables;
+        Function<VariableItemEntity, Object> consumer = (item) -> ObjectUtil.isEmpty(item.getValue()) ? item.getDefaultValue() : item.getValue();
+        String key = VariableEntity.generateKey(prefixKey, this.getField());
+        Map<String, Object> variableMap = VariableEntity.mergeVariables(this.variable, this.flowStep.getVariable(), consumer, key);
+        variableMap.put(VariableEntity.generateKey(prefixKey, this.getField(), "_OUT"), this.flowStep.getValue());
+        return variableMap;
 
     }
 
-    /**
-     * 获取当前步骤的所有变量的Labels形式
-     *
-     * @return
-     */
-    @JSONField(serialize = false)
-    public Map<String, String> getContextVariablesLabels(String prefixKey) {
-
-        return VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
-            return variableItemEntity.getLabel();
-        }, prefixKey);
-    }
-
-    @JSONField(serialize = false)
-    public Map<String, String> getContextVariablesDes(String prefixKey) {
-
-        return VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
-            return variableItemEntity.getIsShow() ? StrUtil.isNotBlank(variableItemEntity.getDescription()) ? variableItemEntity.getDescription() : variableItemEntity.getLabel() : null;
-        }, prefixKey);
-    }
-
+    @JsonIgnore
     @JSONField(serialize = false)
     public Map<String, VariableItemEntity> getContextVariableItems() {
-
         String prefixKey = "STEP." + this.getField();
-
-        return VariableEntity.coverMergeVariables(this.variable, this.flowStep.getVariable(), (variableItemEntity) -> {
-            return variableItemEntity;
-        }, prefixKey);
-    }
-
-    /**
-     * 获取当前步骤的变量Keys列表
-     *
-     * @return
-     */
-    @JSONField(serialize = false)
-    public Set<String> getContextVariablesKeys() {
-
-
-        return null;
+        return VariableEntity.mergeVariables(this.variable, this.flowStep.getVariable(), (item) -> item, prefixKey);
     }
 
     /**
@@ -169,6 +113,7 @@ public class WorkflowStepWrapper {
      * @param stepId   步骤ID
      * @param response 响应
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public void setActionResponse(String stepId, ActionResponse response) {
         if (StringUtils.equalsIgnoreCase(this.name, stepId) || StringUtils.equalsIgnoreCase(this.field, stepId)) {

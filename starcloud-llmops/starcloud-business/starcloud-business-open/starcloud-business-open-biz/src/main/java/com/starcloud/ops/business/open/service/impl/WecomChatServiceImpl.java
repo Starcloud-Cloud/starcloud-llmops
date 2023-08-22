@@ -13,7 +13,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.chat.context.RobotContextHolder;
-import com.starcloud.ops.business.open.controller.admin.vo.QaCallbackReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.QaCallbackReqVO;
 import com.starcloud.ops.business.chat.worktool.WorkToolClient;
 import com.starcloud.ops.business.chat.worktool.request.BaseReq;
 import com.starcloud.ops.business.chat.worktool.request.SendMessageReq;
@@ -52,8 +52,18 @@ public class WecomChatServiceImpl implements WecomChatService {
     @Override
     public void asynReplyMsg(QaCallbackReqVO reqVO) {
         TenantContextHolder.setIgnore(true);
-        AppPublishChannelRespVO channelRespVO = appPublishChannelService.getByMediumUid(reqVO.getGroupRemark());
-        String userNameMd5 = userNameMd5(reqVO.getReceivedName());
+        AppPublishChannelRespVO channelRespVO = appPublishChannelService.getAllByMediumUid(reqVO.getGroupRemark());
+        if (channelRespVO == null) {
+            sendMsg(reqVO.getGroupRemark(), "渠道绑定异常，请联系管理员", reqVO.getReceivedName());
+            return;
+        }
+
+        if (channelRespVO.getStatus() == null || channelRespVO.getStatus() != 0) {
+            sendMsg(reqVO.getGroupRemark(), "此渠道已禁用", reqVO.getReceivedName());
+            return;
+        }
+
+        String userNameMd5 = userNameMd5(reqVO.getGroupRemark() + reqVO.getReceivedName());
         ChatRequestVO chatRequestVO = new ChatRequestVO();
         chatRequestVO.setAppUid(channelRespVO.getAppUid());
         chatRequestVO.setQuery(reqVO.getSpoken());
@@ -61,6 +71,7 @@ public class WecomChatServiceImpl implements WecomChatService {
         String endUserId = endUserService.weChatLogin(userNameMd5);
         chatRequestVO.setEndUser(endUserId);
         chatRequestVO.setConversationUid(userNameMd5);
+        chatRequestVO.setMediumUid(channelRespVO.getMediumUid());
         String robotId = RobotContextHolder.getRobotId();
         threadWithContext.asyncExecute(() -> {
             try {
@@ -77,10 +88,10 @@ public class WecomChatServiceImpl implements WecomChatService {
                 }
             } catch (ServiceException e) {
                 if (USER_BENEFITS_USELESS_INSUFFICIENT.getCode().intValue() == e.getCode()) {
-                    sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系管理员添加。", reqVO.getReceivedName());
+                    sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系群管理员添加。", reqVO.getReceivedName());
                 } else {
                     log.error("execute error:", e);
-                    sendMsg(reqVO.getGroupRemark(), e.getMessage(), reqVO.getReceivedName());
+                    sendMsg(reqVO.getGroupRemark(), "应用执行异常，请联系管理员", reqVO.getReceivedName());
                 }
             } catch (Exception e) {
                 log.error("execute error:", e);
@@ -89,6 +100,7 @@ public class WecomChatServiceImpl implements WecomChatService {
         });
     }
 
+    @Override
     public void sendMsg(String groupRemark, String msg, String endUser) {
         String robotId = RobotContextHolder.getRobotId();
         BaseReq<SendMessageReq> baseReq = new BaseReq<>();

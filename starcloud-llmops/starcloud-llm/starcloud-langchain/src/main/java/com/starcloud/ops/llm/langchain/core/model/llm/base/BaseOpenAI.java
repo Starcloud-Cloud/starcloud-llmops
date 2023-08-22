@@ -4,6 +4,7 @@ package com.starcloud.ops.llm.langchain.core.model.llm.base;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
@@ -30,7 +31,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class BaseOpenAI extends BaseLLM<CompletionResult> {
 
-    private String model = "text-davinci-003";
+    private String model = ModelType.GPT_3_5_TURBO.getName();
 
     private String prompt;
 
@@ -65,6 +66,11 @@ public class BaseOpenAI extends BaseLLM<CompletionResult> {
 
     private OpenAIConfig openAIConfig = SpringUtil.getBean("openAIConfig");
 
+
+    @Override
+    public String getModelType() {
+        return this.getModel();
+    }
 
     @Override
     protected BaseLLMResult<CompletionResult> _generate(List<String> texts, CallbackManagerForLLMRun callbackManager) {

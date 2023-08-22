@@ -3,12 +3,15 @@ package com.starcloud.ops.business.app.controller.admin.log;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.service.log.AppLogService;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,17 +65,36 @@ public class AppLogController {
     @Operation(summary = "获得应用执行统计列表")
     @ApiOperationSupport(order = 3, author = "nacoyer")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<List<LogAppMessageStatisticsListVO>> getAppMessageStatisticsList(@Valid @RequestBody LogAppMessageStatisticsListReqVO query) {
-        return success(appLogService.appMessageStatisticsList(query));
+    public CommonResult<List<LogAppMessageStatisticsListVO>> statistics(@Valid @RequestBody LogAppMessageStatisticsListReqVO query) {
+        return success(appLogService.listLogMessageStatistics(query));
+
+    }
+
+    @PostMapping("/statisticsByAppUid")
+    @DataPermission(enable = false)
+    @Operation(summary = "根据应用 UID 获得应用执行统计列表")
+    @ApiOperationSupport(order = 4, author = "nacoyer")
+    @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
+    public CommonResult<List<LogAppMessageStatisticsListVO>> statisticsByAppUid(@Valid @RequestBody LogAppMessageStatisticsListAppUidReqVO query) {
+        return success(appLogService.listLogMessageStatisticsByAppUid(query));
 
     }
 
     @PostMapping("/infoPage")
     @Operation(summary = "获得应用执行日志信息分页")
-    @ApiOperationSupport(order = 4, author = "nacoyer")
+    @ApiOperationSupport(order = 5, author = "nacoyer")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<PageResult<LogAppConversationInfoRespVO>> getAppConversationPage(@Valid @RequestBody LogAppConversationInfoPageReqVO query) {
-        return success(appLogService.appConversationPage(query));
+    public CommonResult<PageResult<LogAppConversationInfoRespVO>> infoPage(@Valid @RequestBody LogAppConversationInfoPageReqVO query) {
+        return success(appLogService.pageLogConversation(query));
+    }
+
+    @PostMapping("/infoPageByAppUid")
+    @DataPermission(enable = false)
+    @Operation(summary = "根据应用 UID 获得应用执行日志信息分页")
+    @ApiOperationSupport(order = 6, author = "nacoyer")
+    @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
+    public CommonResult<PageResult<LogAppConversationInfoRespVO>> infoPageByAppUid(@Valid @RequestBody LogAppConversationInfoPageAppUidReqVO query) {
+        return success(appLogService.pageLogConversationByAppUid(query));
     }
 
 }

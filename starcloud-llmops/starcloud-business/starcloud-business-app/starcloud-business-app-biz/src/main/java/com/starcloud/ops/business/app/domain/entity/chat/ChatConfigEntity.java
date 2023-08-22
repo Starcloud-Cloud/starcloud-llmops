@@ -4,10 +4,13 @@ import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSki
 import com.starcloud.ops.business.app.domain.entity.config.*;
 import com.starcloud.ops.business.app.domain.entity.skill.*;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
+import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 聊天应用配置实体
@@ -20,9 +23,23 @@ import java.util.List;
 @EqualsAndHashCode
 public class ChatConfigEntity extends BaseConfigEntity {
 
+
+    @Override
+    public void init() {
+
+        Optional.ofNullable(this.getHandlerSkills()).orElse(new ArrayList<>()).stream().forEach(handlerSkill -> {
+            if (handlerSkill.getHandler() == null) {
+                handlerSkill.setHandler(BaseHandler.of(handlerSkill.getSkillName()));
+            }
+        });
+    }
+
+
     private String code;
 
     private String prePrompt;
+
+    private PrePromptConfigEntity prePromptConfig;
 
     private VariableEntity variable;
 

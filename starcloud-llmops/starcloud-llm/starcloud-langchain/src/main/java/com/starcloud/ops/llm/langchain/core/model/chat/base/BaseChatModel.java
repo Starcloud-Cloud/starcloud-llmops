@@ -2,6 +2,7 @@ package com.starcloud.ops.llm.langchain.core.model.chat.base;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.llm.langchain.core.callbacks.*;
 import com.starcloud.ops.llm.langchain.core.model.llm.LLMUtils;
@@ -24,6 +25,9 @@ import java.util.stream.Collectors;
 public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseChatModel.class);
+
+    @Deprecated
+    private long elapsed;
 
     private Boolean verbose = false;
 
@@ -77,10 +81,9 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
     public BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, List<FunctionDescription> functionDescriptions, BaseCallbackManager callbackManager) {
 
         this.setCallbackManager(callbackManager);
-        ChatResult<R> chatResult = this.generate(Arrays.asList(baseMessages), null, functionDescriptions);
 
+        ChatResult<R> chatResult = this.generate(Arrays.asList(baseMessages), null, functionDescriptions);
         BaseMessage baseMessage = chatResult.getChatGenerations().get(0).getChatMessage();
-        baseMessage.getAdditionalArgs().put("usage", chatResult.getUsage());
 
         return baseMessage;
     }
@@ -99,6 +102,7 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
             try {
 
+                long start = System.currentTimeMillis();
                 llmRun.onLLMStart(this.getClass(), chatMessages.get(i), stops, functions);
 
                 ChatResult<R> chatResult = this._generate(chatMessages.get(i), stops, functions, llmRun);
@@ -106,6 +110,14 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
                 llmRun.onLLMEnd(this.getClass(), chatResult.getText(), chatResult.getUsage());
 
+                this.elapsed = System.currentTimeMillis() - start;
+
+                BaseMessage baseMessage = chatResult.getChatGenerations().get(0).getChatMessage();
+                baseMessage.getAdditionalArgs().put("usage", chatResult.getUsage());
+                baseMessage.getAdditionalArgs().put("llm_elapsed", this.elapsed);
+                baseMessage.getAdditionalArgs().put("fun", functions);
+                baseMessage.getAdditionalArgs().put("llm_params", BeanUtil.beanToMap(this));
+                baseMessage.getAdditionalArgs().put("llm_model", this.getModelType());
                 //llmRun.onLLMEnd();
 
             } catch (Exception e) {
@@ -123,35 +135,6 @@ public abstract class BaseChatModel<R> extends BaseLanguageModel<R> {
 
         return this.combineLLMOutputs(chatResults);
     }
-
-
-//    @Deprecated
-//    public ChatResult<R> generate(List<List<BaseChatMessage>> chatMessages) {
-//
-//        this.getCallbackManager().onLLMStart("BaseChatModel.generate.start", chatMessages);
-//
-//        try {
-//
-//            log.debug("BaseChatModel.generate: {}", chatMessages);
-//
-//            List<ChatResult<R>> chatResults = Optional.ofNullable(chatMessages).orElse(new ArrayList<>()).stream().map((chatMessageList -> {
-//
-//                return this._generate(chatMessageList);
-//            })).collect(Collectors.toList());
-//
-//            log.debug("BaseChatModel.generate result: {}", chatResults);
-//
-//            this.getCallbackManager().onLLMEnd("BaseChatModel.generate.end", chatResults);
-//
-//            return this.combineLLMOutputs(chatResults);
-//
-//        } catch (Exception e) {
-//
-//            this.getCallbackManager().onLLMError(e.getMessage(), e);
-//
-//            throw e;
-//        }
-//    }
 
     @Override
     public BaseLLMResult<R> generatePrompt(List<PromptValue> promptValues) {

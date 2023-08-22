@@ -1,9 +1,9 @@
 package com.starcloud.ops.business.app.service.channel;
 
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.base.vo.request.StatusRequest;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelModifyReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
-import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelStatusReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 
 import java.util.List;
@@ -20,89 +20,120 @@ import java.util.Map;
 public interface AppPublishChannelService {
 
     /**
-     * 根据应用uid获取发布渠道列表
+     * 根据应用 UID 获取发布渠道列表
      *
      * @param appUid 应用uid
-     * @return {@link List<AppPublishChannelRespVO>}
+     * @return 发布渠道列表
      */
     List<AppPublishChannelRespVO> listByAppUid(String appUid);
 
     /**
-     * 根据应用 UID 获取发布渠道 Map
+     * 根据应用发布记录 UID 获取发布渠道列表
      *
-     * @param appUid 应用 UID
-     * @return {@link Map<Integer, List<AppPublishChannelRespVO>>}
+     * @param appPublishUid 应用发布记录 UID
+     * @return 发布渠道列表
      */
-    Map<Integer, List<AppPublishChannelRespVO>> mapByAppUidGroupByType(String appUid);
+    List<AppPublishChannelRespVO> listByAppPublishUid(String appPublishUid);
 
     /**
-     * 根据 Uid 获取发布渠道详情
+     * 根据应用发布记录 UID 获取发布渠道 Map
+     *
+     * @param appPublishUid 应用发布记录 UID
+     * @return 发布渠道 Map
+     */
+    Map<Integer, List<AppPublishChannelRespVO>> mapByAppPublishUidGroupByType(String appPublishUid);
+
+    /**
+     * 根据 发布渠道 UID 获取发布渠道详情
      *
      * @param uid uid
-     * @return {@link AppPublishChannelRespVO}
+     * @return 发布渠道详情
      */
     AppPublishChannelRespVO get(String uid);
 
     /**
-     * 根据发布媒介Uid查找
+     * 根据发布媒介 UID 查找已启用发布渠道详情
      *
-     * @param mediumUid
-     * @return
+     * @param mediumUid 发布媒介 UID
+     * @return 发布渠道详情
      */
     AppPublishChannelRespVO getByMediumUid(String mediumUid);
 
     /**
-     * 根据发布媒介Uid查找应用信息
-     *
+     * 根据发布媒介 UID 查找发布渠道详情
      * @param mediumUid
      * @return
+     */
+    AppPublishChannelRespVO getAllByMediumUid(String mediumUid);
+
+    /**
+     * 根据发布媒介 UID 查找应用信息
+     *
+     * @param mediumUid 发布媒介 UID
+     * @return 应用信息
      */
     AppRespVO getAppByMediumUid(String mediumUid);
 
     /**
      * 创建发布渠道
      *
-     * @param request {@link AppPublishChannelReqVO} 请求参数
-     * @return {@link AppPublishChannelRespVO}
+     * @param request 请求参数
+     * @return 创建的发布渠道详情
      */
-    AppPublishChannelRespVO create(AppPublishChannelReqVO request);
+    void create(AppPublishChannelReqVO request);
 
     /**
      * 修改发布渠道
      *
-     * @param request {@link AppPublishChannelModifyReqVO } 请求参数
-     * @return {@link AppPublishChannelRespVO}
+     * @param request 请求参数
+     * @return 修改后的发布渠道详情
      */
-    AppPublishChannelRespVO modify(AppPublishChannelModifyReqVO request);
-
-    /**
-     * 修改发布渠道状态, 存在修改状态，不存在创建一个新发布渠道
-     *
-     * @param request {@link AppPublishChannelStatusReqVO} 请求参数
-     * @return {@link AppPublishChannelRespVO}
-     */
-    AppPublishChannelRespVO changeStatus(AppPublishChannelStatusReqVO request);
+    void modify(AppPublishChannelModifyReqVO request);
 
     /**
      * 重置分享链接唯一标识
      *
-     * @param uid 应用发布渠道uid
-     * @return {@link String}
+     * @param uid 应用发布渠道 UID
+     * @return 重置后的分享链接唯一标识
      */
     String resetShareSlug(String uid);
 
     /**
-     * 根据 appUid 批量修改渠道的 publishUid
+     * 修改发布渠道状态
      *
-     * @param appUid     应用 Uid
-     * @param publishUid 发布 Uid
+     * @param request 请求参数
+     * @return 修改状态后的发布渠道详情
+     */
+    void operate(StatusRequest request);
+
+    /**
+     * 根据应用 UID 批量修改发布渠道的发布 UID
+     *
+     * @param appUid     应用 UID
+     * @param publishUid 发布 UID
      */
     void updatePublishUidByAppUid(String appUid, String publishUid);
 
     /**
-     * 根据应用uid删除
+     * 根据发布 UID 删除
      *
-     * @param appUid 应用uid
+     * @param uid 发布 UID
+     */
+    void delete(String uid);
+
+    /**
+     * 根据应用发布记录 UID 批量删除 发布渠道记录
+     *
+     * @param publishUid
+     */
+    void deleteByAppPublishUid(String publishUid);
+
+    /**
+     * 根据应用 UID 批量删除 发布渠道记录
+     *
+     * @param appUid 应用 UID
      */
     void deleteByAppUid(String appUid);
+
+
 }

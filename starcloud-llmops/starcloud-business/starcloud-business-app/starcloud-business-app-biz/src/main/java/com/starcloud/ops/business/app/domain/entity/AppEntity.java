@@ -15,6 +15,8 @@ import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.monitor.NoticeTracking;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
@@ -28,8 +30,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.service.AppWorkflowService;
-import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
@@ -46,6 +46,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * App 实体类
@@ -58,37 +59,36 @@ import java.util.Optional;
 @Data
 public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> {
 
-    private AppWorkflowService appWorkflowService = SpringUtil.getBean(AppWorkflowService.class);
+    /**
+     * 应用 AppRepository 服务
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static AppRepository appRepository = SpringUtil.getBean(AppRepository.class);
 
+    /**
+     * 用户权益服务
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
-    private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
-
-
-    private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
-
-
+    /**
+     * 工作流引擎
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private StoryEngine storyEngine = SpringUtil.getBean(StoryEngine.class);
 
-
     /**
-     * AppRepository
-     */
-    private static AppRepository appRepository;
-
-    /**
-     * 获取 AppRepository
+     * 模版方法：基础校验
      *
-     * @return AppRepository
+     * @param request 请求参数
      */
-    public static AppRepository getAppRepository() {
-        if (appRepository == null) {
-            appRepository = SpringUtil.getBean(AppRepository.class);
-        }
-        return appRepository;
-    }
-
     @Override
-    protected void _validate(AppExecuteReqVO req) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _validate(AppExecuteReqVO request) {
         WorkflowConfigEntity config = this.getWorkflowConfig();
         if (config == null) {
             return;
@@ -106,86 +106,141 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     }
 
     /**
-     * 只用 应用创建者
-     * 注意，创建应用的时候，要设置 creator 为当前用户态
+     * 获取当前执行记录的主体用户，会做主体用户做如下操作。默认是当前用户态
+     * 1，扣除权益
+     * 2，记录日志
      *
-     * @return
+     * @return 用户 ID
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected Long getRunUserId(AppExecuteReqVO req) {
-
         return Long.valueOf(this.getCreator());
     }
 
+    /**
+     * 同步执行应用
+     *
+     * @param request 请求参数
+     * @return 执行结果
+     */
     @Override
-    protected AppExecuteRespVO _execute(AppExecuteReqVO req) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected AppExecuteRespVO _execute(AppExecuteReqVO request) {
 
         //权益放在这里是为了包装 可以执行完整的一次应用
-        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
+        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
 
         // 创建 App 执行上下文
-        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(req.getScene()));
-        appContext.setUserId(req.getUserId());
-        appContext.setEndUser(req.getEndUser());
+        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
+        appContext.setUserId(request.getUserId());
+        appContext.setEndUser(request.getEndUser());
+        appContext.setSseEmitter(request.getSseEmitter());
 
-        appContext.setSseEmitter(req.getSseEmitter());
-
-        if (StringUtils.isNotBlank(req.getStepId())) {
-            appContext.setStepId(req.getStepId());
-        }
-        //appContext.setHttpServletResponse(httpServletResponse);
-
-        if (StringUtils.isNotBlank(req.getConversationUid())) {
-            appContext.setConversationId(req.getConversationUid());
+        if (StringUtils.isNotBlank(request.getStepId())) {
+            appContext.setStepId(request.getStepId());
         }
 
+        if (StringUtils.isNotBlank(request.getConversationUid())) {
+            appContext.setConversationId(request.getConversationUid());
+        }
+
+        // 执行应用
         return this.fireWorkflowContext(appContext);
     }
 
-
+    /**
+     * 异步执行
+     * log 交由具体类去实现
+     *
+     * @param request 请求参数
+     */
     @Override
-    protected void _aexecute(AppExecuteReqVO req) {
-
-        this._execute(req);
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _aexecute(AppExecuteReqVO request) {
+        this._execute(request);
     }
 
     /**
-     * 执行后执行
+     * 模版方法：执行应用后置处理方法
+     *
+     * @param request   请求参数
+     * @param throwable 异常
      */
     @Override
-    protected void _afterExecute(AppExecuteReqVO req, Throwable t) {
-        SseEmitter sseEmitter = req.getSseEmitter();
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _afterExecute(AppExecuteReqVO request, Throwable throwable) {
+        SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
-            if (t != null) {
-                sseEmitter.completeWithError(t);
+            if (throwable != null) {
+                sseEmitter.completeWithError(throwable);
             } else {
                 sseEmitter.complete();
             }
         }
     }
 
-
+    /**
+     * 模版方法：创建会话记录
+     *
+     * @param request       请求参数
+     * @param createRequest 请求参数
+     */
     @Override
-    protected void _createAppConversationLog(AppExecuteReqVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
-        logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _createAppConversationLog(AppExecuteReqVO request, LogAppConversationCreateReqVO createRequest) {
+        createRequest.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
     }
 
+    /**
+     * 模版方法：历史记录初始化
+     *
+     * @param request            请求参数
+     * @param logAppConversation 会话记录
+     * @param logAppMessageList  消息记录
+     */
     @Override
-    protected void _initHistory(AppExecuteReqVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageList) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _initHistory(AppExecuteReqVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
 
     }
 
+    /**
+     * 模版方法：新增应用
+     */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void _insert() {
-        getAppRepository().insert(this);
+        appRepository.insert(this);
     }
 
+    /**
+     * 模版方法：更新应用
+     */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void _update() {
-        getAppRepository().update(this);
+        appRepository.update(this);
     }
 
+    /**
+     * 模版方法：解析会话配置
+     *
+     * @param conversationConfig 会话配置
+     * @param <C>                会话配置
+     * @return 会话配置
+     */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected <C> C _parseConversationConfig(String conversationConfig) {
         return null;
     }
@@ -195,6 +250,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      *
      * @param appContext 执行应用上下文
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected AppExecuteRespVO fireWorkflowContext(@Valid AppContext appContext) {
 
         StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
@@ -232,6 +289,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param appContext   应用上下文
      * @param nodeTracking 节点跟踪
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
         this.createAppMessage((messageCreateReqVO) -> {
             messageCreateReqVO.setCreator(String.valueOf(appContext.getUserId()));
@@ -272,26 +331,25 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
                 }
             }
         });
-
     }
 
     /**
      * 获取追踪
      *
-     * @param noticeTrackings 追踪列表
-     * @param cls             类
-     * @param <T>             类型
+     * @param noticeTrackingList 追踪列表
+     * @param clazz              类
+     * @param <T>                类型
      * @return 追踪
      */
-    private <T> T getTracking(List<NoticeTracking> noticeTrackings, Class<T> cls) {
-
-        String clsName = cls.getSimpleName();
-
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private <T> T getTracking(List<NoticeTracking> noticeTrackingList, Class<T> clazz) {
+        String clsName = clazz.getSimpleName();
         String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
-
-        return Optional.ofNullable(noticeTrackings).orElse(new ArrayList<>()).stream().filter(noticeTracking -> noticeTracking.getFieldName().equals(field)).map(noticeTracking -> {
-            return JSON.parseObject(noticeTracking.getValue(), cls);
-        }).findFirst().orElse(null);
+        return Optional.ofNullable(noticeTrackingList).orElse(new ArrayList<>()).stream()
+                .filter(noticeTracking -> noticeTracking.getFieldName().equals(field))
+                .map(noticeTracking -> JSON.parseObject(noticeTracking.getValue(), clazz))
+                .findFirst().orElse(null);
     }
 
 }

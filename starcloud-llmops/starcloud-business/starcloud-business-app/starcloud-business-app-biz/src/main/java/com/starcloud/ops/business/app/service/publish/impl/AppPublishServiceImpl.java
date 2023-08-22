@@ -3,8 +3,6 @@ package com.starcloud.ops.business.app.service.publish.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
-import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
-import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -40,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -68,9 +67,6 @@ public class AppPublishServiceImpl implements AppPublishService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
-
-    @Resource
-    private AdminUserService adminUserService;
 
     /**
      * 分页查询应用发布记录
@@ -152,8 +148,10 @@ public class AppPublishServiceImpl implements AppPublishService {
         AppPublishLatestRespVO response = AppPublishConverter.INSTANCE.convertLatest(publishList.get(0));
         response.setAppLastUpdateTime(app.getUpdateTime());
         response.setIsFirstCreatePublishRecord(Boolean.FALSE);
-        List<AppPublishChannelRespVO> channelList = appPublishChannelService.listByAppUid(appUid);
-        response.setChannels(channelList);
+        
+        // 获取应用发布渠道记录，按照发布渠道类型分组
+        Map<Integer, List<AppPublishChannelRespVO>> channelMap = appPublishChannelService.mapByAppPublishUidGroupByType(response.getUid());
+        response.setChannelMap(channelMap);
 
         // 发布记录不为空且存在待审核的发布记录, 不显示发布按钮，显示 取消发布按钮
         boolean pendingFlag = publishList.stream().anyMatch(item ->
@@ -357,6 +355,21 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
 
         appPublishMapper.audit(request.getUid(), request.getStatus(), SecurityFrameworkUtils.getLoginUserId());
+    }
+
+    /**
+     * 根据 UID 删除应用发布记录
+     *
+     * @param uid 应用发布记录 UID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(String uid) {
+        AppPublishDO appPublish = appPublishMapper.get(uid, Boolean.FALSE);
+        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, uid);
+        appPublishMapper.deleteById(appPublish.getId());
+        // 删除应用发布渠道记录
+        appPublishChannelService.deleteByAppPublishUid(uid);
     }
 
     /**

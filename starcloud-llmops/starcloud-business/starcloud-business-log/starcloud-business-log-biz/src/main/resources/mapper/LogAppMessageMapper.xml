@@ -2,53 +2,57 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper">
 
-    <!-- 日志统计 -->
-    <select id="getAppMessageStatisticsList"
-            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
-        SELECT
-        count(ms.id) as messageCount,
-        COUNT(
-        CASE
-        WHEN ms.status = "SUCCESS"
-        THEN
-        1
-        END
-        ) AS successCount,
-        COUNT(
-        CASE
-        WHEN ms.status != "SUCCESS"
-        THEN
-        1
-        END
-        ) AS errorCount,
-        COUNT(
-        CASE
-        WHEN fb.rating = "LIKE"
-        THEN
-        1
-        END
-        ) as feedbackLikeCount,
-        COUNT(DISTINCT(ms.creator)) as userCount,
-        SUM(ms.elapsed) as elapsedTotal,
-        AVG(ms.elapsed) as elapsedAvg,
-        SUM(message_tokens) as messageTokens,
-        SUM(answer_tokens) as answerTokens,
-        SUM(message_tokens + answer_tokens) as tokens,
+    <!-- 定义需要查询的字段 -->
+    <sql id="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF">
+        COUNT(ms.id) AS messageCount,
+        COUNT(CASE WHEN ms.status = "SUCCESS" THEN 1 END) AS successCount,
+        COUNT(CASE WHEN ms.status != "SUCCESS" THEN 1 END) AS errorCount,
+        COUNT(CASE WHEN fb.rating = "LIKE" THEN 1 END) AS feedbackLikeCount,
+        COUNT(DISTINCT ms.creator) AS userCount,
+        SUM(ms.elapsed) AS elapsedTotal,
+        AVG(ms.elapsed) AS elapsedAvg,
+        SUM(ms.message_tokens) AS messageTokens,
+        SUM(ms.answer_tokens) AS answerTokens,
+        SUM(ms.message_tokens + ms.answer_tokens) AS tokens,
         <choose>
             <when test="query.unit == 'HOURS'">
-                date_format(ms.create_time, '%Y-%m-%d %h') as create_date
+                DATE_FORMAT(ms.create_time, '%Y-%m-%d %h') as create_date
             </when>
             <when test="query.unit == 'DAYS'">
-                date_format(ms.create_time, '%Y-%m-%d') as create_date
+                DATE_FORMAT(ms.create_time, '%Y-%m-%d') as create_date
             </when>
             <when test="query.unit == 'MONTHS'">
-                date_format(ms.create_time, '%Y-%m') as create_date
+                DATE_FORMAT(ms.create_time, '%Y-%m') as create_date
             </when>
             <otherwise>
-                date_format(ms.create_time, '%Y-%m-%d') as create_date
+                DATE_FORMAT(ms.create_time, '%Y-%m-%d') as create_date
             </otherwise>
         </choose>
+    </sql>
 
+    <!-- 定义分组规则 -->
+    <sql id="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF">
+        <choose>
+            <when test="query.unit == 'HOURS'">
+                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d %h')
+            </when>
+            <when test="query.unit == 'DAYS'">
+                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d')
+            </when>
+            <when test="query.unit == 'MONTHS'">
+                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m')
+            </when>
+            <otherwise>
+                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d')
+            </otherwise>
+        </choose>
+    </sql>
+
+    <!-- 生成记录日志统计 -->
+    <select id="listLogMessageStatistics"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
+        SELECT
+        <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
         FROM llm_log_app_message as ms
         LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
         LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
@@ -56,38 +60,71 @@
             <if test="query.appUid != null and query.appUid != '' ">
                 AND ms.app_uid = #{query.appUid}
             </if>
+
             <if test="query.appName != null and query.appName != '' ">
                 <bind name="appName" value="query.appName+'%'"/>
                 AND co.app_name LIKE #{appName}
             </if>
+
             <if test="query.appMode != null and query.appMode != '' ">
                 AND ms.app_mode = #{query.appMode}
             </if>
-            <if test="query.fromScene != null and query.fromScene != '' ">
-                AND ms.from_scene = #{query.fromScene}
-            </if>
+
+            <choose>
+                <when test="query.fromScene != null and query.fromScene != '' ">
+                    AND ms.from_scene = #{query.fromScene}
+                </when>
+                <when test="query.fromSceneList != null and query.fromSceneList.size() > 0">
+                    AND ms.from_scene IN
+                    <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </when>
+            </choose>
+
             <if test="query.status != null and query.status != '' ">
                 AND ms.status = #{query.status}
             </if>
+
             <if test="query.startTime != null and query.endTime != null">
                 AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
-            <if test="query.type != null and query.type == 'GENERATE_RECORD' and (query.fromScene == null or query.fromScene == '') and query.fromSceneList != null and query.fromSceneList.size() > 0">
-                AND ms.from_scene IN
-                <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
+        </where>
+        <include refid="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF"/>
+        ORDER BY create_date;
+    </select>
+
+    <!-- 根据应用 UID 日志统计 -->
+    <select id="listLogMessageStatisticsByAppUid"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
+        SELECT
+        <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
+        FROM llm_log_app_message as ms
+        LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
+        LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
+        <where>
+            <choose>
+                <when test="query.marketUid != null and query.marketUid != '' ">
+                    AND ms.app_uid IN (#{query.appUid}, #{query.marketUid})
+                </when>
+                <otherwise>
+                    AND ms.app_uid = #{query.appUid}
+                </otherwise>
+            </choose>
+
+            <if test="query.fromScene != null and query.fromScene != '' ">
+                AND ms.from_scene = #{query.fromScene}
+            </if>
+
+            <if test="query.status != null and query.status != '' ">
+                AND ms.status = #{query.status}
+            </if>
+
+            <if test="query.startTime != null and query.endTime != null">
+                AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
         </where>
-        <if test="query.unit == 'HOURS'">
-            GROUP BY date_format(ms.create_time, '%Y-%m-%d %h')
-        </if>
-        <if test="query.unit == 'DAYS'">
-            GROUP BY date_format(ms.create_time, '%Y-%m-%d')
-        </if>
-        <if test="query.unit == 'MONTHS'">
-            GROUP BY date_format(ms.create_time, '%Y-%m')
-        </if>
+        <include refid="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF"/>
         ORDER BY create_date;
     </select>
 

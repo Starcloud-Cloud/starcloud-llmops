@@ -2,6 +2,9 @@ package com.starcloud.ops.business.app.domain.entity.variable;
 
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -13,6 +16,9 @@ import java.util.List;
  * @since 2023-05-31
  */
 @Data
+@ToString
+@NoArgsConstructor
+@EqualsAndHashCode
 public class VariableItemEntity {
 
     /**

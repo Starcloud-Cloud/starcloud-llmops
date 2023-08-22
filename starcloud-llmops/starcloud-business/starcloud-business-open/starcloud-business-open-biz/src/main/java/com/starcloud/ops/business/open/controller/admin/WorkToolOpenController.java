@@ -2,10 +2,11 @@ package com.starcloud.ops.business.open.controller.admin;
 
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.chat.context.RobotContextHolder;
-import com.starcloud.ops.business.open.controller.admin.vo.GroupCallbackReqVO;
-import com.starcloud.ops.business.open.controller.admin.vo.QaCallbackReqVO;
-import com.starcloud.ops.business.open.controller.admin.vo.QaCallbackRespVO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.GroupCallbackReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.QaCallbackReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.response.QaCallbackRespVO;
 import com.starcloud.ops.business.open.service.WecomChatService;
+import com.starcloud.ops.business.open.service.WecomGroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -24,22 +25,31 @@ public class WorkToolOpenController {
     @Resource
     private WecomChatService wecomChatService;
 
+    @Resource
+    private WecomGroupService wecomGroupService;
+
     @PostMapping("/qa/{robotId}")
     @Operation(summary = "qa回调")
     @PermitAll
     @OperateLog(enable = false)
     public QaCallbackRespVO reseiveMsg(@PathVariable("robotId") String robotId, @RequestBody QaCallbackReqVO qaMsgRequest) {
-        log.info("机器人 {} 收到群消息，{}",robotId, qaMsgRequest);
-        if (StringUtils.isBlank(qaMsgRequest.getGroupRemark())) {
-            log.error("groupRemark 不能为空");
-            return QaCallbackRespVO.success(StringUtils.EMPTY);
-        }
-
+        log.info("机器人 {} 收到群消息，{}", robotId, qaMsgRequest);
+        RobotContextHolder.setRobotId(robotId);
         if ("WorkTool".equalsIgnoreCase(qaMsgRequest.getGroupName())
                 && "小明参与的WorkTool".equalsIgnoreCase(qaMsgRequest.getGroupRemark())) {
             return QaCallbackRespVO.success(StringUtils.EMPTY);
         }
-        RobotContextHolder.setRobotId(robotId);
+
+        String spoken = qaMsgRequest.getSpoken();
+        if (StringUtils.isNotBlank(spoken) && spoken.startsWith("绑定应用:")) {
+            wecomGroupService.bindPublishChannel(qaMsgRequest);
+            return QaCallbackRespVO.success(StringUtils.EMPTY);
+        }
+
+        if (StringUtils.isBlank(qaMsgRequest.getGroupRemark())) {
+            log.error("groupRemark 不能为空");
+            return QaCallbackRespVO.success(StringUtils.EMPTY);
+        }
         wecomChatService.asynReplyMsg(qaMsgRequest);
         return QaCallbackRespVO.success(StringUtils.EMPTY);
     }

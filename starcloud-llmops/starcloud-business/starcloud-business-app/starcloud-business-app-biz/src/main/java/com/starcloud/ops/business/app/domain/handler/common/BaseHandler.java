@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.app.domain.handler.common;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
@@ -69,7 +72,12 @@ public abstract class BaseHandler<Q, R> {
      */
     public static BaseHandler of(String name) {
 
-        //@todo
+        try {
+            //头部小写驼峰
+            return SpringUtil.getBean(StrUtil.lowerFirst(name));
+        } catch (Exception e) {
+            log.error("BaseHandler of is fail: {}", name);
+        }
         return null;
     }
 
@@ -81,16 +89,21 @@ public abstract class BaseHandler<Q, R> {
         HandlerResponse<R> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
 
-        try {
+        long start = System.currentTimeMillis();
 
+        try {
             //@todo 默认执行开始 tips 提示
+            //中间的交互提示 可以在 具体的handler内继续调用
+            HandlerResponse<R> source = this._execute(context);
+
+            //设置的属性copy
+            BeanUtil.copyProperties(source, handlerResponse);
 
             //设置入参
-            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
-
-            //中间的交互提示 可以在 具体的handler内继续调用
-            handlerResponse = this._execute(context);
+            handlerResponse.setType(this.getClass().getSimpleName());
+//            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
             handlerResponse.setSuccess(true);
+            handlerResponse.setAnswer(JSONUtil.toJsonStr(source.getOutput()));
 
         } catch (Exception e) {
 
@@ -109,9 +122,9 @@ public abstract class BaseHandler<Q, R> {
 
             log.error("BaseHandler {} execute is fail: {}", this.getClass().getSimpleName(), e.getMessage(), e);
         }
+        handlerResponse.setElapsed(System.currentTimeMillis() - start);
 
         //@todo 默认执行结束 tips 提示
-
         handlerResponse.getTotalTokens();
         handlerResponse.getOutput();
 

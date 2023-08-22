@@ -52,6 +52,12 @@ public class AppPublishChannelDO extends TenantBaseDO {
     private String publishUid;
 
     /**
+     * 发布渠道类型
+     */
+    @TableField("name")
+    private String name;
+
+    /**
      * 发布媒介类型
      */
     @TableField("type")

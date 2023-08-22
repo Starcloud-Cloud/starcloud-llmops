@@ -9,6 +9,7 @@ import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.llm.langchain.core.tools.SerpAPITool;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * 通过 Google搜索新闻，并只返回 URL 列表
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Data
 @Slf4j
+@Component
 public class NewsSearchHandler extends BaseHandler<NewsSearchHandler.Request, NewsSearchHandler.Response> {
 
     private String name = "NewsSearchHandler";

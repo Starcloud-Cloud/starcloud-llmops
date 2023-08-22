@@ -1,22 +1,25 @@
 package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.Opt;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.knuddels.jtokkit.api.ModelType;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
+import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrePrompt;
+import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrompt;
+import com.starcloud.ops.business.app.domain.entity.chat.prompts.ContextPrompt;
+import com.starcloud.ops.business.app.domain.entity.chat.prompts.HistoryPrompt;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
 import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
@@ -25,52 +28,37 @@ import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
-import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
-import com.starcloud.ops.business.app.domain.llm.OpenAIToolFactory;
 import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
-import com.starcloud.ops.business.app.enums.PromptTempletEnum;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
-import com.starcloud.ops.business.app.service.chat.momory.ConversationTokenDbBufferMemory;
-import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
+import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
+import com.starcloud.ops.business.app.util.SseResultUtil;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
-import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutorResponse;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
-import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
-import com.starcloud.ops.llm.langchain.core.memory.BaseMemory;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
-import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
-import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
-import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
-import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -85,25 +73,39 @@ import java.util.stream.Collectors;
 @Data
 public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> {
 
+    @JsonIgnore
+    @JSONField(serialize = false)
     private static ChatService chatService = SpringUtil.getBean(ChatService.class);
 
+    @JsonIgnore
+    @JSONField(serialize = false)
     private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
+    @JsonIgnore
+    @JSONField(serialize = false)
     private static DocumentSegmentsService documentSegmentsService = SpringUtil.getBean(DocumentSegmentsService.class);
 
+    @JsonIgnore
+    @JSONField(serialize = false)
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
-
+    @JsonIgnore
+    @JSONField(serialize = false)
     private static AppRepository appRepository;
 
 
-    private ChatMessageHistory chatMessageHistory = new ChatMessageHistory();
+    /**
+     * 自定义memory 处理总结和tool历史问题。历史初始化时候新建
+     */
+    private ConversationSummaryDbMessageMemory messageMemory = new ConversationSummaryDbMessageMemory();
 
     /**
      * 获取 AppRepository
      *
      * @return AppRepository
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static AppRepository getAppRepository() {
         if (appRepository == null) {
             appRepository = SpringUtil.getBean(AppRepository.class);
@@ -115,26 +117,31 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 校验
      */
     @Override
-    protected void _validate(ChatRequestVO req) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _validate(ChatRequestVO request) {
 
         //@todo 现在默认都挂载一个 数据集，具体是否能搜索靠后续向量搜索处理
         DatesetEntity datesetEntity = new DatesetEntity();
         datesetEntity.setDatasetUid(this.getUid());
         datesetEntity.setEnabled(true);
         //实时加载 数据集配置
-        //this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
+        this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
 
 
         getChatConfig().validate();
     }
 
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected Long getRunUserId(ChatRequestVO req) {
 
         //如果是后台执行，肯定是当前应用创建者
         if (req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
                 || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
-                || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
+                || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
+                || req.getScene().equals(AppSceneEnum.SHARE_JS.name())) {
             return Long.valueOf(this.getCreator());
         }
 
@@ -145,86 +152,100 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 历史记录初始化
      */
     @Override
-    protected void _initHistory(ChatRequestVO req, LogAppConversationDO logAppConversationDO, List<LogAppMessageDO> logAppMessageDOS) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _initHistory(ChatRequestVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageDOS) {
 
         //preHistory(request.getConversationUid(), AppModelEnum.CHAT.name());
 
-        //@todo 根据不同场景自动处理 应用的会话配置信息
-        if (logAppConversationDO != null) {
 
-            //后台执行，不走历史配置，每次都是最新的配置
-            if (!(req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
-                    || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
-                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name()))) {
-                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
-                this.setChatConfig(chatConfig);
-            }
+        //所有场景都走最新发布的配置，不读取会话上的配置
+        if (logAppConversation != null) {
 
-            //分享场景，走最新发布内的配置
-            if (req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
-
-                //获取最新发布的配置
-                req.getMediumUid();
-
-                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
-                this.setChatConfig(chatConfig);
-            }
+//            //后台执行，不走历史配置，每次都是最新的配置
+//            if (!(req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
+//                    || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
+//                    || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
+//                    || req.getScene().equals(AppSceneEnum.SHARE_JS.name()))) {
+//                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
+//                this.setChatConfig(chatConfig);
+//            }
+//
+//            //分享场景，走最新发布内的配置
+//            if (req.getScene().equals(AppSceneEnum.SHARE_WEB.name())) {
+//
+//                //获取最新发布的配置
+//                req.getMediumUid();
+//
+//                ChatConfigEntity chatConfig = this._parseConversationConfig(logAppConversationDO.getAppConfig());
+//                this.setChatConfig(chatConfig);
+//            }
         }
 
-        Optional.ofNullable(logAppMessageDOS).orElse(new ArrayList<>()).stream().forEach((logAppMessageDO -> {
+        //有历史初始化一个 memory
+        this.messageMemory = new ConversationSummaryDbMessageMemory(logAppMessageDOS);
 
-            //@todo 判断状态，获取function记录？
-            chatMessageHistory.addUserMessage(logAppMessageDO.getMessage());
-            chatMessageHistory.addAiMessage(logAppMessageDO.getAnswer());
-
-        }));
 
     }
 
     @Override
-    protected void _createAppConversationLog(ChatRequestVO req, LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _createAppConversationLog(ChatRequestVO request, LogAppConversationCreateReqVO createRequest) {
 
-        logAppConversationCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this.getChatConfig()));
+        createRequest.setAppConfig(JSONUtil.toJsonStr(this.getChatConfig()));
     }
 
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected ChatConfigEntity _parseConversationConfig(String conversationConfig) {
         ChatConfigEntity chatConfig = JSON.parseObject(conversationConfig, ChatConfigEntity.class);
         return chatConfig;
     }
 
     @Override
-    protected JsonData _execute(ChatRequestVO req) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected JsonData _execute(ChatRequestVO request) {
 
-        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), req.getUserId());
+        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
 
-        return executeChat(req, req.getUserId());
+        return executeChat(request, request.getUserId());
     }
 
     @Override
-    protected void _aexecute(ChatRequestVO req) {
-        JsonData jsonParams = this._execute(req);
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _aexecute(ChatRequestVO request) {
+        JsonData jsonParams = this._execute(request);
     }
 
     /**
      * 执行后执行
      */
     @Override
-    protected void _afterExecute(ChatRequestVO req, Throwable t) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void _afterExecute(ChatRequestVO request, Throwable throwable) {
 
-        SseEmitter sseEmitter = req.getSseEmitter();
+        SseEmitter sseEmitter = request.getSseEmitter();
 
         if (sseEmitter != null) {
-            if (t != null) {
-                sseEmitter.completeWithError(t);
+            if (throwable != null) {
+                sseEmitter.completeWithError(throwable);
             } else {
                 sseEmitter.complete();
             }
         }
     }
 
-
+    @JsonIgnore
+    @JSONField(serialize = false)
     private JsonData executeChat(ChatRequestVO request, Long userId) {
+
+        this.getMessageMemory().setChatAppEntity(this);
+        this.getMessageMemory().setChatRequestVO(request);
 
         SseEmitter emitter = request.getSseEmitter();
 
@@ -234,69 +255,44 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         // 从表单配置中筛选输入变量，处理必填字段、默认值和选项值
         Map<String, Object> cleanInputs = getVariableItem(chatConfig.getVariable());
-        ChatMessageHistory history = this.chatMessageHistory;
+
+        ChatMessageHistory history = this.getMessageMemory().getChatHistory();
+
+        ChatPrePrompt chatPrePrompt = new ChatPrePrompt(chatConfig.getPrePrompt(), chatConfig.getPrePromptConfig());
+        ContextPrompt contextPrompt = new ContextPrompt(chatConfig.getDatesetEntities(), request.getQuery());
+        HistoryPrompt historyPrompt = new HistoryPrompt(history != null && history.limitMessage(1).size() > 0);
+
+        ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
+        int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
+
+        ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate();
+
+        BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
+
+        log.info("chatPromptTemplate: {}, \n\n humanInput: {}", chatPromptTemplate, humanInput);
 
 
-        StringJoiner messageTemp = new StringJoiner(StringUtils.LF);
-
-        // 配置项
-        if (StringUtils.isNotBlank(chatConfig.getPrePrompt())) {
-            messageTemp.add(chatConfig.getPrePrompt());
+        //直接把查询到到文档发送到前端
+        if (contextPrompt.isEnable()) {
+            //生成文档列表结果
+            InteractiveInfo interactiveInfo = InteractiveInfo.buildDocs(contextPrompt.getSearchResult());
+            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
         }
 
-        // 数据集
-        List<String> datasetUid = Optional.ofNullable(chatConfig.getDatesetEntities()).orElse(new ArrayList<>())
-                .stream().filter(DatesetEntity::getEnabled).map(DatesetEntity::getDatasetUid).collect(Collectors.toList());
 
-        List<String> context = new ArrayList<>();
+        //设置 memory 必要参数
+        this.getMessageMemory().setSummaryMaxTokens(maxTokens);
 
-        if (CollectionUtil.isNotEmpty(datasetUid)) {
-            //@todo 需要 block 对象
-            SimilarQueryRequest similarQueryRequest = new SimilarQueryRequest();
-            similarQueryRequest.setQuery(request.getQuery());
-            similarQueryRequest.setK(2L);
-            similarQueryRequest.setDatasetUid(datasetUid);
-            context = documentSegmentsService.similarQuery(similarQueryRequest);
-        }
-
-        Map<String, Object> humanInput = new HashMap<>(cleanInputs);
-        if (!CollectionUtils.isEmpty(context)) {
-            messageTemp.add(PromptTempletEnum.DATASET_CONTEXT.getTemp());
-
-            //@todo 上下文走模版配置
-            StringJoiner contextSj = new StringJoiner(StringUtils.LF);
-            for (String c : context) {
-                contextSj.add(c);
-            }
-            humanInput.put(PromptTempletEnum.DATASET_CONTEXT.getKey(), contextSj.toString());
-        }
-
-        // 历史记录
-        if (history != null && history.limitMessage(1).size() > 0) {
-            messageTemp.add(PromptTempletEnum.HISTORY_TEMP.getTemp());
-        }
-
-        humanInput.put(PromptTempletEnum.INPUT_TEMP.getKey(), request.getQuery());
-        messageTemp.add(PromptTempletEnum.INPUT_TEMP.getTemp());
-
-        ChatPromptTemplate chatPromptTemplate = ChatPromptTemplate.fromMessages(Collections.singletonList(
-                        HumanMessagePromptTemplate.fromTemplate(messageTemp.toString())
-                )
-        );
-
-        int maxToken = calculateMaxTokens(chatConfig.getPrePrompt(),
-                String.valueOf(humanInput.get(PromptTempletEnum.DATASET_CONTEXT.getKey())),
-                request.getQuery(), chatConfig.getModelConfig().getCompletionParams());
 
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
         if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
                 || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()))) {
 
-            AgentExecutor agentExecutor = buildLLmTools(request, maxToken, history, chatConfig, chatPromptTemplate, emitter);
+            AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, chatPromptTemplate, emitter);
 
-            AgentExecutorResponse agentExecutorResponse = agentExecutor.call(Arrays.asList(BaseVariable.newString("input", request.getQuery())));
+            AgentAction agentAction = agentExecutor.call(Arrays.asList(humanInput));
 
-            log.info("agentExecutor run result: {}", agentExecutorResponse);
+            log.info("agentExecutor run result: {}", agentAction);
 
             //扣费，记录 tool 调用日志
 
@@ -308,91 +304,27 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             //记录返回日志
 
             //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
-            return JsonData.of(agentExecutorResponse.getOutput());
+            return JsonData.of(agentAction.getObservation());
 
         } else {
 
             //@todo 主动创建 messageUid
             //request.setMessageUid();
 
-            LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxToken, chatConfig, chatPromptTemplate, emitter);
+            LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
 
-            BaseLLMResult<ChatCompletionResult> result = llmChain.call(humanInput);
+            BaseLLMResult<ChatCompletionResult> result = llmChain.call(Arrays.asList(humanInput));
 
-            long end = System.currentTimeMillis();
-            BigDecimal totalPrice = BigDecimal.valueOf(result.getUsage().getTotalTokens()).multiply(new BigDecimal("0.0200")).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+            llmChain.getMemory();
 
-            LogAppMessageCreateReqVO message = this.createAppMessage((messageCreateReqVO) -> {
-
-                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
-
-
-                messageCreateReqVO.setMessage(request.getQuery());
-                messageCreateReqVO.setMessageTokens(Math.toIntExact(result.getUsage().getPromptTokens()));
-                messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.0200"));
-
-                messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(chatConfig));
-                messageCreateReqVO.setVariables(JSONUtil.toJsonStr(chatConfig.getModelConfig()));
-                messageCreateReqVO.setAppUid(this.getUid());
-                messageCreateReqVO.setAppStep("");
-                messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
-                messageCreateReqVO.setAppConversationUid(request.getConversationUid());
-
-                messageCreateReqVO.setAnswer(result.getText());
-                messageCreateReqVO.setAnswerTokens(Math.toIntExact(result.getUsage().getCompletionTokens()));
-                messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.0200"));
-                messageCreateReqVO.setElapsed(end - start);
-                messageCreateReqVO.setTotalPrice(totalPrice);
-                messageCreateReqVO.setCurrency("USD");
-                messageCreateReqVO.setFromScene(request.getScene());
-                messageCreateReqVO.setStatus("SUCCESS");
-                messageCreateReqVO.setEndUser(request.getEndUser());
-                messageCreateReqVO.setCreator(userId.toString());
-
-            });
-
-            benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
+            //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
             return JsonData.of(result);
         }
 
     }
 
-    /**
-     * 计算除去描述，数据集，当前问题后剩余token数
-     * histroy最大剩余数
-     *
-     * @param prePrompt
-     * @param dataSetStr
-     * @param currQuery
-     * @param openaiCompletionParams 使用模型配置
-     * @return
-     */
-    public int calculateMaxTokens(String prePrompt, String dataSetStr, String currQuery, OpenaiCompletionParams openaiCompletionParams) {
-        Optional<ModelType> optionalModel = ModelType.fromName(openaiCompletionParams.getModel());
-        ModelType modelType = ModelType.GPT_3_5_TURBO;
-        if (optionalModel.isPresent()) {
-            modelType = optionalModel.get();
-        }
-        int maxTokens = modelType.getMaxContextLength();
-        if (StringUtils.isNotBlank(prePrompt)) {
-            maxTokens -= TokenUtils.intTokens(modelType, prePrompt);
-        }
-        if (StringUtils.isNotBlank(dataSetStr)) {
-            maxTokens -= TokenUtils.intTokens(modelType, dataSetStr + PromptTempletEnum.DATASET_CONTEXT.getTemp());
-        }
-
-        if (openaiCompletionParams.getMaxTokens() != null && openaiCompletionParams.getMaxTokens() > 0) {
-            // 临界值时 总结会多最后一次对话的回复 预先扣除token
-            maxTokens -= openaiCompletionParams.getMaxTokens() * 2;
-        } else {
-            maxTokens -= 500 * 2;
-        }
-
-        maxTokens -= TokenUtils.intTokens(modelType, currQuery);
-        return maxTokens;
-    }
-
-
+    @JsonIgnore
+    @JSONField(serialize = false)
     private Map<String, Object> getVariableItem(VariableEntity variable) {
 
         if (variable == null) {
@@ -415,6 +347,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         return filteredInputs;
     }
 
+    @JsonIgnore
+    @JSONField(serialize = false)
     private LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> buildLlm(ChatRequestVO request, int maxTokens,
                                                                                            ChatConfigEntity chatConfig,
                                                                                            ChatPromptTemplate chatPromptTemplate,
@@ -427,46 +361,37 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         chatOpenAi.setStream(true);
 
         chatOpenAi.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
-//        ConversationBufferMemory memory = new ConversationBufferMemory();
-        ConversationTokenDbBufferMemory conversationTokenDbBufferMemory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel(), request.getUserId().toString());
-
-//        memory.setChatHistory(history);
         LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> llmChain = new LLMChain<>(chatOpenAi, chatPromptTemplate);
-        llmChain.setMemory(conversationTokenDbBufferMemory);
+
+        llmChain.setMemory(this.getMessageMemory());
         return llmChain;
     }
 
-    private AgentExecutor buildLLmTools(ChatRequestVO request, int maxTokens, ChatMessageHistory history,
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private AgentExecutor buildLLmTools(ChatRequestVO request,
                                         ChatConfigEntity chatConfig,
                                         ChatPromptTemplate chatPromptTemplate,
                                         SseEmitter emitter) {
 
         ChatOpenAI chatOpenAI = new ChatOpenAI();
+
+        //@todo 重新组装参数
+        ChatConfigConvert.INSTANCE.updateParams(chatConfig.getModelConfig().getCompletionParams(), chatOpenAI);
+
         chatOpenAI.setStream(false);
-        //gpt-3.5-turbo-0613, gpt-4-0613
-        chatOpenAI.setModel("gpt-4-0613");
+        chatOpenAI.setModel(ModelType.GPT_4.getName());
+        chatOpenAI.setTemperature(0d);
+
         chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter, request.getConversationUid()));
-
-        BaseChatMemory memory = null;
-        //@todo 验证测试对话历史
-        if (1 == 1) {
-            memory = new ConversationBufferMemory();
-            if (history != null) {
-                memory.setChatHistory(history);
-            }
-        } else {
-            memory = new ConversationTokenDbBufferMemory(maxTokens, request.getConversationUid(), chatConfig.getModelConfig().getCompletionParams().getModel(), request.getUserId().toString());
-        }
-
 
         List<BaseTool> tools = this.loadLLMTools(request, chatConfig, emitter);
 
-        OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools);
-        AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(tools, chatOpenAI, baseSingleActionAgent, baseSingleActionAgent.getCallbackManager());
+        //增加 统一的 promptTemplate
+        OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools, chatPromptTemplate);
+        AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(baseSingleActionAgent, tools, chatOpenAI.getCallbackManager());
 
-        agentExecutor.setMemory(memory);
-
-        log.info("tools: {}", JSONUtil.parse(tools).toStringPretty());
+        agentExecutor.setMemory(this.getMessageMemory());
 
         return agentExecutor;
     }
@@ -477,6 +402,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      *
      * @return
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private List<BaseTool> loadLLMTools(ChatRequestVO request, ChatConfigEntity chatConfig, SseEmitter emitter) {
 
         List<BaseSkillEntity> skillEntities = new ArrayList<>();
@@ -501,6 +428,16 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             loadTools.add(handlerSkill.createFunTool(appContext));
         }
 
+        List<BaseTool> handlerFunTools = Optional.ofNullable(chatConfig.getHandlerSkills()).orElse(new ArrayList<>()).stream().filter(HandlerSkill::getEnabled).map(handlerSkill -> {
+
+            if (handlerSkill.getHandler() != null) {
+                return handlerSkill.createFunTool(appContext);
+            }
+            return null;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        loadTools.addAll(handlerFunTools);
+
+
         //API工具
         List<BaseTool> apiFunTools = Optional.ofNullable(chatConfig.getApiSkills()).orElse(new ArrayList<>()).stream().filter(ApiSkill::getEnabled).map(skillEntity -> {
             return skillEntity.createFunTool(appContext);
@@ -521,6 +458,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 新增应用
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void _insert() {
         getAppRepository().insert(this);
     }
@@ -529,6 +468,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 更新应用
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void _update() {
         getAppRepository().update(this);
     }

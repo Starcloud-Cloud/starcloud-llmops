@@ -11,8 +11,6 @@ import lombok.Getter;
 @Getter
 public enum AppPublishChannelEnum implements IEnumable<Integer> {
 
-    MARKET(1, "应用市场", "应用市场"),
-
     SHARE_LINK(2, "分享链接", "分享链接"),
 
     JS_IFRAME(3, "JS嵌入", "JS嵌入"),

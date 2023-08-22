@@ -771,9 +771,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return 编号
      */
     @Override
+    @Transactional
     public Boolean addBenefitsAndRole(String benefitsType, Long userId, String roleCode) {
         // 增加用户权益
-        addUserBenefitsByStrategyType(benefitsType, userId);
+        this.addUserBenefitsByStrategyType(benefitsType, userId);
         // 设置用户角色
         permissionService.addUserRole(userId, roleCode);
 

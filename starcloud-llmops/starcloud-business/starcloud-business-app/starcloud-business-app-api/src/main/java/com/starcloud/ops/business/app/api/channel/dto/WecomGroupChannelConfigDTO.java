@@ -22,5 +22,8 @@ public class WecomGroupChannelConfigDTO extends BaseChannelConfigDTO{
     @Schema(description = "群二维码链接")
     private String qrCode;
 
+    @Schema(description = "work-tool 机器人Id")
+    private String robotId;
+
 
 }

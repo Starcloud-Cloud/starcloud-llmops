@@ -3,9 +3,13 @@ package com.starcloud.ops.business.log.service.conversation;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
@@ -44,7 +48,7 @@ public interface LogAppConversationService {
      * @param uid    编号
      * @param status 状态
      */
-    void updateAppConversationStatus(@NotEmpty String uid, @NotEmpty String status);
+    void updateAppConversationStatus(@NotEmpty(message = "会话 Uid 不能为空") String uid, @NotEmpty(message = "会话状态不能为空") String status);
 
     /**
      * 删除应用执行日志会话
@@ -94,6 +98,15 @@ public interface LogAppConversationService {
      */
     List<LogAppConversationDO> getAppConversationList(LogAppConversationExportReqVO exportReqVO);
 
+    /**
+     * 根据应用 UID 获取应用执行日志消息统计数据列表 <br>
+     * 1. 应用分析 <br>
+     * 2. 聊天分析 <br>
+     *
+     * @param query 查询条件
+     * @return 日志消息统计数据
+     */
+    List<LogAppMessageStatisticsListPO> listLogMessageStatisticsByAppUid(LogAppMessageStatisticsListAppUidReqVO query);
 
     /**
      * app message 统计列表数据
@@ -101,8 +114,17 @@ public interface LogAppConversationService {
      * @param query 查询条件
      * @return 应用执行日志会话列表
      */
-    List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(LogAppMessageStatisticsListReqVO query);
+    List<LogAppMessageStatisticsListPO> listLogMessageStatistics(LogAppMessageStatisticsListReqVO query);
 
+    /**
+     * 根据 应用 UID 分页查询应用执行日志会话数据 <br>
+     * 1. 应用分析 <br>
+     * 2. 聊天分析 <br>
+     *
+     * @param query 查询条件
+     * @return 应用执行日志会话数据
+     */
+    PageResult<LogAppConversationInfoPO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query);
 
     /**
      * 获取 应用执行分页信息
@@ -110,7 +132,7 @@ public interface LogAppConversationService {
      * @param query 分页查询
      * @return 应用执行日志会话分页
      */
-    PageResult<LogAppConversationInfoPO> getAppConversationInfoPage(LogAppConversationInfoPageReqVO query);
+    PageResult<LogAppConversationInfoPO> pageLogConversation(LogAppConversationInfoPageReqVO query);
 
     /**
      * 获取最新的会话

@@ -2,23 +2,25 @@ package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
-import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,13 +54,17 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         appStepResponse.setStepConfig(JSONUtil.toJsonStr(request));
         //appStepResponse.setStepConfig(JSON.toJSONString(variablesMaps));
         appStepResponse.setMessage(prompt);
-        appStepResponse.setMessageUnitPrice(BigDecimal.valueOf(0.0200));
-        appStepResponse.setAnswerUnitPrice(BigDecimal.valueOf(0.0200));
+
+        ModelType modelType = TokenCalculator.fromName(request.getModel());
+        appStepResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(modelType, true));
+        appStepResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(modelType, false));
+
 
         try {
 
             ChatOpenAI chatOpenAI = new ChatOpenAI();
 
+            chatOpenAI.setModel(request.getModel());
             chatOpenAI.setStream(request.getStream());
             chatOpenAI.setMaxTokens(request.getMaxTokens());
             chatOpenAI.setTemperature(request.getTemperature());
@@ -67,8 +73,8 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
             //数据集支持
 
-            List<List<BaseMessage>> chatMessages = Arrays.asList(
-                    Arrays.asList(new HumanMessage(prompt))
+            List<List<BaseMessage>> chatMessages = Collections.singletonList(
+                    Collections.singletonList(new HumanMessage(prompt))
             );
 
 
@@ -85,11 +91,12 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             appStepResponse.setMessageTokens(baseLLMUsage.getPromptTokens());
             appStepResponse.setAnswerTokens(baseLLMUsage.getCompletionTokens());
 
-            BigDecimal messagePrice = BigDecimal.valueOf(appStepResponse.getMessageTokens()).multiply(appStepResponse.getMessageUnitPrice()).divide(BigDecimal.valueOf(1000));
-            BigDecimal answerPrice = BigDecimal.valueOf(appStepResponse.getAnswerTokens()).multiply(appStepResponse.getAnswerUnitPrice()).divide(BigDecimal.valueOf(1000));
+            Long messageTokens = baseLLMUsage.getPromptTokens();
+            Long answerTokens = baseLLMUsage.getCompletionTokens();
+            BigDecimal totalPrice = TokenCalculator.getTextPrice(messageTokens, modelType, true).add(TokenCalculator.getTextPrice(answerTokens, modelType, false));
 
             appStepResponse.setTotalTokens(baseLLMUsage.getTotalTokens());
-            appStepResponse.setTotalPrice(messagePrice.add(answerPrice));
+            appStepResponse.setTotalPrice(totalPrice);
 
 
         } catch (OpenAiHttpException exc) {
@@ -114,6 +121,8 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
     @Data
     public static class Request {
+
+        private String model = ModelType.GPT_3_5_TURBO.getName();
 
         /**
          * 后续新参数 都是一个个独立字段即可

@@ -59,14 +59,6 @@ public class LogAppMessageStatisticsListReqVO implements Serializable {
     private String status;
 
     /**
-     * 查询类型
-     */
-    @Schema(description = "查询类型")
-    @NotNull(message = "查询类型不能为空")
-    @InEnum(value = LogQueryTypeEnum.class, field = InEnum.EnumField.NAME, message = "查询类型 {value}, 支持的类型为 {values}")
-    private String type;
-
-    /**
      * 应用场景列表
      */
     @Schema(hidden = true)

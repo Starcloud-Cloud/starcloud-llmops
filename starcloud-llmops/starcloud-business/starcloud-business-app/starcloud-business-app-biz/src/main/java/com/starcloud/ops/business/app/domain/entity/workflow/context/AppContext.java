@@ -1,21 +1,26 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.context;
 
-import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
@@ -31,26 +36,44 @@ import java.util.*;
 @NoArgsConstructor
 public class AppContext {
 
-    @NotNull
+    /**
+     * 步骤前缀
+     */
+    private static final String STEP_PREFIX = "STEP";
+
+    /**
+     * 会话 UID
+     */
+    @NotBlank(message = "会话ID不能为空")
     private String conversationId;
 
-    @NotNull
+    /**
+     * 执行场景
+     */
+    @NotNull(message = "执行场景不能为空")
     private AppSceneEnum scene;
 
-
+    /**
+     * 当前执行的步骤
+     */
     private String stepId;
 
-
+    /**
+     * 当前执行人，权益扣除的用户。
+     */
     private Long userId;
 
+    /**
+     * 游客用户
+     */
     private String endUser;
 
     /**
-     * App 实体， 由 TemplateDTO 转换而来
+     * App 实体
      */
     @NotNull
+    @SuppressWarnings("all")
     private AppEntity app;
-
 
     /**
      * 流程执行入口新入参，有数据和参数定义
@@ -58,120 +81,67 @@ public class AppContext {
      */
     private JsonData jsonData;
 
-
+    /**
+     * SSE
+     */
+    @JsonIgnore
     @JSONField(serialize = false)
     private SseEmitter sseEmitter;
 
+    /**
+     * 构造函数, 用于创建新的会话
+     *
+     * @param app   App 实体
+     * @param scene 执行场景
+     */
+    @SuppressWarnings("all")
     public AppContext(AppEntity app, AppSceneEnum scene) {
+        if (app == null) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_APP_IS_NULL);
+        }
         this.conversationId = IdUtil.simpleUUID();
         this.app = app;
         this.scene = scene;
-        this.stepId = app.getWorkflowConfig().getFirstStep().getField();
+        this.stepId = app.getWorkflowConfig().getFirstStepWrapper().getField();
         this.userId = WebFrameworkUtils.getLoginUserId();
     }
 
-
     /**
-     * 获取当前执行的step
+     * 根据 stepId 获取 stepWrapper
      *
-     * @return
+     * @return 根据 stepId 获取 step
      */
-    public WorkflowStepWrapper getCurrentStepWrapper() {
-
-        return this.getStepWrapper(this.getStepId());
-    }
-
-    /**
-     * 获取当前执行的step
-     *
-     * @return
-     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapper(String stepId) {
-
-        Assert.notBlank(stepId, "AppContext stepId is not blank");
-
-        WorkflowStepWrapper stepWrapper = this.app.getWorkflowConfig().getStepWrapper(stepId);
-
-        return stepWrapper;
+        // 校验 stepId 是否存在
+        AppValidate.notBlank(stepId, ErrorCodeConstants.APP_EXECUTE_STEP_ID_IS_REQUIRED);
+        // 获取应用配置信息
+        WorkflowConfigEntity config = Optional.ofNullable(this.app)
+                .map(AppEntity::getWorkflowConfig)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_APP_CONFIG_IS_NULL));
+        return config.getStepWrapper(stepId);
     }
 
     /**
-     * 获取当前步骤的变量
+     * 获取当前步骤的所有变量值 Maps
      *
-     * @return
+     * @return 当前步骤的所有变量值 Maps
      */
-    @JSONField(serialize = false)
-    public String getContextVariablesValue(String field, String def) {
-
-        String val = getContextVariablesValue(field);
-        return StrUtil.isNotBlank(val) ? val : def;
-    }
-
-
-    /**
-     * 获取当前步骤的变量
-     *
-     * @return
-     */
-    @JSONField(serialize = false)
-    public String getContextVariablesValue(String field) {
-
-
-        String prefixKey = "STEP";
-
-        String allKey = this.stepId + "." + field;
-
-        //获取当前步骤前的所有变量的值
-        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(this.stepId);
-
-        Map<String, Object> allVariablesValues = MapUtil.newHashMap();
-
-        Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).forEach(wrapper -> {
-
-            Map<String, Object> variablesValues = wrapper.getContextVariablesValues(prefixKey);
-
-            Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()).entrySet().forEach(stringObjectEntry -> {
-
-                allVariablesValues.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
-            });
-        });
-
-        //获取需要替换占位符的字段内容
-
-
-        WorkflowStepWrapper wrapper = this.getStepWrapper(this.stepId);
-        Object value = wrapper.getContextVariablesValue(field);
-
-
-        //内容中 变量占位符 替换
-
-        return StrUtil.format(String.valueOf(value), allVariablesValues);
-
-    }
-
-
-    /**
-     * 获取当前步骤的所有变量值Maps
-     *
-     * @return
-     */
+    @JsonIgnore
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues() {
 
-        String prefixKey = "STEP";
-
-        //获取当前步骤前的所有变量的值
+        // 获取当前步骤前的所有变量的值
         List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(this.stepId);
 
         Map<String, Object> allVariablesValues = MapUtil.newHashMap();
 
         Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).forEach(wrapper -> {
 
-            Map<String, Object> variablesValues = wrapper.getContextVariablesValues(prefixKey);
+            Map<String, Object> variablesValues = wrapper.getContextVariablesValues(STEP_PREFIX);
 
-            Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()).entrySet().forEach(stringObjectEntry -> {
-                allVariablesValues.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
-            });
+            allVariablesValues.putAll(Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()));
         });
 
         WorkflowStepWrapper wrapper = this.getStepWrapper(this.stepId);
@@ -179,7 +149,7 @@ public class AppContext {
         Map<String, Object> variables = wrapper.getContextVariablesValues(null);
 
         Map<String, Object> fieldVariables = new HashMap<>();
-        Optional.ofNullable(variables.entrySet()).orElse(new HashSet<Map.Entry<String, Object>>()).forEach(entrySet -> {
+        Optional.ofNullable(variables.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
 
             String filedKey = StrUtil.replace(entrySet.getKey(), this.stepId + ".", "");
             filedKey = StrUtil.replace(filedKey, this.stepId, "");
@@ -190,12 +160,12 @@ public class AppContext {
 
     }
 
-
     /**
      * 执行成功后，响应更新
      *
      * @param response 响应
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public void setActionResponse(ActionResponse response) {
         this.app.setActionResponse(this.stepId, response);

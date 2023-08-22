@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageExportReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
@@ -81,6 +82,13 @@ public interface LogAppMessageMapper extends BaseMapperX<LogAppMessageDO> {
      * @param query 查询条件
      * @return 应用执行日志消息统计列表
      */
-    List<LogAppMessageStatisticsListPO> getAppMessageStatisticsList(@Param("query") LogAppMessageStatisticsListReqVO query);
+    List<LogAppMessageStatisticsListPO> listLogMessageStatistics(@Param("query") LogAppMessageStatisticsListReqVO query);
 
+    /**
+     * 根据应用 UID 获取应用执行日志消息统计数据列表
+     *
+     * @param query 查询条件
+     * @return 日志消息统计数据
+     */
+    List<LogAppMessageStatisticsListPO> listLogMessageStatisticsByAppUid(@Param("query") LogAppMessageStatisticsListAppUidReqVO query);
 }
