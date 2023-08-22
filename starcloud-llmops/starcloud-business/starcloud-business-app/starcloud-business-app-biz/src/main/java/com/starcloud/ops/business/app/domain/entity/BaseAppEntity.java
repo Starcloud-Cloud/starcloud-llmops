@@ -394,13 +394,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     this.updateAppConversationLog(request.getConversationUid(), true);
 
                 } catch (ServiceException exception) {
-                    log.error("应用异步执行异常(ServiceException): {}", exception.getMessage());
+                    log.error("应用异步执行异常(ServiceException): {}", exception.getMessage(), exception);
                     this._afterExecute(request, exception);
                     // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), false);
 
                 } catch (Exception exception) {
-                    log.error("应用异步任务执行异常: {}", exception.getMessage());
+                    log.error("应用异步任务执行异常: {}", exception.getMessage(), exception);
                     this._afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
                     // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), false);
@@ -408,13 +408,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             });
 
         } catch (ServiceException exception) {
-            log.error("应用异步执行异常(ServiceException): {}", exception.getMessage());
+            log.error("应用异步执行异常(ServiceException): {}", exception.getMessage(), exception);
             this._afterExecute(request, exception);
             // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), false);
 
         } catch (Exception exception) {
-            log.error("应用异步执行异常(Exception): {}", exception.getMessage());
+            log.error("应用异步执行异常(Exception): {}", exception.getMessage(), exception);
             this._afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
             // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), false);

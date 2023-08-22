@@ -124,7 +124,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         datesetEntity.setDatasetUid(this.getUid());
         datesetEntity.setEnabled(true);
         //实时加载 数据集配置
-        //this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
+        this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
 
 
         getChatConfig().validate();
