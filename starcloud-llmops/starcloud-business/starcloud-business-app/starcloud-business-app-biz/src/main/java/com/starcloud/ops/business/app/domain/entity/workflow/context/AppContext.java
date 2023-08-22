@@ -50,7 +50,7 @@ public class AppContext {
     /**
      * 执行场景
      */
-    @NotBlank(message = "执行场景不能为空")
+    @NotNull(message = "执行场景不能为空")
     private AppSceneEnum scene;
 
     /**
