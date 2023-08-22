@@ -48,21 +48,25 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 用户权益服务
      */
+    @JSONField(serialize = false)
     private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
     /**
      * 会话记录服务
      */
+    @JSONField(serialize = false)
     private static LogAppConversationService logAppConversationService = SpringUtil.getBean(LogAppConversationService.class);
 
     /**
      * 消息记录服务
      */
+    @JSONField(serialize = false)
     private static LogAppMessageService logAppMessageService = SpringUtil.getBean(LogAppMessageService.class);
 
     /**
      * 线程池
      */
+    @JSONField(serialize = false)
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
     /**
@@ -271,7 +275,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     public R execute(Q request) {
         try {
-            log.info("app start:{}, {}, {}", this.getUid(), this.getName(), request.getUserId());
+            log.info("应用执行开始: {}, {}", this.getUid(), this.getName());
 
             // 执行用户
             if (request.getUserId() == null) {
@@ -298,27 +302,29 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                 request.setConversationUid(conversationUid);
             }
 
+            log.info("应用执行：权益扣除用户：{}, 会话 UID {} ", request.getUserId(), request.getConversationUid());
+
             // 执行应用
             R result = this._execute(request);
             this._afterExecute(request, null);
 
             // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), true);
-            log.info("app end: {} {}", this.getUid(), result);
+            log.info("应用执行结束: {} {}", this.getUid(), result);
             return result;
 
         } catch (ServiceException exception) {
-            log.error("app execute is fail: {}", exception.getMessage(), exception);
+            log.error("应用执行异常(ServiceException): {}", exception.getMessage());
+            this._afterExecute(request, exception);
             // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), false);
-            this._afterExecute(request, exception);
             throw exception;
 
         } catch (Exception exception) {
-            log.error("app execute is fail: {}", exception.getMessage(), exception);
+            log.error("应用执行异常(Exception): {}", exception.getMessage());
+            this._afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
             // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), false);
-            this._afterExecute(request, exception);
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage());
         }
     }
@@ -332,7 +338,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     public void asyncExecute(Q request) {
         try {
-            log.info("app async start:{}, {}", this.getUid(), this.getName());
+            log.info("应用异步执行开始: {}, {}", this.getUid(), this.getName());
 
             // 执行用户
             if (request.getUserId() == null) {
@@ -359,33 +365,43 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                 request.setConversationUid(conversationUid);
             }
 
+            log.info("应用异步执行：权益扣除用户：{}, 会话 UID {} ", request.getUserId(), request.getConversationUid());
+
             // 异步执行应用
             threadExecutor.asyncExecute(() -> {
                 try {
                     this._aexecute(request);
                     this._afterExecute(request, null);
-                    log.info("app async end: {}", this.getUid());
+                    log.info("应用异步执行结束: {}", this.getUid());
+                    // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), true);
-                } catch (Exception exception) {
-                    log.error("app async execute is fail: {}", exception.getMessage(), exception);
-                    this.updateAppConversationLog(request.getConversationUid(), false);
+
+                } catch (ServiceException exception) {
+                    log.error("应用异步执行异常(ServiceException): {}", exception.getMessage());
                     this._afterExecute(request, exception);
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage());
+                    // 更新会话记录
+                    this.updateAppConversationLog(request.getConversationUid(), false);
+
+                } catch (Exception exception) {
+                    log.error("应用异步任务执行异常: {}", exception.getMessage());
+                    this._afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
+                    // 更新会话记录
+                    this.updateAppConversationLog(request.getConversationUid(), false);
                 }
             });
 
         } catch (ServiceException exception) {
-            log.error("app ServiceException is fail: {}", exception.getMessage(), exception);
-            //直接 会话异常
-            this.updateAppConversationLog(request.getConversationUid(), false);
+            log.error("应用异步执行异常(ServiceException): {}", exception.getMessage());
             this._afterExecute(request, exception);
-            throw exception;
+            // 更新会话记录
+            this.updateAppConversationLog(request.getConversationUid(), false);
+
         } catch (Exception exception) {
-            log.error("app exception is fail: {}", exception.getMessage(), exception);
-            //直接 会话异常
+            log.error("应用异步执行异常(Exception): {}", exception.getMessage());
+            this._afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
+            // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), false);
-            this._afterExecute(request, exception);
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage());
+
         }
     }
 
