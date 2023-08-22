@@ -269,6 +269,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             messageCreateReqVO.setMessage(message);
             messageCreateReqVO.setStatus("SUCCESS");
+            messageCreateReqVO.setMediumUid(request.getMediumUid());
 
             messageCreateReqVO.setMsgType(LogMessageTypeEnum.CHAT.name());
 

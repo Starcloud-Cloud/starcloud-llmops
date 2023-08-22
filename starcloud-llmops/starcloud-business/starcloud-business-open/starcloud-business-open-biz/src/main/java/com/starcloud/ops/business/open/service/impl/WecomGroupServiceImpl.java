@@ -140,11 +140,16 @@ public class WecomGroupServiceImpl implements WecomGroupService {
 
         String mediumUid = qaCallbackReqVO.getSpoken().replace("绑定应用:", StringUtils.EMPTY).trim();
         try {
-            AppPublishChannelRespVO publishChannel = appPublishChannelService.getByMediumUid(mediumUid);
+            AppPublishChannelRespVO publishChannel = appPublishChannelService.getAllByMediumUid(mediumUid);
             if (publishChannel == null
                     || !(publishChannel.getConfig() instanceof WecomGroupChannelConfigDTO)) {
 
                 wecomChatService.sendMsg(qaCallbackReqVO.getGroupName(), "此渠道不支持绑定群聊", qaCallbackReqVO.getReceivedName());
+                return;
+            }
+
+            if (publishChannel.getStatus() == null || publishChannel.getStatus() != 0) {
+                wecomChatService.sendMsg(qaCallbackReqVO.getGroupName(), "请先启用此渠道", qaCallbackReqVO.getReceivedName());
                 return;
             }
 

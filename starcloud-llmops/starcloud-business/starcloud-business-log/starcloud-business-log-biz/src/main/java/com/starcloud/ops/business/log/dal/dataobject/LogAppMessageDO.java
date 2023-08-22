@@ -117,4 +117,9 @@ public class LogAppMessageDO extends TenantBaseDO {
      */
     private String msgType;
 
+    /**
+     * 渠道uid
+     */
+    private String mediumUid;
+
 }
