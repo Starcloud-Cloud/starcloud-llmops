@@ -89,7 +89,7 @@ public class WecomChatServiceImpl implements WecomChatService {
                     sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系群管理员添加。", reqVO.getReceivedName());
                 } else {
                     log.error("execute error:", e);
-                    sendMsg(reqVO.getGroupRemark(), e.getMessage(), reqVO.getReceivedName());
+                    sendMsg(reqVO.getGroupRemark(), "应用执行异常，请联系管理员", reqVO.getReceivedName());
                 }
             } catch (Exception e) {
                 log.error("execute error:", e);
