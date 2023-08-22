@@ -260,7 +260,6 @@ public class AppFactory {
     public static AppEntity factoryShareApp(String mediumUid, AppReqVO appRequest) {
         // 需要校验 模版市场 中是否存在该模版，不存在抛出异常
         AppEntity app = factoryShareApp(mediumUid);
-
         AppEntity appEntity = AppConvert.INSTANCE.convert(appRequest);
         appEntity.setUid(app.getUid());
         appEntity.setCreator(app.getCreator());
