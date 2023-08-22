@@ -67,7 +67,10 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     MP(10, "微信公共号", "WeChat Public Account"),
 
-    ;
+    /**
+     * 优化提示
+     */
+    OPTIMIZE_PROMPT(11, "优化提示", "Optimize Prompt");
 
     /**
      * 应用类型Code
