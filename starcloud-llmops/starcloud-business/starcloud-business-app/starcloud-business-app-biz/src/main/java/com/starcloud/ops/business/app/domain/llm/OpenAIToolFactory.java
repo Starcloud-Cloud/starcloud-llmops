@@ -25,7 +25,7 @@ public class OpenAIToolFactory {
 
     public static FunTool createAppTool(AppEntity appEntity) {
 
-        Map<String, Object> variablesDes = appEntity.getWorkflowConfig().getFirstStep().getContextVariablesValues("");
+        Map<String, Object> variablesDes = appEntity.getWorkflowConfig().getFirstStepWrapper().getContextVariablesValues("");
 
         log.info("variablesDes: {}", variablesDes);
         // FunTool funTool = new FunTool(appEntity.getName(), appEntity.getDescription(), schema, function);

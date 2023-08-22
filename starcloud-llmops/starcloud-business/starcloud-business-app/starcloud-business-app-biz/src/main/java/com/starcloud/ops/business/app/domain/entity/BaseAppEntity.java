@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
@@ -48,24 +49,28 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 用户权益服务
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
     /**
      * 会话记录服务
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private static LogAppConversationService logAppConversationService = SpringUtil.getBean(LogAppConversationService.class);
 
     /**
      * 消息记录服务
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private static LogAppMessageService logAppMessageService = SpringUtil.getBean(LogAppMessageService.class);
 
     /**
      * 线程池
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
@@ -184,6 +189,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param request 请求参数
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected abstract void _validate(Q request);
 
@@ -193,6 +199,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param request 请求参数
      * @return 执行结果
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected abstract R _execute(Q request);
 
@@ -201,6 +208,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param request 请求参数
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected abstract void _aexecute(Q request);
 
@@ -210,6 +218,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param request   请求参数
      * @param throwable 异常
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected abstract void _afterExecute(Q request, Throwable throwable);
 
@@ -220,6 +229,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param logAppConversation 会话记录
      * @param logAppMessageList  消息记录
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected abstract void _initHistory(Q request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList);
 
@@ -229,6 +239,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param request       请求参数
      * @param createRequest 请求参数
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected abstract void _createAppConversationLog(Q request, LogAppConversationCreateReqVO createRequest);
 
@@ -239,18 +250,21 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param <C>                会话配置
      * @return 会话配置
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected abstract <C> C _parseConversationConfig(String conversationConfig);
 
     /**
      * 模版方法：新增应用
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected abstract void _insert();
 
     /**
      * 模版方法：更新应用
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected abstract void _update();
 
@@ -261,6 +275,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @return 用户 ID
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected Long getRunUserId(Q req) {
         return SecurityFrameworkUtils.getLoginUserId();
@@ -272,6 +287,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param request 请求参数
      * @return 执行结果
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public R execute(Q request) {
         try {
@@ -335,6 +351,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param request 请求参数
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public void asyncExecute(Q request) {
         try {
@@ -411,6 +428,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param benefitsType 权益类型
      * @param userId       用户 ID
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void allowExpendBenefits(String benefitsType, Long userId) {
         userBenefitsService.allowExpendBenefits(benefitsType, userId);
@@ -421,6 +439,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param request 请求参数
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public void validate(Q request) {
         this._validate(request);
@@ -429,6 +448,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 新增应用
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public void insert() {
         // 设置 uid
@@ -442,6 +462,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 更新应用
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public void update() {
         this.validate(null);
@@ -454,6 +475,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param request 请求参数
      * @return 会话 UID
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected String createAppConversationLog(Q request) {
         LogAppConversationCreateReqVO reqVO = new LogAppConversationCreateReqVO();
@@ -482,6 +504,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param consumer 消息创建
      * @return 消息对象
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public LogAppMessageCreateReqVO createAppMessage(Consumer<LogAppMessageCreateReqVO> consumer) {
 
@@ -502,6 +525,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param conversationUid 日志会话 UID
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void updateAppConversationLog(String conversationUid, Boolean status) {
         logAppConversationService.updateAppConversationStatus(conversationUid, status ? "SUCCESS" : "ERROR");
@@ -513,6 +537,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param conversationUid 日志会话 UID
      * @return 会话对象
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private LogAppConversationDO getAppConversation(String conversationUid) {
         return logAppConversationService.getAppConversation(conversationUid);
@@ -524,6 +549,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param conversationUid 日志会话 UID
      * @return 会话消息列表
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private List<LogAppMessageDO> getAppConversationMessages(String conversationUid) {
 
@@ -546,6 +572,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param stepId   步骤ID
      * @param response 响应
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public void setActionResponse(String stepId, ActionResponse response) {
         workflowConfig.setActionResponse(stepId, response);

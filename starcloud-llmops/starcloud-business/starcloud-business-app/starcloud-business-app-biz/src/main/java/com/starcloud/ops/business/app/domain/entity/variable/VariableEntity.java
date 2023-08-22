@@ -2,9 +2,9 @@ package com.starcloud.ops.business.app.domain.entity.variable;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -36,64 +36,30 @@ public class VariableEntity {
     private List<VariableItemEntity> variables;
 
     /**
-     * 获取当前步骤的所有变量的values
-     *
-     * @return
-     */
-    @JSONField(serialize = false)
-    public Map<String, Object> getVariablesValues() {
-
-        Map<String, Object> variablesValues = MapUtil.newHashMap();
-
-        Optional.ofNullable(variables).orElse(new ArrayList<>()).forEach(variableItemEntity -> {
-
-            Object value = !ObjectUtil.isEmpty(variableItemEntity.getValue()) ? variableItemEntity.getValue() : variableItemEntity.getDefaultValue();
-
-            variablesValues.put(variableItemEntity.getField(), value);
-        });
-
-        return variablesValues;
-    }
-
-
-    /**
-     * 获取指定key的变量
-     *
-     * @param field
-     * @return
-     */
-    @JSONField(serialize = false)
-    public VariableItemEntity getVariable(String field) {
-        return null;
-    }
-
-
-    /**
      * 获取指定类型的变量集合
      *
-     * @param type
-     * @return
+     * @param variable     待合并的变量
+     * @param stepVariable 待合并的步骤变量
+     * @param consumer     变量值处理函数
+     * @param prefixKey    变量前缀
+     * @param <V>          变量值类型
+     * @return 合并后的变量集合
      */
+    @JsonIgnore
     @JSONField(serialize = false)
-    public List<VariableItemEntity> getVariables(String type) {
-        return Optional.ofNullable(this.variables).orElse(new ArrayList<>()).stream().filter(variableItemEntity -> variableItemEntity.getType().equals(type)).collect(Collectors.toList());
-    }
-
-
-    @JSONField(serialize = false)
-    public static <V> Map<String, V> coverMergeVariables(VariableEntity coverVariableEntity, VariableEntity variableEntity, Function<VariableItemEntity, V> consumer, String prefixKey) {
+    public static <V> Map<String, V> mergeVariables(VariableEntity variable, VariableEntity stepVariable, Function<VariableItemEntity, V> consumer, String prefixKey) {
 
         // 定义一个合并的变量集合。逐个添加，防止出现引用问题
         List<VariableItemEntity> mergeVariableList = new ArrayList<>();
 
         // variableEntity 变量集合
-        List<VariableItemEntity> variablesList = Optional.ofNullable(variableEntity).map(VariableEntity::getVariables).orElse(new ArrayList<>());
+        List<VariableItemEntity> variablesList = Optional.ofNullable(stepVariable).map(VariableEntity::getVariables).orElse(new ArrayList<>());
         if (CollectionUtil.isNotEmpty(variablesList)) {
             mergeVariableList.addAll(variablesList);
         }
 
         // coverVariableEntity 变量集合
-        List<VariableItemEntity> coverVariablesList = Optional.ofNullable(coverVariableEntity).map(VariableEntity::getVariables).orElse(new ArrayList<>());
+        List<VariableItemEntity> coverVariablesList = Optional.ofNullable(variable).map(VariableEntity::getVariables).orElse(new ArrayList<>());
         if (CollectionUtil.isNotEmpty(coverVariablesList)) {
             mergeVariableList.addAll(coverVariablesList);
         }
@@ -110,8 +76,15 @@ public class VariableEntity {
         return variablesMap;
     }
 
+    /**
+     * 生成变量Key
+     *
+     * @param keys 变量Key
+     * @return 变量Key
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static String generateKey(String... keys) {
-
         return Arrays.stream(Optional.ofNullable(keys).orElse(new String[]{})).filter(StrUtil::isNotEmpty).map(String::toUpperCase).collect(Collectors.joining("."));
     }
 

@@ -16,6 +16,7 @@ import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.monitor.NoticeTracking;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
@@ -60,18 +61,21 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     /**
      * 应用 AppRepository 服务
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private static AppRepository appRepository = SpringUtil.getBean(AppRepository.class);
 
     /**
      * 用户权益服务
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private static UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
     /**
      * 工作流引擎
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private StoryEngine storyEngine = SpringUtil.getBean(StoryEngine.class);
 
@@ -81,6 +85,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param request 请求参数
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _validate(AppExecuteReqVO request) {
         WorkflowConfigEntity config = this.getWorkflowConfig();
@@ -107,6 +112,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @return 用户 ID
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected Long getRunUserId(AppExecuteReqVO req) {
         return Long.valueOf(this.getCreator());
@@ -119,6 +125,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @return 执行结果
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected AppExecuteRespVO _execute(AppExecuteReqVO request) {
 
@@ -129,18 +136,17 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
         AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
         appContext.setUserId(request.getUserId());
         appContext.setEndUser(request.getEndUser());
-
         appContext.setSseEmitter(request.getSseEmitter());
 
         if (StringUtils.isNotBlank(request.getStepId())) {
             appContext.setStepId(request.getStepId());
         }
-        //appContext.setHttpServletResponse(httpServletResponse);
 
         if (StringUtils.isNotBlank(request.getConversationUid())) {
             appContext.setConversationId(request.getConversationUid());
         }
 
+        // 执行应用
         return this.fireWorkflowContext(appContext);
     }
 
@@ -151,6 +157,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param request 请求参数
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _aexecute(AppExecuteReqVO request) {
         this._execute(request);
@@ -163,6 +170,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param throwable 异常
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _afterExecute(AppExecuteReqVO request, Throwable throwable) {
         SseEmitter sseEmitter = request.getSseEmitter();
@@ -182,6 +190,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param createRequest 请求参数
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _createAppConversationLog(AppExecuteReqVO request, LogAppConversationCreateReqVO createRequest) {
         createRequest.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
@@ -195,6 +204,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param logAppMessageList  消息记录
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _initHistory(AppExecuteReqVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
 
@@ -204,6 +214,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * 模版方法：新增应用
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _insert() {
         appRepository.insert(this);
@@ -213,6 +224,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * 模版方法：更新应用
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _update() {
         appRepository.update(this);
@@ -226,6 +238,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @return 会话配置
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected <C> C _parseConversationConfig(String conversationConfig) {
         return null;
@@ -236,6 +249,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      *
      * @param appContext 执行应用上下文
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     protected AppExecuteRespVO fireWorkflowContext(@Valid AppContext appContext) {
 
@@ -274,6 +288,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param appContext   应用上下文
      * @param nodeTracking 节点跟踪
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
         this.createAppMessage((messageCreateReqVO) -> {
@@ -325,6 +340,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      * @param <T>                类型
      * @return 追踪
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private <T> T getTracking(List<NoticeTracking> noticeTrackingList, Class<T> clazz) {
         String clsName = clazz.getSimpleName();

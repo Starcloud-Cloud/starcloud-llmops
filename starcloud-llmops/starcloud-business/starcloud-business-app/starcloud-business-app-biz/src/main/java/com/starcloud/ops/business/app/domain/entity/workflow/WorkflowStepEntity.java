@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.domain.entity.workflow;
 
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
-import com.starcloud.ops.business.app.domain.entity.workflow.ActionEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -14,6 +16,9 @@ import java.util.List;
  * @since 2023-05-31
  */
 @Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class WorkflowStepEntity extends ActionEntity {
 
     /**
