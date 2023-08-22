@@ -309,7 +309,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     request.setConversationUid(conversationUid);
                 } else {
                     List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(request.getConversationUid());
-
                     this._initHistory(request, logAppConversationDO, logAppMessageList);
                 }
             } else {

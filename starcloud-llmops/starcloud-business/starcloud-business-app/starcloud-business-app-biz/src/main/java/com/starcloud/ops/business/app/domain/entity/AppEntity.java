@@ -14,6 +14,7 @@ import cn.kstry.framework.core.exception.KstryException;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.monitor.NoticeTracking;
+import cn.kstry.framework.core.monitor.RecallStory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -253,28 +254,23 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @JsonIgnore
     @JSONField(serialize = false)
     protected AppExecuteRespVO fireWorkflowContext(@Valid AppContext appContext) {
+        // 组装请求体
+        StoryRequest<Void> fireRequest = ReqBuilder.returnType(Void.class).build();
+        fireRequest.setTrackingType(TrackingTypeEnum.SERVICE_DETAIL);
+        fireRequest.setTimeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT);
+        fireRequest.setStartId(appContext.getConversationId());
+        fireRequest.setRequest(appContext);
+        fireRequest.setRecallStoryHook(this.recallStoryHook(appContext));
 
-        StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
-                .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
-                .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
-                .startId(appContext.getConversationId())
-                .request(appContext).build();
+        // 执行工作流
+        TaskResponse<Void> fire = storyEngine.fire(fireRequest);
 
-        req.setRecallStoryHook(recallStory -> {
-            MonitorTracking monitorTracking = recallStory.getMonitorTracking();
-            List<NodeTracking> storyTracking = monitorTracking.getStoryTracking();
+        if (fire.getResultException() != null) {
 
-            log.info("recallStory: {} {} {} \n {}", recallStory.getBusinessId(), recallStory.getStartId(), recallStory.getResult().isPresent(), JSONUtil.parse(recallStory.getReq()).toJSONString(4));
+        }
 
-            storyTracking.stream().filter((nodeTracking) -> BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())).forEach(nodeTracking -> {
-                this.createAppMessageLog(appContext, nodeTracking);
-            });
-
-        });
-
-        TaskResponse<Void> fire = storyEngine.fire(req);
-
-        this.updateAppConversationLog(appContext.getConversationId(), fire.isSuccess());
+        // 更新会话记录
+        // this.updateAppConversationLog(appContext.getConversationId(), fire.isSuccess());
 
         log.info("fireWorkflowContext: {}, {}, {}", fire.isSuccess(), fire.getResultCode(), fire.getResultDesc());
 
@@ -282,6 +278,28 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
 
     }
 
+    /**
+     * 回调方法
+     *
+     * @param appContext 应用上下文
+     * @return 回调方法
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Consumer<RecallStory> recallStoryHook(AppContext appContext) {
+        return (story) -> {
+            List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking)
+                    .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, "unknown result"));
+
+            log.info("recallStory: {} {} {} \n {}", story.getBusinessId(), story.getStartId(), story.getResult().isPresent(), JSONUtil.parse(story.getReq()).toJSONString(4));
+
+            for (NodeTracking nodeTracking : nodeTrackingList) {
+                if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
+                    this.createAppMessageLog(appContext, nodeTracking);
+                }
+            }
+        };
+    }
 
     /**
      * 创建应用消息日志
