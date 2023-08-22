@@ -196,6 +196,8 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("今天天津的天气怎么样？");
 
+        chatRequest.setQuery("今天南京的天气怎么样？");
+
         chatService.chat(chatRequest);
 
     }

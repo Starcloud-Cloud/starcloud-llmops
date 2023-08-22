@@ -239,7 +239,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         ChatMessageHistory history = this.getMessageMemory().getChatHistory();
 
-        ChatPrePrompt chatPrePrompt = new ChatPrePrompt(chatConfig.getPrePrompt());
+        ChatPrePrompt chatPrePrompt = new ChatPrePrompt(chatConfig.getPrePrompt(), chatConfig.getPrePromptConfig());
         ContextPrompt contextPrompt = new ContextPrompt(chatConfig.getDatesetEntities(), request.getQuery());
         HistoryPrompt historyPrompt = new HistoryPrompt(history != null && history.limitMessage(1).size() > 0);
 
@@ -344,9 +344,14 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                                         SseEmitter emitter) {
 
         ChatOpenAI chatOpenAI = new ChatOpenAI();
-        chatOpenAI.setStream(false);
 
+        //@todo 重新组装参数
+        ChatConfigConvert.INSTANCE.updateParams(chatConfig.getModelConfig().getCompletionParams(), chatOpenAI);
+
+        chatOpenAI.setStream(false);
         chatOpenAI.setModel(ModelType.GPT_4.getName());
+        chatOpenAI.setTemperature(0d);
+
         chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter, request.getConversationUid()));
 
         List<BaseTool> tools = this.loadLLMTools(request, chatConfig, emitter);

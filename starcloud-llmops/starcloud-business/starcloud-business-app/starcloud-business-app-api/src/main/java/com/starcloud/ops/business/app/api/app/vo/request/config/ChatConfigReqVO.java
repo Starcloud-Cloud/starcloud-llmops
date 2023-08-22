@@ -41,6 +41,9 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     @Schema(description = "对话提示词")
     private String prePrompt;
 
+    @Schema(description = "对话提示词配置")
+    private PrePromptConfigVO prePromptConfig;
+
     @Schema(description = "模版变量")
     private VariableReqVO variable;
 
