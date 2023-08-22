@@ -2,8 +2,6 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -80,7 +78,7 @@ public class AppWorkflowSkill extends BaseSkillEntity {
 
         //我的应用
         AppEntity app = this.getMyApp(this.getSkillAppUid());
-        Map<String, VariableItemEntity> variableItemEntityMap = app.getWorkflowConfig().getFirstStep().getContextVariableItems();
+        Map<String, VariableItemEntity> variableItemEntityMap = app.getWorkflowConfig().getFirstStepWrapper().getContextVariableItems();
 
 
         Map<String, Map> properties = new HashMap<>();

@@ -7,6 +7,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
@@ -70,18 +71,23 @@ import java.util.stream.Collectors;
 @Data
 public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> {
 
+    @JsonIgnore
     @JSONField(serialize = false)
     private static ChatService chatService = SpringUtil.getBean(ChatService.class);
 
+    @JsonIgnore
     @JSONField(serialize = false)
     private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
+    @JsonIgnore
     @JSONField(serialize = false)
     private static DocumentSegmentsService documentSegmentsService = SpringUtil.getBean(DocumentSegmentsService.class);
 
+    @JsonIgnore
     @JSONField(serialize = false)
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
+    @JsonIgnore
     @JSONField(serialize = false)
     private static AppRepository appRepository;
 
@@ -96,6 +102,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      *
      * @return AppRepository
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     public static AppRepository getAppRepository() {
         if (appRepository == null) {
@@ -108,6 +115,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 校验
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _validate(ChatRequestVO request) {
 
@@ -116,13 +124,14 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         datesetEntity.setDatasetUid(this.getUid());
         datesetEntity.setEnabled(true);
         //实时加载 数据集配置
-        //this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
+        this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
 
 
         getChatConfig().validate();
     }
 
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected Long getRunUserId(ChatRequestVO req) {
 
@@ -141,6 +150,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 历史记录初始化
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _initHistory(ChatRequestVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageDOS) {
 
@@ -177,6 +187,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     }
 
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _createAppConversationLog(ChatRequestVO request, LogAppConversationCreateReqVO createRequest) {
 
@@ -184,6 +195,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     }
 
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected ChatConfigEntity _parseConversationConfig(String conversationConfig) {
         ChatConfigEntity chatConfig = JSON.parseObject(conversationConfig, ChatConfigEntity.class);
@@ -191,6 +203,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     }
 
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected JsonData _execute(ChatRequestVO request) {
 
@@ -200,6 +213,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     }
 
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void _aexecute(ChatRequestVO request) {
         JsonData jsonParams = this._execute(request);
     }
@@ -208,6 +223,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 执行后执行
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _afterExecute(ChatRequestVO request, Throwable throwable) {
 
@@ -222,6 +238,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         }
     }
 
+    @JsonIgnore
     @JSONField(serialize = false)
     private JsonData executeChat(ChatRequestVO request, Long userId) {
 
@@ -295,6 +312,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     }
 
+    @JsonIgnore
     @JSONField(serialize = false)
     private Map<String, Object> getVariableItem(VariableEntity variable) {
 
@@ -318,6 +336,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         return filteredInputs;
     }
 
+    @JsonIgnore
     @JSONField(serialize = false)
     private LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> buildLlm(ChatRequestVO request, int maxTokens,
                                                                                            ChatConfigEntity chatConfig,
@@ -337,6 +356,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         return llmChain;
     }
 
+    @JsonIgnore
     @JSONField(serialize = false)
     private AgentExecutor buildLLmTools(ChatRequestVO request,
                                         ChatConfigEntity chatConfig,
@@ -371,6 +391,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      *
      * @return
      */
+    @JsonIgnore
     @JSONField(serialize = false)
     private List<BaseTool> loadLLMTools(ChatRequestVO request, ChatConfigEntity chatConfig, SseEmitter emitter) {
 
@@ -426,6 +447,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 新增应用
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _insert() {
         getAppRepository().insert(this);
@@ -435,6 +457,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 更新应用
      */
     @Override
+    @JsonIgnore
     @JSONField(serialize = false)
     protected void _update() {
         getAppRepository().update(this);

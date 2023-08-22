@@ -202,4 +202,25 @@ public class ChatTest extends BaseDbUnitTest {
 
     }
 
+
+    /**
+     * 查询带文档的chat
+     */
+    @Test
+    public void runMyDocTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("971e790946d04513aad3b29e695720f0");
+
+        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+
+        chatRequest.setQuery("亚马逊发货规则是什么？");
+
+
+        chatService.chat(chatRequest);
+
+    }
+
 }

@@ -206,4 +206,16 @@ public interface ErrorCodeConstants {
      * 应用发布记录不存在
      */
     ErrorCode APP_PUBLISH_NOT_EXISTS_UID = new ErrorCode(300500011, "The app publish is not exists! [UID: {}]");
+
+
+    ErrorCode APP_EXECUTE_STEP_ID_IS_REQUIRED = new ErrorCode(300600010, "应用执行步骤ID(stepId)不能为空!");
+
+
+    ErrorCode APP_EXECUTE_APP_CONFIG_IS_NULL = new ErrorCode(300600011, "应用执行配置信息不能为空！");
+
+    ErrorCode APP_EXECUTE_APP_IS_NULL = new ErrorCode(300600012, "应用执行应用信息不能为空！");
+
+    ErrorCode APP_EXECUTE_STEPS_CANT_BE_EMPTY = new ErrorCode(300600013, "应用执行步骤不能为空！");
+
+    ErrorCode APP_EXECUTE_STEPS_NOT_FOUND = new ErrorCode(300600014, "应用执行步骤[{}]不存在！");
 }
