@@ -46,8 +46,6 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
             // 创建索引
              documentSegmentsService.indexDoc(String.valueOf(message.getDatasetId()), String.valueOf(message.getDataSourceId()));
 
-            // Fixme 创建总结  总结如果创建失败 状态为 SUMMERY_COMPLETED code 98
-
             // 设置数据状态
             message.setStatus(DataSetSourceDataStatusEnum.COMPLETED.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.COMPLETED.getName());
