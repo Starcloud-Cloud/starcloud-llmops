@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用执行
@@ -75,7 +76,7 @@ public class ChatShareController {
     @PostMapping("/detail")
     @Operation(summary = "聊天应用详情")
     @PermitAll
-    public CommonResult<List<AppRespVO>> listDetail(@RequestBody @Valid ChatDetailReqVO reqVO) {
+    public CommonResult<Map<String, AppRespVO>> listDetail(@RequestBody @Valid ChatDetailReqVO reqVO) {
         return CommonResult.success(chatShareService.detailList(reqVO));
     }
 

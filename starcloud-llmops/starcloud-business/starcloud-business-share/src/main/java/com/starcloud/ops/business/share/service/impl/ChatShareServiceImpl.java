@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Slf4j
@@ -30,14 +32,14 @@ public class ChatShareServiceImpl implements ChatShareService {
     }
 
     @Override
-    public List<AppRespVO> detailList(ChatDetailReqVO reqVO) {
-        List<AppRespVO> result = new ArrayList<>();
+    public Map<String, AppRespVO> detailList(ChatDetailReqVO reqVO) {
+        Map<String, AppRespVO> result = new HashMap<>();
         if (CollectionUtils.isEmpty(reqVO.getMediumUids())) {
             return result;
         }
         for (String mediumUid : reqVO.getMediumUids()) {
             ChatAppEntity appEntity = AppFactory.factory(mediumUid);
-            result.add(AppConvert.INSTANCE.convertResponse(appEntity));
+            result.put(mediumUid, AppConvert.INSTANCE.convertResponse(appEntity));
         }
         return result;
     }
