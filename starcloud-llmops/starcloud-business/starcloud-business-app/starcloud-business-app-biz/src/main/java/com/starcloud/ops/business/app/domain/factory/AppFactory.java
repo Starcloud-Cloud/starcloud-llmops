@@ -118,7 +118,7 @@ public class AppFactory {
             if (AppSceneEnum.WEB_MARKET.name().equals(request.getScene())) {
                 return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(appId) : AppFactory.factoryMarket(appId, request.getAppReqVO());
                 // 应用创作中心
-            } else if (AppSceneEnum.WEB_ADMIN.name().equals(request.getScene())) {
+            } else if (AppSceneEnum.WEB_ADMIN.name().equals(request.getScene()) || AppSceneEnum.OPTIMIZE_PROMPT.name().equals(request.getScene())) {
                 return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(appId) : AppFactory.factoryApp(appId, request.getAppReqVO());
             }
         }
