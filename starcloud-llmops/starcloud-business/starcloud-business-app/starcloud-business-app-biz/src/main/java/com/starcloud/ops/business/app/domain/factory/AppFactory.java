@@ -189,12 +189,12 @@ public class AppFactory {
     /**
      * 获取 AppEntity, 不通过数据库查询，直接通过请求参数构建。以 appRequest 为准
      *
-     * @param appId      appId
+     * @param appUid      appId
      * @param appRequest appRequest
      * @return AppEntity
      */
-    public static AppEntity factoryApp(String appId, AppReqVO appRequest) {
-        BaseAppEntity app = getAppRepository().get(appId);
+    public static AppEntity factoryApp(String appUid, AppReqVO appRequest) {
+        BaseAppEntity app = getAppRepository().get(appUid);
         // 应用不存在, 还没有存入到数据库
         String creator, updator;
         if (Objects.isNull(app)) {
@@ -210,7 +210,7 @@ public class AppFactory {
         }
 
         AppEntity appEntity = AppConvert.INSTANCE.convert(appRequest);
-        appEntity.setUid(appId);
+        appEntity.setUid(appUid);
         appEntity.setCreator(creator);
         appEntity.setUpdater(creator);
         return appEntity;
@@ -287,7 +287,7 @@ public class AppFactory {
         }
 
         AppEntity appEntity = AppConvert.INSTANCE.convert(appRequest);
-        appEntity.setUid(appEntity.getUid());
+        appEntity.setUid(app.getUid());
         appEntity.setCreator(creator);
         appEntity.setUpdater(creator);
         return appEntity;
