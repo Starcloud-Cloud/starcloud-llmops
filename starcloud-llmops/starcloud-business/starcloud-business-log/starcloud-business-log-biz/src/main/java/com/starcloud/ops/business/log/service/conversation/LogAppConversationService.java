@@ -48,7 +48,7 @@ public interface LogAppConversationService {
      * @param uid    编号
      * @param status 状态
      */
-    void updateAppConversationStatus(@NotEmpty String uid, @NotEmpty String status);
+    void updateAppConversationStatus(@NotEmpty(message = "会话 Uid 不能为空") String uid, @NotEmpty(message = "会话状态不能为空") String status);
 
     /**
      * 删除应用执行日志会话
