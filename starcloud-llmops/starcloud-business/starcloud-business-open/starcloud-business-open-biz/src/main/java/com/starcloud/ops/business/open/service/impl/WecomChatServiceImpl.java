@@ -55,13 +55,15 @@ public class WecomChatServiceImpl implements WecomChatService {
         AppPublishChannelRespVO channelRespVO = appPublishChannelService.getAllByMediumUid(reqVO.getGroupRemark());
         if (channelRespVO == null) {
             sendMsg(reqVO.getGroupRemark(), "渠道绑定异常，请联系管理员", reqVO.getReceivedName());
+            return;
         }
 
         if (channelRespVO.getStatus() == null || channelRespVO.getStatus() != 0) {
             sendMsg(reqVO.getGroupRemark(), "此渠道已禁用", reqVO.getReceivedName());
+            return;
         }
 
-        String userNameMd5 = userNameMd5(reqVO.getReceivedName());
+        String userNameMd5 = userNameMd5(reqVO.getGroupRemark() + reqVO.getReceivedName());
         ChatRequestVO chatRequestVO = new ChatRequestVO();
         chatRequestVO.setAppUid(channelRespVO.getAppUid());
         chatRequestVO.setQuery(reqVO.getSpoken());
