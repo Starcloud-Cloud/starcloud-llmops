@@ -264,6 +264,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
         int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
+        //设置 memory 必要参数
+        this.getMessageMemory().setSummaryMaxTokens(maxTokens);
 
         ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate();
 
@@ -271,17 +273,12 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         log.info("chatPromptTemplate: {}, \n\n humanInput: {}", chatPromptTemplate, humanInput);
 
-
         //直接把查询到到文档发送到前端
         if (contextPrompt.isEnable()) {
             //生成文档列表结果
             InteractiveInfo interactiveInfo = InteractiveInfo.buildDocs(contextPrompt.getSearchResult());
             SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
         }
-
-
-        //设置 memory 必要参数
-        this.getMessageMemory().setSummaryMaxTokens(maxTokens);
 
 
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
