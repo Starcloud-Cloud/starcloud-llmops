@@ -149,6 +149,15 @@ public class DatasetsServiceImpl implements DatasetsService {
         return datasetsDO;
     }
 
+    /**
+     * @param id
+     * @return
+     */
+    @Override
+    public DatasetsDO getDataById(Long id) {
+        return datasetsMapper.selectById(id);
+    }
+
 
     @Override
     public PageResult<DatasetsDO> getDatasetsPage(DatasetsPageReqVO pageReqVO) {

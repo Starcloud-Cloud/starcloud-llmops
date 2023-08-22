@@ -167,7 +167,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         Assert.notBlank(documentId, "dataId is null");
         log.info("start embedding index,datasetId={},dataId={}", datasetId, documentId);
         long start = System.currentTimeMillis();
-        DatasetsDO datasets = datasetsService.getDatasets(datasetId);
+        DatasetsDO datasets = datasetsService.getDataById(Long.valueOf(datasetId));
         if (datasets == null) {
             throw exception(DATASETS_NOT_EXIST_ERROR);
         }
@@ -239,7 +239,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     public void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule) {
         Assert.notBlank(dataSourceId, "dataSourceId is null");
         List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
-        DatasetsDO datasets = datasetsService.getDatasets(datasetId);
+        DatasetsDO datasets = datasetsService.getDataById(Long.valueOf(datasetId));
         if (datasets == null) {
             throw exception(DATASETS_NOT_EXIST_ERROR);
         }
