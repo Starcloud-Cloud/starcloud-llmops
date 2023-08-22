@@ -58,7 +58,7 @@ import java.util.function.Consumer;
  */
 @Slf4j
 @Data
-public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> {
+public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> {
 
     /**
      * 应用 AppRepository 服务
@@ -130,10 +130,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     @JsonIgnore
     @JSONField(serialize = false)
     protected AppExecuteRespVO doExecute(AppExecuteReqVO request) {
-
-        //权益放在这里是为了包装 可以执行完整的一次应用
+        // 权益检测
         this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
-
         // 创建 App 执行上下文
         AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
         appContext.setUserId(request.getUserId());
@@ -297,7 +295,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
             List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking)
                     .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, "unknown result"));
 
-            log.info("应用执行回调基本信息: {} {} {} \n {}", story.getBusinessId(), story.getStartId(), story.getResult().isPresent(), JSONUtil.parse(story.getReq()).toJSONString(4));
+            log.info("应用执行回调基本信息: {} {} {} ", story.getBusinessId(), story.getStartId(), story.getResult().isPresent());
             for (NodeTracking nodeTracking : nodeTrackingList) {
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
                     log.info("应用执行回调: 记录日志消息开始");

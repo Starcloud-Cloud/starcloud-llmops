@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 
@@ -20,12 +21,9 @@ import java.math.BigDecimal;
  * @version 1.0.0
  * @since 2023-06-20
  */
+@Slf4j
 @Data
-public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO> {
-
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private AppMarketService appMarketService = SpringUtil.getBean(AppMarketService.class);
+public class AppMarketEntity extends AppEntity {
 
     /**
      * 应用版本
@@ -82,21 +80,11 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private static AppMarketRepository appMarketRepository;
+    private static AppMarketRepository appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
 
-    /**
-     * 获取应用市场数据库操作类
-     *
-     * @return 应用市场数据库操作类
-     */
     @JsonIgnore
     @JSONField(serialize = false)
-    public static AppMarketRepository getAppMarketRepository() {
-        if (appMarketRepository == null) {
-            appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
-        }
-        return appMarketRepository;
-    }
+    private static AppMarketService appMarketService = SpringUtil.getBean(AppMarketService.class);
 
     /**
      * 校验
@@ -127,18 +115,19 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
     @JSONField(serialize = false)
     protected AppExecuteRespVO doExecute(AppExecuteReqVO request) {
 
-        AppExecuteRespVO appExecuteRespVO = super.doExecute(request);
+        log.info("应用市场执行开始：{}", request);
+        AppExecuteRespVO appExecuteResponse = super.doExecute(request);
 
-        if (appExecuteRespVO != null) {
-
+        log.info("应用市场执行，增加应用使用量开始：{}", appExecuteResponse);
+        if (appExecuteResponse != null) {
             AppOperateReqVO appOperateReqVO = new AppOperateReqVO();
             appOperateReqVO.setAppUid(this.getUid());
             appOperateReqVO.setVersion(AppConstants.DEFAULT_VERSION);
             appOperateReqVO.setOperate(AppOperateTypeEnum.USAGE.name());
             appMarketService.operate(appOperateReqVO);
         }
-
-        return appExecuteRespVO;
+        log.info("应用市场执行，增加应用使用量结束");
+        return appExecuteResponse;
     }
 
     @Override
@@ -155,7 +144,7 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
     @JsonIgnore
     @JSONField(serialize = false)
     protected void doInsert() {
-        getAppMarketRepository().insert(this);
+        appMarketRepository.insert(this);
     }
 
     /**
@@ -165,7 +154,7 @@ public class AppMarketEntity extends AppEntity<AppExecuteReqVO, AppExecuteRespVO
     @JsonIgnore
     @JSONField(serialize = false)
     protected void doUpdate() {
-        getAppMarketRepository().update(this);
+        appMarketRepository.update(this);
     }
 
 

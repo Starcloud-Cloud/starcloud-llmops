@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -289,33 +290,17 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     public R execute(Q request) {
         try {
-            log.info("应用执行开始: {}, {}", this.getUid(), this.getName());
+            log.info("应用执行开始: 应用 UID：{}, 应用名称：{}", this.getUid(), this.getName());
 
             // 扣除权益用户，记录日志用户
             if (request.getUserId() == null) {
                 request.setUserId(this.getRunUserId(request));
             }
-
+            log.info("应用执行：权益扣除用户, 日志记录用户 ID：{}, ", request.getUserId());
             // 基础校验
             this.validate(request);
-
             // 会话记录
-            if (StrUtil.isNotBlank(request.getConversationUid())) {
-                LogAppConversationDO logAppConversationDO = this.getAppConversation(request.getConversationUid());
-                if (logAppConversationDO == null) {
-                    String conversationUid = this.createAppConversationLog(request);
-                    request.setConversationUid(conversationUid);
-                } else {
-                    List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(request.getConversationUid());
-                    this.initHistory(request, logAppConversationDO, logAppMessageList);
-                }
-            } else {
-                //会话uid为空,自动创建
-                String conversationUid = this.createAppConversationLog(request);
-                request.setConversationUid(conversationUid);
-            }
-
-            log.info("应用执行：权益扣除用户：{}, 会话 UID {} ", request.getUserId(), request.getConversationUid());
+            this.initConversationLog(request);
 
             // 执行应用
             this.beforeExecute(request);
@@ -353,54 +338,34 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     public void asyncExecute(Q request) {
         try {
-            log.info("应用异步执行开始: {}, {}", this.getUid(), this.getName());
-
+            log.info("应用异步执行开始: 应用 UID：{}, 应用名称：{}", this.getUid(), this.getName());
             // 扣除权益用户，记录日志用户
             if (request.getUserId() == null) {
                 request.setUserId(this.getRunUserId(request));
             }
-
+            log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, ", request.getUserId());
             // 基础校验
             this.validate(request);
-
             //会话处理
-            if (StrUtil.isNotBlank(request.getConversationUid())) {
-                LogAppConversationDO logAppConversationDO = this.getAppConversation(request.getConversationUid());
-                if (logAppConversationDO == null) {
-                    log.info("会话 UID 不为空，但会话不存在，自动创建新的日志会话记录");
-                    String conversationUid = this.createAppConversationLog(request);
-                    request.setConversationUid(conversationUid);
-                } else {
-                    List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(request.getConversationUid());
-                    this.initHistory(request, logAppConversationDO, logAppMessageList);
-                }
-
-            } else {
-                log.info("会话 UID 为空，自动创建新的日志会话记录");
-                String conversationUid = this.createAppConversationLog(request);
-                request.setConversationUid(conversationUid);
-            }
-
-            log.info("应用异步执行：权益扣除用户ID：{}, 会话 UID {} ", request.getUserId(), request.getConversationUid());
-
+            this.initConversationLog(request);
             // 异步执行应用
             threadExecutor.asyncExecute(() -> {
                 try {
                     this.beforeExecute(request);
                     this.doAsyncExecute(request);
                     this.afterExecute(request, null);
-                    log.info("应用异步执行结束: {}", this.getUid());
+                    log.info("应用异步执行结束: 应用UID： {}", this.getUid());
                     // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), true);
 
                 } catch (ServiceException exception) {
-                    log.error("应用异步执行异常(ServiceException): {}", exception.getMessage(), exception);
+                    log.error("应用异步任务执行异常(ServiceException): {}", exception.getMessage(), exception);
                     this.afterExecute(request, exception);
                     // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), false);
 
                 } catch (Exception exception) {
-                    log.error("应用异步任务执行异常: {}", exception.getMessage(), exception);
+                    log.error("应用异任务步任务执行异常: {}", exception.getMessage(), exception);
                     this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
                     // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), false);
@@ -430,7 +395,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void validate(Q request) {
+        log.info("应用执行：基础校验开始 ...");
         this.doValidate(request);
+        log.info("应用执行：基础校验结束 ...");
     }
 
     /**
@@ -470,6 +437,37 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     }
 
     /**
+     * 初始化会话记录
+     *
+     * @param request 请求参数
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void initConversationLog(Q request) {
+        log.info("应用执行：日志会话记录初始化开始 ...");
+        if (StrUtil.isNotBlank(request.getConversationUid())) {
+            LogAppConversationDO logAppConversationDO = this.getAppConversation(request.getConversationUid());
+            if (logAppConversationDO == null) {
+                log.info("应用执行：会话 UID 不为空，但会话不存在，自动创建新的日志会话记录开始...");
+                String conversationUid = this.createAppConversationLog(request);
+                request.setConversationUid(conversationUid);
+                log.info("应用执行：会话 UID 不为空，但会话不存在，自动创建新的日志会话记录结束...");
+            } else {
+                log.info("应用执行：会话 UID 不为空，会话存在，初始化会话历史记录开始...");
+                List<LogAppMessageDO> logAppMessageList = this.getAppConversationMessages(request.getConversationUid());
+                this.initHistory(request, logAppConversationDO, logAppMessageList);
+                log.info("应用执行：会话 UID 不为空，会话存在，初始化会话历史记录结束...");
+            }
+        } else {
+            log.info("应用执行：会话 UID 为空，自动创建新的日志会话记录开始...");
+            String conversationUid = this.createAppConversationLog(request);
+            request.setConversationUid(conversationUid);
+            log.info("应用执行：会话 UID 为空，自动创建新的日志会话记录结束...");
+        }
+        log.info("应用执行：日志会话记录初始化结束 会话 UID {} ...", request.getConversationUid());
+    }
+
+    /**
      * 创建一条新的会话
      *
      * @param request 请求参数
@@ -506,7 +504,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected void updateAppConversationLog(String conversationUid, Boolean status) {
+        log.info("应用执行：更新会话记录开始 会话 UID：{}, 会话状态：{}...", conversationUid, status);
         logAppConversationService.updateAppConversationStatus(conversationUid, status ? "SUCCESS" : "ERROR");
+        log.info("应用执行：更新会话记录结束, 更新会话成功");
     }
 
     /**
@@ -551,13 +551,16 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public LogAppMessageCreateReqVO createAppMessage(Consumer<LogAppMessageCreateReqVO> consumer) {
+        log.info("应用执行：创建日志消息开始 ...");
         LogAppMessageCreateReqVO messageCreateRequest = new LogAppMessageCreateReqVO();
         messageCreateRequest.setUid(IdUtil.fastSimpleUUID());
         messageCreateRequest.setAppUid(this.getUid());
         messageCreateRequest.setAppMode(this.getModel());
         messageCreateRequest.setTenantId(this.getTenantId());
         consumer.accept(messageCreateRequest);
+        log.info("应用执行：创建日志消息请求：{}", JSONUtil.toJsonStr(messageCreateRequest));
         logAppMessageService.createAppMessage(messageCreateRequest);
+        log.info("应用执行：创建日志消息结束 ...");
         return messageCreateRequest;
     }
 
