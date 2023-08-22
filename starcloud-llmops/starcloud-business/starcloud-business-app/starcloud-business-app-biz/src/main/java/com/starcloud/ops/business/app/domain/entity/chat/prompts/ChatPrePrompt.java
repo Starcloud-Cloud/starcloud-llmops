@@ -34,9 +34,11 @@ public class ChatPrePrompt extends BasePromptConfig {
         this.userPrompt = userPrompt;
         this.prePromptConfig = prePromptConfigEntity;
 
-        this.tonePrompt = new PreTonePrompt(prePromptConfigEntity.getTone());
-        this.maxReturnPrompt = new PreMaxReturnPrompt(prePromptConfigEntity.getMaxReturn());
-        this.replyLangPrompt = new PreReplyLangPrompt(prePromptConfigEntity.getReplyLang());
+        if (prePromptConfigEntity != null) {
+            this.tonePrompt = new PreTonePrompt(prePromptConfigEntity.getTone());
+            this.maxReturnPrompt = new PreMaxReturnPrompt(prePromptConfigEntity.getMaxReturn());
+            this.replyLangPrompt = new PreReplyLangPrompt(prePromptConfigEntity.getReplyLang());
+        }
     }
 
 
