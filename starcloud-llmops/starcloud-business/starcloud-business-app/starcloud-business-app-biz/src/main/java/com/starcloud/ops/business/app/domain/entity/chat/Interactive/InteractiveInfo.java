@@ -1,19 +1,25 @@
 package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
+import cn.hutool.extra.spring.SpringUtil;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
+import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Data
 @Accessors(chain = true)
 public class InteractiveInfo {
+
+    private static DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
     private String id;
 
@@ -112,16 +118,25 @@ public class InteractiveInfo {
 
         interactiveInfo.setShowType("docs");
         interactiveInfo.setSuccess(true);
-        interactiveInfo.setData(Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
+
+        List<Long> docIds = Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
+            return Long.valueOf(recordDTO.getId());
+        }).collect(Collectors.toList());
+
+        //查出具体文档信息
+        List<DatasetSourceDataBasicInfoVO> docs = datasetSourceDataService.getSourceDataListData(docIds);
+
+        interactiveInfo.setData(Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().map((source) -> {
 
             DocInteractiveInfo docInteractiveInfo = new DocInteractiveInfo();
 
-            docInteractiveInfo.setId(recordDTO.getId());
-            docInteractiveInfo.setScore(recordDTO.getScore());
-            docInteractiveInfo.setDatasetId(recordDTO.getDatasetId());
-            docInteractiveInfo.setDocumentId(recordDTO.getDocumentId());
+            docInteractiveInfo.setId(source.getId());
 
-            docInteractiveInfo.setUpdateTime(recordDTO.getUpdateTime());
+            docInteractiveInfo.setName(source.getName());
+            docInteractiveInfo.setType(source.getDataType());
+            docInteractiveInfo.setUrl(source.getAddress());
+            docInteractiveInfo.setDesc(source.getDescription());
+            docInteractiveInfo.setUpdateTime(source.getUpdateTime());
 
             return docInteractiveInfo;
         }).collect(Collectors.toList()));
@@ -136,7 +151,7 @@ public class InteractiveInfo {
         /**
          * 数据ID
          */
-        private String id;
+        private Long id;
 
         /**
          * 相似度
