@@ -377,10 +377,10 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     }
 
     private String generateBindUid() {
-        String uid = "bd" + RandomUtil.randomInt(100000, 1000000);
+        String uid = "BD" + RandomUtil.randomInt(100000, 1000000);
         long count = appPublishChannelMapper.countByMediumUid(uid);
         while (count > 0) {
-            uid = "bd" +  RandomUtil.randomInt(100000, 1000000);
+            uid = "BD" +  RandomUtil.randomInt(100000, 1000000);
             count = appPublishChannelMapper.countByMediumUid(uid);
         }
         return uid;
