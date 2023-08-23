@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -92,6 +93,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     public DatasetSourceDataDO selectDataById(Long id) {
         return datasetSourceDataMapper.selectById(id);
     }
+
     /**
      * 上传文件-支持批量上传
      *
@@ -166,7 +168,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
                     if (!isValidUrl(url)) {
                         sourceDataUploadDTO.setStatus(false);
-                        sourceDataUploadDTO.setErrMsg(String.format("你的链接%s失效，请输入正确的链接",url));
+                        sourceDataUploadDTO.setErrMsg(String.format("你的链接%s失效，请输入正确的链接", url));
                         return sourceDataUploadDTO;
                     }
                     sourceDataUploadDTO.setDatasetId(finalReqVO.getDatasetId());
@@ -196,6 +198,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
         return collect;
     }
+
     private static boolean isValidUrl(String urlString) {
         URI uri = null;
         try {
@@ -216,6 +219,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
     /**
      * 等待 URL 返回结果
+     *
      * @param url
      * @param reqVO
      * @return
@@ -329,13 +333,14 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
     }
 
+
     /**
      * 获取数据源详情
      *
      * @param uid 数据集源数据编号
      */
     @Override
-    public DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid, Boolean enable) {
+    public DatasetSourceDataDetailsInfoVO getSourceDataListData(String uid, Boolean enable) {
 
         DatasetSourceDataDO sourceDataDO = datasetSourceDataMapper.selectOne(
                 Wrappers.lambdaQuery(DatasetSourceDataDO.class)
@@ -351,15 +356,15 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             // 设置清洗后内容
             DatasetStorageDO cleanDatasetDO = datasetStorageService.selectDataById(sourceDataDO.getCleanStorageId());
 
-            String content =null;
-            if (DataSourceDataTypeEnum.URL.name().equals(sourceDataDO.getDataType())){
+            String content = null;
+            if (DataSourceDataTypeEnum.URL.name().equals(sourceDataDO.getDataType())) {
                 DataSourceInfoDTO dataSourceInfoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceInfoDTO.class);
                 content = dataSourceInfoDTO.getInitAddress();
 
-            }else {
+            } else {
                 // 获取原始内容
                 DatasetStorageDO contentDo = datasetStorageService.selectDataById(sourceDataDO.getCleanStorageId());
-                content =contentDo.getStorageKey();
+                content = contentDo.getStorageKey();
             }
 
             // true 返回
@@ -377,6 +382,43 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
         return datasetSourceDataDetailsInfoVO;
     }
+
+    /**
+     * 获取数据源详情
+     *
+     * @param sourceDataId 数据集源数据ID
+     */
+    @Override
+    public List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataId) {
+
+        // 查询ID集合非空判断判
+        if (CollUtil.isEmpty(sourceDataId)) {
+            return null;
+        }
+
+        // 根据 ID 集合查询数据
+        List<DatasetSourceDataDO> datasetSourceDataDOS = datasetSourceDataMapper.selectList(
+                Wrappers.lambdaQuery(DatasetSourceDataDO.class)
+                        .in(DatasetSourceDataDO::getId, sourceDataId));
+
+        // 集合非空判断 集合为空直接返回
+        if (CollUtil.isEmpty(datasetSourceDataDOS)) {
+            return null;
+        }
+        // 基础数据转换
+        List<DatasetSourceDataBasicInfoVO> datasetSourceDataBasicInfoVOS = DatasetSourceDataConvert.INSTANCE.convertBasicInfoList(datasetSourceDataDOS);
+
+        datasetSourceDataBasicInfoVOS.forEach(data -> {
+            if (!DataSourceDataTypeEnum.URL.name().equals(data.getDataType())) {
+                // 获取原始内容
+                DatasetStorageDO contentDo = datasetStorageService.selectDataById(data.getCleanId());
+                data.setAddress(contentDo.getStorageKey());
+            }
+        });
+
+        return datasetSourceDataBasicInfoVOS;
+    }
+
 
     /**
      * 获取分块内容
