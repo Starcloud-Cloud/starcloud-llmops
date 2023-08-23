@@ -32,7 +32,7 @@ public class ContextPrompt extends BasePromptConfig {
 
     private static DocumentSegmentsService documentSegmentsService = SpringUtil.getBean(DocumentSegmentsService.class);
 
-    private String promptV1 = "The content in [CONTEXT] is multi-line, and each line represents the structure of the document block. It contains the serial number and the document block information in JSON format, and the JSON format contains fields `blockId` block ID, `content` block content.\n" +
+    private String promptV1 = "The content in [CONTEXT] is multi-line, and each line represents the structure of the document block. It contains the S/N and the document block information in JSON format, and the JSON format contains fields `blockId` block ID, `content` block content.\n" +
             "[block example]:\n" +
             "1. {\"docId\":\"20\",\"blockId\":\"12\",\"content\":\"如何销售图书 定价 Back 定价 亚马逊开店成本\"}\n" +
             "2. {\"docId\":\"25\",\"blockId\":\"33\",\"content\":\"在亚马逊，超过一半的实际商品销售总额来自独立的第三方卖家\"}\n" +
@@ -46,7 +46,7 @@ public class ContextPrompt extends BasePromptConfig {
             "- If you don't know, just say that you don't know.\n" +
             "- If you don't know when you are not sure, ask for clarification.\n" +
             "- Avoid mentioning that you obtained the information from the context.\n" +
-            "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the serial number of the referenced block at the end of the relevant sentence, like this \"{1}\" with braces.\n\n";
+            "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the `{S/N}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n\n";
 
     private String query;
 
