@@ -27,8 +27,13 @@ import java.util.Optional;
 @Data
 public class ChatPrompt extends BasePromptConfig {
 
-    private String promptV1 = "{ContextPrompt}\n" +
-            "{HistoryPrompt}\n" +
+    private Boolean toolPrompt;
+
+    private String promptV1 = "{ContextPrompt}{HistoryPrompt}" +
+            "Human: {input}\n" +
+            "AI: \n";
+
+    private String promptVTool = "{ContextPrompt}{HistoryPrompt}" +
             "Human: {input}\n" +
             //工具调用历史，只显示一次完整工具调用的历史，不包含用户输入
             "{" + BaseSingleActionAgent.TEMP_VARIABLE_SCRATCHPAD + "}" +
@@ -48,8 +53,9 @@ public class ChatPrompt extends BasePromptConfig {
     }
 
 
-    public ChatPromptTemplate buildChatPromptTemplate() {
+    public ChatPromptTemplate buildChatPromptTemplate(Boolean toolPrompt) {
 
+        this.toolPrompt = toolPrompt;
         List<BaseMessagePromptTemplate> messagePromptTemplates = new ArrayList<>();
 
         //prePrompt 放到system里面
@@ -111,10 +117,14 @@ public class ChatPrompt extends BasePromptConfig {
 
         List<BaseVariable> variables = new ArrayList<>();
 
-        variables.add(BaseVariable.newString("ContextPrompt", this.contextPrompt.buildPromptStr()));
-        variables.add(BaseVariable.newString("HistoryPrompt", this.historyPrompt.buildPromptStr()));
-
-        PromptTemplate template = new PromptTemplate(this.promptV1);
+        variables.add(BaseVariable.newString("ContextPrompt", this.contextPrompt.buildPromptStr(true)));
+        variables.add(BaseVariable.newString("HistoryPrompt", this.historyPrompt.buildPromptStr(true)));
+        PromptTemplate template;
+        if (this.toolPrompt) {
+            template = new PromptTemplate(this.promptVTool);
+        } else {
+            template = new PromptTemplate(this.promptV1);
+        }
 
         return template.format(variables);
     }
