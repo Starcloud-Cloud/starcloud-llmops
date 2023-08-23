@@ -149,7 +149,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             } else {
                 request.setStepId(appContext.getStepId());
             }
-            log.info("应用工作流执行: 应用参数：{}\n", JSONUtil.parse(appContext.getContextVariablesValues()).toStringPretty());
+            log.info("应用工作流执行: 应用参数：\n{}", JSONUtil.parse(appContext.getContextVariablesValues()).toStringPretty());
         } catch (ServerException exception) {
             log.info("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
             this.createAppMessageLog(request, exception);
@@ -263,12 +263,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     protected AppExecuteRespVO fire(@Valid AppContext appContext) {
         // 组装请信息
-        StoryRequest<Void> fireRequest = ReqBuilder.returnType(Void.class).build();
-        fireRequest.setTrackingType(TrackingTypeEnum.SERVICE_DETAIL);
-        fireRequest.setTimeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT);
-        fireRequest.setStartId(appContext.getConversationUid());
-        fireRequest.setRequest(appContext);
-        fireRequest.setRecallStoryHook(this.recallStoryHook(appContext));
+        StoryRequest<Void> fireRequest = ReqBuilder.returnType(Void.class)
+                .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
+                .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
+                .startId(appContext.getConversationUid())
+                .request(appContext)
+                .recallStoryHook(this.recallStoryHook(appContext))
+                .build();
 
         // 执行工作流
         TaskResponse<Void> fire = storyEngine.fire(fireRequest);
@@ -299,20 +300,16 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     public Consumer<RecallStory> recallStoryHook(AppContext appContext) {
-        log.info("应用执行回调开始...");
         return (story) -> {
+            log.info("应用执行回调开始...");
             List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking)
                     .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, "unknown result"));
-
-            log.info("应用执行回调基本信息: {} {} {} ", story.getBusinessId(), story.getStartId(), story.getResult().isPresent());
             for (NodeTracking nodeTracking : nodeTrackingList) {
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
-                    log.info("应用执行回调: 记录日志消息开始");
                     this.createAppMessageLog(appContext, nodeTracking);
-                    log.info("应用执行回调: 记录日志消息结束");
                 }
             }
-            log.info("应用执行回调结束");
+            log.info("应用执行回调结束...");
         };
     }
 

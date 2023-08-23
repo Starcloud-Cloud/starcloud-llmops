@@ -3,13 +3,18 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.exception.ServerException;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
-import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -21,6 +26,7 @@ import java.util.Map;
  * @since 2023-05-31
  */
 @Data
+@Slf4j
 public abstract class BaseActionHandler<Q, R> {
 
     private static UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
@@ -31,40 +37,53 @@ public abstract class BaseActionHandler<Q, R> {
 
     private AppContext appContext;
 
-
     /**
      * 执行步骤
      */
     protected abstract ActionResponse _execute(Q request);
 
-
     /**
-     * 流程执行器，action执行入口
+     * 流程执行器，action 执行入口
      *
-     * @param context
-     * @param scopeDataOperator
-     * @return
+     * @param context           上下文
+     * @param scopeDataOperator 作用域数据操作器
+     * @return 执行结果
      */
     protected ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
+        try {
+            log.info("Action 执行开始...");
+            this.appContext = context;
+            Q request = this.parseInput();
 
-        this.appContext = context;
+            // 执行 Action
+            ActionResponse actionResponse = this._execute(request);
 
-        Q request = this.parseInput();
+            // 执行结果校验, 如果失败，抛出异常
+            if (!actionResponse.getSuccess()) {
+                if (StringUtils.isBlank(actionResponse.getErrorMsg())) {
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, "Action 执行失败");
+                }
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, actionResponse.getErrorMsg());
+            }
 
-        ActionResponse actionResponse = this._execute(request);
+            // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
+            if (this.getBenefitsType() != null && actionResponse.getTotalTokens() > 0) {
+                //权益记录
+                userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), actionResponse.getTotalTokens(), context.getUserId(), context.getConversationUid());
+            }
+            log.info("Action 执行成功...");
+            return actionResponse;
+        } catch (ServerException exception) {
+            log.error("Action 执行异常：异常码: {}, 异常信息: {}", exception.getCode(), exception.getMessage());
+            throw exception;
 
-        //权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
-        if (actionResponse.getSuccess() && this.getBenefitsType() != null && actionResponse.getTotalTokens() > 0) {
-            //权益记录
-            userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), actionResponse.getTotalTokens(), context.getUserId(), context.getConversationUid());
+        } catch (Exception exception) {
+            log.error("Action 执行异常：异常信息: {}", exception.getMessage());
+            throw exception;
         }
-
-        return actionResponse;
     }
 
-
     protected Q parseInput() {
-
 
         Map<String, Object> stepParams = this.appContext.getContextVariablesValues();
 
@@ -89,7 +108,7 @@ public abstract class BaseActionHandler<Q, R> {
     /**
      * 获取当前handler消耗的权益类型，如果返回自动扣除权益，返回null,则不处理权益扣除
      *
-     * @return
+     * @return 权益类型
      */
     protected BenefitsTypeEnums getBenefitsType() {
         return BenefitsTypeEnums.TOKEN;

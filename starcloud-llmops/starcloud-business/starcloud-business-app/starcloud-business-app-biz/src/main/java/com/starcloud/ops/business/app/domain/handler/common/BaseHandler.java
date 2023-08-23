@@ -111,15 +111,14 @@ public abstract class BaseHandler<Q, R> {
             handlerResponse.setErrorMsg(e.getMessage());
 
             //异常，使用最近一次的互动信息
-            InteractiveInfo current = context.getCurrentInteractive();
-
-            current.setStatus(1);
-            current.setSuccess(false);
-            current.setErrorCode("-1");
-            current.setErrorMsg(e.getMessage());
-
-            context.sendCallbackInteractiveEnd(current);
-
+            if (context.getCurrentInteractive() != null) {
+                InteractiveInfo current = context.getCurrentInteractive();
+                current.setStatus(1);
+                current.setSuccess(false);
+                current.setErrorCode("-1");
+                current.setErrorMsg(e.getMessage());
+                context.sendCallbackInteractiveEnd(current);
+            }
             log.error("BaseHandler {} execute is fail: {}", this.getClass().getSimpleName(), e.getMessage(), e);
         }
         handlerResponse.setElapsed(System.currentTimeMillis() - start);
