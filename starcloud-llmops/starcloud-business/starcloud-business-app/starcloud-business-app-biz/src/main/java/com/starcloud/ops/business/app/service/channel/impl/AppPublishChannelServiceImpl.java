@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.channel.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
@@ -195,6 +196,9 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         if (StringUtils.isBlank(configUid)) {
             if (AppPublishChannelEnum.OPEN_API.getCode().equals(request.getType())) {
                 configUid = generateOpenApiKey();
+            }
+            if (AppPublishChannelEnum.WX_WORK.getCode().equals(request.getType())) {
+                configUid = generateBindUid();
             } else {
                 configUid = generateConfigUid();
             }
@@ -370,6 +374,11 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
      */
     private String generateConfigUid() {
         return generateConfigUid(9);
+    }
+
+    private String generateBindUid() {
+        int i = RandomUtil.randomInt(100000, 1000000);
+        return "bd" + i;
     }
 
     /**

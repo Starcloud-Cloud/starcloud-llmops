@@ -143,7 +143,7 @@ public class WecomGroupServiceImpl implements WecomGroupService {
         }
         String robotId = RobotContextHolder.getRobotId();
 
-        String mediumUid = qaCallbackReqVO.getSpoken().replace("绑定应用:", StringUtils.EMPTY).trim();
+        String mediumUid = qaCallbackReqVO.getSpoken().trim();
         try {
             AppPublishChannelRespVO publishChannel = appPublishChannelService.getAllByMediumUid(mediumUid);
             if (publishChannel == null
