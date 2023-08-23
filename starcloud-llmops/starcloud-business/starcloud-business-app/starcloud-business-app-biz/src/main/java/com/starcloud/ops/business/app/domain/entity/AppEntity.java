@@ -43,11 +43,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * App 实体类
@@ -132,22 +130,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     protected AppExecuteRespVO doExecute(AppExecuteReqVO request) {
         // 权益检测
         this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
-        // 创建 App 执行上下文
-        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
-        appContext.setUserId(request.getUserId());
-        appContext.setEndUser(request.getEndUser());
-        appContext.setSseEmitter(request.getSseEmitter());
-
-        if (StringUtils.isNotBlank(request.getStepId())) {
-            appContext.setStepId(request.getStepId());
-        }
-
-        if (StringUtils.isNotBlank(request.getConversationUid())) {
-            appContext.setConversationId(request.getConversationUid());
-        }
 
         // 执行应用
-        return this.fire(appContext);
+        return this.fire(request);
     }
 
     /**
@@ -243,7 +228,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     /**
      * 执行应用
      *
-     * @param appContext 执行应用上下文
+     * @param request 执行应用上下文
      */
     @JsonIgnore
     @JSONField(serialize = false)
