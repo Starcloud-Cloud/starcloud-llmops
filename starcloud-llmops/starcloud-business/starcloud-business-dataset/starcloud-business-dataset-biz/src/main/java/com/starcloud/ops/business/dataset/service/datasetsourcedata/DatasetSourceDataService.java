@@ -122,11 +122,11 @@ public interface DatasetSourceDataService {
     DatasetSourceDataDetailsInfoVO getSourceDataListData(String uid, Boolean enable);
 
     /**
-     * 获取数据源详情
+     * 获取数据源基础信息 集合
      *
-     * @param sourceDataId    数据集源数据ID
+     * @param sourceDataIds    数据集源数据ID 集合
      */
-    List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataId);
+    List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataIds);
 
 
 

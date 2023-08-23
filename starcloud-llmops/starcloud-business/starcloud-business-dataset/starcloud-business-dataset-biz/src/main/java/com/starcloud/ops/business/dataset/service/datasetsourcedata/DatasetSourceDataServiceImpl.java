@@ -389,17 +389,17 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @param sourceDataId 数据集源数据ID
      */
     @Override
-    public List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataId) {
+    public List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataIds) {
 
         // 查询ID集合非空判断判
-        if (CollUtil.isEmpty(sourceDataId)) {
+        if (CollUtil.isEmpty(sourceDataIds)) {
             return null;
         }
 
         // 根据 ID 集合查询数据
         List<DatasetSourceDataDO> datasetSourceDataDOS = datasetSourceDataMapper.selectList(
                 Wrappers.lambdaQuery(DatasetSourceDataDO.class)
-                        .in(DatasetSourceDataDO::getId, sourceDataId));
+                        .in(DatasetSourceDataDO::getId, sourceDataIds));
 
         // 集合非空判断 集合为空直接返回
         if (CollUtil.isEmpty(datasetSourceDataDOS)) {
