@@ -32,10 +32,10 @@ public class ContextPrompt extends BasePromptConfig {
 
     private static DocumentSegmentsService documentSegmentsService = SpringUtil.getBean(DocumentSegmentsService.class);
 
-    private String promptV1 = "The content in [CONTEXT] is multi-line, and each line represents the structure of the document block. It contains the serial number, the corresponding document ID and the document block information in JSON format, and the JSON format contains fields `blockId` block ID, `content` block content, `sourceName` block source name, `sourceUrl` block source url.\n" +
+    private String promptV1 = "The content in [CONTEXT] is multi-line, and each line represents the structure of the document block. It contains the serial number and the document block information in JSON format, and the JSON format contains fields `blockId` block ID, `content` block content.\n" +
             "[block example]:\n" +
-            "1. Xxxxx {“blockId”: “xxx”, “content”: “xx”}\n" +
-            "2. Xxxxx {“blockId”: “xxx”, “content”: “xx”}\n" +
+            "1. {\"docId\":\"20\",\"blockId\":\"12\",\"content\":\"如何销售图书 定价 Back 定价 亚马逊开店成本\"}\n" +
+            "2. {\"docId\":\"25\",\"blockId\":\"33\",\"content\":\"在亚马逊，超过一半的实际商品销售总额来自独立的第三方卖家\"}\n" +
             "....\n" +
             "[end of example]\n" +
             "Use the following [CONTEXT] as your learned knowledge:\n" +
@@ -99,10 +99,11 @@ public class ContextPrompt extends BasePromptConfig {
             //@todo 需要 block 对象
             MatchQueryRequest matchQueryRequest = new MatchQueryRequest();
             matchQueryRequest.setText(query);
-            matchQueryRequest.setK(3L);
+            matchQueryRequest.setK(4L);
             matchQueryRequest.setDatasetUid(datasetUid);
             MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchQueryRequest);
 
+            //过滤掉 分数低的 < 0.7  文档搜索相似度阈值
             if (matchQueryVO != null && CollectionUtil.isNotEmpty(matchQueryVO.getRecords())) {
                 this.searchResult = matchQueryVO;
             }
@@ -127,10 +128,10 @@ public class ContextPrompt extends BasePromptConfig {
             recordDTO.getDocumentId();
 
 
-            blockLines.add((i + 1) + ". " + recordDTO.getDocumentId() + ": " + JSONUtil.toJsonStr(promptBlockDTO));
+            blockLines.add((i + 1) + ". " + JSONUtil.toJsonStr(promptBlockDTO));
         }
 
-        return StrUtil.join("\n\n", blockLines);
+        return StrUtil.join("\n", blockLines);
     }
 
 

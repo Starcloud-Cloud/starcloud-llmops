@@ -216,7 +216,7 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
 
-        chatRequest.setQuery("亚马逊发货规则是什么？");
+        chatRequest.setQuery("什么是电子商务？");
 
 
         chatService.chat(chatRequest);
