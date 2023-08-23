@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.controller.admin.app;
+package com.starcloud.ops.business.app.controller.admin.execute;
 
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
@@ -33,35 +33,35 @@ public class AppExecuteController {
 
     @PostMapping("/app")
     @Operation(summary = "执行应用")
-    public SseEmitter execute(@RequestBody AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
+    public SseEmitter execute(@RequestBody AppExecuteReqVO executeRequest, HttpServletResponse httpServletResponse) {
         // 设置响应头
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
         // 设置 SSE
         SseEmitter emitter = new SseEmitter(60000L);
-        executeReqVO.setSseEmitter(emitter);
+        executeRequest.setSseEmitter(emitter);
         // WEB_ADMIN 场景
-        executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
+        executeRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
         // 异步执行应用
-        appService.asyncExecute(executeReqVO);
+        appService.asyncExecute(executeRequest);
         return emitter;
     }
 
     @PostMapping("/market")
     @Operation(summary = "执行应用市场")
-    public SseEmitter executeMarket(@RequestBody AppExecuteReqVO executeReqVO, HttpServletResponse httpServletResponse) {
+    public SseEmitter executeMarket(@RequestBody AppExecuteReqVO executeRequest, HttpServletResponse httpServletResponse) {
         // 设置响应头
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
         // 设置 SSE
         SseEmitter emitter = new SseEmitter(60000L);
-        executeReqVO.setSseEmitter(emitter);
+        executeRequest.setSseEmitter(emitter);
         // WEB_MARKET 场景, 应用市场专用
-        if (StringUtils.isBlank(executeReqVO.getScene())) {
-            executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
+        if (StringUtils.isBlank(executeRequest.getScene())) {
+            executeRequest.setScene(AppSceneEnum.WEB_MARKET.name());
         }
         // 异步执行应用
-        appService.asyncExecute(executeReqVO);
+        appService.asyncExecute(executeRequest);
         return emitter;
     }
 

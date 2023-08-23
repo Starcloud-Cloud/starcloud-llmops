@@ -108,7 +108,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
         Long userId = WebFrameworkUtils.getLoginUserId();
         try {
             // 检测权益
-            benefitsService.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);
+            this.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);
             // 调用图片生成服务
             ImageMessageRespVO imageResponse = textToImage(request);
             // 扣除权益
