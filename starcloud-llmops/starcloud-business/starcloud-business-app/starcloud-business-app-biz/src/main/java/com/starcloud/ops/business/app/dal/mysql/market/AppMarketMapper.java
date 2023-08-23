@@ -124,12 +124,13 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     }
 
     /**
-     * 判断应用名称是否重复
+     * 判断应用名称是否重复, 只判断 model 为 COMPLETION 的应用，其余的名称可以重复
      *
      * @param name 应用名称
      */
     default Boolean duplicateName(String name) {
-        return this.selectCount(Wrappers.lambdaQuery(AppMarketDO.class).eq(AppMarketDO::getName, name)) > 0;
+        return this.selectCount(Wrappers.lambdaQuery(AppMarketDO.class)
+                .eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name()).eq(AppMarketDO::getName, name)) > 0;
     }
 
     /**
