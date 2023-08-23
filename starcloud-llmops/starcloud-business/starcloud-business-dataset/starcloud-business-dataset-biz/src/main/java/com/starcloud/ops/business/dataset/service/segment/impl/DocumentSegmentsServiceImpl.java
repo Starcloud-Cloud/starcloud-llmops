@@ -252,7 +252,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             documentSegmentDO.setId(segmentId);
             documentSegmentDO.setCreator(creator);
             documentSegmentDO.setUpdater(creator);
-            documentSegmentDO.setDatasetId(datasets.getUid());
+            documentSegmentDO.setDatasetId(String.valueOf(datasets.getId()));
             documentSegmentDO.setDocumentId(dataSourceId);
             documentSegmentDO.setPosition(i);
             documentSegmentDO.setContent(split);
