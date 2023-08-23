@@ -17,6 +17,7 @@ import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -117,9 +118,16 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      * @param name 应用名称
      */
     default Boolean duplicateName(String name) {
-        return this.selectCount(Wrappers.lambdaQuery(AppDO.class)
-                .eq(AppDO::getModel, AppModelEnum.COMPLETION.name()).eq(AppDO::getName, name)) > 0;
+        return countCompletionAppByName(name) > 0;
     }
+
+    /**
+     * 根据应用名称查询 COMPLETION 模式的应用数量
+     *
+     * @param name 应用名称
+     * @return 应用数量
+     */
+    Long countCompletionAppByName(@Param("name") String name);
 
     /**
      * 查询应用是否已经安装

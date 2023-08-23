@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.log.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -112,5 +113,11 @@ public class LogMessageDetailRespVO implements Serializable {
      */
     @Schema(description = "返回内容")
     private String answer;
+
+    /**
+     * 渠道详情
+     */
+    @Schema(description = "渠道详情")
+    private AppPublishChannelRespVO channel;
 
 }
