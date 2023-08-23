@@ -4,6 +4,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -115,7 +116,7 @@ public class AppFactory {
         if (StringUtils.isNotBlank(request.getAppUid())) {
             String appId = request.getAppUid();
             // 应用市场场景
-            if (AppSceneEnum.WEB_MARKET.name().equals(request.getScene())) {
+            if (AppSceneEnum.WEB_MARKET.name().equals(request.getScene()) || AppSceneEnum.OPTIMIZE_PROMPT.name().equals(request.getScene())) {
                 return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(appId) : AppFactory.factoryMarket(appId, request.getAppReqVO());
                 // 应用创作中心
             } else if (AppSceneEnum.WEB_ADMIN.name().equals(request.getScene())) {
@@ -195,12 +196,23 @@ public class AppFactory {
      */
     public static AppEntity factoryApp(String appUid, AppReqVO appRequest) {
         BaseAppEntity app = getAppRepository().get(appUid);
-        // 应用不存在, 还没有存入到数据库
+        String create, update;
+        if (app == null) {
+            Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+            if (loginUserId == null) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+            }
+            create = String.valueOf(loginUserId);
+            update = String.valueOf(loginUserId);
+        } else {
+            create = app.getCreator();
+            update = app.getUpdater();
+        }
+
         AppEntity appEntity = AppConvert.INSTANCE.convert(appRequest);
         appEntity.setUid(appUid);
-        appEntity.setCreator(app.getCreator());
-        appEntity.setUpdater(app.getUpdater());
-        appEntity.setTenantId(app.getTenantId());
+        appEntity.setCreator(create);
+        appEntity.setUpdater(update);
         return appEntity;
     }
 

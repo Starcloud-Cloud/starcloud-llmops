@@ -25,5 +25,11 @@ public class WecomGroupChannelConfigDTO extends BaseChannelConfigDTO{
     @Schema(description = "work-tool 机器人Id")
     private String robotId;
 
+    @Schema(description = "work-tool 机器人名字")
+    private String robotName;
+
+    @Schema(description = "是否已绑定群聊")
+    private Boolean isBind;
+
 
 }

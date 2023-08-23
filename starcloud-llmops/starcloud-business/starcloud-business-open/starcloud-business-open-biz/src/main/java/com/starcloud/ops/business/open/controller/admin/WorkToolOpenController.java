@@ -41,7 +41,7 @@ public class WorkToolOpenController {
         }
 
         String spoken = qaMsgRequest.getSpoken();
-        if (StringUtils.isNotBlank(spoken) && spoken.startsWith("绑定应用:")) {
+        if (StringUtils.isNotBlank(spoken) && spoken.startsWith("BD")) {
             wecomGroupService.bindPublishChannel(qaMsgRequest);
             return QaCallbackRespVO.success(StringUtils.EMPTY);
         }

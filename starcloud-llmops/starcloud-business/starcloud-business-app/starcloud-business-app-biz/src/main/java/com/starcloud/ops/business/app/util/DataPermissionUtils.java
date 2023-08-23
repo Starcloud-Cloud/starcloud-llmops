@@ -48,7 +48,7 @@ public class DataPermissionUtils {
     public static String identify(String userId, String endUser) {
         // endUser 不为空，说明是游客
         if (StringUtils.isNotBlank(endUser)) {
-            return "游客";
+            return "游客(" + endUser + ")";
         }
         return getUsername(userId);
     }

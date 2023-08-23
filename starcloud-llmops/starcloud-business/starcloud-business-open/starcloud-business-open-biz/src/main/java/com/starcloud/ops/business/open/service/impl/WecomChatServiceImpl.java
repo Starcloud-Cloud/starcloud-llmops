@@ -54,12 +54,12 @@ public class WecomChatServiceImpl implements WecomChatService {
         TenantContextHolder.setIgnore(true);
         AppPublishChannelRespVO channelRespVO = appPublishChannelService.getAllByMediumUid(reqVO.getGroupRemark());
         if (channelRespVO == null) {
-            sendMsg(reqVO.getGroupRemark(), "渠道绑定异常，请联系管理员", reqVO.getReceivedName());
+            sendMsg(reqVO.getGroupRemark(), "渠道绑定不存在，请联系管理员", reqVO.getReceivedName());
             return;
         }
 
         if (channelRespVO.getStatus() == null || channelRespVO.getStatus() != 0) {
-            sendMsg(reqVO.getGroupRemark(), "此渠道已禁用", reqVO.getReceivedName());
+            sendMsg(reqVO.getGroupRemark(), "此渠道已禁用，请联系管理员启用", reqVO.getReceivedName());
             return;
         }
 

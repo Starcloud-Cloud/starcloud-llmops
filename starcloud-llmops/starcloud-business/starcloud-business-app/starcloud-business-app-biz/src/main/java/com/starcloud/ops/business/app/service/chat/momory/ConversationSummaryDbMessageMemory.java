@@ -305,7 +305,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
 
-        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()), Long.valueOf(logVo.getCreator()), logVo.getUid());
+        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()) * 2, Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
 
@@ -401,7 +401,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
 
-        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()), Long.valueOf(logVo.getCreator()), logVo.getUid());
+        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()) * 2, Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
 
