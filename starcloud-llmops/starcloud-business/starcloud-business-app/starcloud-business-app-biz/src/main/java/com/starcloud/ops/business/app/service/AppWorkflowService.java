@@ -136,7 +136,7 @@ public class AppWorkflowService {
             appContext.setStepId(stepId);
         }
         if (StringUtils.isNotBlank(requestId)) {
-            appContext.setConversationId(requestId);
+            appContext.setConversationUid(requestId);
         }
 
         // 执行该应用
@@ -203,7 +203,7 @@ public class AppWorkflowService {
         //appContext.setHttpServletResponse(httpServletResponse);
         appContext.setSseEmitter(sseEmitter);
         if (StringUtils.isNotBlank(requestId)) {
-            appContext.setConversationId(requestId);
+            appContext.setConversationUid(requestId);
         }
 
         // 执行该应用
@@ -222,7 +222,7 @@ public class AppWorkflowService {
         StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
                 .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
                 .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
-                .startId(appContext.getConversationId())
+                .startId(appContext.getConversationUid())
                 .request(appContext).build();
 
         LogAppConversationCreateReqVO conversation = this.createAppConversationLog(appContext);
@@ -290,7 +290,7 @@ public class AppWorkflowService {
 
         LogAppConversationCreateReqVO logAppConversationCreateReqVO = new LogAppConversationCreateReqVO();
 
-        logAppConversationCreateReqVO.setUid(appContext.getConversationId());
+        logAppConversationCreateReqVO.setUid(appContext.getConversationUid());
         logAppConversationCreateReqVO.setAppMode(appContext.getApp().getModel());
         logAppConversationCreateReqVO.setAppName(appContext.getApp().getName());
 
@@ -334,7 +334,7 @@ public class AppWorkflowService {
         String stepId = nodeTracking.getNodeName();
 
         messageCreateReqVO.setUid(IdUtil.fastSimpleUUID());
-        messageCreateReqVO.setAppConversationUid(appContext.getConversationId());
+        messageCreateReqVO.setAppConversationUid(appContext.getConversationUid());
         messageCreateReqVO.setAppUid(appContext.getApp().getUid());
         messageCreateReqVO.setAppMode(appContext.getApp().getModel());
         messageCreateReqVO.setAppStep(appContext.getStepId());

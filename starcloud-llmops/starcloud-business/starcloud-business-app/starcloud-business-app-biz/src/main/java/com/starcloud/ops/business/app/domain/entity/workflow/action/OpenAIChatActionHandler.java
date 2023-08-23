@@ -39,7 +39,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
 
     @Override
     protected ActionResponse _execute(Request request) {
-        StreamingSseCallBackHandler callBackHandler = new StreamingSseCallBackHandler(this.getAppContext().getSseEmitter(), this.getAppContext().getConversationId());
+        StreamingSseCallBackHandler callBackHandler = new StreamingSseCallBackHandler(this.getAppContext().getSseEmitter(), this.getAppContext().getConversationUid());
         OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(callBackHandler);
 
 
@@ -47,7 +47,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         Map<String, Object> params = request.getStepParams();
 
         Long userId = this.getAppContext().getUserId();
-        String conversationId = this.getAppContext().getConversationId();
+        String conversationId = this.getAppContext().getConversationUid();
 
         String prompt = (String) params.getOrDefault("PROMPT", "hi, what you name?");
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));

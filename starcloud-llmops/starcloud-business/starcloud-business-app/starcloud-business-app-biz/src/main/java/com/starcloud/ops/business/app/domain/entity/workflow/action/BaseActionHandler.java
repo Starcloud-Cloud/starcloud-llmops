@@ -5,7 +5,6 @@ import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
@@ -57,7 +56,7 @@ public abstract class BaseActionHandler<Q, R> {
         //权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
         if (actionResponse.getSuccess() && this.getBenefitsType() != null && actionResponse.getTotalTokens() > 0) {
             //权益记录
-            userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), actionResponse.getTotalTokens(), context.getUserId(), context.getConversationId());
+            userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), actionResponse.getTotalTokens(), context.getUserId(), context.getConversationUid());
         }
 
         return actionResponse;

@@ -76,7 +76,11 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             List<List<BaseMessage>> chatMessages = Collections.singletonList(
                     Collections.singletonList(new HumanMessage(prompt))
             );
-
+            try {
+                int a = 1/0;
+            } catch (Exception e) {
+                throw e;
+            }
 
             ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
 

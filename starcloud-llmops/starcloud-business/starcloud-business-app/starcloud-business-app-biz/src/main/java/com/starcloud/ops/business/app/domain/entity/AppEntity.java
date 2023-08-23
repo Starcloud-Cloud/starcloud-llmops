@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
@@ -43,6 +44,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -129,11 +132,36 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected AppExecuteRespVO doExecute(AppExecuteReqVO request) {
-        // 权益检测
-        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
+        log.info("应用工作流执行开始...");
+        AppContext appContext;
+        try {
+            // 权益检测
+            this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
+            // 构建应用上下文
+            appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
+            appContext.setUserId(request.getUserId());
+            appContext.setEndUser(request.getEndUser());
+            appContext.setConversationUid(request.getConversationUid());
+            appContext.setSseEmitter(request.getSseEmitter());
+            appContext.setMediumUid(request.getMediumUid());
+            if (StringUtils.isNotBlank(request.getStepId())) {
+                appContext.setStepId(request.getStepId());
+            } else {
+                request.setStepId(appContext.getStepId());
+            }
+            log.info("应用工作流执行: 应用参数：{}\n", JSONUtil.parse(appContext.getContextVariablesValues()).toStringPretty());
+        } catch (ServerException exception) {
+            log.info("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
+            this.createAppMessageLog(request, exception);
+            throw exception;
+        } catch (Exception exception) {
+            log.info("应用工作流执行异常(exception): 错误信息: {}", exception.getMessage());
+            this.createAppMessageLog(request, exception);
+            throw exception;
+        }
 
         // 执行工作流应用
-        return this.fire(request);
+        return this.fire(appContext);
     }
 
     /**
@@ -229,46 +257,35 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     /**
      * 执行应用
      *
-     * @param request 执行应用上下文
+     * @param appContext 执行应用上下文
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected AppExecuteRespVO fire(AppExecuteReqVO request) {
-        // 构建应用上下文
-        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
-        appContext.setUserId(request.getUserId());
-        appContext.setEndUser(request.getEndUser());
-        appContext.setConversationId(request.getConversationUid());
-        appContext.setSseEmitter(request.getSseEmitter());
-        if (StringUtils.isNotBlank(request.getStepId())) {
-            appContext.setStepId(request.getStepId());
-        }
-        log.info("应用工作流执行开始: 应用参数：{}", JSONUtil.parse(appContext.getContextVariablesValues()).toStringPretty());
-
+    protected AppExecuteRespVO fire(@Valid AppContext appContext) {
         // 组装请信息
         StoryRequest<Void> fireRequest = ReqBuilder.returnType(Void.class).build();
         fireRequest.setTrackingType(TrackingTypeEnum.SERVICE_DETAIL);
         fireRequest.setTimeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT);
-        fireRequest.setStartId(appContext.getConversationId());
+        fireRequest.setStartId(appContext.getConversationUid());
         fireRequest.setRequest(appContext);
-        fireRequest.setRecallStoryHook(this.recallStoryHook(appContext, request));
+        fireRequest.setRecallStoryHook(this.recallStoryHook(appContext));
 
         // 执行工作流
         TaskResponse<Void> fire = storyEngine.fire(fireRequest);
 
         // 如果异常，抛出异常
         if (fire.getResultException() != null) {
-            log.info("应用工作流执行异常: 步骤 ID: {}, 应用 UID: {}, 应用名称: {}, 错误信息: {}", appContext.getStepId(), appContext.getApp().getUid(), appContext.getApp().getName(), fire.getResultDesc());
+            log.info("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, fire.getResultException());
         }
 
         // 如果执行失败，抛出异常
         if (!fire.isSuccess()) {
-            log.info("应用工作流执行异常: 步骤 ID: {}, 应用 UID: {}, 应用名称: {}, 错误信息: {}", appContext.getStepId(), appContext.getApp().getUid(), appContext.getApp().getName(), fire.getResultDesc());
+            log.info("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, fire.getResultDesc());
         }
 
-        log.info("应用工作流执行成功: 步骤 ID: {}, 应用ID: {}, 应用名称: {}", appContext.getStepId(), appContext.getApp().getUid(), appContext.getApp().getName());
+        log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
         return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), fire.getResult());
 
     }
@@ -281,7 +298,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public Consumer<RecallStory> recallStoryHook(AppContext appContext, AppExecuteReqVO request) {
+    public Consumer<RecallStory> recallStoryHook(AppContext appContext) {
         log.info("应用执行回调开始...");
         return (story) -> {
             List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking)
@@ -291,7 +308,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             for (NodeTracking nodeTracking : nodeTrackingList) {
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
                     log.info("应用执行回调: 记录日志消息开始");
-                    this.createAppMessageLog(appContext, request, nodeTracking);
+                    this.createAppMessageLog(appContext, nodeTracking);
                     log.info("应用执行回调: 记录日志消息结束");
                 }
             }
@@ -303,23 +320,22 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      * 创建应用消息日志
      *
      * @param appContext   应用上下文
-     * @param request      请求参数
      * @param nodeTracking 节点跟踪
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void createAppMessageLog(AppContext appContext, AppExecuteReqVO request, NodeTracking nodeTracking) {
+    private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
         this.createAppMessage((messageCreateReqVO) -> {
             messageCreateReqVO.setCreator(String.valueOf(appContext.getUserId()));
             messageCreateReqVO.setEndUser(appContext.getEndUser());
-            messageCreateReqVO.setAppConversationUid(appContext.getConversationId());
+            messageCreateReqVO.setAppConversationUid(appContext.getConversationUid());
             messageCreateReqVO.setAppStep(appContext.getStepId());
             messageCreateReqVO.setCreateTime(nodeTracking.getStartTime());
             messageCreateReqVO.setUpdateTime(nodeTracking.getStartTime());
             messageCreateReqVO.setElapsed(nodeTracking.getSpendTime());
             messageCreateReqVO.setFromScene(appContext.getScene().name());
+            messageCreateReqVO.setMediumUid(appContext.getMediumUid());
             messageCreateReqVO.setCurrency("USD");
-            messageCreateReqVO.setMediumUid(request.getMediumUid());
 
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
             // todo 避免因为异常获取不到元素的值，从 appContext 中获取原始的值
@@ -348,6 +364,40 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                     messageCreateReqVO.setErrorCode(((KstryException) nodeTracking.getTaskException()).getErrorCode());
                 }
             }
+        });
+    }
+
+    /**
+     * 创建应用消息日志
+     *
+     * @param request   应用上下文
+     * @param exception 节点跟踪
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private void createAppMessageLog(AppExecuteReqVO request, Exception exception) {
+        this.createAppMessage((messageCreateReqVO) -> {
+            messageCreateReqVO.setCreator(String.valueOf(request.getUserId()));
+            messageCreateReqVO.setEndUser(request.getEndUser());
+            messageCreateReqVO.setAppConversationUid(request.getConversationUid());
+            messageCreateReqVO.setAppStep(request.getStepId());
+            messageCreateReqVO.setElapsed(100L);
+            messageCreateReqVO.setFromScene(request.getScene());
+            messageCreateReqVO.setMediumUid(request.getMediumUid());
+            messageCreateReqVO.setCurrency("USD");
+            messageCreateReqVO.setAppConfig(JSONUtil.toJsonStr(this));
+            messageCreateReqVO.setStatus(LogStatusEnum.ERROR.name());
+            messageCreateReqVO.setMessage("");
+            messageCreateReqVO.setMessageTokens(0);
+            messageCreateReqVO.setMessageUnitPrice(new BigDecimal("0.02"));
+            messageCreateReqVO.setAnswer("");
+            messageCreateReqVO.setAnswerTokens(0);
+            messageCreateReqVO.setAnswerUnitPrice(new BigDecimal("0.02"));
+            messageCreateReqVO.setTotalPrice(new BigDecimal("0"));
+            if (exception instanceof ServerException) {
+                messageCreateReqVO.setErrorCode(String.valueOf(((ServerException) exception).getCode()));
+            }
+            messageCreateReqVO.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
         });
     }
 

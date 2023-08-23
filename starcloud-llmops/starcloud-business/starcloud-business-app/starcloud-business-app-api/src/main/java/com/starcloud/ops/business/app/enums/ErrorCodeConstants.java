@@ -88,7 +88,7 @@ public interface ErrorCodeConstants {
     /**
      * 应用执行异常
      */
-    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "App execute fail, {}");
+    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "{}");
 
     // ========== 图片生成服务错误 3-003-000-00 ==========
     /**
