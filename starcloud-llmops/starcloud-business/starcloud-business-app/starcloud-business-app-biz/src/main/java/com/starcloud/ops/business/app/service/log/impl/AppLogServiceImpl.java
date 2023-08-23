@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
@@ -22,6 +23,7 @@ import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -84,6 +86,9 @@ public class AppLogServiceImpl implements AppLogService {
 
     @Resource
     private ChatService chatService;
+
+    @Resource
+    private AppPublishChannelService appPublishChannelService;
 
     @Resource
     private AppMapper appMapper;
@@ -324,7 +329,15 @@ public class AppLogServiceImpl implements AppLogService {
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
 
         // 不管是多步骤执行，还是单步骤执行，都是取最新一条记录转换返回。
-        return transformAppLogMessage(appMessageList.get(0), appConversation);
+        LogAppMessageDO logAppMessage = appMessageList.get(0);
+        AppLogMessageRespVO appLogMessageResponse = transformAppLogMessage(logAppMessage, appConversation);
+
+        // 如果是通过渠道执行的，需要查询渠道信息
+        if (StringUtils.isNotBlank(logAppMessage.getMediumUid())) {
+            AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(logAppMessage.getMediumUid());
+            appLogMessageResponse.setChannel(channel);
+        }
+        return appLogMessageResponse;
     }
 
     /**
@@ -348,7 +361,14 @@ public class AppLogServiceImpl implements AppLogService {
 
         List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(chatMessageList).stream()
                 .filter(Objects::nonNull)
-                .map(item -> transformAppLogMessage(item, appConversation, app))
+                .map(item -> {
+                    AppLogMessageRespVO appLogMessageResponse = transformAppLogMessage(item, appConversation, app);
+                    if (StringUtils.isNotBlank(item.getMediumUid())) {
+                        AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(item.getMediumUid());
+                        appLogMessageResponse.setChannel(channel);
+                    }
+                    return appLogMessageResponse;
+                })
                 .collect(Collectors.toList());
         return new PageResult<>(collect, messagePageResult.getTotal());
     }
@@ -372,9 +392,16 @@ public class AppLogServiceImpl implements AppLogService {
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
 
         // 取第一条数据
-        LogAppMessageDO logAppMessageDO = appMessageList.get(0);
+        LogAppMessageDO logAppMessage = appMessageList.get(0);
+        ImageLogMessageRespVO imageLogMessageResponse = transformImageLogMessage(logAppMessage, appConversation);
 
-        return transformImageLogMessage(logAppMessageDO, appConversation);
+        // 如果是通过渠道执行的，需要查询渠道信息
+        if (StringUtils.isNotBlank(logAppMessage.getMediumUid())) {
+            AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(logAppMessage.getMediumUid());
+            imageLogMessageResponse.setChannel(channel);
+        }
+
+        return imageLogMessageResponse;
     }
 
     /**
