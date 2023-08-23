@@ -386,7 +386,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     /**
      * 获取数据源详情
      *
-     * @param sourceDataId 数据集源数据ID
+     * @param sourceDataIds 数据集源数据ID
      */
     @Override
     public List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataIds) {
