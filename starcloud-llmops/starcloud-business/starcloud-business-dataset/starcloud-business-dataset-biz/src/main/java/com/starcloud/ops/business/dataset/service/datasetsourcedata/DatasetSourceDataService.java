@@ -75,13 +75,7 @@ public interface DatasetSourceDataService {
      */
     List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(Long datasetId, Integer dataModel);
 
-    /**
-     * 获取数据源详情
-     *
-     * @param uid    数据集源数据编号
-     * @param enable 如果 enable 为 true 则详情内容默认为清洗后的数据
-     */
-    DatasetSourceDataDetailsInfoVO getSourceDataDetailsInfo(String uid, Boolean enable);
+
 
     /**
      * 获取分块内容
@@ -117,6 +111,23 @@ public interface DatasetSourceDataService {
      * @param dataDO 数据集源数据DO
      */
     void updateDatasourceById(DatasetSourceDataDO dataDO);
+
+
+    /**
+     * 获取数据源详情
+     *
+     * @param uid    数据集源数据编号
+     * @param enable 如果 enable 为 true 则详情内容默认为清洗后的数据
+     */
+    DatasetSourceDataDetailsInfoVO getSourceDataListData(String uid, Boolean enable);
+
+    /**
+     * 获取数据源详情
+     *
+     * @param sourceDataId    数据集源数据ID
+     */
+    List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataId);
+
 
 
 }
