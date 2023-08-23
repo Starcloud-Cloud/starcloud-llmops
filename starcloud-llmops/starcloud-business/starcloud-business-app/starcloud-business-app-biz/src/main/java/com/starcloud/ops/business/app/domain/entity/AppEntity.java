@@ -42,11 +42,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * App 实体类
@@ -133,22 +131,8 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
         //权益放在这里是为了包装 可以执行完整的一次应用
         this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
 
-        // 创建 App 执行上下文
-        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
-        appContext.setUserId(request.getUserId());
-        appContext.setEndUser(request.getEndUser());
-        appContext.setSseEmitter(request.getSseEmitter());
-
-        if (StringUtils.isNotBlank(request.getStepId())) {
-            appContext.setStepId(request.getStepId());
-        }
-
-        if (StringUtils.isNotBlank(request.getConversationUid())) {
-            appContext.setConversationId(request.getConversationUid());
-        }
-
         // 执行应用
-        return this.fireWorkflowContext(appContext);
+        return this.fire(request);
     }
 
     /**
@@ -248,11 +232,25 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
     /**
      * 执行应用
      *
-     * @param appContext 执行应用上下文
+     * @param request 执行应用上下文
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected AppExecuteRespVO fireWorkflowContext(@Valid AppContext appContext) {
+    protected AppExecuteRespVO fire(AppExecuteReqVO request) {
+
+        // 创建 App 执行上下文
+        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
+        appContext.setUserId(request.getUserId());
+        appContext.setEndUser(request.getEndUser());
+        appContext.setSseEmitter(request.getSseEmitter());
+
+        if (StringUtils.isNotBlank(request.getStepId())) {
+            appContext.setStepId(request.getStepId());
+        }
+
+        if (StringUtils.isNotBlank(request.getConversationUid())) {
+            appContext.setConversationId(request.getConversationUid());
+        }
 
         StoryRequest<Void> req = ReqBuilder.returnType(Void.class)
                 .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
@@ -267,7 +265,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
             log.info("recallStory: {} {} {} \n {}", recallStory.getBusinessId(), recallStory.getStartId(), recallStory.getResult().isPresent(), JSONUtil.parse(recallStory.getReq()).toJSONString(4));
 
             storyTracking.stream().filter((nodeTracking) -> BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())).forEach(nodeTracking -> {
-                this.createAppMessageLog(appContext, nodeTracking);
+                this.createAppMessageLog(appContext, request, nodeTracking);
             });
 
         });
@@ -291,7 +289,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
+    private void createAppMessageLog(AppContext appContext, AppExecuteReqVO request, NodeTracking nodeTracking) {
         this.createAppMessage((messageCreateReqVO) -> {
             messageCreateReqVO.setCreator(String.valueOf(appContext.getUserId()));
             messageCreateReqVO.setEndUser(appContext.getEndUser());
@@ -302,6 +300,7 @@ public class AppEntity<Q, R> extends BaseAppEntity<AppExecuteReqVO, AppExecuteRe
             messageCreateReqVO.setElapsed(nodeTracking.getSpendTime());
             messageCreateReqVO.setFromScene(appContext.getScene().name());
             messageCreateReqVO.setCurrency("USD");
+            messageCreateReqVO.setMediumUid(request.getMediumUid());
 
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
             // todo 避免因为异常获取不到元素的值，从 appContext 中获取原始的值
