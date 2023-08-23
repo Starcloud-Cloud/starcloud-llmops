@@ -108,6 +108,9 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             AppSceneEnum.SHARE_API
     );
 
+    /**
+     * 应用分析场景名称
+     */
     public static final List<String> APP_ANALYSIS_SCENES_NAME = APP_ANALYSIS_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
 
     /**
@@ -125,6 +128,9 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             AppSceneEnum.CHAT_TEST
     );
 
+    /**
+     * 聊天分析场景名称
+     */
     public static final List<String> CHAT_ANALYSIS_SCENES_NAME = CHAT_ANALYSIS_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
 
     /**

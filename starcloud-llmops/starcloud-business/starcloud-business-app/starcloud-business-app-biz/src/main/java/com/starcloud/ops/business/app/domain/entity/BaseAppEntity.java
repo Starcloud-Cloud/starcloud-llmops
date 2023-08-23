@@ -509,7 +509,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     public LogAppMessageCreateReqVO createAppMessage(Consumer<LogAppMessageCreateReqVO> consumer) {
 
         LogAppMessageCreateReqVO messageCreateReqVO = new LogAppMessageCreateReqVO();
-//        messageCreateReqVO.setAppConversationUid(req.getConversationUid());
         messageCreateReqVO.setUid(IdUtil.fastSimpleUUID());
         messageCreateReqVO.setAppUid(this.getUid());
         messageCreateReqVO.setAppMode(this.getModel());

@@ -136,10 +136,21 @@ public class AppRespVO implements Serializable {
     private String creator;
 
     /**
+     * 应用创建者名称
+     */
+    private String creatorName;
+
+    /**
      * 应用修改者
      */
     @Schema(description = "应用修改者")
     private String updater;
+
+    /**
+     * 应用修改者名称
+     */
+    @Schema(description = "应用修改者名称")
+    private String updaterName;
 
     /**
      * 应用创建时间

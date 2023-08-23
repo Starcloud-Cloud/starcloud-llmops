@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.app;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
@@ -94,6 +95,7 @@ public class AppController {
     }
 
     @PostMapping("/create")
+    @DataPermission(enable = false)
     @Operation(summary = "创建应用", description = "创建一个新的应用")
     @ApiOperationSupport(order = 16, author = "nacoyer")
     public CommonResult<AppRespVO> create(@Validated @RequestBody AppReqVO request) {
@@ -101,6 +103,7 @@ public class AppController {
     }
 
     @PostMapping("/copy")
+    @DataPermission(enable = false)
     @Operation(summary = "复制应用", description = "复制一个应用")
     @ApiOperationSupport(order = 18, author = "nacoyer")
     public CommonResult<AppRespVO> copy(@Validated @RequestBody AppReqVO request) {
@@ -108,6 +111,7 @@ public class AppController {
     }
 
     @PutMapping("/modify")
+    @DataPermission(enable = false)
     @Operation(summary = "更新应用", description = "根据 UID 更新应用")
     @ApiOperationSupport(order = 20, author = "nacoyer")
     public CommonResult<AppRespVO> modify(@Validated @RequestBody AppUpdateReqVO request) {

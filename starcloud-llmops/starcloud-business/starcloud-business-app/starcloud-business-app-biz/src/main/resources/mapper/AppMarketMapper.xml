@@ -52,7 +52,17 @@
                     FIND_IN_SET(#{tag}, tags)
                 </foreach>
             </if>
+            AND model = 'COMPLETION'
             AND deleted = 0
         </where>
+    </select>
+
+    <!-- 根据应用名称查询 COMPLETION 模式的应用数量 -->
+    <select id="countCompletionAppByName" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM llm_app_market
+        WHERE name = #{name}
+          AND model = 'COMPLETION'
+          AND deleted = 0
     </select>
 </mapper>

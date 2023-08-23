@@ -36,6 +36,8 @@ import com.starcloud.ops.business.open.controller.admin.vo.request.WecomCreateGr
 import com.starcloud.ops.business.open.controller.admin.vo.response.WecomGroupRespVO;
 import com.starcloud.ops.business.open.service.WecomChatService;
 import com.starcloud.ops.business.open.service.WecomGroupService;
+import com.starcloud.ops.business.open.service.manager.WorkToolManager;
+import com.starcloud.ops.business.open.service.manager.dto.WorkToolRobotDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,9 @@ public class WecomGroupServiceImpl implements WecomGroupService {
 
     @Resource
     private DictDataService dictDataService;
+
+    @Resource
+    private WorkToolManager workToolManager;
 
     @Resource
     private WecomChatService wecomChatService;
@@ -115,8 +120,8 @@ public class WecomGroupServiceImpl implements WecomGroupService {
 
     @Override
     public void addFriend(AddFriendReqVO reqVO) {
-        DictDataDO dictDataDO = dictDataService.parseDictData(WECOM_ROBOT, "robotId");
-        String robotId = dictDataDO.getValue();
+        WorkToolRobotDTO robotDTO = workToolManager.getRobotId(reqVO.getMobile());
+        String robotId = robotDTO.getRobotId();
         BaseReq<AddFriendReq> baseReq = new BaseReq();
         AddFriendReq addFriendReq = new AddFriendReq();
         addFriendReq.setFriend(WorktoolFriendDTO.newInstance(reqVO.getMobile()));
@@ -138,13 +143,13 @@ public class WecomGroupServiceImpl implements WecomGroupService {
         }
         String robotId = RobotContextHolder.getRobotId();
 
-        String mediumUid = qaCallbackReqVO.getSpoken().replace("绑定应用:", StringUtils.EMPTY).trim();
+        String mediumUid = qaCallbackReqVO.getSpoken().trim();
         try {
             AppPublishChannelRespVO publishChannel = appPublishChannelService.getAllByMediumUid(mediumUid);
             if (publishChannel == null
                     || !(publishChannel.getConfig() instanceof WecomGroupChannelConfigDTO)) {
 
-                wecomChatService.sendMsg(qaCallbackReqVO.getGroupName(), "此渠道不支持绑定群聊", qaCallbackReqVO.getReceivedName());
+                wecomChatService.sendMsg(qaCallbackReqVO.getGroupName(), "此渠道类型不支持绑定群聊", qaCallbackReqVO.getReceivedName());
                 return;
             }
 
@@ -154,7 +159,7 @@ public class WecomGroupServiceImpl implements WecomGroupService {
             }
 
             WecomGroupChannelConfigDTO config = (WecomGroupChannelConfigDTO) publishChannel.getConfig();
-            if (StringUtils.isNotBlank(config.getGroupName())) {
+            if (config.getIsBind() != null && config.getIsBind()) {
                 log.info("此渠道已绑定群聊");
                 wecomChatService.sendMsg(qaCallbackReqVO.getGroupName(), "此发布渠道已绑定群聊", qaCallbackReqVO.getReceivedName());
                 return;
@@ -163,6 +168,9 @@ public class WecomGroupServiceImpl implements WecomGroupService {
             config.setRobotId(robotId);
             config.setGroupName(qaCallbackReqVO.getGroupName());
             config.setGroupRemark(mediumUid);
+            config.setIsBind(true);
+            config.setRobotName(workToolManager.getRobotName(robotId));
+
             AppPublishChannelModifyReqVO reqVO = new AppPublishChannelModifyReqVO();
             reqVO.setConfig(config);
             reqVO.setUid(publishChannel.getUid());
@@ -197,6 +205,7 @@ public class WecomGroupServiceImpl implements WecomGroupService {
 
 
     private String createGroup(WecomCreateGroupReqVO reqVO) {
+        // 废弃
         DictDataDO dictDataDO = dictDataService.parseDictData(WECOM_ROBOT, "robotId");
         String robotId = dictDataDO.getValue();
         String groupRemark = IdUtil.nanoId(16);
