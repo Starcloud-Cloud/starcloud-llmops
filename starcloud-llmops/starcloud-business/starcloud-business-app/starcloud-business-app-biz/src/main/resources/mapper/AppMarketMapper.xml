@@ -52,6 +52,7 @@
                     FIND_IN_SET(#{tag}, tags)
                 </foreach>
             </if>
+            AND model = 'COMPLETION'
             AND deleted = 0
         </where>
     </select>

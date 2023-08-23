@@ -148,7 +148,6 @@ public class AppServiceImpl implements AppService {
      * @param request 应用信息
      */
     @Override
-    @SuppressWarnings("all")
     public AppRespVO create(AppReqVO request) {
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.insert();
@@ -161,7 +160,6 @@ public class AppServiceImpl implements AppService {
      * @param request 模版应用
      */
     @Override
-    @SuppressWarnings("all")
     public AppRespVO copy(AppReqVO request) {
         request.setName(request.getName() + " - Copy");
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
@@ -175,7 +173,6 @@ public class AppServiceImpl implements AppService {
      * @param request 更新请求信息
      */
     @Override
-    @SuppressWarnings("all")
     public AppRespVO modify(AppUpdateReqVO request) {
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
@@ -200,7 +197,7 @@ public class AppServiceImpl implements AppService {
     }
 
     /**
-     * 获取最新的wxmp聊天应用Uid
+     * 获取最新的wx mp聊天应用Uid
      */
     @Override
     public AppRespVO getRecently(Long userId) {
