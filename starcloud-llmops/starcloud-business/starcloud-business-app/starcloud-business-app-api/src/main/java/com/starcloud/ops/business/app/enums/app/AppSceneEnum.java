@@ -67,7 +67,10 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     MP(10, "微信公共号", "WeChat Public Account"),
 
-    ;
+    /**
+     * 优化提示
+     */
+    OPTIMIZE_PROMPT(11, "优化提示", "Optimize Prompt");
 
     /**
      * 应用类型Code
@@ -105,6 +108,9 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             AppSceneEnum.SHARE_API
     );
 
+    /**
+     * 应用分析场景名称
+     */
     public static final List<String> APP_ANALYSIS_SCENES_NAME = APP_ANALYSIS_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
 
     /**
@@ -122,6 +128,9 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             AppSceneEnum.CHAT_TEST
     );
 
+    /**
+     * 聊天分析场景名称
+     */
     public static final List<String> CHAT_ANALYSIS_SCENES_NAME = CHAT_ANALYSIS_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
 
     /**

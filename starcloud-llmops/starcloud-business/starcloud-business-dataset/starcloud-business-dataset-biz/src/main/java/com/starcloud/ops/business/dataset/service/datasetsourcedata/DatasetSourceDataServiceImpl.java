@@ -306,7 +306,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
     @Override
-    public List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(String datasetId, Integer dataModel) {
+    public List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(Long datasetId, Integer dataModel) {
 
         List<DatasetSourceDataDO> datasetSourceDataDOS = datasetSourceDataMapper.selectByDatasetId(datasetId, dataModel);
 

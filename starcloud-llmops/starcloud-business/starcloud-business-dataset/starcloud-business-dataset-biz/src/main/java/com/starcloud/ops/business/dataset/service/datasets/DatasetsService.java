@@ -75,6 +75,9 @@ public interface DatasetsService {
     DatasetsDO getDatasets(String uid);
 
 
+    DatasetsDO getDataById(Long id);
+
+
     /**
      * 获得数据集分页
      *

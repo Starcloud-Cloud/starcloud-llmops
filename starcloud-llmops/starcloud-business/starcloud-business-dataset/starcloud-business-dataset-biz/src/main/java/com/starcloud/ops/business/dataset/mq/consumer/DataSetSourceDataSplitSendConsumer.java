@@ -91,7 +91,7 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
         } catch (Exception e) {
             // 设置数据源状态
             message.setStatus(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus());
-            message.setErrMsg(e.getMessage());
+            message.setErrMsg(DataSetSourceDataStatusEnum.SPLIT_ERROR.getName());
             message.setRetryCount(++retryCount);
             log.error("[DataSetSourceDataCleanSendConsumer][数据分割失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", getLoginUserId(), getTenantId(), message.getDatasetId(), message.getDataSourceId(), e.getMessage(), e);
         }

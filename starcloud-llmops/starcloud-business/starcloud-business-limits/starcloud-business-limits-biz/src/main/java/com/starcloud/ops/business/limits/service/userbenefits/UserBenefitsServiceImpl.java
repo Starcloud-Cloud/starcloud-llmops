@@ -155,6 +155,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     throw exception(USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED);
                 }
             }
+            // 判断是支付权益
             LocalDateTime now;
             // 判断是支付权益
             if (StrUtil.equalsAny(strategyType, BenefitsStrategyTypeEnums.PAY_PLUS_MONTH.getName(), BenefitsStrategyTypeEnums.PAY_PLUS_YEAR.getName(),
@@ -180,7 +181,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 } else {
                     now = userBenefitsDO.getExpirationTime();
                 }
-            }else {
+            } else {
                 now = LocalDateTimeUtil.now();
             }
 
@@ -189,7 +190,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             userBenefitsMapper.insert(userBenefitsDO);
             // 增加记录
             userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
-
 
         } catch (RuntimeException e) {
             log.error("[addUserBenefitsByCode][3.增加权益失败：用户ID({})｜权益类型({})]｜完整错误为({})]", userId, strategyType, e.getMessage(), e);

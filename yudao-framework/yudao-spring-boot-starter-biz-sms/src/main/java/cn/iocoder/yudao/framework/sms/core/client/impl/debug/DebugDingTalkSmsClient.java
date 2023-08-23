@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.framework.sms.core.client.impl.debug;
 
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
@@ -47,10 +49,19 @@ public class DebugDingTalkSmsClient extends AbstractSmsClient {
         // 构建请求
         String url = buildUrl("robot/send");
         Map<String, Object> params = new HashMap<>();
-        params.put("msgtype", "text");
-        String content = String.format("【模拟短信】\n手机号：%s\n短信日志编号：%d\n模板参数：%s",
-                mobile, sendLogId, MapUtils.convertMap(templateParams));
-        params.put("text", MapUtil.builder().put("content", content).build());
+        params.put("msgtype", "markdown");
+        String content = String.format("## 支付通知\n" +
+                        "叮～～ 收到一笔新的支付订单，以下是详细信息：\n" +
+                        "\n" +
+                        "* 会员名称：%s\n" +
+                        "* 商品名称：%s\n" +
+                        "* 支付金额：%s 元\n" +
+                        "* 支付时间：%s\n" +
+                        "\n" +
+                        "##### 谢谢阅读此消息！",
+                MapUtils.convertMap(templateParams).get("userName"), MapUtils.convertMap(templateParams).get("productName"), MapUtils.convertMap(templateParams).get("amount"), DateUtil.formatChineseDate(DateUtil.date(),false,true));
+
+        params.put("markdown", MapUtil.builder().put("title","支付通知").put("text", content).build());
         // 执行请求
         String responseText = HttpUtil.post(url, JsonUtils.toJsonString(params));
         // 解析结果

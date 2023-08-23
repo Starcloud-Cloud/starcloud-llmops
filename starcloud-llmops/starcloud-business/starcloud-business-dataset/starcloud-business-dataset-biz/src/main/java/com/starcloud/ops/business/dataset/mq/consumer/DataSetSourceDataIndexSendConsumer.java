@@ -46,8 +46,6 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
             // 创建索引
              documentSegmentsService.indexDoc(String.valueOf(message.getDatasetId()), String.valueOf(message.getDataSourceId()));
 
-            // Fixme 创建总结  总结如果创建失败 状态为 SUMMERY_COMPLETED code 98
-
             // 设置数据状态
             message.setStatus(DataSetSourceDataStatusEnum.COMPLETED.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.COMPLETED.getName());
@@ -56,7 +54,7 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
             // 设置数据源状态
             message.setRetryCount(++retryCount);
             message.setStatus(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
-            message.setErrMsg(e.getMessage());
+            message.setErrMsg(DataSetSourceDataStatusEnum.INDEX_ERROR.getName());
             log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", message.getUserId(), getTenantId(), message.getDatasetId(),message.getDataSourceId(),e.getMessage(),e);
         }
 

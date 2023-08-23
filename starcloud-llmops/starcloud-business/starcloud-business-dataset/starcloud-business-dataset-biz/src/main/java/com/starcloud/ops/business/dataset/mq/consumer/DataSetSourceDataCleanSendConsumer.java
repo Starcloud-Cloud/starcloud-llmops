@@ -11,6 +11,7 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.Datas
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataFormatEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
@@ -23,6 +24,7 @@ import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsServic
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanAndSplitUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -106,28 +108,17 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             String cleanText = TextCleanAndSplitUtils.cleanText(text, sourceDataDO.getDataType(), cleanRule);
 
             // 格式转换
-            String formatText = TextCleanAndSplitUtils.processFormat(cleanText, cleanRule.getConvertFormat(),sourceDataDO.getDataType() );
+            String formatText = TextCleanAndSplitUtils.processFormat(cleanText, cleanRule.getConvertFormat(), sourceDataDO.getDataType());
 
             // 数据上传
             String cleanPath = uploadFile(cleanText, message.getUserId(), formatText);
-
-            // // TODO 总结流程暂时不做修改
-            // String summary;
-            // try {
-            //     // 开始总结内容
-            //     summary = documentSegmentsService.segmentSummary(String.valueOf(message.getDataSourceId()), cleanText, message.getSplitRule(), 500);
-            //     sourceDataDO.setSummary(summary);
-            // } catch (RuntimeException e) {
-            //     sourceDataDO.setSummary(null);
-            //     log.error("清洗过程中，生成总结内容，总结内容生成失败");
-            // }
 
             // 保存清洗地址
             Long cleanId = setStorageData(message.getDataSourceId() + "_clean", cleanPath, (long) formatText.length(), "text/html", cleanRule.getConvertFormat(), message.getUserId());
 
 
             if (StrUtil.isBlank(sourceDataDO.getDescription())) {
-                sourceDataDO.setDescription(truncateAndSetContent(cleanText));
+                sourceDataDO.setDescription(truncateAndSetContent(cleanText, sourceDataDO.getDataType(), cleanRule.getConvertFormat()));
             }
             sourceDataDO.setCleanStorageId(cleanId);
             sourceDataDO.setDatasetProcessRuleId(Arrays.asList(rulesRespVO.getId()).toString());
@@ -136,11 +127,12 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
 
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getName());
-
+            // FIXME: 2023/8/22  后续由流程自己获取
+            message.setSplitRule(rulesRespVO.getSplitRule());
             log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
         } catch (Exception e) {
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
-            message.setErrMsg(e.getMessage());
+            message.setErrMsg(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName());
             message.setRetryCount(++retryCount);
             log.info("清洗失败，错误原因是:({})", e.getMessage(), e);
         }
@@ -216,7 +208,10 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
      * @param input
      * @return
      */
-    private static String truncateAndSetContent(String input) {
+    private static String truncateAndSetContent(String input, String dataType, String format) {
+        if (DataSourceDataTypeEnum.URL.name().equals(dataType) && DataSourceDataFormatEnum.MARKDOWN.name().equals(format)) {
+            input= Jsoup.parse(input).text();
+        }
         if (StrUtil.isBlank(input)) {
             return ""; // 如果输入为空，返回空字符串
         }

@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
@@ -33,8 +34,8 @@ public class ContextPrompt extends BasePromptConfig {
 
     private String promptV1 = "The content in [CONTEXT] is multi-line, and each line represents the structure of the document block. It contains the serial number, the corresponding document ID and the document block information in JSON format, and the JSON format contains fields `blockId` block ID, `content` block content, `sourceName` block source name, `sourceUrl` block source url.\n" +
             "[block example]:\n" +
-            "1. Xxxxx {“blockId”: “”, “content”: “”, “sourceName”: “”, “sourceUrl”: “”}\n" +
-            "2. Xxxxx {“blockId”: “”, “content”: “”, “sourceName”: “”, “sourceUrl”: “”}\n" +
+            "1. Xxxxx {“blockId”: “xxx”, “content”: “xx”}\n" +
+            "2. Xxxxx {“blockId”: “xxx”, “content”: “xx”}\n" +
             "....\n" +
             "[end of example]\n" +
             "Use the following [CONTEXT] as your learned knowledge:\n" +
@@ -118,6 +119,7 @@ public class ContextPrompt extends BasePromptConfig {
             RecordDTO recordDTO = searchResult.getRecords().get(i);
             PromptBlockDTO promptBlockDTO = new PromptBlockDTO();
 
+            promptBlockDTO.setDocId(recordDTO.getDocumentId());
             promptBlockDTO.setContent(recordDTO.getContent());
             promptBlockDTO.setBlockId(recordDTO.getId());
 
@@ -136,6 +138,11 @@ public class ContextPrompt extends BasePromptConfig {
     public static class PromptBlockDTO {
 
         /**
+         * 文档ID
+         */
+        private String docId;
+
+        /**
          * 文档块ID
          */
         private String blockId;
@@ -149,11 +156,13 @@ public class ContextPrompt extends BasePromptConfig {
         /**
          * 块数据来源的名称
          */
+        @JsonIgnore
         private String sourceName;
 
         /**
          * 来源的地址
          */
+        @JsonIgnore
         private String sourceUrl;
 
 

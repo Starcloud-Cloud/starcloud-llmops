@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrePrompt;
@@ -34,6 +35,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
+import com.starcloud.ops.business.app.util.SseResultUtil;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -268,6 +270,15 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
 
         log.info("chatPromptTemplate: {}, \n\n humanInput: {}", chatPromptTemplate, humanInput);
+
+
+        //直接把查询到到文档发送到前端
+        if (contextPrompt.isEnable()) {
+            //生成文档列表结果
+            InteractiveInfo interactiveInfo = InteractiveInfo.buildDocs(contextPrompt.getSearchResult());
+            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
+        }
+
 
         //设置 memory 必要参数
         this.getMessageMemory().setSummaryMaxTokens(maxTokens);
