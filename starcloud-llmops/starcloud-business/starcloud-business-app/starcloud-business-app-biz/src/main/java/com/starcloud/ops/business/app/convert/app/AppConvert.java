@@ -29,6 +29,7 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.DataPermissionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -93,6 +94,7 @@ public interface AppConvert {
         appDO.setLastPublish(appEntity.getLastPublish());
         appDO.setDeleted(Boolean.FALSE);
         appDO.setCreator(appEntity.getCreator());
+        appDO.setUpdater(appEntity.getUpdater());
         // 处理配置
         if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
             WorkflowConfigEntity config = appEntity.getWorkflowConfig();
@@ -203,6 +205,9 @@ public interface AppConvert {
         appEntity.setPublishUid(null);
         appEntity.setInstallUid(AppUtils.generateUid(appMarket.getUid(), appMarket.getVersion()));
         appEntity.setLastPublish(null);
+        appEntity.setCreator(appMarket.getCreator());
+        appEntity.setUpdater(appMarket.getUpdater());
+
         // 处理配置
         if (StringUtils.isNotBlank(appMarket.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
@@ -234,6 +239,7 @@ public interface AppConvert {
         appEntity.setInstallUid(respVO.getInstallUid());
         appEntity.setLastPublish(respVO.getLastPublish());
         appEntity.setCreator(respVO.getCreator());
+        appEntity.setUpdater(respVO.getUpdater());
 
         // 处理配置
         if (respVO.getWorkflowConfig() != null) {
@@ -270,6 +276,10 @@ public interface AppConvert {
         appRespVO.setDescription(app.getDescription());
         appRespVO.setPublishUid(app.getPublishUid());
         appRespVO.setInstallUid(app.getInstallUid());
+        appRespVO.setCreator(app.getCreator());
+        appRespVO.setUpdater(app.getUpdater());
+        appRespVO.setCreatorName(DataPermissionUtils.getUsername(app.getCreator()));
+        appRespVO.setUpdaterName(DataPermissionUtils.getUsername(app.getUpdater()));
         appRespVO.setCreateTime(app.getCreateTime());
         appRespVO.setUpdateTime(app.getUpdateTime());
         appRespVO.setLastPublish(app.getLastPublish());
@@ -309,6 +319,10 @@ public interface AppConvert {
         appRespVO.setDescription(appEntity.getDescription());
         appRespVO.setPublishUid(appEntity.getPublishUid());
         appRespVO.setInstallUid(appEntity.getInstallUid());
+        appRespVO.setCreator(appEntity.getCreator());
+        appRespVO.setUpdater(appEntity.getUpdater());
+        appRespVO.setCreatorName(DataPermissionUtils.getUsername(appEntity.getCreator()));
+        appRespVO.setUpdaterName(DataPermissionUtils.getUsername(appEntity.getUpdater()));
         appRespVO.setCreateTime(appEntity.getCreateTime());
         appRespVO.setUpdateTime(appEntity.getUpdateTime());
         appRespVO.setLastPublish(appEntity.getLastPublish());
