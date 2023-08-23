@@ -5,6 +5,7 @@ import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
@@ -113,21 +114,70 @@ public class InteractiveInfo {
         interactiveInfo.setSuccess(true);
         interactiveInfo.setData(Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
 
-            RecordDTO recordDTO1 = new RecordDTO();
+            DocInteractiveInfo docInteractiveInfo = new DocInteractiveInfo();
 
-            recordDTO1.setId(recordDTO.getId());
-            recordDTO1.setScore(recordDTO.getScore());
-            recordDTO1.setDatasetId(recordDTO.getDatasetId());
-            recordDTO1.setDocumentId(recordDTO.getDocumentId());
-            recordDTO1.setPosition(recordDTO.getPosition());
-            recordDTO1.setStatus(recordDTO.getStatus());
-            recordDTO1.setContent(recordDTO.getContent());
-            recordDTO1.setUpdateTime(recordDTO.getUpdateTime());
+            docInteractiveInfo.setId(recordDTO.getId());
+            docInteractiveInfo.setScore(recordDTO.getScore());
+            docInteractiveInfo.setDatasetId(recordDTO.getDatasetId());
+            docInteractiveInfo.setDocumentId(recordDTO.getDocumentId());
 
-            return recordDTO1;
+            docInteractiveInfo.setUpdateTime(recordDTO.getUpdateTime());
+
+            return docInteractiveInfo;
         }).collect(Collectors.toList()));
 
         return interactiveInfo;
+    }
+
+
+    @Data
+    public static class DocInteractiveInfo {
+
+        /**
+         * 数据ID
+         */
+        private String id;
+
+        /**
+         * 相似度
+         */
+        private Double score;
+
+        /**
+         * 数据集id
+         */
+        private String datasetId;
+
+        /**
+         * 文档Id
+         */
+        private String documentId;
+
+
+        /**
+         * 显示名称
+         */
+        private String name;
+
+        /**
+         * 文档类型
+         */
+        private String type;
+
+
+        /**
+         * 文档URL
+         */
+        private String url;
+
+        /**
+         * 描述
+         */
+        private String desc;
+
+
+        private LocalDateTime updateTime;
+
     }
 
 }
