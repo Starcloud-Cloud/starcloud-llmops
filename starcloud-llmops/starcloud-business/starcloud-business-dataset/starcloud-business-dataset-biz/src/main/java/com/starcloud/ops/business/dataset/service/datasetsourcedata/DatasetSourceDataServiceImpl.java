@@ -50,6 +50,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -391,9 +392,10 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Override
     public List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataIds) {
 
+        List<DatasetSourceDataBasicInfoVO> basicInfoVOS = new ArrayList<>();
         // 查询ID集合非空判断判
         if (CollUtil.isEmpty(sourceDataIds)) {
-            return null;
+            return basicInfoVOS;
         }
 
         // 根据 ID 集合查询数据
@@ -403,7 +405,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
         // 集合非空判断 集合为空直接返回
         if (CollUtil.isEmpty(datasetSourceDataDOS)) {
-            return null;
+            return basicInfoVOS;
         }
         // 基础数据转换
         List<DatasetSourceDataBasicInfoVO> datasetSourceDataBasicInfoVOS = DatasetSourceDataConvert.INSTANCE.convertBasicInfoList(datasetSourceDataDOS);
