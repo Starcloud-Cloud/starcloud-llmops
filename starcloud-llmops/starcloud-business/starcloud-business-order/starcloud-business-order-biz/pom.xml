@@ -105,6 +105,10 @@
             <artifactId>yudao-module-system-biz</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-core</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

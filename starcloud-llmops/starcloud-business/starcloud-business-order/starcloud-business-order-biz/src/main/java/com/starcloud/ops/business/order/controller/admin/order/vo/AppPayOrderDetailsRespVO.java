@@ -36,15 +36,4 @@ public class AppPayOrderDetailsRespVO {
     @Schema(description = "订单创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime createTime;
-
-    // @NotNull(message = "退款状态不能为空")
-    // private Integer refundStatus;
-    //
-    // @Schema(description = "退款次数", required = true)
-    // @NotNull(message = "退款次数不能为空")
-    // private Integer refundTimes;
-    //
-    // @Schema(description = "退款总金额，单位：分", required = true)
-    // @NotNull(message = "退款总金额，单位：分不能为空")
-    // private Long refundAmount;
 }
