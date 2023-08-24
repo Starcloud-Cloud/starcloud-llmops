@@ -120,25 +120,36 @@ public class InteractiveInfo {
         interactiveInfo.setSuccess(true);
 
         List<Long> docIds = Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
-            return Long.valueOf(recordDTO.getId());
+            return Long.valueOf(recordDTO.getDocumentId());
         }).collect(Collectors.toList());
 
         //查出具体文档信息
         List<DatasetSourceDataBasicInfoVO> docs = datasetSourceDataService.getSourceDataListData(docIds);
 
-        interactiveInfo.setData(Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().map((source) -> {
+
+        interactiveInfo.setData(Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
+
+            DatasetSourceDataBasicInfoVO source = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().filter((dataBasicInfoVO) -> {
+                return recordDTO.getDocumentId().equals(String.valueOf(dataBasicInfoVO.getId()));
+            }).findFirst().orElse(null);
 
             DocInteractiveInfo docInteractiveInfo = new DocInteractiveInfo();
 
-            docInteractiveInfo.setId(source.getId());
+            if (source != null) {
 
-            docInteractiveInfo.setName(source.getName());
-            docInteractiveInfo.setType(source.getDataType());
-            docInteractiveInfo.setUrl(source.getAddress());
-            docInteractiveInfo.setDesc(source.getDescription());
-            docInteractiveInfo.setUpdateTime(source.getUpdateTime());
+                docInteractiveInfo.setId(source.getId());
+                docInteractiveInfo.setPosition(recordDTO.getPosition());
+                docInteractiveInfo.setScore(recordDTO.getScore());
+                docInteractiveInfo.setDatasetId(recordDTO.getDatasetId());
+                docInteractiveInfo.setName(source.getName());
+                docInteractiveInfo.setType(source.getDataType());
+                docInteractiveInfo.setUrl(source.getAddress());
+                docInteractiveInfo.setDesc(source.getDescription());
+                docInteractiveInfo.setUpdateTime(source.getUpdateTime());
+            }
 
             return docInteractiveInfo;
+
         }).collect(Collectors.toList()));
 
         return interactiveInfo;
@@ -159,14 +170,14 @@ public class InteractiveInfo {
         private Double score;
 
         /**
+         * 分段序号
+         */
+        private Integer position;
+
+        /**
          * 数据集id
          */
         private String datasetId;
-
-        /**
-         * 文档Id
-         */
-        private String documentId;
 
 
         /**
