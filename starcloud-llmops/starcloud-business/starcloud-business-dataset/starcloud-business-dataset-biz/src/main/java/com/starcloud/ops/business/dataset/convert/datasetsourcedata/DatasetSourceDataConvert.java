@@ -1,12 +1,13 @@
 package com.starcloud.ops.business.dataset.convert.datasetsourcedata;
 
+import cn.hutool.db.sql.Order;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataCreateReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.ListDatasetSourceDataRespVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataSplitPageRespVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataUpdateReqVO;
+import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
+import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -32,6 +33,44 @@ public interface DatasetSourceDataConvert {
     List<ListDatasetSourceDataRespVO> convertList(List<DatasetSourceDataDO> list);
 
     PageResult<ListDatasetSourceDataRespVO> convertPage(PageResult<DatasetSourceDataDO> page);
+
+
+    default DatasetSourceDataBasicInfoVO convertBasicInfo(DatasetSourceDataDO bean){
+        if ( bean == null ) {
+            return null;
+        }
+
+        DatasetSourceDataBasicInfoVO basicInfoVO = new DatasetSourceDataBasicInfoVO();
+
+        basicInfoVO.setId( bean.getId() );
+        basicInfoVO.setUid( bean.getUid() );
+        basicInfoVO.setName( bean.getName() );
+        basicInfoVO.setDescription( bean.getDescription() );
+        basicInfoVO.setDataType( bean.getDataType() );
+        basicInfoVO.setStatus( bean.getStatus() );
+        basicInfoVO.setCreateTime( bean.getCreateTime() );
+        basicInfoVO.setUpdateTime( bean.getUpdateTime() );
+        basicInfoVO.setCleanId( bean.getCleanStorageId() );
+        if (DataSourceDataTypeEnum.URL.name().equals(bean.getDataType())){
+            DataSourceInfoDTO dataSourceInfoDTO = JSONObject.parseObject(bean.getDataSourceInfo(), DataSourceInfoDTO.class);
+            basicInfoVO.setAddress(dataSourceInfoDTO.getInitAddress());
+        }
+        return basicInfoVO;
+    }
+
+    default List<DatasetSourceDataBasicInfoVO> convertBasicInfoList(List<DatasetSourceDataDO> list){
+        if ( list == null ) {
+            return null;
+        }
+
+        List<DatasetSourceDataBasicInfoVO> list1 = new ArrayList<DatasetSourceDataBasicInfoVO>( list.size() );
+        for ( DatasetSourceDataDO datasetSourceDataDO : list ) {
+            list1.add( convertBasicInfo( datasetSourceDataDO ) );
+        }
+
+        return list1;
+    }
+
 
 
 

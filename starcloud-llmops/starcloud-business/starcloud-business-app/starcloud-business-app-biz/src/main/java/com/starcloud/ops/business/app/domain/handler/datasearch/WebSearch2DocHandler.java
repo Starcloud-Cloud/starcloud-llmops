@@ -85,7 +85,7 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
         }
 
         //查询内容
-        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataDetailsInfo(datasetId, true);
+        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(datasetId, true);
         String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
 
         summary = StrUtil.subPre(summary, summarySubSize);
