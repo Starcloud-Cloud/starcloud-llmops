@@ -76,36 +76,6 @@ public class WecomGroupServiceImpl implements WecomGroupService {
 
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void initGroup(WecomCreateGroupReqVO reqVO) {
-        String appUid = reqVO.getAppUid();
-        ChatAppEntity chatAppEntity = AppFactory.factoryChatApp(appUid);
-        ChatRequestVO chatRequestVO = new ChatRequestVO();
-        chatRequestVO.setScene(WECOM_GROUP.name());
-        // worktool 建群
-        String groupRemark = createGroup(reqVO);
-        // 发布表
-        AppPublishReqVO appPublishReqVO = new AppPublishReqVO();
-        appPublishReqVO.setAppUid(appUid);
-        appPublishReqVO.setLanguage(AppUtils.detectLanguage(chatAppEntity.getName()));
-        AppPublishRespVO appPublishRespVO = appPublishService.create(appPublishReqVO);
-
-        // 渠道
-        AppPublishChannelReqVO channelReqVO = new AppPublishChannelReqVO();
-        WecomGroupChannelConfigDTO channelConfigDTO = new WecomGroupChannelConfigDTO();
-        channelConfigDTO.setGroupRemark(groupRemark);
-        channelConfigDTO.setGroupName(reqVO.getGroupName());
-        channelReqVO.setName(reqVO.getGroupName());
-        channelReqVO.setStatus(0);
-        channelReqVO.setAppUid(appUid);
-        channelReqVO.setPublishUid(appPublishRespVO.getUid());
-        channelReqVO.setType(AppPublishChannelEnum.WX_WORK.getCode());
-        channelReqVO.setConfig(channelConfigDTO);
-        channelReqVO.setMediumUid(groupRemark);
-        appPublishChannelService.create(channelReqVO);
-    }
-
-    @Override
     public List<WecomGroupRespVO> listGroupDetail(String appUid) {
         List<AppPublishChannelRespVO> channelRespVOS = appPublishChannelService.listByAppUid(appUid);
         List<WecomGroupRespVO> groupRespVOS = new ArrayList<>(channelRespVOS.size());
@@ -119,9 +89,23 @@ public class WecomGroupServiceImpl implements WecomGroupService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void addFriend(AddFriendReqVO reqVO) {
         WorkToolRobotDTO robotDTO = workToolManager.getRobotId(reqVO.getMobile());
         String robotId = robotDTO.getRobotId();
+
+        AppPublishChannelReqVO channelReqVO = new AppPublishChannelReqVO();
+        WecomGroupChannelConfigDTO channelConfigDTO = new WecomGroupChannelConfigDTO();
+        channelConfigDTO.setRobotName(robotDTO.getRobotId());
+        channelConfigDTO.setRobotId(robotDTO.getRobotName());
+        channelReqVO.setName(reqVO.getName());
+        channelReqVO.setStatus(0);
+        channelReqVO.setAppUid(reqVO.getAppUid());
+        channelReqVO.setPublishUid(reqVO.getPublishUid());
+        channelReqVO.setType(AppPublishChannelEnum.WX_WORK.getCode());
+        channelReqVO.setConfig(channelConfigDTO);
+        appPublishChannelService.create(channelReqVO);
+
         BaseReq<AddFriendReq> baseReq = new BaseReq();
         AddFriendReq addFriendReq = new AddFriendReq();
         addFriendReq.setFriend(WorktoolFriendDTO.newInstance(reqVO.getMobile()));
@@ -131,6 +115,7 @@ public class WecomGroupServiceImpl implements WecomGroupService {
             log.error("发送加指令失败: {}", response);
             throw new ServiceException(new ErrorCode(500, response.getMessage()));
         }
+
     }
 
     @Override

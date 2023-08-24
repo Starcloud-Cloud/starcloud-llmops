@@ -19,9 +19,14 @@ public class WorkToolManager {
     private DictDataService dictDataService;
 
 
-    public WorkToolRobotDTO getRobotId(String groupName) {
+    /**
+     * hash值取吗 分配机器
+     * @param mobile 手机号
+     * @return
+     */
+    public WorkToolRobotDTO getRobotId(String mobile) {
         List<DictDataDO> dictDataList = allRobot();
-        int groupHash = groupName.hashCode();
+        int groupHash = mobile.hashCode();
         DictDataDO dictDataDO = dictDataList.get(groupHash % dictDataList.size());
         String value = dictDataDO.getValue();
         return JSONUtil.toBean(value,WorkToolRobotDTO.class);
