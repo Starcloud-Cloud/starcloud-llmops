@@ -53,7 +53,7 @@ public class DatasetsServiceImpl implements DatasetsService {
     /**
      * 根据用户应用创建数据集
      *
-     * @param appId 应用 ID
+     * @param appId   应用 ID
      * @param appName 应用 名称
      * @return Boolean
      */
@@ -141,9 +141,10 @@ public class DatasetsServiceImpl implements DatasetsService {
         LambdaQueryWrapper<DatasetsDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(DatasetsDO::getUid, uid);
         DatasetsDO datasetsDO;
-        try {
-            datasetsDO = datasetsMapper.selectOne(wrapper);
-        } catch (RuntimeException e) {
+
+        datasetsDO = datasetsMapper.selectOne(wrapper);
+
+        if (datasetsDO ==null){
             throw exception(DATASETS_ERROR_REPEAT, uid);
         }
         return datasetsDO;

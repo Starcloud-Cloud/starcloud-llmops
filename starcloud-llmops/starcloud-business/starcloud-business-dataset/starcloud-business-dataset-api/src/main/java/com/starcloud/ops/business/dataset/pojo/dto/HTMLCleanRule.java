@@ -7,26 +7,7 @@ import java.util.List;
 
 @Data
 @ToString
-public class CleanRule {
-
-    /**
-     * 删除连续空格
-     */
-    private Boolean removeConsecutiveSpaces;
-
-    /**
-     * 删除连续换行符
-     */
-    private Boolean removeConsecutiveNewlines;
-    /**
-     * 删除制表符
-     */
-    private Boolean removeConsecutiveTabs;
-
-    /**
-     * 删除所有的 URL 和电子邮件地址
-     */
-    private Boolean removeUrlsEmails;
+public class HTMLCleanRule {
 
     /**
      * 白名单列表

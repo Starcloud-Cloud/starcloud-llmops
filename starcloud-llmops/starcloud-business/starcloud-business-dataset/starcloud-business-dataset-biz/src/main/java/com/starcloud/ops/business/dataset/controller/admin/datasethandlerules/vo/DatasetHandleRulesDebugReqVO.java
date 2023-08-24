@@ -13,9 +13,21 @@ import javax.validation.constraints.NotNull;
 @ToString(callSuper = true)
 public class DatasetHandleRulesDebugReqVO  {
 
+    @Schema(description = "数据集 UID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "数据集 UID不能为空")
+    private String datasetUid;
+
     @Schema(description = "测试数据", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "测试数据不能为空")
-    private String data;
+    private String url;
+
+    @Schema(description = "标题", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "标题不能为空")
+    private String title;
+
+    @Schema(description = "内容", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "内容不能为空")
+    private String context;
 
     @Schema(description = "测试数据类型", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "测试数据类型不能为空")
@@ -28,11 +40,4 @@ public class DatasetHandleRulesDebugReqVO  {
     @Schema(description = "分段规则", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "分段规则不能为空")
     private SplitRule splitRule;
-
-    @Schema(description = "调试文件", requiredMode = Schema.RequiredMode.REQUIRED)
-    private MultipartFile uploadFile;
-
-
-
-
 }

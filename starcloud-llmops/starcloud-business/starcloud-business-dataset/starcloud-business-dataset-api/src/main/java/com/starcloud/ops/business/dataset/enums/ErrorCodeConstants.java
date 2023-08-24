@@ -41,14 +41,21 @@ public interface ErrorCodeConstants {
     ErrorCode DATASET_STORAGE_NOT_EXISTS = new ErrorCode(2007003001, "数据集源数据存储不存在");
 
     //======================================数据集源数据上传======================================
-    ErrorCode SOURCE_DATA_UPLOAD_URL_EMPTY = new ErrorCode(2007004001, "上传失败，URL 列表为空");
+    ErrorCode SOURCE_DATA_UPLOAD_URL_EMPTY = new ErrorCode(2007004001, "上传失败，HTML 列表为空");
     ErrorCode SOURCE_DATA_UPLOAD_STRING_EMPTY = new ErrorCode(2007004002, "上传失败，字符串 列表为空");
     ErrorCode SOURCE_DATA_UPLOAD_FILE_EMPTY = new ErrorCode(2007004003, "上传失败，文件 列表为空");
     ErrorCode SOURCE_DATA_UPLOAD_SPLIT_RULE_EMPTY = new ErrorCode(2007004002, "上传失败，分割规则不可以为空");
     ErrorCode SOURCE_DATA_UPLOAD_DATASET_NO_EXIST = new ErrorCode(2007004002, "上传失败，数据集不存在");
 
     //======================================数据集源数据上传======================================
+    ErrorCode DATASET_HANDLE_SYS_RULE_NO_EXISTS = new ErrorCode(2007005000, "系统预处理规则不存在，请联系管理员");
     ErrorCode DATASET_HANDLE_RULE_EXISTS = new ErrorCode(2007005001, "知识库预处理规则不存在");
+
+    ErrorCode DATASET_HANDLE_RULES_NULL = new ErrorCode(2007005002, "知识库预处理规则不存在,无法预处理数据");
+
+    ErrorCode DATASET_HANDLE_RULE_REPEAT_NORMAL = new ErrorCode(2007005003, "数据预处理失败，规则匹配到多条预处理规则{}");
+
+    ErrorCode DATASET_HANDLE_RULE_TYPE_UNKNOWN = new ErrorCode(2007005004, " 未知数据类型，请核对数据后重新提交");
 
 
 }

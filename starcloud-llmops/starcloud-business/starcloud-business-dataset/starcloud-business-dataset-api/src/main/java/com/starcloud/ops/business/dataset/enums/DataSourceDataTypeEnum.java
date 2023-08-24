@@ -18,9 +18,9 @@ public enum DataSourceDataTypeEnum {
     DOCUMENT,
 
     /**
-     *  URL
+     *  HTML
      */
-    URL,
+    HTML,
 
     /**
      * 字符

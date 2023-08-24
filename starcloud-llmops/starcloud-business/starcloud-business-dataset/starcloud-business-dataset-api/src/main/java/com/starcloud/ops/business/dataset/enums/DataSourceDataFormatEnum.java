@@ -22,6 +22,8 @@ public enum DataSourceDataFormatEnum {
      */
     MARKDOWN,
 
+    UNCONVERT,
+
     ;
 
 

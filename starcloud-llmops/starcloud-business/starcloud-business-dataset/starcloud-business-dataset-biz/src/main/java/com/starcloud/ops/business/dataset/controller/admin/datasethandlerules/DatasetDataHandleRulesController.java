@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.dataset.controller.admin.datasethandlerules;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.dataset.controller.admin.datasethandlerules.vo.DatasetHandleRulesDebugReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasethandlerules.vo.DatasetHandleRulesUpdateReqVO;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.dataset.controller.admin.datasethandlerules.vo.*;
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,10 +32,17 @@ public class DatasetDataHandleRulesController {
     @Resource
     private DatasetDataHandleRulesService datasetDataHandleRules;
 
-    @PostMapping("/init/{datasetId}")
+
+    @PostMapping("/page")
+    @Operation(summary = "获取分页数据")
+    public CommonResult<PageResult<DatasetHandleRulesRespVO>> createRule(@Validated @RequestBody DatasetHandleRulesPageReqVO pageReqVO) {
+        return success(datasetDataHandleRules.getRulePage(pageReqVO));
+    }
+
+    @PostMapping("/createRule")
     @Operation(summary = "创建数据集规则")
-    public CommonResult<Boolean> initRule(@PathVariable("datasetId") Long datasetId) {
-        return success(datasetDataHandleRules.createDefaultRules(datasetId));
+    public CommonResult<Boolean> createRule(@Validated @RequestBody DatasetHandleRulesCreateReqVO createReqVO) {
+        return success(datasetDataHandleRules.createDefaultRules(createReqVO));
     }
 
     @PutMapping("/update")
@@ -47,7 +54,7 @@ public class DatasetDataHandleRulesController {
 
     @PutMapping("/debugRule")
     @Operation(summary = "规则调试")
-    public CommonResult<String> debugRule(@Validated @RequestBody
+    public CommonResult<DatasetHandleRulesDebugRespVO> debugRule(@Validated @RequestBody
                                           DatasetHandleRulesDebugReqVO debugReqVO) {
         return success(datasetDataHandleRules.debugRule(debugReqVO));
     }

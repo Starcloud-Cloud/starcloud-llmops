@@ -227,7 +227,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Async
     public ListenableFuture<UploadResult> executeAsyncWithUrl(String url, UploadUrlReqVO reqVO) {
-        return AsyncResult.forValue(processingService.urlProcessing(url, reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.URL.name()));
+        return AsyncResult.forValue(processingService.urlProcessing(url, reqVO, DataSourceDataModelEnum.DOCUMENT.getStatus(), DataSourceDataTypeEnum.HTML.name()));
     }
 
     /**
@@ -358,7 +358,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             DatasetStorageDO cleanDatasetDO = datasetStorageService.selectDataById(sourceDataDO.getCleanStorageId());
 
             String content = null;
-            if (DataSourceDataTypeEnum.URL.name().equals(sourceDataDO.getDataType())) {
+            if (DataSourceDataTypeEnum.HTML.name().equals(sourceDataDO.getDataType())) {
                 DataSourceInfoDTO dataSourceInfoDTO = JSONObject.parseObject(sourceDataDO.getDataSourceInfo(), DataSourceInfoDTO.class);
                 content = dataSourceInfoDTO.getInitAddress();
 
@@ -411,7 +411,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         List<DatasetSourceDataBasicInfoVO> datasetSourceDataBasicInfoVOS = DatasetSourceDataConvert.INSTANCE.convertBasicInfoList(datasetSourceDataDOS);
 
         datasetSourceDataBasicInfoVOS.forEach(data -> {
-            if (!DataSourceDataTypeEnum.URL.name().equals(data.getDataType())) {
+            if (!DataSourceDataTypeEnum.HTML.name().equals(data.getDataType())) {
                 // 获取原始内容
                 DatasetStorageDO contentDo = datasetStorageService.selectDataById(data.getCleanId());
                 data.setAddress(contentDo.getStorageKey());
