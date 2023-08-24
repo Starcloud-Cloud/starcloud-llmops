@@ -406,9 +406,14 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Override
     public MatchQueryVO matchQuery(MatchQueryRequest request) {
 
-        DatasetsDO datasetsDO = datasetsService.getDatasets(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
+        List<DocumentSegmentDO> segmentDOS = new ArrayList<>();
+        try {
+            DatasetsDO datasetsDO = datasetsService.getDatasets(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
+            segmentDOS = segmentMapper.selectByDatasetIds(Arrays.asList(String.valueOf(datasetsDO.getId())));
+        } catch (Exception e) {
+            log.error("matchQuery.getDatasets is fail: {}", e.getMessage(), e);
+        }
 
-        List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDatasetIds(Arrays.asList(String.valueOf(datasetsDO.getId())));
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(segmentIds)) {
             return MatchQueryVO.builder().queryText(request.getText()).build();

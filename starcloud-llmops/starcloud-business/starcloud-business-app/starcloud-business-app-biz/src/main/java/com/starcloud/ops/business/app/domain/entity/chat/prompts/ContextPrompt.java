@@ -7,6 +7,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
+import com.starcloud.ops.business.app.util.PromptUtil;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
@@ -32,12 +33,12 @@ public class ContextPrompt extends BasePromptConfig {
 
     private static DocumentSegmentsService documentSegmentsService = SpringUtil.getBean(DocumentSegmentsService.class);
 
-    private String promptV1 = "The content in [CONTEXT] is multi-line, and each line represents the structure of the document block. It contains the serial number and the document block information in JSON format, and the JSON format contains fields `blockId` block ID, `content` block content.\n" +
-            "[block example]:\n" +
+    private String promptV1 = "The content in [CONTEXT] is multi-line, and each line represents the structure of the document block. It contains the S/N and the document block information in JSON format, and the JSON format contains fields `blockId` block ID, `content` block content.\n" +
+            "[Block EXAMPLE]:\n" +
             "1. {\"docId\":\"20\",\"blockId\":\"12\",\"content\":\"如何销售图书 定价 Back 定价 亚马逊开店成本\"}\n" +
             "2. {\"docId\":\"25\",\"blockId\":\"33\",\"content\":\"在亚马逊，超过一半的实际商品销售总额来自独立的第三方卖家\"}\n" +
-            "....\n" +
-            "[end of example]\n" +
+            "......\n" +
+            "[END]\n" +
             "Use the following [CONTEXT] as your learned knowledge:\n" +
             "[CONTEXT]\n" +
             "{context}\n" +
@@ -46,7 +47,7 @@ public class ContextPrompt extends BasePromptConfig {
             "- If you don't know, just say that you don't know.\n" +
             "- If you don't know when you are not sure, ask for clarification.\n" +
             "- Avoid mentioning that you obtained the information from the context.\n" +
-            "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the serial number of the referenced block at the end of the relevant sentence, like this \"{1}\" with braces.\n\n";
+            "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the `{S/N}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n\n";
 
     private String query;
 
@@ -114,59 +115,17 @@ public class ContextPrompt extends BasePromptConfig {
 
     private String parseContentLines(MatchQueryVO matchQueryVO) {
 
-        List<String> blockLines = new ArrayList<>();
-        for (int i = 0; i < searchResult.getRecords().size(); i++) {
+        List<PromptUtil.PromptDocBlock> promptDocBlocks = Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map(recordDTO -> {
 
-            RecordDTO recordDTO = searchResult.getRecords().get(i);
-            PromptBlockDTO promptBlockDTO = new PromptBlockDTO();
+            PromptUtil.PromptDocBlock promptBlockDTO = new PromptUtil.PromptDocBlock();
 
             promptBlockDTO.setDocId(recordDTO.getDocumentId());
             promptBlockDTO.setContent(recordDTO.getContent());
             promptBlockDTO.setBlockId(recordDTO.getId());
+            return promptBlockDTO;
+        }).collect(Collectors.toList());
 
-            //文档详情
-            recordDTO.getDocumentId();
-
-
-            blockLines.add((i + 1) + ". " + JSONUtil.toJsonStr(promptBlockDTO));
-        }
-
-        return StrUtil.join("\n", blockLines);
-    }
-
-
-    @Data
-    public static class PromptBlockDTO {
-
-        /**
-         * 文档ID
-         */
-        private String docId;
-
-        /**
-         * 文档块ID
-         */
-        private String blockId;
-
-        /**
-         * 文档块内容
-         */
-        private String content;
-
-
-        /**
-         * 块数据来源的名称
-         */
-        @JsonIgnore
-        private String sourceName;
-
-        /**
-         * 来源的地址
-         */
-        @JsonIgnore
-        private String sourceUrl;
-
-
+        return PromptUtil.parseContentLines(promptDocBlocks);
     }
 
 

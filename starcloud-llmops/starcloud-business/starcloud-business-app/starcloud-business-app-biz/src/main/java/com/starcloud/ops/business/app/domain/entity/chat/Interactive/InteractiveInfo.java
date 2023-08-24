@@ -1,19 +1,25 @@
 package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
+import cn.hutool.extra.spring.SpringUtil;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
+import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Data
 @Accessors(chain = true)
 public class InteractiveInfo {
+
+    private static DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
     private String id;
 
@@ -43,7 +49,7 @@ public class InteractiveInfo {
 
     private Object data;
 
-    private String errorCode;
+    private Integer errorCode;
 
     private String errorMsg;
 
@@ -87,6 +93,21 @@ public class InteractiveInfo {
     /**
      * 文本内容卡片渲染
      *
+     * @return
+     */
+    public static InteractiveInfo buildTips(String tips) {
+        InteractiveInfo interactiveInfo = new InteractiveInfo();
+
+        interactiveInfo.setShowType("tips");
+        interactiveInfo.setSuccess(true);
+        interactiveInfo.setTips(tips);
+
+        return interactiveInfo;
+    }
+
+    /**
+     * 文本内容卡片渲染
+     *
      * @param text
      * @return
      */
@@ -112,18 +133,38 @@ public class InteractiveInfo {
 
         interactiveInfo.setShowType("docs");
         interactiveInfo.setSuccess(true);
+
+        List<Long> docIds = Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
+            return Long.valueOf(recordDTO.getDocumentId());
+        }).collect(Collectors.toList());
+
+        //查出具体文档信息
+        List<DatasetSourceDataBasicInfoVO> docs = datasetSourceDataService.getSourceDataListData(docIds);
+
+
         interactiveInfo.setData(Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
+
+            DatasetSourceDataBasicInfoVO source = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().filter((dataBasicInfoVO) -> {
+                return recordDTO.getDocumentId().equals(String.valueOf(dataBasicInfoVO.getId()));
+            }).findFirst().orElse(null);
 
             DocInteractiveInfo docInteractiveInfo = new DocInteractiveInfo();
 
-            docInteractiveInfo.setId(recordDTO.getId());
-            docInteractiveInfo.setScore(recordDTO.getScore());
-            docInteractiveInfo.setDatasetId(recordDTO.getDatasetId());
-            docInteractiveInfo.setDocumentId(recordDTO.getDocumentId());
+            if (source != null) {
 
-            docInteractiveInfo.setUpdateTime(recordDTO.getUpdateTime());
+                docInteractiveInfo.setId(source.getId());
+                docInteractiveInfo.setPosition(recordDTO.getPosition());
+                docInteractiveInfo.setScore(recordDTO.getScore());
+                docInteractiveInfo.setDatasetId(recordDTO.getDatasetId());
+                docInteractiveInfo.setName(source.getName());
+                docInteractiveInfo.setType(source.getDataType());
+                docInteractiveInfo.setUrl(source.getAddress());
+                docInteractiveInfo.setDesc(source.getDescription());
+                docInteractiveInfo.setUpdateTime(source.getUpdateTime());
+            }
 
             return docInteractiveInfo;
+
         }).collect(Collectors.toList()));
 
         return interactiveInfo;
@@ -136,7 +177,7 @@ public class InteractiveInfo {
         /**
          * 数据ID
          */
-        private String id;
+        private Long id;
 
         /**
          * 相似度
@@ -144,14 +185,14 @@ public class InteractiveInfo {
         private Double score;
 
         /**
+         * 分段序号
+         */
+        private Integer position;
+
+        /**
          * 数据集id
          */
         private String datasetId;
-
-        /**
-         * 文档Id
-         */
-        private String documentId;
 
 
         /**

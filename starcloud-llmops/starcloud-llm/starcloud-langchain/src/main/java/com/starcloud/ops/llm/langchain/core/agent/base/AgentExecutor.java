@@ -27,6 +27,7 @@ import com.starcloud.ops.llm.langchain.core.schema.parser.OutputParserException;
 import com.starcloud.ops.llm.langchain.core.tools.FailTool;
 import com.starcloud.ops.llm.langchain.core.tools.InvalidTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
+import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import com.starcloud.ops.llm.langchain.core.tools.exception.ToolContinuesExecution;
 import com.theokanning.openai.completion.chat.ChatFunctionCall;
 import lombok.Data;
@@ -350,17 +351,16 @@ public class AgentExecutor extends Chain<AgentAction> {
              * 执行函数调用，异常catch，保存下来.并且设置返回内容，好让LLM继续做判断
              */
 
+            //现在只会有 FunTool，都是 FunTool 包装后的tool
+            FunTool baseTool = (FunTool) toolMap.get(tool);
+
             try {
-
                 if (toolMap.containsKey(tool)) {
-
-                    BaseTool baseTool = toolMap.get(tool);
                     Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
 
                     if (baseTool.getReturnDirect()) {
                         toolRunKwargs.put("llm_prefix", "");
                     }
-
 
                     //@todo 捕获工具执行异常
                     observation = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
@@ -379,31 +379,38 @@ public class AgentExecutor extends Chain<AgentAction> {
 
             } catch (ToolContinuesExecution toolContinuesExecution) {
 
-                log.error("AgentExecutor tool run is fail: {}", toolContinuesExecution);
+                log.error("AgentExecutor tool [{}] run is error: {}", baseTool.getClass().getSimpleName(), toolContinuesExecution);
+
+                funAgentAction.setStatus(false);
+                funAgentAction.setErrorCode(-1);
+                funAgentAction.setError(toolContinuesExecution.getMessage());
 
                 funAgentAction.setObservation(toolContinuesExecution.getObservation());
-                funAgentAction.setStatus(false);
-
-                funAgentAction.setErrorCode("-1");
-                funAgentAction.setError(toolContinuesExecution.getMessage());
 
             } catch (Exception e) {
 
-                log.error("AgentExecutor tool run is error: {}", e.getMessage(), e);
+                //所有到工具执行异常，都返回 FailTool 即可，交由LLM继续执行后续逻辑
+
+                log.error("AgentExecutor tool  [{}]  run is fail: {}", baseTool.getClass().getSimpleName(), e.getMessage(), e);
+
+                BaseTool failTool = new FailTool(tool).setCallbackManager(this.callbackManager);
 
                 funAgentAction.setStatus(false);
+                funAgentAction.setErrorCode(-2);
                 funAgentAction.setError(e.getMessage());
-                funAgentAction.setErrorCode("-2");
-                funAgentAction.setObservation("");
+
+                funAgentAction.setObservation(failTool.run(toolInput));
+
+            } finally {
+
+                funAgentAction.setElapsed(System.currentTimeMillis() - start);
+                //增加 fun 调用日志
+                BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(funAgentAction);
+                this.getMemory().saveContext(null, baseLLMResult);
+
+                result.add(funAgentAction);
             }
 
-            funAgentAction.setElapsed(System.currentTimeMillis() - start);
-
-            //增加 fun 调用日志
-            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(funAgentAction);
-            this.getMemory().saveContext(null, baseLLMResult);
-
-            result.add(funAgentAction);
         }
 
         return result;

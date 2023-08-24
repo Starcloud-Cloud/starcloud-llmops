@@ -107,6 +107,8 @@ public class HandlerSkill extends BaseSkillEntity {
 
             //@todo 这里可增加 扣权益记录
 
+
+            //这里只返回内容，要么返回为空。因为传到到LLM后只会判断返回值有无
             return handlerResponse.toJsonOutput();
         };
 

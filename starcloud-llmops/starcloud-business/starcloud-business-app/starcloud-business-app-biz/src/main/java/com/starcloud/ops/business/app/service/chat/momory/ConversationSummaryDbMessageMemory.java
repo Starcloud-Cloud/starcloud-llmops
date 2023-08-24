@@ -4,12 +4,15 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
+import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -18,6 +21,7 @@ import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
@@ -126,7 +130,13 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             BaseLLMResult llmResult = this.predictNewSummary(restMessages, existingSummary);
             Long end = System.currentTimeMillis();
-            log.info("success summary history, {} ms", end - start);
+
+            if (llmResult == null) {
+                log.error("summary history is fail: {}", restMessages);
+                throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.MEMORY_SUMMARY_ERROR);
+            } else {
+                log.info("success summary history, {} ms", end - start);
+            }
 
             //简单拼接下内容
             this.createSummaryMessage(llmResult, this.renderPrompt(restMessages, existingSummary));

@@ -30,7 +30,7 @@ public class HandlerResponse<R> {
     /**
      * 响应错误码
      */
-    private String errorCode;
+    private Integer errorCode;
 
     /**
      * 响应错误码
