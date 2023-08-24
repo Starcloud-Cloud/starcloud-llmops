@@ -93,6 +93,21 @@ public class InteractiveInfo {
     /**
      * 文本内容卡片渲染
      *
+     * @return
+     */
+    public static InteractiveInfo buildTips(String tips) {
+        InteractiveInfo interactiveInfo = new InteractiveInfo();
+
+        interactiveInfo.setShowType("tips");
+        interactiveInfo.setSuccess(true);
+        interactiveInfo.setTips(tips);
+
+        return interactiveInfo;
+    }
+
+    /**
+     * 文本内容卡片渲染
+     *
      * @param text
      * @return
      */

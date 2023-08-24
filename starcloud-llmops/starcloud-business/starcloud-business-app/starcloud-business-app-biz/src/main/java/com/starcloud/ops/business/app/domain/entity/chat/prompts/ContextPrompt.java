@@ -7,6 +7,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
+import com.starcloud.ops.business.app.util.PromptUtil;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
@@ -114,59 +115,17 @@ public class ContextPrompt extends BasePromptConfig {
 
     private String parseContentLines(MatchQueryVO matchQueryVO) {
 
-        List<String> blockLines = new ArrayList<>();
-        for (int i = 0; i < searchResult.getRecords().size(); i++) {
+        List<PromptUtil.PromptDocBlock> promptDocBlocks = Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map(recordDTO -> {
 
-            RecordDTO recordDTO = searchResult.getRecords().get(i);
-            PromptBlockDTO promptBlockDTO = new PromptBlockDTO();
+            PromptUtil.PromptDocBlock promptBlockDTO = new PromptUtil.PromptDocBlock();
 
             promptBlockDTO.setDocId(recordDTO.getDocumentId());
             promptBlockDTO.setContent(recordDTO.getContent());
             promptBlockDTO.setBlockId(recordDTO.getId());
+            return promptBlockDTO;
+        }).collect(Collectors.toList());
 
-            //文档详情
-            recordDTO.getDocumentId();
-
-
-            blockLines.add((i + 1) + ". " + JSONUtil.toJsonStr(promptBlockDTO));
-        }
-
-        return StrUtil.join("\n", blockLines);
-    }
-
-
-    @Data
-    public static class PromptBlockDTO {
-
-        /**
-         * 文档ID
-         */
-        private String docId;
-
-        /**
-         * 文档块ID
-         */
-        private String blockId;
-
-        /**
-         * 文档块内容
-         */
-        private String content;
-
-
-        /**
-         * 块数据来源的名称
-         */
-        @JsonIgnore
-        private String sourceName;
-
-        /**
-         * 来源的地址
-         */
-        @JsonIgnore
-        private String sourceUrl;
-
-
+        return PromptUtil.parseContentLines(promptDocBlocks);
     }
 
 
