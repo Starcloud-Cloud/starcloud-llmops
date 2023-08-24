@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.util;
 
 
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
@@ -42,7 +43,7 @@ public class SseResultUtil {
                     .messageUid(this.getMessageUid())
                     .build();
 
-            log.info("sendCallbackInteractive: {}", interactiveInfo);
+            log.info("sendCallbackInteractive: {}", JSONUtil.toJsonStr(result));
 
             this.getSseEmitter().send(result);
         }
