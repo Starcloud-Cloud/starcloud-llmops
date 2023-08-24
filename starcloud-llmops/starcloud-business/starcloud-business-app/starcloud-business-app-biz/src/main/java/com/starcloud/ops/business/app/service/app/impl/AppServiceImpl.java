@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -38,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 应用管理服务实现类
@@ -124,9 +122,7 @@ public class AppServiceImpl implements AppService {
     @Override
     public PageResp<AppRespVO> page(AppPageQuery query) {
         Page<AppDO> page = appMapper.page(query);
-        List<AppRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppConvert.INSTANCE::convertResponse).collect(Collectors.toList());
-        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+        return AppConvert.INSTANCE.convertPage(page);
     }
 
     /**

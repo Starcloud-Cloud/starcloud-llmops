@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.convert.app;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ChatConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ImageConfigReqVO;
@@ -29,12 +30,15 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
-import com.starcloud.ops.business.app.util.DataPermissionUtils;
+import com.starcloud.ops.business.app.util.UserUtils;
+import com.starcloud.ops.framework.common.api.dto.PageResp;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -256,12 +260,22 @@ public interface AppConvert {
     }
 
     /**
-     * AppDO 转 AppRespVO
+     * AppDO 转 AppRespVO, 需要查询用户昵称时候使用
      *
      * @param app AppDO
      * @return AppRespVO
      */
     default AppRespVO convertResponse(AppDO app) {
+        return convertResponse(app, true);
+    }
+
+    /**
+     * AppDO 转 AppRespVO
+     *
+     * @param app AppDO
+     * @return AppRespVO
+     */
+    default AppRespVO convertResponse(AppDO app, boolean needUserName) {
         AppRespVO appRespVO = new AppRespVO();
         appRespVO.setUid(app.getUid());
         appRespVO.setName(app.getName());
@@ -278,8 +292,10 @@ public interface AppConvert {
         appRespVO.setInstallUid(app.getInstallUid());
         appRespVO.setCreator(app.getCreator());
         appRespVO.setUpdater(app.getUpdater());
-        appRespVO.setCreatorName(DataPermissionUtils.getUsername(app.getCreator()));
-        appRespVO.setUpdaterName(DataPermissionUtils.getUsername(app.getUpdater()));
+        if (needUserName) {
+            appRespVO.setCreatorName(UserUtils.getUsername(app.getCreator()));
+            appRespVO.setUpdaterName(UserUtils.getUsername(app.getUpdater()));
+        }
         appRespVO.setCreateTime(app.getCreateTime());
         appRespVO.setUpdateTime(app.getUpdateTime());
         appRespVO.setLastPublish(app.getLastPublish());
@@ -299,12 +315,50 @@ public interface AppConvert {
     }
 
     /**
+     * Page 转 PageResp
+     *
+     * @param page 分页对象
+     * @return PageResp
+     */
+    default PageResp<AppRespVO> convertPage(Page<AppDO> page) {
+        if (page == null) {
+            return PageResp.of(Collections.emptyList(), 0L, 1L, 10L);
+        }
+        List<AppDO> records = page.getRecords();
+        if (CollectionUtil.isEmpty(records)) {
+            return PageResp.of(Collections.emptyList(), page.getTotal(), page.getCurrent(), page.getSize());
+        }
+        // 用户创建者ID列表。
+        List<Long> creatorList = records.stream().map(item -> Long.valueOf(item.getCreator())).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        // 获取用户创建者ID，昵称 Map。
+        Map<Long, String> creatorMap = UserUtils.getUserNicknameMapByIds(creatorList);
+
+        // 用户更新者ID列表。
+        List<Long> updaterList = records.stream().map(item -> Long.valueOf(item.getUpdater())).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        // 获取用户更新者ID，昵称 Map。
+        Map<Long, String> updaterMap = UserUtils.getUserNicknameMapByIds(updaterList);
+
+        List<AppRespVO> collect = records.stream().map(item -> {
+            AppRespVO appResponse = convertResponse(item, false);
+            appResponse.setCreatorName(creatorMap.get(Long.valueOf(item.getCreator())));
+            appResponse.setUpdaterName(updaterMap.get(Long.valueOf(item.getUpdater())));
+            return appResponse;
+        }).collect(Collectors.toList());
+
+        return PageResp.of(collect, page.getTotal(), page.getCurrent(), page.getSize());
+    }
+
+    default AppRespVO convertResponse(BaseAppEntity appEntity) {
+        return convertResponse(appEntity, false);
+    }
+
+    /**
      * AppDO 转 AppRespVO
      *
      * @param appEntity AppDO
      * @return AppRespVO
      */
-    default AppRespVO convertResponse(BaseAppEntity appEntity) {
+    default AppRespVO convertResponse(BaseAppEntity appEntity, boolean needUserName) {
         AppRespVO appRespVO = new AppRespVO();
         appRespVO.setUid(appEntity.getUid());
         appRespVO.setName(appEntity.getName());
@@ -321,8 +375,10 @@ public interface AppConvert {
         appRespVO.setInstallUid(appEntity.getInstallUid());
         appRespVO.setCreator(appEntity.getCreator());
         appRespVO.setUpdater(appEntity.getUpdater());
-        appRespVO.setCreatorName(DataPermissionUtils.getUsername(appEntity.getCreator()));
-        appRespVO.setUpdaterName(DataPermissionUtils.getUsername(appEntity.getUpdater()));
+        if (needUserName) {
+            appRespVO.setCreatorName(UserUtils.getUsername(appEntity.getCreator()));
+            appRespVO.setUpdaterName(UserUtils.getUsername(appEntity.getUpdater()));
+        }
         appRespVO.setCreateTime(appEntity.getCreateTime());
         appRespVO.setUpdateTime(appEntity.getUpdateTime());
         appRespVO.setLastPublish(appEntity.getLastPublish());
