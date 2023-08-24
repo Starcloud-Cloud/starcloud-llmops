@@ -76,7 +76,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         ActionResponse actionResponse = new ActionResponse();
 
         actionResponse.setSuccess(handlerResponse.getSuccess());
-        actionResponse.setErrorCode(handlerResponse.getErrorCode());
+        actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
         actionResponse.setErrorMsg(handlerResponse.getErrorMsg());
         actionResponse.setType(handlerResponse.getType());
         actionResponse.setIsShow(true);

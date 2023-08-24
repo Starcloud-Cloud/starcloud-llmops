@@ -49,7 +49,7 @@ public class InteractiveInfo {
 
     private Object data;
 
-    private String errorCode;
+    private Integer errorCode;
 
     private String errorMsg;
 

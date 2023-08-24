@@ -102,7 +102,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
         } catch (OpenAiHttpException exc) {
 
-            appStepResponse.setErrorCode(exc.code);
+            appStepResponse.setErrorCode(ErrorCodeConstants.OPENAI_ERROR.getCode());
             appStepResponse.setErrorMsg(exc.getMessage());
             log.error("OpenAIChatHandler OpenAi fail: {}", exc.getMessage(), exc);
 

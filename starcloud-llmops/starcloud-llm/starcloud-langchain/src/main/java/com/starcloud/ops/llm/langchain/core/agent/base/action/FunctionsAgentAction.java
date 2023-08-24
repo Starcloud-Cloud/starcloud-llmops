@@ -14,7 +14,7 @@ public class FunctionsAgentAction extends AgentAction {
     private Long elapsed = 0l;
 
 
-    private String errorCode;
+    private Integer errorCode;
 
     private String error;
 

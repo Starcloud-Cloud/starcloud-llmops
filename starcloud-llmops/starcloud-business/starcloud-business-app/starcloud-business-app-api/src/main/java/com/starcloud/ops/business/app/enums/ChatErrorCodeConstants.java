@@ -16,6 +16,12 @@ public interface ChatErrorCodeConstants {
     /**
      * 聊天执行LLM总结异常
      */
-    ErrorCode MEMORY_SUMMARY_ERROR = new ErrorCode(400100001, "思考异常，请稍后重试");
+    ErrorCode MEMORY_SUMMARY_ERROR = new ErrorCode(400100001, "AI思考异常，请稍后重试");
+
+
+    /**
+     * 聊天执行工具
+     */
+    ErrorCode TOOL_RUN_ERROR = new ErrorCode(400200001, "AI调用技能异常，请稍后重试");
 
 }
