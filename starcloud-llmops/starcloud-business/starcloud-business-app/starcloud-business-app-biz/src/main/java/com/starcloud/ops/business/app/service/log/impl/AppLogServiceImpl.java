@@ -27,7 +27,7 @@ import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.AppUtils;
-import com.starcloud.ops.business.app.util.DataPermissionUtils;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.LogAppApi;
@@ -280,7 +280,7 @@ public class AppLogServiceImpl implements AppLogService {
         PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
         List<LogAppConversationInfoRespVO> list = result.getList();
         List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
-                .peek(item -> item.setAppExecutor(DataPermissionUtils.identify(item.getCreator(), item.getEndUser())))
+                .peek(item -> item.setAppExecutor(UserUtils.identify(item.getCreator(), item.getEndUser())))
                 .collect(Collectors.toList());
         result.setList(collect);
         return result;
@@ -304,7 +304,7 @@ public class AppLogServiceImpl implements AppLogService {
         PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
         List<LogAppConversationInfoRespVO> list = result.getList();
         List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
-                .peek(item -> item.setAppExecutor(DataPermissionUtils.identify(item.getCreator(), item.getEndUser())))
+                .peek(item -> item.setAppExecutor(UserUtils.identify(item.getCreator(), item.getEndUser())))
                 .collect(Collectors.toList());
         result.setList(collect);
         return result;
@@ -439,7 +439,7 @@ public class AppLogServiceImpl implements AppLogService {
         appLogMessageResponse.setTokens(message.getMessageTokens() + message.getAnswerTokens());
         appLogMessageResponse.setPrice(message.getTotalPrice());
         appLogMessageResponse.setCurrency(message.getCurrency());
-        appLogMessageResponse.setAppExecutor(DataPermissionUtils.identify(message.getCreator(), message.getEndUser()));
+        appLogMessageResponse.setAppExecutor(UserUtils.identify(message.getCreator(), message.getEndUser()));
         appLogMessageResponse.setErrorCode(message.getErrorCode());
         appLogMessageResponse.setErrorMessage(message.getErrorMsg());
         appLogMessageResponse.setCreateTime(message.getCreateTime());
@@ -467,7 +467,7 @@ public class AppLogServiceImpl implements AppLogService {
         imageLogMessageResponse.setElapsed(message.getElapsed());
         imageLogMessageResponse.setStatus(message.getStatus());
         imageLogMessageResponse.setErrorCode(message.getErrorCode());
-        imageLogMessageResponse.setAppExecutor(DataPermissionUtils.identify(message.getCreator(), message.getEndUser()));
+        imageLogMessageResponse.setAppExecutor(UserUtils.identify(message.getCreator(), message.getEndUser()));
         imageLogMessageResponse.setErrorMessage(message.getErrorMsg());
         imageLogMessageResponse.setCreateTime(message.getCreateTime());
         imageLogMessageResponse.setImageInfo(transformImageMessage(message));
@@ -538,8 +538,8 @@ public class AppLogServiceImpl implements AppLogService {
     private List<Option> getSceneOptions(String type) {
         // 生成记录
         if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
-            String permission = DataPermissionUtils.getDeptDataPermission();
-            if (DataPermissionUtils.ALL.equals(permission)) {
+            String permission = UserUtils.getDeptDataPermission();
+            if (UserUtils.ALL.equals(permission)) {
                 return AppSceneEnum.getOptions();
             } else {
                 return AppSceneEnum.getOptions(AppSceneEnum.GENERATE_RECORD_BASE_SCENES);
@@ -562,8 +562,8 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用模型列表
      */
     private List<String> getFromSceneList() {
-        String permission = DataPermissionUtils.getDeptDataPermission();
-        if (!DataPermissionUtils.ALL.equals(permission)) {
+        String permission = UserUtils.getDeptDataPermission();
+        if (!UserUtils.ALL.equals(permission)) {
             return AppSceneEnum.GENERATE_RECORD_BASE_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
         }
         return null;
