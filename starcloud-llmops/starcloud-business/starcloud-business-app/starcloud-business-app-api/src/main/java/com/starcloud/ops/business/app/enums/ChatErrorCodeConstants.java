@@ -11,10 +11,10 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
  */
 public interface ChatErrorCodeConstants {
 
-    // ========== 应用错误码 ==========
+    // ========== 机器人错误码 ==========
 
     /**
-     * 应用市场应用不存在
+     * 聊天执行LLM总结异常
      */
     ErrorCode MEMORY_SUMMARY_ERROR = new ErrorCode(400100001, "思考异常，请稍后重试");
 
