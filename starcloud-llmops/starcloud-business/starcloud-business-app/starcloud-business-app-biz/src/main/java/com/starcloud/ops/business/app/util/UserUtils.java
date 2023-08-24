@@ -9,14 +9,18 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-08-15
  */
-public class DataPermissionUtils {
+public class UserUtils {
 
     /**
      * 所有权限
@@ -71,6 +75,33 @@ public class DataPermissionUtils {
         }
 
         return "用户";
+    }
+
+    /**
+     * 根据用户 ID 集合，获得用户 Map
+     *
+     * @param userIds 用户 ID 集合
+     * @return 用户 Map
+     */
+    public static Map<Long, AdminUserDO> getUserMapByIds(List<Long> userIds) {
+        return ADMIN_USER_SERVICE.getUserMap(userIds);
+    }
+
+    /**
+     * 根据用户 ID 集合，获得用户昵称 Map
+     *
+     * @param userIds 用户 ID 集合
+     * @return 用户昵称 Map
+     */
+    public static Map<Long, String> getUserNicknameMapByIds(List<Long> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        List<AdminUserDO> userList = ADMIN_USER_SERVICE.getUserList(userIds);
+        if (CollectionUtil.isEmpty(userList)) {
+            return Collections.emptyMap();
+        }
+        return userList.stream().collect(Collectors.toMap(AdminUserDO::getId, AdminUserDO::getNickname));
     }
 
     /**
