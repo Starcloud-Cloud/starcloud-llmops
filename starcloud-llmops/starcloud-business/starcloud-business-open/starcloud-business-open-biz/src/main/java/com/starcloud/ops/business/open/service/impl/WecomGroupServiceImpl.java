@@ -96,8 +96,8 @@ public class WecomGroupServiceImpl implements WecomGroupService {
 
         AppPublishChannelReqVO channelReqVO = new AppPublishChannelReqVO();
         WecomGroupChannelConfigDTO channelConfigDTO = new WecomGroupChannelConfigDTO();
-        channelConfigDTO.setRobotName(robotDTO.getRobotId());
-        channelConfigDTO.setRobotId(robotDTO.getRobotName());
+        channelConfigDTO.setRobotName(robotDTO.getRobotName());
+        channelConfigDTO.setRobotId(robotDTO.getRobotId());
         channelReqVO.setName(reqVO.getName());
         channelReqVO.setStatus(0);
         channelReqVO.setAppUid(reqVO.getAppUid());
