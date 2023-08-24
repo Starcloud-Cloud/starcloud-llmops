@@ -267,13 +267,10 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
         int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
-
-        ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate();
+        //设置 memory 必要参数
+        this.getMessageMemory().setSummaryMaxTokens(maxTokens);
 
         BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
-
-        log.info("chatPromptTemplate: {}, \n\n humanInput: {}", chatPromptTemplate, humanInput);
-
 
         //直接把查询到到文档发送到前端
         if (contextPrompt.isEnable()) {
@@ -283,13 +280,11 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         }
 
 
-        //设置 memory 必要参数
-        this.getMessageMemory().setSummaryMaxTokens(maxTokens);
-
-
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
         if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
                 || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()))) {
+
+            ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(true);
 
             AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, chatPromptTemplate, emitter);
 
@@ -310,6 +305,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             return JsonData.of(agentAction.getObservation());
 
         } else {
+
+            ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(false);
 
             //@todo 主动创建 messageUid
             //request.setMessageUid();

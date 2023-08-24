@@ -63,10 +63,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -232,7 +229,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         Tika tika = new Tika();
         tika.setMaxStringLength(-1);
         String text = tika.parseToString(new URL(datasetStorage.getStorageKey()));
-        splitDoc(datasetId, dataSourceId,text,splitRule);
+        splitDoc(datasetId, dataSourceId, text, splitRule);
     }
 
     @Override
@@ -408,7 +405,15 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
     @Override
     public MatchQueryVO matchQuery(MatchQueryRequest request) {
-        List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDatasetIds(request.getDatasetUid());
+
+        List<DocumentSegmentDO> segmentDOS = new ArrayList<>();
+        try {
+            DatasetsDO datasetsDO = datasetsService.getDatasets(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
+            segmentDOS = segmentMapper.selectByDatasetIds(Arrays.asList(String.valueOf(datasetsDO.getId())));
+        } catch (Exception e) {
+            log.error("matchQuery.getDatasets is fail: {}", e.getMessage(), e);
+        }
+
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(segmentIds)) {
             return MatchQueryVO.builder().queryText(request.getText()).build();

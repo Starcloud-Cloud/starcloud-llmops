@@ -11,7 +11,6 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.Datas
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
-import com.starcloud.ops.business.dataset.enums.DataSourceDataFormatEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
@@ -118,7 +117,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
 
 
             if (StrUtil.isBlank(sourceDataDO.getDescription())) {
-                sourceDataDO.setDescription(truncateAndSetContent(cleanText, sourceDataDO.getDataType(), cleanRule.getConvertFormat()));
+                sourceDataDO.setDescription(truncateAndSetContent(text, sourceDataDO.getDataType()));
             }
             sourceDataDO.setCleanStorageId(cleanId);
             sourceDataDO.setDatasetProcessRuleId(Arrays.asList(rulesRespVO.getId()).toString());
@@ -208,9 +207,9 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
      * @param input
      * @return
      */
-    private static String truncateAndSetContent(String input, String dataType, String format) {
-        if (DataSourceDataTypeEnum.URL.name().equals(dataType) && DataSourceDataFormatEnum.MARKDOWN.name().equals(format)) {
-            input= Jsoup.parse(input).text();
+    private static String truncateAndSetContent(String input, String dataType) {
+        if (DataSourceDataTypeEnum.URL.name().equals(dataType)) {
+            input = Jsoup.parse(input).text();
         }
         if (StrUtil.isBlank(input)) {
             return ""; // 如果输入为空，返回空字符串
