@@ -119,7 +119,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _validate(ChatRequestVO request) {
+    protected void doValidate(ChatRequestVO request) {
 
         //@todo 现在默认都挂载一个 数据集，具体是否能搜索靠后续向量搜索处理
         DatesetEntity datesetEntity = new DatesetEntity();
@@ -154,7 +154,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _initHistory(ChatRequestVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageDOS) {
+    protected void initHistory(ChatRequestVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageDOS) {
 
         //preHistory(request.getConversationUid(), AppModelEnum.CHAT.name());
 
@@ -191,23 +191,16 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _createAppConversationLog(ChatRequestVO request, LogAppConversationCreateReqVO createRequest) {
+    protected void buildAppConversationLog(ChatRequestVO request, LogAppConversationCreateReqVO createRequest) {
 
         createRequest.setAppConfig(JSONUtil.toJsonStr(this.getChatConfig()));
     }
 
-    @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected ChatConfigEntity _parseConversationConfig(String conversationConfig) {
-        ChatConfigEntity chatConfig = JSON.parseObject(conversationConfig, ChatConfigEntity.class);
-        return chatConfig;
-    }
 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected JsonData _execute(ChatRequestVO request) {
+    protected JsonData doExecute(ChatRequestVO request) {
 
         this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
 
@@ -217,8 +210,18 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _aexecute(ChatRequestVO request) {
-        JsonData jsonParams = this._execute(request);
+    protected void doAsyncExecute(ChatRequestVO request) {
+        JsonData jsonParams = this.doExecute(request);
+    }
+
+    /**
+     * 模版方法：执行应用前置处理方法
+     *
+     * @param chatRequestVO 请求参数
+     */
+    @Override
+    protected void beforeExecute(ChatRequestVO chatRequestVO) {
+
     }
 
     /**
@@ -227,7 +230,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _afterExecute(ChatRequestVO request, Throwable throwable) {
+    protected void afterExecute(ChatRequestVO request, Throwable throwable) {
 
         SseEmitter sseEmitter = request.getSseEmitter();
 
@@ -457,7 +460,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _insert() {
+    protected void doInsert() {
         getAppRepository().insert(this);
     }
 
@@ -467,7 +470,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _update() {
+    protected void doUpdate() {
         getAppRepository().update(this);
     }
 

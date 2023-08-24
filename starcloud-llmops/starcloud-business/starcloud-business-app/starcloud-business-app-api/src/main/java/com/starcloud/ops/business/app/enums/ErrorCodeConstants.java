@@ -88,7 +88,7 @@ public interface ErrorCodeConstants {
     /**
      * 应用执行异常
      */
-    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "App execute fail, {}");
+    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "{}");
 
     // ========== 图片生成服务错误 3-003-000-00 ==========
     /**
@@ -200,4 +200,6 @@ public interface ErrorCodeConstants {
      * 应用执行步骤不存在
      */
     ErrorCode APP_EXECUTE_STEPS_NOT_FOUND = new ErrorCode(300600014, "应用执行步骤[{}]不存在！");
+
+    ErrorCode OPENAI_ERROR = new ErrorCode(300600015, "大模型异常!");
 }
