@@ -137,9 +137,12 @@ public class WecomGroupServiceImpl implements WecomGroupService {
     @Transactional(rollbackFor = Exception.class)
     public void bindPublishChannel(QaCallbackReqVO qaCallbackReqVO) {
         if (StringUtils.isNotBlank(qaCallbackReqVO.getGroupRemark())) {
-            log.info("此群已绑定发布渠道 {}", qaCallbackReqVO.getGroupRemark());
-            wecomChatService.sendMsg(qaCallbackReqVO.getGroupRemark(), "此群已绑定发布渠道", qaCallbackReqVO.getReceivedName());
-            return;
+            AppPublishChannelRespVO oldChannel = appPublishChannelService.getAllByMediumUid(qaCallbackReqVO.getGroupRemark());
+            if (oldChannel != null) {
+                log.info("此群已绑定发布渠道 {}", qaCallbackReqVO.getGroupRemark());
+                wecomChatService.sendMsg(qaCallbackReqVO.getGroupRemark(), "此群已绑定发布渠道", qaCallbackReqVO.getReceivedName());
+                return;
+            }
         }
         String robotId = RobotContextHolder.getRobotId();
 
