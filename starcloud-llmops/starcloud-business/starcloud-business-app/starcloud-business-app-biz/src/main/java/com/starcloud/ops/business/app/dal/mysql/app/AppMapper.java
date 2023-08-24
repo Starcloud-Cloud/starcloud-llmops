@@ -169,7 +169,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      * @param isSimple 是否简单查询
      * @return 查询条件
      */
-    static LambdaQueryWrapper<AppDO> queryWrapper(boolean isSimple) {
+    default LambdaQueryWrapper<AppDO> queryWrapper(boolean isSimple) {
         LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class);
         wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
         if (!isSimple) {
@@ -193,7 +193,6 @@ public interface AppMapper extends BaseMapperX<AppDO> {
                 AppDO::getCreator,
                 AppDO::getUpdater,
                 AppDO::getCreateTime,
-                AppDO::getImages,
                 AppDO::getUpdateTime
         );
         return wrapper;
