@@ -99,6 +99,14 @@ public interface LogAppConversationService {
     List<LogAppConversationDO> getAppConversationList(LogAppConversationExportReqVO exportReqVO);
 
     /**
+     * 获取用户最新会话
+     * @param appUid
+     * @param creator
+     * @return
+     */
+    LogAppConversationDO getUserRecentlyConversation(String appUid, String creator,String scene);
+
+    /**
      * 根据应用 UID 获取应用执行日志消息统计数据列表 <br>
      * 1. 应用分析 <br>
      * 2. 聊天分析 <br>
