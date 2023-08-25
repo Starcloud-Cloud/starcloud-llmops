@@ -7,7 +7,6 @@ import com.starcloud.ops.business.dataset.pojo.dto.CommonCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.HTMLCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import io.github.furstenheim.CopyDown;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;

@@ -4,8 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
-
 @Schema(description = "管理后台 - 数据集规则 Response VO")
 @Data
 @ToString(callSuper = true)
