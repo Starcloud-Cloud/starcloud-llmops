@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -30,6 +32,9 @@ public class WecomGroupChannelConfigDTO extends BaseChannelConfigDTO{
 
     @Schema(description = "是否已绑定群聊")
     private Boolean isBind;
+
+    @Schema(description = "绑定时间")
+    private LocalDateTime bindTime;
 
 
 }
