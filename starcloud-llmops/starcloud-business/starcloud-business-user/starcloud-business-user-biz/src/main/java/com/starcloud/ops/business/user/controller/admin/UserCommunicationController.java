@@ -23,7 +23,7 @@ import javax.validation.Valid;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @RestController
-@RequestMapping("/llm/Communication")
+@RequestMapping("/llm/communication")
 @Tag(name = "星河云海-用户通讯工具管理")
 public class UserCommunicationController {
 
