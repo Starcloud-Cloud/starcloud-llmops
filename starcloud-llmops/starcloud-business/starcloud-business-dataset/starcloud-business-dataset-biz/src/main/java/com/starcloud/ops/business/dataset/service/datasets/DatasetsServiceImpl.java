@@ -61,8 +61,10 @@ public class DatasetsServiceImpl implements DatasetsService {
     public Long createDatasetsByApplication(String appId, String appName) {
         DatasetsDO datasetsDO = new DatasetsDO();
         datasetsDO.setUid(appId);
+        // datasetsDO.setUid(DatasetUID.createDatasetUID());
         datasetsDO.setName(appName);
-        datasetsDO.setDescription(appName);
+        datasetsDO.setDescription(String.format("应用%s的数据集", appId));
+        datasetsDO.setAppId(appId);
         datasetsDO.setProvider(DatasetProviderEnum.SYSTEM.getName());
         datasetsDO.setPermission(DatasetPermissionEnum.TEAM_OWNED.getStatus());
         datasetsDO.setEnabled(true);

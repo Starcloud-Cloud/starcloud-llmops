@@ -95,24 +95,24 @@ public class TextCleanAndSplitUtils {
 
     public static String splitText(String text, SplitRule splitRule) {
 
-        // 用户自定义 正则
-        if (StringUtils.isNotBlank(splitRule.getPattern())) {
-            Pattern line = Pattern.compile(splitRule.getPattern());
-            text = line.matcher(text).replaceAll(StringUtils.EMPTY);
-        }
-        // 去除 空格
-        if (BooleanUtils.isNotFalse(splitRule.getAutomatic())) {
-            text = removeUrlsEmails(text);
-            return text;
-        }
-        // 去除 空白区域
-        if (BooleanUtils.isTrue(splitRule.getRemoveExtraSpaces())) {
-            text = removeExtraSpaces(text);
-        }
-        // 去除 链接中的邮箱
-        if (BooleanUtils.isTrue(splitRule.getRemoveUrlsEmails())) {
-            text = removeUrlsEmails(text);
-        }
+        // // 用户自定义 正则
+        // if (StringUtils.isNotBlank(splitRule.getPattern())) {
+        //     Pattern line = Pattern.compile(splitRule.getPattern());
+        //     text = line.matcher(text).replaceAll(StringUtils.EMPTY);
+        // }
+        // // 去除 空格
+        // if (BooleanUtils.isNotFalse(splitRule.getAutomatic())) {
+        //     text = removeUrlsEmails(text);
+        //     return text;
+        // }
+        // // 去除 空白区域
+        // if (BooleanUtils.isTrue(splitRule.getRemoveExtraSpaces())) {
+        //     text = removeExtraSpaces(text);
+        // }
+        // // 去除 链接中的邮箱
+        // if (BooleanUtils.isTrue(splitRule.getRemoveUrlsEmails())) {
+        //     text = removeUrlsEmails(text);
+        // }
         return text;
     }
 

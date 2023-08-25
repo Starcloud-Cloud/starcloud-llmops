@@ -84,4 +84,11 @@ public interface DatasetDataHandleRulesService {
     DatasetHandleRulesDebugRespVO debugRule(@Validated DatasetHandleRulesDebugReqVO debugReqVO);
 
 
+    Boolean deleteRule(Long ruleId);
+
+    List<HandleRuleTypeRespVO>getRuleType();
+
+
+    List<HandleRuleTypeRespVO>getFormatType();
+
 }
