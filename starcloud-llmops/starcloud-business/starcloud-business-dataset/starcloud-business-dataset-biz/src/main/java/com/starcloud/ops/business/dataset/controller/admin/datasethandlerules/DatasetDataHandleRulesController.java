@@ -57,8 +57,8 @@ public class DatasetDataHandleRulesController {
     }
 
     @PostMapping("/delete")
-    @Operation(summary = "规则调试")
-    public CommonResult<Boolean> debugRule(@RequestParam Long ruleId) {
+    @Operation(summary = "删除规则")
+    public CommonResult<Boolean> delete(@RequestParam Long ruleId) {
         return success(datasetDataHandleRulesService.deleteRule(ruleId));
     }
 
