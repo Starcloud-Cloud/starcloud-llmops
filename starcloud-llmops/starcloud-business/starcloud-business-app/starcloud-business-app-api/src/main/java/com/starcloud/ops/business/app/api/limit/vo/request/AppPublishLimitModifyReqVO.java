@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -24,6 +26,7 @@ public class AppPublishLimitModifyReqVO extends AppPublishLimitReqVO {
      * UID
      */
     @Schema(description = "UID")
+    @NotBlank(message = "应用发布限流配置UID不能为空")
     private String uid;
 
 }

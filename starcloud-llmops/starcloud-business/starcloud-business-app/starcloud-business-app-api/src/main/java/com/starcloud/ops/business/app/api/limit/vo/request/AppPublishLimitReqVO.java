@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -27,12 +28,14 @@ public class AppPublishLimitReqVO implements Serializable {
      * 发布 UID
      */
     @Schema(description = "应用 UID")
+    @NotBlank(message = "应用发布限流中：应用UID 不能为空")
     private String appUid;
 
     /**
      * 发布 UID
      */
     @Schema(description = " 应用发布 UID")
+    @NotBlank(message = "应用发布限流中：发布UID 不能为空")
     private String publishUid;
 
     /**
