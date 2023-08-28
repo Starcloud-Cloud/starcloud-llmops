@@ -20,9 +20,9 @@ import java.util.Objects;
  * @since 2023-08-02
  */
 @Mapper
-public interface AppPublishChannelConverter {
+public interface AppPublishChannelConvert {
 
-    AppPublishChannelConverter INSTANCE = Mappers.getMapper(AppPublishChannelConverter.class);
+    AppPublishChannelConvert INSTANCE = Mappers.getMapper(AppPublishChannelConvert.class);
 
     /**
      * 转换
