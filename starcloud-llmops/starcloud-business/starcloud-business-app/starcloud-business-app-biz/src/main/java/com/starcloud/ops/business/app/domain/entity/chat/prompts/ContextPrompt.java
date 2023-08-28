@@ -180,7 +180,7 @@ public class ContextPrompt extends BasePromptConfig {
 
                 DataSourceDataTypeEnum sourceDataTypeEnum = DataSourceDataTypeEnum.valueOf(doc.getDataType());
 
-                if (sourceDataTypeEnum.equals(DataSourceDataTypeEnum.URL)) {
+                if (sourceDataTypeEnum.equals(DataSourceDataTypeEnum.HTML)) {
                     contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
                 } else {
                     contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.FILE.name());
