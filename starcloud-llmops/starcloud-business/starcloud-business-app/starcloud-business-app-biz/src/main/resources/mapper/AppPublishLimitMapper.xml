@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.app.dal.mysql.limit.AppPublishLimitMapper">
+
+    <!-- 根据应用 UID 批量更新发布 UID -->
+    <update id="updatePublishUidByIdList">
+        UPDATE
+        llm_app_publish_limit
+        SET publish_uid = #{publishUid}
+        WHERE
+        id IN
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

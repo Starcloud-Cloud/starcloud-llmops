@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -63,8 +63,9 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
 
     /**
      * 根据 mediumUid 查询应用发布记录 包含未启用
-     * @param mediumUid
-     * @return
+     *
+     * @param mediumUid 媒介 uid
+     * @return 应用发布渠道记录
      */
     default AppPublishChannelDO getAllByMediumUid(String mediumUid) {
         LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
@@ -91,8 +92,15 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
      * @param mediumUid 媒介 UID
      * @return 数量
      */
-    @Select("SELECT COUNT(*) FROM llm_app_publish_channel WHERE medium_uid = #{mediumUid}")
-    long countByMediumUid(String mediumUid);
+    long countByMediumUid(@Param("mediumUid") String mediumUid);
+
+    /**
+     * 根据 ID 集合更新 发布 UID
+     *
+     * @param idList     ID 集合
+     * @param publishUid 发布 UID
+     */
+    void updatePublishUidByIdList(@Param("idList") List<Long> idList, @Param("publishUid") String publishUid);
 
     /**
      * 查询条件
