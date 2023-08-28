@@ -56,6 +56,11 @@ public class HandlerResponse<R> {
 
     private R output;
 
+    /**
+     * 扩展信息
+     */
+    private Object ext;
+
 
     /**
      * 请求 token 使用

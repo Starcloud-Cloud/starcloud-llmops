@@ -5,7 +5,6 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.knuddels.jtokkit.api.ModelType;
@@ -14,7 +13,6 @@ import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrePrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrompt;
@@ -27,6 +25,7 @@ import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
 import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
@@ -34,6 +33,7 @@ import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
+import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
 import com.starcloud.ops.business.app.util.SseResultUtil;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
@@ -44,8 +44,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
-import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentAction;
-import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
@@ -137,11 +136,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @JSONField(serialize = false)
     protected Long getRunUserId(ChatRequestVO req) {
 
-        //如果是后台执行，肯定是当前应用创建者
-        if (req.getScene().equals(AppSceneEnum.WEB_ADMIN.name())
-                || req.getScene().equals(AppSceneEnum.WECOM_GROUP.name())
-                || req.getScene().equals(AppSceneEnum.SHARE_WEB.name())
-                || req.getScene().equals(AppSceneEnum.SHARE_JS.name())) {
+        if (!AppSceneEnum.inLoginUserIdScene(AppSceneEnum.valueOf(req.getScene()))) {
             return Long.valueOf(this.getCreator());
         }
 
@@ -259,11 +254,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         // 从表单配置中筛选输入变量，处理必填字段、默认值和选项值
         Map<String, Object> cleanInputs = getVariableItem(chatConfig.getVariable());
 
-        ChatMessageHistory history = this.getMessageMemory().getChatHistory();
-
         ChatPrePrompt chatPrePrompt = new ChatPrePrompt(chatConfig.getPrePrompt(), chatConfig.getPrePromptConfig());
-        ContextPrompt contextPrompt = new ContextPrompt(chatConfig.getDatesetEntities(), request.getQuery());
-        HistoryPrompt historyPrompt = new HistoryPrompt(history != null && history.limitMessage(1).size() > 0);
+        ContextPrompt contextPrompt = new ContextPrompt(chatConfig.getDatesetEntities(), request.getQuery(), this.getMessageMemory().getMessageContentDocMemory());
+        HistoryPrompt historyPrompt = new HistoryPrompt(this.getMessageMemory());
 
         ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
         int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
@@ -282,13 +275,17 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
         if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
-                || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()))) {
+                || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills())
+                || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills())
+                || CollectionUtil.isNotEmpty(chatConfig.getHandlerSkills())
+        )) {
 
             ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(true);
 
             AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, chatPromptTemplate, emitter);
 
-            AgentAction agentAction = agentExecutor.call(Arrays.asList(humanInput));
+            //把上下文文档内容的 变量占位符传入
+            AgentFinish agentAction = agentExecutor.call(Arrays.asList(humanInput));
 
             log.info("agentExecutor run result: {}", agentAction);
 
@@ -299,25 +296,16 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
             //@todo  生成 message
 
-            //记录返回日志
-
-            //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
-            return JsonData.of(agentAction.getObservation());
+            return JsonData.of(agentAction);
 
         } else {
 
             ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(false);
 
-            //@todo 主动创建 messageUid
-            //request.setMessageUid();
-
             LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
 
             BaseLLMResult<ChatCompletionResult> result = llmChain.call(Arrays.asList(humanInput));
 
-            llmChain.getMemory();
-
-            //benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), result.getUsage().getTotalTokens(), userId, message.getUid());
             return JsonData.of(result);
         }
 
@@ -381,9 +369,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         chatOpenAI.setStream(false);
         chatOpenAI.setModel(ModelType.GPT_4.getName());
-        chatOpenAI.setTemperature(0d);
+        chatOpenAI.setTemperature(0.7d);
 
-        chatOpenAI.getCallbackManager().addCallbackHandler(new StreamingSseCallBackHandler(emitter, request.getConversationUid()));
+        chatOpenAI.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
 
         List<BaseTool> tools = this.loadLLMTools(request, chatConfig, emitter);
 
@@ -406,6 +394,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @JSONField(serialize = false)
     private List<BaseTool> loadLLMTools(ChatRequestVO request, ChatConfigEntity chatConfig, SseEmitter emitter) {
 
+
         List<BaseSkillEntity> skillEntities = new ArrayList<>();
 
         List<BaseTool> loadTools = new ArrayList<>();
@@ -422,6 +411,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
             String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
             webSearch2Doc.setDescription(description);
+            webSearch2Doc.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
 
             HandlerSkill handlerSkill = new HandlerSkill(webSearch2Doc);
 
@@ -431,6 +421,11 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         List<BaseTool> handlerFunTools = Optional.ofNullable(chatConfig.getHandlerSkills()).orElse(new ArrayList<>()).stream().filter(HandlerSkill::getEnabled).map(handlerSkill -> {
 
             if (handlerSkill.getHandler() != null) {
+                //设置 memory
+                BaseToolHandler baseToolHandler = handlerSkill.getHandler();
+
+                baseToolHandler.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+
                 return handlerSkill.createFunTool(appContext);
             }
             return null;
@@ -440,12 +435,18 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         //API工具
         List<BaseTool> apiFunTools = Optional.ofNullable(chatConfig.getApiSkills()).orElse(new ArrayList<>()).stream().filter(ApiSkill::getEnabled).map(skillEntity -> {
+
+            //设置 memory
+
             return skillEntity.createFunTool(appContext);
         }).filter(Objects::nonNull).collect(Collectors.toList());
         loadTools.addAll(apiFunTools);
 
         //应用工具
         List<BaseTool> appFunTools = Optional.ofNullable(chatConfig.getAppWorkflowSkills()).orElse(new ArrayList<>()).stream().filter(AppWorkflowSkill::getEnabled).map(skillEntity -> {
+
+            //设置 memory
+
             return skillEntity.createFunTool(appContext);
         }).filter(Objects::nonNull).collect(Collectors.toList());
         loadTools.addAll(appFunTools);

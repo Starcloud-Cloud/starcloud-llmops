@@ -2,7 +2,12 @@ package com.starcloud.ops.business.app.domain.entity.chat.prompts.pre;
 
 import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.BasePromptConfig;
+import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 最大回复字数 prompt
@@ -26,10 +31,11 @@ public class PreMaxReturnPrompt extends BasePromptConfig {
     }
 
     @Override
-    protected String _buildPromptStr() {
+    protected PromptTemplate _buildPrompt() {
 
-        return StrUtil.format(this.promptV1, this.value);
+        return new PromptTemplate(StrUtil.format(this.promptV1, this.value));
     }
+
 
     @Override
     protected Boolean _isEnable() {

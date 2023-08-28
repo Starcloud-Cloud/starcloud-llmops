@@ -4,6 +4,7 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import lombok.Data;
@@ -19,7 +20,30 @@ import java.util.List;
 public class PromptUtil {
 
 
+    public static String parseDocContentLines(List<MessageContentDocDTO> blocks) {
+
+        List<String> blockLines = new ArrayList<>();
+        for (int i = 0; i < blocks.size(); i++) {
+            MessageContentDocDTO contentDocDTO = blocks.get(i);
+            blockLines.add((i + 1) + ". " + JSONUtil.toJsonStr(contentDocDTO));
+        }
+
+        return StrUtil.join("\n", blockLines);
+    }
+
     public static String parseContentLines(List<PromptDocBlock> blocks) {
+
+        List<String> blockLines = new ArrayList<>();
+        for (int i = 0; i < blocks.size(); i++) {
+            PromptDocBlock promptDocBlock = blocks.get(i);
+            blockLines.add((i + 1) + ". " + JSONUtil.toJsonStr(promptDocBlock));
+        }
+
+        return StrUtil.join("\n", blockLines);
+    }
+
+
+    public static String wrapperToolResponse(List<PromptDocBlock> blocks) {
 
         List<String> blockLines = new ArrayList<>();
         for (int i = 0; i < blocks.size(); i++) {

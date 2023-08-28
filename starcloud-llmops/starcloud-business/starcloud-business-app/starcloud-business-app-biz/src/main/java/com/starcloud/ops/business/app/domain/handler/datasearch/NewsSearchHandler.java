@@ -2,10 +2,10 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.llm.langchain.core.tools.SerpAPITool;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Slf4j
 @Component
-public class NewsSearchHandler extends BaseHandler<NewsSearchHandler.Request, NewsSearchHandler.Response> {
+public class NewsSearchHandler extends BaseToolHandler<NewsSearchHandler.Request, NewsSearchHandler.Response> {
 
     private String name = "NewsSearchHandler";
 

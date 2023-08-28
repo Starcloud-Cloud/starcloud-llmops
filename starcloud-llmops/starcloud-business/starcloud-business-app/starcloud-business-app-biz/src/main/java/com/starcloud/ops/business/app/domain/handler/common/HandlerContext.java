@@ -6,7 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
+import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.SseResultUtil;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -74,6 +74,30 @@ public class HandlerContext<Q> {
         this.sendCallbackInteractive(interactiveInfo);
 
     }
+
+
+    /**
+     * 当前交互信息最终异常
+     *
+     * @param code
+     * @param error
+     */
+    public void sendCurrentInteractiveError(Integer code, String error) {
+
+        //异常，使用最近一次的互动信息
+        if (this.getCurrentInteractive() != null) {
+            InteractiveInfo current = this.getCurrentInteractive();
+            current.setStatus(1);
+            current.setSuccess(false);
+            current.setErrorCode(code);
+            current.setErrorMsg(error);
+            this.sendCallbackInteractiveEnd(current);
+
+            log.info("BaseHandler {} execute sendCallbackInteractiveEnd: {}", this.getClass().getSimpleName(), JSONUtil.toJsonStr(current));
+        }
+
+    }
+
 
     /**
      * 设置回调信息，现在只有前端 SSE使用

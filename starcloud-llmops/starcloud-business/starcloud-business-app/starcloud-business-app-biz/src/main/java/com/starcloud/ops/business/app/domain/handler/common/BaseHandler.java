@@ -93,7 +93,6 @@ public abstract class BaseHandler<Q, R> {
 
         HandlerResponse<R> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
-        handlerResponse.setType(this.getClass().getSimpleName());
 
         long start = System.currentTimeMillis();
 
@@ -104,6 +103,10 @@ public abstract class BaseHandler<Q, R> {
 
             //设置的属性copy
             BeanUtil.copyProperties(source, handlerResponse);
+
+            //临时放这里
+            handlerResponse.setType(this.getClass().getSimpleName());
+            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
 
 //            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
             handlerResponse.setSuccess(true);
@@ -116,6 +119,8 @@ public abstract class BaseHandler<Q, R> {
             handlerResponse.setErrorCode(e.getCode());
             handlerResponse.setErrorMsg(e.getMessage());
 
+            context.sendCurrentInteractiveError(handlerResponse.getErrorCode(), handlerResponse.getErrorMsg());
+
         } catch (Exception e) {
 
             log.error("BaseHandler {} execute is fail: {}", this.getClass().getSimpleName(), e.getMessage(), e);
@@ -123,19 +128,8 @@ public abstract class BaseHandler<Q, R> {
             handlerResponse.setErrorCode(ChatErrorCodeConstants.TOOL_RUN_ERROR.getCode());
             handlerResponse.setErrorMsg(e.getMessage());
 
-        } finally {
+            context.sendCurrentInteractiveError(handlerResponse.getErrorCode(), handlerResponse.getErrorMsg());
 
-            //异常，使用最近一次的互动信息
-            if (context.getCurrentInteractive() != null) {
-                InteractiveInfo current = context.getCurrentInteractive();
-                current.setStatus(1);
-                current.setSuccess(false);
-                current.setErrorCode(handlerResponse.getErrorCode());
-                current.setErrorMsg(handlerResponse.getErrorMsg());
-                context.sendCallbackInteractiveEnd(current);
-
-                log.info("BaseHandler {} execute sendCallbackInteractiveEnd: {}", this.getClass().getSimpleName(), JSONUtil.toJsonStr(current));
-            }
         }
 
         handlerResponse.setElapsed(System.currentTimeMillis() - start);

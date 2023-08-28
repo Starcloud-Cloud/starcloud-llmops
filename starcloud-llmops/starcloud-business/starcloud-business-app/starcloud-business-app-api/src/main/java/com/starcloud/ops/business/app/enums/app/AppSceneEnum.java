@@ -128,6 +128,23 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             AppSceneEnum.CHAT_TEST
     );
 
+
+    /**
+     * 只获取当前登录用户态的 场景
+     *
+     * @return
+     */
+    public static Boolean inLoginUserIdScene(AppSceneEnum sceneEnum) {
+
+        List<AppSceneEnum> loginUserScene = Arrays.asList(
+                AppSceneEnum.WEB_ADMIN,
+                AppSceneEnum.WEB_MARKET,
+                AppSceneEnum.CHAT_TEST
+        );
+
+        return loginUserScene.contains(sceneEnum);
+    }
+
     /**
      * 聊天分析场景名称
      */
