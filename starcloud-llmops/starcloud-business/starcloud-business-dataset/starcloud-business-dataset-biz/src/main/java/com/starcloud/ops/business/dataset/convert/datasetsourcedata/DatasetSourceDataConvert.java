@@ -51,7 +51,7 @@ public interface DatasetSourceDataConvert {
         basicInfoVO.setCreateTime( bean.getCreateTime() );
         basicInfoVO.setUpdateTime( bean.getUpdateTime() );
         basicInfoVO.setCleanId( bean.getCleanStorageId() );
-        if (DataSourceDataTypeEnum.URL.name().equals(bean.getDataType())){
+        if (DataSourceDataTypeEnum.HTML.name().equals(bean.getDataType())){
             DataSourceInfoDTO dataSourceInfoDTO = JSONObject.parseObject(bean.getDataSourceInfo(), DataSourceInfoDTO.class);
             basicInfoVO.setAddress(dataSourceInfoDTO.getInitAddress());
         }

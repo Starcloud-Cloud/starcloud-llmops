@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -52,6 +53,8 @@ public interface AppMarketConvert {
      * @return AppMarketEntity
      */
     AppMarketEntity convert(AppMarketReqVO appMarketRequest);
+
+    ChatAppEntity convert2(AppMarketEntity appMarketEntity);
 
     /**
      * AppMarketEntity 转 AppMarketDO

@@ -60,7 +60,7 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      */
     private  Integer dataModel;
     /**
-     * 数据源类型 文档 URL 字符串
+     * 数据源类型 文档 HTML 字符串
      */
     private  String dataType;
     /**

@@ -140,11 +140,14 @@ public class AppFactory {
      * @return ChatAppEntity
      */
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
+        String scene = chatRequest.getScene();
 
+        if (AppSceneEnum.CHAT_MARKET.name().equalsIgnoreCase(chatRequest.getScene())) {
+            AppMarketEntity appMarketEntity = AppFactory.factoryMarket(chatRequest.getAppUid());
+            return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
+        }
         String appId = chatRequest.getAppUid();
-
         ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
-
         return appEntity;
     }
 

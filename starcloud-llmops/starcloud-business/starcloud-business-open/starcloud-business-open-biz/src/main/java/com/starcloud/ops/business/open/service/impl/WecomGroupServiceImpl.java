@@ -44,6 +44,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -96,8 +97,8 @@ public class WecomGroupServiceImpl implements WecomGroupService {
 
         AppPublishChannelReqVO channelReqVO = new AppPublishChannelReqVO();
         WecomGroupChannelConfigDTO channelConfigDTO = new WecomGroupChannelConfigDTO();
-        channelConfigDTO.setRobotName(robotDTO.getRobotId());
-        channelConfigDTO.setRobotId(robotDTO.getRobotName());
+        channelConfigDTO.setRobotName(robotDTO.getRobotName());
+        channelConfigDTO.setRobotId(robotDTO.getRobotId());
         channelReqVO.setName(reqVO.getName());
         channelReqVO.setStatus(0);
         channelReqVO.setAppUid(reqVO.getAppUid());
@@ -157,6 +158,7 @@ public class WecomGroupServiceImpl implements WecomGroupService {
             config.setGroupName(qaCallbackReqVO.getGroupName());
             config.setGroupRemark(mediumUid);
             config.setIsBind(true);
+            config.setBindTime(LocalDateTime.now());
             config.setRobotName(workToolManager.getRobotName(robotId));
 
             AppPublishChannelModifyReqVO reqVO = new AppPublishChannelModifyReqVO();

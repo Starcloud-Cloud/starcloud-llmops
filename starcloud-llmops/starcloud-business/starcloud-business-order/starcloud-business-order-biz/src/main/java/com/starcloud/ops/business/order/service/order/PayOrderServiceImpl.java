@@ -402,7 +402,8 @@ public class PayOrderServiceImpl implements PayOrderService {
             AdminUserDO user = userService.getUser(Long.valueOf(userId));
             ProductEnum productEnum = ProductEnum.getByCode(productType);
             Map<String, Object> templateParams = new HashMap<>();
-            templateParams.put("environmentName", dingTalkNoticeProperties.getName());
+            String environmentName = dingTalkNoticeProperties.getName().equals("Test")?"测试环境":"正式环境";
+            templateParams.put("environmentName", environmentName);
             templateParams.put("userName", user.getNickname());
             templateParams.put("productName", productEnum.getName());
             templateParams.put("amount", amount / 100);

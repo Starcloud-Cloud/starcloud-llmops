@@ -1,8 +1,9 @@
 package com.starcloud.ops.business.dataset.controller.admin.datasethandlerules;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.dataset.controller.admin.datasethandlerules.vo.DatasetHandleRulesDebugReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasethandlerules.vo.DatasetHandleRulesUpdateReqVO;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.dataset.controller.admin.datasethandlerules.vo.*;
+import com.starcloud.ops.business.dataset.enums.HandleRuleFromSceneEnum;
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -30,26 +32,53 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 public class DatasetDataHandleRulesController {
 
     @Resource
-    private DatasetDataHandleRulesService datasetDataHandleRules;
+    private DatasetDataHandleRulesService datasetDataHandleRulesService;
 
-    @PostMapping("/init/{datasetId}")
-    @Operation(summary = "创建数据集规则")
-    public CommonResult<Boolean> initRule(@PathVariable("datasetId") Long datasetId) {
-        return success(datasetDataHandleRules.createDefaultRules(datasetId));
+
+    @PostMapping("/page")
+    @Operation(summary = "获取分页数据")
+    public CommonResult<PageResult<DatasetHandleRulesRespVO>> createRule(@Validated @RequestBody DatasetHandleRulesPageReqVO pageReqVO) {
+        return success(datasetDataHandleRulesService.getRulePage(pageReqVO));
     }
 
-    @PutMapping("/update")
+    @PostMapping("/createRule")
+    @Operation(summary = "创建数据集规则")
+    public CommonResult<Boolean> createRule(@Validated @RequestBody DatasetHandleRulesCreateReqVO createReqVO) {
+        createReqVO.setFromScene(HandleRuleFromSceneEnum.USER.name());
+        return success(datasetDataHandleRulesService.createDefaultRules(createReqVO));
+    }
+
+    @PostMapping("/update")
     @Operation(summary = "更新规则")
     public CommonResult<Boolean> updateDatasets(@Validated @RequestBody DatasetHandleRulesUpdateReqVO updateReqVO) {
-        datasetDataHandleRules.updateRules(updateReqVO);
+        updateReqVO.setFromScene(HandleRuleFromSceneEnum.USER.name());
+        datasetDataHandleRulesService.updateRules(updateReqVO);
         return success(true);
     }
 
-    @PutMapping("/debugRule")
+    @PostMapping("/delete")
+    @Operation(summary = "删除规则")
+    public CommonResult<Boolean> delete(@RequestParam Long ruleId) {
+        return success(datasetDataHandleRulesService.deleteRule(ruleId));
+    }
+
+    @PostMapping("/debugRule")
     @Operation(summary = "规则调试")
-    public CommonResult<String> debugRule(@Validated @RequestBody
+    public CommonResult<DatasetHandleRulesDebugRespVO> debugRule(@Validated @RequestBody
                                           DatasetHandleRulesDebugReqVO debugReqVO) {
-        return success(datasetDataHandleRules.debugRule(debugReqVO));
+        return success(datasetDataHandleRulesService.debugRule(debugReqVO));
+    }
+
+    @PostMapping("/ruleType")
+    @Operation(summary = "规则类型")
+    public CommonResult<List<HandleRuleTypeRespVO>> getRuleType() {
+        return success(datasetDataHandleRulesService.getRuleType());
+    }
+
+    @PostMapping("/formatType")
+    @Operation(summary = "转换格式")
+    public CommonResult<List<HandleRuleTypeRespVO>> getFormatType() {
+        return success(datasetDataHandleRulesService.getFormatType());
     }
 
 }

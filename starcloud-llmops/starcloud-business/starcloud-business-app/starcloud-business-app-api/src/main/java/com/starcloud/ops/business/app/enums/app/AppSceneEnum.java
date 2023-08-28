@@ -70,7 +70,12 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 优化提示
      */
-    OPTIMIZE_PROMPT(11, "优化提示", "Optimize Prompt");
+    OPTIMIZE_PROMPT(11, "优化提示", "Optimize Prompt"),
+
+    /**
+     * 聊天市场
+     */
+    CHAT_MARKET(12,"聊天市场","chat market");
 
     /**
      * 应用类型Code

@@ -157,6 +157,12 @@ public class ChatServiceImpl implements ChatService {
         return LogAppConversationConvert.INSTANCE.convertList(appConversationList);
     }
 
+    @Override
+    public LogAppConversationRespVO getConversation(String appUid, String scene) {
+        Long loginUserId = WebFrameworkUtils.getLoginUserId();
+        LogAppConversationDO conversation = conversationService.getUserRecentlyConversation(appUid, String.valueOf(loginUserId), scene);
+        return LogAppConversationConvert.INSTANCE.convert(conversation);
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

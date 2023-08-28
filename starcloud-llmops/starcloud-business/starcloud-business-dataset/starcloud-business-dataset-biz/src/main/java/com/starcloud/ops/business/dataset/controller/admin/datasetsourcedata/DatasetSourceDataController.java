@@ -74,10 +74,8 @@ public class DatasetSourceDataController {
             datasetId = datasetsService.getDatasets(datasetUid).getId();
         } catch (Exception e) {
             log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", datasetUid);
-            String datasetName = String.format("应用%s的数据集", "datasetId");
+            String datasetName = String.format("应用%s的数据集", datasetUid);
             datasetId = datasetsService.createDatasetsByApplication(datasetUid, datasetName);
-            //     初始化处理规则
-            datasetDataHandleRules.createDefaultRules(datasetId);
         }
         return success(datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.DOCUMENT.getStatus()));
     }
@@ -94,8 +92,6 @@ public class DatasetSourceDataController {
             log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", datasetUid);
             String datasetName = String.format("应用%s的数据集", datasetUid);
             datasetId = datasetsService.createDatasetsByApplication(datasetUid, datasetName);
-            //     初始化处理规则
-            datasetDataHandleRules.createDefaultRules(datasetId);
 
         }
         return success(datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.QUESTION_AND_ANSWERS.getStatus()));
