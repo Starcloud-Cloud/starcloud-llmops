@@ -59,7 +59,7 @@ public class MobilePhoneServiceImpl implements CommunicationService {
     @Override
     public void sendCode(CodeSendReqVO reqVO) {
         checkAccount(reqVO.getAccount());
-        smsCodeApi.sendSmsCode(SmsConvert.INSTANCE.smsVo2SendDTO(reqVO));
+        smsCodeApi.sendSmsCode(SmsConvert.INSTANCE.smsVo2SendDTO(reqVO).setCreateIp(getClientIP()));
     }
 
     @Override
