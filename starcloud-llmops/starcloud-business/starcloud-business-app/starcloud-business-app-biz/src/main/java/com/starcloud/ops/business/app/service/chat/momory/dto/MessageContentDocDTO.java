@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.chat.momory.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
+@JsonInclude(value = JsonInclude.Include.NON_NULL)
 public class MessageContentDocDTO {
 
 
@@ -28,6 +30,11 @@ public class MessageContentDocDTO {
      * @see MessageContentDocTypeEnum
      */
     private String type;
+
+    /**
+     * 工具名称
+     */
+    private String toolName;
 
     /**
      * 标题

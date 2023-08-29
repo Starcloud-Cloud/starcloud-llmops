@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.market;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.ChatService;
@@ -38,6 +39,8 @@ public class ChatMarketController {
         SseEmitter emitter = new SseEmitter(60000L);
         request.setSseEmitter(emitter);
         request.setScene(AppSceneEnum.CHAT_MARKET.name());
+        Long loginUserId = WebFrameworkUtils.getLoginUserId();
+        request.setUserId(loginUserId);
         chatService.chat(request);
         return emitter;
     }

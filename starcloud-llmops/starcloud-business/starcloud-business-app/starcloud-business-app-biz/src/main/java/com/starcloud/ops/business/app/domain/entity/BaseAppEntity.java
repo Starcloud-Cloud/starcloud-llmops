@@ -359,14 +359,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     this.updateAppConversationLog(request.getConversationUid(), true);
 
                 } catch (ServiceException exception) {
-                    log.error("应用异步任务执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
+                    log.error("应用异步任务执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
                     this.afterExecute(request, exception);
                     // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), false);
                     throw exception;
 
                 } catch (Exception exception) {
-                    log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
+                    log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
                     this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
                     // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), false);
@@ -376,13 +376,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             });
 
         } catch (ServiceException exception) {
-            log.error("应用异步执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
+            log.error("应用异步执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
             this.afterExecute(request, exception);
             // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), false);
             throw exception;
         } catch (Exception exception) {
-            log.error("应用异步执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
+            log.error("应用异步执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
             this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
             // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), false);

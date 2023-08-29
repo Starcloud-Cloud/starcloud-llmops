@@ -259,6 +259,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         HistoryPrompt historyPrompt = new HistoryPrompt(this.getMessageMemory());
 
         ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
+
+        chatPrompt.setGptMessage(true);
+
         int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
         //设置 memory 必要参数
         this.getMessageMemory().setSummaryMaxTokens(maxTokens);
@@ -280,7 +283,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 || CollectionUtil.isNotEmpty(chatConfig.getHandlerSkills())
         )) {
 
-            ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(true);
+            ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 
             AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, chatPromptTemplate, emitter);
 

@@ -58,6 +58,31 @@ public class ContextPrompt extends BasePromptConfig {
             "- Avoid mentioning that you obtained the information from the context.\n" +
             "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the `{N}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n\n";
 
+    private String promptV2 = "Context Interpreting:\n" +
+            "The content in [CONTEXT] is multi-line, and each line represents the structure of the document block. It contains the Serial number  and the Document block information in JSON format.\n" +
+            "[json Interpreting]\n" +
+            "- id: Document ID, identifying the document where the content was found.\n" +
+            "- type: The source type of the content. Contains a `WEB` from WEB content, the `FILE` from the file content, `TOOL` from the result of the code execution.\n" +
+            "- title: The title of the content.\n" +
+            "- url: From the network address of the web content.\n" +
+            "- content: Extracted partial content.\n" +
+            "- toolName: The name of the Tool, which has a value when the type is `TOOL`.\n\n" +
+            "[document block example]:\n" +
+            "1. {\"id\":\"20\",\"type\":\"WEB\",\"url\": \"https://sell.amazon.com/learn/inventory-management\", \"title\": \"2023跨境电商注册开店_怎么开网店_跨境新手指南_Amazon亚马逊\", \"content\":\"如何销售图书 定价 Back 定价 亚马逊开店成本\"}\n" +
+            "2. {\"id\":\"25\",\"type\":\"FILE\", \"title\": \"新手指南： 如何在亚马逊开店\", \"content\":\"在亚马逊，超过一半的实际商品销售总额来自独立的第三方卖家\"}\n" +
+            "......\n" +
+            "[end]\n\n" +
+            "Use the following [CONTEXT] as your learned knowledge:\n" +
+            "[CONTEXT]\n" +
+            "{context}\n" +
+            "{contextDoc}\n" +
+            "[END CONTEXT]\n\n" +
+            "Please Note:\n" +
+            "- If you don't know, just say that you don't know.\n" +
+            "- If you don't know when you are not sure, ask for clarification.\n" +
+            "- Avoid mentioning that you obtained the information from the context.\n" +
+            "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the `{Serial number}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n\n";
+
     private String query;
 
     private List<DatesetEntity> datesetEntities;
@@ -115,7 +140,7 @@ public class ContextPrompt extends BasePromptConfig {
         return PromptTemplate.fromTemplate(() -> {
 
             if (this.isEnable()) {
-                return this.promptV1;
+                return this.promptV2;
             }
             return null;
         }, Arrays.asList(variable, contextDoc));
@@ -189,6 +214,7 @@ public class ContextPrompt extends BasePromptConfig {
                 contentDocDTO.setTitle(doc.getName());
                 contentDocDTO.setUrl(doc.getAddress());
                 contentDocDTO.setContent(doc.getDescription());
+                //contentDocDTO.setTime(doc.getCreateTime());
 
                 return contentDocDTO;
             }

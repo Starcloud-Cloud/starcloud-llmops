@@ -163,6 +163,8 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
 
                 d.setExt(params);
 
+                d.setToolName(this.getName());
+
                 return d;
             }).collect(Collectors.toList());
 
