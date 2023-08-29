@@ -277,7 +277,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     /**
      * 普通对话保存
      *
-     * @param baseVariables
+     * @param variables
      * @param result
      */
     private void _saveChatContext(List<BaseVariable> variables, BaseLLMResult result) {
