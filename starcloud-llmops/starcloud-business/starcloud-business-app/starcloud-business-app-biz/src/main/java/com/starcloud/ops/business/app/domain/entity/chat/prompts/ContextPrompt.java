@@ -73,11 +73,12 @@ public class ContextPrompt extends BasePromptConfig {
 
     @Override
     protected Boolean _isEnable() {
-        this.searchResult = this.searchDataset(this.query);
 
-        if (this.searchResult != null) {
-            return true;
-        }
+//        this.searchResult = this.searchDataset(this.query);
+//
+//        if (this.searchResult != null) {
+//            return true;
+//        }
 
         return false;
     }
