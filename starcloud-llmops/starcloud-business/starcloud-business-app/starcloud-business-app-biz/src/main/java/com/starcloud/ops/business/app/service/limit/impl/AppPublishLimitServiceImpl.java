@@ -112,13 +112,13 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
 
         AppPublishLimitDO updateLimit = new AppPublishLimitDO();
         updateLimit.setId(appPublishLimit.getId());
-        if (LimitConfigEnum.DEFAULT_QUOTA_LIMIT.getOperate().equals(request.getOperate())) {
+        if (LimitConfigEnum.QUOTA.name().equals(request.getOperate())) {
             updateLimit.setQuotaEnable(request.getEnable());
-        } else if (LimitConfigEnum.DEFAULT_RATE_LIMIT.getOperate().equals(request.getOperate())) {
+        } else if (LimitConfigEnum.RATE.name().equals(request.getOperate())) {
             updateLimit.setRateEnable(request.getEnable());
-        } else if (LimitConfigEnum.DEFAULT_USER_QUOTA_LIMIT.getOperate().equals(request.getOperate())) {
+        } else if (LimitConfigEnum.USER_QUOTA.name().equals(request.getOperate())) {
             updateLimit.setUserQuotaEnable(request.getEnable());
-        } else if (LimitConfigEnum.DEFAULT_ADVERTISING_LIMIT.getOperate().equals(request.getOperate())) {
+        } else if (LimitConfigEnum.ADVERTISING.name().equals(request.getOperate())) {
             updateLimit.setAdvertisingEnable(request.getEnable());
         } else {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_LIMIT_OPERATE_NOT_SUPPORTED, request.getOperate());
@@ -180,14 +180,14 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     private AppPublishLimitRespVO getDefaultLimit(String publishUid) {
         AppPublishLimitRespVO response = new AppPublishLimitRespVO();
         response.setPublishUid(publishUid);
-        response.setQuotaEnable(LimitConfigEnum.DEFAULT_QUOTA_LIMIT.getEnable());
-        response.setQuotaConfig(LimitConfigEnum.DEFAULT_QUOTA_LIMIT.getDefaultConfig());
-        response.setRateEnable(LimitConfigEnum.DEFAULT_RATE_LIMIT.getEnable());
-        response.setRateConfig(LimitConfigEnum.DEFAULT_RATE_LIMIT.getDefaultConfig());
-        response.setUserQuotaEnable(LimitConfigEnum.DEFAULT_USER_QUOTA_LIMIT.getEnable());
-        response.setUserQuotaConfig(LimitConfigEnum.DEFAULT_USER_QUOTA_LIMIT.getDefaultConfig());
-        response.setAdvertisingEnable(LimitConfigEnum.DEFAULT_ADVERTISING_LIMIT.getEnable());
-        response.setAdvertisingConfig(LimitConfigEnum.DEFAULT_ADVERTISING_LIMIT.getDefaultConfig());
+        response.setQuotaEnable(LimitConfigEnum.QUOTA.getEnable());
+        response.setQuotaConfig(LimitConfigEnum.QUOTA.getDefaultConfig());
+        response.setRateEnable(LimitConfigEnum.RATE.getEnable());
+        response.setRateConfig(LimitConfigEnum.RATE.getDefaultConfig());
+        response.setUserQuotaEnable(LimitConfigEnum.USER_QUOTA.getEnable());
+        response.setUserQuotaConfig(LimitConfigEnum.USER_QUOTA.getDefaultConfig());
+        response.setAdvertisingEnable(LimitConfigEnum.ADVERTISING.getEnable());
+        response.setAdvertisingConfig(LimitConfigEnum.ADVERTISING.getDefaultConfig());
         return response;
     }
 }

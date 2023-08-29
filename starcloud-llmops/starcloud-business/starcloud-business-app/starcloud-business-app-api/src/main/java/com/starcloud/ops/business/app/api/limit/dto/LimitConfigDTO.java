@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.api.limit.dto;
 
-import cn.hutool.json.JSONUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.time.temporal.ChronoUnit;
 
 /**
  * @author nacoyer
@@ -28,19 +26,19 @@ public class LimitConfigDTO implements Serializable {
      * 限流数量
      */
     @Schema(description = "限流数量")
-    private Integer number;
+    private Integer limit;
 
     /**
      * 限流时间
      */
-    @Schema(description = "限流时间")
-    private Integer time;
+    @Schema(description = "限流超时时间")
+    private Long timeout;
 
     /**
      * 限流时间单位
      */
     @Schema(description = "限流时间单位")
-    private ChronoUnit timeUnit;
+    private String timeUnit;
 
     /**
      * 超出数量之后的消息
@@ -51,16 +49,16 @@ public class LimitConfigDTO implements Serializable {
     /**
      * 创建限流配置
      *
-     * @param number   限流数量
-     * @param time     限流时间
+     * @param limit    限流数量
+     * @param timeout  限流时间
      * @param timeUnit 限流时间单位
      * @param message  超出数量之后的消息
      * @return 限流配置
      */
-    public static LimitConfigDTO of(Integer number, Integer time, ChronoUnit timeUnit, String message) {
+    public static LimitConfigDTO of(Integer limit, Long timeout, String timeUnit, String message) {
         LimitConfigDTO limitConfig = new LimitConfigDTO();
-        limitConfig.setNumber(number);
-        limitConfig.setTime(time);
+        limitConfig.setLimit(limit);
+        limitConfig.setTimeout(timeout);
         limitConfig.setTimeUnit(timeUnit);
         limitConfig.setMessage(message);
         return limitConfig;

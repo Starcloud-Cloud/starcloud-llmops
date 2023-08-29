@@ -7,12 +7,15 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
@@ -27,8 +30,9 @@ import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.AppUtils;
-import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.app.util.PageUtil;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
@@ -37,13 +41,16 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfo
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
+import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
+import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import com.starcloud.ops.business.log.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.log.enums.LogQueryTypeEnum;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
@@ -55,6 +62,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -80,6 +88,9 @@ public class AppLogServiceImpl implements AppLogService {
 
     @Resource
     private LogAppMessageService logAppMessageService;
+
+    @Resource
+    private LogAppMessageMapper logAppMessageMapper;
 
     @Resource
     private LogAppConversationService logAppConversationService;
@@ -117,6 +128,37 @@ public class AppLogServiceImpl implements AppLogService {
         logMetaMap.put("appScene", getSceneOptions(type));
 
         return logMetaMap;
+    }
+
+    /**
+     * 根据条件查询日志消息数量
+     *
+     * @param query 查询条件
+     * @return 日志消息数量
+     */
+    @Override
+    public Page<LogAppMessageRespVO> pageAppLogMessage(AppLogMessageQuery query) {
+        if (StringUtils.isBlank(query.getAppUid())) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用UID[appUid]为必填项"));
+        }
+        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
+        wrapper.eq(LogAppMessageDO::getAppUid, query.getAppUid());
+        wrapper.eq(StringUtils.isNotBlank(query.getAppMode()), LogAppMessageDO::getAppMode, query.getAppMode());
+        wrapper.eq(StringUtils.isNotBlank(query.getUserId()), LogAppMessageDO::getCreator, query.getUserId());
+        wrapper.eq(StringUtils.isNotBlank(query.getEndUser()), LogAppMessageDO::getEndUser, query.getEndUser());
+        wrapper.in(CollectionUtil.isNotEmpty(query.getFromScene()), LogAppMessageDO::getFromScene, query.getFromScene());
+        // 时间间隔和时间间隔单位不为空情况
+        if (Objects.nonNull(query.getTimeInterval()) && Objects.nonNull(query.getTimeUnit())) {
+            LocalDateTime startTime = LocalDateTime.now();
+            LocalDateTime endTime = startTime.minus(query.getTimeInterval(), query.getTimeUnit());
+            wrapper.ge(LogAppMessageDO::getCreateTime, endTime);
+            wrapper.le(LogAppMessageDO::getCreateTime, startTime);
+        }
+        if (CollectionUtil.isEmpty(query.getSorts())) {
+            wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
+        }
+        Page<LogAppMessageDO> page = logAppMessageMapper.selectPage(PageUtil.page(query), wrapper);
+        return LogAppMessageConvert.INSTANCE.convertPage(page);
     }
 
     /**
