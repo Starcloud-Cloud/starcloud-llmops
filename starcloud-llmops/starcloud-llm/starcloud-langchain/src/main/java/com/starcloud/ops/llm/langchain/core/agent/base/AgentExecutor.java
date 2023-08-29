@@ -179,19 +179,83 @@ public class AgentExecutor extends Chain<AgentFinish> {
         return result;
     }
 
-    protected BaseLLMResult parseAgentAction2LLmResult(List<BaseVariable> variables, AgentAction actionAgent) {
+
+    protected BaseLLMResult parseAgentAction2LLmResult(List<BaseVariable> variables, List<AgentAction> intermediateSteps, AgentAction actionAgent) {
+
+        List<ChatGeneration<Object>> generations = new ArrayList<>();
 
 
-        BaseVariable variable = this.getMemory().getPromptInputKey(variables);
-        HumanMessage humanMessage = new HumanMessage(String.valueOf(variable.getValue()));
+        /**
+         * 一个 FunctionsAgentAction 有两种状态，执行前，执行后
+         */
+        if (actionAgent instanceof FunctionsAgentAction) {
 
-        BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(actionAgent);
+            AIMessage aiMessage = (AIMessage) ((FunctionsAgentAction) actionAgent).getMessagesLog().stream().findFirst().get();
 
-        //用户请求放在第一个
-        baseLLMResult.getGenerations().add(0, ChatGeneration.builder().chatMessage(humanMessage).build());
+            if (aiMessage.getAdditionalArgs() != null && aiMessage.getAdditionalArgs().get("function_call") != null) {
+                //有状态，执行过
+                if (actionAgent.getStatus() != null) {
+
+                    ChatFunctionCall functionCall = (ChatFunctionCall) aiMessage.getAdditionalArgs().get("function_call");
+                    JsonNode params = functionCall.getArguments();
+
+                    FunctionMessage functionMessage = new FunctionMessage(((FunctionsAgentAction) actionAgent).getTool(), params);
+                    functionMessage.setContent(JSONUtil.toJsonStr(actionAgent.getObservation()));
+                    functionMessage.setStatus(actionAgent.getStatus());
+                    functionMessage.setElapsed(((FunctionsAgentAction) actionAgent).getElapsed());
+
+                    //@todo 如果要增加工具消耗，还没有地方加
+                    generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(functionMessage).build());
+
+                } else {
+
+                    //未执行过，即 请求LLM返回fun_call
+                    generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(aiMessage).build());
+                }
+            }
+
+        } else if (actionAgent instanceof AgentFinish) {
+
+
+            if (Boolean.TRUE.equals(actionAgent.getStatus())) {
+
+                //LLM 用函数结果调用后返回最终结果
+                List<BaseMessage> messageList = ((AgentFinish) actionAgent).getMessagesLog();
+
+                AIMessage aiMessage = (AIMessage) messageList.get(0);
+                aiMessage.getAdditionalArgs().put(AgentFinishInputKey, actionAgent.getLog());
+
+                generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(aiMessage).build());
+
+            } else {
+
+                generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(null).build());
+                //agent执行异常，提前结束了，如循环超时
+                log.error("agentExecutor parseAgentAction2LLmResult is fail, AgentFinish status Illegal: {}", actionAgent);
+
+            }
+
+
+        } else {
+
+            log.error("agentExecutor parseAgentAction2LLmResult is fail, Unsupported actionAgent: {}", actionAgent);
+        }
+
+        //第一次请求
+        if (CollectionUtil.isEmpty(intermediateSteps)) {
+
+            BaseVariable variable = this.getMemory().getPromptInputKey(variables);
+            HumanMessage humanMessage = new HumanMessage(String.valueOf(variable.getValue()));
+
+            //用户请求放在第一个
+            generations.add(0, ChatGeneration.builder().chatMessage(humanMessage).build());
+        }
+
+        BaseLLMResult baseLLMResult = BaseLLMResult.builder().generations(generations).build();
 
         return baseLLMResult;
     }
+
 
     protected BaseLLMResult parseAgentAction2LLmResult(AgentAction actionAgent) {
 
@@ -325,17 +389,9 @@ public class AgentExecutor extends Chain<AgentFinish> {
 
         //增加 fun 调用日志
         Optional.ofNullable(nextStepOutput).orElse(new ArrayList<>()).forEach(agentAction -> {
-            //为空说明 第一次执行
-            if (CollectionUtil.isEmpty(intermediateSteps)) {
-                //保存第一条 history, 带用户输入
-                BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(variables, agentAction);
-                this.getMemory().saveContext(null, baseLLMResult);
-            } else {
 
-                BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(agentAction);
-                this.getMemory().saveContext(null, baseLLMResult);
-            }
-
+            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(variables, intermediateSteps, agentAction);
+            this.getMemory().saveContext(null, baseLLMResult);
         });
 
         //判断是否完成了，现在只会有一个元素

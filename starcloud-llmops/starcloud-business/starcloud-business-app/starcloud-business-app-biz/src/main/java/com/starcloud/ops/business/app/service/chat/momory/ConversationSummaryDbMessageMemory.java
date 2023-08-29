@@ -208,7 +208,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
                 //llm返回函数调用
                 if (aiMessage.getAdditionalArgs().get("function_call") != null) {
-                    this.createChatFunctionMessage(humanMessage, aiMessage);
+                    this.createChatFunctionMessage(humanMessage.getContent(), aiMessage);
 
                     //落盘成功后 加入到 memory
                     this.getChatHistory().addMessage(humanMessage);
@@ -238,16 +238,23 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
                 //落盘成功后 加入到 memory
                 this.getChatHistory().addMessage(functionMessage);
 
-                //增加工具调用历史
-                //this.getMessageContentDocMemory().addHistory();
-
             }
 
             //llm根据函数返回结果生成最终回答
             if (currentMessage instanceof AIMessage) {
                 AIMessage aiMessage = (AIMessage) currentMessage;
 
-                this.createFunDoneMessage(aiMessage);
+                //多次llm返回fun_call
+                if (aiMessage.getAdditionalArgs().get("function_call") != null) {
+
+                    this.createChatFunctionMessage("", aiMessage);
+
+                    this.getChatHistory().addMessage(aiMessage);
+
+                } else {
+
+                    this.createFunDoneMessage(aiMessage);
+                }
 
                 //落盘成功后 加入到 memory
                 this.getChatHistory().addMessage(aiMessage);
@@ -287,9 +294,33 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     /**
      * 增加 请求LLM，LLM返回需要函数调用的一条日志
      */
+    @Deprecated
     private void createChatFunctionMessage(HumanMessage humanMessage, AIMessage aiMessage) {
 
         String message = humanMessage.getContent();
+
+        ChatFunctionCall chatFunctionCall = (ChatFunctionCall) aiMessage.getAdditionalArgs().get("function_call");
+        String answer = JsonUtils.toJsonString(chatFunctionCall);
+
+        LogAppMessageCreateReqVO logVo = this.getChatAppEntity().createAppMessage((reqVo) -> {
+
+            LogAppMessageCreateReqVO messageCreateReqVO = (LogAppMessageCreateReqVO) reqVo;
+
+            this.updateLogAppMessageVO(aiMessage, messageCreateReqVO);
+
+            messageCreateReqVO.setMessage(message);
+            messageCreateReqVO.setAnswer(answer);
+
+            messageCreateReqVO.setStatus("SUCCESS");
+
+            messageCreateReqVO.setMsgType(LogMessageTypeEnum.CHAT_FUN.name());
+
+        });
+
+        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()) * 2, Long.valueOf(logVo.getCreator()), logVo.getUid());
+    }
+
+    private void createChatFunctionMessage(String message, AIMessage aiMessage) {
 
         ChatFunctionCall chatFunctionCall = (ChatFunctionCall) aiMessage.getAdditionalArgs().get("function_call");
         String answer = JsonUtils.toJsonString(chatFunctionCall);
@@ -397,7 +428,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             this.updateLogAppMessageVO(aiMessage, messageCreateReqVO);
 
-            messageCreateReqVO.setMessage(message);
+            //无意义
+            messageCreateReqVO.setMessage("");
             messageCreateReqVO.setAnswer(answer);
 
             messageCreateReqVO.setStatus("SUCCESS");
