@@ -95,23 +95,12 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 生成记录基础场景
      */
-    public static final List<AppSceneEnum> GENERATE_RECORD_BASE_SCENES = Arrays.asList(
-            AppSceneEnum.WEB_ADMIN,
-            AppSceneEnum.WEB_MARKET,
-            AppSceneEnum.WEB_IMAGE
-    );
+    public static final List<AppSceneEnum> GENERATE_RECORD_BASE_SCENES = Arrays.asList(WEB_ADMIN, WEB_MARKET, WEB_IMAGE);
 
     /**
      * 应用分析场景
      */
-    public static final List<AppSceneEnum> APP_ANALYSIS_SCENES = Arrays.asList(
-            AppSceneEnum.WEB_ADMIN,
-            AppSceneEnum.WEB_MARKET,
-            AppSceneEnum.SHARE_WEB,
-            AppSceneEnum.SHARE_IFRAME,
-            AppSceneEnum.SHARE_JS,
-            AppSceneEnum.SHARE_API
-    );
+    public static final List<AppSceneEnum> APP_ANALYSIS_SCENES = Arrays.asList(WEB_ADMIN, WEB_MARKET, SHARE_WEB, SHARE_IFRAME, SHARE_JS, SHARE_API, OPTIMIZE_PROMPT);
 
     /**
      * 应用分析场景名称
@@ -121,23 +110,13 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 聊天分析场景
      */
-    public static final List<AppSceneEnum> CHAT_ANALYSIS_SCENES = Arrays.asList(
-            AppSceneEnum.WEB_ADMIN,
-            AppSceneEnum.WEB_MARKET,
-            AppSceneEnum.SHARE_WEB,
-            AppSceneEnum.SHARE_IFRAME,
-            AppSceneEnum.SHARE_JS,
-            AppSceneEnum.SHARE_API,
-            AppSceneEnum.WECOM_GROUP,
-            AppSceneEnum.MP,
-            AppSceneEnum.CHAT_TEST
-    );
+    public static final List<AppSceneEnum> CHAT_ANALYSIS_SCENES = Arrays.asList(WEB_ADMIN, WEB_MARKET, SHARE_WEB, SHARE_IFRAME, SHARE_JS, SHARE_API, WECOM_GROUP, MP, CHAT_TEST);
 
 
     /**
      * 只获取当前登录用户态的 场景
      *
-     * @return
+     * @return 场景列表
      */
     public static Boolean inLoginUserIdScene(AppSceneEnum sceneEnum) {
 
