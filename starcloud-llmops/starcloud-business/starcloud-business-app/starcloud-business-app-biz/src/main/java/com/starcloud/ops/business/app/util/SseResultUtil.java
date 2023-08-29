@@ -4,7 +4,7 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
+import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;

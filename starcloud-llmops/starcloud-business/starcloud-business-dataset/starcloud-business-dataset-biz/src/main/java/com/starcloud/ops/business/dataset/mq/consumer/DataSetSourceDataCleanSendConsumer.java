@@ -9,6 +9,7 @@ import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.dataset.controller.admin.datasethandlerules.vo.DatasetHandleRulesRespVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasethandlerules.DatasetHandleRulesDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
@@ -93,6 +94,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             }
             // 获取符合的规则 ID
             List<Long> filteredRuleIds = datasetDataHandleRulesService.getFilteredRuleIds(message.getDatasetId(), sourceDataDO.getDataType(), ruleData, null);
+            // FIXME: 2023/8/25  单个
             if (filteredRuleIds.size() > 1) {
                 List<DatasetHandleRulesDO> repeatRuleDOS = datasetDataHandleRulesService.getRuleByIds(filteredRuleIds);
                 List<String> ruleNames = repeatRuleDOS.stream().map(DatasetHandleRulesDO::getRuleName).collect(Collectors.toList());
@@ -137,7 +139,8 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getName());
             // FIXME: 2023/8/22  后续由流程自己获取
-            // message.setSplitRule(rulesRespVO.getSplitRule());
+            DatasetHandleRulesRespVO ruleById = datasetDataHandleRulesService.getRuleById(filteredRuleIds.get(0));
+            message.setSplitRule(ruleById.getSplitRule());
             log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
         } catch (Exception e) {
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());

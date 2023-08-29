@@ -59,8 +59,8 @@ public class ChatPrompt extends BasePromptConfig {
         List<BaseMessagePromptTemplate> messagePromptTemplates = new ArrayList<>();
 
         //prePrompt 放到system里面
-        messagePromptTemplates.add(SystemMessagePromptTemplate.fromTemplate(this.chatPrePrompt.buildPromptStr()));
-        messagePromptTemplates.add(HumanMessagePromptTemplate.fromTemplate(this.buildPromptStr()));
+        messagePromptTemplates.add(new SystemMessagePromptTemplate(this.chatPrePrompt.buildPrompt()));
+        messagePromptTemplates.add(new HumanMessagePromptTemplate(this.buildPrompt()));
 
         return ChatPromptTemplate.fromMessages(messagePromptTemplates);
     }
@@ -113,21 +113,19 @@ public class ChatPrompt extends BasePromptConfig {
     }
 
     @Override
-    protected String _buildPromptStr() {
-
+    protected PromptTemplate _buildPrompt() {
         List<BaseVariable> variables = new ArrayList<>();
 
-        variables.add(BaseVariable.newString("ContextPrompt", this.contextPrompt.buildPromptStr(true)));
+        variables.add(BaseVariable.newTemplate("ContextPrompt", this.contextPrompt.buildPrompt()));
         variables.add(BaseVariable.newString("HistoryPrompt", this.historyPrompt.buildPromptStr(true)));
         PromptTemplate template;
         if (this.toolPrompt) {
-            template = new PromptTemplate(this.promptVTool);
+            template = new PromptTemplate(this.promptVTool, variables);
         } else {
-            template = new PromptTemplate(this.promptV1);
+            template = new PromptTemplate(this.promptV1, variables);
         }
 
-        return template.format(variables);
+        return template;
     }
-
 
 }

@@ -10,7 +10,7 @@ import java.util.Map;
 @Data
 public class AgentFinish extends AgentAction {
 
-    private String errorCode;
+    private Integer errorCode;
 
     private String error;
 
@@ -23,12 +23,13 @@ public class AgentFinish extends AgentAction {
 
     private Map<String, Object> returnValues = new HashMap<>();
 
-    public static AgentFinish error(String error, String log) {
+    public static AgentFinish error(Integer errorCode, String error, String log) {
 
         Map<String, Object> params = new HashMap();
-        params.put("error", error);
-        AgentFinish agentFinish = new AgentFinish(params, "");
+        AgentFinish agentFinish = new AgentFinish(params, log);
         agentFinish.setStatus(false);
+        agentFinish.setError(error);
+        agentFinish.setErrorCode(errorCode);
 
         return agentFinish;
     }

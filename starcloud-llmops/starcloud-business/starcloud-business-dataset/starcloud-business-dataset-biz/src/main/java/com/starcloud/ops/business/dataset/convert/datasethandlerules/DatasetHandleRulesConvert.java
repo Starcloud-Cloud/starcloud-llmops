@@ -27,15 +27,21 @@ public interface DatasetHandleRulesConvert {
 
         DatasetHandleRulesDO.DatasetHandleRulesDOBuilder rulesDOBuilder = DatasetHandleRulesDO.builder();
 
+        rulesDOBuilder.ruleName(bean.getRuleName());
         if (bean.getDatasetUid() != null) {
             rulesDOBuilder.datasetId(Long.parseLong(bean.getDatasetUid()));
         }
 
+        if (bean.getDatasetUid() != null) {
+            rulesDOBuilder.datasetId(Long.parseLong(bean.getDatasetUid()));
+        }
         rulesDOBuilder.ruleFilter(CollUtil.join(bean.getRuleFilter(),","));
 
         rulesDOBuilder.cleanRule(JSONUtil.toJsonStr(bean.getCleanRule()));
         rulesDOBuilder.splitRule(JSONUtil.toJsonStr(bean.getSplitRule()));
 
+        rulesDOBuilder.ruleType(bean.getRuleType());
+        rulesDOBuilder.enable(bean.getEnable());
         rulesDOBuilder.fromScene(bean.getFromScene());
 
         return rulesDOBuilder.build();

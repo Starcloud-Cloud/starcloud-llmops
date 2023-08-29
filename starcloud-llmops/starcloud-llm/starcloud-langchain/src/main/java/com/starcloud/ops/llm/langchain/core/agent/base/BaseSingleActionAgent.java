@@ -36,13 +36,13 @@ public abstract class BaseSingleActionAgent {
 
     public abstract List<AgentAction> plan(List<AgentAction> intermediateSteps, List<BaseVariable> variables, BaseCallbackManager callbackManager);
 
-    public AgentFinish returnStoppedResponse(String earlyStoppingMethod, List<AgentAction> intermediateSteps, List<BaseVariable> variables) {
+    public AgentFinish returnStoppedResponse(String earlyStoppingMethod, List<AgentAction> intermediateSteps, int iterations, long timeElapsed) {
 
         Assert.equals("force", earlyStoppingMethod, "Got unsupported early_stopping_method " + earlyStoppingMethod);
 
         String log = Optional.ofNullable(intermediateSteps).orElse(new ArrayList<>()).stream().map(AgentAction::getLog).collect(Collectors.joining("\n"));
 
-        return AgentFinish.error("Agent stopped due to iteration limit or time limit.", log);
+        return AgentFinish.error(-3, "Agent stopped due to iteration limit[" + iterations + "] or time[" + timeElapsed + "] limit.", log);
     }
 //
 //    public static BaseSingleActionAgent fromLLMAndTools(BaseLanguageModel llm, List<BaseTool> tools, BaseCallbackManager callbackManager, List<BaseMessagePromptTemplate> extraPromptMessages, SystemMessage systemMessage) {

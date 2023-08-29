@@ -54,9 +54,24 @@ public class DatasetsDO extends TenantBaseDO {
      * 索引结构
      */
     private String indexStruct;
+
+    /**
+     * 应用 ID
+     */
+    private String appId;
+
+    /**
+     *  会话 ID
+     */
+    private String conversationId;
     /**
      * 是否启用
      */
     private Boolean enabled;
+
+
+
+
+
 
 }

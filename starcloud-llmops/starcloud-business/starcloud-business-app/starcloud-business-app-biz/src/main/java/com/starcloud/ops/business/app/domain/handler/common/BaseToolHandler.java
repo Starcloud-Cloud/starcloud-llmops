@@ -1,14 +1,23 @@
 package com.starcloud.ops.business.app.domain.handler.common;
 
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import com.starcloud.ops.business.app.domain.handler.datasearch.GoogleSearchHandler;
+import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocMemory;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
+import com.starcloud.ops.llm.langchain.core.tools.SerpAPITool;
+import com.starcloud.ops.llm.langchain.core.utils.JsonUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
- * @author nacoyer
- * @version 1.0.0
- * @since 2023-05-31
+ * 基础工具handler，满足LLM下 工具调用的字段和逻辑支持
+ *
  * <p>
  * 你现在是一个prompt大师，帮我写一些关于 大语言模型调用工具的prompt。要根据给的工具描述和内容，提炼总结出给到 GPT 使用 的工具的prompt
  * <p>
@@ -22,6 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
 
+    /**
+     * 工具执行结果文档话和历史记录实现
+     */
+    private MessageContentDocMemory messageContentDocMemory;
 
     /**
      * 工具名称
@@ -63,22 +76,101 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
     private String note;
 
 
+    /**
+     * 生成个handler 实例
+     *
+     * @param name
+     * @return
+     */
+    public static BaseToolHandler of(String name) {
+
+        try {
+            //头部小写驼峰
+            return SpringUtil.getBean(StrUtil.lowerFirst(name));
+        } catch (Exception e) {
+            log.error("BaseHandler of is fail: {}", name);
+        }
+        return null;
+    }
+
+
+    /**
+     * 包装为 下午文 文档结构
+     * 默认实现，工具类型返回
+     */
+    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Q> context, HandlerResponse<R> handlerResponse) {
+
+        //解析返回的内容 生成 MessageContentDocDTO
+        List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();
+
+        MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();
+
+        messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.name());
+
+        messageContentDocDTO.setTime(DateUtil.now());
+        messageContentDocDTO.setTitle(this.getName());
+        messageContentDocDTO.setContent(JsonUtils.toJsonString(handlerResponse.getOutput()));
+
+        messageContentDocDTOList.add(messageContentDocDTO);
+
+        return messageContentDocDTOList;
+    }
+
+
     @Override
     public String getDescription() {
 
         String desc = "";
 
-        if (StrUtil.isNotBlank(this.toolDescription)) {
-            String all = "Tool Description:{}\n" +
-                    "Usage Instructions:\n{}\n" +
+        if (StrUtil.isNotBlank(this.getToolDescription())) {
+//            String all = "Tool Description: {}\n" +
+//                    "Usage Instructions:\n{}\n" +
+//                    "Interpreting Results:\n{}\n" +
+//                    "Example Input:\n{}\n" +
+//                    "Example Output:\n{}\n" +
+//                    "Please Note:\n{}\n";
+//            return StrUtil.format(all, this.getToolDescription(), getToolInstructions(), getInterpretingResults(), getExampleInput(), getExampleOutput(), getNote());
+
+            String all = "Tool Description: {}\n" +
                     "Interpreting Results:\n{}\n" +
                     "Example Input:\n{}\n" +
-                    "Example Output:\n{}\n" +
-                    "Please Note:\n{}\n";
-            return StrUtil.format(all, toolDescription, toolInstructions, interpretingResults, exampleInput, exampleOutput, note);
+                    "Example Output:\n{}\n";
+//                    "Please Note:\n{}\n";
+            return StrUtil.format(all, this.getToolDescription(), getInterpretingResults(), getExampleInput(), getExampleOutput(), getNote());
         }
 
         return desc;
+    }
+
+
+    /**
+     * 工具类型的handler 的执行记录实现方法
+     *
+     * @param context
+     * @param handlerResponse
+     */
+    public void addRespHistory(HandlerContext<Q> context, HandlerResponse<R> handlerResponse) {
+
+        if (handlerResponse.getSuccess() && Objects.nonNull(handlerResponse.getOutput())) {
+
+            List<MessageContentDocDTO> messageContentDocDTO = this.convertContentDoc(context, handlerResponse);
+
+            List<MessageContentDocDTO> historys = Optional.ofNullable(messageContentDocDTO).orElse(new ArrayList<>()).stream().map(d -> {
+                //执行的 messageId拿不到
+                Map params = new HashMap();
+                params.put("tool", this.getName());
+                params.put("messageId", "messageId");
+
+                d.setExt(params);
+
+                return d;
+            }).collect(Collectors.toList());
+
+            //增加工具使用结果历史
+            this.getMessageContentDocMemory().addHistory(historys);
+        }
+
+
     }
 
 }

@@ -50,16 +50,16 @@ public class ChatPrePrompt extends BasePromptConfig {
     }
 
     @Override
-    protected String _buildPromptStr() {
+    protected PromptTemplate _buildPrompt() {
 
         BaseVariable variable = BaseVariable.newString("UserPrompt", this.userPrompt);
         BaseVariable tone = BaseVariable.newString("PreTonePrompt", this.tonePrompt.buildPromptStr(true));
         BaseVariable maxReturn = BaseVariable.newString("PreMaxReturnPrompt", this.maxReturnPrompt.buildPromptStr(true));
         BaseVariable replyLang = BaseVariable.newString("PreReplyLangPrompt", this.replyLangPrompt.buildPromptStr(true));
 
-        PromptTemplate template = new PromptTemplate(this.promptV1);
+        PromptTemplate template = new PromptTemplate(this.promptV1, Arrays.asList(variable, tone, maxReturn, replyLang));
 
-        return template.format(Arrays.asList(variable, tone, maxReturn, replyLang));
+        return template;
     }
 
     @Override

@@ -2,33 +2,26 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.app.util.PromptUtil;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
-import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -55,9 +48,6 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
     private String name = "DocSearchHandler";
 
-    private String description = "A portal to the internet. Use this when you need to get specific content from a website. Input should be a  url (i.e. https://www.google.com). The output should be a json string with two keys: \"content\" and\" docKey\". The value of \"content\" is a summary of the content of the website, and the value of\" docKey\" is the tag of the website to point to.";
-
-
     /**
      * 工具名称
      */
@@ -66,7 +56,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
     /**
      * 工具描述
      */
-    private String toolDescription = "Welcome to the Document Content Search tool. This tool is designed to help you quickly search for desired content within a large collection of documents. Simply provide a search query and a set of context document IDs, and the tool will return a JSON string array containing relevant information.";
+    private String toolDescription = "This tool is designed to help you quickly search for desired content within a large collection of documents.\n";
 
     /**
      * 使用方法
@@ -77,8 +67,9 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
     /**
      * 结果解释
+     * "The tool will return a JSON string array, where each array item contains four key-value pairs:\n" +
      */
-    private String interpretingResults = "The tool will return a JSON string array, where each array item contains four key-value pairs:\n" +
+    private String interpretingResults =
             "- \"docId\": Document ID, identifying the document where the content was found.\n" +
             "- \"blockId\": Block ID, identifying the document block containing the matching content.\n" +
             "- \"position\": Position of the document block within the document, aiding in locating the matching content.\n" +
@@ -101,12 +92,6 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
             "    \"blockId\": \"block234\",\n" +
             "    \"position\": 125,\n" +
             "    \"content\": \"This article discusses the product features and advantages.\"\n" +
-            "  },\n" +
-            "  {\n" +
-            "    \"docId\": \"doc456\",\n" +
-            "    \"blockId\": \"block567\",\n" +
-            "    \"position\": 42,\n" +
-            "    \"content\": \"The detailed list of product features is as follows...\"\n" +
             "  }\n" +
             "  // More matching items...\n" +
             "]";
@@ -115,7 +100,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
     /**
      * 注意
      */
-    private String note = "- Provide a clear search query for more accurate results.\n" +
+    private String note =
             "- Context document ID collection enhances search precision and accuracy.\n" +
             "- Adjust the search query and document collection as needed to meet your information requirements.";
 

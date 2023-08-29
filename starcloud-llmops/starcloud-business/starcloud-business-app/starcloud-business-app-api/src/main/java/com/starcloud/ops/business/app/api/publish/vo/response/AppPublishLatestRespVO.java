@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.publish.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
+import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -127,5 +128,11 @@ public class AppPublishLatestRespVO implements Serializable {
      */
     @Schema(description = "发布渠道")
     private Map<Integer, List<AppPublishChannelRespVO>> channelMap;
+
+    /**
+     * 应用发布限流信息
+     */
+    @Schema(description = "应用发布限流信息")
+    private AppPublishLimitRespVO limit;
 
 }

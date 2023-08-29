@@ -6,9 +6,10 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
@@ -33,7 +34,7 @@ import java.util.Optional;
 @Data
 @Slf4j
 @Component
-public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Request, WebSearch2DocHandler.Response> {
+public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.Request, WebSearch2DocHandler.Response> {
 
     private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
@@ -72,8 +73,6 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
         uploadUrlReqVO.setDatasetId(datasetId);
 
         SplitRule splitRule = new SplitRule();
-        splitRule.setAutomatic(true);
-        splitRule.setRemoveExtraSpaces(true);
 
         List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();

@@ -91,6 +91,8 @@ public abstract class Chain<R> {
 
             chainRun.onChainError(e.getMessage(), e);
 
+            throw e;
+
             //this.getCallbackManager().onChainError(e.getMessage(), e);
         }
 

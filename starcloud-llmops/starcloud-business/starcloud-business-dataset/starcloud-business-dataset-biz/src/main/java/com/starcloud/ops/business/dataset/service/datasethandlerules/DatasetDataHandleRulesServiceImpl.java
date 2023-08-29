@@ -11,6 +11,7 @@ import com.starcloud.ops.business.dataset.convert.datasethandlerules.DatasetHand
 import com.starcloud.ops.business.dataset.dal.dataobject.datasethandlerules.DatasetHandleRulesDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasethandlerules.DatasetHandleRulesMapper;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataFormatEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.CleanRuleVO;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,6 +95,10 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
     public Boolean updateRules(DatasetHandleRulesUpdateReqVO updateReqVO) {
 
         validateExists(updateReqVO.getId());
+        // 获取数据集信息
+        DatasetsDO datasets = datasetsService.getDatasets(updateReqVO.getDatasetUid());
+
+        updateReqVO.setDatasetUid(String.valueOf(datasets.getId()));
 
         DatasetHandleRulesDO updateObj = DatasetHandleRulesConvert.INSTANCE.convert(updateReqVO);
         int result = handleRulesMapper.updateById(updateObj);
@@ -164,10 +170,10 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
 
         List<Long> filteredRuleIds = this.getFilteredRuleIds(datasets.getId(), debugReqVO.getDataType(), debugReqVO.getUrl(), null);
 
-        if (filteredRuleIds.size()>1){
+        if (filteredRuleIds.size() > 1) {
             List<DatasetHandleRulesDO> repeatRuleDOS = this.getRuleByIds(filteredRuleIds);
             List<String> ruleNames = repeatRuleDOS.stream().map(DatasetHandleRulesDO::getRuleName).collect(Collectors.toList());
-            throw exception(DATASET_HANDLE_RULE_REPEAT_NORMAL,CollUtil.join(ruleNames,","));
+            throw exception(DATASET_HANDLE_RULE_REPEAT_NORMAL, CollUtil.join(ruleNames, ","));
         }
 
         // 获取当前数据集
@@ -183,16 +189,66 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
         String cleanData;
         if (DataSourceDataTypeEnum.HTML.name().equals(debugReqVO.getDataType())) {
             String data = TextCleanAndSplitUtils.processHtmlRule(debugReqVO.getUrl(), cleanRuleVO.getHtmlCleanRule());
-             cleanData = TextCleanAndSplitUtils.processCommonRule(data, cleanRuleVO.getCommonCleanRule());
+            cleanData = TextCleanAndSplitUtils.processCommonRule(data, cleanRuleVO.getCommonCleanRule());
         } else if (DataSourceDataTypeEnum.CHARACTERS.name().equals(debugReqVO.getDataType())) {
             String data = TextCleanAndSplitUtils.processHtmlRule(debugReqVO.getUrl(), cleanRuleVO.getHtmlCleanRule());
-             cleanData = TextCleanAndSplitUtils.processCommonRule(data, cleanRuleVO.getCommonCleanRule());
+            cleanData = TextCleanAndSplitUtils.processCommonRule(data, cleanRuleVO.getCommonCleanRule());
         } else {
             throw exception(DATASET_HANDLE_RULE_TYPE_UNKNOWN);
         }
         datasetHandleRulesDebugRespVO.setRuleName(handleRulesDO.getRuleName());
         datasetHandleRulesDebugRespVO.setData(cleanData);
         return datasetHandleRulesDebugRespVO;
+    }
+
+    /**
+     * 删除规则
+     * @param ruleId
+     * @return
+     */
+    @Override
+    public Boolean deleteRule(Long ruleId) {
+        // 验证数据是否存在
+        DatasetHandleRulesDO datasetHandleRulesDO = handleRulesMapper.selectById(ruleId);
+        if (datasetHandleRulesDO ==null){
+            throw exception(DATASET_HANDLE_RULE_EXISTS);
+        }
+        // 删除数据
+        int result = handleRulesMapper.deleteById(ruleId);
+        // 返回结果
+        return BooleanUtil.isTrue(1== result);
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public List<HandleRuleTypeRespVO> getRuleType() {
+        DataSourceDataTypeEnum[] values = DataSourceDataTypeEnum.values();
+        List<HandleRuleTypeRespVO> handleRuleTypeRespVOS = new ArrayList<>();
+        Arrays.stream(values).forEach(data->{
+            HandleRuleTypeRespVO handleRuleTypeRespVO = new HandleRuleTypeRespVO();
+            handleRuleTypeRespVO.setType(data.name());
+            handleRuleTypeRespVO.setTypeName(data.getName());
+            handleRuleTypeRespVOS.add(handleRuleTypeRespVO);
+        });
+        return handleRuleTypeRespVOS;
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public List<HandleRuleTypeRespVO> getFormatType() {
+        DataSourceDataFormatEnum[] values = DataSourceDataFormatEnum.values();
+        List<HandleRuleTypeRespVO> handleRuleTypeRespVOS = new ArrayList<>();
+        Arrays.stream(values).forEach(data->{
+            HandleRuleTypeRespVO handleRuleTypeRespVO = new HandleRuleTypeRespVO();
+            handleRuleTypeRespVO.setType(data.name());
+            handleRuleTypeRespVO.setTypeName(data.getName());
+            handleRuleTypeRespVOS.add(handleRuleTypeRespVO);
+        });
+        return handleRuleTypeRespVOS;
     }
 
     /**
@@ -208,9 +264,9 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
         // 获取当前数据集
         LambdaQueryWrapper<DatasetHandleRulesDO> wrapper = Wrappers.lambdaQuery(DatasetHandleRulesDO.class)
                 .eq(DatasetHandleRulesDO::getDatasetId, datasetId)
-                .eq(DatasetHandleRulesDO::getRuleType, ruleId)
+                .eq(DatasetHandleRulesDO::getRuleType, ruleType)
                 .eq(DatasetHandleRulesDO::getEnable, true)
-                .eq(BooleanUtil.isTrue(ruleId == null), DatasetHandleRulesDO::getId, ruleId);
+                .eq(BooleanUtil.isTrue(ruleId != null), DatasetHandleRulesDO::getId, ruleId);
 
         List<DatasetHandleRulesDO> datasetHandleRulesDOS = handleRulesMapper.selectList(wrapper);
 
@@ -218,6 +274,7 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
         List<Long> filterIs = matchRules(data, ruleType, datasetHandleRulesDOS);
         // 没有匹配到用户指定的预处理规则
         if (CollUtil.isEmpty(filterIs)) {
+            log.info("未匹配到用户配置的数据清洗规则，采用系统默认规则");
             // 获取系统配置
             DatasetHandleRulesDO systemRuleConfig = getSystemRuleConfig();
             filterIs = CollUtil.toList(systemRuleConfig.getId());

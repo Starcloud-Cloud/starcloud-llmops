@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.domain.entity.config.*;
 import com.starcloud.ops.business.app.domain.entity.skill.*;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,7 +30,7 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
         Optional.ofNullable(this.getHandlerSkills()).orElse(new ArrayList<>()).stream().forEach(handlerSkill -> {
             if (handlerSkill.getHandler() == null) {
-                handlerSkill.setHandler(BaseHandler.of(handlerSkill.getSkillName()));
+                handlerSkill.setHandler(BaseToolHandler.of(handlerSkill.getSkillName()));
             }
         });
     }

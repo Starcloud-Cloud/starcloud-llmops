@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
+import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     @Override
     protected ActionResponse _execute(Request request) {
         log.info("OpenAI ChatGPT Action 执行开始...");
-        StreamingSseCallBackHandler callBackHandler = new StreamingSseCallBackHandler(this.getAppContext().getSseEmitter(), this.getAppContext().getConversationUid());
+        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
         OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(callBackHandler);
 
         //获取前端传的完整字段（老结构）

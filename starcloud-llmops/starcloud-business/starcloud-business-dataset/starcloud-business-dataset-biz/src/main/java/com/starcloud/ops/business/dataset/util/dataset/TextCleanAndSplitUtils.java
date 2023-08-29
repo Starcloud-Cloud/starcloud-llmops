@@ -7,7 +7,6 @@ import com.starcloud.ops.business.dataset.pojo.dto.CommonCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.HTMLCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import io.github.furstenheim.CopyDown;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -95,24 +94,24 @@ public class TextCleanAndSplitUtils {
 
     public static String splitText(String text, SplitRule splitRule) {
 
-        // 用户自定义 正则
-        if (StringUtils.isNotBlank(splitRule.getPattern())) {
-            Pattern line = Pattern.compile(splitRule.getPattern());
-            text = line.matcher(text).replaceAll(StringUtils.EMPTY);
-        }
-        // 去除 空格
-        if (BooleanUtils.isNotFalse(splitRule.getAutomatic())) {
-            text = removeUrlsEmails(text);
-            return text;
-        }
-        // 去除 空白区域
-        if (BooleanUtils.isTrue(splitRule.getRemoveExtraSpaces())) {
-            text = removeExtraSpaces(text);
-        }
-        // 去除 链接中的邮箱
-        if (BooleanUtils.isTrue(splitRule.getRemoveUrlsEmails())) {
-            text = removeUrlsEmails(text);
-        }
+        // // 用户自定义 正则
+        // if (StringUtils.isNotBlank(splitRule.getPattern())) {
+        //     Pattern line = Pattern.compile(splitRule.getPattern());
+        //     text = line.matcher(text).replaceAll(StringUtils.EMPTY);
+        // }
+        // // 去除 空格
+        // if (BooleanUtils.isNotFalse(splitRule.getAutomatic())) {
+        //     text = removeUrlsEmails(text);
+        //     return text;
+        // }
+        // // 去除 空白区域
+        // if (BooleanUtils.isTrue(splitRule.getRemoveExtraSpaces())) {
+        //     text = removeExtraSpaces(text);
+        // }
+        // // 去除 链接中的邮箱
+        // if (BooleanUtils.isTrue(splitRule.getRemoveUrlsEmails())) {
+        //     text = removeUrlsEmails(text);
+        // }
         return text;
     }
 
