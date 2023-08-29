@@ -84,6 +84,28 @@ public class ChatTest extends BaseDbUnitTest {
     }
 
     /**
+     * 普通对话
+     */
+    @Test
+    public void runMyChat1Test() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("8df9343b57464dab8974b2704c6a18e4");
+        chatRequest.setUserId(188L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        chatRequest.setQuery("你好11？");
+
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+    /**
      * 普通带历史聊天
      */
     @Test
