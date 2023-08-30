@@ -48,9 +48,6 @@ public class DatasetTest extends BaseDbUnitTest {
     @Autowired
     private ChatService chatService;
 
-    @MockBean
-    private TenantDatabaseInterceptor tenantDatabaseInterceptor;
-
 
     @MockBean
     private PermissionApi permissionApi;
