@@ -279,4 +279,32 @@ public class ChatTest extends BaseDbUnitTest {
 
     }
 
+
+
+    /**
+     * 带工具聊天 + 历史
+     */
+    @Test
+    public void runMyChatToolHistory2Test() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+        chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
+
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("查询下 南京 2023年8月29号和8月30号的天气，并做个温度比较给我。");
+
+
+        chatService.chat(chatRequest);
+
+    }
+
 }

@@ -55,13 +55,21 @@ public abstract class BaseMessage implements Serializable {
             Object call = message.getAdditionalArgs().get("function_call");
             if (ObjectUtil.isNotNull(call)) {
                 //这时候 message.getContent() 其实为空
-                content += "function_call " + JsonUtils.toJsonString(call);
+                Map _hasMap = new HashMap() {{
+                    put("function_call", call);
+                }};
+                content += JsonUtils.toJsonString(_hasMap);
             }
         } else if (message instanceof SystemMessage) {
             role = "System";
         } else if (message instanceof FunctionMessage) {
             role = "Function";
-            content = ((FunctionMessage) message).getName() + " returns ```" + content + "```";
+            String finalContent = content;
+            Map _hasMap = new HashMap() {{
+                put("name", ((FunctionMessage) message).getName());
+                put("content", finalContent);
+            }};
+            content = JsonUtils.toJsonString(_hasMap);
         } else {
             role = "Human";
         }
