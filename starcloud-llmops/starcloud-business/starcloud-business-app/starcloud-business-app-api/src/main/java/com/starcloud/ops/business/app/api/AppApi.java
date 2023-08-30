@@ -11,6 +11,18 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
  */
 public interface AppApi {
 
-    AppRespVO get(String appUID);
+    /**
+     * 获取应用信息
+     * @param appUid 应用 UID
+     * @return 应用信息
+     */
+    AppRespVO get(String appUid);
+
+    /**
+     * 获取应用信息-简单
+     * @param appUid 应用 UID
+     * @return 应用信息
+     */
+    AppRespVO getSimple(String appUid);
 
 }
