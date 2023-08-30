@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
@@ -395,7 +396,9 @@ public class AppPublishServiceImpl implements AppPublishService {
      */
     private AppMarketEntity handlerMarketApp(AppPublishDO appPublish) {
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appPublish);
-        appMarketEntity.setImages(buildImages(appMarketEntity.getCategories()));
+        if (!AppModelEnum.CHAT.name().equals(appPublish.getModel())) {
+            appMarketEntity.setImages(buildImages(appMarketEntity.getCategories()));
+        }
         // marketUid 不为空，说明已经发布过，需要更新发布记录
         if (StringUtils.isNotBlank(appPublish.getMarketUid())) {
             AppMarketDO appMarket = appMarketMapper.get(appPublish.getMarketUid(), Boolean.TRUE);

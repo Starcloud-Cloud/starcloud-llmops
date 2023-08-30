@@ -350,19 +350,28 @@ public class AppLogServiceImpl implements AppLogService {
     public PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query) {
         LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
         AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
+        String images = StringUtils.EMPTY;
 
-        AppDO app = appMapper.get(appConversation.getAppUid(), Boolean.TRUE);
-        AppValidate.notNull(app, APP_NO_EXISTS_UID, appConversation.getAppUid());
+        if (AppSceneEnum.CHAT_MARKET.name().equals(query.getFromScene())) {
+            AppMarketDO appMarketDO = appMarketMapper.get(appConversation.getAppUid(), Boolean.TRUE);
+            AppValidate.notNull(appMarketDO, APP_NO_EXISTS_UID, appConversation.getAppUid());
+            images = appMarketDO.getImages();
+        } else {
+            AppDO app = appMapper.get(appConversation.getAppUid(), Boolean.TRUE);
+            AppValidate.notNull(app, APP_NO_EXISTS_UID, appConversation.getAppUid());
+            images = app.getImages();
+        }
 
         PageResult<LogAppMessageDO> messagePageResult = chatService.chatHistory(query.getConversationUid(), query.getPageNo(), query.getPageSize());
         List<LogAppMessageDO> chatMessageList = messagePageResult.getList();
         // 校验日志消息是否存在
         AppValidate.notEmpty(chatMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
 
+        String finalImages = images;
         List<AppLogMessageRespVO> collect = CollectionUtil.emptyIfNull(chatMessageList).stream()
                 .filter(Objects::nonNull)
                 .map(item -> {
-                    AppLogMessageRespVO appLogMessageResponse = transformAppLogMessage(item, appConversation, app);
+                    AppLogMessageRespVO appLogMessageResponse = transformAppLogMessage(item, appConversation, finalImages);
                     if (StringUtils.isNotBlank(item.getMediumUid())) {
                         AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(item.getMediumUid());
                         appLogMessageResponse.setChannel(channel);
@@ -411,9 +420,9 @@ public class AppLogServiceImpl implements AppLogService {
      * @param conversation 会话
      * @return AppLogMessageRespVO
      */
-    private AppLogMessageRespVO transformAppLogMessage(LogAppMessageDO message, LogAppConversationDO conversation, AppDO app) {
+    private AppLogMessageRespVO transformAppLogMessage(LogAppMessageDO message, LogAppConversationDO conversation, String images) {
         AppLogMessageRespVO appLogMessageResponse = transformAppLogMessage(message, conversation);
-        appLogMessageResponse.setImages(AppUtils.split(app.getImages()));
+        appLogMessageResponse.setImages(AppUtils.split(images));
         return appLogMessageResponse;
     }
 
