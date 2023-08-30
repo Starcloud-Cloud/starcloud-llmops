@@ -1,18 +1,23 @@
 package com.starcloud.ops.business.app.service.dict.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
+import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.limit.LimitConfigEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -70,4 +75,37 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
                     return imageMetaDTO;
                 }).collect(Collectors.toList());
     }
+
+    /**
+     * 获取应用限流兜底配置
+     *
+     * @return 应用限流兜底配置
+     */
+    @Override
+    public List<LimitConfigDTO> appSystemLimitConfig() {
+        DictDataExportReqVO request = new DictDataExportReqVO();
+        request.setDictType(AppConstants.APP_LIMIT_DEFAULT_CONFIG);
+        request.setStatus(StateEnum.ENABLE.getCode());
+        List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return defaultSystemLimitConfig();
+        }
+        return dictDataList.stream()
+                .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getRemark()))
+                .map(item -> {
+                    LimitConfigDTO limitConfig = JSONUtil.toBean(item.getRemark(), LimitConfigDTO.class);
+                    limitConfig.setCode(item.getValue());
+                    return limitConfig;
+                }).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取应用系统限流兜底配置
+     *
+     * @return 应用限流兜底配置
+     */
+    private static List<LimitConfigDTO> defaultSystemLimitConfig() {
+        return Arrays.stream(LimitConfigEnum.values()).map(LimitConfigEnum::getDefaultSystemConfig).collect(Collectors.toList());
+    }
+
 }
