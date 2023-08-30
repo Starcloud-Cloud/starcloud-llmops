@@ -2,10 +2,14 @@ package com.starcloud.ops.business.dataset.service.datasets;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.AppApi;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsCreateReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsUpdateReqVO;
@@ -15,6 +19,7 @@ import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
 import com.starcloud.ops.business.dataset.enums.DatasetPermissionEnum;
 import com.starcloud.ops.business.dataset.enums.DatasetProviderEnum;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -35,6 +40,10 @@ public class DatasetsServiceImpl implements DatasetsService {
 
     @Resource
     private DatasetsMapper datasetsMapper;
+
+    @Resource
+    @Lazy
+    private AppApi appApi;
 
     @Override
     public String createDatasets(DatasetsCreateReqVO createReqVO) {
@@ -210,6 +219,14 @@ public class DatasetsServiceImpl implements DatasetsService {
      */
     @Override
     public DatasetsDO getDatasetInfoBySession(String appId, String sessionId) {
+        try {
+            TenantContextHolder.getRequiredTenantId();
+        } catch (Exception e) {
+            AppRespVO appRespVO = appApi.get(appId);
+            TenantContextHolder.setTenantId(appRespVO.getTenantId());
+            TenantContextHolder.setIgnore(false);
+            UserContextHolder.setUserId(Long.valueOf(appRespVO.getCreator()));
+        }
         try {
             DatasetsDO datasetsDO = datasetsMapper.selectOne(
                     Wrappers.lambdaQuery(DatasetsDO.class)

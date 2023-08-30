@@ -108,5 +108,21 @@ public class DatasetSourceDataController {
         return success(true);
     }
 
+    @PostMapping("/delete")
+    @Operation(summary = "启用源数据")
+    @Parameter(name = "uid", description = "编号", required = true)
+    public CommonResult<Boolean> enable(@RequestParam("uid") String uid) {
+        datasetSourceDataService.enable(uid);
+        return success(true);
+    }
+
+    @PostMapping("/disable")
+    @Operation(summary = "禁用源数据")
+    @Parameter(name = "uid", description = "编号", required = true)
+    public CommonResult<Boolean> disable(@RequestParam("uid") String uid) {
+        datasetSourceDataService.disable(uid);
+        return success(true);
+    }
+
 
 }

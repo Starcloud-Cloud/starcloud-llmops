@@ -292,6 +292,7 @@ public interface AppConvert {
         appRespVO.setInstallUid(app.getInstallUid());
         appRespVO.setCreator(app.getCreator());
         appRespVO.setUpdater(app.getUpdater());
+        appRespVO.setTenantId(app.getTenantId());
         if (needUserName) {
             appRespVO.setCreatorName(UserUtils.getUsername(app.getCreator()));
             appRespVO.setUpdaterName(UserUtils.getUsername(app.getUpdater()));
