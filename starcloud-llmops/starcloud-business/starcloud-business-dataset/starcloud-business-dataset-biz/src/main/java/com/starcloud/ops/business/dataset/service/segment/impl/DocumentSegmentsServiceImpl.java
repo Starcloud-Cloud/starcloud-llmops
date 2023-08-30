@@ -236,7 +236,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Override
     public void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule) {
         Assert.notBlank(dataSourceId, "dataSourceId is null");
-        List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
+        List<String> splitText = SplitterContainer.CHARACTER_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
         DatasetsDO datasets = datasetsService.getDataById(Long.valueOf(datasetId));
         if (datasets == null) {
             throw exception(DATASETS_NOT_EXIST_ERROR);
