@@ -303,6 +303,45 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         datasetSourceDataMapper.delete(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid));
     }
 
+    /**
+     * 禁用源数据
+     *
+     * @param uid 数据集源数据编号
+     */
+    @Override
+    public void disable(String uid) {
+
+        DatasetSourceDataDO dataDO = getSourceDataByUID(uid, null);
+        if (dataDO == null) {
+            throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
+        }
+        if (dataDO.getEnabled()) {
+            dataDO.setEnabled(false);
+            datasetSourceDataMapper.updateById(dataDO);
+        } else {
+            throw exception(DATASET_SOURCE_DATA_ENABLE_STATUS_FAIL);
+        }
+    }
+
+    /**
+     * 启用源数据
+     *
+     * @param uid 数据集源数据编号
+     */
+    @Override
+    public void enable(String uid) {
+        DatasetSourceDataDO dataDO = getSourceDataByUID(uid, null);
+        if (dataDO == null) {
+            throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
+        }
+        if (!dataDO.getEnabled()) {
+            dataDO.setEnabled(true);
+            datasetSourceDataMapper.updateById(dataDO);
+        } else {
+            throw exception(DATASET_SOURCE_DATA_ENABLE_STATUS_FAIL);
+        }
+    }
+
     private void validateDatasetSourceDataExists(String uid) {
         if (datasetSourceDataMapper.selectOne(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid)) == null) {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);

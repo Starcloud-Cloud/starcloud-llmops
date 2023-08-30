@@ -40,7 +40,10 @@ public interface ErrorCodeConstants {
 
     ErrorCode DATASET_SOURCE_DATA_STUDY_IN = new ErrorCode(2007002005, "数据学习中，请在学习完成后查看");
     ErrorCode DATASET_SOURCE_UPLOAD_DATA_FAIL_APPID = new ErrorCode(1003001006, "上传数据异常，应用 ID 为空");
+    ErrorCode DATASET_SOURCE_DATA_ENABLE_STATUS_FAIL = new ErrorCode(2007002007, "数据状态已经刷新,请刷新后重试");
     ErrorCode SUMMARY_ERROR = new ErrorCode(1003001011, "总结文档失败");
+
+
 
 
 

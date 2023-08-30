@@ -58,6 +58,19 @@ public interface DatasetSourceDataService {
      */
     void deleteDatasetSourceData(String uid);
 
+    /**
+     * 禁用源数据
+     *
+     * @param uid 数据集源数据编号
+     */
+    void disable(String uid);
+
+    /**
+     * 启用源数据
+     *
+     * @param uid 数据集源数据编号
+     */
+    void enable(String uid);
 
     /**
      * 获得数据集源数据分页
