@@ -776,7 +776,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         try {
             TenantContextHolder.getRequiredTenantId();
         } catch (Exception e) {
-            AppRespVO appRespVO = appApi.get(appId);
+            AppRespVO appRespVO = appApi.getSimple(appId);
             TenantContextHolder.setTenantId(appRespVO.getTenantId());
             TenantContextHolder.setIgnore(false);
             UserContextHolder.setUserId(Long.valueOf(appRespVO.getCreator()));
