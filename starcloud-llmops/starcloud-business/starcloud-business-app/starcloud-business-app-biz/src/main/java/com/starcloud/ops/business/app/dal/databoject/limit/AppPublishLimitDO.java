@@ -55,46 +55,16 @@ public class AppPublishLimitDO extends TenantBaseDO {
     private String channelUid;
 
     /**
-     * 是否启用总量限制，0：禁用，1：启用
-     */
-    @TableField("quota_enable")
-    private Boolean quotaEnable;
-
-    /**
-     * 总量限制配置
-     */
-    @TableField("quota_config")
-    private String quotaConfig;
-
-    /**
-     * 是否启用频率限制，0：禁用，1：启用
-     */
-    @TableField("rate_enable")
-    private Boolean rateEnable;
-
-    /**
      * 频率限制配置
      */
     @TableField("rate_config")
     private String rateConfig;
 
     /**
-     * 是否启用用户用量限制，0：禁用，1：启用
-     */
-    @TableField("user_quota_enable")
-    private Boolean userQuotaEnable;
-
-    /**
      * 用户用量限制配置
      */
-    @TableField("user_quota_config")
-    private String userQuotaConfig;
-
-    /**
-     * 是否启用广告位限制，0：禁用，1：启用
-     */
-    @TableField("advertising_enable")
-    private Boolean advertisingEnable;
+    @TableField("user_rate_config")
+    private String userRateConfig;
 
     /**
      * 广告位限制配置
