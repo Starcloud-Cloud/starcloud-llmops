@@ -2,7 +2,6 @@ package com.starcloud.ops.business.dataset.service.segment.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -15,7 +14,6 @@ import com.github.xiaoymin.knife4j.core.util.Assert;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
 import com.starcloud.ops.business.dataset.convert.segment.DocumentSegmentConvert;
-import com.starcloud.ops.business.dataset.dal.dataobject.datasethandlerules.DatasetHandleRulesDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
@@ -40,10 +38,13 @@ import com.starcloud.ops.business.dataset.service.task.SummaryEntity;
 import com.starcloud.ops.business.dataset.service.task.SummaryTask;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanAndSplitUtils;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
-import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
-import com.starcloud.ops.llm.langchain.core.model.llm.document.*;
-import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStore;
+import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
+import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
+import com.starcloud.ops.llm.langchain.core.model.llm.document.EmbeddingDetail;
+import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;
+import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryHit;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.starcloud.ops.llm.langchain.core.utils.VectorSerializeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.io.*;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -235,7 +236,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Override
     public void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule) {
         Assert.notBlank(dataSourceId, "dataSourceId is null");
-        List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
+        List<String> splitText = SplitterContainer.CHARACTER_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
         DatasetsDO datasets = datasetsService.getDataById(Long.valueOf(datasetId));
         if (datasets == null) {
             throw exception(DATASETS_NOT_EXIST_ERROR);
@@ -340,21 +341,22 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             long embeddingEnd = System.currentTimeMillis();
             log.info("embedding finished , time consume {}", embeddingEnd - splitEnd);
             String ruleId = IdUtil.getSnowflakeNextIdStr();
-            DatasetHandleRulesDO splitRulesDO = new DatasetHandleRulesDO();
-            splitRulesDO.setCleanRule(JSONUtil.toJsonStr(splitRule));
-            splitRulesDO.setSplitRule(JSONUtil.toJsonStr(splitRule));
-            splitRulesDO.setId(Long.valueOf(ruleId));
-            splitRulesDO.setDatasetId(Long.valueOf(datasetId));
-            splitRulesDO.setTenantId(tenantId);
-            splitRulesDO.setCreator(creator);
-            splitRulesDO.setUpdater(creator);
-
-            splitRulesMapper.insert(splitRulesDO);
+            // FIXME: 2023/8/29  拆分规则由清洗时匹配
+            // DatasetHandleRulesDO splitRulesDO = new DatasetHandleRulesDO();
+            // splitRulesDO.setCleanRule(JSONUtil.toJsonStr(splitRule));
+            // splitRulesDO.setSplitRule(JSONUtil.toJsonStr(splitRule));
+            // splitRulesDO.setId(Long.valueOf(ruleId));
+            // splitRulesDO.setDatasetId(Long.valueOf(datasetId));
+            // splitRulesDO.setTenantId(tenantId);
+            // splitRulesDO.setCreator(creator);
+            // splitRulesDO.setUpdater(creator);
+            //
+            // splitRulesMapper.insert(splitRulesDO);
             updateWrapper.set(DatasetSourceDataDO::getProcessingStartedTime, ofMill(start))
                     .set(DatasetSourceDataDO::getCleaningCompletedTime, ofMill(cleanEnd))
                     .set(DatasetSourceDataDO::getSplittingCompletedTime, ofMill(splitEnd))
                     .set(DatasetSourceDataDO::getIndexingTime, embeddingEnd - splitEnd)
-                    .set(DatasetSourceDataDO::getDatasetProcessRuleId, ruleId)
+                    // .set(DatasetSourceDataDO::getRuleId, ruleId)
                     .set(DatasetSourceDataDO::getEnabled, true);
         } catch (Exception e) {
             updateWrapper.set(DatasetSourceDataDO::getEnabled, false)

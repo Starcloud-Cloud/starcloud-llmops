@@ -1,11 +1,12 @@
 package com.starcloud.ops.business.dataset.core.handler.impl;
 
-import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadCharacterReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadFileReqVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
 import com.starcloud.ops.business.dataset.convert.datasetstorage.DatasetStorageConvert;
@@ -18,7 +19,6 @@ import com.starcloud.ops.business.dataset.core.handler.strategy.UrlUploadStrateg
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
-import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
@@ -27,19 +27,19 @@ import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataCleanProducer;
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
+import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
-import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_NOT_EXISTS;
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASET_SOURCE_UPLOAD_DATA_FAIL_APPID;
 
 /**
  * 数据源数据上传逻辑 - 支持 HTML、文件、字符串、siteMap 上传
@@ -55,7 +55,10 @@ public class ProcessingServiceImpl implements ProcessingService {
     private final StringUploadStrategy stringUploadStrategy;
 
     @Resource
-    private DatasetDataHandleRulesService datasetDataHandleRules;
+    private DatasetsService datasetsService;
+
+    @Resource
+    private DatasetDataHandleRulesService datasetDataHandleRulesService;
     @Resource
     @Lazy
     private DatasetSourceDataCleanProducer dataSetProducer;
@@ -66,8 +69,6 @@ public class ProcessingServiceImpl implements ProcessingService {
     @Resource
     private DatasetStorageMapper datasetStorageMapper;
 
-    @Resource
-    private DatasetsMapper datasetsMapper;
 
 
     @Autowired
@@ -78,51 +79,54 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public UploadResult fileProcessing(MultipartFile file, byte[] fileContent, UploadFileReqVO reqVO, Integer dataModel, String dataType) {
-        log.info("====> 数据集{}开始上传文件", reqVO.getDatasetId());
-        DatasetsDO datasetInfo = getDatasetInfo(reqVO.getDatasetId());
-        fileUploadStrategy.setFileData(file, fileContent);
+    public UploadResult fileProcessing(UploadFileReqVO reqVO) {
+        // 根据应用 ID 获取数据集信息
+        DatasetsDO datasetInfo = validateDatasets(reqVO);
 
+        log.info("====> 数据集{}开始上传文件", datasetInfo.getId());
+        fileUploadStrategy.setFileData(reqVO.getFile(), reqVO.getFileContent());
         UploadContentDTO process = fileUploadStrategy.process(getUserId(datasetInfo.getId()));
         process.setSync(reqVO.getSync());
         process.setBatch(reqVO.getBatch());
         process.setDatasetId(datasetInfo.getId());
-        process.setDataModel(dataModel);
-        process.setDataType(dataType);
+        process.setDataModel(reqVO.getDataModel());
+        process.setDataType(reqVO.getDataType());
         // 执行通用逻辑并且返回
         return commonProcess(process);
     }
 
 
     @Override
-    public UploadResult urlProcessing(String url, UploadUrlReqVO reqVO, Integer dataModel, String dataType) {
-        log.info("====> 数据集{}开始上传URL", reqVO.getDatasetId());
-        DatasetsDO datasetInfo = getDatasetInfo(reqVO.getDatasetId());
-        // 获取规则 设置语言
-        urlUploadStrategy.setUrl(url, getLanguageRule(datasetInfo.getId()));
+    public UploadResult urlProcessing(UploadUrlReqVO reqVO) {
 
+        // 根据应用 ID 获取数据集信息
+        DatasetsDO datasetInfo = validateDatasets(reqVO);
+        log.info("====> 数据集{}开始上传URL", datasetInfo.getId());
+
+        urlUploadStrategy.setUrl(reqVO.getUrls().get(0), getLanguageRule(datasetInfo.getId(), reqVO.getUrls().get(0)));
         UploadContentDTO process = urlUploadStrategy.process(getUserId(datasetInfo.getId()));
-        process.setInitAddress(url);
+        process.setInitAddress(reqVO.getUrls().get(0));
         process.setSync(reqVO.getSync());
         process.setBatch(reqVO.getBatch());
         process.setDatasetId(datasetInfo.getId());
-        process.setDataModel(dataModel);
-        process.setDataType(dataType);
+        process.setDataModel(reqVO.getDataModel());
+        process.setDataType(reqVO.getDataType());
         // 执行通用逻辑并且返回
         return commonProcess(process);
     }
 
     @Override
-    public UploadResult stringProcessing(UploadCharacterReqVO reqVO, Integer dataModel, String dataType) {
-        log.info("====> 数据集{}开始上传字符串", reqVO.getDatasetId());
-        DatasetsDO datasetInfo = getDatasetInfo(reqVO.getDatasetId());
-        stringUploadStrategy.setData(reqVO.getTitle(), reqVO.getContext());
+    public UploadResult stringProcessing(UploadCharacterReqVO reqVO) {
+        // 根据应用 ID 获取数据集信息
+        DatasetsDO datasetInfo = validateDatasets(reqVO);
+        log.info("====> 数据集{}开始上传字符串", datasetInfo.getId());
+        stringUploadStrategy.setData(reqVO.getCharacterVOS().get(0).getTitle(), reqVO.getCharacterVOS().get(0).getContext());
         UploadContentDTO process = stringUploadStrategy.process(getUserId(datasetInfo.getId()));
         process.setSync(reqVO.getSync());
         process.setBatch(reqVO.getBatch());
         process.setDatasetId(datasetInfo.getId());
-        process.setDataModel(dataModel);
-        process.setDataType(dataType);
+        process.setDataModel(reqVO.getDataModel());
+        process.setDataType(reqVO.getDataType());
         // 执行通用逻辑并且返回
         return commonProcess(process);
     }
@@ -167,26 +171,9 @@ public class ProcessingServiceImpl implements ProcessingService {
         return uploadResult;
     }
 
-    /**
-     * 参数校验 分割规则不可以为空，数据集必须存在
-     *
-     * @param datasetId
-     */
-    @Override
-    @TenantIgnore
-    public DatasetsDO getDatasetInfo(String datasetId) {
-        DatasetsDO datasetsDO = datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getUid, datasetId));
-        if (datasetsDO == null) {
-            throw exception(DATASETS_NOT_EXISTS);
-        }
-        return datasetsDO;
-    }
 
-
-    public String getLanguageRule(Long datasetId) {
-
-        return null;
-        // return datasetDataHandleRules.getRuleByDatasetId(datasetId).getCleanRuleVO().getURL().getAcceptLanguage();
+    public String getLanguageRule(Long datasetId, String url) {
+        return datasetDataHandleRulesService.getHtmlLanguageRule(datasetId, url);
     }
 
 
@@ -265,10 +252,27 @@ public class ProcessingServiceImpl implements ProcessingService {
     private Long getUserId(Long datasetId) {
         Long loginUserId = getLoginUserId();
         if (loginUserId == null) {
-            String creator = datasetsMapper.selectOne(Wrappers.lambdaQuery(DatasetsDO.class).eq(DatasetsDO::getId, datasetId)).getCreator();
+            String creator = datasetsService.getDataById(datasetId).getCreator();
             loginUserId = Long.valueOf(creator);
         }
         return loginUserId;
+    }
+
+
+    /**
+     * 数据集验证
+     *
+     * @param reqVO 上传的 VO
+     * @return 数据集 DO
+     */
+    private DatasetsDO validateDatasets(UploadReqVO reqVO) {
+        if (StrUtil.isBlank(reqVO.getAppId())) {
+            throw exception(DATASET_SOURCE_UPLOAD_DATA_FAIL_APPID);
+        }
+        if (StrUtil.isBlank(reqVO.getSessionId())) {
+            return datasetsService.getDatasetInfoByAppId(reqVO.getAppId());
+        }
+        return datasetsService.getDatasetInfoBySession(reqVO.getAppId(), reqVO.getSessionId());
     }
 
 

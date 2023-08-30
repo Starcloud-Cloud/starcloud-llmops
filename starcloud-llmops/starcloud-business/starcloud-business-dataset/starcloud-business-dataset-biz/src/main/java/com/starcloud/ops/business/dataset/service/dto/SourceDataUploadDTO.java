@@ -10,9 +10,9 @@ import lombok.Data;
 public class SourceDataUploadDTO {
 
     /**
-     * 数据集 ID
+     * 应用 ID
      */
-    private String datasetId;
+    private String appId;
 
     /**
      * 源数据 ID

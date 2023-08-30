@@ -35,7 +35,6 @@ public class DatasetSourceDataBaseVO {
     @NotNull(message = "数据源类型（0-本地上传，1-接口上传）不能为空")
     private Integer dataSourceType;
 
-
     @Schema(description = "数据集处理规则ID")
     private String datasetProcessRuleId;
 

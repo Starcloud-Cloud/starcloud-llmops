@@ -9,7 +9,6 @@ import com.starcloud.ops.business.app.domain.entity.chat.Interactive.Interactive
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
-import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
@@ -70,7 +69,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
         uploadUrlReqVO.setSync(true);
         uploadUrlReqVO.setUrls(Arrays.asList(url));
-        uploadUrlReqVO.setDatasetId(datasetId);
+        uploadUrlReqVO.setAppId(datasetId);
 
         SplitRule splitRule = new SplitRule();
 
@@ -83,13 +82,13 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
             throw new RuntimeException("URL解析失败");
         }
 
-        //查询内容
+        // 查询内容
         DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(datasetId, true);
         String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
 
         summary = StrUtil.subPre(summary, summarySubSize);
 
-        //先截取
+        // 先截取
         result.setSummary(summary);
         result.setDocKey(detailsInfoVO.getUid());
 

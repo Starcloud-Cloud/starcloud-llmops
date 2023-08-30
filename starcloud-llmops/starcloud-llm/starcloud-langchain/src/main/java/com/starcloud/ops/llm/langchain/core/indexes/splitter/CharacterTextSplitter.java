@@ -17,7 +17,6 @@ public class CharacterTextSplitter extends BasicTextSplitter {
         int startIndex = 0;
 
         while (startIndex < text.length()) {
-            System.out.println("start:" + startIndex);
             int endIndex = text.length();
             String separator = null;
 
