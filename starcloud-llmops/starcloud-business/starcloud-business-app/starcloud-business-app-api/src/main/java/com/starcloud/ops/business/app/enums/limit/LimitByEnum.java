@@ -11,17 +11,43 @@ import lombok.Getter;
 @Getter
 public enum LimitByEnum implements IEnumable<Integer> {
 
-
-    ;
+    /**
+     * 根据应用进行限流
+     */
+    APP(1, "根据应用进行限流"),
 
     /**
-     *
+     * 根据应用和用户进行限流
      */
-    private final String code;
+    USER(2, "根据应用和用户进行限流)"),
 
+    /**
+     * 根据应用和团队进行限流
+     */
+    TEAM(3, "根据应用和团队进行限流"),
+
+    /**
+     * 广告
+     */
+    ADVERTISING(4, "广告");
+
+    /**
+     * 编码
+     */
+    private final Integer code;
+
+    /**
+     * 标签
+     */
     private final String label;
 
-    LimitByEnum(String code, String label) {
+    /**
+     * 构造方法
+     *
+     * @param code  编码
+     * @param label 标签
+     */
+    LimitByEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
     }

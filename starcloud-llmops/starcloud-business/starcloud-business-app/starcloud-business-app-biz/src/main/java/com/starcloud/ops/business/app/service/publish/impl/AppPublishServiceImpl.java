@@ -158,7 +158,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         response.setChannelMap(channelMap);
 
         // 获取应用的限流配置信息
-        response.setLimit(appPublishLimitService.getDefaultIfNull(response.getUid()));
+        response.setLimit(appPublishLimitService.defaultIfNullByPublishUid(response.getUid()));
 
         // 发布记录不为空且存在待审核的发布记录, 不显示发布按钮，显示 取消发布按钮
         boolean pendingFlag = publishList.stream().anyMatch(item ->
