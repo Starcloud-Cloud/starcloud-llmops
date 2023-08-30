@@ -47,9 +47,9 @@ public class DatasetHandleRulesBaseVO {
     @NotNull(message = "规则状态不能为空")
     private Boolean enable;
 
-    @Schema(description = "数据集UID", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "数据集UID不能为空")
-    private String datasetUid;
+    @Schema(description = "应用 ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "应用 ID不能为空")
+    private String appId;
 
     @Schema(description = "规则来源", requiredMode = Schema.RequiredMode.REQUIRED)
     private String fromScene;

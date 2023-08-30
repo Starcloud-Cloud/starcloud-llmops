@@ -5,11 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
-
-import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
+import javax.validation.constraints.NotNull;
 
 @Schema(description = "管理后台 - 数据集规则分页 Request VO")
 @Data
@@ -17,6 +14,7 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @ToString(callSuper = true)
 public class DatasetHandleRulesPageReqVO extends PageParam {
 
-    @Schema(description = "数据集编号")
-    private String datasetUid;
+    @Schema(description = " 应用 ID")
+    @NotNull(message = "应用 ID 不可以为空")
+    private String appId;
 }

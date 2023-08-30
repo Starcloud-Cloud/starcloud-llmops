@@ -23,6 +23,13 @@ public interface ErrorCodeConstants {
     ErrorCode DATASETS_NOT_EXIST_ERROR = new ErrorCode(2007001005, "dataset不存在");
     ErrorCode FILE_TYPE_NOT_ALLOW = new ErrorCode(2007001006, "文件类型不支持");
 
+    ErrorCode DATASETS_APPID_NOT_EXISTS = new ErrorCode(2007001007, "该应用下的知识库不存在");
+
+    ErrorCode DATASETS_APPID_REPEAT_BIND = new ErrorCode(2007001008, "该应用下存在多个知识库");
+
+    ErrorCode DATASETS_CONVERSATION_NOT_EXISTS = new ErrorCode(2007001009, "该会话下的知识库不存在");
+    ErrorCode DATASETS_CONVERSATION_REPEAT_BIND = new ErrorCode(2007001010, "该会话下存在多个知识库");
+
 
 
     //======================================数据集源数据======================================
@@ -32,8 +39,12 @@ public interface ErrorCodeConstants {
     ErrorCode DATASET_SOURCE_DATA_UNARCHIVED = new ErrorCode(2007002004, "数据集源数据取消归档失败，当前数据集未归档");
 
     ErrorCode DATASET_SOURCE_DATA_STUDY_IN = new ErrorCode(2007002005, "数据学习中，请在学习完成后查看");
-
+    ErrorCode DATASET_SOURCE_UPLOAD_DATA_FAIL_APPID = new ErrorCode(1003001006, "上传数据异常，应用 ID 为空");
+    ErrorCode DATASET_SOURCE_DATA_ENABLE_STATUS_FAIL = new ErrorCode(2007002007, "数据状态已经刷新,请刷新后重试");
     ErrorCode SUMMARY_ERROR = new ErrorCode(1003001011, "总结文档失败");
+
+
+
 
 
     //======================================数据集源数据存储======================================

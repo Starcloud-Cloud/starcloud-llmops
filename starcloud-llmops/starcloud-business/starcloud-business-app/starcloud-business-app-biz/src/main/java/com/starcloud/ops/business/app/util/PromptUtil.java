@@ -10,6 +10,7 @@ import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class PromptUtil {
      * 文档结构
      */
     @Data
-    public static class PromptDocBlock {
+    public static class PromptDocBlock implements Serializable {
 
         /**
          * 文档ID

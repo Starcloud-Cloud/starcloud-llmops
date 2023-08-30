@@ -445,7 +445,7 @@ public class AgentExecutor extends Chain<AgentFinish> {
 
             } catch (ToolContinuesExecution toolContinuesExecution) {
 
-                log.error("AgentExecutor tool [{}] run is error: {}", baseTool.getClass().getSimpleName(), toolContinuesExecution);
+                log.error("AgentExecutor tool [{}] run is error: {}", toolContinuesExecution.getToolName(), toolContinuesExecution);
 
                 funAgentAction.setStatus(false);
                 funAgentAction.setErrorCode(toolContinuesExecution.getErrorCode());

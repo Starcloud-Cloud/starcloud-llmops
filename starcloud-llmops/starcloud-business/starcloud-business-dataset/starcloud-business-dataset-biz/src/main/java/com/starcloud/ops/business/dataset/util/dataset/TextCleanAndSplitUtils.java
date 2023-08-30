@@ -44,8 +44,8 @@ public class TextCleanAndSplitUtils {
 
             connection.header("Accept-Language", htmlCleanRule.getAcceptLanguage());
 
-             text = connection.get().toString();
-        }catch (Exception e){
+            text = connection.get().toString();
+        } catch (Exception e) {
             throw new RuntimeException("数据预处理失败，无法请求到地址！");
         }
         // 根据标签白名单和黑名单清洗数据
@@ -53,7 +53,7 @@ public class TextCleanAndSplitUtils {
             text = processHtmlTags(text, htmlCleanRule.getWhiteList(), htmlCleanRule.getBlackList());
         }
 
-        return processFormat(text,htmlCleanRule.getConvertFormat());
+        return processFormat(text, htmlCleanRule.getConvertFormat());
     }
 
     public static String processCommonRule(String text, CommonCleanRule commonCleanRule) {
@@ -133,18 +133,33 @@ public class TextCleanAndSplitUtils {
             // 处理黑名单，直接移除指定标签内容
             if (CollUtil.isNotEmpty(blackRules)) {
                 String blackRule = String.join(",", blackRules);
-                doc.select(blackRule).remove();
+                try {
+                    doc.select(blackRule).remove();
+                } catch (RuntimeException e) {
+                    throw new RuntimeException("数据预处理异常，网页黑名单规则:(" + blackRule + ")错误");
+                }
+
             }
         } else {
             String whiteRule = String.join(",", whiteRules);
 
             if (CollUtil.isNotEmpty(blackRules)) {
                 String blackRule = String.join(",", blackRules);
-                doc.select(whiteRule).select(blackRule).remove();
+                try {
+                    doc.select(whiteRule).select(blackRule).remove();
+                } catch (RuntimeException e) {
+                    throw new RuntimeException("数据预处理异常，网页白名单与黑名单规则错误");
+                }
+
             } else {
-                // 只处理白名单
-                Elements whiteText = doc.select(whiteRule);
-                doc.body().html(whiteText.html());
+                try {
+                    // 只处理白名单
+                    Elements whiteText = doc.select(whiteRule);
+                    doc.body().html(whiteText.html());
+                } catch (RuntimeException e) {
+                    throw new RuntimeException("数据预处理异常，网页白名单规则:(" + whiteRule + ")错误");
+                }
+
             }
         }
 

@@ -20,7 +20,7 @@ import java.util.List;
 public interface DatasetHandleRulesConvert {
     DatasetHandleRulesConvert INSTANCE = Mappers.getMapper(DatasetHandleRulesConvert.class);
 
-    default DatasetHandleRulesDO convert(DatasetHandleRulesCreateReqVO bean) {
+    default DatasetHandleRulesDO convert(DatasetHandleRulesCreateReqVO bean, Long datasetId) {
         if (bean == null) {
             return null;
         }
@@ -28,14 +28,9 @@ public interface DatasetHandleRulesConvert {
         DatasetHandleRulesDO.DatasetHandleRulesDOBuilder rulesDOBuilder = DatasetHandleRulesDO.builder();
 
         rulesDOBuilder.ruleName(bean.getRuleName());
-        if (bean.getDatasetUid() != null) {
-            rulesDOBuilder.datasetId(Long.parseLong(bean.getDatasetUid()));
-        }
 
-        if (bean.getDatasetUid() != null) {
-            rulesDOBuilder.datasetId(Long.parseLong(bean.getDatasetUid()));
-        }
-        rulesDOBuilder.ruleFilter(CollUtil.join(bean.getRuleFilter(),","));
+        rulesDOBuilder.datasetId(datasetId);
+        rulesDOBuilder.ruleFilter(CollUtil.join(bean.getRuleFilter(), ","));
 
         rulesDOBuilder.cleanRule(JSONUtil.toJsonStr(bean.getCleanRule()));
         rulesDOBuilder.splitRule(JSONUtil.toJsonStr(bean.getSplitRule()));
@@ -47,7 +42,7 @@ public interface DatasetHandleRulesConvert {
         return rulesDOBuilder.build();
     }
 
-    default DatasetHandleRulesDO convert(DatasetHandleRulesUpdateReqVO bean) {
+    default DatasetHandleRulesDO convert(DatasetHandleRulesUpdateReqVO bean,Long datasetId) {
         if (bean == null) {
             return null;
         }
@@ -57,7 +52,7 @@ public interface DatasetHandleRulesConvert {
         rulesDOBuilder.id(bean.getId());
         rulesDOBuilder.ruleName(bean.getRuleName());
 
-        rulesDOBuilder.ruleFilter(CollUtil.join(bean.getRuleFilter(),","));
+        rulesDOBuilder.ruleFilter(CollUtil.join(bean.getRuleFilter(), ","));
 
         rulesDOBuilder.cleanRule(JSONUtil.toJsonStr(bean.getCleanRule()));
         rulesDOBuilder.splitRule(JSONUtil.toJsonStr(bean.getSplitRule()));
@@ -66,9 +61,7 @@ public interface DatasetHandleRulesConvert {
         rulesDOBuilder.fromScene(bean.getFromScene());
         rulesDOBuilder.enable(bean.getEnable());
 
-        if (bean.getDatasetUid() != null) {
-            rulesDOBuilder.datasetId(Long.parseLong(bean.getDatasetUid()));
-        }
+            rulesDOBuilder.datasetId(datasetId);
 
         return rulesDOBuilder.build();
     }
@@ -85,7 +78,6 @@ public interface DatasetHandleRulesConvert {
         datasetHandleRulesRespVO.setEnable(bean.getEnable());
         return datasetHandleRulesRespVO;
     }
-
 
 
     default List<DatasetHandleRulesRespVO> convertList(List<DatasetHandleRulesDO> list) {

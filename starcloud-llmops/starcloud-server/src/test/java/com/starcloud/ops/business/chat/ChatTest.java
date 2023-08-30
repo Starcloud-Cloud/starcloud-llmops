@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 
@@ -233,6 +234,7 @@ public class ChatTest extends BaseDbUnitTest {
     public void runMyChatWebSearchTest() {
 
         ChatRequestVO chatRequest = new ChatRequestVO();
+        //chatRequest.setSseEmitter(new SseEmitter());
 
         //带数据集的
         chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
@@ -250,6 +252,8 @@ public class ChatTest extends BaseDbUnitTest {
         chatRequest.setQuery("杭州 8月29号天怎么样，跟8月28号天气比较尼？");
 
         chatRequest.setQuery("查询下 杭州 2023年8月29号和8月30号的天气，并做个温度比较给我。");
+
+        //chatRequest.setQuery("今天天津的天气怎么样？");
 
         chatService.chat(chatRequest);
 
@@ -274,6 +278,31 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+
+    /**
+     * 带工具聊天 + 历史
+     */
+    @Test
+    public void runMyChatToolHistory2Test() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+        chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
+
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
         chatService.chat(chatRequest);
 

@@ -32,6 +32,9 @@ public class DatasetSourceDataBasicInfoVO {
     @NotNull(message = "描述不能为空")
     private String description;
 
+    @Schema(description = "总结内容")
+    private String summary;
+
     @Schema(description = " 数据类型",  requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "数据类型不能为空")
     private String dataType;

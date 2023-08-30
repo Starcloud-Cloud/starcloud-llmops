@@ -151,6 +151,8 @@ public class FileUploadStrategy implements UploadStrategy {
             case "jpg":
             case "jpeg":
                 return "image/jpeg";
+            case "md":
+                return "text/x-markdown";
             default:
                 return "application/octet-stream";
         }

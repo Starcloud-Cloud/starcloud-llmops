@@ -9,7 +9,6 @@ import com.starcloud.ops.business.app.domain.entity.chat.Interactive.Interactive
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
-import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
@@ -19,6 +18,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,11 +54,10 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         String url = context.getRequest().getUrl();
 
         //@todo 通过上下文获取当前可能配置的 tools 执行 tips
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容");
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容中...").setToolHandler(this).setInput(context.getRequest());
+        ;
 
         context.sendCallbackInteractiveStart(interactiveInfo);
-
-        String datasetId = context.getAppUid();
 
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
@@ -69,12 +68,13 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
         uploadUrlReqVO.setSync(true);
+        uploadUrlReqVO.setSessionId(context.getConversationUid());
         uploadUrlReqVO.setUrls(Arrays.asList(url));
-        uploadUrlReqVO.setDatasetId(datasetId);
+        uploadUrlReqVO.setAppId(context.getAppUid());
 
         SplitRule splitRule = new SplitRule();
 
-        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO);
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
         if (!sourceDataUploadDTO.getStatus()) {
@@ -83,20 +83,22 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
             throw new RuntimeException("URL解析失败");
         }
 
-        //查询内容
-        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(datasetId, true);
+        // 查询内容
+        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(sourceDataUploadDTO.getSourceDataId(), true);
         String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
 
         summary = StrUtil.subPre(summary, summarySubSize);
 
-        //先截取
+        // 先截取
         result.setSummary(summary);
-        result.setDocKey(detailsInfoVO.getUid());
+        result.setDocKey(String.valueOf(detailsInfoVO.getId()));
 
         handlerResponse.setSuccess(true);
         handlerResponse.setAnswer(summary);
         handlerResponse.setOutput(result);
 
+        interactiveInfo.setData(result);
+        interactiveInfo.setTips("分析链接完成");
         context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;
@@ -114,7 +116,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
 
     @Data
-    public static class Response {
+    public static class Response implements Serializable {
 
         private String summary;
 

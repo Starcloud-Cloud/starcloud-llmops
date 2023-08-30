@@ -19,9 +19,9 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
  * @author : [wuruiqiang]
  * @version : [v1.0]
  * @className : DatasetsController
- * @description : [数据集]
+ * @description : [数据集 - 预处理规则]
  * @createTime : [2023/5/31 16:00]
- * @updateUser : [wuruiqiang]
+ * @updateUser : [Alan Cusack]
  * @updateTime : [2023/5/31 16:00]
  * @updateRemark : [暂无修改]
  */
@@ -45,7 +45,7 @@ public class DatasetDataHandleRulesController {
     @Operation(summary = "创建数据集规则")
     public CommonResult<Boolean> createRule(@Validated @RequestBody DatasetHandleRulesCreateReqVO createReqVO) {
         createReqVO.setFromScene(HandleRuleFromSceneEnum.USER.name());
-        return success(datasetDataHandleRulesService.createDefaultRules(createReqVO));
+        return success(datasetDataHandleRulesService.createRules(createReqVO));
     }
 
     @PostMapping("/update")
