@@ -47,12 +47,29 @@ public class InteractiveInfo {
 
     private Date time;
 
+    private Object input;
+
     private Object data;
 
     private Integer errorCode;
 
     private String errorMsg;
 
+
+    /**
+     * 文本内容卡片渲染
+     *
+     * @return
+     */
+    public static InteractiveInfo buildTips(String tips) {
+        InteractiveInfo interactiveInfo = new InteractiveInfo();
+
+        interactiveInfo.setShowType("tips");
+        interactiveInfo.setSuccess(true);
+        interactiveInfo.setTips(tips);
+
+        return interactiveInfo;
+    }
 
     /**
      * url 卡片，前端获取URL内的内容取渲染
@@ -89,21 +106,6 @@ public class InteractiveInfo {
         return interactiveInfo;
     }
 
-
-    /**
-     * 文本内容卡片渲染
-     *
-     * @return
-     */
-    public static InteractiveInfo buildTips(String tips) {
-        InteractiveInfo interactiveInfo = new InteractiveInfo();
-
-        interactiveInfo.setShowType("tips");
-        interactiveInfo.setSuccess(true);
-        interactiveInfo.setTips(tips);
-
-        return interactiveInfo;
-    }
 
     /**
      * 文本内容卡片渲染

@@ -53,11 +53,10 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         String url = context.getRequest().getUrl();
 
         //@todo 通过上下文获取当前可能配置的 tools 执行 tips
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容");
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容中...").setInput(context.getRequest());
+        ;
 
         context.sendCallbackInteractiveStart(interactiveInfo);
-
-        String datasetId = context.getAppUid();
 
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
@@ -68,12 +67,13 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
         uploadUrlReqVO.setSync(true);
+        uploadUrlReqVO.setSessionId(context.getConversationUid());
         uploadUrlReqVO.setUrls(Arrays.asList(url));
-        uploadUrlReqVO.setAppId(datasetId);
+        uploadUrlReqVO.setAppId(context.getAppUid());
 
         SplitRule splitRule = new SplitRule();
 
-        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO);
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
         if (!sourceDataUploadDTO.getStatus()) {
@@ -83,19 +83,22 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         }
 
         // 查询内容
-        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(datasetId, true);
+        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(sourceDataUploadDTO.getSourceDataId(), true);
         String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
 
         summary = StrUtil.subPre(summary, summarySubSize);
 
         // 先截取
         result.setSummary(summary);
-        result.setDocKey(detailsInfoVO.getUid());
+        result.setDocKey(String.valueOf(detailsInfoVO.getId()));
 
         handlerResponse.setSuccess(true);
         handlerResponse.setAnswer(summary);
         handlerResponse.setOutput(result);
 
+        interactiveInfo.setData(result);
+
+        interactiveInfo.setTips("分析链接完成");
         context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;

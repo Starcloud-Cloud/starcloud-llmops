@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
@@ -48,6 +49,11 @@ public class GoogleSearchHandler extends BaseToolHandler<GoogleSearchHandler.Req
         SerpAPITool.Request request = new SerpAPITool.Request();
         request.setQ(query);
 
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildTips("联网查询[" + query + "]中...").setInput(context.getRequest());
+
+        context.sendCallbackInteractiveStart(interactiveInfo);
+
+
         List<SerpAPITool.SearchInfoDetail> searchInfoDetails = serpAPITool.runGetInfo(request);
 
         String content = serpAPITool.processResponseStr(searchInfoDetails);
@@ -58,6 +64,11 @@ public class GoogleSearchHandler extends BaseToolHandler<GoogleSearchHandler.Req
         handlerResponse.setOutput(new Response(content));
 
         handlerResponse.setExt(searchInfoDetails);
+
+
+        interactiveInfo.setData(searchInfoDetails);
+        interactiveInfo.setTips("查询完成");
+        context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;
     }
