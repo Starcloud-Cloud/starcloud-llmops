@@ -52,7 +52,7 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
      * @return 应用发布限流信息
      */
     @Override
-    public AppPublishLimitRespVO getDefaultIfNull(String publishUid) {
+    public AppPublishLimitRespVO defaultIfNullByPublishUid(String publishUid) {
         List<AppPublishLimitDO> list = appPublishLimitMapper.listByPublishUid(publishUid);
         if (CollectionUtil.isEmpty(list)) {
             return getDefaultLimit(publishUid);

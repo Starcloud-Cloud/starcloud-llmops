@@ -14,14 +14,14 @@ public interface AppLimitService {
      *
      * @param appUid 应用唯一标识
      */
-    void appLimit(String appUid);
+    void appLimit(String appUid, String fromScene);
 
     /**
      * 应用限流，应用市场执行限流，走系统默认限流
      *
      * @param marketUid 应用唯一标识
      */
-    void marketLimit(String marketUid);
+    void marketLimit(String marketUid, String fromScene);
 
 
     /**
@@ -29,5 +29,5 @@ public interface AppLimitService {
      *
      * @param mediumUid 应用唯一标识
      */
-    void channelLimit(String mediumUid);
+    void channelLimit(String mediumUid, String fromScene, String endUser);
 }
