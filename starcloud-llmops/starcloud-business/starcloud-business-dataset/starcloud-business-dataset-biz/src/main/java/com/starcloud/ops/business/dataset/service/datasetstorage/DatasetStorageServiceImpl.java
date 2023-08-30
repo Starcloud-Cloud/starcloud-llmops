@@ -3,19 +3,16 @@ package com.starcloud.ops.business.dataset.service.datasetstorage;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageBaseVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
 import com.starcloud.ops.business.dataset.convert.datasetstorage.DatasetStorageConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
-import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
@@ -45,29 +42,16 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
         return datasetStorageMapper.selectById(id);
     }
 
-
     /**
-     * @param createReqVOS 源数据上传
-     * @return UID
+     * 根据 ID 获取基础数据
+     *
+     * @param id 主键 ID
+     * @return DatasetStorageBaseVO
      */
     @Override
-    public Long addStorageData(DatasetStorageCreateReqVO createReqVOS) {
-        DatasetStorageDO datasetStorageDO = DatasetStorageConvert.INSTANCE.convert(createReqVOS);
-        datasetStorageMapper.insert(datasetStorageDO);
-        return datasetStorageDO.getId();
-    }
-
-
-    /**
-     * @param createReqVOS 源数据上传
-     * @return UID
-     */
-    @Override
-    public List<Long> addBatchStorageData(List<DatasetStorageCreateReqVO> createReqVOS) {
-        String uid = DatasetUID.createStorageUID();
-        List<DatasetStorageDO> datasetStorageDOS = DatasetStorageConvert.INSTANCE.convertCreateList(createReqVOS);
-        datasetStorageMapper.insertBatch(datasetStorageDOS);
-        return datasetStorageDOS.stream().map(DatasetStorageDO::getId).collect(Collectors.toList());
+    public DatasetStorageBaseVO selectBaseDataById(Long id) {
+        DatasetStorageDO datasetStorageDO = datasetStorageMapper.selectById(id);
+        return DatasetStorageConvert.INSTANCE.convertBaseVO(datasetStorageDO);
     }
 
 
@@ -99,18 +83,6 @@ public class DatasetStorageServiceImpl implements DatasetStorageService {
         // DatasetStorageUpLoadRespVO datasetStorageUpLoadRespVO = DatasetStorageConvert.convert2LoadRespVO(datasetStorageDO);
         // datasetStorageUpLoadRespVO.setStorageKey(fileDO.getUrl());
         // 数据转换
-        return null;
-    }
-
-    /**
-     * 文件预览
-     *
-     * @param UID
-     * @return
-     */
-    @Override
-    public String previewUpLoadFile(String UID) {
-
         return null;
     }
 

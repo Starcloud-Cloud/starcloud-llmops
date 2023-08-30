@@ -66,7 +66,7 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     /**
      * 数据集处理规则ID
      */
-    private String datasetProcessRuleId;
+    private Long ruleId;
     /**
      * 批次
      */

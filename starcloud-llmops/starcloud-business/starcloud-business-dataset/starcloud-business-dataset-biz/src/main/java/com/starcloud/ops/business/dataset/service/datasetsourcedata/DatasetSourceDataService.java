@@ -5,7 +5,6 @@ import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,7 +17,7 @@ public interface DatasetSourceDataService {
 
 
     /**
-     * 更新数据集状态
+     * 根据主键 ID 获取数据
      *
      * @param id 数据集源数据ID
      */
@@ -29,7 +28,7 @@ public interface DatasetSourceDataService {
      *
      * @return 编号
      */
-    SourceDataUploadDTO uploadFilesSourceData(MultipartFile file, UploadFileReqVO reqVO);
+    SourceDataUploadDTO uploadFilesSourceData(UploadFileReqVO reqVO);
 
     /**
      * 上传URL-支持批量上传
@@ -43,7 +42,7 @@ public interface DatasetSourceDataService {
      *
      * @return 编号
      */
-    List<SourceDataUploadDTO> uploadCharactersSourceData(List<UploadCharacterReqVO> reqVOS);
+    List<SourceDataUploadDTO> uploadCharactersSourceData(UploadCharacterReqVO reqVOS);
 
     /**
      * 更新数据集源数据
@@ -58,6 +57,7 @@ public interface DatasetSourceDataService {
      * @param uid 数据集源数据编号
      */
     void deleteDatasetSourceData(String uid);
+
 
     /**
      * 获得数据集源数据分页
@@ -76,9 +76,9 @@ public interface DatasetSourceDataService {
     List<ListDatasetSourceDataRespVO> getDatasetSourceDataList(Long datasetId, Integer dataModel);
 
 
-
     /**
      * 获取分块内容
+     *
      * @param reqVO
      * @return
      */
@@ -124,10 +124,62 @@ public interface DatasetSourceDataService {
     /**
      * 获取数据源基础信息 集合
      *
-     * @param sourceDataIds    数据集源数据ID 集合
+     * @param sourceDataIds 数据集源数据ID 集合
      */
     List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataIds);
 
 
+    /**
+     * 根据数据 UID 获取数据详情
+     *
+     * @param UID             源数据 UID
+     * @param getCleanContent 是否详细内容数据
+     * @return 数据集源数据列表
+     */
+    DatasetSourceDataDetailRespVO getSourceDataDetailByUID(String UID, Boolean getCleanContent);
 
+    /**
+     * ====应用的数据========
+     * 获得应用下 数据集源数据列表
+     *
+     * @param appId           应用 ID
+     * @param dataModel       数据模型
+     * @param getCleanContent 是否详细内容数据
+     * @return 数据集源数据列表
+     */
+    List<DatasetSourceDataDetailRespVO> getApplicationSourceDataList(String appId, Integer dataModel, Boolean getCleanContent);
+
+
+    /**
+     * ====应用下会话的数据========
+     * 获得会话下 数据集源数据列表
+     *
+     * @param appId           应用 ID
+     * @param conversationId  会话 ID
+     * @param dataModel       数据模型
+     * @param getCleanContent 是否详细内容数据
+     * @return 数据集源数据列表
+     */
+    List<DatasetSourceDataDetailRespVO> getSessionSourceDataList(String appId, String conversationId, Integer dataModel, Boolean getCleanContent);
+
+    /**
+     * 通过会话上传文件-支持批量上传
+     *
+     * @return 编号
+     */
+    SourceDataUploadDTO uploadFilesSourceDataBySession(UploadFileReqVO reqVO);
+
+    /**
+     * 通过会话上传URL-支持批量上传
+     *
+     * @return 编号
+     */
+    List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO);
+
+    /**
+     * 通过会话上传自定义文本-支持批量上传
+     *
+     * @return 编号
+     */
+    List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS);
 }

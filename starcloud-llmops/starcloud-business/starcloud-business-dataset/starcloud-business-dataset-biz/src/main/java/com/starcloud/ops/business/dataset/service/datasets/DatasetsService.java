@@ -21,24 +21,6 @@ public interface DatasetsService {
      * @return 编号
      */
     String createDatasets(@Validated DatasetsCreateReqVO createReqVO);
-
-    /**
-     * 根据用户应用创建数据集
-     *
-     * @param appId 应用 ID
-     * @param appName 应用 名称
-     * @return Boolean
-     */
-    Long createDatasetsByApplication(String appId,String appName);
-
-    /**
-     * 创建数据集
-     *
-     * @return 编号
-     *
-     */
-    String createWechatDatasets();
-
     /**
      * 更新数据集
      *
@@ -90,6 +72,53 @@ public interface DatasetsService {
     void validateDatasetsExists(String UID);
 
     void validateDatasetsExists(Long id);
+
+
+    /**
+     * 根据应用 ID 获取数据集详情
+     *
+     * @param appId 应用 ID
+     * @return 数据集
+     */
+    DatasetsDO getDatasetInfoByAppId(String appId);
+
+
+    Boolean validateAppDatasetsExists(String appId);
+
+    /**
+     * 根据用户应用创建数据集
+     *
+     * @param appId 应用 ID
+     * @return Boolean
+     */
+    Long createDatasetsByApp(String appId);
+
+
+    /**
+     * 查询会话下数据集详情
+     *
+     * @param appId 应用 ID
+     * @param sessionId  会话 ID
+     * @return 数据集
+     */
+    DatasetsDO getDatasetInfoBySession(String appId, String sessionId);
+
+
+    /***
+     * 验证会话下是否存在数据集
+     * @param appId 应用 ID
+     * @param sessionId  会话 ID
+     */
+    Boolean validateSessionDatasetsExists(String appId, String sessionId);
+
+    /**
+     * 根据用户会话创建数据集
+     *
+     * @param appId 应用 ID
+     * @param sessionId  会话 ID
+     * @return Boolean
+     */
+    Long createDatasetsBySession(String appId, String sessionId);
 
 
 }
