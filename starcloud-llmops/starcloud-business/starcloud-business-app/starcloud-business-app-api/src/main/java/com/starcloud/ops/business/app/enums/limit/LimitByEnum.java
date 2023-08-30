@@ -17,11 +17,11 @@ public enum LimitByEnum implements IEnumable<Integer> {
     /**
      *
      */
-    private final String code;
+    private final Integer code;
 
     private final String label;
 
-    LimitByEnum(String code, String label) {
+    LimitByEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
     }
