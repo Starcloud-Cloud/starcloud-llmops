@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.controller.admin.limit;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModifyReqVO;
-import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitOperateReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,14 +42,6 @@ public class AppPublishLimitController {
     public CommonResult<String> modify(@Validated @RequestBody AppPublishLimitModifyReqVO request) {
         appPublishLimitService.modify(request);
         return CommonResult.success("修改应用发布限流成功");
-    }
-
-    @PostMapping("/operate")
-    @Operation(summary = "操作应用发布限流信息", description = "操作应用发布限流信息")
-    @ApiOperationSupport(order = 15, author = "nacoyer")
-    public CommonResult<Boolean> operate(@Validated @RequestBody AppPublishLimitOperateReqVO request) {
-        //appPublishLimitService.operate(request);
-        return CommonResult.success(true);
     }
 
 }

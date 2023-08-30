@@ -29,6 +29,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppConsts;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -64,6 +65,11 @@ public class AppFactory {
     private static AppPublishRepository appPublishRepository = SpringUtil.getBean(AppPublishRepository.class);
 
     /**
+     * 应用限流服务
+     */
+    private static AppLimitService appLimitService = SpringUtil.getBean(AppLimitService.class);
+
+    /**
      * 获取 执行实体
      *
      * @param request 请求参数
@@ -81,17 +87,23 @@ public class AppFactory {
             String appId = request.getAppUid();
             // 应用市场场景
             if (AppSceneEnum.WEB_MARKET.name().equals(request.getScene()) || AppSceneEnum.OPTIMIZE_PROMPT.name().equals(request.getScene())) {
-                return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(appId) : AppFactory.factoryMarket(appId, request.getAppReqVO());
+                AppMarketEntity market = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(appId) : AppFactory.factoryMarket(appId, request.getAppReqVO());
+                //appLimitService.marketLimit(market.getUid(), request.getScene());
+                return market;
                 // 应用创作中心
             } else if (AppSceneEnum.WEB_ADMIN.name().equals(request.getScene())) {
-                return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(appId) : AppFactory.factoryApp(appId, request.getAppReqVO());
+                AppEntity appEntity = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(appId) : AppFactory.factoryApp(appId, request.getAppReqVO());
+                //appLimitService.appLimit(appEntity.getUid(), request.getScene());
+                return appEntity;
             }
         }
 
         // mediumUid 不为空的情况
         if (StringUtils.isNotBlank(request.getMediumUid())) {
             String mediumId = request.getMediumUid();
-            return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryShareApp(mediumId) : AppFactory.factoryShareApp(mediumId, request.getAppReqVO());
+            AppEntity appEntity = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryShareApp(mediumId) : AppFactory.factoryShareApp(mediumId, request.getAppReqVO());
+            //appLimitService.channelLimit(mediumId, request.getScene(), request.getEndUser());
+            return appEntity;
         }
 
         throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);

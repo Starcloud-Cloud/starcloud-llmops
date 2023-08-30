@@ -6,6 +6,8 @@ import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModify
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import com.starcloud.ops.business.app.dal.databoject.limit.AppPublishLimitDO;
+import com.starcloud.ops.business.app.enums.limit.LimitByEnum;
+import com.starcloud.ops.business.app.enums.limit.LimitConfigEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -30,9 +32,24 @@ public interface AppPublishLimitConvert {
         appPublishLimit.setAppUid(request.getAppUid());
         appPublishLimit.setPublishUid(request.getPublishUid());
         appPublishLimit.setChannelUid(request.getChannelUid());
-        appPublishLimit.setRateConfig(JSONUtil.toJsonStr(request.getRateConfig()));
-        appPublishLimit.setUserRateConfig(JSONUtil.toJsonStr(request.getUserRateConfig()));
-        appPublishLimit.setAdvertisingConfig(JSONUtil.toJsonStr(request.getAdvertisingConfig()));
+        // 应用使用率限流
+        LimitConfigDTO rateConfig = (LimitConfigDTO) request.getRateConfig();
+        rateConfig.setCode(LimitConfigEnum.RATE.name());
+        rateConfig.setLimitBy(LimitByEnum.APP.name());
+        appPublishLimit.setRateConfig(JSONUtil.toJsonStr(rateConfig));
+
+        // 用户使用率限流
+        LimitConfigDTO userRateConfig = (LimitConfigDTO) request.getUserRateConfig();
+        userRateConfig.setCode(LimitConfigEnum.USER_RATE.name());
+        userRateConfig.setLimitBy(LimitByEnum.USER.name());
+        appPublishLimit.setUserRateConfig(JSONUtil.toJsonStr(userRateConfig));
+
+        // 广告使用率
+        LimitConfigDTO advertisingConfig = (LimitConfigDTO) request.getAdvertisingConfig();
+        advertisingConfig.setCode(LimitConfigEnum.ADVERTISING.name());
+        advertisingConfig.setLimitBy(LimitByEnum.ADVERTISING.name());
+        appPublishLimit.setAdvertisingConfig(JSONUtil.toJsonStr(advertisingConfig));
+
         appPublishLimit.setDeleted(Boolean.FALSE);
         return appPublishLimit;
     }

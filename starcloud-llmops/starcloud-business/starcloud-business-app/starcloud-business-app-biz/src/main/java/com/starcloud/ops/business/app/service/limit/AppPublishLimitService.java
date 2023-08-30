@@ -27,7 +27,7 @@ public interface AppPublishLimitService {
      * @param publishUid 发布 uid
      * @return 应用发布限流信息
      */
-    AppPublishLimitRespVO getDefaultIfNull(String publishUid);
+    AppPublishLimitRespVO defaultIfNullByPublishUid(String publishUid);
 
     /**
      * 创建应用发布限流信息
