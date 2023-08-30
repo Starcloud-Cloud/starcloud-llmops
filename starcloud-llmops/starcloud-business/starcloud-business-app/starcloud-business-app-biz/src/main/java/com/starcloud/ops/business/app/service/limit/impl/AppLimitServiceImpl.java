@@ -5,9 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
-import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
-import com.starcloud.ops.business.app.enums.limit.LimitConfigEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.limit.AppLimitContext;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
@@ -31,7 +29,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -92,35 +89,29 @@ public class AppLimitServiceImpl implements AppLimitService {
 
     }
 
-    private void doSystemLimit(String appUid, String userId, String fromScene) {
-        AppPublishLimitRespVO systemLimit = appDictionaryService.appSystemLimit();
-        if (Objects.isNull(systemLimit)) {
-            return;
-        }
+    /**
+     * 系统默认限流
+     *
+     * @param appUid 应用唯一标识
+     */
+    private void doSystemLimit(String appUid, String fromScene) {
+        List<LimitConfigDTO> limitConfigList = appDictionaryService.appSystemLimitConfig();
         List<AppLimitContext> limitContextList = new ArrayList<>();
-        // 总量限流上下文构建
+
         AppLimitContext quotaLimitContext = new AppLimitContext();
         quotaLimitContext.setLimitKey("");
-        quotaLimitContext.setType(LimitConfigEnum.QUOTA.name());
-        quotaLimitContext.setSort(LimitConfigEnum.QUOTA.getSort());
-        quotaLimitContext.setEnable(systemLimit.getQuotaEnable());
-        quotaLimitContext.setConfig(systemLimit.getQuotaConfig());
         quotaLimitContext.setAppUid(appUid);
-
+        limitContextList.add(quotaLimitContext);
 
 
     }
 
-    private void doLimit(AppLimitContext context) {
-        // 如果没有开启限流，则不限流
-        if (!context.getEnable()) {
-            return;
-        }
 
+    private void doLimit(AppLimitContext context) {
         // 获取总量定额限流配置
         LimitConfigDTO config = context.getConfig();
-        // 如果没有配置限流数量，或者限流数量小于等于 0 。则不限流
-        if (config.getLimit() == null || config.getLimit() <= 0) {
+        // 如果没有开启限流 或者没有配置限流数量，或者限流数量小于等于 0 。则不限流
+        if (!config.getEnable() || config.getLimit() == null || config.getLimit() <= 0) {
             return;
         }
 
@@ -141,7 +132,6 @@ public class AppLimitServiceImpl implements AppLimitService {
                 // 查询日志消息表中的已经执行的数量
                 AppLogMessageQuery appLogMessageQuery = new AppLogMessageQuery();
                 appLogMessageQuery.setAppUid(context.getAppUid());
-                appLogMessageQuery.setAppMode(context.getAppMode());
                 appLogMessageQuery.setUserId(context.getUserId());
                 appLogMessageQuery.setEndUser(context.getEndUser());
                 appLogMessageQuery.setFromScene(context.getFromScene());

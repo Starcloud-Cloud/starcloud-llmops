@@ -13,62 +13,51 @@ import lombok.Getter;
 public enum LimitConfigEnum implements IEnumable<Integer> {
 
     /**
-     * 默认总量限流配置
-     */
-    QUOTA(0, Boolean.FALSE, 1, "默认总量限流配置") {
-        @Override
-        public LimitConfigDTO getDefaultConfig() {
-            return LimitConfigDTO.of(1, 1L, "YEARS", "抱歉，该应用已经达到最大访问上限！");
-        }
-
-        @Override
-        public LimitConfigDTO getDefaultSystemConfig() {
-            return getDefaultConfig();
-        }
-    },
-
-    /**
      * 默认使用频率限流配置
      */
-    RATE(1, Boolean.FALSE, 2, "默认使用频率限流配置") {
+    RATE(1, "默认使用频率限流配置") {
         @Override
         public LimitConfigDTO getDefaultConfig() {
-            return LimitConfigDTO.of(1, 60L, "SECONDS", "当前咨询用户过多，请排队等候！");
+            LimitConfigDTO config = new LimitConfigDTO();
+            config.setCode(name());
+            config.setEnable(Boolean.FALSE);
+
+            return LimitConfigDTO.of(Boolean.FALSE, 1, 60L, "SECONDS", "当前咨询用户过多，请排队等候！");
         }
 
         @Override
         public LimitConfigDTO getDefaultSystemConfig() {
-            return getDefaultConfig();
+            return LimitConfigDTO.of(Boolean.FALSE, 1, 60L, "SECONDS", "系统默认：当前咨询用户过多，请排队等候！");
         }
     },
 
     /**
      * 默认用户总量限流配置
      */
-    USER_QUOTA(2, Boolean.FALSE, 3, "默认用户总量限流配置") {
+    USER_RATE(2, "默认用户使用频率限流配置") {
         @Override
         public LimitConfigDTO getDefaultConfig() {
-            return LimitConfigDTO.of(1, 1L, "MONTHS", "抱歉，您已经达到最大访问上限！");
+            return LimitConfigDTO.of(Boolean.FALSE, 2, 60L, "SECONDS", "抱歉，您已经达到最大访问上限！");
         }
 
         @Override
         public LimitConfigDTO getDefaultSystemConfig() {
-            return getDefaultConfig();
+            return LimitConfigDTO.of(Boolean.FALSE, 2, 60L, "SECONDS", "系统默认：抱歉，您已经达到最大访问上限！");
         }
     },
 
     /**
      * 默认广告限流配置
      */
-    ADVERTISING(3, Boolean.FALSE, 4, "默认广告限流配置") {
+    ADVERTISING(3, "默认广告限流配置") {
         @Override
         public LimitConfigDTO getDefaultConfig() {
-            return LimitConfigDTO.of(1, 1L, "YEARS", " 快点开通 VIP，享受更好的体验！");
+            return LimitConfigDTO.of(Boolean.FALSE, 1, 1L, "YEARS", "快点开通 VIP，享受更好的体验！");
         }
 
         @Override
         public LimitConfigDTO getDefaultSystemConfig() {
-            return getDefaultConfig();
+            return LimitConfigDTO.of(Boolean.FALSE, 1, 1L, "YEARS", "系统默认：快点开通 VIP，享受更好的体验！");
         }
     },
     ;
@@ -93,25 +82,18 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
     private final Integer code;
 
     /**
-     * 是否启用
-     */
-    private final Boolean enable;
-
-    /**
-     * 操作类型
-     */
-    private final Integer sort;
-
-    /**
      * 配置标签
      */
     private final String label;
 
-
-    LimitConfigEnum(Integer code, Boolean enable, Integer sort, String label) {
+    /**
+     * 构造方法
+     *
+     * @param code  编码
+     * @param label 标签
+     */
+    LimitConfigEnum(Integer code, String label) {
         this.code = code;
-        this.sort = sort;
         this.label = label;
-        this.enable = enable;
     }
 }

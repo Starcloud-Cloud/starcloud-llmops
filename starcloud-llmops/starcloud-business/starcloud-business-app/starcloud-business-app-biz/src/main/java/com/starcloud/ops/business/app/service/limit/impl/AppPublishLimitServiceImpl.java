@@ -2,11 +2,8 @@ package com.starcloud.ops.business.app.service.limit.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModifyReqVO;
-import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitOperateReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import com.starcloud.ops.business.app.convert.limit.AppPublishLimitConvert;
@@ -74,18 +71,6 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
         if (StringUtils.isBlank(appPublishLimit.getUid())) {
             appPublishLimit.setUid(IdUtil.fastSimpleUUID());
         }
-        if (ObjectUtil.isEmpty(appPublishLimit.getQuotaEnable())) {
-            appPublishLimit.setQuotaEnable(Boolean.FALSE);
-        }
-        if (ObjectUtil.isEmpty(appPublishLimit.getRateEnable())) {
-            appPublishLimit.setRateEnable(Boolean.FALSE);
-        }
-        if (ObjectUtil.isEmpty(appPublishLimit.getUserQuotaEnable())) {
-            appPublishLimit.setUserQuotaEnable(Boolean.FALSE);
-        }
-        if (ObjectUtil.isEmpty(appPublishLimit.getAdvertisingEnable())) {
-            appPublishLimit.setAdvertisingEnable(Boolean.FALSE);
-        }
         appPublishLimitMapper.create(appPublishLimit);
     }
 
@@ -98,32 +83,6 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     public void modify(AppPublishLimitModifyReqVO request) {
         AppPublishLimitDO appPublishLimit = AppPublishLimitConvert.INSTANCE.convertModify(request);
         appPublishLimitMapper.modify(appPublishLimit);
-    }
-
-    /**
-     * 操作应用发布限流信息
-     *
-     * @param request 应用发布限流信息
-     */
-    @Override
-    public void operate(AppPublishLimitOperateReqVO request) {
-        AppPublishLimitDO appPublishLimit = appPublishLimitMapper.get(request.getUid());
-        AppValidate.notNull(appPublishLimit, ErrorCodeConstants.APP_PUBLISH_LIMIT_NOT_EXISTS_UID, request.getUid());
-
-        AppPublishLimitDO updateLimit = new AppPublishLimitDO();
-        updateLimit.setId(appPublishLimit.getId());
-        if (LimitConfigEnum.QUOTA.name().equals(request.getOperate())) {
-            updateLimit.setQuotaEnable(request.getEnable());
-        } else if (LimitConfigEnum.RATE.name().equals(request.getOperate())) {
-            updateLimit.setRateEnable(request.getEnable());
-        } else if (LimitConfigEnum.USER_QUOTA.name().equals(request.getOperate())) {
-            updateLimit.setUserQuotaEnable(request.getEnable());
-        } else if (LimitConfigEnum.ADVERTISING.name().equals(request.getOperate())) {
-            updateLimit.setAdvertisingEnable(request.getEnable());
-        } else {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_LIMIT_OPERATE_NOT_SUPPORTED, request.getOperate());
-        }
-        this.appPublishLimitMapper.updateById(updateLimit);
     }
 
     /**
@@ -180,13 +139,8 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     private AppPublishLimitRespVO getDefaultLimit(String publishUid) {
         AppPublishLimitRespVO response = new AppPublishLimitRespVO();
         response.setPublishUid(publishUid);
-        response.setQuotaEnable(LimitConfigEnum.QUOTA.getEnable());
-        response.setQuotaConfig(LimitConfigEnum.QUOTA.getDefaultConfig());
-        response.setRateEnable(LimitConfigEnum.RATE.getEnable());
         response.setRateConfig(LimitConfigEnum.RATE.getDefaultConfig());
-        response.setUserQuotaEnable(LimitConfigEnum.USER_QUOTA.getEnable());
-        response.setUserQuotaConfig(LimitConfigEnum.USER_QUOTA.getDefaultConfig());
-        response.setAdvertisingEnable(LimitConfigEnum.ADVERTISING.getEnable());
+        response.setUserRateConfig(LimitConfigEnum.USER_RATE.getDefaultConfig());
         response.setAdvertisingConfig(LimitConfigEnum.ADVERTISING.getDefaultConfig());
         return response;
     }

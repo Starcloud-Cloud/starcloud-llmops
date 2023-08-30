@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -25,36 +24,6 @@ import java.util.List;
 public class AppLimitContext implements Serializable {
 
     private static final long serialVersionUID = -3754250618442134116L;
-
-    /**
-     * Redis key
-     */
-    @Schema(description = "Redis key")
-    private String limitKey;
-
-    /**
-     * 限流类型
-     */
-    @Schema(description = "限流类型")
-    private String type;
-
-    /**
-     * 执行顺序
-     */
-    @Schema(description = "执行顺序")
-    private Integer sort;
-
-    /**
-     * 是否启用
-     */
-    @Schema(description = "是否启用")
-    private Boolean enable;
-
-    /**
-     * 限流配置
-     */
-    @Schema(description = "限流配置")
-    private LimitConfigDTO config;
 
     /**
      * 应用唯一标识
@@ -78,12 +47,18 @@ public class AppLimitContext implements Serializable {
      * 执行场景
      */
     @Schema(description = "执行场景")
-    private List<String> fromScene;
+    private String fromScene;
 
     /**
-     * 应用模型
+     * Redis key
      */
-    @Schema(description = "应用模型")
-    private String appMode;
+    @Schema(description = "Redis key")
+    private String limitKey;
+
+    /**
+     * 限流配置
+     */
+    @Schema(description = "限流配置")
+    private LimitConfigDTO config;
 
 }

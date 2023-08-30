@@ -118,7 +118,6 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     public Map<String, List<Option>> logMetaData(String type) {
-
         Map<String, List<Option>> logMetaMap = new HashMap<>(4);
         // 时间类型
         logMetaMap.put("timeType", LogTimeTypeEnum.getOptions());
@@ -146,7 +145,7 @@ public class AppLogServiceImpl implements AppLogService {
         wrapper.eq(StringUtils.isNotBlank(query.getAppMode()), LogAppMessageDO::getAppMode, query.getAppMode());
         wrapper.eq(StringUtils.isNotBlank(query.getUserId()), LogAppMessageDO::getCreator, query.getUserId());
         wrapper.eq(StringUtils.isNotBlank(query.getEndUser()), LogAppMessageDO::getEndUser, query.getEndUser());
-        wrapper.in(CollectionUtil.isNotEmpty(query.getFromScene()), LogAppMessageDO::getFromScene, query.getFromScene());
+        wrapper.eq(StringUtils.isNotBlank(query.getFromScene()), LogAppMessageDO::getFromScene, query.getFromScene());
         // 时间间隔和时间间隔单位不为空情况
         if (Objects.nonNull(query.getTimeInterval()) && Objects.nonNull(query.getTimeUnit())) {
             LocalDateTime startTime = LocalDateTime.now();

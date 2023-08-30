@@ -51,46 +51,16 @@ public class AppPublishLimitRespVO implements Serializable {
     private String channelUid;
 
     /**
-     * 是否启用总量限制，true：启用，false：禁用
-     */
-    @Schema(description = "是否启用总量限制，true：启用，false：禁用")
-    private Boolean quotaEnable;
-
-    /**
-     * 总量限制配置
-     */
-    @Schema(description = "总量限制配置")
-    private LimitConfigDTO quotaConfig;
-
-    /**
-     * 是否启用频率限制，true：启用，false：禁用
-     */
-    @Schema(description = "是否启用频率限制，true：启用，false：禁用")
-    private Boolean rateEnable;
-
-    /**
      * 频率限制配置
      */
     @Schema(description = "频率限制配置")
     private LimitConfigDTO rateConfig;
 
     /**
-     * 是否启用用户用量限制，true：启用，false：禁用
-     */
-    @Schema(description = "是否启用用户用量限制，true：启用，false：禁用")
-    private Boolean userQuotaEnable;
-
-    /**
      * 用户用量限制配置
      */
-    @Schema(description = "用户用量限制配置")
-    private LimitConfigDTO userQuotaConfig;
-
-    /**
-     * 是否启用广告位限制，true：启用，false：禁用
-     */
-    @Schema(description = "是否启用广告位限制，true：启用，false：禁用")
-    private Boolean advertisingEnable;
+    @Schema(description = "用户使用频率限制配置")
+    private LimitConfigDTO userRateConfig;
 
     /**
      * 广告位限制配置

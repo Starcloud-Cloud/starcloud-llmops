@@ -7,8 +7,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.limit.dto.DictionaryLimitDTO;
-import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
+import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.limit.LimitConfigEnum;
@@ -18,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -82,39 +82,21 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      * @return 应用限流兜底配置
      */
     @Override
-    public AppPublishLimitRespVO appSystemLimit() {
+    public List<LimitConfigDTO> appSystemLimitConfig() {
         DictDataExportReqVO request = new DictDataExportReqVO();
         request.setDictType(AppConstants.APP_LIMIT_DEFAULT_CONFIG);
         request.setStatus(StateEnum.ENABLE.getCode());
         List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
         if (CollectionUtil.isEmpty(dictDataList)) {
-            return null;
+            return defaultSystemLimitConfig();
         }
-        AppPublishLimitRespVO response = getDefaultSystemLimit();
-        for (DictDataDO dictData : dictDataList) {
-            if (StringUtils.isBlank(dictData.getRemark())) {
-                continue;
-            }
-            DictionaryLimitDTO dictionaryLimit = JSONUtil.toBean(dictData.getRemark(), DictionaryLimitDTO.class);
-            if ("SYSTEM_QUOTA".equals(dictData.getValue())) {
-                response.setQuotaEnable(dictionaryLimit.getEnable());
-                response.setQuotaConfig(dictionaryLimit.getConfig());
-            }
-            if ("SYSTEM_RATE".equals(dictData.getValue())) {
-                response.setRateEnable(dictionaryLimit.getEnable());
-                response.setRateConfig(dictionaryLimit.getConfig());
-            }
-            if ("SYSTEM_USER_QUOTA".equals(dictData.getValue())) {
-                response.setUserQuotaEnable(dictionaryLimit.getEnable());
-                response.setUserQuotaConfig(dictionaryLimit.getConfig());
-            }
-            if ("SYSTEM_ADVERTISING".equals(dictData.getValue())) {
-                response.setAdvertisingEnable(dictionaryLimit.getEnable());
-                response.setAdvertisingConfig(dictionaryLimit.getConfig());
-            }
-        }
-
-        return response;
+        return dictDataList.stream()
+                .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getRemark()))
+                .map(item -> {
+                    LimitConfigDTO limitConfig = JSONUtil.toBean(item.getRemark(), LimitConfigDTO.class);
+                    limitConfig.setCode(item.getValue());
+                    return limitConfig;
+                }).collect(Collectors.toList());
     }
 
     /**
@@ -122,17 +104,8 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      *
      * @return 应用限流兜底配置
      */
-    private static AppPublishLimitRespVO getDefaultSystemLimit() {
-        AppPublishLimitRespVO response = new AppPublishLimitRespVO();
-        response.setQuotaEnable(Boolean.TRUE);
-        response.setQuotaConfig(LimitConfigEnum.QUOTA.getDefaultSystemConfig());
-        response.setRateEnable(Boolean.TRUE);
-        response.setRateConfig(LimitConfigEnum.RATE.getDefaultSystemConfig());
-        response.setUserQuotaEnable(Boolean.TRUE);
-        response.setUserQuotaConfig(LimitConfigEnum.USER_QUOTA.getDefaultSystemConfig());
-        response.setAdvertisingEnable(Boolean.TRUE);
-        response.setAdvertisingConfig(LimitConfigEnum.ADVERTISING.getDefaultSystemConfig());
-        return response;
+    private static List<LimitConfigDTO> defaultSystemLimitConfig() {
+        return Arrays.stream(LimitConfigEnum.values()).map(LimitConfigEnum::getDefaultSystemConfig).collect(Collectors.toList());
     }
 
 }

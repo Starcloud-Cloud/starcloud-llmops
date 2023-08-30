@@ -56,7 +56,7 @@ public class AppLogMessageQuery extends PageQuery {
      * 执行场景
      */
     @Schema(description = "执行场景")
-    private List<String> fromScene;
+    private String fromScene;
 
     /**
      * 时间
