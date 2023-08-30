@@ -2,14 +2,21 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.llm.langchain.core.tools.SerpAPITool;
+import kong.unirest.json.JSONObject;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * google 搜索内容，只返回 主要的结果摘要
@@ -21,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Slf4j
 @Component
-public class GoogleSearchHandler extends BaseHandler<GoogleSearchHandler.Request, GoogleSearchHandler.Response> {
+public class GoogleSearchHandler extends BaseToolHandler<GoogleSearchHandler.Request, GoogleSearchHandler.Response> {
 
     private String userName = "互联网搜索";
 
@@ -41,15 +48,63 @@ public class GoogleSearchHandler extends BaseHandler<GoogleSearchHandler.Request
         SerpAPITool.Request request = new SerpAPITool.Request();
         request.setQ(query);
 
-        String content = serpAPITool.run(request, false, null);
+        List<SerpAPITool.SearchInfoDetail> searchInfoDetails = serpAPITool.runGetInfo(request);
+
+        String content = serpAPITool.processResponseStr(searchInfoDetails);
 
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
 
         handlerResponse.setSuccess(true);
         handlerResponse.setOutput(new Response(content));
 
+        handlerResponse.setExt(searchInfoDetails);
+
         return handlerResponse;
     }
+
+
+    /**
+     * 包装为文档结构
+     */
+    @Override
+    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
+
+        //解析返回的内容 生成 MessageContentDocDTO
+        List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();
+
+        Request request = context.getRequest();
+        List<SerpAPITool.SearchInfoDetail> searchInfoDetails = (List<SerpAPITool.SearchInfoDetail>) handlerResponse.getExt();
+
+        Map<String, List<SerpAPITool.SearchInfoDetail>> maps = Optional.ofNullable(searchInfoDetails).orElse(new ArrayList<>()).stream().collect(Collectors.groupingBy(SerpAPITool.SearchInfoDetail::getType));
+
+        //为了结果丰富全面，每个结果类型取1个
+        for (Map.Entry<String, List<SerpAPITool.SearchInfoDetail>> entry : maps.entrySet()) {
+
+            String type = entry.getKey();
+            //暂时支持取这2种结果
+            if ("answerBox".equals(type) || "organic".equals(type)) {
+
+                SerpAPITool.SearchInfoDetail searchInfoDetail = entry.getValue().get(0);
+                if (searchInfoDetail != null) {
+                    MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();
+
+                    messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
+                    messageContentDocDTO.setUrl(searchInfoDetail.getLink());
+                    messageContentDocDTO.setTime(searchInfoDetail.getTime());
+                    messageContentDocDTO.setTitle(searchInfoDetail.getTitle());
+                    messageContentDocDTO.setContent(searchInfoDetail.getContent());
+
+                    //@todo 2Map
+                    messageContentDocDTO.setExt(searchInfoDetail);
+
+                    messageContentDocDTOList.add(messageContentDocDTO);
+                }
+            }
+        }
+
+        return messageContentDocDTOList;
+    }
+
 
     @Data
     public static class Request {

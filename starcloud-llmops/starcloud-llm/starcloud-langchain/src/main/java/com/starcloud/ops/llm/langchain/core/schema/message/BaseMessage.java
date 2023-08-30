@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
+import com.starcloud.ops.llm.langchain.core.utils.JsonUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -40,7 +41,7 @@ public abstract class BaseMessage implements Serializable {
     }
 
     public static String getBufferString(List<BaseMessage> messages) {
-        return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(BaseMessage::getBufferString).collect(Collectors.joining("\n"));
+        return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(BaseMessage::getBufferString).collect(Collectors.joining("\n")) + "\n";
     }
 
     public static String getBufferString(BaseMessage message) {
@@ -54,7 +55,7 @@ public abstract class BaseMessage implements Serializable {
             Object call = message.getAdditionalArgs().get("function_call");
             if (ObjectUtil.isNotNull(call)) {
                 //这时候 message.getContent() 其实为空
-                content += "function_call " + JSONUtil.toJsonStr(call);
+                content += "function_call " + JsonUtils.toJsonString(call);
             }
         } else if (message instanceof SystemMessage) {
             role = "System";

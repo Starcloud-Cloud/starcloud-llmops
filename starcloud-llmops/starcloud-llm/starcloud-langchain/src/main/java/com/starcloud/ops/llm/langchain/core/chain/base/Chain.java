@@ -10,6 +10,7 @@ import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
 import com.starcloud.ops.llm.langchain.core.memory.BaseMemory;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -89,6 +90,8 @@ public abstract class Chain<R> {
         } catch (Exception e) {
 
             chainRun.onChainError(e.getMessage(), e);
+
+            throw e;
 
             //this.getCallbackManager().onChainError(e.getMessage(), e);
         }

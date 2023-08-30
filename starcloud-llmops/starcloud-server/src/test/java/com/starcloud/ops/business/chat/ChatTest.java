@@ -84,6 +84,28 @@ public class ChatTest extends BaseDbUnitTest {
     }
 
     /**
+     * 普通对话
+     */
+    @Test
+    public void runMyChat1Test() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("8df9343b57464dab8974b2704c6a18e4");
+        chatRequest.setUserId(188L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        chatRequest.setQuery("你好11？");
+
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+    /**
      * 普通带历史聊天
      */
     @Test
@@ -142,7 +164,9 @@ public class ChatTest extends BaseDbUnitTest {
         //带数据集的
         chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
 
-        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
 
         chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
@@ -168,7 +192,6 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("今天杭州的天气怎么样？");
 
-        chatRequest.setQuery("1+1=？");
 
         chatService.chat(chatRequest);
 
@@ -204,6 +227,36 @@ public class ChatTest extends BaseDbUnitTest {
 
 
     /**
+     * 工具调用 联网查询
+     */
+    @Test
+    public void runMyChatWebSearchTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+
+        chatRequest.setQuery("今天杭州的天气怎么样？");
+
+        chatRequest.setQuery("今天北京的天气怎么样？");
+
+        chatRequest.setQuery("今天天津的天气怎么样？");
+
+        chatRequest.setQuery("杭州 8月29号天怎么样，跟8月28号天气比较尼？");
+
+        chatRequest.setQuery("查询下 杭州 2023年8月29号和8月30号的天气，并做个温度比较给我。");
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+    /**
      * 查询带文档的chat
      */
     @Test
@@ -213,10 +266,13 @@ public class ChatTest extends BaseDbUnitTest {
 
         //带数据集的
         chatRequest.setAppUid("971e790946d04513aad3b29e695720f0");
+        chatRequest.setUserId(186L);
 
         chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
 
         chatRequest.setQuery("什么是电子商务？");
+
+        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
 
         chatService.chat(chatRequest);

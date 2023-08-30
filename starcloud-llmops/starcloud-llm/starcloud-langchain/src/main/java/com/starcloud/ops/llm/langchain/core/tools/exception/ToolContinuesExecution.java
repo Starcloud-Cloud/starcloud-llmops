@@ -1,7 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.tools.exception;
 
 
-import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,24 +11,21 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-public class ToolContinuesExecution extends RuntimeException {
+public abstract class ToolContinuesExecution extends RuntimeException {
 
     private String toolName;
 
     private Object toolInput;
 
-    private BaseTool<Object, String> substituteTool;
+    private Integer errorCode;
 
-
-    public ToolContinuesExecution(String toolName, Object toolInput, String message, Throwable cause, BaseTool substituteTool) {
-
+    public ToolContinuesExecution(String message, Throwable cause) {
         super(message, cause);
-        this.toolName = toolName;
-        this.toolInput = toolInput;
-        this.substituteTool = substituteTool;
     }
 
-    public String getObservation() {
-        return this.getSubstituteTool().run(this.getToolInput());
+    public ToolContinuesExecution() {
     }
+
+    public abstract String getObservation();
+
 }

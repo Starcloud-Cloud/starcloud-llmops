@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
+import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -67,6 +68,9 @@ public class AppPublishServiceImpl implements AppPublishService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private AppPublishLimitService appPublishLimitService;
 
     /**
      * 分页查询应用发布记录
@@ -148,10 +152,13 @@ public class AppPublishServiceImpl implements AppPublishService {
         AppPublishLatestRespVO response = AppPublishConverter.INSTANCE.convertLatest(publishList.get(0));
         response.setAppLastUpdateTime(app.getUpdateTime());
         response.setIsFirstCreatePublishRecord(Boolean.FALSE);
-        
+
         // 获取应用发布渠道记录，按照发布渠道类型分组
         Map<Integer, List<AppPublishChannelRespVO>> channelMap = appPublishChannelService.mapByAppPublishUidGroupByType(response.getUid());
         response.setChannelMap(channelMap);
+
+        // 获取应用的限流配置信息
+        response.setLimit(appPublishLimitService.getDefaultIfNull(response.getUid()));
 
         // 发布记录不为空且存在待审核的发布记录, 不显示发布按钮，显示 取消发布按钮
         boolean pendingFlag = publishList.stream().anyMatch(item ->
@@ -262,6 +269,9 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
         // 更新渠道表中的发布 UID
         appPublishChannelService.updatePublishUidByAppUid(request.getAppUid(), appPublish.getUid());
+        // 更新限流表中的发布 UID
+        appPublishLimitService.updatePublishUidByAppUid(request.getAppUid(), appPublish.getUid());
+
         // 保存应用发布记录
         appPublishMapper.insert(appPublish);
         return AppPublishConverter.INSTANCE.convert(appPublish);
@@ -370,6 +380,8 @@ public class AppPublishServiceImpl implements AppPublishService {
         appPublishMapper.deleteById(appPublish.getId());
         // 删除应用发布渠道记录
         appPublishChannelService.deleteByAppPublishUid(uid);
+        // 删除应用发布限流记录
+        appPublishLimitService.deleteByPublishUid(uid);
     }
 
     /**
@@ -378,6 +390,7 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param appUid 应用 UID
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteByAppUid(String appUid) {
         List<AppPublishDO> publishList = appPublishMapper.listByAppUid(appUid);
         if (CollectionUtil.isEmpty(publishList)) {
@@ -385,6 +398,10 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
         List<Long> collect = publishList.stream().map(AppPublishDO::getId).collect(Collectors.toList());
         appPublishMapper.deleteBatchIds(collect);
+        // 删除应用发布渠道记录
+        appPublishChannelService.deleteByAppUid(appUid);
+        // 删除应用发布限流记录
+        appPublishLimitService.deleteByAppUid(appUid);
     }
 
     /**

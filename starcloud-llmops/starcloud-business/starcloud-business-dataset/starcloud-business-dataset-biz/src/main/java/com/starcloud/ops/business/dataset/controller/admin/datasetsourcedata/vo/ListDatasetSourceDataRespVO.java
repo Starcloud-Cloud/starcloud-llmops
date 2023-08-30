@@ -31,9 +31,9 @@ public class ListDatasetSourceDataRespVO {
     @Schema(description = "数据模型 （0-问答，1-文档）", required = true)
     private  Integer dataModel;
     /**
-     * 数据源类型 文档 URL 字符串
+     * 数据源类型 文档 HTML 字符串
      */
-    @Schema(description = "数据源类型 文档 URL 字符串", required = true)
+    @Schema(description = "数据源类型 文档 HTML 字符串", required = true)
     private  String dataType;
 
     @Schema(description = "数据类型")

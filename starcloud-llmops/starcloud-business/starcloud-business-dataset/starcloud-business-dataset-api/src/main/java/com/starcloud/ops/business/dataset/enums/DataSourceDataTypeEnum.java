@@ -15,19 +15,24 @@ public enum DataSourceDataTypeEnum {
     /**
      * 文档
      */
-    DOCUMENT,
+    DOCUMENT("文档"),
 
     /**
-     *  URL
+     *  HTML
      */
-    URL,
+    HTML("网页"),
 
     /**
      * 字符
      */
-    CHARACTERS,
+    CHARACTERS("自定义文本"),
 
     ;
+
+
+    private final String name;
+
+
 
 
 }

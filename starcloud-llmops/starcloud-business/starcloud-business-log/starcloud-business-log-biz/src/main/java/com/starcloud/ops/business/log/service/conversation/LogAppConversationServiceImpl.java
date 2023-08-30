@@ -172,6 +172,17 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         return appConversationMapper.selectList(exportReqVO);
     }
 
+    @Override
+    public LogAppConversationDO getUserRecentlyConversation(String appUid, String creator, String scene) {
+        LambdaQueryWrapper<LogAppConversationDO> wrapper = Wrappers.lambdaQuery(LogAppConversationDO.class)
+                .eq(LogAppConversationDO::getAppUid, appUid)
+                .eq(LogAppConversationDO::getCreator, creator)
+                .eq(LogAppConversationDO::getFromScene, scene)
+                .orderByDesc(LogAppConversationDO::getCreateTime)
+                .last("limit 1");
+        return appConversationMapper.selectOne(wrapper);
+    }
+
     /**
      * 根据应用 UID 获取应用执行日志消息统计数据列表 <br>
      * 1. 应用分析 <br>
@@ -265,6 +276,7 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     public LogAppConversationDO getRecentlyConversation(String appUid) {
         LambdaQueryWrapper<LogAppConversationDO> wrapper = Wrappers.lambdaQuery(LogAppConversationDO.class)
                 .eq(LogAppConversationDO::getAppUid, appUid)
+                .orderByDesc(LogAppConversationDO::getCreateTime)
                 .last("limit 1");
         return appConversationMapper.selectOne(wrapper);
     }

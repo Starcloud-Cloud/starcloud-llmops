@@ -14,7 +14,7 @@ import java.util.*;
 @Data
 public abstract class BasePromptTemplate implements Serializable {
 
-    private List<BaseVariable> inputVariables;
+    private List<BaseVariable> inputVariables = new ArrayList<>();
 
     private Object outputParser;
 
@@ -31,10 +31,25 @@ public abstract class BasePromptTemplate implements Serializable {
 
     }
 
-    @Deprecated
     public PromptValue formatPrompt() {
 
         return formatPrompt(this.inputVariables);
+    }
+
+
+    /**
+     * 合并当前模版变量
+     * @param variables
+     * @return
+     */
+    public List<BaseVariable> mergeVariable(List<BaseVariable> variables) {
+
+        List<BaseVariable> listVariable = new ArrayList<>();
+
+        listVariable.addAll(this.getInputVariables());
+        listVariable.addAll(variables);
+
+        return listVariable;
     }
 }
 

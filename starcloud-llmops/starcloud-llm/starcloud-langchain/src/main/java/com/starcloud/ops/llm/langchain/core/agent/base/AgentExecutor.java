@@ -27,6 +27,9 @@ import com.starcloud.ops.llm.langchain.core.schema.parser.OutputParserException;
 import com.starcloud.ops.llm.langchain.core.tools.FailTool;
 import com.starcloud.ops.llm.langchain.core.tools.InvalidTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
+import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
+import com.starcloud.ops.llm.langchain.core.tools.exception.FailToolExecution;
+import com.starcloud.ops.llm.langchain.core.tools.exception.InvalidToolExecution;
 import com.starcloud.ops.llm.langchain.core.tools.exception.ToolContinuesExecution;
 import com.theokanning.openai.completion.chat.ChatFunctionCall;
 import lombok.Data;
@@ -38,7 +41,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Data
-public class AgentExecutor extends Chain<AgentAction> {
+public class AgentExecutor extends Chain<AgentFinish> {
 
     private BaseChatMemory memory;
 
@@ -102,7 +105,7 @@ public class AgentExecutor extends Chain<AgentAction> {
     }
 
     @Override
-    protected AgentAction _call(List<BaseVariable> variables) {
+    protected AgentFinish _call(List<BaseVariable> variables) {
 
         List<AgentAction> intermediateSteps = new ArrayList<>();
 
@@ -115,7 +118,6 @@ public class AgentExecutor extends Chain<AgentAction> {
         while (this._shouldContinue(iterations, timeElapsed)) {
 
             List<AgentAction> nextStepOutput = this._takeNextStep(toolMap, variables, intermediateSteps);
-
             //检查是否直接有完成的AgentFinish
             AgentFinish agentFinish = this.checkGetAgentFinish(nextStepOutput);
 
@@ -141,7 +143,11 @@ public class AgentExecutor extends Chain<AgentAction> {
         }
 
         //执行到这说明已经超时了，返回一个超时的 AgentFinish
-        AgentFinish stopAgent = this.actionAgent.returnStoppedResponse("force", intermediateSteps, variables);
+        AgentFinish stopAgent = this.actionAgent.returnStoppedResponse("force", intermediateSteps, iterations, timeElapsed);
+
+        //超时这里要增加日志
+        BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(stopAgent);
+        this.getMemory().saveContext(null, baseLLMResult);
 
         return this._return(stopAgent, intermediateSteps);
     }
@@ -157,7 +163,7 @@ public class AgentExecutor extends Chain<AgentAction> {
     }
 
     @Override
-    protected AgentAction prepOutputs(List<BaseVariable> baseVariables, AgentAction result) {
+    protected AgentFinish prepOutputs(List<BaseVariable> baseVariables, AgentFinish result) {
 
         this._validateOutputs(result);
 
@@ -173,19 +179,83 @@ public class AgentExecutor extends Chain<AgentAction> {
         return result;
     }
 
-    protected BaseLLMResult parseAgentAction2LLmResult(List<BaseVariable> variables, AgentAction actionAgent) {
+
+    protected BaseLLMResult parseAgentAction2LLmResult(List<BaseVariable> variables, List<AgentAction> intermediateSteps, AgentAction actionAgent) {
+
+        List<ChatGeneration<Object>> generations = new ArrayList<>();
 
 
-        BaseVariable variable = this.getMemory().getPromptInputKey(variables);
-        HumanMessage humanMessage = new HumanMessage(String.valueOf(variable.getValue()));
+        /**
+         * 一个 FunctionsAgentAction 有两种状态，执行前，执行后
+         */
+        if (actionAgent instanceof FunctionsAgentAction) {
 
-        BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(actionAgent);
+            AIMessage aiMessage = (AIMessage) ((FunctionsAgentAction) actionAgent).getMessagesLog().stream().findFirst().get();
 
-        //用户请求放在第一个
-        baseLLMResult.getGenerations().add(0, ChatGeneration.builder().chatMessage(humanMessage).build());
+            if (aiMessage.getAdditionalArgs() != null && aiMessage.getAdditionalArgs().get("function_call") != null) {
+                //有状态，执行过
+                if (actionAgent.getStatus() != null) {
+
+                    ChatFunctionCall functionCall = (ChatFunctionCall) aiMessage.getAdditionalArgs().get("function_call");
+                    JsonNode params = functionCall.getArguments();
+
+                    FunctionMessage functionMessage = new FunctionMessage(((FunctionsAgentAction) actionAgent).getTool(), params);
+                    functionMessage.setContent(JSONUtil.toJsonStr(actionAgent.getObservation()));
+                    functionMessage.setStatus(actionAgent.getStatus());
+                    functionMessage.setElapsed(((FunctionsAgentAction) actionAgent).getElapsed());
+
+                    //@todo 如果要增加工具消耗，还没有地方加
+                    generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(functionMessage).build());
+
+                } else {
+
+                    //未执行过，即 请求LLM返回fun_call
+                    generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(aiMessage).build());
+                }
+            }
+
+        } else if (actionAgent instanceof AgentFinish) {
+
+
+            if (Boolean.TRUE.equals(actionAgent.getStatus())) {
+
+                //LLM 用函数结果调用后返回最终结果
+                List<BaseMessage> messageList = ((AgentFinish) actionAgent).getMessagesLog();
+
+                AIMessage aiMessage = (AIMessage) messageList.get(0);
+                aiMessage.getAdditionalArgs().put(AgentFinishInputKey, actionAgent.getLog());
+
+                generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(aiMessage).build());
+
+            } else {
+
+                generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(null).build());
+                //agent执行异常，提前结束了，如循环超时
+                log.error("agentExecutor parseAgentAction2LLmResult is fail, AgentFinish status Illegal: {}", actionAgent);
+
+            }
+
+
+        } else {
+
+            log.error("agentExecutor parseAgentAction2LLmResult is fail, Unsupported actionAgent: {}", actionAgent);
+        }
+
+        //第一次请求
+        if (CollectionUtil.isEmpty(intermediateSteps)) {
+
+            BaseVariable variable = this.getMemory().getPromptInputKey(variables);
+            HumanMessage humanMessage = new HumanMessage(String.valueOf(variable.getValue()));
+
+            //用户请求放在第一个
+            generations.add(0, ChatGeneration.builder().chatMessage(humanMessage).build());
+        }
+
+        BaseLLMResult baseLLMResult = BaseLLMResult.builder().generations(generations).build();
 
         return baseLLMResult;
     }
+
 
     protected BaseLLMResult parseAgentAction2LLmResult(AgentAction actionAgent) {
 
@@ -211,12 +281,12 @@ public class AgentExecutor extends Chain<AgentAction> {
                     functionMessage.setElapsed(((FunctionsAgentAction) actionAgent).getElapsed());
 
                     //@todo 如果要增加工具消耗，还没有地方加
-                    generations.add(ChatGeneration.builder().chatMessage(functionMessage).build());
+                    generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(functionMessage).build());
 
                 } else {
 
                     //未执行过，即 请求LLM返回fun_call
-                    generations.add(ChatGeneration.builder().chatMessage(aiMessage).build());
+                    generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(aiMessage).build());
                 }
             }
 
@@ -231,11 +301,14 @@ public class AgentExecutor extends Chain<AgentAction> {
                 AIMessage aiMessage = (AIMessage) messageList.get(0);
                 aiMessage.getAdditionalArgs().put(AgentFinishInputKey, actionAgent.getLog());
 
-                generations.add(ChatGeneration.builder().chatMessage(aiMessage).build());
+                generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(aiMessage).build());
 
             } else {
-                //agent 是异常，提前结束了，如LLM超时
+
+                generations.add(ChatGeneration.builder().generationInfo(actionAgent).chatMessage(null).build());
+                //agent执行异常，提前结束了，如循环超时
                 log.error("agentExecutor parseAgentAction2LLmResult is fail, AgentFinish status Illegal: {}", actionAgent);
+
             }
 
 
@@ -308,35 +381,30 @@ public class AgentExecutor extends Chain<AgentAction> {
 
         //llm执行的任何异常都应阻断流程，所以此处无catch
 
-        List<AgentAction> agentActions = this.getActionAgent().plan(intermediateSteps, variables, this.getCallbackManager());
+        List<AgentAction> nextStepOutput = this.getActionAgent().plan(intermediateSteps, variables, this.getCallbackManager());
 
-        if (CollectionUtil.size(agentActions) != 1) {
+        if (CollectionUtil.size(nextStepOutput) != 1) {
             throw new OutputParserException("plan return is error, agetAction more 1");
         }
 
-        //为空说明 第一次执行
-        if (CollectionUtil.isEmpty(intermediateSteps)) {
+        //增加 fun 调用日志
+        Optional.ofNullable(nextStepOutput).orElse(new ArrayList<>()).forEach(agentAction -> {
 
-            //保存第一条 history, 带用户输入
-            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(variables, agentActions.get(0));
+            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(variables, intermediateSteps, agentAction);
             this.getMemory().saveContext(null, baseLLMResult);
-        } else {
-
-            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(agentActions.get(0));
-            this.getMemory().saveContext(null, baseLLMResult);
-        }
+        });
 
         //判断是否完成了，现在只会有一个元素
-        if (CollectionUtil.size(agentActions) == 1) {
-            if (agentActions.get(0) instanceof AgentFinish) {
-                return agentActions;
+        if (CollectionUtil.size(nextStepOutput) == 1) {
+            if (nextStepOutput.get(0) instanceof AgentFinish) {
+                return nextStepOutput;
             }
         }
 
         List<AgentAction> result = new ArrayList<>();
 
         //现在只有会一个元素
-        for (AgentAction agentAction : agentActions) {
+        for (AgentAction agentAction : nextStepOutput) {
             FunctionsAgentAction funAgentAction = (FunctionsAgentAction) agentAction;
 
             long start = System.currentTimeMillis();
@@ -349,24 +417,22 @@ public class AgentExecutor extends Chain<AgentAction> {
             /**
              * 执行函数调用，异常catch，保存下来.并且设置返回内容，好让LLM继续做判断
              */
+            //现在只会有 FunTool，都是 FunTool 包装后的tool
+            FunTool baseTool = (FunTool) toolMap.get(tool);
 
             try {
-
                 if (toolMap.containsKey(tool)) {
-
-                    BaseTool baseTool = toolMap.get(tool);
                     Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
 
                     if (baseTool.getReturnDirect()) {
                         toolRunKwargs.put("llm_prefix", "");
                     }
 
-
                     //@todo 捕获工具执行异常
                     observation = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
                     //为空，可能执行异常，告诉LLM 此次调用失败，无效
                     if (ObjectUtil.isEmpty(observation)) {
-                        throw new ToolContinuesExecution(tool, toolInput, null, null, new FailTool(tool).setCallbackManager(this.callbackManager));
+                        throw new FailToolExecution(tool, toolInput, -1, "");
                     }
 
                     funAgentAction.setStatus(true);
@@ -374,34 +440,38 @@ public class AgentExecutor extends Chain<AgentAction> {
 
                 } else {
 
-                    throw new ToolContinuesExecution(tool, toolInput, null, null, new InvalidTool(tool).setCallbackManager(this.callbackManager));
+                    throw new InvalidToolExecution(tool, toolInput);
                 }
 
             } catch (ToolContinuesExecution toolContinuesExecution) {
 
-                log.error("AgentExecutor tool run is fail: {}", toolContinuesExecution);
+                log.error("AgentExecutor tool [{}] run is error: {}", baseTool.getClass().getSimpleName(), toolContinuesExecution);
+
+                funAgentAction.setStatus(false);
+                funAgentAction.setErrorCode(toolContinuesExecution.getErrorCode());
+                funAgentAction.setError(toolContinuesExecution.getMessage());
 
                 funAgentAction.setObservation(toolContinuesExecution.getObservation());
-                funAgentAction.setStatus(false);
-
-                funAgentAction.setErrorCode("-1");
-                funAgentAction.setError(toolContinuesExecution.getMessage());
 
             } catch (Exception e) {
 
-                log.error("AgentExecutor tool run is error: {}", e.getMessage(), e);
+                //所有到工具执行异常，都返回 FailTool 即可，交由LLM继续执行后续逻辑
+
+                log.error("AgentExecutor tool  [{}]  run is fail: {}", baseTool.getClass().getSimpleName(), e.getMessage(), e);
 
                 funAgentAction.setStatus(false);
+                funAgentAction.setErrorCode(-2);
                 funAgentAction.setError(e.getMessage());
-                funAgentAction.setErrorCode("-2");
-                funAgentAction.setObservation("");
+
+                funAgentAction.setObservation(new FailToolExecution(tool, toolInput, -1, "").getObservation());
+
+            } finally {
+
+                funAgentAction.setElapsed(System.currentTimeMillis() - start);
+                //增加 fun 调用日志
+                BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(funAgentAction);
+                this.getMemory().saveContext(null, baseLLMResult);
             }
-
-            funAgentAction.setElapsed(System.currentTimeMillis() - start);
-
-            //增加 fun 调用日志
-            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(funAgentAction);
-            this.getMemory().saveContext(null, baseLLMResult);
 
             result.add(funAgentAction);
         }
@@ -501,7 +571,7 @@ public class AgentExecutor extends Chain<AgentAction> {
      * @param agentActions
      * @return
      */
-    private AgentAction _return(AgentFinish agentFinish, List<AgentAction> agentActions) {
+    private AgentFinish _return(AgentFinish agentFinish, List<AgentAction> agentActions) {
 
         this.callbackManager.onAgentFinish(this.getClass(), agentFinish);
 

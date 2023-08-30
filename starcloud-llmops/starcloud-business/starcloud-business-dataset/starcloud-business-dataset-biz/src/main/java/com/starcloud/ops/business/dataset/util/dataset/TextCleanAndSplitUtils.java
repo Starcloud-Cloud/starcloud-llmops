@@ -1,19 +1,21 @@
 package com.starcloud.ops.business.dataset.util.dataset;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.URLUtil;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataFormatEnum;
-import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
-import com.starcloud.ops.business.dataset.pojo.dto.CleanRule;
+import com.starcloud.ops.business.dataset.pojo.dto.CommonCleanRule;
+import com.starcloud.ops.business.dataset.pojo.dto.HTMLCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import io.github.furstenheim.CopyDown;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -30,56 +32,86 @@ public class TextCleanAndSplitUtils {
         return splitText(text, splitRule);
     }
 
-    public static String cleanText(String text, String dataType, CleanRule cleanRule) {
+    public static String processHtmlRule(String data, HTMLCleanRule htmlCleanRule) {
+        String text;
+        // 根据用户设置语言设置
+        try {
+            String normalize = URLUtil.normalize(data);
 
-        // 用户白名单
-        if (DataSourceDataTypeEnum.URL.name().equals(dataType) && CollUtil.isNotEmpty(cleanRule.getWhiteList()) || CollUtil.isNotEmpty(cleanRule.getBlackList())) {
-            text = processHtmlTags(text, cleanRule.getWhiteList(), cleanRule.getBlackList());
+            Connection connection = Jsoup.connect(normalize);
+
+            // 设置请求头中的 Accept-Language 属性
+
+            connection.header("Accept-Language", htmlCleanRule.getAcceptLanguage());
+
+             text = connection.get().toString();
+        }catch (Exception e){
+            throw new RuntimeException("数据预处理失败，无法请求到地址！");
+        }
+        // 根据标签白名单和黑名单清洗数据
+        if (CollUtil.isNotEmpty(htmlCleanRule.getWhiteList()) || CollUtil.isNotEmpty(htmlCleanRule.getBlackList())) {
+            text = processHtmlTags(text, htmlCleanRule.getWhiteList(), htmlCleanRule.getBlackList());
         }
 
-        // 删除连续空格
-        if (cleanRule.getRemoveConsecutiveSpaces()) {
-            text = text.replaceAll("\\s+", " ");
-        }
-
-        // 删除连续换行符
-        if (cleanRule.getRemoveConsecutiveNewlines()) {
-            text = text.replaceAll("\\n+", "\n");
-        }
-
-        // 删除连续制表符
-        if (cleanRule.getRemoveConsecutiveTabs()) {
-            text = text.replaceAll("\\t+", "\t");
-        }
-
-        // 删除所有的 URL 和电子邮件地址
-        if (cleanRule.getRemoveUrlsEmails()) {
-            text = text.replaceAll("(https?|ftp)://\\S+|www\\.\\S+|\\S+@\\S+", "");
-        }
-
-        return text;
+        return processFormat(text,htmlCleanRule.getConvertFormat());
     }
+
+    public static String processCommonRule(String text, CommonCleanRule commonCleanRule) {
+        Document doc = Jsoup.parse(text);
+        StringBuilder processedText = new StringBuilder(doc.text());
+
+        if (commonCleanRule.getRemoveAllHtmlTags()) {
+            processedText = new StringBuilder(doc.text());
+        }
+
+        if (commonCleanRule.getRemoveAllImage()) {
+            String imgRegex = "<img.*?>";
+            Pattern imgPattern = Pattern.compile(imgRegex, Pattern.CASE_INSENSITIVE);
+            Matcher matcher = imgPattern.matcher(processedText);
+            processedText = new StringBuilder(matcher.replaceAll(""));
+        }
+
+        if (commonCleanRule.getRemoveConsecutiveSpaces()) {
+            processedText = new StringBuilder(processedText.toString().replaceAll("\\s+", " "));
+        }
+
+        if (commonCleanRule.getRemoveConsecutiveNewlines()) {
+            processedText = new StringBuilder(processedText.toString().replaceAll("\\n+", "\n"));
+        }
+
+        if (commonCleanRule.getRemoveConsecutiveTabs()) {
+            processedText = new StringBuilder(processedText.toString().replaceAll("\\t+", "\t"));
+        }
+
+        if (commonCleanRule.getRemoveUrlsEmails()) {
+            String emailRegex = "([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)";
+            processedText = new StringBuilder(processedText.toString().replaceAll(emailRegex, ""));
+        }
+
+        return processedText.toString();
+    }
+
 
     public static String splitText(String text, SplitRule splitRule) {
 
-        // 用户自定义 正则
-        if (StringUtils.isNotBlank(splitRule.getPattern())) {
-            Pattern line = Pattern.compile(splitRule.getPattern());
-            text = line.matcher(text).replaceAll(StringUtils.EMPTY);
-        }
-        // 去除 空格
-        if (BooleanUtils.isNotFalse(splitRule.getAutomatic())) {
-            text = removeUrlsEmails(text);
-            return text;
-        }
-        // 去除 空白区域
-        if (BooleanUtils.isTrue(splitRule.getRemoveExtraSpaces())) {
-            text = removeExtraSpaces(text);
-        }
-        // 去除 链接中的邮箱
-        if (BooleanUtils.isTrue(splitRule.getRemoveUrlsEmails())) {
-            text = removeUrlsEmails(text);
-        }
+        // // 用户自定义 正则
+        // if (StringUtils.isNotBlank(splitRule.getPattern())) {
+        //     Pattern line = Pattern.compile(splitRule.getPattern());
+        //     text = line.matcher(text).replaceAll(StringUtils.EMPTY);
+        // }
+        // // 去除 空格
+        // if (BooleanUtils.isNotFalse(splitRule.getAutomatic())) {
+        //     text = removeUrlsEmails(text);
+        //     return text;
+        // }
+        // // 去除 空白区域
+        // if (BooleanUtils.isTrue(splitRule.getRemoveExtraSpaces())) {
+        //     text = removeExtraSpaces(text);
+        // }
+        // // 去除 链接中的邮箱
+        // if (BooleanUtils.isTrue(splitRule.getRemoveUrlsEmails())) {
+        //     text = removeUrlsEmails(text);
+        // }
         return text;
     }
 
@@ -127,12 +159,12 @@ public class TextCleanAndSplitUtils {
      * @param format
      * @return
      */
-    public static String processFormat(String data, String format, String dataType) {
+    private static String processFormat(String data, String format) {
 
-        if (DataSourceDataFormatEnum.MARKDOWN.name().equals(format) && DataSourceDataTypeEnum.URL.name().equals(dataType)) {
+        if (DataSourceDataFormatEnum.MARKDOWN.name().equals(format)) {
             return html2Markdown(data);
         }
-        if (DataSourceDataFormatEnum.TXT.name().equals(format) && DataSourceDataTypeEnum.URL.name().equals(dataType)) {
+        if (DataSourceDataFormatEnum.TXT.name().equals(format)) {
             return Jsoup.parse(data).text();
         }
         return data;

@@ -106,7 +106,7 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
                 ChatRequestVO chatRequestVO = new ChatRequestVO();
                 chatRequestVO.setAppUid(appUid);
                 chatRequestVO.setQuery(content);
-                chatRequestVO.setScene(AppSceneEnum.WEB_MARKET.name());
+                chatRequestVO.setScene(AppSceneEnum.MP.name());
                 chatRequestVO.setUserId(userDO.getId());
                 if (recentlyConversation != null) {
                     chatRequestVO.setConversationUid(recentlyConversation.getUid());

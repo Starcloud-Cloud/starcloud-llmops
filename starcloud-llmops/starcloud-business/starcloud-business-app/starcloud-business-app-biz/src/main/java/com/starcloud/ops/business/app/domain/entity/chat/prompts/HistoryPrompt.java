@@ -1,49 +1,44 @@
 package com.starcloud.ops.business.app.domain.entity.chat.prompts;
 
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
-import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
-import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
+import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 /**
- * 历史 prompt
+ * 聊天历史 prompt
  */
 @Slf4j
 @Data
 public class HistoryPrompt extends BasePromptConfig {
 
 
-    private String promptV1 = "{history}";
+    private String promptV1 = "Here is the history of the dialogue\n\n{history}";
 
 
-    private Boolean hasHistory;
+    private BaseChatMemory chatMemory;
 
-    public HistoryPrompt(Boolean hasHistory) {
-        this.hasHistory = hasHistory;
+    public HistoryPrompt(BaseChatMemory chatMemory) {
+
+        this.chatMemory = chatMemory;
     }
 
 
     @Override
-    protected String _buildPromptStr() {
-
-        return this.promptV1;
+    protected PromptTemplate _buildPrompt() {
+        return new PromptTemplate(this.promptV1);
     }
+
 
     @Override
     protected Boolean _isEnable() {
-        return this.hasHistory;
+        return this.chatMemory.getChatHistory() != null && this.chatMemory.getChatHistory().limitMessage(1).size() > 0;
     }
 
 }

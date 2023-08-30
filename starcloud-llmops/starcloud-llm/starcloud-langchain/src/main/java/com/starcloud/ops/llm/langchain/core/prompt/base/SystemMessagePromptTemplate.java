@@ -6,6 +6,7 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
+import com.starcloud.ops.llm.langchain.core.schema.prompt.BasePromptTemplate;
 import lombok.Data;
 
 import java.util.Arrays;

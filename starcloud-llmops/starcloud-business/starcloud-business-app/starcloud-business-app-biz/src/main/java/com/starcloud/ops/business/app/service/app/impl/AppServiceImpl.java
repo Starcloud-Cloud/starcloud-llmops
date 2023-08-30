@@ -25,6 +25,7 @@ import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
+import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -60,6 +61,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private AppPublishLimitService appPublishLimitService;
 
     /**
      * 查询应用分类列表
@@ -201,8 +205,6 @@ public class AppServiceImpl implements AppService {
         appMapper.delete(uid);
         // 删除应用发布信息
         appPublishService.deleteByAppUid(uid);
-        // 删除应用发布渠道信息
-        appPublishChannelService.deleteByAppUid(uid);
     }
 
     /**

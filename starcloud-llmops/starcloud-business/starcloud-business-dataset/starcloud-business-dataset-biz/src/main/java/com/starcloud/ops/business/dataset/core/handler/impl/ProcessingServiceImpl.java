@@ -42,7 +42,7 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASETS_NOT_EXISTS;
 
 /**
- * 数据源数据上传逻辑 - 支持 URL、文件、字符串、siteMap 上传
+ * 数据源数据上传逻辑 - 支持 HTML、文件、字符串、siteMap 上传
  *
  * @author Alan Cusack
  */
@@ -184,7 +184,9 @@ public class ProcessingServiceImpl implements ProcessingService {
 
 
     public String getLanguageRule(Long datasetId) {
-        return datasetDataHandleRules.getRuleByDatasetId(datasetId).getCleanRuleVO().getURL().getAcceptLanguage();
+
+        return null;
+        // return datasetDataHandleRules.getRuleByDatasetId(datasetId).getCleanRuleVO().getURL().getAcceptLanguage();
     }
 
 
@@ -253,7 +255,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataDO.setDatasetId(datasetId);
         dataDO.setStatus(DataSetSourceDataStatusEnum.ANALYSIS_ERROR.getStatus());
         dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO));
-        if (DataSourceDataTypeEnum.URL.name().equals(dataType)) {
+        if (DataSourceDataTypeEnum.HTML.name().equals(dataType)) {
             dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO.setInitAddress(process.getName())));
         }
         datasetSourceDataMapper.insert(dataDO);

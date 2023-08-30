@@ -1,5 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.prompt.base.variable;
 
+import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Builder
 @NoArgsConstructor
@@ -32,6 +36,11 @@ public class BaseVariable {
         return BaseVariable.builder().field(field).value(value).build();
     }
 
+    public static BaseVariable newTemplate(String field, PromptTemplate template) {
+        return BaseVariable.builder().type(VariableTypeEnum.TEMPLATE).field(field).value(template).build();
+    }
+
+
     public static BaseVariable newString(String field, String value) {
         return BaseVariable.builder().type(VariableTypeEnum.STR).field(field).value(value).build();
     }
@@ -50,6 +59,10 @@ public class BaseVariable {
 
     public static BaseVariable newArray(String field) {
         return BaseVariable.builder().type(VariableTypeEnum.ARRAY).field(field).build();
+    }
+
+    public static <T> BaseVariable newFun(String field, Supplier<T> supplier) {
+        return BaseVariable.builder().type(VariableTypeEnum.SUPPLIER).field(field).value(supplier).build();
     }
 
     public static List<BaseVariable> fromMap(Map<String, Object> maps) {
@@ -83,6 +96,10 @@ public class BaseVariable {
 
         ARRAY,
 
-        BOOLEAN;
+        BOOLEAN,
+
+        SUPPLIER,
+
+        TEMPLATE;
     }
 }

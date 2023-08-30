@@ -27,7 +27,7 @@ import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
-import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.USER_NOT_EXISTS;
+import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.INVALID_PHONE_NUMBER;
 
 @Slf4j
@@ -59,7 +59,7 @@ public class MobilePhoneServiceImpl implements CommunicationService {
     @Override
     public void sendCode(CodeSendReqVO reqVO) {
         checkAccount(reqVO.getAccount());
-        smsCodeApi.sendSmsCode(SmsConvert.INSTANCE.smsVo2SendDTO(reqVO));
+        smsCodeApi.sendSmsCode(SmsConvert.INSTANCE.smsVo2SendDTO(reqVO).setCreateIp(getClientIP()));
     }
 
     @Override
@@ -91,8 +91,21 @@ public class MobilePhoneServiceImpl implements CommunicationService {
     @Transactional(rollbackFor = Exception.class)
     public void codeRegister(CodeRegisterReqVO reqVO) {
         checkAccount(reqVO.getAccount());
+        validateUserNameAndMobile(reqVO.getUsername(), reqVO.getAccount());
         smsCodeApi.useSmsCode(SmsConvert.INSTANCE.convert(reqVO, SmsSceneEnum.ADMIN_MEMBER_REGISTER.getScene(), getClientIP()));
         Long userId = starUserService.createNewUser(reqVO.getUsername(), null, reqVO.getPassword(), 2L, CommonStatusEnum.ENABLE.getStatus());
         starUserService.addInviteBenefits(userId, reqVO.getInviteCode());
     }
+
+    private void validateUserNameAndMobile(String userName, String mobile) {
+        AdminUserDO userByMobile = adminUserService.getUserByMobile(mobile);
+        if (userByMobile != null) {
+            throw exception(USER_MOBILE_EXISTS);
+        }
+        AdminUserDO userByUsername = adminUserService.getUserByUsername(userName);
+        if (userByUsername != null) {
+            throw exception(USER_USERNAME_EXISTS);
+        }
+    }
+
 }

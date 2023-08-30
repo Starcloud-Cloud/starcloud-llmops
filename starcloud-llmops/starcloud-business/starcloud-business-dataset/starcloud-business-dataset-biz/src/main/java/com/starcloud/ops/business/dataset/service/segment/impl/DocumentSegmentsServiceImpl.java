@@ -15,15 +15,15 @@ import com.github.xiaoymin.knife4j.core.util.Assert;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
 import com.starcloud.ops.business.dataset.convert.segment.DocumentSegmentConvert;
+import com.starcloud.ops.business.dataset.dal.dataobject.datasethandlerules.DatasetHandleRulesDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.SegmentsEmbeddingsDO;
-import com.starcloud.ops.business.dataset.dal.dataobject.segment.DatasetHandleRulesDO;
+import com.starcloud.ops.business.dataset.dal.mysql.datasethandlerules.DatasetHandleRulesMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.DocumentSegmentMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.SegmentsEmbeddingsDOMapper;
-import com.starcloud.ops.business.dataset.dal.mysql.segment.DatasetHandleRulesMapper;
 import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
@@ -406,9 +406,14 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Override
     public MatchQueryVO matchQuery(MatchQueryRequest request) {
 
-        DatasetsDO datasetsDO = datasetsService.getDatasets(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
+        List<DocumentSegmentDO> segmentDOS = new ArrayList<>();
+        try {
+            DatasetsDO datasetsDO = datasetsService.getDatasets(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
+            segmentDOS = segmentMapper.selectByDatasetIds(Arrays.asList(String.valueOf(datasetsDO.getId())));
+        } catch (Exception e) {
+            log.error("matchQuery.getDatasets is fail: {}", e.getMessage(), e);
+        }
 
-        List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDatasetIds(Arrays.asList(String.valueOf(datasetsDO.getId())));
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(segmentIds)) {
             return MatchQueryVO.builder().queryText(request.getText()).build();

@@ -43,8 +43,8 @@ public class WecomGroupChannelConfigHandler extends AppPublishChannelConfigTempl
         if (Objects.isNull(config)) {
             config = new WecomGroupChannelConfigDTO();
             // 生成 群备注
-            config.setGroupRemark(configUid);
         }
+        config.setGroupRemark(configUid);
 
         return config;
     }

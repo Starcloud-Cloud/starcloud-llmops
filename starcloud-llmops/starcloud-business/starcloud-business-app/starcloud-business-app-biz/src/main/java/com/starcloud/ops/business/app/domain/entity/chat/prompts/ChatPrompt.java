@@ -5,7 +5,9 @@ import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
+import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
 import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
+import com.starcloud.ops.llm.langchain.core.memory.template.ChatMemoryPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseMessagePromptTemplate;
@@ -29,16 +31,23 @@ public class ChatPrompt extends BasePromptConfig {
 
     private Boolean toolPrompt;
 
-    private String promptV1 = "{ContextPrompt}{HistoryPrompt}" +
+    private String promptV1 = "{ContextPrompt}\n" +
+            "Below is the history of the conversation, please answer after referring to all the requirements.\n\n{HistoryPrompt}" +
             "Human: {input}\n" +
             "AI: \n";
 
-    private String promptVTool = "{ContextPrompt}{HistoryPrompt}" +
+    private String promptVTool = "{ContextPrompt}\n" +
+            "Below is the history of the conversation, please answer after referring to all the requirements.\n\n[History Start]{HistoryPrompt}" +
             "Human: {input}\n" +
             //工具调用历史，只显示一次完整工具调用的历史，不包含用户输入
             "{" + BaseSingleActionAgent.TEMP_VARIABLE_SCRATCHPAD + "}" +
             "AI: \n";
 
+
+    //只有用户输入后
+    private String promptV3 = "{input}";
+
+    private Boolean gptMessage = false;
 
     private ChatPrePrompt chatPrePrompt;
 
@@ -59,10 +68,19 @@ public class ChatPrompt extends BasePromptConfig {
         List<BaseMessagePromptTemplate> messagePromptTemplates = new ArrayList<>();
 
         //prePrompt 放到system里面
-        messagePromptTemplates.add(SystemMessagePromptTemplate.fromTemplate(this.chatPrePrompt.buildPromptStr()));
-        messagePromptTemplates.add(HumanMessagePromptTemplate.fromTemplate(this.buildPromptStr()));
+        messagePromptTemplates.add(new SystemMessagePromptTemplate(this.chatPrePrompt.buildPrompt()));
+        messagePromptTemplates.add(new HumanMessagePromptTemplate(this.buildPrompt()));
 
         return ChatPromptTemplate.fromMessages(messagePromptTemplates);
+    }
+
+    public ChatPromptTemplate buildChatPromptTemplate(ConversationSummaryDbMessageMemory messageMemory) {
+
+        SystemMessagePromptTemplate systemMessagePromptTemplate = new SystemMessagePromptTemplate(this.chatPrePrompt.buildPromptWithContent(this.contextPrompt));
+        HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(this.buildPrompt());
+
+        //增加历史记录
+        return ChatMemoryPromptTemplate.fromMessages(systemMessagePromptTemplate, humanMessagePromptTemplate, messageMemory);
     }
 
     /**
@@ -113,21 +131,23 @@ public class ChatPrompt extends BasePromptConfig {
     }
 
     @Override
-    protected String _buildPromptStr() {
-
+    protected PromptTemplate _buildPrompt() {
         List<BaseVariable> variables = new ArrayList<>();
 
-        variables.add(BaseVariable.newString("ContextPrompt", this.contextPrompt.buildPromptStr(true)));
+        if (this.gptMessage) {
+            return new PromptTemplate(this.promptV3, variables);
+        }
+
+        variables.add(BaseVariable.newTemplate("ContextPrompt", this.contextPrompt.buildPrompt()));
         variables.add(BaseVariable.newString("HistoryPrompt", this.historyPrompt.buildPromptStr(true)));
         PromptTemplate template;
         if (this.toolPrompt) {
-            template = new PromptTemplate(this.promptVTool);
+            template = new PromptTemplate(this.promptVTool, variables);
         } else {
-            template = new PromptTemplate(this.promptV1);
+            template = new PromptTemplate(this.promptV1, variables);
         }
 
-        return template.format(variables);
+        return template;
     }
-
 
 }

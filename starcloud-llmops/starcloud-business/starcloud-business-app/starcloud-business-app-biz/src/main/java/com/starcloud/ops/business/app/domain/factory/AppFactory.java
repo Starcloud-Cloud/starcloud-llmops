@@ -51,53 +51,17 @@ public class AppFactory {
     /**
      * 应用 Repository 服务
      */
-    private static AppRepository appRepository;
+    private static AppRepository appRepository = SpringUtil.getBean(AppRepository.class);
 
     /**
      * 应用市场 Repository 服务
      */
-    private static AppMarketRepository appMarketRepository;
+    private static AppMarketRepository appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
 
     /**
      * 应用发布 Repository 服务
      */
-    private static AppPublishRepository appPublishRepository;
-
-    /**
-     * 获取应用 Repository 服务
-     *
-     * @return AppRepository
-     */
-    public static AppRepository getAppRepository() {
-        if (appRepository == null) {
-            appRepository = SpringUtil.getBean(AppRepository.class);
-        }
-        return appRepository;
-    }
-
-    /**
-     * 获取应用市场 Repository 服务
-     *
-     * @return AppMarketRepository
-     */
-    public static AppMarketRepository getAppMarketRepository() {
-        if (appMarketRepository == null) {
-            appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
-        }
-        return appMarketRepository;
-    }
-
-    /**
-     * 获取应用发布 Repository 服务
-     *
-     * @return AppPublishRepository
-     */
-    public static AppPublishRepository getAppPublishRepository() {
-        if (appPublishRepository == null) {
-            appPublishRepository = SpringUtil.getBean(AppPublishRepository.class);
-        }
-        return appPublishRepository;
-    }
+    private static AppPublishRepository appPublishRepository = SpringUtil.getBean(AppPublishRepository.class);
 
     /**
      * 获取 执行实体
@@ -140,16 +104,19 @@ public class AppFactory {
      * @return ChatAppEntity
      */
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
+        String scene = chatRequest.getScene();
 
+        if (AppSceneEnum.CHAT_MARKET.name().equalsIgnoreCase(chatRequest.getScene())) {
+            AppMarketEntity appMarketEntity = AppFactory.factoryMarket(chatRequest.getAppUid());
+            return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
+        }
         String appId = chatRequest.getAppUid();
-
         ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
-
         return appEntity;
     }
 
     public static ChatAppEntity factory(String mediumUid) {
-        return getAppPublishRepository().getChatEntityByMediumUid(mediumUid);
+        return appPublishRepository.getChatEntityByMediumUid(mediumUid);
     }
 
     /**
@@ -184,7 +151,7 @@ public class AppFactory {
      * @return AppEntity
      */
     public static AppEntity factoryApp(String appId) {
-        return (AppEntity) getAppRepository().get(appId);
+        return (AppEntity) appRepository.get(appId);
     }
 
     /**
@@ -195,7 +162,7 @@ public class AppFactory {
      * @return AppEntity
      */
     public static AppEntity factoryApp(String appUid, AppReqVO appRequest) {
-        BaseAppEntity app = getAppRepository().get(appUid);
+        BaseAppEntity app = appRepository.get(appUid);
         String create, update;
         if (app == null) {
             Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
@@ -223,7 +190,7 @@ public class AppFactory {
      * @return AppEntity
      */
     public static AppMarketEntity factoryMarket(String appId) {
-        return getAppMarketRepository().get(appId);
+        return appMarketRepository.get(appId);
     }
 
     /**
@@ -234,7 +201,7 @@ public class AppFactory {
      */
     public static AppMarketEntity factoryMarket(String appId, AppReqVO appRequest) {
         // 需要校验 模版市场 中是否存在该模版，不存在抛出异常
-        AppMarketEntity market = getAppMarketRepository().get(appId);
+        AppMarketEntity market = appMarketRepository.get(appId);
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appRequest);
         appMarketEntity.setUid(appId);
         appMarketEntity.setCreator(market.getCreator());
@@ -249,7 +216,7 @@ public class AppFactory {
      * @return ChatAppEntity
      */
     public static ChatAppEntity factoryChatApp(String appId) {
-        return (ChatAppEntity) getAppRepository().get(appId);
+        return (ChatAppEntity) appRepository.get(appId);
     }
 
     /**
@@ -259,7 +226,7 @@ public class AppFactory {
      * @return AppEntity
      */
     public static AppEntity factoryShareApp(String mediumUid) {
-        return getAppPublishRepository().getAppEntityByMediumUid(mediumUid);
+        return appPublishRepository.getAppEntityByMediumUid(mediumUid);
     }
 
     /**
@@ -288,7 +255,7 @@ public class AppFactory {
      * @return ImageAppEntity
      */
     public static ImageAppEntity factoryImageApp(String appId) {
-        return (ImageAppEntity) getAppRepository().get(appId);
+        return (ImageAppEntity) appRepository.get(appId);
     }
 
     /**
@@ -298,7 +265,7 @@ public class AppFactory {
      * @return
      */
     public static ChatAppEntity factoryChatAppByPublishUid(String publishUid) {
-        AppPublishDO appPublishDO = getAppPublishRepository().getByPublishUid(publishUid);
+        AppPublishDO appPublishDO = appPublishRepository.getByPublishUid(publishUid);
         String appInfo = appPublishDO.getAppInfo();
         AppDO appDO = JSONUtil.toBean(appInfo, AppDO.class);
         BaseAppEntity entity = AppConvert.INSTANCE.convert(appDO, false);

@@ -12,7 +12,6 @@ import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
-import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -90,7 +89,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _validate(ImageReqVO request) {
+    protected void doValidate(ImageReqVO request) {
         getImageConfig().validate();
     }
 
@@ -103,13 +102,13 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected ImageMessageRespVO _execute(ImageReqVO request) {
+    protected ImageMessageRespVO doExecute(ImageReqVO request) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start("Text to Image Task");
         Long userId = WebFrameworkUtils.getLoginUserId();
         try {
             // 检测权益
-            benefitsService.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);
+            this.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);
             // 调用图片生成服务
             ImageMessageRespVO imageResponse = textToImage(request);
             // 扣除权益
@@ -170,8 +169,18 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _aexecute(ImageReqVO request) {
-        this._execute(request);
+    protected void doAsyncExecute(ImageReqVO request) {
+        this.doExecute(request);
+    }
+
+    /**
+     * 模版方法：执行应用前置处理方法
+     *
+     * @param imageReqVO 请求参数
+     */
+    @Override
+    protected void beforeExecute(ImageReqVO imageReqVO) {
+
     }
 
     /**
@@ -180,7 +189,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _afterExecute(ImageReqVO request, Throwable throwable) {
+    protected void afterExecute(ImageReqVO request, Throwable throwable) {
         SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
             if (throwable != null) {
@@ -200,7 +209,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _createAppConversationLog(ImageReqVO request, LogAppConversationCreateReqVO createRequest) {
+    protected void buildAppConversationLog(ImageReqVO request, LogAppConversationCreateReqVO createRequest) {
         createRequest.setAppConfig(JSONUtil.toJsonStr(request.getImageRequest()));
     }
 
@@ -210,21 +219,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _initHistory(ImageReqVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
+    protected void initHistory(ImageReqVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageList) {
 
-    }
-
-    /**
-     * 解析会话配置
-     *
-     * @param conversationConfig 会话配置
-     * @return {@link ImageConfigEntity}
-     */
-    @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected ImageConfigEntity _parseConversationConfig(String conversationConfig) {
-        return null;
     }
 
     /**
@@ -233,7 +229,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _insert() {
+    protected void doInsert() {
         getAppRepository().insert(this);
     }
 
@@ -243,7 +239,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void _update() {
+    protected void doUpdate() {
         getAppRepository().update(this);
     }
 

@@ -20,6 +20,7 @@ import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductTimeEnum;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -101,6 +102,9 @@ public class PayOrderServiceImpl implements PayOrderService {
     @Resource
     private AdminUserService userService;
 
+    @Resource
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
+
 
     @Override
     public PayOrderDO getOrder(Long id) {
@@ -128,8 +132,8 @@ public class PayOrderServiceImpl implements PayOrderService {
         log.info("[createPayOrder],用户[userId({})｜租户[({})｜开始创建订单({})]", getLoginUserId(), getTenantId(), reqDTO.getMerchantOrderId());
 
         // 检验是否有历史未支付订单
-        PayOrderDO noPayOrder = orderMapper.selectNoPayByProductCode(
-                reqDTO.getProductCode(), PayOrderStatusEnum.WAITING.getStatus(), getLoginUserId(), getTenantId());
+        PayOrderDO noPayOrder = orderMapper.selectNoCloseByProductCode(
+                reqDTO.getProductCode(), getLoginUserId(), getTenantId());
 
         if (noPayOrder != null) {
             log.info("[createPayOrder],用户[userId({}) 已经存在未支付的支付单({})]", getLoginUserId(), noPayOrder.getMerchantOrderId());
@@ -394,18 +398,25 @@ public class PayOrderServiceImpl implements PayOrderService {
     @TenantIgnore
     private void sendMessage(String userId, String productType, Integer amount) {
 
-        AdminUserDO user = userService.getUser(Long.valueOf(userId));
-        ProductEnum productEnum = ProductEnum.getByCode(productType);
-        Map<String, Object> templateParams = new HashMap<>();
-        templateParams.put("userName", user.getNickname());
-        templateParams.put("productName", productEnum.getName());
-        templateParams.put("amount", amount / 100);
-        smsSendApi.sendSingleSmsToAdmin(
-                new SmsSendSingleToUserReqDTO()
-                        .setUserId(1L).setMobile("17835411844")
-                        // .setTemplateCode("SMS_2023_PAY")
-                        .setTemplateCode("pay")
-                        .setTemplateParams(templateParams));
+        try {
+            AdminUserDO user = userService.getUser(Long.valueOf(userId));
+            ProductEnum productEnum = ProductEnum.getByCode(productType);
+            Map<String, Object> templateParams = new HashMap<>();
+            String environmentName = dingTalkNoticeProperties.getName().equals("Test")?"测试环境":"正式环境";
+            templateParams.put("environmentName", environmentName);
+            templateParams.put("userName", user.getNickname());
+            templateParams.put("productName", productEnum.getName());
+            templateParams.put("amount", amount / 100);
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            // .setTemplateCode("SMS_2023_PAY")
+                            .setTemplateCode(dingTalkNoticeProperties.getSmsCode())
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("系统支付通知信息发送失败", e);
+        }
+
     }
 
     /**
@@ -427,8 +438,12 @@ public class PayOrderServiceImpl implements PayOrderService {
         LocalDateTime now = LocalDateTimeUtil.of(System.currentTimeMillis(), TimeZone.getTimeZone("Asia/Shanghai"));
         List<PayOrderDO> updatedList = list.stream()
                 .peek(order -> {
-                    if (now.isAfter(order.getExpireTime())) {
+                    order.setCreateTime(order.getUpdateTime());
+                    if (now.isAfter(order.getExpireTime())&& !PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
                         order.setStatus(PayOrderStatusEnum.CLOSED.getStatus());
+                    }
+                    if (!PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
+                        order.setCreateTime(null);
                     }
                 })
                 .collect(Collectors.toList());

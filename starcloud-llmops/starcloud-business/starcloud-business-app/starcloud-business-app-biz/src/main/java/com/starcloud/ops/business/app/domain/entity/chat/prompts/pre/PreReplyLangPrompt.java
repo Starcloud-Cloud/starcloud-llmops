@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.chat.prompts.pre;
 
 import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.BasePromptConfig;
+import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import lombok.Data;
 
 /**
@@ -27,15 +28,17 @@ public class PreReplyLangPrompt extends BasePromptConfig {
 
     }
 
+
     @Override
-    protected String _buildPromptStr() {
+    protected PromptTemplate _buildPrompt() {
 
         if ("跟随提问".equals(this.value)) {
-            return StrUtil.format(this.promptV2, this.value);
+            return new PromptTemplate(StrUtil.format(this.promptV2, this.value));
         }
 
-        return StrUtil.format(this.promptV1, this.value);
+        return new PromptTemplate(StrUtil.format(this.promptV1, this.value));
     }
+
 
     @Override
     protected Boolean _isEnable() {

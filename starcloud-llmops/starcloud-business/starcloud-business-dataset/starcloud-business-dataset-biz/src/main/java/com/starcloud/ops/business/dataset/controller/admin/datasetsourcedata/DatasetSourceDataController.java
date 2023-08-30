@@ -4,7 +4,6 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
-import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
@@ -60,7 +59,7 @@ public class DatasetSourceDataController {
     @GetMapping("/details/{uid}")
     @Operation(summary = "获得源数据详情内容")
     public CommonResult<DatasetSourceDataDetailsInfoVO> getSourceDataDetailsInfo(@PathVariable("uid") String uid) {
-        return success(datasetSourceDataService.getSourceDataDetailsInfo(uid, false));
+        return success(datasetSourceDataService.getSourceDataListData(uid, false));
     }
 
 
@@ -75,10 +74,8 @@ public class DatasetSourceDataController {
             datasetId = datasetsService.getDatasets(datasetUid).getId();
         } catch (Exception e) {
             log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", datasetUid);
-            String datasetName = String.format("应用%s的数据集", "datasetId");
+            String datasetName = String.format("应用%s的数据集", datasetUid);
             datasetId = datasetsService.createDatasetsByApplication(datasetUid, datasetName);
-            //     初始化处理规则
-            datasetDataHandleRules.createDefaultRules(datasetId);
         }
         return success(datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.DOCUMENT.getStatus()));
     }
@@ -95,8 +92,6 @@ public class DatasetSourceDataController {
             log.info("应用{}不存在数据集，开始创建数据集，数据集 UID 为应用 ID", datasetUid);
             String datasetName = String.format("应用%s的数据集", datasetUid);
             datasetId = datasetsService.createDatasetsByApplication(datasetUid, datasetName);
-            //     初始化处理规则
-            datasetDataHandleRules.createDefaultRules(datasetId);
 
         }
         return success(datasetSourceDataService.getDatasetSourceDataList(datasetId, DataSourceDataModelEnum.QUESTION_AND_ANSWERS.getStatus()));

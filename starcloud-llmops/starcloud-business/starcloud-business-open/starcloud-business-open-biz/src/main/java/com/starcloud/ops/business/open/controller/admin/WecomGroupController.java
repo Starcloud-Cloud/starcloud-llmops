@@ -24,13 +24,6 @@ public class WecomGroupController {
     @Resource
     private WecomGroupService groupService;
 
-    @PostMapping("/group/create")
-    @Operation(summary = "创建群聊", description = "创建群聊并绑定会话")
-    public CommonResult<Boolean> createGroup(@RequestBody @Valid WecomCreateGroupReqVO reqVO) {
-        groupService.initGroup(reqVO);
-        return CommonResult.success(true);
-    }
-
     @PostMapping("/group/list/{appUid}")
     @Operation(summary = "查询所有的群聊", description = "查询所有的群聊")
     public CommonResult<List<WecomGroupRespVO>> listGroup(@PathVariable("appUid")String appUid) {

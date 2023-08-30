@@ -22,7 +22,12 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * App 上下文
@@ -45,7 +50,7 @@ public class AppContext {
      * 会话 UID
      */
     @NotBlank(message = "会话ID不能为空")
-    private String conversationId;
+    private String conversationUid;
 
     /**
      * 执行场景
@@ -69,10 +74,14 @@ public class AppContext {
     private String endUser;
 
     /**
+     * 渠道媒介 UID
+     */
+    private String mediumUid;
+
+    /**
      * App 实体
      */
     @NotNull
-    @SuppressWarnings("all")
     private AppEntity app;
 
     /**
@@ -99,7 +108,7 @@ public class AppContext {
         if (app == null) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_APP_IS_NULL);
         }
-        this.conversationId = IdUtil.simpleUUID();
+        this.conversationUid = IdUtil.simpleUUID();
         this.app = app;
         this.scene = scene;
         this.stepId = app.getWorkflowConfig().getFirstStepWrapper().getField();

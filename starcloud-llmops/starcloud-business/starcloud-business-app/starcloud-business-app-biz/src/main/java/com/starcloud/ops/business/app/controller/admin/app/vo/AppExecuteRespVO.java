@@ -36,4 +36,21 @@ public class AppExecuteRespVO implements Serializable {
     @Schema(description = "返回值")
     private Object result;
 
+    /**
+     * 成功返回
+     *
+     * @param resultCode 返回code
+     * @param resultDesc 返回描述
+     * @param result     返回值
+     * @return AppExecuteRespVO
+     */
+    public static AppExecuteRespVO success(String resultCode, String resultDesc, Object result) {
+        AppExecuteRespVO respVO = new AppExecuteRespVO();
+        respVO.setSuccess(Boolean.TRUE);
+        respVO.setResultCode(resultCode);
+        respVO.setResultDesc(resultDesc);
+        respVO.setResult(result);
+        return respVO;
+    }
+
 }

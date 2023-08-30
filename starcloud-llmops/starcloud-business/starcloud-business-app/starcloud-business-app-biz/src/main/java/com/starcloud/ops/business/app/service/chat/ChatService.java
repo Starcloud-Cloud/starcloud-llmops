@@ -22,6 +22,7 @@ public interface ChatService {
 
     /**
      * 对话聊天
+     *
      * @param request
      */
     void chat(ChatRequestVO request);
@@ -50,6 +51,14 @@ public interface ChatService {
      * @param appUid
      */
     List<LogAppConversationRespVO> listConversation(String scene, String appUid);
+
+    /**
+     * 查询app最新会话，当前用户
+     *
+     * @param appUid
+     * @return
+     */
+    LogAppConversationRespVO getConversation(String appUid, String scene);
 
     /**
      * 会话建议

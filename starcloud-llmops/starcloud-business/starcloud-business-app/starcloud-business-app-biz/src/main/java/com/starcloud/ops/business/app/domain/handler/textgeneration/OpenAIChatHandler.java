@@ -2,10 +2,12 @@ package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
@@ -77,7 +79,6 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
                     Collections.singletonList(new HumanMessage(prompt))
             );
 
-
             ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
 
             BaseLLMUsage baseLLMUsage = chatResult.getUsage();
@@ -101,17 +102,11 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
         } catch (OpenAiHttpException exc) {
 
-            appStepResponse.setErrorCode(exc.code);
+            appStepResponse.setErrorCode(ErrorCodeConstants.OPENAI_ERROR.getCode());
             appStepResponse.setErrorMsg(exc.getMessage());
-
             log.error("OpenAIChatHandler OpenAi fail: {}", exc.getMessage(), exc);
 
-        } catch (Exception exc) {
-
-            appStepResponse.setErrorCode("001");
-            appStepResponse.setErrorMsg(exc.getMessage());
-
-            log.error("OpenAIChatHandler fail: {}", exc.getMessage(), exc);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.OPENAI_ERROR);
         }
 
 

@@ -88,7 +88,7 @@ public interface ErrorCodeConstants {
     /**
      * 应用执行异常
      */
-    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "App execute fail, {}");
+    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "{}");
 
     // ========== 图片生成服务错误 3-003-000-00 ==========
     /**
@@ -162,6 +162,16 @@ public interface ErrorCodeConstants {
     ErrorCode PUBLISH_CHANNEL_UNKNOWN_ERROR = new ErrorCode(300500007, "Publish channel unknown error, please check and try again ! ");
 
     /**
+     * 应用发布限流不存在
+     */
+    ErrorCode APP_PUBLISH_LIMIT_NOT_EXISTS_UID = new ErrorCode(300500008, "The app publish limit is not exists! [UID: {}]");
+
+    /**
+     * 不支持的应用发布限流操作
+     */
+    ErrorCode APP_PUBLISH_LIMIT_OPERATE_NOT_SUPPORTED = new ErrorCode(300600016, "The app publish limit operate is not supported! [operate: {}]");
+
+    /**
      * 文件类型不是图片
      */
     ErrorCode FILE_TYPE_NOT_IMAGES = new ErrorCode(300500009, "The file type is not a picture");
@@ -200,4 +210,6 @@ public interface ErrorCodeConstants {
      * 应用执行步骤不存在
      */
     ErrorCode APP_EXECUTE_STEPS_NOT_FOUND = new ErrorCode(300600014, "应用执行步骤[{}]不存在！");
+
+    ErrorCode OPENAI_ERROR = new ErrorCode(300600015, "大模型异常!");
 }

@@ -53,7 +53,7 @@ public class DatasetsServiceImpl implements DatasetsService {
     /**
      * 根据用户应用创建数据集
      *
-     * @param appId 应用 ID
+     * @param appId   应用 ID
      * @param appName 应用 名称
      * @return Boolean
      */
@@ -61,8 +61,10 @@ public class DatasetsServiceImpl implements DatasetsService {
     public Long createDatasetsByApplication(String appId, String appName) {
         DatasetsDO datasetsDO = new DatasetsDO();
         datasetsDO.setUid(appId);
+        // datasetsDO.setUid(DatasetUID.createDatasetUID());
         datasetsDO.setName(appName);
-        datasetsDO.setDescription(appName);
+        datasetsDO.setDescription(String.format("应用%s的数据集", appId));
+        datasetsDO.setAppId(appId);
         datasetsDO.setProvider(DatasetProviderEnum.SYSTEM.getName());
         datasetsDO.setPermission(DatasetPermissionEnum.TEAM_OWNED.getStatus());
         datasetsDO.setEnabled(true);
@@ -141,9 +143,10 @@ public class DatasetsServiceImpl implements DatasetsService {
         LambdaQueryWrapper<DatasetsDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(DatasetsDO::getUid, uid);
         DatasetsDO datasetsDO;
-        try {
-            datasetsDO = datasetsMapper.selectOne(wrapper);
-        } catch (RuntimeException e) {
+
+        datasetsDO = datasetsMapper.selectOne(wrapper);
+
+        if (datasetsDO ==null){
             throw exception(DATASETS_ERROR_REPEAT, uid);
         }
         return datasetsDO;
