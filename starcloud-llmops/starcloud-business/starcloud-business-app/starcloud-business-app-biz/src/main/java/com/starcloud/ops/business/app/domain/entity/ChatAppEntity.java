@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.handler.datasearch.GoogleSearchHandler;
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
 import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
@@ -378,6 +379,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         List<BaseTool> tools = this.loadLLMTools(request, chatConfig, emitter);
 
+        log.info("buildLLmTools: {} => {}", request.getAppUid(), Optional.ofNullable(tools).orElse(new ArrayList<>()).stream().map(BaseTool::getName).collect(Collectors.joining(", ")));
+
         //增加 统一的 promptTemplate
         OpenAIFunctionsAgent baseSingleActionAgent = OpenAIFunctionsAgent.fromLLMAndTools(chatOpenAI, tools, chatPromptTemplate);
         AgentExecutor agentExecutor = AgentExecutor.fromAgentAndTools(baseSingleActionAgent, tools, chatOpenAI.getCallbackManager());
@@ -417,8 +420,13 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             webSearch2Doc.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
 
             HandlerSkill handlerSkill = new HandlerSkill(webSearch2Doc);
-
             loadTools.add(handlerSkill.createFunTool(appContext));
+
+            //GoogleSearch
+            HandlerSkill handlerSkill1 = HandlerSkill.of("GoogleSearchHandler");
+            handlerSkill1.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+            loadTools.add(handlerSkill1.createFunTool(appContext));
+
         }
 
         List<BaseTool> handlerFunTools = Optional.ofNullable(chatConfig.getHandlerSkills()).orElse(new ArrayList<>()).stream().filter(HandlerSkill::getEnabled).map(handlerSkill -> {

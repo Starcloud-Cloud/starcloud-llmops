@@ -251,6 +251,8 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("查询下 杭州 2023年8月29号和8月30号的天气，并做个温度比较给我。");
 
+        chatRequest.setQuery("今天天津的天气怎么样？");
+
         chatService.chat(chatRequest);
 
     }
