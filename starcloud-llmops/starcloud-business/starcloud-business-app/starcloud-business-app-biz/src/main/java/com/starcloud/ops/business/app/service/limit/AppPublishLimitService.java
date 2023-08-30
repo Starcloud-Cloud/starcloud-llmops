@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.limit;
 
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModifyReqVO;
-import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitOperateReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 
@@ -43,13 +42,6 @@ public interface AppPublishLimitService {
      * @param request 应用发布限流信息
      */
     void modify(AppPublishLimitModifyReqVO request);
-
-    /**
-     * 操作应用发布限流信息
-     *
-     * @param request 应用发布限流信息
-     */
-    void operate(AppPublishLimitOperateReqVO request);
 
     /**
      * 根据 appUid 更新发布 uid

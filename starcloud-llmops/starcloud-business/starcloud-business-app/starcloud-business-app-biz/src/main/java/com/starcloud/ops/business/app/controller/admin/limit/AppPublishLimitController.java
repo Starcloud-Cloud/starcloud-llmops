@@ -49,7 +49,7 @@ public class AppPublishLimitController {
     @Operation(summary = "操作应用发布限流信息", description = "操作应用发布限流信息")
     @ApiOperationSupport(order = 15, author = "nacoyer")
     public CommonResult<Boolean> operate(@Validated @RequestBody AppPublishLimitOperateReqVO request) {
-        appPublishLimitService.operate(request);
+        //appPublishLimitService.operate(request);
         return CommonResult.success(true);
     }
 
