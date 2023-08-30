@@ -84,7 +84,7 @@ public abstract class Chain<R> {
 
             result = this._call(baseVariables);
 
-            chainRun.onChainEnd(this.getClass(), result);
+            chainRun.onChainEnd(this, result);
             this.prepOutputs(baseVariables, result);
 
         } catch (Exception e) {
