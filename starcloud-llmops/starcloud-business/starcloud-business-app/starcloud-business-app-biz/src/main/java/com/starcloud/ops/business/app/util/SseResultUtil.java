@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.app.util;
 
-
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import lombok.Builder;
@@ -38,12 +36,12 @@ public class SseResultUtil {
             MySseCallBackHandler.StreamResult result = MySseCallBackHandler.StreamResult.builder()
                     .code(200)
                     .type("i")
-                    .content(JSONUtil.toJsonStr(interactiveInfo))
+                    .content(JsonUtils.toJsonString(interactiveInfo))
                     .conversationUid(this.getConversationUid())
                     .messageUid(this.getMessageUid())
                     .build();
 
-            log.info("sendCallbackInteractive: {}", JSONUtil.toJsonStr(result));
+            log.info("sendCallbackInteractive: {}", JsonUtils.toJsonString(result));
 
             this.getSseEmitter().send(result);
         }
