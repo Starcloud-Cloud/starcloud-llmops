@@ -21,12 +21,14 @@ public interface DatasetsService {
      * @return 编号
      */
     String createDatasets(@Validated DatasetsCreateReqVO createReqVO);
+
     /**
      * 更新数据集
      *
      * @param updateReqVO 更新信息
      */
     void updateDatasets(@Validated DatasetsUpdateReqVO updateReqVO);
+
     /**
      * 启用数据集
      *
@@ -97,8 +99,8 @@ public interface DatasetsService {
     /**
      * 查询会话下数据集详情
      *
-     * @param appId 应用 ID
-     * @param sessionId  会话 ID
+     * @param appId     应用 ID
+     * @param sessionId 会话 ID
      * @return 数据集
      */
     DatasetsDO getDatasetInfoBySession(String appId, String sessionId);
@@ -114,11 +116,11 @@ public interface DatasetsService {
     /**
      * 根据用户会话创建数据集
      *
-     * @param appId 应用 ID
-     * @param sessionId  会话 ID
+     * @param appId     应用 ID
+     * @param sessionId 会话 ID
      * @return Boolean
      */
-    Long createDatasetsBySession(String appId, String sessionId);
+    Long createDatasetsBySession(String appId, String sessionId, String creator, Long tenantId);
 
 
 }

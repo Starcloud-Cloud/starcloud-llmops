@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -217,6 +218,7 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @param sessionId 会话 ID
      * @return 数据集
      */
+    @TenantIgnore
     @Override
     public DatasetsDO getDatasetInfoBySession(String appId, String sessionId) {
         try {
@@ -247,6 +249,7 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @param appId 应用 ID
      * @param sessionId  会话 ID
      */
+    @TenantIgnore
     @Override
     public Boolean validateSessionDatasetsExists(String appId, String sessionId) {
         DatasetsDO datasetsDO = datasetsMapper.selectOne(
@@ -263,7 +266,7 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @param sessionId 会话 ID
      * @return Boolean
      */
-    public Long createDatasetsBySession(String appId, String sessionId) {
+    public Long createDatasetsBySession(String appId, String sessionId, String creator, Long tenantId) {
         DatasetsDO datasetsDO = new DatasetsDO();
         datasetsDO.setUid(DatasetUID.createDatasetUID());
         datasetsDO.setName(String.format("会话%s的数据集", sessionId));
@@ -273,6 +276,9 @@ public class DatasetsServiceImpl implements DatasetsService {
         datasetsDO.setProvider(DatasetProviderEnum.SYSTEM.getName());
         datasetsDO.setPermission(DatasetPermissionEnum.PRIVATELY_OWNED.getStatus());
         datasetsDO.setEnabled(true);
+        datasetsDO.setCreator(creator);
+        datasetsDO.setUpdater(creator);
+        datasetsDO.setTenantId(tenantId);
         // 数据插入
         datasetsMapper.insert(datasetsDO);
 

@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.dataset;
 
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
+import cn.iocoder.yudao.framework.tenant.core.db.TenantDatabaseInterceptor;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
@@ -10,6 +11,7 @@ import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
@@ -43,20 +45,12 @@ public class DatasetTest extends BaseDbUnitTest {
     private DatasetSourceDataService datasetSourceDataService;
 
 
-    @MockBean
-    private AppMapper appMapper;
+    @Autowired
+    private ChatService chatService;
 
     @MockBean
-    private AppPublishService appPublishService;
+    private TenantDatabaseInterceptor tenantDatabaseInterceptor;
 
-    @MockBean
-    private AppPublishChannelService appPublishChannelService;
-
-    @MockBean
-    private AppDictionaryService appDictionaryService;
-
-    @MockBean
-    private AppPublishLimitService appPublishLimitService;
 
     @MockBean
     private PermissionApi permissionApi;
@@ -70,9 +64,12 @@ public class DatasetTest extends BaseDbUnitTest {
     @MockBean
     private PermissionService permissionService;
 
+    @MockBean
+    private AppPublishService appPublishService;
 
     @MockBean
     private FileApi fileApi;
+
 
     @Test
     public void jsoupTest() {

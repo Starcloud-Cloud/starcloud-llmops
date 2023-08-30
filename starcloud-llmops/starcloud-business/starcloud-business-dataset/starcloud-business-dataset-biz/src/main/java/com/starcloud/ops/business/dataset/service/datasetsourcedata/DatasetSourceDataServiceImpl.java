@@ -786,7 +786,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             return datasetsService.getDatasetInfoBySession(appId, sessionId).getId();
         } else {
             log.info("应用{}的会话{}不存在数据集，开始创建数据集", appId, sessionId);
-            return datasetsService.createDatasetsBySession(appId, sessionId);
+            return datasetsService.createDatasetsBySession(appId, sessionId, String.valueOf(UserContextHolder.getUserId()), TenantContextHolder.getRequiredTenantId());
         }
     }
 
