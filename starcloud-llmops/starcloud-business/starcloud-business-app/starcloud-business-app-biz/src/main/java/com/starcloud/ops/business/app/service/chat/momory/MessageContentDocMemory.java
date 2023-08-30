@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.CharacterDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadCharacterReqVO;
@@ -14,9 +15,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 另扩展出来的Memory，存储对话中所有上传的文档和工具执行的结果的历史记录
@@ -134,18 +133,17 @@ public class MessageContentDocMemory {
                 doc.getType();
                 doc.getExt();
 
-                List<UploadCharacterReqVO> uploadCharacterReqVOS = new ArrayList<>();
+                UploadCharacterReqVO uploadCharacterReqVOS = new UploadCharacterReqVO();
                 UploadCharacterReqVO characterReqVO = new UploadCharacterReqVO();
                 characterReqVO.setSync(true);
-                characterReqVO.setTitle(title);
-                characterReqVO.setContext(content);
+                characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle(title).setContext(content)));
+
 
                 //@todo 需要增加扩展信息，如messageId
 
 
                 //@todo 确定上传到哪个数据集
 
-                uploadCharacterReqVOS.add(characterReqVO);
 
                 //save db
                 List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceData(uploadCharacterReqVOS);
