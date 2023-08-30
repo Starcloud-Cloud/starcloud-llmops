@@ -4,11 +4,16 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.AppApi;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.convert.datasetsourcedata.DatasetSourceDataConvert;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
@@ -18,6 +23,7 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetS
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
@@ -34,6 +40,7 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
@@ -70,6 +77,10 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
     @Resource
     private DatasetsService datasetsService;
+
+    @Resource
+    @Lazy
+    private AppApi appApi;
 
     @Resource
     private DatasetDataHandleRulesService handleRulesService;
@@ -354,6 +365,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      *
      * @param uid 数据集源数据编号
      */
+    @TenantIgnore
     @Override
     public DatasetSourceDataDetailsInfoVO getSourceDataListData(String uid, Boolean enable) {
 
@@ -403,6 +415,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      *
      * @param sourceDataIds 数据集源数据ID
      */
+    @TenantIgnore
     @Override
     public List<DatasetSourceDataBasicInfoVO> getSourceDataListData(List<Long> sourceDataIds) {
 
@@ -529,7 +542,10 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public SourceDataUploadDTO uploadFilesSourceDataBySession(UploadFileReqVO reqVO) {
+
         this.validateSessionDatasets(reqVO.getAppId(), reqVO.getSessionId());
+        reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
+        reqVO.setDataType(DataSourceDataTypeEnum.DOCUMENT.name());
         return this.uploadFilesSourceData(reqVO);
     }
 
@@ -542,6 +558,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Override
     public List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO) {
         this.validateSessionDatasets(reqVO.getAppId(), reqVO.getSessionId());
+        reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
+        reqVO.setDataType(DataSourceDataTypeEnum.HTML.name());
         return this.uploadUrlsSourceData(reqVO);
     }
 
@@ -554,6 +572,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Override
     public List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS) {
         this.validateSessionDatasets(reqVOS.getAppId(), reqVOS.getSessionId());
+        reqVOS.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
+        reqVOS.setDataType(DataSourceDataTypeEnum.CHARACTERS.name());
         return this.uploadCharactersSourceData(reqVOS);
     }
 
@@ -713,6 +733,15 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return Long
      */
     private Long validateSessionDatasets(String appId, String sessionId) {
+
+        try {
+            TenantContextHolder.getRequiredTenantId();
+        } catch (Exception e) {
+            AppRespVO appRespVO = appApi.get(appId);
+            TenantContextHolder.setTenantId(appRespVO.getTenantId());
+            TenantContextHolder.setIgnore(false);
+            UserContextHolder.setUserId(Long.valueOf(appRespVO.getCreator()));
+        }
 
         if (datasetsService.validateSessionDatasetsExists(appId, sessionId)) {
             return datasetsService.getDatasetInfoBySession(appId, sessionId).getId();

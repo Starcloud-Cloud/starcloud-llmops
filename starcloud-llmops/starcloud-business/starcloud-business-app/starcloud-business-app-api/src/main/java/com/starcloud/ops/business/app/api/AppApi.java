@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api;
 
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+
 /**
  * 应用服务 API
  *
@@ -9,5 +11,6 @@ package com.starcloud.ops.business.app.api;
  */
 public interface AppApi {
 
+    AppRespVO get(String appUID);
 
 }
