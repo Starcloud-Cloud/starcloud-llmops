@@ -49,7 +49,7 @@ public class GoogleSearchHandler extends BaseToolHandler<GoogleSearchHandler.Req
         SerpAPITool.Request request = new SerpAPITool.Request();
         request.setQ(query);
 
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildTips("联网查询[" + query + "]中...").setInput(context.getRequest());
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildTips("联网查询[" + query + "]中...").setToolHandler(this).setInput(context.getRequest());
 
         context.sendCallbackInteractiveStart(interactiveInfo);
 

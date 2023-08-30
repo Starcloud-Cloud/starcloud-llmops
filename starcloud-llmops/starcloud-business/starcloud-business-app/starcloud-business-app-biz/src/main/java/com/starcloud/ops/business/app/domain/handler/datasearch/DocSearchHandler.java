@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -71,9 +72,9 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
      */
     private String interpretingResults =
             "- \"docId\": Document ID, identifying the document where the content was found.\n" +
-            "- \"blockId\": Block ID, identifying the document block containing the matching content.\n" +
-            "- \"position\": Position of the document block within the document, aiding in locating the matching content.\n" +
-            "- \"content\": Extracted partial content, showcasing the content of the matching document block.\n";
+                    "- \"blockId\": Block ID, identifying the document block containing the matching content.\n" +
+                    "- \"position\": Position of the document block within the document, aiding in locating the matching content.\n" +
+                    "- \"content\": Extracted partial content, showcasing the content of the matching document block.\n";
 
 
     /**
@@ -102,7 +103,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
      */
     private String note =
             "- Context document ID collection enhances search precision and accuracy.\n" +
-            "- Adjust the search query and document collection as needed to meet your information requirements.";
+                    "- Adjust the search query and document collection as needed to meet your information requirements.";
 
 
     /**
@@ -190,7 +191,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
 
     @Data
-    public static class Response {
+    public static class Response implements Serializable {
 
         private List<PromptUtil.PromptDocBlock> docBlocks;
     }

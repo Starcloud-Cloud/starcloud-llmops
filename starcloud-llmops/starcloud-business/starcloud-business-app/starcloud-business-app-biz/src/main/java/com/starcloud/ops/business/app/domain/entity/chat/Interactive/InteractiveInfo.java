@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
@@ -51,10 +53,20 @@ public class InteractiveInfo {
 
     private Object data;
 
+    @JsonIgnore
+    private BaseToolHandler toolHandler;
+
     private Integer errorCode;
 
     private String errorMsg;
 
+    public String tool() {
+        return this.toolHandler != null ? this.toolHandler.getUserName() : null;
+    }
+
+    public String toolDesc() {
+        return this.toolHandler != null ? this.toolHandler.getUserDescription() : null;
+    }
 
     /**
      * 文本内容卡片渲染

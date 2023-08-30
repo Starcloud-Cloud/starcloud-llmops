@@ -18,6 +18,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,7 +54,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         String url = context.getRequest().getUrl();
 
         //@todo 通过上下文获取当前可能配置的 tools 执行 tips
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容中...").setInput(context.getRequest());
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容中...").setToolHandler(this).setInput(context.getRequest());
         ;
 
         context.sendCallbackInteractiveStart(interactiveInfo);
@@ -97,7 +98,6 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         handlerResponse.setOutput(result);
 
         interactiveInfo.setData(result);
-
         interactiveInfo.setTips("分析链接完成");
         context.sendCallbackInteractiveEnd(interactiveInfo);
 
@@ -116,7 +116,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
 
     @Data
-    public static class Response {
+    public static class Response implements Serializable {
 
         private String summary;
 
