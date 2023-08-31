@@ -89,12 +89,12 @@ public class AppFactory {
             // 应用市场场景
             if (AppSceneEnum.WEB_MARKET.name().equals(request.getScene()) || AppSceneEnum.OPTIMIZE_PROMPT.name().equals(request.getScene())) {
                 AppMarketEntity market = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(appId) : AppFactory.factoryMarket(appId, request.getAppReqVO());
-                appLimitService.marketLimit(AppLimitRequest.of(market.getUid(), request.getScene()));
+                appLimitService.marketLimit(AppLimitRequest.of(market.getUid(), request.getScene()), request.getSseEmitter());
                 return market;
                 // 应用创作中心
             } else if (AppSceneEnum.WEB_ADMIN.name().equals(request.getScene())) {
                 AppEntity appEntity = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(appId) : AppFactory.factoryApp(appId, request.getAppReqVO());
-                appLimitService.appLimit(AppLimitRequest.of(appEntity.getUid(), request.getScene()));
+                appLimitService.appLimit(AppLimitRequest.of(appEntity.getUid(), request.getScene()), request.getSseEmitter());
                 return appEntity;
             }
         }
@@ -103,7 +103,7 @@ public class AppFactory {
         if (StringUtils.isNotBlank(request.getMediumUid())) {
             String mediumId = request.getMediumUid();
             AppEntity appEntity = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryShareApp(mediumId) : AppFactory.factoryShareApp(mediumId, request.getAppReqVO());
-            appLimitService.channelLimit(AppLimitRequest.of(mediumId, request.getScene(), request.getEndUser()));
+            appLimitService.channelLimit(AppLimitRequest.of(mediumId, request.getScene(), request.getEndUser()), request.getSseEmitter());
             return appEntity;
         }
 

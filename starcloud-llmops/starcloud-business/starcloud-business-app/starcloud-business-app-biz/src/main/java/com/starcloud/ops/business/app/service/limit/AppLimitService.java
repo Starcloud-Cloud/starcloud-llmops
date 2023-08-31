@@ -24,7 +24,7 @@ public interface AppLimitService {
      * @param request 请求数据
      * @param emitter sse
      */
-    void appLimitSse(AppLimitRequest request, SseEmitter emitter);
+    void appLimit(AppLimitRequest request, SseEmitter emitter);
 
     /**
      * 应用限流，应用市场执行限流，走系统默认限流
@@ -33,6 +33,14 @@ public interface AppLimitService {
      */
     void marketLimit(AppLimitRequest request);
 
+    /**
+     * 应用限流，应用市场执行限流，走系统默认限流
+     *
+     * @param request 请求数据
+     * @param emitter sse
+     */
+    void marketLimit(AppLimitRequest request, SseEmitter emitter);
+
 
     /**
      * 应用限流，应用发布渠道执行限流。走用户配置限流。系统默认限流兜底
@@ -40,4 +48,12 @@ public interface AppLimitService {
      * @param request 请求数据
      */
     void channelLimit(AppLimitRequest request);
+
+    /**
+     * 应用限流，应用发布渠道执行限流。走用户配置限流。系统默认限流兜底
+     *
+     * @param request 请求数据
+     * @param emitter sse
+     */
+    void channelLimit(AppLimitRequest request, SseEmitter emitter);
 }
