@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.limit;
 
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModifyReqVO;
+import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitQuery;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 
@@ -22,12 +23,12 @@ public interface AppPublishLimitService {
     AppPublishLimitRespVO get(String uid);
 
     /**
-     * 根据 publishUid 获取应用发布限流信息, 如果不存在则返回默认值
+     * 根据查询条件查询限流信息, 如果不存在则返回默认值
      *
-     * @param publishUid 发布 uid
+     * @param query 查询条件
      * @return 应用发布限流信息
      */
-    AppPublishLimitRespVO defaultIfNullByPublishUid(String publishUid);
+    AppPublishLimitRespVO defaultIfNull(AppPublishLimitQuery query);
 
     /**
      * 创建应用发布限流信息

@@ -1,7 +1,8 @@
 package com.starcloud.ops.business.app.convert.limit;
 
 import cn.hutool.json.JSONUtil;
-import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.vo.request.AppLimitConfigReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModifyReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
@@ -33,23 +34,14 @@ public interface AppPublishLimitConvert {
         appPublishLimit.setPublishUid(request.getPublishUid());
         appPublishLimit.setChannelUid(request.getChannelUid());
         // 应用使用率限流
-        LimitConfigDTO rateConfig = (LimitConfigDTO) request.getRateConfig();
-        rateConfig.setCode(LimitConfigEnum.RATE.name());
-        rateConfig.setLimitBy(LimitByEnum.APP.name());
-        appPublishLimit.setRateConfig(JSONUtil.toJsonStr(rateConfig));
-
+        AppLimitConfigDTO rate = convertConfig(LimitConfigEnum.RATE.name(), LimitByEnum.APP.name(), request.getRateConfig());
+        appPublishLimit.setRateConfig(JSONUtil.toJsonStr(rate));
         // 用户使用率限流
-        LimitConfigDTO userRateConfig = (LimitConfigDTO) request.getUserRateConfig();
-        userRateConfig.setCode(LimitConfigEnum.USER_RATE.name());
-        userRateConfig.setLimitBy(LimitByEnum.USER.name());
-        appPublishLimit.setUserRateConfig(JSONUtil.toJsonStr(userRateConfig));
-
+        AppLimitConfigDTO userRate = convertConfig(LimitConfigEnum.USER_RATE.name(), LimitByEnum.USER.name(), request.getUserRateConfig());
+        appPublishLimit.setUserRateConfig(JSONUtil.toJsonStr(userRate));
         // 广告使用率
-        LimitConfigDTO advertisingConfig = (LimitConfigDTO) request.getAdvertisingConfig();
-        advertisingConfig.setCode(LimitConfigEnum.ADVERTISING.name());
-        advertisingConfig.setLimitBy(LimitByEnum.ADVERTISING.name());
-        appPublishLimit.setAdvertisingConfig(JSONUtil.toJsonStr(advertisingConfig));
-
+        AppLimitConfigDTO advertising = convertConfig(LimitConfigEnum.ADVERTISING.name(), LimitByEnum.ADVERTISING.name(), request.getAdvertisingConfig());
+        appPublishLimit.setAdvertisingConfig(JSONUtil.toJsonStr(advertising));
         appPublishLimit.setDeleted(Boolean.FALSE);
         return appPublishLimit;
     }
@@ -72,20 +64,41 @@ public interface AppPublishLimitConvert {
      * @param appPublishLimit 数据对象
      * @return 响应
      */
-    default AppPublishLimitRespVO convert(AppPublishLimitDO appPublishLimit) {
+    default AppPublishLimitRespVO convertResponse(AppPublishLimitDO appPublishLimit) {
         AppPublishLimitRespVO appPublishLimitResponse = new AppPublishLimitRespVO();
         appPublishLimitResponse.setUid(appPublishLimit.getUid());
         appPublishLimitResponse.setAppUid(appPublishLimit.getAppUid());
         appPublishLimitResponse.setPublishUid(appPublishLimit.getPublishUid());
         appPublishLimitResponse.setChannelUid(appPublishLimit.getChannelUid());
-        appPublishLimitResponse.setRateConfig(JSONUtil.toBean(appPublishLimit.getRateConfig(), LimitConfigDTO.class));
-        appPublishLimitResponse.setUserRateConfig(JSONUtil.toBean(appPublishLimit.getUserRateConfig(), LimitConfigDTO.class));
-        appPublishLimitResponse.setAdvertisingConfig(JSONUtil.toBean(appPublishLimit.getAdvertisingConfig(), LimitConfigDTO.class));
+        appPublishLimitResponse.setRateConfig(JSONUtil.toBean(appPublishLimit.getRateConfig(), AppLimitConfigDTO.class));
+        appPublishLimitResponse.setUserRateConfig(JSONUtil.toBean(appPublishLimit.getUserRateConfig(), AppLimitConfigDTO.class));
+        appPublishLimitResponse.setAdvertisingConfig(JSONUtil.toBean(appPublishLimit.getAdvertisingConfig(), AppLimitConfigDTO.class));
+        appPublishLimitResponse.setTenantId(appPublishLimit.getTenantId());
         appPublishLimitResponse.setCreator(appPublishLimit.getCreator());
         appPublishLimitResponse.setUpdater(appPublishLimit.getUpdater());
         appPublishLimitResponse.setCreateTime(appPublishLimit.getCreateTime());
         appPublishLimitResponse.setUpdateTime(appPublishLimit.getUpdateTime());
         return appPublishLimitResponse;
+    }
+
+    /**
+     * 转换为 LimitConfigDTO
+     *
+     * @param code    编码
+     * @param limitBy 限流依据
+     * @param request 请求
+     * @return LimitConfigDTO
+     */
+    default AppLimitConfigDTO convertConfig(String code, String limitBy, AppLimitConfigReqVO request) {
+        AppLimitConfigDTO config = new AppLimitConfigDTO();
+        config.setCode(code);
+        config.setLimitBy(limitBy);
+        config.setEnable(request.getEnable());
+        config.setLimit(request.getLimit());
+        config.setTimeInterval(request.getTimeInterval());
+        config.setTimeUnit(request.getTimeUnit());
+        config.setMessage(request.getMessage());
+        return config;
     }
 
 }

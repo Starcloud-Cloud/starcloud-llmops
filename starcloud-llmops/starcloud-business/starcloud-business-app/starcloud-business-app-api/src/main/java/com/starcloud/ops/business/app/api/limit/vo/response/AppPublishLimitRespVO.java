@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.limit.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -54,19 +54,19 @@ public class AppPublishLimitRespVO implements Serializable {
      * 频率限制配置
      */
     @Schema(description = "频率限制配置")
-    private LimitConfigDTO rateConfig;
+    private AppLimitConfigDTO rateConfig;
 
     /**
      * 用户用量限制配置
      */
     @Schema(description = "用户使用频率限制配置")
-    private LimitConfigDTO userRateConfig;
+    private AppLimitConfigDTO userRateConfig;
 
     /**
      * 广告位限制配置
      */
     @Schema(description = "广告位限制配置")
-    private LimitConfigDTO advertisingConfig;
+    private AppLimitConfigDTO advertisingConfig;
 
     /**
      * 创建人
@@ -91,5 +91,11 @@ public class AppPublishLimitRespVO implements Serializable {
      */
     @Schema(description = "更新时间")
     private LocalDateTime updateTime;
+
+    /**
+     * 租户ID
+     */
+    @Schema(description = "租户ID")
+    private Long tenantId;
 
 }
