@@ -13,6 +13,6 @@ public interface SendSocialMsgService {
      * @param mpUser
      * @param suffix
      */
-    void sendWxRegisterMsg(MpUserDO mpUser, String suffix);
+    void asynSendWxRegisterMsg(MpUserDO mpUser);
 
 }

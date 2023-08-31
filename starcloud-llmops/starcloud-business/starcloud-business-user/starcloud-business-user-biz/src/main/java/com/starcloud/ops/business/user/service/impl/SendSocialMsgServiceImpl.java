@@ -20,11 +20,13 @@ import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.*;
 
 import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_MSG;
 import static com.starcloud.ops.business.user.enums.DictTypeConstants.WX_REGISTER_MSG;
@@ -33,6 +35,21 @@ import static com.starcloud.ops.business.user.enums.DictTypeConstants.WX_REGISTE
 @Service
 @Slf4j
 public class SendSocialMsgServiceImpl implements SendSocialMsgService {
+
+    private final static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 8,
+            60, TimeUnit.MICROSECONDS, new SynchronousQueue<>(), new ThreadFactory() {
+        @Override
+        public Thread newThread(@NotNull Runnable r) {
+            Thread thread = new Thread(r, "wx-msg-thread");
+            thread.setDaemon(true);
+            return thread;
+        }
+    }, new RejectedExecutionHandler() {
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            log.warn("The wx-msg-thread pool is full");
+        }
+    });
 
     @Resource
     private SocialUserService socialUserService;
@@ -73,21 +90,20 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService {
     }
 
     @Override
-    public void sendWxRegisterMsg(MpUserDO mpUser, String suffix) {
+    public void asynSendWxRegisterMsg(MpUserDO mpUser) {
         log.info("发送微信注册消息,mpUserId:{}", mpUser.getId());
-        MpAutoReplyDO mpAutoReplyDO = mpAutoReplyService.selectOneByAppIdAndType(mpUser.getAppId(), MpAutoReplyTypeEnum.SUBSCRIBE.getType());
-        if (mpAutoReplyDO != null) {
-            MpMessageSendReqVO testReq = new MpMessageSendReqVO();
-            testReq.setUserId(mpUser.getId());
-            testReq.setType("text");
-            String content = mpAutoReplyDO.getResponseContent();
-            if (StringUtils.isNotBlank(suffix)) {
-                content = content + "\n\n\n" + suffix;
+        threadPoolExecutor.execute(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(1L);
+                sendWxRegisterMsg(mpUser);
+            } catch (Exception e) {
+                log.error("发送图片消息失败", e);
             }
-            testReq.setContent(content);
-            messageService.sendKefuMessage(testReq);
-        }
+        });
 
+    }
+
+    private void sendWxRegisterMsg(MpUserDO mpUser) {
         DictDataExportReqVO exportReqVO = new DictDataExportReqVO();
         exportReqVO.setDictType(WX_REGISTER_MSG);
         exportReqVO.setLabel("image");
@@ -101,4 +117,5 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService {
             messageService.sendKefuMessage(reqVO);
         });
     }
+
 }

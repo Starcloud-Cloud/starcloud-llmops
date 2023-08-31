@@ -156,9 +156,8 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             }
 
             starUserService.addBenefits(userId, inviteUserid);
-            sendSocialMsgService.sendWxRegisterMsg(mpUserDO, msg);
-            mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), msg, wxMessage);
-            return null;
+            sendSocialMsgService.asynSendWxRegisterMsg(mpUserDO);
+            return mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), msg, wxMessage);
         } catch (Exception e) {
             log.error("新增用户失败", e);
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
