@@ -37,8 +37,10 @@ public class MessageConvert {
 
             ChatMessage chatMessage = new ChatMessage("assistant", content);
 
-            ChatFunctionCall call = (ChatFunctionCall) baseMessage.getAdditionalArgs().get("function_call");
-            chatMessage.setFunctionCall(call);
+            if (baseMessage.getAdditionalArgs().get("function_call") instanceof ChatFunctionCall) {
+                //  ChatFunctionCall call = JsonUtils.parseObject(JsonUtils.toJsonString(baseMessage.getAdditionalArgs().get("function_call")), ChatFunctionCall.class);
+                chatMessage.setFunctionCall((ChatFunctionCall) baseMessage.getAdditionalArgs().get("function_call"));
+            }
 
             return chatMessage;
 
@@ -68,7 +70,7 @@ public class MessageConvert {
 //                if (chatMessage.getFunctionCall() != null) {
 //                    return new FunctionMessage(chatMessage.getFunctionCall().getName(), chatMessage.getFunctionCall().getArguments());
 //                }
-                AIMessage aiMessage =  new AIMessage(chatMessage.getContent());
+                AIMessage aiMessage = new AIMessage(chatMessage.getContent());
                 aiMessage.getAdditionalArgs().put("function_call", chatMessage.getFunctionCall());
                 return aiMessage;
             case "system":

@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
@@ -112,7 +113,7 @@ public class HandlerContext<Q> {
             MySseCallBackHandler.StreamResult result = MySseCallBackHandler.StreamResult.builder()
                     .code(200)
                     .type("i")
-                    .content(JSONUtil.toJsonStr(interactiveInfo))
+                    .content(JsonUtils.toJsonString(interactiveInfo))
                     .conversationUid(this.getConversationUid())
                     .messageUid(this.getMessageUid())
                     .build();

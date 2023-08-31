@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
@@ -277,7 +278,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     /**
      * 普通对话保存
      *
-     * @param baseVariables
+     * @param variables
      * @param result
      */
     private void _saveChatContext(List<BaseVariable> variables, BaseLLMResult result) {
@@ -546,12 +547,17 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
                 //llm激活函数调用
                 if (LogMessageTypeEnum.CHAT_FUN.name().equals(logAppMessageDO.getMsgType())) {
 
-                    history.addUserMessage(logAppMessageDO.getMessage());
+                    //还有二次调用的情况，只能在这判断。如果有说明是第一次，要增加userMessage
+                    if (StrUtil.isNotBlank(logAppMessageDO.getMessage())) {
+                        history.addUserMessage(logAppMessageDO.getMessage());
+                    }
 
                     AIMessage aiMessage = new AIMessage("");
-                    Map params = JSONUtil.toBean(logAppMessageDO.getAnswer(), Map.class);
+//                    Map params = JSONUtil.toBean(logAppMessageDO.getAnswer(), Map.class);
+
+                    ChatFunctionCall call = JsonUtils.parseObject(logAppMessageDO.getAnswer(), ChatFunctionCall.class);
                     aiMessage.getAdditionalArgs().putAll(new HashMap() {{
-                        put("function_call", params);
+                        put("function_call", call);
                     }});
 
                     history.addMessage(aiMessage);

@@ -58,6 +58,19 @@ public interface DatasetSourceDataService {
      */
     void deleteDatasetSourceData(String uid);
 
+    /**
+     * 禁用源数据
+     *
+     * @param uid 数据集源数据编号
+     */
+    void disable(String uid);
+
+    /**
+     * 启用源数据
+     *
+     * @param uid 数据集源数据编号
+     */
+    void enable(String uid);
 
     /**
      * 获得数据集源数据分页
@@ -163,23 +176,23 @@ public interface DatasetSourceDataService {
     List<DatasetSourceDataDetailRespVO> getSessionSourceDataList(String appId, String conversationId, Integer dataModel, Boolean getCleanContent);
 
     /**
-     * 通过会话上传文件-支持批量上传
+     * 通过会话上传文件
      *
-     * @return 编号
+     * @return 上传结果
      */
     SourceDataUploadDTO uploadFilesSourceDataBySession(UploadFileReqVO reqVO);
 
     /**
-     * 通过会话上传URL-支持批量上传
+     * 通过会话上传URL
      *
-     * @return 编号
+     * @return 上传结果
      */
     List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO);
 
     /**
-     * 通过会话上传自定义文本-支持批量上传
+     * 通过会话上传自定义文本
      *
-     * @return 编号
+     * @return 上传结果
      */
     List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS);
 }

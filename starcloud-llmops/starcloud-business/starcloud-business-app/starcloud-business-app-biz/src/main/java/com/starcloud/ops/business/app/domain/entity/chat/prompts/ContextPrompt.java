@@ -104,14 +104,17 @@ public class ContextPrompt extends BasePromptConfig {
 
     @Override
     protected Boolean _isEnable() {
-        this.searchResult = this.searchDataset(this.query);
-
-        //直接搜索 或 上下文文档
-        if (this.getMessageContentDocMemory().hasHistory() || this.searchResult != null) {
-            return true;
-        }
 
         return false;
+
+//        this.searchResult = this.searchDataset(this.query);
+//
+//        //直接搜索 或 上下文文档
+//        if (this.getMessageContentDocMemory().hasHistory() || this.searchResult != null) {
+//            return true;
+//        }
+//
+//        return false;
     }
 
 

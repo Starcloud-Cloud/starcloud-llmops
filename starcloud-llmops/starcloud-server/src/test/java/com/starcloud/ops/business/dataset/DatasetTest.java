@@ -1,17 +1,39 @@
 package com.starcloud.ops.business.dataset;
 
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
+import cn.iocoder.yudao.framework.tenant.core.db.TenantDatabaseInterceptor;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
+import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
+import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import cn.iocoder.yudao.module.system.service.permission.PermissionService;
+import cn.iocoder.yudao.module.system.service.permission.RoleService;
+import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
+import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.chat.ChatService;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
+import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
+import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.CharacterDTO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadCharacterReqVO;
+import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
+import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataServiceImpl;
 import com.starcloud.ops.business.dataset.util.dataset.JsoupUtil;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import io.github.furstenheim.CopyDown;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+
+import javax.annotation.Resource;
+import java.util.Collections;
 
 @Slf4j
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class})
@@ -19,8 +41,33 @@ import org.springframework.context.annotation.Import;
 public class DatasetTest extends BaseDbUnitTest {
 
 
-    // @Autowired
-    // private DatasetDataHandleRulesService datasetDataHandleRulesService;
+    @Autowired
+    private DatasetSourceDataService datasetSourceDataService;
+
+
+    @Autowired
+    private ChatService chatService;
+
+
+    @MockBean
+    private PermissionApi permissionApi;
+
+    @MockBean
+    private DictDataService dictDataService;
+
+    @MockBean
+    private RoleService roleService;
+
+    @MockBean
+    private PermissionService permissionService;
+
+    @MockBean
+    private AppPublishService appPublishService;
+
+    @MockBean
+    private FileApi fileApi;
+
+
     @Test
     public void jsoupTest() {
 
@@ -49,19 +96,21 @@ public class DatasetTest extends BaseDbUnitTest {
 
     }
 
-    //
-    //
-    // @Test
-    // public void createRule() {
-    //
-    //     datasetDataHandleRulesService.createDefaultRules();
-    //     CopyDown converter = new CopyDown();
-    //     String myHtml = "<h1>Some title</h1><div>Some html<p>Another paragraph</p></div>";
-    //     String markdown = converter.convert(myHtml);
-    //
-    //     log.info("markdown: {}", markdown);
-    //
-    // }
+    @Test
+    public void testSession() {
+        UploadCharacterReqVO uploadCharacterReqVO = new UploadCharacterReqVO();
+
+        uploadCharacterReqVO.setAppId("8df9343b57464dab8974b2704c6a18e4");
+
+        uploadCharacterReqVO.setSessionId("dsadasdsadadas");
+        UploadCharacterReqVO characterReqVO = new UploadCharacterReqVO();
+        characterReqVO.setSync(true);
+        characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle("title").setContext("content")));
+        datasetSourceDataService.uploadCharactersSourceDataBySession(uploadCharacterReqVO);
+
+
+    }
+
 
 
 

@@ -143,6 +143,19 @@ public class AppServiceImpl implements AppService {
     }
 
     /**
+     * 根据应用 UID 获取应用详情-简单
+     *
+     * @param uid 应用 UID
+     * @return 应用详情
+     */
+    @Override
+    public AppRespVO getSimple(String uid) {
+        AppDO app = appMapper.get(uid, Boolean.TRUE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        return AppConvert.INSTANCE.convertResponse(app,  Boolean.FALSE);
+    }
+
+    /**
      * 创建应用
      *
      * @param request 应用信息

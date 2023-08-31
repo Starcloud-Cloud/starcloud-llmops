@@ -24,6 +24,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -229,7 +230,7 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    public static class SearchInfoDetail {
+    public static class SearchInfoDetail implements Serializable {
 
         private String type;
 
