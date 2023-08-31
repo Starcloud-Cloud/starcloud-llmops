@@ -211,5 +211,23 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_EXECUTE_STEPS_NOT_FOUND = new ErrorCode(300600014, "应用执行步骤[{}]不存在！");
 
+    /**
+     * 大模型异常
+     */
     ErrorCode OPENAI_ERROR = new ErrorCode(300600015, "大模型异常!");
+
+    /**
+     * 应用场景
+     */
+    ErrorCode APP_SCENE_IS_REQUIRED = new ErrorCode(300900021, "应用场景不能为空！");
+
+    /**
+     * 应用发布渠道媒介 UID 是必须的
+     */
+    ErrorCode APP_MEDIUM_UID_IS_REQUIRED = new ErrorCode(300900022, "应用发布渠道媒介UID不能为空！");
+
+    /**
+     * 游客ID不能为空
+     */
+    ErrorCode APP_END_USER_IS_REQUIRED = new ErrorCode(300900023, "游客ID不能为空！");
 }

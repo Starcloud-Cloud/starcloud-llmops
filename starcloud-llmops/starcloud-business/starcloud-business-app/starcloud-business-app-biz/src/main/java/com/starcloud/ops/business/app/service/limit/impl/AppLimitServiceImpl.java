@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.enums.limit.LimitByEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.limit.AppLimitContext;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
@@ -28,6 +29,7 @@ import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import java.time.Duration;
@@ -69,41 +71,72 @@ public class AppLimitServiceImpl implements AppLimitService {
     @Resource
     private RedissonClient redissonClient;
 
+    /**
+     * 应用限流，应用执行限流，走系统默认限流
+     *
+     * @param request 请求数据
+     */
+    @Override
+    public void appLimit(AppLimitRequest request) {
+        if (StringUtils.isBlank(request.getAppUid())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_UID_IS_REQUIRED);
+        }
+        if (StringUtils.isBlank(request.getFromScene())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_SCENE_IS_REQUIRED);
+        }
+        log.info("应用限流开始：应用UID: {}, 执行场景: {}", request.getAppUid(), request.getFromScene());
+        doSystemLimit(APP_LIMIT_PREFIX, request.getAppUid(), request.getFromScene());
+        log.info("应用限流结束");
+    }
 
     /**
      * 应用限流，应用执行限流，走系统默认限流
      *
-     * @param appUid 应用唯一标识
+     * @param request 请求数据
+     * @param emitter sse
      */
     @Override
-    public void appLimit(String appUid, String fromScene) {
-        log.info("应用限流开始：应用UID: {}, 执行场景: {}", appUid, fromScene);
-        doSystemLimit(APP_LIMIT_PREFIX, appUid, fromScene);
-        log.info("应用限流结束");
+    public void appLimitSse(AppLimitRequest request, SseEmitter emitter) {
+
     }
 
     /**
      * 应用限流，应用市场执行限流，走系统默认限流
      *
-     * @param marketUid 应用唯一标识
+     * @param request 请求数据
      */
     @Override
-    public void marketLimit(String marketUid, String fromScene) {
-        log.info("应用市场限流开始：应用市场UID: {}, 执行场景: {}", marketUid, fromScene);
-        doSystemLimit(MARKET_LIMIT_PREFIX, marketUid, fromScene);
+    public void marketLimit(AppLimitRequest request) {
+        if (StringUtils.isBlank(request.getAppUid())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_UID_IS_REQUIRED);
+        }
+        if (StringUtils.isBlank(request.getFromScene())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_SCENE_IS_REQUIRED);
+        }
+        log.info("应用市场限流开始：应用市场UID: {}, 执行场景: {}", request.getAppUid(), request.getFromScene());
+        doSystemLimit(MARKET_LIMIT_PREFIX, request.getAppUid(), request.getFromScene());
         log.info("应用市场限流结束");
     }
 
     /**
      * 应用限流，应用发布渠道执行限流。走用户配置限流。系统默认限流兜底
      *
-     * @param mediumUid 应用唯一标识
+     * @param request 请求数据
      */
     @Override
-    public void channelLimit(String mediumUid, String fromScene, String endUser) {
-        log.info("应用渠道发布限流开始：应用渠道媒介ID: {}, 执行场景: {}, 游客ID: {}", mediumUid, fromScene, endUser);
-        AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(mediumUid);
-        AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, mediumUid);
+    public void channelLimit(AppLimitRequest request) {
+        if (StringUtils.isBlank(request.getMediumUid())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MEDIUM_UID_IS_REQUIRED);
+        }
+        if (StringUtils.isBlank(request.getFromScene())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_SCENE_IS_REQUIRED);
+        }
+        if (StringUtils.isBlank(request.getEndUser())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_END_USER_IS_REQUIRED);
+        }
+        log.info("应用渠道发布限流开始：应用渠道媒介ID: {}, 执行场景: {}, 游客ID: {}", request.getMediumUid(), request.getFromScene(), request.getEndUser());
+        AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(request.getMediumUid());
+        AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getMediumUid());
         log.info("应用渠道发布限流: 应用UID: {}, 发布UID: {}，渠道UID: {}, 渠道名称: {}", channel.getAppUid(), channel.getPublishUid(), channel.getAppUid(), channel.getName());
         // 用户配置限流
         AppPublishLimitRespVO publishLimit = appPublishLimitService.defaultIfNullByPublishUid(channel.getPublishUid());
@@ -130,10 +163,9 @@ public class AppLimitServiceImpl implements AppLimitService {
             if (ObjectUtil.equals(advertisingConfig.getCode(), limitConfig.getCode()) &&
                     advertisingConfig.getEnable() && advertisingConfig.getLimit() != null && advertisingConfig.getLimit() > 0) {
                 limitConfig = advertisingConfig;
-                // todo 广告
             }
 
-            AppLimitContext context = getChannelLimitContext(channel.getAppUid(), fromScene, endUser, limitConfig);
+            AppLimitContext context = getChannelLimitContext(channel.getAppUid(), request.getFromScene(), request.getEndUser(), limitConfig);
             doLimit(context);
         }
 
@@ -147,6 +179,9 @@ public class AppLimitServiceImpl implements AppLimitService {
     private void doSystemLimit(String keyPrefix, String appUid, String fromScene) {
         List<LimitConfigDTO> limitConfigList = appDictionaryService.appSystemLimitConfig();
         String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
+        if (StringUtils.isBlank(loginUserId)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+        }
         for (LimitConfigDTO limitConfig : limitConfigList) {
             AppLimitContext context = new AppLimitContext();
             context.setAppUid(appUid);
@@ -155,6 +190,8 @@ public class AppLimitServiceImpl implements AppLimitService {
             String limitKey;
             if (LimitByEnum.USER.name().equals(limitConfig.getLimitBy())) {
                 limitKey = getLimitKey(keyPrefix, appUid, fromScene, loginUserId);
+            } else if (LimitByEnum.ADVERTISING.name().equals(limitConfig.getLimitBy())) {
+                limitKey = getLimitKey(ADVERTISING_PREFIX, appUid, fromScene, loginUserId);
             } else {
                 limitKey = getLimitKey(keyPrefix, appUid, fromScene);
             }
@@ -171,25 +208,29 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param context 限流上下文
      */
     private void doLimit(AppLimitContext context) {
-        // 获取总量定额限流配置
+        // 获取限流配置
         LimitConfigDTO config = context.getConfig();
         // 如果没有开启限流 或者没有配置限流数量，或者限流数量小于等于 0 。则不限流
         if (!config.getEnable() || config.getLimit() == null || config.getLimit() <= 0) {
             return;
         }
+        // 时间校验
+        if (config.getTimeout() == null || config.getTimeout() <= 0) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(300900000, "限流配置错误, 时间间隔必须大于 0"));
+        }
 
         RLock lock = redissonClient.getLock(getLockKey(context.getLimitKey()));
         // 如果获取锁失败，直接抛出异常。
         if (!lock.tryLock()) {
-            throw exception("系统繁忙，请稍后再试！");
+            throw exceptionLimit("系统繁忙，请稍后再试！");
         }
         try {
             // 从 Redis 中获取当前的限流数量
             RBucket<Integer> bucket = redissonClient.getBucket(context.getLimitKey());
+            // 获取时间单位
             ChronoUnit timeUnit = ChronoUnit.valueOf(config.getTimeUnit());
             // 将配置中的时间转换成毫秒
-            long millisecond = transformMillisecond(config.getTimeout(), config.getTimeUnit());
-
+            long millisecond = transformMillisecond(config.getTimeout(), timeUnit);
             // 如果 Key 存在。则直接进行处理
             if (bucket.isExists()) {
                 // 获取当前的限流数量和过期时间
@@ -197,7 +238,12 @@ public class AppLimitServiceImpl implements AppLimitService {
                 long expire = bucket.remainTimeToLive();
                 // 如果没有超过限流数量，说明已经超过限流数量，直接抛出异常
                 if (currentLimit >= config.getLimit()) {
-                    throw exception(config.getMessage());
+                    // 如果是打广告的话，超出限制时候需要删除 key,下次重新计数
+                    if (LimitByEnum.ADVERTISING.name().equals(config.getLimitBy())) {
+                        bucket.delete();
+                        throw exceptionAdvertising(config.getMessage());
+                    }
+                    throw exceptionLimit(config.getMessage());
                 }
 
                 // 增加 1 个限流数量
@@ -226,15 +272,18 @@ public class AppLimitServiceImpl implements AppLimitService {
             if (page.getTotal() > 0) {
                 // 如果已经执行的数量大于等于限流数量，说明已经超过限流数量，直接抛出异常
                 if (page.getTotal() >= config.getLimit()) {
-                    throw exception(config.getMessage());
+                    // 如果是打广告的话，超出限制时候需要删除 key,下次重新计数
+                    if (LimitByEnum.ADVERTISING.name().equals(config.getLimitBy())) {
+                        bucket.delete();
+                        throw exceptionAdvertising(config.getMessage());
+                    }
+                    throw exceptionLimit(config.getMessage());
                 }
 
                 // 如果已经执行的数量小于限流数量，说明已经超过限流数量，恢复限流数量
                 int limit = Long.valueOf(page.getTotal()).intValue() + 1;
-
                 // 获取第一条的执行记录，过期时间 = millisecond - (现在时间 - 第一次的执行时间)
-                LocalDateTime firstTime = Optional.ofNullable(page.getRecords()).map(records -> records.get(0))
-                        .map(LogAppMessageRespVO::getCreateTime).orElse(LocalDateTime.now());
+                LocalDateTime firstTime = Optional.ofNullable(page.getRecords()).map(records -> records.get(0)).map(LogAppMessageRespVO::getCreateTime).orElse(LocalDateTime.now());
                 long expire = millisecond - (System.currentTimeMillis() - firstTime.toInstant(ZoneOffset.UTC).toEpochMilli());
                 //  如果过期时间小于等于 0 ，则重置为 millisecond
                 expire = expire <= 0L ? millisecond : expire;
@@ -248,7 +297,7 @@ public class AppLimitServiceImpl implements AppLimitService {
             bucket.set(1, millisecond, TimeUnit.MILLISECONDS);
             log.info("限流: 初始化 Redis 数据: Key: {}, Value: {}, Expire: {}", context.getLimitKey(), 1, millisecond);
         } catch (Exception exception) {
-            log.error("定额限流异常：{}", exception.getMessage());
+            log.error("限流异常：{}", exception.getMessage());
             throw exception;
         } finally {
             lock.unlock();
@@ -271,11 +320,13 @@ public class AppLimitServiceImpl implements AppLimitService {
         context.setEndUser(endUser);
         String limitKey;
         if (LimitByEnum.USER.name().equals(limitConfig.getLimitBy())) {
+            limitKey = getLimitKey(APP_LIMIT_PREFIX, appUid, fromScene, endUser);
+        } else if (LimitByEnum.ADVERTISING.name().equals(limitConfig.getLimitBy())) {
             limitKey = getLimitKey(ADVERTISING_PREFIX, appUid, fromScene, endUser);
         } else {
-            limitKey = getLimitKey(ADVERTISING_PREFIX, appUid, fromScene);
+            limitKey = getLimitKey(APP_LIMIT_PREFIX, appUid, fromScene);
         }
-        log.info("限流：Key值: {} ", limitKey);
+        log.info("渠道限流：Key值: {} ", limitKey);
         context.setLimitKey(limitKey);
         context.setConfig(limitConfig);
         return context;
@@ -288,8 +339,8 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param timeUnit 时间单位
      * @return 毫秒
      */
-    private Long transformMillisecond(Long timeout, String timeUnit) {
-        Duration duration = Duration.of(timeout, ChronoUnit.valueOf(timeUnit));
+    private Long transformMillisecond(Long timeout, ChronoUnit timeUnit) {
+        Duration duration = Duration.of(timeout, timeUnit);
         return duration.toMillis();
     }
 
@@ -335,12 +386,22 @@ public class AppLimitServiceImpl implements AppLimitService {
     }
 
     /**
-     * 异常
+     * 限流超出异常
      *
      * @param message 异常信息
      * @return 异常
      */
-    private static ServiceException exception(String message) {
-        return ServiceExceptionUtil.exception(new ErrorCode(300900000, message));
+    private static ServiceException exceptionLimit(String message) {
+        return ServiceExceptionUtil.exception(new ErrorCode(300900005, message));
+    }
+
+    /**
+     * 广告配置超过异常
+     *
+     * @param message 异常信息
+     * @return 异常信息
+     */
+    private static ServiceException exceptionAdvertising(String message) {
+        return ServiceExceptionUtil.exception(new ErrorCode(300900006, message));
     }
 }

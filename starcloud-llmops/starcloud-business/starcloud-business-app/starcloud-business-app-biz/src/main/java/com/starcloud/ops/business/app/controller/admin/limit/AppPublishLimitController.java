@@ -4,10 +4,13 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModifyReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
+import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +30,13 @@ public class AppPublishLimitController {
 
     @Resource
     private AppPublishLimitService appPublishLimitService;
+
+    @GetMapping("/get/{publishUid}")
+    @Operation(summary = "获取应用发布限流信息", description = "获取应用发布限流信息")
+    @ApiOperationSupport(order = 5, author = "nacoyer")
+    public CommonResult<AppPublishLimitRespVO> get(@PathVariable("publishUid") String publishUid) {
+        return CommonResult.success(appPublishLimitService.defaultIfNullByPublishUid(publishUid));
+    }
 
     @PostMapping("/create")
     @Operation(summary = "创建应用发布限流信息", description = "创建应用发布限流信息")

@@ -20,7 +20,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "AppLimitContext", description = "限流执行请求VO")
+@Schema(name = "AppLimitContext", description = "限流执行请求上下文")
 public class AppLimitContext implements Serializable {
 
     private static final long serialVersionUID = -3754250618442134116L;
