@@ -3,6 +3,7 @@ package com.starcloud.ops.business.open.service.handler;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyService;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
@@ -14,6 +15,7 @@ import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +73,9 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     private MpUserService mpUserService;
 
     @Resource
+    private SendSocialMsgService sendSocialMsgService;
+
+    @Resource
     private MpAutoReplyService mpAutoReplyService;
 
     @Value("${starcloud-llm.tenant.id:2}")
@@ -88,7 +93,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
             WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
             // 第二步，保存粉丝信息
-            mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
+            MpUserDO mpUserDO = mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
 
             SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
                     .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
@@ -125,7 +130,7 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
                 msg = String.format("您可以使用帐号密码登录，帐号是：%s  登录密码是：%s", username, password);
                 userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L, CommonStatusEnum.ENABLE.getStatus());
             }
-           SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
+            SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
                     .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                     .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
             socialUserBindMapper.insert(socialUserBind);
@@ -151,7 +156,9 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             }
 
             starUserService.addBenefits(userId, inviteUserid);
-            return  mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(),msg, wxMessage);
+            sendSocialMsgService.sendWxRegisterMsg(mpUserDO, msg);
+            mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), msg, wxMessage);
+            return null;
         } catch (Exception e) {
             log.error("新增用户失败", e);
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);

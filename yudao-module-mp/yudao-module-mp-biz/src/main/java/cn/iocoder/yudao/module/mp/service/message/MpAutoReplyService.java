@@ -5,6 +5,7 @@ import cn.iocoder.yudao.module.mp.controller.admin.message.vo.autoreply.MpAutoRe
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.autoreply.MpAutoReplyUpdateReqVO;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessagePageReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpAutoReplyDO;
+import cn.iocoder.yudao.module.mp.enums.message.MpAutoReplyTypeEnum;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 
@@ -34,6 +35,8 @@ public interface MpAutoReplyService {
      * @return
      */
     MpAutoReplyDO selectListByAppIdAndMessage(String appId, String requestMessageType);
+
+    MpAutoReplyDO selectOneByAppIdAndType(String appId, Integer type);
 
     /**
      * 获得公众号自动回复

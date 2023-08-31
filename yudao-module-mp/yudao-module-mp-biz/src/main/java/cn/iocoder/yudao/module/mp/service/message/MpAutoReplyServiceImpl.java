@@ -71,6 +71,11 @@ public class MpAutoReplyServiceImpl implements MpAutoReplyService {
     }
 
     @Override
+    public MpAutoReplyDO selectOneByAppIdAndType(String appId, Integer type) {
+        return mpAutoReplyMapper.selectOneByAppIdAndType(appId, type);
+    }
+
+    @Override
     public MpAutoReplyDO getAutoReply(Long id) {
         return mpAutoReplyMapper.selectById(id);
     }
