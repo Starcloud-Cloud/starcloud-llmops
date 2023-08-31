@@ -7,7 +7,8 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
-import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitQuery;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -139,27 +140,27 @@ public class AppLimitServiceImpl implements AppLimitService {
         AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getMediumUid());
         log.info("应用渠道发布限流: 应用UID: {}, 发布UID: {}，渠道UID: {}, 渠道名称: {}", channel.getAppUid(), channel.getPublishUid(), channel.getAppUid(), channel.getName());
         // 用户配置限流
-        AppPublishLimitRespVO publishLimit = appPublishLimitService.defaultIfNullByPublishUid(channel.getPublishUid());
+        AppPublishLimitRespVO publishLimit = this.defaultIfNullPublishLimit(channel.getAppUid(), channel.getPublishUid(), channel.getUid());
         // 系统配置限流
-        List<LimitConfigDTO> limitConfigList = appDictionaryService.appSystemLimitConfig();
-
-        for (LimitConfigDTO limitConfig : limitConfigList) {
+        List<AppLimitConfigDTO> limitConfigList = appDictionaryService.appSystemLimitConfig();
+        // 循环执行限流
+        for (AppLimitConfigDTO limitConfig : limitConfigList) {
             // 应用使用率限流
-            LimitConfigDTO rateConfig = publishLimit.getRateConfig();
+            AppLimitConfigDTO rateConfig = publishLimit.getRateConfig();
             if (ObjectUtil.equals(rateConfig.getCode(), limitConfig.getCode()) &&
                     rateConfig.getEnable() && rateConfig.getLimit() != null && rateConfig.getLimit() > 0) {
                 limitConfig = rateConfig;
             }
 
             // 用户使用率限流
-            LimitConfigDTO userRateConfig = publishLimit.getUserRateConfig();
+            AppLimitConfigDTO userRateConfig = publishLimit.getUserRateConfig();
             if (ObjectUtil.equals(userRateConfig.getCode(), limitConfig.getCode()) &&
                     userRateConfig.getEnable() && userRateConfig.getLimit() != null && userRateConfig.getLimit() > 0) {
                 limitConfig = userRateConfig;
             }
 
             // 广告配置
-            LimitConfigDTO advertisingConfig = publishLimit.getAdvertisingConfig();
+            AppLimitConfigDTO advertisingConfig = publishLimit.getAdvertisingConfig();
             if (ObjectUtil.equals(advertisingConfig.getCode(), limitConfig.getCode()) &&
                     advertisingConfig.getEnable() && advertisingConfig.getLimit() != null && advertisingConfig.getLimit() > 0) {
                 limitConfig = advertisingConfig;
@@ -177,12 +178,12 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param appUid 应用唯一标识
      */
     private void doSystemLimit(String keyPrefix, String appUid, String fromScene) {
-        List<LimitConfigDTO> limitConfigList = appDictionaryService.appSystemLimitConfig();
+        List<AppLimitConfigDTO> limitConfigList = appDictionaryService.appSystemLimitConfig();
         String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
         if (StringUtils.isBlank(loginUserId)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
         }
-        for (LimitConfigDTO limitConfig : limitConfigList) {
+        for (AppLimitConfigDTO limitConfig : limitConfigList) {
             AppLimitContext context = new AppLimitContext();
             context.setAppUid(appUid);
             context.setFromScene(fromScene);
@@ -209,13 +210,13 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     private void doLimit(AppLimitContext context) {
         // 获取限流配置
-        LimitConfigDTO config = context.getConfig();
+        AppLimitConfigDTO config = context.getConfig();
         // 如果没有开启限流 或者没有配置限流数量，或者限流数量小于等于 0 。则不限流
         if (!config.getEnable() || config.getLimit() == null || config.getLimit() <= 0) {
             return;
         }
         // 时间校验
-        if (config.getTimeout() == null || config.getTimeout() <= 0) {
+        if (config.getTimeInterval() == null || config.getTimeInterval() <= 0) {
             throw ServiceExceptionUtil.exception(new ErrorCode(300900000, "限流配置错误, 时间间隔必须大于 0"));
         }
 
@@ -230,7 +231,7 @@ public class AppLimitServiceImpl implements AppLimitService {
             // 获取时间单位
             ChronoUnit timeUnit = ChronoUnit.valueOf(config.getTimeUnit());
             // 将配置中的时间转换成毫秒
-            long millisecond = transformMillisecond(config.getTimeout(), timeUnit);
+            long millisecond = transformMillisecond(config.getTimeInterval(), timeUnit);
             // 如果 Key 存在。则直接进行处理
             if (bucket.isExists()) {
                 // 获取当前的限流数量和过期时间
@@ -253,20 +254,7 @@ public class AppLimitServiceImpl implements AppLimitService {
                 return;
             }
             // 查询日志消息表中的已经执行的数量
-            AppLogMessageQuery appLogMessageQuery = new AppLogMessageQuery();
-            appLogMessageQuery.setAppUid(context.getAppUid());
-            //  目前非 APP 的情况需要添加用户 ID 和 游客 ID
-            if (!LimitByEnum.APP.name().equals(config.getLimitBy())) {
-                appLogMessageQuery.setUserId(context.getUserId());
-                appLogMessageQuery.setEndUser(context.getEndUser());
-            }
-            appLogMessageQuery.setFromScene(context.getFromScene());
-            appLogMessageQuery.setTimeInterval(config.getTimeout());
-            appLogMessageQuery.setTimeUnit(timeUnit);
-            appLogMessageQuery.setPageNo(1);
-            appLogMessageQuery.setPageSize(1);
-            appLogMessageQuery.setSorts(Collections.singletonList(SortQuery.of("create_time", SortType.ASC.name())));
-            Page<LogAppMessageRespVO> page = appLogService.pageAppLogMessage(appLogMessageQuery);
+            Page<LogAppMessageRespVO> page = this.pageAppLogMessage(context);
             log.info("限流：Redis Key 不存在，查询已经执行次数: {}", page.getTotal());
             // 如果已经执行的数量大于 0，则设置已经执行的数量，限流数量恢复
             if (page.getTotal() > 0) {
@@ -305,6 +293,47 @@ public class AppLimitServiceImpl implements AppLimitService {
     }
 
     /**
+     * 获取发布限流配置
+     *
+     * @param appUid     应用 UID
+     * @param publishUid 发布UID
+     * @param channelUid 渠道UID
+     * @return 发布限流配置
+     */
+    private AppPublishLimitRespVO defaultIfNullPublishLimit(String appUid, String publishUid, String channelUid) {
+        AppPublishLimitQuery query = new AppPublishLimitQuery();
+        query.setAppUid(appUid);
+        query.setPublishUid(publishUid);
+        query.setChannelUid(channelUid);
+        return appPublishLimitService.defaultIfNull(query);
+    }
+
+    /**
+     * 分页查询日志列表
+     *
+     * @param context 上下文
+     * @return 分页日志消息
+     */
+    private Page<LogAppMessageRespVO> pageAppLogMessage(AppLimitContext context) {
+        AppLimitConfigDTO config = context.getConfig();
+        // 查询日志消息表中的已经执行的数量
+        AppLogMessageQuery appLogMessageQuery = new AppLogMessageQuery();
+        appLogMessageQuery.setAppUid(context.getAppUid());
+        //  目前非 APP 的情况需要添加用户 ID 和 游客 ID
+        if (!LimitByEnum.APP.name().equals(config.getLimitBy())) {
+            appLogMessageQuery.setUserId(context.getUserId());
+            appLogMessageQuery.setEndUser(context.getEndUser());
+        }
+        appLogMessageQuery.setFromScene(context.getFromScene());
+        appLogMessageQuery.setTimeInterval(config.getTimeInterval());
+        appLogMessageQuery.setTimeUnit(ChronoUnit.valueOf(config.getTimeUnit()));
+        appLogMessageQuery.setPageNo(1);
+        appLogMessageQuery.setPageSize(1);
+        appLogMessageQuery.setSorts(Collections.singletonList(SortQuery.of("create_time", SortType.ASC.name())));
+        return appLogService.pageAppLogMessage(appLogMessageQuery);
+    }
+
+    /**
      * 获取渠道限流上下文
      *
      * @param appUid      应用 UID
@@ -313,7 +342,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param limitConfig 限流配置
      * @return 限流上下文
      */
-    private AppLimitContext getChannelLimitContext(String appUid, String fromScene, String endUser, LimitConfigDTO limitConfig) {
+    private AppLimitContext getChannelLimitContext(String appUid, String fromScene, String endUser, AppLimitConfigDTO limitConfig) {
         AppLimitContext context = new AppLimitContext();
         context.setAppUid(appUid);
         context.setFromScene(fromScene);

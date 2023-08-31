@@ -230,4 +230,9 @@ public interface ErrorCodeConstants {
      * 游客ID不能为空
      */
     ErrorCode APP_END_USER_IS_REQUIRED = new ErrorCode(300900023, "游客ID不能为空！");
+
+    /**
+     * 应用发布限制已存在
+     */
+    ErrorCode APP_PUBLISH_LIMIT_EXISTS = new ErrorCode(300900024, "应用发布限制已存在！");
 }

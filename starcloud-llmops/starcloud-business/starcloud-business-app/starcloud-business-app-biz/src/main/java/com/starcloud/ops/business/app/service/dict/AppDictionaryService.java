@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.service.dict;
 
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
 
 import java.util.List;
 
@@ -35,6 +35,6 @@ public interface AppDictionaryService {
      *
      * @return 应用限流兜底配置
      */
-    List<LimitConfigDTO> appSystemLimitConfig();
+    List<AppLimitConfigDTO> appSystemLimitConfig();
 
 }

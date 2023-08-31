@@ -23,9 +23,7 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
-import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
-import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -57,13 +55,7 @@ public class AppServiceImpl implements AppService {
     private AppPublishService appPublishService;
 
     @Resource
-    private AppPublishChannelService appPublishChannelService;
-
-    @Resource
     private AppDictionaryService appDictionaryService;
-
-    @Resource
-    private AppPublishLimitService appPublishLimitService;
 
     /**
      * 查询应用分类列表
