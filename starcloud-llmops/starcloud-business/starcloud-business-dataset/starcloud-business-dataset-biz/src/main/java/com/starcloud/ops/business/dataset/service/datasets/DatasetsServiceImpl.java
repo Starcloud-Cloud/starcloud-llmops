@@ -211,13 +211,7 @@ public class DatasetsServiceImpl implements DatasetsService {
         return datasetsDO.getId();
     }
 
-    /**
-     * 根据应用 appId和会员会话 ID 获取数据集详情
-     *
-     * @param appId     应用 ID
-     * @param sessionId 会话 ID
-     * @return 数据集
-     */
+
     @TenantIgnore
     @Override
     public DatasetsDO getDatasetInfoBySession(String appId, String sessionId) {
@@ -249,7 +243,6 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @param appId 应用 ID
      * @param sessionId  会话 ID
      */
-    @TenantIgnore
     @Override
     public Boolean validateSessionDatasetsExists(String appId, String sessionId) {
         DatasetsDO datasetsDO = datasetsMapper.selectOne(
@@ -266,7 +259,7 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @param sessionId 会话 ID
      * @return Boolean
      */
-    public Long createDatasetsBySession(String appId, String sessionId, String creator, Long tenantId) {
+    public Long createDatasetsBySession(String appId, String sessionId) {
         DatasetsDO datasetsDO = new DatasetsDO();
         datasetsDO.setUid(DatasetUID.createDatasetUID());
         datasetsDO.setName(String.format("会话%s的数据集", sessionId));
@@ -276,9 +269,6 @@ public class DatasetsServiceImpl implements DatasetsService {
         datasetsDO.setProvider(DatasetProviderEnum.SYSTEM.getName());
         datasetsDO.setPermission(DatasetPermissionEnum.PRIVATELY_OWNED.getStatus());
         datasetsDO.setEnabled(true);
-        datasetsDO.setCreator(creator);
-        datasetsDO.setUpdater(creator);
-        datasetsDO.setTenantId(tenantId);
         // 数据插入
         datasetsMapper.insert(datasetsDO);
 
