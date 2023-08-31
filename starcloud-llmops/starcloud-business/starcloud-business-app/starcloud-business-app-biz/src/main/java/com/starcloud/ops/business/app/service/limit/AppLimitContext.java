@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.service.limit;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,7 +20,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "AppLimitContext", description = "限流执行请求VO")
+@Schema(name = "AppLimitContext", description = "限流执行请求上下文")
 public class AppLimitContext implements Serializable {
 
     private static final long serialVersionUID = -3754250618442134116L;
@@ -59,6 +59,6 @@ public class AppLimitContext implements Serializable {
      * 限流配置
      */
     @Schema(description = "限流配置")
-    private LimitConfigDTO config;
+    private AppLimitConfigDTO config;
 
 }

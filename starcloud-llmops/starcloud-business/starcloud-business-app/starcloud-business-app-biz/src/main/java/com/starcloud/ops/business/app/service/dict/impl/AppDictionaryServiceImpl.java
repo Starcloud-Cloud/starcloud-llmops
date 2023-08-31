@@ -7,7 +7,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.limit.LimitConfigEnum;
@@ -82,7 +82,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      * @return 应用限流兜底配置
      */
     @Override
-    public List<LimitConfigDTO> appSystemLimitConfig() {
+    public List<AppLimitConfigDTO> appSystemLimitConfig() {
         DictDataExportReqVO request = new DictDataExportReqVO();
         request.setDictType(AppConstants.APP_LIMIT_DEFAULT_CONFIG);
         request.setStatus(StateEnum.ENABLE.getCode());
@@ -93,7 +93,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         return dictDataList.stream()
                 .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getRemark()))
                 .map(item -> {
-                    LimitConfigDTO limitConfig = JSONUtil.toBean(item.getRemark(), LimitConfigDTO.class);
+                    AppLimitConfigDTO limitConfig = JSONUtil.toBean(item.getRemark(), AppLimitConfigDTO.class);
                     limitConfig.setCode(item.getValue());
                     return limitConfig;
                 }).collect(Collectors.toList());
@@ -104,7 +104,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      *
      * @return 应用限流兜底配置
      */
-    private static List<LimitConfigDTO> defaultSystemLimitConfig() {
+    private static List<AppLimitConfigDTO> defaultSystemLimitConfig() {
         return Arrays.stream(LimitConfigEnum.values()).map(LimitConfigEnum::getDefaultSystemConfig).collect(Collectors.toList());
     }
 

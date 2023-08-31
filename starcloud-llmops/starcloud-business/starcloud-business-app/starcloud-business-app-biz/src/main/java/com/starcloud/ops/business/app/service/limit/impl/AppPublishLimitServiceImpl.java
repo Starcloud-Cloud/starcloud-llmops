@@ -2,8 +2,8 @@ package com.starcloud.ops.business.app.service.limit.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModifyReqVO;
+import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitQuery;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import com.starcloud.ops.business.app.convert.limit.AppPublishLimitConvert;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -42,22 +43,22 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     public AppPublishLimitRespVO get(String uid) {
         AppPublishLimitDO appPublishLimit = appPublishLimitMapper.get(uid);
         AppValidate.notNull(appPublishLimit, ErrorCodeConstants.APP_PUBLISH_LIMIT_NOT_EXISTS_UID, uid);
-        return AppPublishLimitConvert.INSTANCE.convert(appPublishLimit);
+        return AppPublishLimitConvert.INSTANCE.convertResponse(appPublishLimit);
     }
 
     /**
-     * 根据 publishUid 获取应用发布限流信息, 如果不存在则返回默认值
+     * 根据查询条件查询限流信息, 如果不存在则返回默认值
      *
-     * @param publishUid 发布 uid
+     * @param query 查询条件
      * @return 应用发布限流信息
      */
     @Override
-    public AppPublishLimitRespVO defaultIfNullByPublishUid(String publishUid) {
-        List<AppPublishLimitDO> list = appPublishLimitMapper.listByPublishUid(publishUid);
-        if (CollectionUtil.isEmpty(list)) {
-            return getDefaultLimit(publishUid);
+    public AppPublishLimitRespVO defaultIfNull(AppPublishLimitQuery query) {
+        AppPublishLimitDO appPublishLimit = appPublishLimitMapper.get(query);
+        if (Objects.isNull(appPublishLimit)) {
+            return defaultLimit(query);
         }
-        return AppPublishLimitConvert.INSTANCE.convert(list.get(0));
+        return AppPublishLimitConvert.INSTANCE.convertResponse(appPublishLimit);
     }
 
     /**
@@ -67,10 +68,13 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
      */
     @Override
     public void create(AppPublishLimitReqVO request) {
+        long countByAppUid = appPublishLimitMapper.countByAppUid(request.getAppUid());
+        AppValidate.isFalse(countByAppUid > 0, ErrorCodeConstants.APP_PUBLISH_LIMIT_EXISTS);
+        long countByPublishUid = appPublishLimitMapper.countByPublishUid(request.getPublishUid());
+        AppValidate.isFalse(countByPublishUid > 0, ErrorCodeConstants.APP_PUBLISH_LIMIT_EXISTS);
+
         AppPublishLimitDO appPublishLimit = AppPublishLimitConvert.INSTANCE.convert(request);
-        if (StringUtils.isBlank(appPublishLimit.getUid())) {
-            appPublishLimit.setUid(IdUtil.fastSimpleUUID());
-        }
+        appPublishLimit.setUid(IdUtil.fastSimpleUUID());
         appPublishLimitMapper.create(appPublishLimit);
     }
 
@@ -81,8 +85,16 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
      */
     @Override
     public void modify(AppPublishLimitModifyReqVO request) {
-        AppPublishLimitDO appPublishLimit = AppPublishLimitConvert.INSTANCE.convertModify(request);
-        appPublishLimitMapper.modify(appPublishLimit);
+        AppPublishLimitDO appPublishLimit = appPublishLimitMapper.get(request.getUid());
+        AppValidate.notNull(appPublishLimit, ErrorCodeConstants.APP_PUBLISH_LIMIT_EXISTS);
+
+        AppPublishLimitDO modifyAppPublishLimit = AppPublishLimitConvert.INSTANCE.convertModify(request);
+        modifyAppPublishLimit.setId(appPublishLimit.getId());
+        modifyAppPublishLimit.setAppUid(appPublishLimit.getAppUid());
+        modifyAppPublishLimit.setPublishUid(appPublishLimit.getPublishUid());
+        modifyAppPublishLimit.setChannelUid(null);
+        modifyAppPublishLimit.setDeleted(Boolean.FALSE);
+        appPublishLimitMapper.modify(modifyAppPublishLimit);
     }
 
     /**
@@ -136,9 +148,11 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
      *
      * @return 默认限流配置
      */
-    private AppPublishLimitRespVO getDefaultLimit(String publishUid) {
+    private AppPublishLimitRespVO defaultLimit(AppPublishLimitQuery query) {
         AppPublishLimitRespVO response = new AppPublishLimitRespVO();
-        response.setPublishUid(publishUid);
+        response.setAppUid(query.getAppUid());
+        response.setPublishUid(query.getPublishUid());
+        response.setChannelUid(query.getChannelUid());
         response.setRateConfig(LimitConfigEnum.RATE.getDefaultConfig());
         response.setUserRateConfig(LimitConfigEnum.USER_RATE.getDefaultConfig());
         response.setAdvertisingConfig(LimitConfigEnum.ADVERTISING.getDefaultConfig());
