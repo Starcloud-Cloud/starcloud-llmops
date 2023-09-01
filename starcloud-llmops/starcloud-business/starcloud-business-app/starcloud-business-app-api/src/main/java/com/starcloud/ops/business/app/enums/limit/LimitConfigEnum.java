@@ -84,9 +84,9 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(LimitByEnum.ADVERTISING.name());
-            config.setLimit(5);
+            config.setLimit(2);
             config.setTimeInterval(60L);
-            config.setTimeUnit("SECONDS");
+            config.setTimeUnit("MINUTES");
             config.setMessage("基于AI技术，智能推荐，智能对话，为您推荐更多优质内容！");
             return config;
         }
@@ -97,9 +97,9 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(LimitByEnum.ADVERTISING.name());
-            config.setLimit(5);
+            config.setLimit(2);
             config.setTimeInterval(60L);
-            config.setTimeUnit("SECONDS");
+            config.setTimeUnit("MINUTES");
             config.setMessage("基于AI技术，智能推荐，智能对话，为您推荐更多优质内容！");
             return config;
         }

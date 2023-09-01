@@ -150,8 +150,7 @@ public class AppLogServiceImpl implements AppLogService {
         if (Objects.nonNull(query.getTimeInterval()) && Objects.nonNull(query.getTimeUnit())) {
             LocalDateTime startTime = LocalDateTime.now();
             LocalDateTime endTime = startTime.minus(query.getTimeInterval(), query.getTimeUnit());
-            wrapper.ge(LogAppMessageDO::getCreateTime, endTime);
-            wrapper.le(LogAppMessageDO::getCreateTime, startTime);
+            wrapper.between(LogAppMessageDO::getCreateTime, startTime, endTime);
         }
         if (CollectionUtil.isEmpty(query.getSorts())) {
             wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
