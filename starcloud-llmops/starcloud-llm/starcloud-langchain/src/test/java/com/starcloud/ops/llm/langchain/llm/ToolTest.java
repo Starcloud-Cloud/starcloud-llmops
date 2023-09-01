@@ -66,4 +66,36 @@ public class ToolTest extends SpringBootTests {
     }
 
 
+    @Test
+    public void SerpapiImagesTest() {
+
+        SerpAPITool tool = new SerpAPITool(serpAPIToolConfig.getApiKey());
+
+        SerpAPITool.Request request = new SerpAPITool.Request();
+
+        request.setQ("黑悟空");
+
+        List<SerpAPITool.SearchInfoDetail> searchInfoDetails = tool.runGetImages(request);
+
+        log.info("jsonObject: {}", JSONUtil.parse(searchInfoDetails).toStringPretty());
+    }
+
+
+    @Test
+    public void SerpapiNewsTest() {
+
+        SerpAPITool tool = new SerpAPITool(serpAPIToolConfig.getApiKey());
+
+        SerpAPITool.Request request = new SerpAPITool.Request();
+
+        request.setQ("黑悟空");
+
+        List<SerpAPITool.SearchInfoDetail> searchInfoDetails = tool.runGetNews(request);
+
+        log.info("jsonObject: {}", JSONUtil.parse(searchInfoDetails).toStringPretty());
+    }
+
+
+
+
 }

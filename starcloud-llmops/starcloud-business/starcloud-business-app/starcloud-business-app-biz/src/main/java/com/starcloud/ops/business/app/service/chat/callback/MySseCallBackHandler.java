@@ -129,7 +129,7 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
     @Override
     @SneakyThrows
     public void onChainEnd(Object... objects) {
-        log.info("onChainEnd: {}", objects);
+        log.info("onChainEnd: {}", objects[0].getClass().getSimpleName());
         //因为Agent执行是同步的，所以最后才有返回结果，需要手动See下
         if (this.getEmitter() == null) {
             return;

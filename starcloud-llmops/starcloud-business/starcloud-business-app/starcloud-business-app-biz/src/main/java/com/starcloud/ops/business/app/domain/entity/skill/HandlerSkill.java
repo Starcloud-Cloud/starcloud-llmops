@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 
 
 import cn.hutool.core.util.TypeUtil;
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
@@ -101,6 +102,8 @@ public class HandlerSkill extends BaseSkillEntity {
 
             //不会抛出异常
             HandlerResponse handlerResponse = this.handler.execute(handlerContext);
+
+            log.info("FunTool HandlerSkill: {} response:\n{}", this.getHandler().getName(), JSONUtil.toJsonPrettyStr(handlerResponse));
 
             //放在这里是因为暂时只有 聊天技能调用 才做记录
             this.handler.addRespHistory(handlerContext, handlerResponse);

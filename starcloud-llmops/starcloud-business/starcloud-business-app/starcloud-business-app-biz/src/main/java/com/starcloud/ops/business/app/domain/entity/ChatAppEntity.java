@@ -7,6 +7,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
@@ -27,7 +28,6 @@ import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
-import com.starcloud.ops.business.app.domain.handler.datasearch.GoogleSearchHandler;
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
 import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
@@ -71,6 +71,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Data
+@JsonIgnoreType
 public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> {
 
     @JsonIgnore
@@ -97,6 +98,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     /**
      * 自定义memory 处理总结和tool历史问题。历史初始化时候新建
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private ConversationSummaryDbMessageMemory messageMemory = new ConversationSummaryDbMessageMemory();
 
     /**
@@ -151,9 +154,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected void initHistory(ChatRequestVO request, LogAppConversationDO logAppConversation, List<LogAppMessageDO> logAppMessageDOS) {
-
-        //preHistory(request.getConversationUid(), AppModelEnum.CHAT.name());
-
 
         //所有场景都走最新发布的配置，不读取会话上的配置
         if (logAppConversation != null) {
@@ -248,8 +248,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         SseEmitter emitter = request.getSseEmitter();
 
-        long start = System.currentTimeMillis();
-
         ChatConfigEntity chatConfig = this.getChatConfig();
 
         // 从表单配置中筛选输入变量，处理必填字段、默认值和选项值
@@ -290,8 +288,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
             //把上下文文档内容的 变量占位符传入
             AgentFinish agentAction = agentExecutor.call(Arrays.asList(humanInput));
-
-            log.info("agentExecutor run result: {}", agentAction);
 
             //扣费，记录 tool 调用日志
 
@@ -414,18 +410,34 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         //web search
         if (searchConfigEntity != null && searchConfigEntity.getEnabled()) {
 
+            //爬取网页
             WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
             String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
             webSearch2Doc.setDescription(description);
             webSearch2Doc.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-
             HandlerSkill handlerSkill = new HandlerSkill(webSearch2Doc);
             loadTools.add(handlerSkill.createFunTool(appContext));
 
-            //GoogleSearch
-            HandlerSkill handlerSkill1 = HandlerSkill.of("GoogleSearchHandler");
-            handlerSkill1.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-            loadTools.add(handlerSkill1.createFunTool(appContext));
+//            //GoogleSearch
+//            HandlerSkill handlerSkill1 = HandlerSkill.of("GoogleSearchHandler");
+//            handlerSkill1.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+//            loadTools.add(handlerSkill1.createFunTool(appContext));
+//
+//
+//            //GoogleSearch images
+//            HandlerSkill imagesSkill = HandlerSkill.of("ImageSearchHandler");
+//            imagesSkill.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+//            loadTools.add(imagesSkill.createFunTool(appContext));
+//
+//            //GoogleSearch news
+//            HandlerSkill newsSkill = HandlerSkill.of("NewsSearchHandler");
+//            newsSkill.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+//            loadTools.add(newsSkill.createFunTool(appContext));
+
+
+            HandlerSkill searchEngine = HandlerSkill.of("SearchEngineHandler");
+            searchEngine.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+            loadTools.add(searchEngine.createFunTool(appContext));
 
         }
 

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.handler.datasearch;
 
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveData;
@@ -15,11 +16,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * 通过 Google搜索新闻，并只返回 URL 列表
+ * google image 搜索图片
  *
  * @author nacoyer
  * @version 1.0.0
@@ -28,19 +30,17 @@ import java.util.stream.Collectors;
 @Data
 @Slf4j
 @Component
-public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Request, SearchEngineHandler.Response> {
+public class ImageSearchHandler extends BaseToolHandler<SearchEngineHandler.Request, SearchEngineHandler.Response> {
 
-    private String userName = "互联网搜索新闻";
+    private String userName = "互联网搜索图片";
 
-    private String userDescription = "可以自动联网查询新闻";
+    private String userDescription = "可以自动联网查询网络上的图片";
 
-    private String name = "NewsSearchHandler";
+    private String name = "ImageSearchHandler";
 
-    private String description = "Search News engines. Useful when you need to search for news on the Internet. The input should be a news related to search queries.";
-
+    private String description = "Search images engines. Useful when you need to search for images on the web. The input should be an image-related search query.";
 
     private static SerpAPITool serpAPITool = new SerpAPITool();
-
 
     @Override
     protected HandlerResponse<SearchEngineHandler.Response> _execute(HandlerContext<SearchEngineHandler.Request> context) {
@@ -52,30 +52,30 @@ public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Reque
 
         String query = context.getRequest().getQuery();
 
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("查询新闻中[" + query + "]...").setInput(context.getRequest());
-        context.sendCallbackInteractiveStart(interactiveInfo);
-
         SerpAPITool.Request request = new SerpAPITool.Request();
         request.setQ(query);
         request.setGl(SerpAPITool.GL);
         request.setHl(SerpAPITool.HL);
 
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildImgCard("查询图片中[" + query + "]...").setInput(context.getRequest());
 
-        List<SerpAPITool.SearchInfoDetail> searchInfoDetails = serpAPITool.runGetNews(request);
+        context.sendCallbackInteractiveStart(interactiveInfo);
+
+
+        List<SerpAPITool.SearchInfoDetail> searchInfoDetails = serpAPITool.runGetImages(request);
 
 
         HandlerResponse<SearchEngineHandler.Response> handlerResponse = new HandlerResponse();
 
         handlerResponse.setSuccess(true);
 
-        List<InteractiveData> dataList = Optional.ofNullable(searchInfoDetails).orElse(new ArrayList<>()).stream().limit(3).map(detail -> {
+        List<InteractiveData> dataList = Optional.ofNullable(searchInfoDetails).orElse(new ArrayList<>()).stream().limit(5).map(detail -> {
 
             InteractiveData interactiveData = new InteractiveData();
 
             interactiveData.setTitle(detail.getTitle());
-            interactiveData.setContent(detail.getContent());
+            interactiveData.setImageUrl(detail.getImageUrl());
             interactiveData.setUrl(detail.getLink());
-            interactiveData.setTime(detail.getTime());
 
             return interactiveData;
 
@@ -109,7 +109,7 @@ public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Reque
 
             messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
             messageContentDocDTO.setTitle(interactiveData.getTitle());
-            messageContentDocDTO.setContent(interactiveData.getContent());
+            messageContentDocDTO.setContent(interactiveData.getImageUrl());
             messageContentDocDTO.setUrl(interactiveData.getUrl());
 
             return messageContentDocDTO;
@@ -121,10 +121,10 @@ public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Reque
 //    @Data
 //    public static class Response {
 //
-//        private List<InteractiveData> news;
+//        private List<InteractiveData> images;
 //
 //        public Response(List<InteractiveData> images) {
-//            this.news = images;
+//            this.images = images;
 //        }
 //    }
 

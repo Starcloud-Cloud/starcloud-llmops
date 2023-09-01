@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -309,7 +310,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), true);
-            log.info("应用执行结束: 应用UID: {}, \n执行结果: {}", this.getUid(), JSONUtil.parse(result).toStringPretty());
+            log.info("应用执行结束: 应用UID: {}", this.getUid());
             return result;
 
         } catch (ServiceException exception) {

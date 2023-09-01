@@ -253,11 +253,18 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("今天天津的天气怎么样？");
 
-        chatRequest.setQuery("杭州 8月29号天怎么样，跟8月28号天气比较尼？");
+        //chatRequest.setQuery("杭州 8月29号天怎么样，跟8月28号天气比较尼？");
 
-        chatRequest.setQuery("查询下 杭州 2023年8月29号和8月30号的天气，并做个温度比较给我。");
+       // chatRequest.setQuery("查询下 杭州 2023年8月29号和8月30号的天气，并做个温度比较给我。");
 
-        //chatRequest.setQuery("今天天津的天气怎么样？");
+
+
+        chatRequest.setQuery("查下苹果最新的有哪些消息？");
+
+        chatRequest.setQuery("搜索下 最新黑悟空的图片");
+
+
+        chatRequest.setQuery("今天天津的天气怎么样？");
 
         chatService.chat(chatRequest);
 
@@ -276,12 +283,13 @@ public class ChatTest extends BaseDbUnitTest {
         chatRequest.setAppUid("971e790946d04513aad3b29e695720f0");
         chatRequest.setUserId(186L);
 
-        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
 
         chatRequest.setQuery("什么是电子商务？");
 
         chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
+        chatRequest.setQuery("今天天津的天气怎么样？");
 
         chatService.chat(chatRequest);
 

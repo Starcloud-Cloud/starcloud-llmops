@@ -10,6 +10,7 @@ import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourc
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Data
 @Accessors(chain = true)
-public class InteractiveInfo {
+public class InteractiveInfo implements Serializable {
 
     private static DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
@@ -33,14 +34,6 @@ public class InteractiveInfo {
     private String showType;
 
     private String tips;
-
-    private String title;
-
-    private String subTitle;
-
-    private String picUrl;
-
-    private String url;
 
     /**
      * 反馈状态，0 开始，1完成，3，失败？
@@ -86,34 +79,45 @@ public class InteractiveInfo {
     /**
      * url 卡片，前端获取URL内的内容取渲染
      *
-     * @param url
+     * @param tips
      * @return
      */
-    public static InteractiveInfo buildUrlCard(String url) {
+    public static InteractiveInfo buildUrlCard(String tips) {
         InteractiveInfo interactiveInfo = new InteractiveInfo();
 
         interactiveInfo.setShowType("url");
         interactiveInfo.setSuccess(true);
-        interactiveInfo.setUrl(url);
+        interactiveInfo.setTips(tips);
 
         return interactiveInfo;
     }
 
 
     /**
+     * 图片卡片渲染
+     *
+     * @return
+     */
+    public static InteractiveInfo buildImgCard(String tips) {
+        InteractiveInfo interactiveInfo = new InteractiveInfo();
+
+        interactiveInfo.setShowType("img");
+        interactiveInfo.setSuccess(true);
+        interactiveInfo.setTips(tips);
+
+        return interactiveInfo;
+    }
+
+    /**
      * 多字段+图片卡片渲染
      *
      * @return
      */
-    public static InteractiveInfo buildPicCard(String title, String subTitle, String picUrl, String url) {
+    public static InteractiveInfo buildPicCard(String tips) {
         InteractiveInfo interactiveInfo = new InteractiveInfo();
 
         interactiveInfo.setShowType("pic");
         interactiveInfo.setSuccess(true);
-        interactiveInfo.setTitle(title);
-        interactiveInfo.setSubTitle(subTitle);
-        interactiveInfo.setPicUrl(picUrl);
-        interactiveInfo.setUrl(url);
 
         return interactiveInfo;
     }
@@ -162,7 +166,7 @@ public class InteractiveInfo {
                 return recordDTO.getDocumentId().equals(String.valueOf(dataBasicInfoVO.getId()));
             }).findFirst().orElse(null);
 
-            DocInteractiveInfo docInteractiveInfo = new DocInteractiveInfo();
+            InteractiveDoc docInteractiveInfo = new InteractiveDoc();
 
             if (source != null) {
 
@@ -182,57 +186,6 @@ public class InteractiveInfo {
         }).collect(Collectors.toList()));
 
         return interactiveInfo;
-    }
-
-
-    @Data
-    public static class DocInteractiveInfo {
-
-        /**
-         * 数据ID
-         */
-        private Long id;
-
-        /**
-         * 相似度
-         */
-        private Double score;
-
-        /**
-         * 分段序号
-         */
-        private Integer position;
-
-        /**
-         * 数据集id
-         */
-        private String datasetId;
-
-
-        /**
-         * 显示名称
-         */
-        private String name;
-
-        /**
-         * 文档类型
-         */
-        private String type;
-
-
-        /**
-         * 文档URL
-         */
-        private String url;
-
-        /**
-         * 描述
-         */
-        private String desc;
-
-
-        private LocalDateTime updateTime;
-
     }
 
 }

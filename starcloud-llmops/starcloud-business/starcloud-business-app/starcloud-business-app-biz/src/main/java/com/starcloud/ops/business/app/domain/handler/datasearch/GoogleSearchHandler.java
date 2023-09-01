@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveData;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
 @Data
 @Slf4j
 @Component
-public class GoogleSearchHandler extends BaseToolHandler<GoogleSearchHandler.Request, GoogleSearchHandler.Response> {
+public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Request, SearchEngineHandler.Response> {
 
     private String userName = "互联网搜索";
 
@@ -42,49 +43,85 @@ public class GoogleSearchHandler extends BaseToolHandler<GoogleSearchHandler.Req
     private static SerpAPITool serpAPITool = new SerpAPITool();
 
     @Override
-    protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
+    protected HandlerResponse<SearchEngineHandler.Response> _execute(HandlerContext<SearchEngineHandler.Request> context) {
 
-        String query = context.getRequest().getQ();
+        return run(context);
+    }
+
+
+    public static HandlerResponse<SearchEngineHandler.Response> run(HandlerContext<SearchEngineHandler.Request> context) {
+
+        String query = context.getRequest().getQuery();
 
         SerpAPITool.Request request = new SerpAPITool.Request();
         request.setQ(query);
+        request.setGl(SerpAPITool.GL);
+        request.setHl(SerpAPITool.HL);
 
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildTips("联网查询[" + query + "]中...").setToolHandler(this).setInput(context.getRequest());
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildTips("联网查询[" + query + "]中...").setInput(context.getRequest());
 
         context.sendCallbackInteractiveStart(interactiveInfo);
 
-
         List<SerpAPITool.SearchInfoDetail> searchInfoDetails = serpAPITool.runGetInfo(request);
 
-        String content = serpAPITool.processResponseStr(searchInfoDetails);
+        //String content = serpAPITool.processResponseStr(searchInfoDetails);
 
-        HandlerResponse<Response> handlerResponse = new HandlerResponse();
+        HandlerResponse<SearchEngineHandler.Response> handlerResponse = new HandlerResponse();
 
         handlerResponse.setSuccess(true);
-        handlerResponse.setOutput(new Response(content));
 
-        handlerResponse.setExt(searchInfoDetails);
+        List<InteractiveData> dataList = processFilter(searchInfoDetails);
+
+        handlerResponse.setOutput(new SearchEngineHandler.Response(dataList));
 
 
-        interactiveInfo.setData(searchInfoDetails);
+        handlerResponse.setExt(dataList);
+
+        interactiveInfo.setData(dataList);
+
         interactiveInfo.setTips("查询完成");
+
         context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;
-    }
 
+    }
 
     /**
      * 包装为文档结构
      */
     @Override
-    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
+    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<SearchEngineHandler.Request> context, HandlerResponse<SearchEngineHandler.Response> handlerResponse) {
 
         //解析返回的内容 生成 MessageContentDocDTO
-        List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();
 
-        Request request = context.getRequest();
-        List<SerpAPITool.SearchInfoDetail> searchInfoDetails = (List<SerpAPITool.SearchInfoDetail>) handlerResponse.getExt();
+        List<InteractiveData> interactiveDataList = (List<InteractiveData>) handlerResponse.getExt();
+
+        return Optional.ofNullable(interactiveDataList).orElse(new ArrayList<>()).stream().map((interactiveData) -> {
+
+            MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();
+
+            messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
+            messageContentDocDTO.setTitle(interactiveData.getTitle());
+            messageContentDocDTO.setContent(interactiveData.getContent());
+            messageContentDocDTO.setUrl(interactiveData.getUrl());
+            messageContentDocDTO.setTime(interactiveData.getTime());
+
+            return messageContentDocDTO;
+
+        }).collect(Collectors.toList());
+    }
+
+
+    /**
+     * 过滤掉无用的
+     *
+     * @param searchInfoDetails
+     * @return
+     */
+    private static List<InteractiveData> processFilter(List<SerpAPITool.SearchInfoDetail> searchInfoDetails) {
+
+        List<InteractiveData> interactiveDataList = new ArrayList<>();
 
         Map<String, List<SerpAPITool.SearchInfoDetail>> maps = Optional.ofNullable(searchInfoDetails).orElse(new ArrayList<>()).stream().collect(Collectors.groupingBy(SerpAPITool.SearchInfoDetail::getType));
 
@@ -97,44 +134,31 @@ public class GoogleSearchHandler extends BaseToolHandler<GoogleSearchHandler.Req
 
                 SerpAPITool.SearchInfoDetail searchInfoDetail = entry.getValue().get(0);
                 if (searchInfoDetail != null) {
-                    MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();
 
-                    messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
-                    messageContentDocDTO.setUrl(searchInfoDetail.getLink());
-                    messageContentDocDTO.setTime(searchInfoDetail.getTime());
-                    messageContentDocDTO.setTitle(searchInfoDetail.getTitle());
-                    messageContentDocDTO.setContent(searchInfoDetail.getContent());
+                    InteractiveData interactiveData = new InteractiveData();
 
-                    //@todo 2Map
-                    messageContentDocDTO.setExt(searchInfoDetail);
+                    interactiveData.setTitle(searchInfoDetail.getTitle());
+                    interactiveData.setContent(searchInfoDetail.getContent());
+                    interactiveData.setUrl(searchInfoDetail.getLink());
+                    interactiveData.setTime(searchInfoDetail.getTime());
 
-                    messageContentDocDTOList.add(messageContentDocDTO);
+                    interactiveDataList.add(interactiveData);
                 }
             }
         }
 
-        return messageContentDocDTOList;
+        return interactiveDataList;
     }
 
-
-    @Data
-    public static class Request {
-
-        @JsonProperty(required = true)
-        @JsonPropertyDescription("Parameter defines the query you want to search.")
-        private String q;
-
-    }
-
-
-    @Data
-    public static class Response {
-
-        private String content;
-
-        public Response(String content) {
-            this.content = content;
-        }
-    }
+//
+//    @Data
+//    public static class Response {
+//
+//        private String content;
+//
+//        public Response(String content) {
+//            this.content = content;
+//        }
+//    }
 
 }

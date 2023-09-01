@@ -7,6 +7,9 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -61,7 +64,11 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
     private ChatRequestVO chatRequestVO;
 
+    @JsonIgnore
+    @JSONField(serialize = false)
     private ChatAppEntity chatAppEntity;
+
+    private ChatConfigEntity chatConfig;
 
     /**
      * 全量的历史表数据
