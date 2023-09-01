@@ -89,6 +89,8 @@ public class WecomChatServiceImpl implements WecomChatService {
             } catch (ServiceException e) {
                 if (USER_BENEFITS_USELESS_INSUFFICIENT.getCode().intValue() == e.getCode()) {
                     sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系群管理员添加。", reqVO.getReceivedName());
+                } else if (300900005 == e.getCode() || 300900006 == e.getCode()) {
+                    sendMsg(reqVO.getGroupRemark(), e.getMessage(), reqVO.getReceivedName());
                 } else {
                     log.error("execute error:", e);
                     sendMsg(reqVO.getGroupRemark(), "应用执行异常，请联系管理员", reqVO.getReceivedName());

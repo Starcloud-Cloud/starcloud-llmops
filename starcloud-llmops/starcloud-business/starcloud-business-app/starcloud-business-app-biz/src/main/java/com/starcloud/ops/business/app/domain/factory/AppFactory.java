@@ -137,7 +137,8 @@ public class AppFactory {
             return factory(chatRequest.getMediumUid());
         }
 
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
+        ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
+        return appEntity;
     }
 
     public static ChatAppEntity factory(String mediumUid) {
