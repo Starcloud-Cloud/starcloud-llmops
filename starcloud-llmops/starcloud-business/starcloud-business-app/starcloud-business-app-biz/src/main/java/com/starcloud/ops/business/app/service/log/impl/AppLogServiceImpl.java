@@ -53,6 +53,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsList
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import com.starcloud.ops.business.log.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.log.enums.LogQueryTypeEnum;
+import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
@@ -105,10 +106,10 @@ public class AppLogServiceImpl implements AppLogService {
     private AppMapper appMapper;
 
     @Resource
-    private AppPublishMapper appPublishMapper;
+    private AppMarketMapper appMarketMapper;
 
     @Resource
-    private AppMarketMapper appMarketMapper;
+    private AppPublishMapper appPublishMapper;
 
     /**
      * 日志元数据
@@ -224,31 +225,6 @@ public class AppLogServiceImpl implements AppLogService {
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
 
-    private String getMarketUidByApp(AppDO app) {
-        // 如果 publishUid 为空，说明此应用未发布成功到应用市场过，直接返回空数据
-        String publishUid = app.getPublishUid();
-        if (StringUtils.isBlank(publishUid)) {
-            return null;
-        }
-
-        // 查询发布信息并校验是否存在
-        String appPublishUid = AppUtils.obtainUid(publishUid);
-        AppPublishDO appPublish = appPublishMapper.get(appPublishUid, Boolean.TRUE);
-        AppValidate.notNull(appPublish, APP_PUBLISH_NOT_EXISTS_UID, appPublishUid);
-
-        // marketUid 为空，说明可能数据有问题，直接返回空数据
-        String marketUid = appPublish.getMarketUid();
-        if (StringUtils.isBlank(marketUid)) {
-            return null;
-        }
-
-        // 查询应用市场信息并校验是否存在
-        AppMarketDO appMarket = appMarketMapper.get(marketUid, Boolean.TRUE);
-        AppValidate.notNull(appMarket, APP_MARKET_NO_EXISTS_UID, marketUid);
-
-        return appMarket.getUid();
-    }
-
     /**
      * 获取应用执行日志消息统计数据
      *
@@ -264,6 +240,36 @@ public class AppLogServiceImpl implements AppLogService {
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.listLogMessageStatistics(query);
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
+    }
+
+    /**
+     * 根据应用市场 UID 分页查询应用执行日志会话数据 <br>
+     *
+     * @param query 查询条件
+     * @return 应用市场执行日志会话数据
+     */
+    @Override
+    public PageResult<LogAppConversationInfoRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query) {
+        AppValidate.notBlank(query.getMarketUid(), new ErrorCode(3000001, "应用市场 UID 不能为空"));
+        if (StringUtils.isNotBlank(query.getFromScene())) {
+            if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene()) && !AppSceneEnum.OPTIMIZE_PROMPT.name().equals(query.getFromScene())) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "不支持的场景"));
+            }
+        }
+        AppMarketDO appMarket = appMarketMapper.get(query.getMarketUid(), Boolean.TRUE);
+        AppValidate.notNull(appMarket, APP_MARKET_NO_EXISTS_UID, query.getMarketUid());
+
+        // 时间类型默认值
+        query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
+        query.setStatus(LogStatusEnum.SUCCESS.name());
+        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversationByAppUid(query);
+        PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
+        List<LogAppConversationInfoRespVO> list = result.getList();
+        List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
+                .peek(item -> item.setAppExecutor(UserUtils.identify(item.getCreator(), item.getEndUser())))
+                .collect(Collectors.toList());
+        result.setList(collect);
+        return result;
     }
 
     /**
@@ -451,6 +457,37 @@ public class AppLogServiceImpl implements AppLogService {
         }
 
         return imageLogMessageResponse;
+    }
+
+    /**
+     * 根据应用信息获取应用市场 UID
+     *
+     * @param app 应用信息
+     * @return 应用市场UID
+     */
+    private String getMarketUidByApp(AppDO app) {
+        // 如果 publishUid 为空，说明此应用未发布成功到应用市场过，直接返回空数据
+        String publishUid = app.getPublishUid();
+        if (StringUtils.isBlank(publishUid)) {
+            return null;
+        }
+
+        // 查询发布信息并校验是否存在
+        String appPublishUid = AppUtils.obtainUid(publishUid);
+        AppPublishDO appPublish = appPublishMapper.get(appPublishUid, Boolean.TRUE);
+        AppValidate.notNull(appPublish, APP_PUBLISH_NOT_EXISTS_UID, appPublishUid);
+
+        // marketUid 为空，说明可能数据有问题，直接返回空数据
+        String marketUid = appPublish.getMarketUid();
+        if (StringUtils.isBlank(marketUid)) {
+            return null;
+        }
+
+        // 查询应用市场信息并校验是否存在
+        AppMarketDO appMarket = appMarketMapper.get(marketUid, Boolean.TRUE);
+        AppValidate.notNull(appMarket, APP_MARKET_NO_EXISTS_UID, marketUid);
+
+        return appMarket.getUid();
     }
 
     /**

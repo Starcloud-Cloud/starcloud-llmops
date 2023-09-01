@@ -21,16 +21,15 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @NoArgsConstructor
-@Schema(name = "LogAppConversationInfoPageReqVO", description = "应用会话日志分页查询请求 VO")
+@Schema(name = "LogAppConversationInfoPageAppUidReqVO", description = "应用会话日志分页查询请求 VO")
 public class LogAppConversationInfoPageAppUidReqVO extends PageParam {
 
-    private static final long serialVersionUID = 2685988088823625402L;
+    private static final long serialVersionUID = -8014401115048627071L;
 
     /**
      * 应用 UID
      */
     @Schema(description = "应用 UID")
-    @NotBlank(message = "应用 UID 不能为空")
     private String appUid;
 
     /**
