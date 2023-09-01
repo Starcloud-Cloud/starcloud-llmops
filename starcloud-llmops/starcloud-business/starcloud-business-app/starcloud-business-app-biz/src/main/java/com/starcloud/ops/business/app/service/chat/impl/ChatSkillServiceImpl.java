@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.domain.handler.datasearch.DocSearchHandler;
 import com.starcloud.ops.business.app.domain.handler.datasearch.GoogleSearchHandler;
 import com.starcloud.ops.business.app.domain.handler.datasearch.NewsSearchHandler;
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
@@ -73,8 +74,10 @@ public class ChatSkillServiceImpl implements ChatSkillService {
     protected List<ChatSkillVO> listSystemSkill() {
 
         List<ChatSkillVO> skillVOS = new ArrayList<ChatSkillVO>() {{
+            add(ChatSkillVO.buildFromHandler(new DocSearchHandler()));
             add(ChatSkillVO.buildFromHandler(new GoogleSearchHandler()));
             add(ChatSkillVO.buildFromHandler(new NewsSearchHandler()));
+            add(ChatSkillVO.buildFromHandler(new WebSearch2DocHandler()));
         }};
 
         return skillVOS;

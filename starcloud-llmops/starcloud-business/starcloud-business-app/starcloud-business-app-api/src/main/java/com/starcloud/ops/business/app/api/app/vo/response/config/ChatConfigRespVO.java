@@ -70,4 +70,9 @@ public class ChatConfigRespVO extends BaseConfigRespVO {
     @Schema(description = "挂载的 functions 列表")
     private List<LLMFunctionRespVO> functions;
 
+    /**
+     * 技能配置
+     */
+    private String appConfigId;
+
 }
