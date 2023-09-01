@@ -37,7 +37,7 @@ public class ChatSkillController {
 
     @Operation(summary = "默认技能列表")
     @GetMapping("/list")
-    public CommonResult<List<ChatSkillVO>> list(@RequestParam(value = "appUid") String appUid) {
+    public CommonResult<List<ChatSkillVO>> list() {
 
         List<ChatSkillVO> chatSkillVOS = chatSkillService.listSkill();
 

@@ -129,10 +129,4 @@ public class AppPublishLatestRespVO implements Serializable {
     @Schema(description = "发布渠道")
     private Map<Integer, List<AppPublishChannelRespVO>> channelMap;
 
-    /**
-     * 应用发布限流信息
-     */
-    @Schema(description = "应用发布限流信息")
-    private AppPublishLimitRespVO limit;
-
 }

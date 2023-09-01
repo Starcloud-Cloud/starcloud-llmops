@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.app.api.limit.vo.request;
 
-import com.starcloud.ops.business.app.api.limit.dto.BaseLimitConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
@@ -48,18 +48,21 @@ public class AppPublishLimitReqVO implements Serializable {
      * 频率限制配置
      */
     @Schema(description = "频率限制配置")
-    private BaseLimitConfigDTO rateConfig;
+    @Valid
+    private AppLimitConfigReqVO rateConfig;
 
     /**
      * 用户用量限制配置
      */
     @Schema(description = "用户使用频率限流配置")
-    private BaseLimitConfigDTO userRateConfig;
+    @Valid
+    private AppLimitConfigReqVO userRateConfig;
 
     /**
      * 广告位限制配置
      */
     @Schema(description = "广告位限制配置")
-    private BaseLimitConfigDTO advertisingConfig;
+    @Valid
+    private AppLimitConfigReqVO advertisingConfig;
 
 }

@@ -17,10 +17,22 @@ import java.io.Serializable;
 @ToString
 @NoArgsConstructor
 @EqualsAndHashCode
-@Schema(name = "BaseLimitConfigDTO", description = "限流配置基础DTO")
-public class BaseLimitConfigDTO implements Serializable {
+@Schema(name = "LimitConfigDTO", description = "限流详细配置DTO")
+public class AppLimitConfigDTO implements Serializable {
 
-    private static final long serialVersionUID = 5429362672093413179L;
+    private static final long serialVersionUID = 4978714304963662944L;
+
+    /**
+     * 限流配置 code
+     */
+    @Schema(description = "限流类型")
+    private String code;
+
+    /**
+     * 限流依据: APP: 应用级别限流，USER： 用户级别限流，TEAM： 团队级别限流
+     */
+    @Schema(description = "限流依据: APP: 应用级别限流，USER： 用户级别限流，TEAM： 团队级别限流")
+    private String limitBy;
 
     /**
      * 是否启用
@@ -35,10 +47,10 @@ public class BaseLimitConfigDTO implements Serializable {
     private Integer limit;
 
     /**
-     * 限流时间
+     * 限流时间间隔
      */
-    @Schema(description = "限流超时时间")
-    private Long timeout;
+    @Schema(description = "限流时间间隔")
+    private Long timeInterval;
 
     /**
      * 限流时间单位

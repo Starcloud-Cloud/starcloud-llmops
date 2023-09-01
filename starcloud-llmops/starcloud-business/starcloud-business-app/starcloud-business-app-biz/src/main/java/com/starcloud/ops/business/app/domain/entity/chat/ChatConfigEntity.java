@@ -1,17 +1,27 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
-import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
+import cn.hutool.extra.spring.SpringUtil;
+import com.starcloud.ops.business.app.api.chat.config.dto.SystemHandlerSkillDTO;
+import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
+import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.*;
 import com.starcloud.ops.business.app.domain.entity.skill.*;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.config.ChatExpandConfigEnum;
+import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 聊天应用配置实体
@@ -28,11 +38,38 @@ public class ChatConfigEntity extends BaseConfigEntity {
     @Override
     public void init() {
 
-        Optional.ofNullable(this.getHandlerSkills()).orElse(new ArrayList<>()).stream().forEach(handlerSkill -> {
-            if (handlerSkill.getHandler() == null) {
-                handlerSkill.setHandler(BaseToolHandler.of(handlerSkill.getSkillName()));
-            }
-        });
+        if (StringUtils.isBlank(appConfigId)) {
+            return;
+        }
+
+        ChatExpandConfigService bean = SpringUtil.getBean(ChatExpandConfigService.class);
+        Map<Integer, List<ChatExpandConfigRespVO>> config = bean.getConfig(appConfigId);
+
+        List<ChatExpandConfigRespVO> handlerConfig = config.get(ChatExpandConfigEnum.SYSTEM_HANDLER.getCode());
+
+        this.handlerSkills = Optional.ofNullable(handlerConfig).orElse(new ArrayList<>()).stream()
+                .filter(chatExpandConfigRespVO -> !chatExpandConfigRespVO.getDisabled() && chatExpandConfigRespVO.getSystemHandlerSkillDTO() != null)
+                .map(chatExpandConfigRespVO -> {
+                    HandlerSkill handlerSkill = ChatConfigConvert.INSTANCE.convert(chatExpandConfigRespVO.getSystemHandlerSkillDTO());
+                    BaseToolHandler toolHandler = BaseToolHandler.of(chatExpandConfigRespVO.getSystemHandlerSkillDTO().getCode());
+                    handlerSkill.setHandler(toolHandler);
+                    handlerSkill.setEnabled(toolHandler != null);
+                    return handlerSkill;
+
+                }).collect(Collectors.toList());
+
+
+        List<ChatExpandConfigRespVO> appWorkflow = config.get(ChatExpandConfigEnum.APP_WORKFLOW.getCode());
+        this.appWorkflowSkills = Optional.ofNullable(appWorkflow).orElse(new ArrayList<>()).stream()
+                .filter(chatExpandConfigRespVO -> !chatExpandConfigRespVO.getDisabled() && chatExpandConfigRespVO.getAppWorkflowSkillDTO() != null)
+                .map(chatExpandConfigRespVO -> {
+                    AppWorkflowSkill appWorkflowSkill = ChatConfigConvert.INSTANCE.convert(chatExpandConfigRespVO.getAppWorkflowSkillDTO());
+                    AppEntity appEntity = AppFactory.factoryApp(appWorkflowSkill.getSkillAppUid());
+                    appWorkflowSkill.setApp(appEntity);
+                    appWorkflowSkill.setEnabled(appEntity != null);
+                    return appWorkflowSkill;
+                }).collect(Collectors.toList());
+
     }
 
 
@@ -77,6 +114,11 @@ public class ChatConfigEntity extends BaseConfigEntity {
      * 挂载的 应用技能列表
      */
     private List<AppWorkflowSkill> appWorkflowSkills;
+
+    /**
+     * 技能配置
+     */
+    private String appConfigId;
 
 
     /**

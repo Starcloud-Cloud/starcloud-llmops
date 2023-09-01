@@ -93,4 +93,9 @@ public class ChatConfigReqVO extends BaseConfigReqVO {
     @Schema(description = "AI应用技能")
     private List<AppWorkflowSkillVO> appWorkflowSkills;
 
+    /**
+     * 技能配置
+     */
+    private String appConfigId;
+
 }

@@ -24,7 +24,6 @@ import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigFactory;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
-import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.extern.slf4j.Slf4j;
@@ -59,9 +58,6 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
 
     @Resource
     private AppPublishChannelMapper appPublishChannelMapper;
-
-    @Resource
-    private AppPublishLimitService appPublishLimitService;
 
     @Resource
     private AppPublishChannelConfigFactory appPublishChannelConfigFactory;

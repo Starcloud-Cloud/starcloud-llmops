@@ -1,11 +1,11 @@
 package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
-import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
+import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 
@@ -32,6 +32,7 @@ public class RecommendVariableItemFactory {
         variableItem.setLabel(MessageUtil.getMessage("OPEN_AI_MAX_TOKENS_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_MAX_TOKENS_DESCRIPTION"));
         variableItem.setDefaultValue(1000);
+        variableItem.setValue(1000);
         variableItem.setOrder(1);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
@@ -53,6 +54,7 @@ public class RecommendVariableItemFactory {
         variableItem.setLabel(MessageUtil.getMessage("OPEN_AI_TEMPERATURE_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_TEMPERATURE_DESCRIPTION"));
         variableItem.setDefaultValue(0.7);
+        variableItem.setValue(0.7);
         variableItem.setOrder(2);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
@@ -74,6 +76,7 @@ public class RecommendVariableItemFactory {
         variableItem.setLabel(MessageUtil.getMessage("OPEN_AI_N_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_N_DESCRIPTION"));
         variableItem.setDefaultValue(1);
+        variableItem.setValue(1);
         variableItem.setOrder(3);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
@@ -115,6 +118,7 @@ public class RecommendVariableItemFactory {
         variableItem.setLabel(MessageUtil.getMessage("OPEN_AI_PROMPT_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_PROMPT_DESCRIPTION"));
         variableItem.setDefaultValue(defaultPrompt);
+        variableItem.setValue(defaultPrompt);
         variableItem.setOrder(4);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());

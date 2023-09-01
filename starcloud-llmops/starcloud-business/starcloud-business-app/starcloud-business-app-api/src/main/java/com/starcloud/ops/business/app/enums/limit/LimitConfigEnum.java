@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.enums.limit;
 
-import com.starcloud.ops.business.app.api.limit.dto.LimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
@@ -17,26 +17,26 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
      */
     RATE(1, "默认使用频率限流配置") {
         @Override
-        public LimitConfigDTO getDefaultConfig() {
-            LimitConfigDTO config = new LimitConfigDTO();
+        public AppLimitConfigDTO getDefaultConfig() {
+            AppLimitConfigDTO config = new AppLimitConfigDTO();
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(LimitByEnum.APP.name());
             config.setLimit(60);
-            config.setTimeout(60L);
+            config.setTimeInterval(60L);
             config.setTimeUnit("SECONDS");
             config.setMessage("当前访问用户过多，请稍后再试！");
             return config;
         }
 
         @Override
-        public LimitConfigDTO getDefaultSystemConfig() {
-            LimitConfigDTO config = new LimitConfigDTO();
+        public AppLimitConfigDTO getDefaultSystemConfig() {
+            AppLimitConfigDTO config = new AppLimitConfigDTO();
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(LimitByEnum.APP.name());
             config.setLimit(60);
-            config.setTimeout(60L);
+            config.setTimeInterval(60L);
             config.setTimeUnit("SECONDS");
             config.setMessage("当前访问用户过多，请稍后再试！");
             return config;
@@ -48,26 +48,26 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
      */
     USER_RATE(2, "默认用户使用频率限流配置") {
         @Override
-        public LimitConfigDTO getDefaultConfig() {
-            LimitConfigDTO config = new LimitConfigDTO();
+        public AppLimitConfigDTO getDefaultConfig() {
+            AppLimitConfigDTO config = new AppLimitConfigDTO();
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(LimitByEnum.USER.name());
             config.setLimit(20);
-            config.setTimeout(60L);
+            config.setTimeInterval(60L);
             config.setTimeUnit("SECONDS");
             config.setMessage("抱歉，您已经达到最大访问上限！");
             return config;
         }
 
         @Override
-        public LimitConfigDTO getDefaultSystemConfig() {
-            LimitConfigDTO config = new LimitConfigDTO();
+        public AppLimitConfigDTO getDefaultSystemConfig() {
+            AppLimitConfigDTO config = new AppLimitConfigDTO();
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(LimitByEnum.USER.name());
             config.setLimit(20);
-            config.setTimeout(60L);
+            config.setTimeInterval(60L);
             config.setTimeUnit("SECONDS");
             config.setMessage("抱歉，您已经达到最大访问上限！");
             return config;
@@ -79,27 +79,27 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
      */
     ADVERTISING(3, "默认广告限流配置") {
         @Override
-        public LimitConfigDTO getDefaultConfig() {
-            LimitConfigDTO config = new LimitConfigDTO();
+        public AppLimitConfigDTO getDefaultConfig() {
+            AppLimitConfigDTO config = new AppLimitConfigDTO();
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(LimitByEnum.ADVERTISING.name());
-            config.setLimit(5);
-            config.setTimeout(60L);
-            config.setTimeUnit("SECONDS");
+            config.setLimit(2);
+            config.setTimeInterval(60L);
+            config.setTimeUnit("MINUTES");
             config.setMessage("基于AI技术，智能推荐，智能对话，为您推荐更多优质内容！");
             return config;
         }
 
         @Override
-        public LimitConfigDTO getDefaultSystemConfig() {
-            LimitConfigDTO config = new LimitConfigDTO();
+        public AppLimitConfigDTO getDefaultSystemConfig() {
+            AppLimitConfigDTO config = new AppLimitConfigDTO();
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(LimitByEnum.ADVERTISING.name());
-            config.setLimit(5);
-            config.setTimeout(60L);
-            config.setTimeUnit("SECONDS");
+            config.setLimit(2);
+            config.setTimeInterval(60L);
+            config.setTimeUnit("MINUTES");
             config.setMessage("基于AI技术，智能推荐，智能对话，为您推荐更多优质内容！");
             return config;
         }
@@ -111,14 +111,14 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
      *
      * @return 默认限流配置
      */
-    public abstract LimitConfigDTO getDefaultConfig();
+    public abstract AppLimitConfigDTO getDefaultConfig();
 
     /**
      * 获取系统默认限流配置，最后的兜底
      *
      * @return 默认限流配置
      */
-    public abstract LimitConfigDTO getDefaultSystemConfig();
+    public abstract AppLimitConfigDTO getDefaultSystemConfig();
 
     /**
      * 配置编码
