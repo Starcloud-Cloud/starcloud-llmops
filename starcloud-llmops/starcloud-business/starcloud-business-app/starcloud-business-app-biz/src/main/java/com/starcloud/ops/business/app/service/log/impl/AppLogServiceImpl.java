@@ -64,6 +64,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -249,7 +250,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用市场执行日志会话数据
      */
     @Override
-    public PageResult<LogAppConversationInfoRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query) {
+    public PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query) {
         AppValidate.notBlank(query.getMarketUid(), new ErrorCode(3000001, "应用市场 UID 不能为空"));
         if (StringUtils.isNotBlank(query.getFromScene())) {
             if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene()) && !AppSceneEnum.OPTIMIZE_PROMPT.name().equals(query.getFromScene())) {
@@ -263,13 +264,32 @@ public class AppLogServiceImpl implements AppLogService {
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         query.setStatus(LogStatusEnum.SUCCESS.name());
         PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversationByAppUid(query);
-        PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
-        List<LogAppConversationInfoRespVO> list = result.getList();
-        List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
-                .peek(item -> item.setAppExecutor(UserUtils.identify(item.getCreator(), item.getEndUser())))
-                .collect(Collectors.toList());
-        result.setList(collect);
-        return result;
+        if (pageResult.getTotal() == 0) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+
+        List<String> conversationUidList = CollectionUtil.emptyIfNull(pageResult.getList()).stream().map(LogAppConversationInfoPO::getUid).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(conversationUidList)) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
+        wrapper.in(LogAppMessageDO::getAppConversationUid, conversationUidList);
+        wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
+
+        List<LogAppMessageDO> messageList = logAppMessageMapper.selectList(wrapper);
+        if (CollectionUtil.isEmpty(messageList)) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+
+        Map<String, List<LogAppMessageDO>> listMap = messageList.stream().collect(Collectors.groupingBy(LogAppMessageDO::getAppConversationUid));
+        List<AppLogMessageRespVO> list = new ArrayList<>();
+
+        listMap.forEach((key, value) -> {
+            if (CollectionUtil.isNotEmpty(value)) {
+                list.add(transformAppLogMessage(value.get(0), appMarket.getName()));
+            }
+        });
+        return new PageResult<>(list, pageResult.getTotal());
     }
 
     /**
@@ -516,6 +536,37 @@ public class AppLogServiceImpl implements AppLogService {
         appLogMessageResponse.setConversationUid(message.getAppConversationUid());
         appLogMessageResponse.setAppUid(message.getAppUid());
         appLogMessageResponse.setAppName(conversation.getAppName());
+        appLogMessageResponse.setAppMode(message.getAppMode());
+        appLogMessageResponse.setFromScene(message.getFromScene());
+        appLogMessageResponse.setMessage(message.getMessage());
+        appLogMessageResponse.setAnswer(message.getAnswer());
+        appLogMessageResponse.setElapsed(message.getElapsed());
+        appLogMessageResponse.setStatus(message.getStatus());
+        appLogMessageResponse.setTokens(message.getMessageTokens() + message.getAnswerTokens());
+        appLogMessageResponse.setPrice(message.getTotalPrice());
+        appLogMessageResponse.setCurrency(message.getCurrency());
+        appLogMessageResponse.setAppExecutor(UserUtils.identify(message.getCreator(), message.getEndUser()));
+        appLogMessageResponse.setErrorCode(message.getErrorCode());
+        appLogMessageResponse.setErrorMessage(message.getErrorMsg());
+        appLogMessageResponse.setCreateTime(message.getCreateTime());
+        appLogMessageResponse.setAppInfo(buildAppResponse(message));
+        appLogMessageResponse.setMsgType(message.getMsgType());
+        return appLogMessageResponse;
+    }
+
+    /**
+     * 转换应用执行消息
+     *
+     * @param message 消息
+     * @param appName 应用名称
+     * @return AppLogMessageRespVO
+     */
+    private AppLogMessageRespVO transformAppLogMessage(LogAppMessageDO message, String appName) {
+        AppLogMessageRespVO appLogMessageResponse = new AppLogMessageRespVO();
+        appLogMessageResponse.setUid(message.getUid());
+        appLogMessageResponse.setConversationUid(message.getAppConversationUid());
+        appLogMessageResponse.setAppUid(message.getAppUid());
+        appLogMessageResponse.setAppName(appName);
         appLogMessageResponse.setAppMode(message.getAppMode());
         appLogMessageResponse.setFromScene(message.getFromScene());
         appLogMessageResponse.setMessage(message.getMessage());
