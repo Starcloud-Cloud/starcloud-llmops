@@ -8,6 +8,7 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.share.controller.app.vo.ChatDetailReqVO;
 import com.starcloud.ops.business.share.service.ChatShareService;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class ChatShareServiceImpl implements ChatShareService {
         if (StringUtils.isBlank(chatRequestVO.getMediumUid())) {
             throw ServiceExceptionUtil.exception(new ErrorCode(600001, "Please use the latest sharing link"));
         }
-        ChatAppEntity chatAppEntity = AppFactory.factory(chatRequestVO.getMediumUid());
+        ChatAppEntity chatAppEntity = AppFactory.factory(chatRequestVO);
         TenantContextHolder.setTenantId(chatAppEntity.getTenantId());
         chatAppEntity.asyncExecute(chatRequestVO);
     }

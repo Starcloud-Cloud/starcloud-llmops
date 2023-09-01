@@ -97,4 +97,12 @@ public class AppLogController {
         return success(appLogService.pageLogConversationByAppUid(query));
     }
 
+    @PostMapping("/infoPageByMarketUid")
+    @DataPermission(enable = false)
+    @Operation(summary = "根据应用市场 UID 获得应用执行日志信息分页")
+    @ApiOperationSupport(order = 7, author = "nacoyer")
+    public CommonResult<PageResult<LogAppConversationInfoRespVO>> infoPageByMarketUid(@Valid @RequestBody LogAppConversationInfoPageAppUidReqVO query) {
+        return success(appLogService.pageLogConversationByMarketUid(query));
+    }
+
 }

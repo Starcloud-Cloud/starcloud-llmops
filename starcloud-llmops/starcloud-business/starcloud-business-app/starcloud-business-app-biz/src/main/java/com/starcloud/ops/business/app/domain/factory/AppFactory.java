@@ -117,13 +117,26 @@ public class AppFactory {
      * @return ChatAppEntity
      */
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
-        String scene = chatRequest.getScene();
 
         if (AppSceneEnum.CHAT_MARKET.name().equalsIgnoreCase(chatRequest.getScene())) {
+            appLimitService.marketLimit(AppLimitRequest.of(chatRequest.getAppUid(), chatRequest.getScene()), chatRequest.getSseEmitter());
             AppMarketEntity appMarketEntity = AppFactory.factoryMarket(chatRequest.getAppUid());
             return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
         }
-        String appId = chatRequest.getAppUid();
+
+        if (AppSceneEnum.CHAT_TEST.name().equalsIgnoreCase(chatRequest.getScene())) {
+            String appId = chatRequest.getAppUid();
+            appLimitService.appLimit(AppLimitRequest.of(appId, chatRequest.getScene()), chatRequest.getSseEmitter());
+            ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
+            return appEntity;
+        }
+
+        if (StringUtils.isNotBlank(chatRequest.getMediumUid())) {
+            String mediumId = chatRequest.getMediumUid();
+            appLimitService.channelLimit(AppLimitRequest.of(mediumId, chatRequest.getScene(), chatRequest.getEndUser()), chatRequest.getSseEmitter());
+            return factory(chatRequest.getMediumUid());
+        }
+
         ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
         return appEntity;
     }
@@ -150,6 +163,8 @@ public class AppFactory {
             imageAppEntity.setType(AppTypeEnum.MYSELF.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());
             imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
+            // 限流逻辑
+            appLimitService.appLimit(AppLimitRequest.of(imageAppEntity.getUid(), request.getScene()));
             return imageAppEntity;
         }
         ImageAppEntity imageAppEntity = factoryImageApp(appUid);

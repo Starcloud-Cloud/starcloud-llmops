@@ -264,7 +264,7 @@ public class AppLimitServiceImpl implements AppLimitService {
         } catch (ServiceException exception) {
             // 广告情况
             if (300900006 == exception.getCode()) {
-                String adsMessage = "&adsMessageStar&" + exception.getMessage() + "&adsMessageEnd&";
+                String adsMessage = "[ADS_MESSAGE_STAR]" + exception.getMessage() + "[ADS_MESSAGE_DONE]";
                 StreamingSseCallBackHandler callBackHandler = new StreamingSseCallBackHandler(emitter);
                 callBackHandler.onLLMNewToken(adsMessage);
                 return;

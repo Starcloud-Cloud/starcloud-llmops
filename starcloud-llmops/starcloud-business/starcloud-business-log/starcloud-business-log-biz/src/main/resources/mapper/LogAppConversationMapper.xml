@@ -81,12 +81,15 @@
         LEFT JOIN llm_log_app_message_feedbacks fb ON (fb.app_message_uid = msg.uid)
         <where>
             <choose>
-                <when test="query.marketUid != null and query.marketUid != '' ">
+                <when test="query.appUid != null and query.appUid != '' and query.marketUid != null and query.marketUid != '' ">
                     AND co.app_uid IN (#{query.appUid}, #{query.marketUid})
                 </when>
-                <otherwise>
+                <when test="query.appUid != null and query.appUid != ''">
                     AND co.app_uid = #{query.appUid}
-                </otherwise>
+                </when>
+                <when test="query.marketUid != null and query.marketUid != ''">
+                    AND co.app_uid = #{query.marketUid}
+                </when>
             </choose>
 
             <if test="query.fromScene != null and query.fromScene != '' ">

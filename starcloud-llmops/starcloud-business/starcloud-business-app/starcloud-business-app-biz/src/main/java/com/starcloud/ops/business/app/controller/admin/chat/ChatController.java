@@ -8,6 +8,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationResp
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,7 @@ public class ChatController {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
 
-        SseEmitter emitter = new SseEmitter(60000L);
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "chat");
         request.setSseEmitter(emitter);
         chatService.chat(request);
         return emitter;

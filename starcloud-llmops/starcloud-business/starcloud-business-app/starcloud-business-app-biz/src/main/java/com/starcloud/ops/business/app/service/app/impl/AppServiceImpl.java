@@ -226,7 +226,13 @@ public class AppServiceImpl implements AppService {
     @Override
     @SuppressWarnings("all")
     public void asyncExecute(AppExecuteReqVO request) {
-        BaseAppEntity app = AppFactory.factory(request);
-        app.asyncExecute(request);
+        try {
+            BaseAppEntity app = AppFactory.factory(request);
+            app.asyncExecute(request);
+        } catch (Exception exception) {
+            if (request.getSseEmitter() != null) {
+                request.getSseEmitter().completeWithError(exception);
+            }
+        }
     }
 }

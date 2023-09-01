@@ -9,6 +9,7 @@ import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.share.service.AppShareService;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
 import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
+import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -81,7 +82,7 @@ public class AppShareController {
         executeRequest.setEndUser(endUserId);
 
         // 设置 SSE
-        SseEmitter emitter = new SseEmitter(60000L);
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "share app");
         executeRequest.setSseEmitter(emitter);
 
         // 执行应用

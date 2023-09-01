@@ -69,6 +69,14 @@ public interface AppLogService {
     List<LogAppMessageStatisticsListVO> listLogMessageStatistics(LogAppMessageStatisticsListReqVO query);
 
     /**
+     * 根据应用市场 UID 分页查询应用执行日志会话数据 <br>
+     *
+     * @param query 查询条件
+     * @return 应用市场执行日志会话数据
+     */
+    PageResult<LogAppConversationInfoRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query);
+
+    /**
      * 根据 应用 UID 分页查询应用执行日志会话数据 <br>
      * 1. 应用分析 <br>
      * 2. 聊天分析 <br>
