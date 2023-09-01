@@ -52,7 +52,7 @@ public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Reque
 
         String query = context.getRequest().getQuery();
 
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("查询新闻中[" + query + "]...").setInput(context.getRequest());
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("搜索新闻中[" + query + "]...").setInput(context.getRequest());
         context.sendCallbackInteractiveStart(interactiveInfo);
 
         SerpAPITool.Request request = new SerpAPITool.Request();

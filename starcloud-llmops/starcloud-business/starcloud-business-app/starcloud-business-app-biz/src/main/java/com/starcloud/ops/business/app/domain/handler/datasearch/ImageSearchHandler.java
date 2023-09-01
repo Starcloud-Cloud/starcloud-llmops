@@ -57,7 +57,7 @@ public class ImageSearchHandler extends BaseToolHandler<SearchEngineHandler.Requ
         request.setGl(SerpAPITool.GL);
         request.setHl(SerpAPITool.HL);
 
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildImgCard("查询图片中[" + query + "]...").setInput(context.getRequest());
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildImgCard("搜索图片中[" + query + "]...").setInput(context.getRequest());
 
         context.sendCallbackInteractiveStart(interactiveInfo);
 

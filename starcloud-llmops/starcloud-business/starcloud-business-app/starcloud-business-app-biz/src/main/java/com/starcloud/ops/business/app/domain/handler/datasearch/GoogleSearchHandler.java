@@ -58,7 +58,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
         request.setGl(SerpAPITool.GL);
         request.setHl(SerpAPITool.HL);
 
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildTips("联网查询[" + query + "]中...").setInput(context.getRequest());
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("联网搜索中[" + query + "]...").setInput(context.getRequest());
 
         context.sendCallbackInteractiveStart(interactiveInfo);
 
