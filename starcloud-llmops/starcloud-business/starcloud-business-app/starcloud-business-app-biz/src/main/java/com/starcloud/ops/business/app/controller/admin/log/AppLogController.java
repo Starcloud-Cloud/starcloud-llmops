@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
@@ -101,7 +102,7 @@ public class AppLogController {
     @DataPermission(enable = false)
     @Operation(summary = "根据应用市场 UID 获得应用执行日志信息分页")
     @ApiOperationSupport(order = 7, author = "nacoyer")
-    public CommonResult<PageResult<LogAppConversationInfoRespVO>> infoPageByMarketUid(@Valid @RequestBody LogAppConversationInfoPageAppUidReqVO query) {
+    public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@Valid @RequestBody LogAppConversationInfoPageAppUidReqVO query) {
         return success(appLogService.pageLogConversationByMarketUid(query));
     }
 

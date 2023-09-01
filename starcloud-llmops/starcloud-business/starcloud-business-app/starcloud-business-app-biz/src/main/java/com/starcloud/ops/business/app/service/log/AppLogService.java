@@ -74,7 +74,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 应用市场执行日志会话数据
      */
-    PageResult<LogAppConversationInfoRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query);
+    PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query);
 
     /**
      * 根据 应用 UID 分页查询应用执行日志会话数据 <br>
