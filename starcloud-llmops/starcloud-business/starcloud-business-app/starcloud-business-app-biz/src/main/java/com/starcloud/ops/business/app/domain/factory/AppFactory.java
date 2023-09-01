@@ -147,6 +147,8 @@ public class AppFactory {
             imageAppEntity.setType(AppTypeEnum.MYSELF.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());
             imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
+            // 限流逻辑
+            appLimitService.appLimit(AppLimitRequest.of(imageAppEntity.getUid(), request.getScene()));
             return imageAppEntity;
         }
         ImageAppEntity imageAppEntity = factoryImageApp(appUid);

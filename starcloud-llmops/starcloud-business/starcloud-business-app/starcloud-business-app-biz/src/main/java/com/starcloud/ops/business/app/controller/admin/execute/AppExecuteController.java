@@ -4,9 +4,11 @@ import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @RestController
 @RequestMapping("/llm/app/execute")
-@Tag(name = "星河云海-应用执行")
+@Tag(name = "星河云海-应用执行", description = "星河云海应用执行, 应用和应用市场执行")
 public class AppExecuteController {
 
     @Resource
@@ -38,7 +40,8 @@ public class AppExecuteController {
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
         // 设置 SSE
-        SseEmitter emitter = new SseEmitter(60000L);
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "app");
+
         executeRequest.setSseEmitter(emitter);
         // WEB_ADMIN 场景
         executeRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
@@ -47,14 +50,14 @@ public class AppExecuteController {
         return emitter;
     }
 
-    @PostMapping("/market")
+    @PostMapping(value = "/market", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     @Operation(summary = "执行应用市场")
     public SseEmitter executeMarket(@RequestBody AppExecuteReqVO executeRequest, HttpServletResponse httpServletResponse) {
         // 设置响应头
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
         // 设置 SSE
-        SseEmitter emitter = new SseEmitter(60000L);
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "market");
         executeRequest.setSseEmitter(emitter);
         // WEB_MARKET 场景, 应用市场专用
         if (StringUtils.isBlank(executeRequest.getScene())) {
