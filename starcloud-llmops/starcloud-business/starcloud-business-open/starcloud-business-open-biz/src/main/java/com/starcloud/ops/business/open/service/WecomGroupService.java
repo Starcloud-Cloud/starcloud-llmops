@@ -11,13 +11,6 @@ import java.util.List;
 @Service
 public interface WecomGroupService {
     /**
-     * 新建群聊
-     * @param reqVO
-     * @return
-     */
-    void initGroup(WecomCreateGroupReqVO reqVO);
-
-    /**
      * 查询所有群聊
      * @param appUid
      */
