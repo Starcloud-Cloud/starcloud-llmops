@@ -117,15 +117,27 @@ public class AppFactory {
      * @return ChatAppEntity
      */
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
-        String scene = chatRequest.getScene();
 
         if (AppSceneEnum.CHAT_MARKET.name().equalsIgnoreCase(chatRequest.getScene())) {
+            appLimitService.marketLimit(AppLimitRequest.of(chatRequest.getAppUid(), chatRequest.getScene()), chatRequest.getSseEmitter());
             AppMarketEntity appMarketEntity = AppFactory.factoryMarket(chatRequest.getAppUid());
             return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
         }
-        String appId = chatRequest.getAppUid();
-        ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
-        return appEntity;
+
+        if (AppSceneEnum.CHAT_TEST.name().equalsIgnoreCase(chatRequest.getScene())) {
+            String appId = chatRequest.getAppUid();
+            appLimitService.appLimit(AppLimitRequest.of(appId, chatRequest.getScene()), chatRequest.getSseEmitter());
+            ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
+            return appEntity;
+        }
+
+        if (StringUtils.isNotBlank(chatRequest.getMediumUid())) {
+            String mediumId = chatRequest.getMediumUid();
+            appLimitService.channelLimit(AppLimitRequest.of(mediumId, chatRequest.getScene(), chatRequest.getEndUser()), chatRequest.getSseEmitter());
+            return factory(chatRequest.getMediumUid());
+        }
+
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
     }
 
     public static ChatAppEntity factory(String mediumUid) {
