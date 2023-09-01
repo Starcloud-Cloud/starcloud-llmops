@@ -98,6 +98,7 @@ public class CommonResultSseMessageConverter implements HttpMessageConverter<Com
         StreamResult result = new StreamResult();
         result.setCode(commonResult.getCode());
         result.setContent(commonResult.getMsg());
+        result.setSuccess(false);
 
         // 结构和 SseEmitter 的 send() 方法一致
         StringBuilder sb = new StringBuilder("data:");
@@ -124,5 +125,7 @@ public class CommonResultSseMessageConverter implements HttpMessageConverter<Com
          * 内容
          */
         private String content;
+
+        private Boolean success;
     }
 }
