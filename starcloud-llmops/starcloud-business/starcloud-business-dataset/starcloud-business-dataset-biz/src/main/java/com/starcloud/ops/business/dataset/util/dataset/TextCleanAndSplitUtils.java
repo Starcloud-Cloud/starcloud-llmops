@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.Arrays;
@@ -145,11 +146,29 @@ public class TextCleanAndSplitUtils {
 
             if (CollUtil.isNotEmpty(blackRules)) {
                 String blackRule = String.join(",", blackRules);
+                Element select;
                 try {
-                    doc.select(whiteRule).select(blackRule).remove();
+                    select = doc.select(whiteRule).first();
                 } catch (RuntimeException e) {
-                    throw new RuntimeException("数据预处理异常，网页白名单与黑名单规则错误");
+                    throw new RuntimeException("数据预处理异常，网页白名单规则错误");
                 }
+                if (select != null) {
+
+                    try {
+                        Elements blackData = select.select(blackRule);
+                        for (Element h1Element : blackData) {
+                            h1Element.remove();
+                        }
+                        return blackData.html();
+
+                    } catch (RuntimeException e) {
+                        throw new RuntimeException("数据预处理异常，网页黑名单规则错误");
+                    }
+
+                } else {
+                    return "未根据网页规则获取数据，请检查您的规则";
+                }
+
 
             } else {
                 try {

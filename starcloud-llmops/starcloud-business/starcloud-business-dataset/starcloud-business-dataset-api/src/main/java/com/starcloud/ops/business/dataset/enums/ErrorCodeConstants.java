@@ -67,6 +67,7 @@ public interface ErrorCodeConstants {
     ErrorCode DATASET_HANDLE_RULE_REPEAT_NORMAL = new ErrorCode(2007005003, "数据预处理失败，规则匹配到多条预处理规则{}");
 
     ErrorCode DATASET_HANDLE_RULE_TYPE_UNKNOWN = new ErrorCode(2007005004, " 未知数据类型，请核对数据后重新提交");
+    ErrorCode DATASET_HANDLE_RULE_FAIL = new ErrorCode(2007005004, " 调试规则失败，未匹配到规则，请核对数据后重新提交");
 
 
 }

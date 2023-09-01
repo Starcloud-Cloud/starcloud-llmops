@@ -17,9 +17,11 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -38,7 +40,7 @@ public class UrlUploadStrategy implements UploadStrategy {
     private static final String PATH_OBJECT = "dataset-source-data/";
 
     // Setter方法，用于接收MultipartFile对象
-    public void setUrl(String url,String language) {
+    public void setUrl(String url, String language) {
         this.url = url;
         this.language = language;
     }
@@ -175,13 +177,19 @@ public class UrlUploadStrategy implements UploadStrategy {
             if (charset == null || charset.isEmpty()) {
                 charset = CharsetUtil.UTF_8;
             }
-
+            String title;
             // 获取网页的title，使用实际编码进行解析
-            return new String(doc.title().getBytes(StandardCharsets.UTF_8), Charset.forName(charset));
+            title = new String(doc.title().getBytes(StandardCharsets.UTF_8), Charset.forName(charset));
+            if (StrUtil.isBlank(title)) {
+                title = Objects.requireNonNull(doc.select("meta[property=og:title]").first()).attr("content");
+            }
+            return title;
+
         } catch (RuntimeException e) {
             return null;
         }
     }
+
 
     /**
      * 获取网页描述

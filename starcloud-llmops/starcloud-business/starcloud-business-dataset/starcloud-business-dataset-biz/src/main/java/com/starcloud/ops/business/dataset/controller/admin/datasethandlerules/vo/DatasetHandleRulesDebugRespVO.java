@@ -13,8 +13,8 @@ import java.util.List;
 @ToString(callSuper = true)
 public class DatasetHandleRulesDebugRespVO {
 
-    @Schema(description = "命中规则名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String ruleName;
+    @Schema(description = "命中结果", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean result;
 
     @Schema(description = "清洗后数据", requiredMode = Schema.RequiredMode.REQUIRED)
     private String data;

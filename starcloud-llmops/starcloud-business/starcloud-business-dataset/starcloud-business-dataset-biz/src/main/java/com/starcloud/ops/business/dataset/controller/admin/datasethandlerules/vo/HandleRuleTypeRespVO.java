@@ -14,4 +14,7 @@ public class HandleRuleTypeRespVO {
 
     @Schema(description = "规则类型", requiredMode = Schema.RequiredMode.REQUIRED)
     private String type;
+
+    @Schema(description = "规则类型描述", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String description;
 }

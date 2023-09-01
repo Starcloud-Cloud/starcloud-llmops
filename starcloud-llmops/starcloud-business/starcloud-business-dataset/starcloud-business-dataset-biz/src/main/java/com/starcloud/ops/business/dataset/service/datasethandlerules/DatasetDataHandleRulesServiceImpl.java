@@ -174,28 +174,34 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
     @Override
     public DatasetHandleRulesDebugRespVO debugRule(DatasetHandleRulesDebugReqVO debugReqVO) {
         DatasetHandleRulesDebugRespVO datasetHandleRulesDebugRespVO = new DatasetHandleRulesDebugRespVO();
-        DatasetsDO datasets = datasetsService.getDatasetInfoByAppId(debugReqVO.getAppId());
 
         String filterData = debugReqVO.getUrl();
-        if (!DataSourceDataTypeEnum.HTML.name().equals(debugReqVO.getDataType())) {
+        if (!DataSourceDataTypeEnum.HTML.name().equals(debugReqVO.getRuleType())) {
             filterData = debugReqVO.getTitle();
         }
-
-        DatasetHandleRulesDO rulesDO = this.getFilteredRule(datasets.getId(), debugReqVO.getDataType(), filterData, null);
-
-
-        CleanRuleVO cleanRuleVO = JSONUtil.toBean(rulesDO.getCleanRule(), CleanRuleVO.class);
-
+        DataSourceDataTypeEnum dataSourceDataTypeEnum = DataSourceDataTypeEnum.valueOf(debugReqVO.getRuleType());
         String cleanData;
-        if (DataSourceDataTypeEnum.HTML.name().equals(debugReqVO.getDataType())) {
-            String data = TextCleanAndSplitUtils.processHtmlRule(debugReqVO.getUrl(), cleanRuleVO.getHtmlCleanRule());
-            cleanData = TextCleanAndSplitUtils.processCommonRule(data, cleanRuleVO.getCommonCleanRule());
-        } else if (DataSourceDataTypeEnum.CHARACTERS.name().equals(debugReqVO.getDataType())) {
-            cleanData = TextCleanAndSplitUtils.processCommonRule(debugReqVO.getContext(), cleanRuleVO.getCommonCleanRule());
-        } else {
-            throw exception(DATASET_HANDLE_RULE_TYPE_UNKNOWN);
+        switch (dataSourceDataTypeEnum) {
+            case HTML:
+                if (matchHtmlRules(filterData, debugReqVO.getRuleFilter())) {
+                    String data = TextCleanAndSplitUtils.processHtmlRule(debugReqVO.getUrl(), debugReqVO.getCleanRule().getHtmlCleanRule());
+                    cleanData = TextCleanAndSplitUtils.processCommonRule(data, debugReqVO.getCleanRule().getCommonCleanRule());
+                } else {
+                    throw exception(DATASET_HANDLE_RULE_FAIL);
+                }
+                break;
+            case CHARACTERS:
+                if (matchCharactersRules(filterData, debugReqVO.getRuleFilter())) {
+                    cleanData = TextCleanAndSplitUtils.processCommonRule(debugReqVO.getContext(), debugReqVO.getCleanRule().getCommonCleanRule());
+                } else {
+                    throw exception(DATASET_HANDLE_RULE_FAIL);
+                }
+
+                break;
+            default:
+                throw exception(DATASET_HANDLE_RULE_TYPE_UNKNOWN);
         }
-        datasetHandleRulesDebugRespVO.setRuleName(rulesDO.getRuleName());
+
         datasetHandleRulesDebugRespVO.setData(cleanData);
         return datasetHandleRulesDebugRespVO;
     }
@@ -230,6 +236,7 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
             HandleRuleTypeRespVO handleRuleTypeRespVO = new HandleRuleTypeRespVO();
             handleRuleTypeRespVO.setType(data.name());
             handleRuleTypeRespVO.setTypeName(data.getName());
+            handleRuleTypeRespVO.setDescription(data.getDescription());
             handleRuleTypeRespVOS.add(handleRuleTypeRespVO);
         });
         return handleRuleTypeRespVOS;
@@ -355,7 +362,7 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
         if (CollUtil.isEmpty(filterIs)) {
             log.info("未匹配到用户配置的数据清洗规则，采用系统默认规则");
             // 获取系统配置
-            return getSystemRuleConfig(ruleType);
+            return getSystemRuleConfig(ruleType, data);
         }
         // 匹配规则
         return filterIs.get(0);
@@ -392,19 +399,57 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
 
     }
 
-    private DatasetHandleRulesDO getSystemRuleConfig(String ruleType) {
-        // 获取当前数据集
+    private DatasetHandleRulesDO getSystemRuleConfig(String ruleType, String data) {
+        // 获取系统配置
         LambdaQueryWrapper<DatasetHandleRulesDO> wrapper = Wrappers.lambdaQuery(DatasetHandleRulesDO.class)
                 .eq(DatasetHandleRulesDO::getFromScene, HandleRuleFromSceneEnum.SYSTEM.name())
                 .eq(DatasetHandleRulesDO::getRuleType, ruleType)
                 .eq(DatasetHandleRulesDO::getEnable, true);
-        DatasetHandleRulesDO systemRuleConfig = handleRulesMapper.selectOne(wrapper);
-        if (systemRuleConfig == null) {
+
+        List<DatasetHandleRulesDO> systemRuleConfigs = handleRulesMapper.selectList(wrapper);
+        if (CollUtil.isEmpty(systemRuleConfigs)) {
             throw exception(DATASET_HANDLE_SYS_RULE_NO_EXISTS);
         }
-        return systemRuleConfig;
 
+        DataSourceDataTypeEnum dataTypeEnum = DataSourceDataTypeEnum.valueOf(ruleType);
+        for (DatasetHandleRulesDO ruleDO : systemRuleConfigs) {
+            List<String> filters = CollUtil.toList(ruleDO.getRuleFilter().split(","));
+
+            boolean isMatch = false;
+
+            switch (dataTypeEnum) {
+                case HTML:
+                    isMatch = matchHtmlRules(data, filters);
+                    break;
+                case DOCUMENT:
+                    isMatch = matchDocRules(data, filters);
+                    break;
+                case CHARACTERS:
+                    isMatch = matchCharactersRules(data, filters);
+                    break;
+                default:
+                    throw exception(DATASET_HANDLE_RULE_TYPE_UNKNOWN);
+            }
+
+            if (isMatch) {
+                return ruleDO;
+            }
+            log.warn("精确匹配系统规则失败，开始全量匹配系统规则");
+        }
+
+        // 如果没有匹配的规则，则检查是否有通配符规则
+        for (DatasetHandleRulesDO ruleDO : systemRuleConfigs) {
+            List<String> filters = CollUtil.toList(ruleDO.getRuleFilter().split(","));
+            if (CollUtil.safeContains(filters, "*")) {
+                return ruleDO;
+            }
+        }
+        log.error("全量匹配系统规则失败");
+        throw exception(DATASET_HANDLE_SYS_RULE_NO_EXISTS);
     }
+
+
+
 
     /**
      * 匹配规则
