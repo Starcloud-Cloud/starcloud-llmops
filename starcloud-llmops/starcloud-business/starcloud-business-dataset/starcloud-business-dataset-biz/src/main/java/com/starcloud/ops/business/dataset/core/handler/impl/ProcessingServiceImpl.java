@@ -86,11 +86,15 @@ public class ProcessingServiceImpl implements ProcessingService {
         log.info("====> 数据集{}开始上传文件", datasetInfo.getId());
         fileUploadStrategy.setFileData(reqVO.getFile(), reqVO.getFileContent());
         UploadContentDTO process = fileUploadStrategy.process(getUserId(datasetInfo.getId()));
-        process.setSync(reqVO.getSync());
+
         process.setBatch(reqVO.getBatch());
         process.setDatasetId(datasetInfo.getId());
         process.setDataModel(reqVO.getDataModel());
         process.setDataType(reqVO.getDataType());
+
+        process.setCleanSync(reqVO.getCleanSync());
+        process.setSplitSync(reqVO.getSplitSync());
+        process.setIndexSync(reqVO.getIndexSync());
         // 执行通用逻辑并且返回
         return commonProcess(process);
     }
@@ -106,11 +110,15 @@ public class ProcessingServiceImpl implements ProcessingService {
         urlUploadStrategy.setUrl(reqVO.getUrls().get(0), getLanguageRule(datasetInfo.getId(), reqVO.getUrls().get(0)));
         UploadContentDTO process = urlUploadStrategy.process(getUserId(datasetInfo.getId()));
         process.setInitAddress(reqVO.getUrls().get(0));
-        process.setSync(reqVO.getSync());
+
         process.setBatch(reqVO.getBatch());
         process.setDatasetId(datasetInfo.getId());
         process.setDataModel(reqVO.getDataModel());
         process.setDataType(reqVO.getDataType());
+
+        process.setCleanSync(reqVO.getCleanSync());
+        process.setSplitSync(reqVO.getSplitSync());
+        process.setIndexSync(reqVO.getIndexSync());
         // 执行通用逻辑并且返回
         return commonProcess(process);
     }
@@ -122,11 +130,16 @@ public class ProcessingServiceImpl implements ProcessingService {
         log.info("====> 数据集{}开始上传字符串", datasetInfo.getId());
         stringUploadStrategy.setData(reqVO.getCharacterVOS().get(0).getTitle(), reqVO.getCharacterVOS().get(0).getContext());
         UploadContentDTO process = stringUploadStrategy.process(getUserId(datasetInfo.getId()));
-        process.setSync(reqVO.getSync());
+
         process.setBatch(reqVO.getBatch());
         process.setDatasetId(datasetInfo.getId());
         process.setDataModel(reqVO.getDataModel());
         process.setDataType(reqVO.getDataType());
+
+        process.setCleanSync(reqVO.getCleanSync());
+        process.setSplitSync(reqVO.getSplitSync());
+        process.setIndexSync(reqVO.getIndexSync());
+
         // 执行通用逻辑并且返回
         return commonProcess(process);
     }
@@ -140,7 +153,7 @@ public class ProcessingServiceImpl implements ProcessingService {
 
         if (!process.getStatus()) {
             // 如果上传或者解析出错 则保留数据记录
-            saveErrorSourceData(process, process.getDatasetId(), process.getBatch(), process.getDataModel(), process.getDataType());
+            saveErrorSourceData(process);
             return uploadResult;
         }
         log.info("====> 数据上传操作执行完毕,开始保存数据");
@@ -149,7 +162,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         Long storageId = saveStorageData(process);
         log.info("====> 上传记录保存成功,开始保存源数据 ");
         // 保存源数据
-        DatasetSourceDataDO sourceDataDO = this.saveSourceData(process, storageId, process.getDatasetId(), process.getBatch(), process.getDataModel(), process.getDataType());
+        DatasetSourceDataDO sourceDataDO = this.saveSourceData(process, storageId);
         log.info("====> 源数据保存成功,开始异步发送队列信息 ");
         // 异步发送队列信息
 
@@ -158,8 +171,11 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataCleanSendMessage.setDatasetId(process.getDatasetId());
         dataCleanSendMessage.setDataSourceId(sourceDataDO.getId());
         dataCleanSendMessage.setUserId(getUserId(process.getDatasetId()));
+        dataCleanSendMessage.setCleanSync(process.getCleanSync());
+        dataCleanSendMessage.setSplitSync(process.getSplitSync());
+        dataCleanSendMessage.setIndexSync(process.getIndexSync());
 
-        if (process.getSync()) {
+        if (process.getCleanSync()) {
             dataSetProducer.sendMessage(dataCleanSendMessage);
         } else {
             dataSetProducer.asyncSendMessage(dataCleanSendMessage);
@@ -192,10 +208,16 @@ public class ProcessingServiceImpl implements ProcessingService {
         return datasetStorageDO.getId();
     }
 
-    private DatasetSourceDataDO saveSourceData(UploadContentDTO process, Long storageId, Long datasetId, String batch, Integer dataModel, String dataType) {
+    /**
+     * 保存上传的数据信息
+     * @param process 数据执行信息
+     * @param storageId 数据保存ID
+     * @return DatasetSourceDataDO
+     */
+    private DatasetSourceDataDO saveSourceData(UploadContentDTO process, Long storageId) {
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(DatasetSourceDataDO::getDatasetId, datasetId);
+        wrapper.eq(DatasetSourceDataDO::getDatasetId, process.getDatasetId());
         // 获取当前文件位置
         long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
 
@@ -206,24 +228,24 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataDO.setName(process.getName());
         dataDO.setStorageId(storageId);
         dataDO.setPosition(position);
-        dataDO.setBatch(batch);
+        dataDO.setBatch(process.getBatch());
         dataDO.setDescription(process.getDescription());
-        dataDO.setDataModel(dataModel);
-        dataDO.setDataType(dataType);
+        dataDO.setDataModel(process.getDataModel());
+        dataDO.setDataType(process.getDataType());
         dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
         dataDO.setWordCount(process.getCharacterCount());
-        dataDO.setDatasetId(datasetId);
+        dataDO.setDatasetId(process.getDatasetId());
         dataDO.setStatus(DataSetSourceDataStatusEnum.UPLOAD_COMPLETED.getStatus());
         dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO));
         datasetSourceDataMapper.insert(dataDO);
         return dataDO;
     }
 
-    private void saveErrorSourceData(UploadContentDTO process, Long datasetId, String batch, Integer dataModel, String dataType) {
+    private void saveErrorSourceData(UploadContentDTO process) {
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
 
-        wrapper.eq(DatasetSourceDataDO::getDatasetId, datasetId);
+        wrapper.eq(DatasetSourceDataDO::getDatasetId, process.getDatasetId());
         // 获取当前文件位置
         long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
 
@@ -233,16 +255,16 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataDO.setName(process.getName());
         dataDO.setStorageId(null);
         dataDO.setPosition(position);
-        dataDO.setBatch(batch);
-        dataDO.setDataModel(dataModel);
+        dataDO.setBatch(process.getBatch());
+        dataDO.setDataModel(process.getDataModel());
         dataDO.setDescription(process.getDescription());
-        dataDO.setDataType(dataType);
+        dataDO.setDataType(process.getDataType());
         dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
         dataDO.setWordCount(process.getCharacterCount());
-        dataDO.setDatasetId(datasetId);
+        dataDO.setDatasetId(process.getDatasetId());
         dataDO.setStatus(DataSetSourceDataStatusEnum.ANALYSIS_ERROR.getStatus());
         dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO));
-        if (DataSourceDataTypeEnum.HTML.name().equals(dataType)) {
+        if (DataSourceDataTypeEnum.HTML.name().equals(process.getDataType())) {
             dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO.setInitAddress(process.getName())));
         }
         datasetSourceDataMapper.insert(dataDO);

@@ -110,7 +110,7 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
                 throw new RuntimeException(DataSetSourceDataStatusEnum.SPLIT_ERROR.getName());
             }
 
-            if (message.getSync()) {
+            if (message.getIndexSync()) {
                 dataIndexProducer.sendMessage(message);
 
             } else {

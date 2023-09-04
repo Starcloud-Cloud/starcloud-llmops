@@ -65,7 +65,9 @@ public class DatasetSourceDataController {
     @PostMapping("/uploadFiles")
     @Operation(summary = "上传文件")
     public CommonResult<SourceDataUploadDTO> uploadFiles(UploadFileReqVO reqVO) {
-        reqVO.setSync(false);
+        reqVO.setCleanSync(false);
+        reqVO.setSplitSync(false);
+        reqVO.setIndexSync(false);
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.DOCUMENT.name());
         SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadFilesSourceData(reqVO);
@@ -76,7 +78,9 @@ public class DatasetSourceDataController {
     @Operation(summary = "批量上传HTML")
     public CommonResult<List<SourceDataUploadDTO>> uploadUrls(@Validated @RequestBody UploadUrlReqVO reqVO) {
 
-        reqVO.setSync(false);
+        reqVO.setCleanSync(false);
+        reqVO.setSplitSync(false);
+        reqVO.setIndexSync(false);
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.HTML.name());
         return success(datasetSourceDataService.uploadUrlsSourceData(reqVO));
@@ -86,7 +90,10 @@ public class DatasetSourceDataController {
     @PostMapping("/uploadCharacters")
     @Operation(summary = "上传字符串文本")
     public CommonResult<List<SourceDataUploadDTO>> uploadCharacter(@Validated @RequestBody UploadCharacterReqVO reqVO) {
-        reqVO.setSync(false);
+        reqVO.setCleanSync(false);
+        reqVO.setSplitSync(false);
+        reqVO.setIndexSync(false);
+
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.CHARACTERS.name());
         return success(datasetSourceDataService.uploadCharactersSourceData(reqVO));

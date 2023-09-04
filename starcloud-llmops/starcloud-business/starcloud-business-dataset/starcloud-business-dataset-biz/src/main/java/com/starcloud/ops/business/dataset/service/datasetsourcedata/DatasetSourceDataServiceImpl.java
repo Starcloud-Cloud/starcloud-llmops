@@ -186,10 +186,14 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             singleReqVO.setAppId(reqVO.getAppId());
             singleReqVO.setSessionId(reqVO.getSessionId());
             singleReqVO.setBatch(reqVO.getBatch());
-            singleReqVO.setSync(reqVO.getSync());
+
             singleReqVO.setDataModel(reqVO.getDataModel());
             singleReqVO.setDataType(reqVO.getDataType());
             singleReqVO.setUrls(Collections.singletonList(url));
+
+            singleReqVO.setCleanSync(reqVO.getCleanSync());
+            singleReqVO.setSplitSync(reqVO.getSplitSync());
+            singleReqVO.setIndexSync(reqVO.getIndexSync());
             ListenableFuture<UploadResult> executed = this.executeAsyncWithUrl(singleReqVO);
 
             try {
@@ -244,9 +248,13 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             singleReqVO.setAppId(reqVOS.getAppId());
             singleReqVO.setSessionId(reqVOS.getSessionId());
             singleReqVO.setBatch(reqVOS.getBatch());
-            singleReqVO.setSync(reqVOS.getSync());
             singleReqVO.setDataModel(reqVOS.getDataModel());
             singleReqVO.setDataType(reqVOS.getDataType());
+
+            singleReqVO.setCleanSync(reqVOS.getCleanSync());
+            singleReqVO.setSplitSync(reqVOS.getSplitSync());
+            singleReqVO.setIndexSync(reqVOS.getIndexSync());
+
             singleReqVO.setCharacterVOS(Collections.singletonList(reqVO));
             ListenableFuture<UploadResult> executed = this.executeAsyncWithCharacters(singleReqVO);
 
@@ -567,6 +575,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public List<DatasetSourceDataDetailRespVO> getSessionSourceDataList(String appId, String sessionId, Integer dataModel, Boolean getContent) {
+        if (dataModel==null||dataModel<0){
+            dataModel =DataSourceDataModelEnum.DOCUMENT.getStatus();
+        }
         // 根据应用 ID与会话 ID 获取数据集信息
         Long datasetId = validateSessionDatasets(appId, sessionId);
         // 查询数据

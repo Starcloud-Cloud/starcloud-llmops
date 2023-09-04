@@ -52,7 +52,9 @@ public class DatasetSourceDataIndexProducer extends AbstractDatasetSourceProduce
                 .setSplitRule(sendMessage.getSplitRule())
                 .setUserId(sendMessage.getUserId())
                 .setRetryCount(0)
-                .setSync(false);
+                .setCleanSync(sendMessage.getCleanSync())
+                .setSplitSync(sendMessage.getSplitSync())
+                .setIndexSync(sendMessage.getIndexSync());
         redisMQTemplate.send(message);
     }
 
@@ -61,12 +63,14 @@ public class DatasetSourceDataIndexProducer extends AbstractDatasetSourceProduce
 
         DatasetSourceDataIndexSendMessage message = new DatasetSourceDataIndexSendMessage();
 
-        message.setSync(true);
         message.setRetryCount(0);
         message.setDatasetId(sendMessage.getDatasetId());
         message.setDataSourceId(sendMessage.getDataSourceId());
         message.setSplitRule(sendMessage.getSplitRule());
         message.setUserId(sendMessage.getUserId());
+        message.setCleanSync(sendMessage.getCleanSync());
+        message.setSplitSync(sendMessage.getSplitSync());
+        message.setIndexSync(message.getIndexSync());
 
         indexSendConsumer.onMessage(message);
     }
