@@ -17,11 +17,13 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.SOURCE_DATA_UPLOAD_FAIL;
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.SOURCE_DATA_UPLOAD_URL_FAIL_INACCESSIBLE;
 
 @Slf4j
 @Component
@@ -72,7 +74,8 @@ public class UrlUploadStrategy implements UploadStrategy {
 
         } catch (Exception e) {
             uploadFileRespDTO.setName(url);
-            uploadFileRespDTO.setErrCode("");
+            uploadFileRespDTO.setErrCode(String.valueOf(SOURCE_DATA_UPLOAD_URL_FAIL_INACCESSIBLE.getCode()));
+            uploadFileRespDTO.setErrMsg(SOURCE_DATA_UPLOAD_URL_FAIL_INACCESSIBLE.getMsg());
             log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
             return uploadFileRespDTO;
         }
@@ -104,6 +107,8 @@ public class UrlUploadStrategy implements UploadStrategy {
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);
         } catch (Exception e) {
+            uploadFileRespDTO.setErrCode(String.valueOf(SOURCE_DATA_UPLOAD_FAIL.getCode()));
+            uploadFileRespDTO.setErrMsg(SOURCE_DATA_UPLOAD_FAIL.getMsg());
             log.error("====> URL上传失败,数据状态为 false");
             return uploadFileRespDTO;
 

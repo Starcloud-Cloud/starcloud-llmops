@@ -103,6 +103,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
         } catch (Exception e) {
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
+            message.setErrCode(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName() + ":" + e.getMessage());
             message.setRetryCount(++retryCount);
             log.info("清洗失败，错误原因是:({})", e.getMessage(), e);

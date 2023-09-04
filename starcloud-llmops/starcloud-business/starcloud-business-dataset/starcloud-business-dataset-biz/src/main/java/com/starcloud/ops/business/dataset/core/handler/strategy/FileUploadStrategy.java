@@ -14,6 +14,8 @@ import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.SOURCE_DATA_UPLOAD_FAIL;
+
 @Slf4j
 @Component
 public class FileUploadStrategy implements UploadStrategy {
@@ -78,7 +80,8 @@ public class FileUploadStrategy implements UploadStrategy {
             uploadFileRespDTO.setStatus(true);
         } catch (Exception e) {
             log.error("====> 文件开始上传失败 ,返回数据状态为 false");
-            uploadFileRespDTO.setErrMsg("文件开始上传失败");
+            uploadFileRespDTO.setErrCode(String.valueOf(SOURCE_DATA_UPLOAD_FAIL.getCode()));
+            uploadFileRespDTO.setErrMsg(SOURCE_DATA_UPLOAD_FAIL.getMsg());
             return uploadFileRespDTO;
         }
 

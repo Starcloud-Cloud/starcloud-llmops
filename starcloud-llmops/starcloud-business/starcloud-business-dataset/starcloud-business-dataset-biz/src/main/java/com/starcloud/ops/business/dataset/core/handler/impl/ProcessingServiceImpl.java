@@ -70,7 +70,6 @@ public class ProcessingServiceImpl implements ProcessingService {
     private DatasetStorageMapper datasetStorageMapper;
 
 
-
     @Autowired
     public ProcessingServiceImpl(FileUploadStrategy fileUploadStrategy, UrlUploadStrategy urlUploadStrategy, StringUploadStrategy stringUploadStrategy) {
         this.fileUploadStrategy = fileUploadStrategy;
@@ -210,7 +209,8 @@ public class ProcessingServiceImpl implements ProcessingService {
 
     /**
      * 保存上传的数据信息
-     * @param process 数据执行信息
+     *
+     * @param process   数据执行信息
      * @param storageId 数据保存ID
      * @return DatasetSourceDataDO
      */
@@ -250,24 +250,26 @@ public class ProcessingServiceImpl implements ProcessingService {
         long position = datasetSourceDataMapper.selectCount(wrapper) + 1;
 
         DataSourceInfoDTO dataSourceInfoDTO = new DataSourceInfoDTO().setInitAddress(process.getInitAddress());
-        DatasetSourceDataDO dataDO = new DatasetSourceDataDO();
-        dataDO.setUid(DatasetUID.createSourceDataUID());
-        dataDO.setName(process.getName());
-        dataDO.setStorageId(null);
-        dataDO.setPosition(position);
-        dataDO.setBatch(process.getBatch());
-        dataDO.setDataModel(process.getDataModel());
-        dataDO.setDescription(process.getDescription());
-        dataDO.setDataType(process.getDataType());
-        dataDO.setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name());
-        dataDO.setWordCount(process.getCharacterCount());
-        dataDO.setDatasetId(process.getDatasetId());
-        dataDO.setStatus(DataSetSourceDataStatusEnum.ANALYSIS_ERROR.getStatus());
-        dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO));
+        DatasetSourceDataDO sourceDataDO = new DatasetSourceDataDO();
+        sourceDataDO.setUid(DatasetUID.createSourceDataUID())
+                .setName(process.getName())
+                .setStorageId(null)
+                .setPosition(position)
+                .setBatch(process.getBatch())
+                .setDataModel(process.getDataModel())
+                .setDescription(process.getDescription())
+                .setDataType(process.getDataType())
+                .setCreatedFrom(SourceDataCreateEnum.BROWSER_INTERFACE.name())
+                .setWordCount(process.getCharacterCount())
+                .setDatasetId(process.getDatasetId())
+                .setStatus(DataSetSourceDataStatusEnum.ANALYSIS_ERROR.getStatus())
+                .setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO))
+                .setErrorCode(process.getErrCode())
+                .setErrorMessage(process.getErrMsg());
         if (DataSourceDataTypeEnum.HTML.name().equals(process.getDataType())) {
-            dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO.setInitAddress(process.getName())));
+            sourceDataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO.setInitAddress(process.getName())));
         }
-        datasetSourceDataMapper.insert(dataDO);
+        datasetSourceDataMapper.insert(sourceDataDO);
     }
 
 
