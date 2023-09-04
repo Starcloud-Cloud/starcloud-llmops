@@ -31,7 +31,7 @@ public class MessageContentDocMemory {
 
     private ConversationSummaryDbMessageMemory messageMemory;
 
-    private Boolean storage = false;
+    private Boolean storage = true;
 
     public MessageContentDocMemory(ConversationSummaryDbMessageMemory conversationSummaryDbMessageMemory) {
         this.messageMemory = conversationSummaryDbMessageMemory;
@@ -86,24 +86,12 @@ public class MessageContentDocMemory {
 
             MessageContentDocDTO contentDocDTO = new MessageContentDocDTO();
 
-
-            dataBasicInfoVO.getDataType();
-
-            dataBasicInfoVO.getSummary();
-
-
-            dataBasicInfoVO.getId();
-            dataBasicInfoVO.getDescription();
-            dataBasicInfoVO.getStatus();
-
-            dataBasicInfoVO.getCreateTime();
-            dataBasicInfoVO.getName();
-
-           // dataBasicInfoVO.getAddress();
-
+            //初始化为了减少内容，主要总结的，如果总结没有取描述
+            String summary = StrUtil.isNotBlank(dataBasicInfoVO.getSummary()) ? dataBasicInfoVO.getSummary() : dataBasicInfoVO.getDescription();
+            // dataBasicInfoVO.getAddress();
             contentDocDTO.setId(dataBasicInfoVO.getId());
-            contentDocDTO.setContent(dataBasicInfoVO.getContent());
-            contentDocDTO.setSummary(dataBasicInfoVO.getSummary());
+            //contentDocDTO.setContent(dataBasicInfoVO.getContent());
+            contentDocDTO.setSummary(summary);
             contentDocDTO.setTitle(dataBasicInfoVO.getName());
 
 //            contentDocDTO.setUrl();
@@ -119,10 +107,10 @@ public class MessageContentDocMemory {
             } else {
 
                 //默认都为工具调用结果
-
                 contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.name());
-            }
 
+                //contentDocDTO.setToolName("toolName");
+            }
 
             return contentDocDTO;
 
@@ -187,6 +175,30 @@ public class MessageContentDocMemory {
                     //上游已经保存过
                     log.info("storageHistory web: {}", JsonUtils.toJsonString(doc));
 
+                    UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
+                    uploadUrlReqVO.setCleanSync(true);
+                    uploadUrlReqVO.setSplitSync(false);
+                    uploadUrlReqVO.setIndexSync(false);
+
+                    uploadUrlReqVO.setUrls(Arrays.asList(doc.getUrl()));
+
+                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+
+                    SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
+
+                    //存在
+                    if (sourceDataUploadDTO != null) {
+
+                        if (!sourceDataUploadDTO.getStatus()) {
+                            throw new RuntimeException("文档记录保存失败");
+                        }
+
+                        doc.setId(Long.valueOf(sourceDataUploadDTO.getSourceDataId()));
+                        sourceDataId = sourceDataUploadDTO.getSourceDataId();
+
+                        log.info("MessageContentDocMemory uploadUrlsSourceData add: {} {}", doc.getId(), doc.getTitle());
+                    }
+
 
                 } else if (MessageContentDocDTO.MessageContentDocTypeEnum.FILE.name().equals(doc.getType())) {
 
@@ -202,6 +214,8 @@ public class MessageContentDocMemory {
                     characterReqVO.setCleanSync(true);
                     characterReqVO.setSplitSync(false);
                     characterReqVO.setIndexSync(false);
+
+                    //@todo 增加扩展字段
 
                     characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle(title).setContext(content)));
 
@@ -219,7 +233,7 @@ public class MessageContentDocMemory {
                         doc.setId(Long.valueOf(sourceDataUploadDTO.getSourceDataId()));
                         sourceDataId = sourceDataUploadDTO.getSourceDataId();
 
-                        log.info("MessageContentDocMemory storageHistory add: {} {}", doc.getId(), doc.getTitle());
+                        log.info("MessageContentDocMemory uploadCharactersSourceData add: {} {}", doc.getId(), doc.getTitle());
                     }
 
                 }

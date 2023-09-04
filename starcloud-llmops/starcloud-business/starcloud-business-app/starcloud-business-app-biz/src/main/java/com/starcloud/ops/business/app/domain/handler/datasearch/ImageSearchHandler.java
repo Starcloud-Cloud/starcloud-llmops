@@ -42,6 +42,16 @@ public class ImageSearchHandler extends BaseToolHandler<SearchEngineHandler.Requ
 
     private static SerpAPITool serpAPITool = new SerpAPITool();
 
+    /**
+     * 是否把执行的结果保存为上下文
+     *
+     * @return
+     */
+    @Override
+    public Boolean isAddHistory() {
+        return false;
+    }
+
     @Override
     protected HandlerResponse<SearchEngineHandler.Response> _execute(HandlerContext<SearchEngineHandler.Request> context) {
 
