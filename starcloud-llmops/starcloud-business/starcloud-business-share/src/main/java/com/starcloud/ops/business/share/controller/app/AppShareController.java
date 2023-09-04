@@ -88,11 +88,10 @@ public class AppShareController {
 
         // 设置 SSE
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "share app");
+        executeRequest.setSseEmitter(emitter);
 
         // 执行限流
         appLimitService.channelLimit(AppLimitRequest.of(executeRequest.getMediumUid(), executeRequest.getScene(), executeRequest.getEndUser()), emitter);
-
-        executeRequest.setSseEmitter(emitter);
 
         // 执行应用
         appShareService.shareAppExecute(executeRequest);

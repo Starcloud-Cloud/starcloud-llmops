@@ -114,12 +114,10 @@ public class ChatShareController {
         }
 
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "share chat");
-
-        // 执行限流
-        appLimitService.channelLimit(AppLimitRequest.of(chatRequestVO.getMediumUid(), chatRequestVO.getScene(), chatRequestVO.getEndUser()), emitter);
-
         chatRequestVO.setSseEmitter(emitter);
         chatRequestVO.setEndUser(endUserId);
+        // 执行限流
+        appLimitService.channelLimit(AppLimitRequest.of(chatRequestVO.getMediumUid(), chatRequestVO.getScene(), chatRequestVO.getEndUser()), emitter);
         chatShareService.shareChat(chatRequestVO);
         return emitter;
     }
