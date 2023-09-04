@@ -94,6 +94,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         Response result = new Response();
         // 先截取
+        result.setTitle(detailsInfoVO.getName());
         result.setDescription(desc);
         result.setDocId(detailsInfoVO.getId());
         handlerResponse.setOutput(result);
@@ -154,6 +155,8 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
     @Data
     public static class Response implements Serializable {
+
+        private String title;
 
         private String description;
 

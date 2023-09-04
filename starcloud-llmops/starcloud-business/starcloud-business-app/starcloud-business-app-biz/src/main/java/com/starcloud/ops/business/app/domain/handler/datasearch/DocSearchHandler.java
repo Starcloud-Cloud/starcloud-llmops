@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.app.util.PromptUtil;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
+import com.starcloud.ops.business.dataset.pojo.request.MatchByDocIdRequest;
 import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -166,13 +168,15 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
     private List<RecordDTO> searchDocs(Request request) {
 
         //数据集，可能只要文档ID即可
-        MatchQueryRequest matchQueryRequest = new MatchQueryRequest();
-        matchQueryRequest.setText(request.getQuery());
-        matchQueryRequest.setK(3L);
+        MatchByDocIdRequest matchByDocIdRequest = new MatchByDocIdRequest();
+        matchByDocIdRequest.setDocId(request.getDocsId());
+        matchByDocIdRequest.setText(request.getQuery());
+        matchByDocIdRequest.setK(3L);
 
         //@todo 文档ID列表
 
-        MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchQueryRequest);
+        MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchByDocIdRequest);
+
 
         //过滤掉 分数低的 < 0.7  文档搜索相似度阈值
         //this.maxScore;
