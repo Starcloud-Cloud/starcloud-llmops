@@ -2,8 +2,7 @@ package com.starcloud.ops.server.web;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.starcloud.ops.framework.common.api.dto.BaseStreamResult;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -95,10 +94,7 @@ public class CommonResultSseMessageConverter implements HttpMessageConverter<Com
     @Override
     public void write(@NotNull CommonResult commonResult, MediaType mediaType, @NotNull HttpOutputMessage outputMessage) throws IOException {
         // 构建 StreamResult 对象
-        StreamResult result = new StreamResult();
-        result.setCode(commonResult.getCode());
-        result.setContent(commonResult.getMsg());
-
+        BaseStreamResult result = BaseStreamResult.of(commonResult.getCode(), commonResult.getMsg());
         // 结构和 SseEmitter 的 send() 方法一致
         StringBuilder sb = new StringBuilder("data:");
         sb.append(JSONUtil.toJsonStr(result));
@@ -108,21 +104,4 @@ public class CommonResultSseMessageConverter implements HttpMessageConverter<Com
         outputMessage.getBody().write(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    /**
-     * 返回结果
-     */
-    @Data
-    @NoArgsConstructor
-    private static class StreamResult {
-
-        /**
-         * 状态吗
-         */
-        private Integer code;
-
-        /**
-         * 内容
-         */
-        private String content;
-    }
 }

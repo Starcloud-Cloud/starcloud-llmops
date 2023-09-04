@@ -56,5 +56,6 @@ public interface AppLimitService {
      * @param request 请求数据
      * @param emitter sse
      */
+    @SuppressWarnings("all")
     boolean channelLimit(AppLimitRequest request, SseEmitter emitter);
 }

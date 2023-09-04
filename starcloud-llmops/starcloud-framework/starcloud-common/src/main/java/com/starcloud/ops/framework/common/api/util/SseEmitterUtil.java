@@ -1,7 +1,6 @@
 package com.starcloud.ops.framework.common.api.util;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.starcloud.ops.framework.common.api.dto.BaseStreamResult;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -44,9 +43,7 @@ public class SseEmitterUtil {
         if (isSendReadyMessage) {
             try {
                 message = "Subscribe successfully, about to execute " + message;
-                StreamResult result = new StreamResult();
-                result.setCode(300900000);
-                result.setContent(message);
+                BaseStreamResult result = BaseStreamResult.of(300900000, message);
                 sseEmitter.send(result);
             } catch (IOException e) {
                 sseEmitter.completeWithError(e);
@@ -55,21 +52,5 @@ public class SseEmitterUtil {
         return sseEmitter;
     }
 
-    /**
-     * 返回结果
-     */
-    @Data
-    @NoArgsConstructor
-    private static class StreamResult {
 
-        /**
-         * 状态吗
-         */
-        private Integer code;
-
-        /**
-         * 内容
-         */
-        private String content;
-    }
 }
