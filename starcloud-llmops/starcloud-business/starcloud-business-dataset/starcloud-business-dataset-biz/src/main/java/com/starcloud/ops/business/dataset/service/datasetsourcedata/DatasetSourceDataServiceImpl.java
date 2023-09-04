@@ -753,7 +753,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
         wrapper.eq(DatasetSourceDataDO::getId, id);
         wrapper.set(DatasetSourceDataDO::getStatus, status);
-        wrapper.set(StrUtil.isNotBlank(message) && errorCode > 0, DatasetSourceDataDO::getErrorCode, errorCode);
+        wrapper.set(errorCode != null && errorCode > 0, DatasetSourceDataDO::getErrorCode, errorCode);
         wrapper.set(StrUtil.isNotBlank(message), DatasetSourceDataDO::getErrorMessage, message);
         datasetSourceDataMapper.update(null, wrapper);
     }
