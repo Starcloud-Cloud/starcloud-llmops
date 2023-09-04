@@ -100,6 +100,39 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     }
 
     /**
+     * 限流总开关
+     *
+     * @return 是否开启限流
+     */
+    @Override
+    public Boolean limitSwitch() {
+        DictDataExportReqVO request = new DictDataExportReqVO();
+        request.setDictType(AppConstants.APP_LIMIT_SWITCH);
+        request.setStatus(StateEnum.ENABLE.getCode());
+        List<DictDataDO> dictDataList = dictDataService.getDictDataList(request);
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return Boolean.TRUE;
+        }
+        DictDataDO data = dictDataList.get(0);
+        if (Objects.isNull(data)) {
+            return Boolean.TRUE;
+        }
+
+        if (StringUtils.isBlank(data.getValue())) {
+            return Boolean.TRUE;
+        }
+
+        if ("true".equalsIgnoreCase(data.getValue())) {
+            return Boolean.TRUE;
+        }
+
+        if ("false".equalsIgnoreCase(data.getValue())) {
+            return Boolean.FALSE;
+        }
+        return Boolean.TRUE;
+    }
+
+    /**
      * 获取应用系统限流兜底配置
      *
      * @return 应用限流兜底配置

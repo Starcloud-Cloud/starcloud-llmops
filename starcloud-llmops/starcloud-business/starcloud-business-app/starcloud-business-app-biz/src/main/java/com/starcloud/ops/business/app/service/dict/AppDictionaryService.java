@@ -37,4 +37,11 @@ public interface AppDictionaryService {
      */
     List<AppLimitConfigDTO> appSystemLimitConfig();
 
+    /**
+     * 限流总开关
+     *
+     * @return 是否开启限流
+     */
+    Boolean limitSwitch();
+
 }

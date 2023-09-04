@@ -1,5 +1,7 @@
 package com.starcloud.ops.framework.common.api.util;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -42,11 +44,32 @@ public class SseEmitterUtil {
         if (isSendReadyMessage) {
             try {
                 message = "Subscribe successfully, about to execute " + message;
+                StreamResult result = new StreamResult();
+                result.setCode(250);
+                result.setContent(message);
                 sseEmitter.send(message);
             } catch (IOException e) {
                 sseEmitter.completeWithError(e);
             }
         }
         return sseEmitter;
+    }
+
+    /**
+     * 返回结果
+     */
+    @Data
+    @NoArgsConstructor
+    private static class StreamResult {
+
+        /**
+         * 状态吗
+         */
+        private Integer code;
+
+        /**
+         * 内容
+         */
+        private String content;
     }
 }

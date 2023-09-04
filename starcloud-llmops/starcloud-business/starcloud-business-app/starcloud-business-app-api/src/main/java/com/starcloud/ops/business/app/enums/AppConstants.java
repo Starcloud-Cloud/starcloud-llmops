@@ -30,6 +30,11 @@ public interface AppConstants {
     String APP_LIMIT_DEFAULT_CONFIG = "STAR_CLOUD_LLM_APP_LIMIT_DEFAULT_CONFIG";
 
     /**
+     * 应用限流总开关
+     */
+    String APP_LIMIT_SWITCH = "STAR_CLOUD_LLM_APP_LIMIT_SWITCH";
+
+    /**
      * 应用市场应用默认图片
      */
     String APP_MARKET_DEFAULT_IMAGE = "https://download.hotsalecloud.com/mofaai/images/category/seo.jpg";

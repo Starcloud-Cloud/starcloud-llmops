@@ -1,8 +1,5 @@
 package com.starcloud.ops.business.app.service.limit.impl;
 
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
@@ -12,6 +9,7 @@ import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespV
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.limit.LimitByEnum;
+import com.starcloud.ops.business.app.exception.AppLimitException;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.limit.AppLimitContext;
@@ -82,12 +80,18 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     @Override
     public void appLimit(AppLimitRequest request) {
+        Boolean limitSwitch = appDictionaryService.limitSwitch();
+        if (!limitSwitch) {
+            log.info("应用限流开关：{}, 将不会执行限流逻辑！", false);
+            return;
+        }
         if (StringUtils.isBlank(request.getAppUid())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_UID_IS_REQUIRED);
+            throw exception("the app uid this required");
         }
         if (StringUtils.isBlank(request.getFromScene())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_SCENE_IS_REQUIRED);
+            throw exception("the from scene is required");
         }
+
         log.info("应用限流开始：应用UID: {}, 执行场景: {}", request.getAppUid(), request.getFromScene());
         doSystemLimit(APP_LIMIT_PREFIX, request.getAppUid(), request.getFromScene());
         log.info("应用限流结束");
@@ -111,11 +115,16 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     @Override
     public void marketLimit(AppLimitRequest request) {
+        Boolean limitSwitch = appDictionaryService.limitSwitch();
+        if (!limitSwitch) {
+            log.info("应用限流开关：{}, 将不会执行限流逻辑！", false);
+            return;
+        }
         if (StringUtils.isBlank(request.getAppUid())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_UID_IS_REQUIRED);
+            throw exception("the app uid this required");
         }
         if (StringUtils.isBlank(request.getFromScene())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_SCENE_IS_REQUIRED);
+            throw exception("the from scene is required");
         }
         log.info("应用市场限流开始：应用市场UID: {}, 执行场景: {}", request.getAppUid(), request.getFromScene());
         doSystemLimit(MARKET_LIMIT_PREFIX, request.getAppUid(), request.getFromScene());
@@ -140,14 +149,19 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     @Override
     public void channelLimit(AppLimitRequest request) {
+        Boolean limitSwitch = appDictionaryService.limitSwitch();
+        if (!limitSwitch) {
+            log.info("应用限流开关：{}, 将不会执行限流逻辑！", false);
+            return;
+        }
         if (StringUtils.isBlank(request.getMediumUid())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MEDIUM_UID_IS_REQUIRED);
+            throw exception("the mediumUid is required");
         }
         if (StringUtils.isBlank(request.getFromScene())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_SCENE_IS_REQUIRED);
+            throw exception("the from scene is required");
         }
         if (StringUtils.isBlank(request.getEndUser())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_END_USER_IS_REQUIRED);
+            throw exception("the endUser is required");
         }
         log.info("应用发布渠道限流开始：应用渠道媒介ID: {}, 执行场景: {}, 游客ID: {}", request.getMediumUid(), request.getFromScene(), request.getEndUser());
         doChannelLimit(request.getMediumUid(), request.getFromScene(), request.getEndUser());
@@ -174,7 +188,7 @@ public class AppLimitServiceImpl implements AppLimitService {
         List<AppLimitConfigDTO> limitConfigList = appDictionaryService.appSystemLimitConfig();
         String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
         if (StringUtils.isBlank(loginUserId)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+            throw exception("you may be not login, please try again or contact the administrator");
         }
         for (AppLimitConfigDTO config : limitConfigList) {
             // 未开启直接不进行限流
@@ -182,11 +196,11 @@ public class AppLimitServiceImpl implements AppLimitService {
                 continue;
             }
             if (config.getLimit() == null || config.getLimit() <= 0) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300900000, "系统错误, 请联系管理员"));
+                throw exception("system error, please try again or contact the administrator");
             }
             // 日期判断，日期配置不能小于 1
             if (config.getTimeInterval() == null || config.getTimeInterval() < 1) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300900000, "系统错误, 请联系管理员"));
+                throw exception("system error, please try again or contact the administrator");
             }
             AppLimitContext context = new AppLimitContext();
             context.setAppUid(appUid);
@@ -237,11 +251,11 @@ public class AppLimitServiceImpl implements AppLimitService {
                 continue;
             }
             if (config.getLimit() == null || config.getLimit() <= 0) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300900000, "系统错误, 请联系管理员"));
+                throw exception("system error, please try again or contact the administrator");
             }
             // 日期判断，日期配置不能小于 1
             if (config.getTimeInterval() == null || config.getTimeInterval() < 1) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300900000, "系统错误, 请联系管理员"));
+                throw exception("system error, please try again or contact the administrator");
             }
             AppLimitContext context = getChannelLimitContext(channel.getAppUid(), fromScene, endUser, config);
             doLimit(context);
@@ -257,11 +271,11 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     private void doLimitSse(AppLimitRequest request, SseEmitter emitter, Consumer<AppLimitRequest> consumer) {
         if (Objects.isNull(emitter)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(300900002, "系统异常！"));
+            throw exception("system error, please try again or contact the administrator");
         }
         try {
             consumer.accept(request);
-        } catch (ServiceException exception) {
+        } catch (AppLimitException exception) {
             // 广告情况
             if (300900006 == exception.getCode()) {
                 String adsMessage = "[ADS_MESSAGE_STAR]" + exception.getMessage() + "[ADS_MESSAGE_DONE]";
@@ -503,13 +517,23 @@ public class AppLimitServiceImpl implements AppLimitService {
     }
 
     /**
+     * 通用限流异常
+     *
+     * @param message 异常信息
+     * @return 限流异常
+     */
+    private static AppLimitException exception(String message) {
+        return AppLimitException.exception(300900001, message);
+    }
+
+    /**
      * 限流超出异常
      *
      * @param message 异常信息
      * @return 异常
      */
-    private static ServiceException exceptionLimit(String message) {
-        return ServiceExceptionUtil.exception(new ErrorCode(300900005, message));
+    private static AppLimitException exceptionLimit(String message) {
+        return AppLimitException.exception(300900005, message);
     }
 
     /**
@@ -518,7 +542,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param message 异常信息
      * @return 异常信息
      */
-    private static ServiceException exceptionAdvertising(String message) {
-        return ServiceExceptionUtil.exception(new ErrorCode(300900006, message));
+    private static AppLimitException exceptionAdvertising(String message) {
+        return AppLimitException.exception(300900006, message);
     }
 }
