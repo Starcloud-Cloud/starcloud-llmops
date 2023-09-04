@@ -2,16 +2,14 @@ package com.starcloud.ops.business.dataset.core.handler.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * 数据上传结果 DTO
  */
 @Data
 public class UploadContentDTO {
 
-    /**
-     * 是否同步
-     */
-    private Boolean sync;
     /**
      * 批次
      */
@@ -81,8 +79,28 @@ public class UploadContentDTO {
 
 
     /**
-     * 数据类型
+     * 错误信息
      */
     private String errMsg;
 
+
+    /**
+     * 错误code
+     */
+    private String errCode;
+
+    /**
+     * 分块是否同步
+     */
+    private Boolean splitSync;
+
+    /***
+     * 清洗是否同步
+     */
+    private Boolean cleanSync;
+
+    /**
+     * 索引是否同步
+     */
+    private Boolean indexSync;
 }

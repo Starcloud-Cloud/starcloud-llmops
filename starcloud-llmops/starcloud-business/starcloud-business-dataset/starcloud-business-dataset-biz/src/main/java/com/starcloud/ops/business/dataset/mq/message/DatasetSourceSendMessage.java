@@ -11,10 +11,16 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode(callSuper = true)
 public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
 
-    private Boolean sync;
-
     private SplitRule splitRule;
 
+    @NotNull(message = "分块是否同步")
+    private Boolean splitSync;
+
+    @NotNull(message = "清洗是否同步")
+    private Boolean cleanSync;
+
+    @NotNull(message = "索引是否同步")
+    private Boolean indexSync;
     /**
      * 数据集编号
      */

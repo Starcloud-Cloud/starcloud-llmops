@@ -21,14 +21,20 @@ public class UploadReqVO {
     @NotNull(message = " 上传批次不可以为空")
     private String batch;
 
-    @Schema(description = "是否同步", requiredMode = Schema.RequiredMode.REQUIRED)
-    private Boolean sync;
-
     @Schema(description = "操作类型 -文档/QA", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer dataModel;
 
     @Schema(description = "数据类型", requiredMode = Schema.RequiredMode.REQUIRED)
     private String dataType;
+
+    @Schema(description = "分块是否同步", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean splitSync;
+
+    @Schema(description = "清洗是否同步", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean cleanSync;
+
+    @Schema(description = "索引是否同步", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean indexSync;
 
 
 }

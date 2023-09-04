@@ -72,6 +72,7 @@ public class UrlUploadStrategy implements UploadStrategy {
 
         } catch (Exception e) {
             uploadFileRespDTO.setName(url);
+            uploadFileRespDTO.setErrCode("");
             log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
             return uploadFileRespDTO;
         }

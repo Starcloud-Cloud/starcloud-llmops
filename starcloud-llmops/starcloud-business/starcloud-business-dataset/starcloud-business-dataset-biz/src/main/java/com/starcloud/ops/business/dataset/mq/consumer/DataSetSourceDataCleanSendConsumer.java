@@ -125,7 +125,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
                 throw new RuntimeException(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName());
             }
 
-            if (message.getSync()) {
+            if (message.getSplitSync()) {
                 dataSplitProducer.sendMessage(message);
             } else {
                 // 发送消息
