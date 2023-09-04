@@ -53,9 +53,9 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(LimitByEnum.USER.name());
-            config.setLimit(20);
-            config.setTimeInterval(60L);
-            config.setTimeUnit("SECONDS");
+            config.setLimit(60);
+            config.setTimeInterval(1L);
+            config.setTimeUnit("MONTHS");
             config.setMessage("抱歉，您已经达到最大访问上限！");
             return config;
         }
@@ -66,9 +66,9 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(LimitByEnum.USER.name());
-            config.setLimit(20);
-            config.setTimeInterval(60L);
-            config.setTimeUnit("SECONDS");
+            config.setLimit(60);
+            config.setTimeInterval(1L);
+            config.setTimeUnit("MONTHS");
             config.setMessage("抱歉，您已经达到最大访问上限！");
             return config;
         }
@@ -84,9 +84,9 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(LimitByEnum.ADVERTISING.name());
-            config.setLimit(2);
-            config.setTimeInterval(60L);
-            config.setTimeUnit("MINUTES");
+            config.setLimit(20);
+            config.setTimeInterval(1L);
+            config.setTimeUnit("MONTHS");
             config.setMessage("魔法AI - 基于AI技术，轻松创建数字员工，赶快来魔法AI创建一个属于自己的数字员工吧。");
             return config;
         }
@@ -97,9 +97,9 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(LimitByEnum.ADVERTISING.name());
-            config.setLimit(2);
-            config.setTimeInterval(60L);
-            config.setTimeUnit("MINUTES");
+            config.setLimit(20);
+            config.setTimeInterval(1L);
+            config.setTimeUnit("MONTHS");
             config.setMessage("魔法AI - 基于AI技术，轻松创建数字员工，赶快来魔法AI创建一个属于自己的数字员工吧。");
             return config;
         }
