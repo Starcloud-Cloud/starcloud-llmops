@@ -38,6 +38,11 @@ public class BaseStreamResult implements Serializable {
     private String content;
 
     /**
+     * 类型
+     */
+    private String type;
+
+    /**
      * 获取 流结果
      *
      * @param code    code

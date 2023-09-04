@@ -76,6 +76,8 @@ public interface DatasetHandleRulesConvert {
         datasetHandleRulesRespVO.setRuleType(bean.getRuleType());
         datasetHandleRulesRespVO.setFromScene(bean.getFromScene());
         datasetHandleRulesRespVO.setEnable(bean.getEnable());
+        datasetHandleRulesRespVO.setCreateTime(bean.getCreateTime());
+        datasetHandleRulesRespVO.setUpdateTime(bean.getUpdateTime());
         return datasetHandleRulesRespVO;
     }
 
