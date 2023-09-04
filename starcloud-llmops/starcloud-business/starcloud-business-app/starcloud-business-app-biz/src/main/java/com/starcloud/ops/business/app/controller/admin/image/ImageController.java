@@ -7,9 +7,13 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.HistoryGenerateImagePageQuery;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.image.ImageService;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +40,9 @@ public class ImageController {
     @Resource
     private ImageService imageService;
 
+    @Resource
+    private AppLimitService appLimitService;
+
     @GetMapping("/meta")
     @Operation(summary = "生成图片元数据", description = "生成图片元数据")
     @ApiOperationSupport(order = 10, author = "nacoyer")
@@ -54,6 +61,9 @@ public class ImageController {
     @Operation(summary = "文本生成图片", description = "文本生成图片")
     @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<ImageMessageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_IMAGE.name() : request.getScene());
+        appLimitService.appLimit(limitRequest);
         return CommonResult.success(imageService.generateImage(request));
     }
 
