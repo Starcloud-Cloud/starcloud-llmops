@@ -1,9 +1,7 @@
 package com.starcloud.ops.business.app.service.chat;
 
-import com.starcloud.ops.business.app.api.chat.config.dto.BaseExpandConfigDTO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigReqVO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
-import com.starcloud.ops.business.app.enums.config.ChatExpandConfigEnum;
 
 import java.util.List;
 import java.util.Map;
@@ -42,4 +40,11 @@ public interface ChatExpandConfigService {
      * @param uid
      */
     void delete(String uid);
+
+    /**
+     * 发布 copy配置
+     * @param sourceConfigId
+     * @param targetConfigId
+     */
+    void copyConfig(String sourceConfigId, String targetConfigId);
 }

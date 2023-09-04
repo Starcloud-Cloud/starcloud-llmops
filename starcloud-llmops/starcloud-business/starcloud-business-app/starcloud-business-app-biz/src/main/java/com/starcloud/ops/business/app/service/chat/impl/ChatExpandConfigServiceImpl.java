@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.chat.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.chat.config.dto.BaseExpandConfigDTO;
@@ -68,5 +69,27 @@ public class ChatExpandConfigServiceImpl implements ChatExpandConfigService {
             throw exception(CHAT_CONFIG_NOT_EXIST);
         }
         chatExpandConfigMapper.deleteById(chatExpandConfigDO.getId());
+    }
+
+    @Override
+    public void copyConfig(String sourceConfigId, String targetConfigId) {
+        List<ChatExpandConfigDO> sourceConfig = chatExpandConfigMapper.selectByAppConfigUid(sourceConfigId);
+        sourceConfig = sourceConfig.stream().filter(chatExpandConfigDO -> !chatExpandConfigDO.getDisabled()).collect(Collectors.toList());
+        List<ChatExpandConfigDO> targetConfig = chatExpandConfigMapper.selectByAppConfigUid(targetConfigId);
+
+        for (ChatExpandConfigDO chatExpandConfigDO : targetConfig) {
+            chatExpandConfigMapper.deleteById(chatExpandConfigDO);
+        }
+
+        for (ChatExpandConfigDO chatExpandConfigDO : sourceConfig) {
+
+            ChatExpandConfigDO configDO = new ChatExpandConfigDO();
+            configDO.setConfig(chatExpandConfigDO.getConfig());
+            configDO.setType(chatExpandConfigDO.getType());
+            configDO.setDisabled(false);
+            configDO.setAppConfigId(targetConfigId);
+            configDO.setUid(IdUtil.fastSimpleUUID());
+            chatExpandConfigMapper.insert(configDO);
+        }
     }
 }

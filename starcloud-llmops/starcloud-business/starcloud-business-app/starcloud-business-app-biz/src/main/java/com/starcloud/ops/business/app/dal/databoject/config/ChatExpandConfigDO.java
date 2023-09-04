@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = {"id", "uid", "appConfigId"})
 @ToString(callSuper = true)
 @TableName("llm_chat_expand_config")
 public class ChatExpandConfigDO extends TenantBaseDO {
@@ -22,7 +22,6 @@ public class ChatExpandConfigDO extends TenantBaseDO {
     private String uid;
 
     private String appConfigId;
-
 
     /**
      * 配置类型
