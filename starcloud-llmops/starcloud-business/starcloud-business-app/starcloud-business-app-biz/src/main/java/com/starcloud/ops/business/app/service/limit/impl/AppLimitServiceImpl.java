@@ -285,7 +285,7 @@ public class AppLimitServiceImpl implements AppLimitService {
             // 广告情况
             if (300900006 == exception.getCode()) {
                 String adsMessage = "[ADS_MESSAGE_STAR]" + exception.getMessage() + "[ADS_MESSAGE_DONE]";
-                BaseStreamResult adsResult = BaseStreamResult.of(300900006, adsMessage);
+                BaseStreamResult adsResult = BaseStreamResult.of(Boolean.TRUE, 300900006, adsMessage);
                 try {
                     emitter.send(adsResult);
                 } catch (IOException e) {
