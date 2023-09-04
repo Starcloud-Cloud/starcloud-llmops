@@ -117,7 +117,10 @@ public class ChatShareController {
         chatRequestVO.setSseEmitter(emitter);
         chatRequestVO.setEndUser(endUserId);
         // 执行限流
-        appLimitService.channelLimit(AppLimitRequest.of(chatRequestVO.getMediumUid(), chatRequestVO.getScene(), chatRequestVO.getEndUser()), emitter);
+        AppLimitRequest limitRequest = AppLimitRequest.of(chatRequestVO.getMediumUid(), chatRequestVO.getScene(), chatRequestVO.getEndUser());
+        if (!appLimitService.channelLimit(limitRequest, emitter)) {
+            return emitter;
+        }
         chatShareService.shareChat(chatRequestVO);
         return emitter;
     }

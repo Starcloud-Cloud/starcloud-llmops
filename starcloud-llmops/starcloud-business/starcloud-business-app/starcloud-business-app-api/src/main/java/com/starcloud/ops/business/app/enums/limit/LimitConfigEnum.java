@@ -87,7 +87,7 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
             config.setLimit(2);
             config.setTimeInterval(60L);
             config.setTimeUnit("MINUTES");
-            config.setMessage("基于AI技术，智能推荐，智能对话，为您推荐更多优质内容！");
+            config.setMessage("魔法AI - 基于AI技术，轻松创建数字员工，赶快来魔法AI创建一个属于自己的数字员工吧。");
             return config;
         }
 
@@ -100,7 +100,7 @@ public enum LimitConfigEnum implements IEnumable<Integer> {
             config.setLimit(2);
             config.setTimeInterval(60L);
             config.setTimeUnit("MINUTES");
-            config.setMessage("基于AI技术，智能推荐，智能对话，为您推荐更多优质内容！");
+            config.setMessage("魔法AI - 基于AI技术，轻松创建数字员工，赶快来魔法AI创建一个属于自己的数字员工吧。");
             return config;
         }
     },

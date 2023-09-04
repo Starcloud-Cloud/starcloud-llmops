@@ -91,8 +91,10 @@ public class AppShareController {
         executeRequest.setSseEmitter(emitter);
 
         // 执行限流
-        appLimitService.channelLimit(AppLimitRequest.of(executeRequest.getMediumUid(), executeRequest.getScene(), executeRequest.getEndUser()), emitter);
-
+        AppLimitRequest limitRequest = AppLimitRequest.of(executeRequest.getMediumUid(), executeRequest.getScene(), executeRequest.getEndUser());
+        if (!appLimitService.channelLimit(limitRequest, emitter)) {
+            return emitter;
+        }
         // 执行应用
         appShareService.shareAppExecute(executeRequest);
         return emitter;

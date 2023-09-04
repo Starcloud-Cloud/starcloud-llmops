@@ -51,7 +51,10 @@ public class AppExecuteController {
         // WEB_ADMIN 场景
         executeRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
         // 执行限流
-        appLimitService.appLimit(AppLimitRequest.of(executeRequest.getAppUid(), executeRequest.getScene()), emitter);
+        AppLimitRequest limitRequest = AppLimitRequest.of(executeRequest.getAppUid(), executeRequest.getScene());
+        if (!appLimitService.appLimit(limitRequest, emitter)) {
+            return emitter;
+        }
         // 异步执行应用
         appService.asyncExecute(executeRequest);
         return emitter;
@@ -65,6 +68,11 @@ public class AppExecuteController {
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
         // 设置 SSE
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "market");
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(executeRequest.getAppUid(), executeRequest.getScene());
+        if (!appLimitService.marketLimit(limitRequest, emitter)) {
+            return emitter;
+        }
 
         executeRequest.setSseEmitter(emitter);
         // WEB_MARKET 场景, 应用市场专用
@@ -72,8 +80,6 @@ public class AppExecuteController {
             executeRequest.setScene(AppSceneEnum.WEB_MARKET.name());
         }
 
-        // 执行限流
-        appLimitService.marketLimit(AppLimitRequest.of(executeRequest.getAppUid(), executeRequest.getScene()), emitter);
 
         // 异步执行应用
         appService.asyncExecute(executeRequest);
