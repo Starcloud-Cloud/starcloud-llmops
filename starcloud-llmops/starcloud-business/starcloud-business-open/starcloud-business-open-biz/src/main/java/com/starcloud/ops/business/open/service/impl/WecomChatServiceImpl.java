@@ -12,6 +12,8 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.chat.context.RobotContextHolder;
 import com.starcloud.ops.business.open.controller.admin.vo.request.QaCallbackReqVO;
 import com.starcloud.ops.business.chat.worktool.WorkToolClient;
@@ -48,6 +50,9 @@ public class WecomChatServiceImpl implements WecomChatService {
     @Resource
     private EndUserServiceImpl endUserService;
 
+    @Resource
+    private AppLimitService appLimitService;
+
 
     @Override
     public void asynReplyMsg(QaCallbackReqVO reqVO) {
@@ -62,13 +67,16 @@ public class WecomChatServiceImpl implements WecomChatService {
             sendMsg(reqVO.getGroupRemark(), "此渠道已禁用，请联系管理员启用", reqVO.getReceivedName());
             return;
         }
-
         String userNameMd5 = userNameMd5(reqVO.getGroupRemark() + reqVO.getReceivedName());
+        String endUserId = endUserService.weChatLogin(userNameMd5);
+
+        AppLimitRequest limitRequest = AppLimitRequest.of(channelRespVO.getMediumUid(), AppSceneEnum.WECOM_GROUP.name(), endUserId);
+        appLimitService.channelLimit(limitRequest);
+
         ChatRequestVO chatRequestVO = new ChatRequestVO();
         chatRequestVO.setAppUid(channelRespVO.getAppUid());
         chatRequestVO.setQuery(reqVO.getSpoken());
         chatRequestVO.setScene(AppSceneEnum.WECOM_GROUP.name());
-        String endUserId = endUserService.weChatLogin(userNameMd5);
         chatRequestVO.setEndUser(endUserId);
         chatRequestVO.setConversationUid(userNameMd5);
         chatRequestVO.setMediumUid(channelRespVO.getMediumUid());
