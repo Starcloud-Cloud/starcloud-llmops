@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.io.Serializable;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 public class InteractiveData implements Serializable {
 
