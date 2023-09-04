@@ -4,6 +4,8 @@ package com.starcloud.ops.business.app.domain.handler.common;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocMemory;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.llm.langchain.core.utils.JsonUtils;
@@ -32,6 +34,8 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
     /**
      * 工具执行结果文档话和历史记录实现
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private MessageContentDocMemory messageContentDocMemory;
 
     /**

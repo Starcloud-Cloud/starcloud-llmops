@@ -7,6 +7,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
@@ -106,11 +107,11 @@ public abstract class BaseHandler<Q, R> {
 
             //临时放这里
             handlerResponse.setType(this.getClass().getSimpleName());
-            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
+            handlerResponse.setMessage(JsonUtils.toJsonString(context.getRequest()));
 
 //            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
             handlerResponse.setSuccess(true);
-            handlerResponse.setAnswer(JSONUtil.toJsonStr(source.getOutput()));
+            handlerResponse.setAnswer(JsonUtils.toJsonString(source.getOutput()));
 
         } catch (ServiceException e) {
 

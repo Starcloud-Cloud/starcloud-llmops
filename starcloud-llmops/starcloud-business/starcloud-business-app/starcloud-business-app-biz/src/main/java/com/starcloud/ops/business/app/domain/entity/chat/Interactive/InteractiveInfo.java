@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
@@ -47,6 +48,7 @@ public class InteractiveInfo implements Serializable {
     private Object data;
 
     @JsonIgnore
+    @JSONField(serialize = false)
     private BaseToolHandler toolHandler;
 
     private Integer errorCode;

@@ -72,8 +72,6 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         uploadUrlReqVO.setUrls(Arrays.asList(url));
         uploadUrlReqVO.setAppId(context.getAppUid());
 
-        SplitRule splitRule = new SplitRule();
-
         List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO);
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
