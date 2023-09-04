@@ -523,7 +523,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @return 限流异常
      */
     private static AppLimitException exception(String message) {
-        return AppLimitException.exception(300900001, message);
+        return AppLimitException.exception(300900002, message);
     }
 
     /**
