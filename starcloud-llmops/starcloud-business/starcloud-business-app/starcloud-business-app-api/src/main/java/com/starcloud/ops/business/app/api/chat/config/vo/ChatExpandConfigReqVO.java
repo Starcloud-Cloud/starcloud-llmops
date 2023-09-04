@@ -18,6 +18,7 @@ public class ChatExpandConfigReqVO {
     private String uid;
 
     @Schema(description = "appConfigId")
+    @NotBlank(message = "appConfigId不能为空")
     private String appConfigId;
 
     @Schema(description = "配置类型")
