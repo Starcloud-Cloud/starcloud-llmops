@@ -1,19 +1,23 @@
 package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveData;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
+import com.starcloud.ops.llm.langchain.core.utils.JsonUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -63,11 +67,13 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         handlerResponse.setSuccess(false);
         handlerResponse.setMessage(url);
 
-        Response result = new Response();
-
 
         UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
-        uploadUrlReqVO.setSync(true);
+
+        uploadUrlReqVO.setCleanSync(true);
+        uploadUrlReqVO.setSplitSync(false);
+        uploadUrlReqVO.setIndexSync(false);
+
         uploadUrlReqVO.setSessionId(context.getConversationUid());
         uploadUrlReqVO.setUrls(Arrays.asList(url));
         uploadUrlReqVO.setAppId(context.getAppUid());
@@ -76,7 +82,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
         if (!sourceDataUploadDTO.getStatus()) {
-            log.error("WebSearch2DocHandler uploadUrlsSourceData is fail:{}, {}", url, sourceDataUploadDTO.getErrMsg());
+            log.error("WebSearch2DocHandler uploadUrlsSourceDataBySession is fail:{}, {}", url, sourceDataUploadDTO.getErrMsg());
 
             throw new RuntimeException("URL解析失败");
         }
@@ -85,21 +91,57 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(sourceDataUploadDTO.getSourceDataId(), true);
         String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
 
-        summary = StrUtil.subPre(summary, summarySubSize);
-
-        // 先截取
-        result.setSummary(summary);
-        result.setDocKey(String.valueOf(detailsInfoVO.getId()));
+        //summary = StrUtil.subPre(summary, summarySubSize);
 
         handlerResponse.setSuccess(true);
         handlerResponse.setAnswer(summary);
+
+        Response result = new Response();
+        // 先截取
+        result.setDescription(summary);
+        result.setDocId(detailsInfoVO.getId());
         handlerResponse.setOutput(result);
 
-        interactiveInfo.setData(result);
+
+        InteractiveData interactiveData = new InteractiveData();
+
+        interactiveData.setTitle(detailsInfoVO.getName());
+        interactiveData.setContent(summary);
+        interactiveData.setUrl(url);
+        interactiveData.setTime(DateUtil.now());
+
+        List<InteractiveData> dataList = Arrays.asList(interactiveData);
+
+        handlerResponse.setExt(dataList);
+
+        interactiveInfo.setData(dataList);
         interactiveInfo.setTips("分析链接完成");
         context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;
+    }
+
+    /**
+     * 包装为 下午文 文档结构
+     * 默认实现，工具类型返回
+     */
+    @Override
+    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
+
+        //解析返回的内容 生成 MessageContentDocDTO
+        List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();
+
+        MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();
+
+        messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
+
+        messageContentDocDTO.setTime(DateUtil.now());
+        messageContentDocDTO.setTitle(this.getName());
+        messageContentDocDTO.setContent(JsonUtils.toJsonString(handlerResponse.getOutput()));
+
+        messageContentDocDTOList.add(messageContentDocDTO);
+
+        return messageContentDocDTOList;
     }
 
 
@@ -116,9 +158,9 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
     @Data
     public static class Response implements Serializable {
 
-        private String summary;
+        private String description;
 
-        private String docKey;
+        private Long docId;
 
     }
 

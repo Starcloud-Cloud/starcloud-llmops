@@ -45,7 +45,7 @@ public class InteractiveInfo implements Serializable {
 
     private Object input;
 
-    private Object data;
+    private List<?> data;
 
     @JsonIgnore
     @JSONField(serialize = false)
@@ -136,7 +136,6 @@ public class InteractiveInfo implements Serializable {
 
         interactiveInfo.setShowType("text");
         interactiveInfo.setSuccess(true);
-        interactiveInfo.setData(text);
 
         return interactiveInfo;
     }
