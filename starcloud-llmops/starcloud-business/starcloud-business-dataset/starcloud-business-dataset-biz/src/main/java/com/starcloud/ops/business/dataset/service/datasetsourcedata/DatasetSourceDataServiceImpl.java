@@ -152,9 +152,11 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
         if (!result.getStatus()) {
             sourceDataUrlUploadDTO.setStatus(false);
-            sourceDataUrlUploadDTO.setSourceDataId(result.getErrMsg());
+            sourceDataUrlUploadDTO.setSourceDataUid(result.getSourceDataUid());
+            sourceDataUrlUploadDTO.setSourceDataId(result.getSourceDataId());
         } else {
             sourceDataUrlUploadDTO.setStatus(true);
+            sourceDataUrlUploadDTO.setSourceDataUid(result.getSourceDataUid());
             sourceDataUrlUploadDTO.setSourceDataId(result.getSourceDataId());
         }
         return sourceDataUrlUploadDTO;
@@ -201,14 +203,16 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 UploadResult result = executed.get();
                 if (!result.getStatus()) {
                     sourceDataUploadDTO.setStatus(false);
-                    sourceDataUploadDTO.setSourceDataId(result.getErrMsg());
+                    sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
+                    sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
                 } else {
                     sourceDataUploadDTO.setStatus(true);
                     sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
+                    sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
                 }
             } catch (InterruptedException | ExecutionException e) {
                 sourceDataUploadDTO.setStatus(false);
-                sourceDataUploadDTO.setSourceDataId("系统异常");
+                sourceDataUploadDTO.setSourceDataUid("系统异常");
             }
 
             resultDTOs.add(sourceDataUploadDTO);
@@ -263,15 +267,17 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 UploadResult result = executed.get();
                 if (!result.getStatus()) {
                     sourceDataUploadDTO.setStatus(false);
-                    sourceDataUploadDTO.setSourceDataId(result.getErrMsg());
+                    sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
+                    sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
                 } else {
                     sourceDataUploadDTO.setStatus(true);
+                    sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
                     sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
                 }
 
             } catch (InterruptedException | ExecutionException e) {
                 sourceDataUploadDTO.setStatus(false);
-                sourceDataUploadDTO.setSourceDataId("系统异常");
+                sourceDataUploadDTO.setSourceDataUid("系统异常");
             }
 
             resultDTOs.add(sourceDataUploadDTO);

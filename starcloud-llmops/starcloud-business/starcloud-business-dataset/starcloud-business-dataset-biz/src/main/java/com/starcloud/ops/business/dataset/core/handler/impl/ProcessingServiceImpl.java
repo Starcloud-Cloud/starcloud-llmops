@@ -181,7 +181,8 @@ public class ProcessingServiceImpl implements ProcessingService {
         }
         log.info("====> 返回数据上传信息");
 
-        uploadResult.setSourceDataId(sourceDataDO.getUid());
+        uploadResult.setSourceDataId(sourceDataDO.getId());
+        uploadResult.setSourceDataUid(sourceDataDO.getUid());
 
         return uploadResult;
     }

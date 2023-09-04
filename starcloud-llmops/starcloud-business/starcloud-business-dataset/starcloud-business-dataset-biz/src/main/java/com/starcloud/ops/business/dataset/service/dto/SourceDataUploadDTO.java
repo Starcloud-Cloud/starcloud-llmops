@@ -4,25 +4,28 @@ import lombok.Data;
 
 /**
  *
- *
  */
 @Data
 public class SourceDataUploadDTO {
 
     /**
+     * 源数据 主键ID
+     */
+    private Long sourceDataId;
+
+    /**
+     * 源数据 UID
+     */
+    private String sourceDataUid;
+
+    /**
      * 应用 ID
      */
     private String appId;
-
-    /**
-     * 源数据 ID
-     */
-    private String sourceDataId;
     /**
      * 批次
      */
     private String batch;
-
 
     /**
      * 状态
@@ -30,7 +33,7 @@ public class SourceDataUploadDTO {
     private Boolean status;
 
     /**
-     * 状态
+     * 错误信息
      */
     private String errMsg;
 
