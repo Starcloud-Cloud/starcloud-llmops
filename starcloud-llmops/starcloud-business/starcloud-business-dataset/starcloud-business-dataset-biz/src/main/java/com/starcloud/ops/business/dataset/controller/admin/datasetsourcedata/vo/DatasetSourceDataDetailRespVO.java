@@ -2,6 +2,8 @@ package com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo
 
 import com.starcloud.ops.business.dataset.controller.admin.datasethandlerules.vo.DatasetHandleRulesRespVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageBaseVO;
+import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,5 +35,16 @@ public class DatasetSourceDataDetailRespVO extends DatasetSourceDataBaseRespVO {
     @NotNull(message = "存储信息不能为空")
     private DatasetStorageBaseVO storageVO;
 
+    @Schema(description = "存储地址", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String initAddress;
 
+    public String getInitAddress() {
+        if (this.getStatus() >= DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus()) {
+            if (this.getDataType().equals(DataSourceDataTypeEnum.HTML.name())) {
+                return this.getDataSourceInfo().getInitAddress();
+            }
+            return storageVO.getStorageKey();
+        }
+        return null;
+    }
 }

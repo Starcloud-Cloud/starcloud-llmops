@@ -58,11 +58,11 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     /**
      * 数据模型（0-问答，1-文档）
      */
-    private  Integer dataModel;
+    private Integer dataModel;
     /**
      * 数据源类型 文档 HTML 字符串
      */
-    private  String dataType;
+    private String dataType;
     /**
      * 数据集处理规则ID
      */
@@ -81,6 +81,12 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      * 总结
      */
     private String summary;
+
+    /**
+     * 总结状态
+     */
+    private String summaryStatus;
+
 
     /**
      * 总结
@@ -132,9 +138,14 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      */
     private LocalDateTime completedAt;
     /**
+     * 错误代码
+     */
+    private String errorCode;
+    /**
      * 错误信息
      */
     private String errorMessage;
+
     /**
      * 停止时间
      */
@@ -185,7 +196,6 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     private LocalDateTime archivedTime;
     /**
      * 状态
-     *
      */
     private Integer status;
 

@@ -20,7 +20,7 @@ public interface ErrorCodeConstants {
     ErrorCode DATASETS_ERROR_REPEAT = new ErrorCode(2007001003, "数据集编号为{},数据异常");
 
     ErrorCode DATASETS_EMBEDDING_ERROR = new ErrorCode(2007001004, "embedding索引异常");
-    ErrorCode DATASETS_NOT_EXIST_ERROR = new ErrorCode(2007001005, "dataset不存在");
+    ErrorCode DATASETS_NOT_EXIST_ERROR = new ErrorCode(2007001005, "知识库不存在");
     ErrorCode FILE_TYPE_NOT_ALLOW = new ErrorCode(2007001006, "文件类型不支持");
 
     ErrorCode DATASETS_APPID_NOT_EXISTS = new ErrorCode(2007001007, "该应用下的知识库不存在");
@@ -55,10 +55,14 @@ public interface ErrorCodeConstants {
     ErrorCode SOURCE_DATA_UPLOAD_URL_EMPTY = new ErrorCode(2007004001, "上传失败，HTML 列表为空");
     ErrorCode SOURCE_DATA_UPLOAD_STRING_EMPTY = new ErrorCode(2007004002, "上传失败，字符串 列表为空");
     ErrorCode SOURCE_DATA_UPLOAD_FILE_EMPTY = new ErrorCode(2007004003, "上传失败，文件 列表为空");
-    ErrorCode SOURCE_DATA_UPLOAD_SPLIT_RULE_EMPTY = new ErrorCode(2007004002, "上传失败，分割规则不可以为空");
-    ErrorCode SOURCE_DATA_UPLOAD_DATASET_NO_EXIST = new ErrorCode(2007004002, "上传失败，数据集不存在");
+    ErrorCode SOURCE_DATA_UPLOAD_SPLIT_RULE_EMPTY = new ErrorCode(2007004004, "上传失败，分割规则不可以为空");
 
-    //======================================数据集源数据上传======================================
+    ErrorCode SOURCE_DATA_UPLOAD_FAIL= new ErrorCode(2007004005, " 网页上传到服务器失败，请联系管理员");
+    ErrorCode SOURCE_DATA_UPLOAD_URL_FAIL_INACCESSIBLE = new ErrorCode(2007004006, " 网页获取失败，该网页无法访问");
+
+
+
+    //======================================数据集预处理规则上传======================================
     ErrorCode DATASET_HANDLE_SYS_RULE_NO_EXISTS = new ErrorCode(2007005000, "系统预处理规则不存在，请联系管理员");
     ErrorCode DATASET_HANDLE_RULE_EXISTS = new ErrorCode(2007005001, "知识库预处理规则不存在");
 

@@ -116,7 +116,7 @@ public interface DatasetSourceDataService {
      *
      * @param uid 数据集源数据编号
      */
-    void updateStatusById(Long uid, Integer status, String message);
+    void updateStatusById(Long uid, Integer status, Integer errorCode, String message);
 
     /**
      * 更新数据集状态
@@ -127,12 +127,20 @@ public interface DatasetSourceDataService {
 
 
     /**
-     * 获取数据源详情
+     * 通过编号获取数据源详情
      *
      * @param uid    数据集源数据编号
      * @param enable 如果 enable 为 true 则详情内容默认为清洗后的数据
      */
-    DatasetSourceDataDetailsInfoVO getSourceDataListData(String uid, Boolean enable);
+    DatasetSourceDataDetailsInfoVO getSourceDataByUid(String uid, Boolean enable);
+
+    /**
+     * 获取主键 ID数据源详情
+     *
+     * @param id    数据集源数据编号
+     * @param enable 如果 enable 为 true 则详情内容默认为清洗后的数据
+     */
+    DatasetSourceDataDetailsInfoVO getSourceDataById(Long id, Boolean enable);
 
     /**
      * 获取数据源基础信息 集合

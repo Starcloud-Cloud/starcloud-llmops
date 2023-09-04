@@ -58,6 +58,8 @@ public class MessageContentDocMemory {
         List<MessageContentDocDTO> history = this.convertMessageContentDoc(sourceDataBasicInfoVOS);
         this.history = new MessageContentDocHistory(history);
 
+        log.info("MessageContentDocMemory init: {}", JsonUtils.toJsonString(history));
+
     }
 
     public Boolean hasHistory() {
@@ -139,6 +141,16 @@ public class MessageContentDocMemory {
             this.getHistory().addDoc(doc);
         });
 
+    }
+
+
+    /**
+     * 查询加载历史
+     * 1，主要查询出之前对话中 文档的总结信息（因为总结是异步的）
+     */
+    public MessageContentDocHistory reloadHistory() {
+
+        return this.getHistory();
     }
 
 

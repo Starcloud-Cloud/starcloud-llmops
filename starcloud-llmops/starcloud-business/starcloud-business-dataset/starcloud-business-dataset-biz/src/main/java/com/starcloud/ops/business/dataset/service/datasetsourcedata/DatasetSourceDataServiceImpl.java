@@ -2,6 +2,7 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.common.context.UserContextHolder;
@@ -414,7 +415,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @TenantIgnore
     @Override
-    public DatasetSourceDataDetailsInfoVO getSourceDataListData(String uid, Boolean enable) {
+    public DatasetSourceDataDetailsInfoVO getSourceDataByUid(String uid, Boolean enable) {
 
         DatasetSourceDataDO sourceDataDO = datasetSourceDataMapper.selectOne(
                 Wrappers.lambdaQuery(DatasetSourceDataDO.class)
@@ -423,6 +424,33 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         if (sourceDataDO == null) {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
+        return getSourceData(sourceDataDO, enable);
+    }
+
+    /**
+     * 获取数据源详情
+     *
+     * @param id 数据集源数据编号
+     */
+    @TenantIgnore
+    @Override
+    public DatasetSourceDataDetailsInfoVO getSourceDataById(Long id, Boolean enable) {
+
+        DatasetSourceDataDO sourceDataDO = datasetSourceDataMapper.selectById(id);
+        if (sourceDataDO == null) {
+            throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
+        }
+        return getSourceData(sourceDataDO, enable);
+    }
+
+    /**
+     * 根据 DO 获取指定数据
+     *
+     * @param sourceDataDO
+     * @param enable
+     * @return
+     */
+    private DatasetSourceDataDetailsInfoVO getSourceData(DatasetSourceDataDO sourceDataDO, Boolean enable) {
 
         DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
 
@@ -452,8 +480,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 datasetSourceDataDetailsInfoVO.setCleanContent(cleanDatasetDO.getStorageKey());
             }
         }
-
-
         return datasetSourceDataDetailsInfoVO;
     }
 
@@ -596,6 +622,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         this.validateSessionDatasets(reqVO.getAppId(), reqVO.getSessionId());
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.DOCUMENT.name());
+        if (StrUtil.isBlank(reqVO.getBatch())) {
+            reqVO.setBatch(IdUtil.fastUUID());
+        }
         return this.uploadFilesSourceData(reqVO);
     }
 
@@ -610,6 +639,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         this.validateSessionDatasets(reqVO.getAppId(), reqVO.getSessionId());
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.HTML.name());
+        if (StrUtil.isBlank(reqVO.getBatch())) {
+            reqVO.setBatch(IdUtil.fastUUID());
+        }
         return this.uploadUrlsSourceData(reqVO);
     }
 
@@ -624,6 +656,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         this.validateSessionDatasets(reqVOS.getAppId(), reqVOS.getSessionId());
         reqVOS.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVOS.setDataType(DataSourceDataTypeEnum.CHARACTERS.name());
+        if (StrUtil.isBlank(reqVOS.getBatch())) {
+            reqVOS.setBatch(IdUtil.fastUUID());
+        }
         return this.uploadCharactersSourceData(reqVOS);
     }
 
@@ -707,11 +742,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @param status 数据状态
      */
     @Override
-    public void updateStatusById(Long id, Integer status, String message) {
+    public void updateStatusById(Long id, Integer status, Integer errorCode, String message) {
         // 更新数据
         LambdaUpdateWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaUpdate(DatasetSourceDataDO.class);
         wrapper.eq(DatasetSourceDataDO::getId, id);
         wrapper.set(DatasetSourceDataDO::getStatus, status);
+        wrapper.set(StrUtil.isNotBlank(message) && errorCode > 0, DatasetSourceDataDO::getErrorCode, errorCode);
         wrapper.set(StrUtil.isNotBlank(message), DatasetSourceDataDO::getErrorMessage, message);
         datasetSourceDataMapper.update(null, wrapper);
     }

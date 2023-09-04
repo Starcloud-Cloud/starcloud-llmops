@@ -52,7 +52,7 @@ public abstract class AbstractDataProcessor<T extends DatasetSourceSendMessage> 
     protected abstract void processBusinessLogic(DatasetSourceSendMessage message);
 
     protected void updateDataState(DatasetSourceSendMessage message) {
-        datasetSourceDataService.updateStatusById(message.getDataSourceId(), message.getStatus(), message.getErrMsg());
+        datasetSourceDataService.updateStatusById(message.getDataSourceId(), message.getStatus(),message.getErrCode(), message.getErrMsg());
     }
 
     protected abstract void sendMessage(DatasetSourceSendMessage message);

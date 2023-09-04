@@ -37,6 +37,9 @@ public class DatasetSourceDataDetailsInfoVO {
     @Schema(description = "总结内容")
     private String summary;
 
+    @Schema(description = "总结状态")
+    private Boolean summaryStatus;
+
     @Schema(description = "批次")
     @NotNull(message = "批次不能为空")
     private String batch;

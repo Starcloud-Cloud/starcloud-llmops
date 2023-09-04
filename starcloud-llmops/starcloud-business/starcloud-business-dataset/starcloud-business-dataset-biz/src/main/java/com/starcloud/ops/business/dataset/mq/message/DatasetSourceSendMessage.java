@@ -40,6 +40,9 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
     @NotNull(message = "数据状态")
     private Integer status;
 
+    @NotNull(message = "错误代码")
+    private Integer errCode;
+
     @NotNull(message = "错误信息")
     private String errMsg;
 

@@ -1,10 +1,14 @@
 package com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo;
 
+import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
@@ -28,9 +32,17 @@ public class DatasetSourceDataBaseRespVO {
     @Schema(description = "描述")
     private String description;
 
+    /**
+     * 数据模型
+     * {@link DataSourceDataModelEnum}
+     */
     @Schema(description = "数据模型")
     private String dataModel;
 
+    /**
+     * 数据类型
+     * {@link DataSourceDataTypeEnum}
+     */
     @Schema(description = "数据类型")
     private String dataType;
 
@@ -49,12 +61,19 @@ public class DatasetSourceDataBaseRespVO {
     @Schema(description = "总结内容")
     private String summary;
 
+    @Schema(description = "总结状态")
+    private Boolean summaryStatus;
+
     @Schema(description = "字符数")
     private Long wordCount;
 
     @Schema(description = "数据扩展信息")
     private DataSourceInfoDTO dataSourceInfo;
 
+    /**
+     * 状态
+     * {@link DataSetSourceDataStatusEnum}
+     */
     @Schema(description = " 状态")
     private Long status;
 
