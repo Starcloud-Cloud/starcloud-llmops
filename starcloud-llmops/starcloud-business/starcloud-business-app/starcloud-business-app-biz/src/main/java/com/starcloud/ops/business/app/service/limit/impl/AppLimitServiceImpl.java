@@ -19,9 +19,9 @@ import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.framework.common.api.dto.BaseStreamResult;
 import com.starcloud.ops.framework.common.api.dto.SortQuery;
 import com.starcloud.ops.framework.common.api.enums.SortType;
-import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RBucket;
@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -284,8 +285,14 @@ public class AppLimitServiceImpl implements AppLimitService {
             // 广告情况
             if (300900006 == exception.getCode()) {
                 String adsMessage = "[ADS_MESSAGE_STAR]" + exception.getMessage() + "[ADS_MESSAGE_DONE]";
-                StreamingSseCallBackHandler callBackHandler = new StreamingSseCallBackHandler(emitter);
-                callBackHandler.onLLMNewToken(adsMessage);
+                BaseStreamResult adsResult = BaseStreamResult.of(Boolean.TRUE, 300900006, adsMessage);
+                try {
+                    emitter.send(adsResult);
+                } catch (IOException e) {
+                    // 其余异常
+                    emitter.completeWithError(exception);
+                    return Boolean.FALSE;
+                }
                 return Boolean.TRUE;
             }
             // 其余异常
