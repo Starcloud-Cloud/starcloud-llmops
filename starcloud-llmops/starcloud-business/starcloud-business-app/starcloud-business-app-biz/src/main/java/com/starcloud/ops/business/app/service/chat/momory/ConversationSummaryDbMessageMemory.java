@@ -99,9 +99,6 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         List<LogAppMessageDO> appMessageList = this.getLogAppMessage();
         this.initMessageHistory(appMessageList);
 
-        //初始化文档历史
-        this.messageContentDocMemory = new MessageContentDocMemory(this);
-
         //总结用模型
         ChatOpenAI chatOpenAi = new ChatOpenAI();
         //16k 去总结
@@ -110,6 +107,13 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         chatOpenAi.setTemperature(0d);
 
         this.setLlm(chatOpenAi);
+    }
+
+    /**
+     * 初始化文档历史
+     */
+    public void initContentDocMemory() {
+        this.messageContentDocMemory = new MessageContentDocMemory(this);
     }
 
     @Override

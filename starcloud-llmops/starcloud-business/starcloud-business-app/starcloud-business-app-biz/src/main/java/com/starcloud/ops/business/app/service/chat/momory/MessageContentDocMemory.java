@@ -149,7 +149,6 @@ public class MessageContentDocMemory {
      */
     private void storageHistory(MessageContentDocDTO doc) {
 
-
         String sourceDataId = "";
 
         try {
@@ -235,18 +234,13 @@ public class MessageContentDocMemory {
 
                         log.info("MessageContentDocMemory uploadCharactersSourceData add: {} {}", doc.getId(), doc.getTitle());
                     }
-
                 }
-
-
             }
 
             //重新查询内容, 可获取到总结
             DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(sourceDataId, true);
-
             //@todo 判断状态 需要封装
             if (detailsInfoVO != null) {
-
                 if (StrUtil.isNotBlank(detailsInfoVO.getSummary())) {
                     //更新下最新的内容
                     doc.setSummary(detailsInfoVO.getSummary());
