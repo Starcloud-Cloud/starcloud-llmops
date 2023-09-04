@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.chat.prompts;
 
 
+import cn.hutool.core.date.DateUtil;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
@@ -31,12 +32,14 @@ public class ChatPrompt extends BasePromptConfig {
 
     private Boolean toolPrompt;
 
-    private String promptV1 = "{ContextPrompt}\n" +
+    private String promptV1 = "System Time: {NowTime}\n" +
+            "{ContextPrompt}\n" +
             "Below is the history of the conversation, please answer after referring to all the requirements.\n\n{HistoryPrompt}" +
             "Human: {input}\n" +
             "AI: \n";
 
-    private String promptVTool = "{ContextPrompt}\n" +
+    private String promptVTool = "System Time: {NowTime}\n" +
+            "{ContextPrompt}\n" +
             "Below is the history of the conversation, please answer after referring to all the requirements.\n\n[History Start]{HistoryPrompt}" +
             "Human: {input}\n" +
             //工具调用历史，只显示一次完整工具调用的历史，不包含用户输入
@@ -138,6 +141,7 @@ public class ChatPrompt extends BasePromptConfig {
             return new PromptTemplate(this.promptV3, variables);
         }
 
+        variables.add(BaseVariable.newString("NowTime", DateUtil.now()));
         variables.add(BaseVariable.newTemplate("ContextPrompt", this.contextPrompt.buildPrompt()));
         variables.add(BaseVariable.newString("HistoryPrompt", this.historyPrompt.buildPromptStr(true)));
         PromptTemplate template;
