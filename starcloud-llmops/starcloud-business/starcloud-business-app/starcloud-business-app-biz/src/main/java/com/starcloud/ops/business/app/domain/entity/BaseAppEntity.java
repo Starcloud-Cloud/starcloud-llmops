@@ -290,7 +290,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public R execute(Q request) {
-        // this.limit();
         // 会话记录
         this.initConversationLog(request);
 
