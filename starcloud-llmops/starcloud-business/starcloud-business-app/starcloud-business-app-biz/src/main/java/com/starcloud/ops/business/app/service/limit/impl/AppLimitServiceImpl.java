@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.limit.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
@@ -94,7 +95,7 @@ public class AppLimitServiceImpl implements AppLimitService {
         }
 
         log.info("应用限流开始：应用UID: {}, 执行场景: {}", request.getAppUid(), request.getFromScene());
-        doSystemLimit(APP_LIMIT_PREFIX, request.getAppUid(), request.getFromScene());
+        doSystemLimit(APP_LIMIT_PREFIX, request);
         log.info("应用限流结束");
     }
 
@@ -129,7 +130,7 @@ public class AppLimitServiceImpl implements AppLimitService {
             throw exception("the from scene is required");
         }
         log.info("应用市场限流开始：应用市场UID: {}, 执行场景: {}", request.getAppUid(), request.getFromScene());
-        doSystemLimit(MARKET_LIMIT_PREFIX, request.getAppUid(), request.getFromScene());
+        doSystemLimit(MARKET_LIMIT_PREFIX, request);
         log.info("应用市场限流结束");
     }
 
@@ -167,7 +168,7 @@ public class AppLimitServiceImpl implements AppLimitService {
             throw exception("the endUser is required");
         }
         log.info("应用发布渠道限流开始：应用渠道媒介ID: {}, 执行场景: {}, 游客ID: {}", request.getMediumUid(), request.getFromScene(), request.getEndUser());
-        doChannelLimit(request.getMediumUid(), request.getFromScene(), request.getEndUser());
+        doChannelLimit(request);
         log.info("应用发布渠道限流结束");
     }
 
@@ -186,15 +187,29 @@ public class AppLimitServiceImpl implements AppLimitService {
     /**
      * 系统默认限流
      *
-     * @param appUid 应用唯一标识
+     * @param keyPrefix key 前缀
+     * @param request   请求数据
      */
-    private void doSystemLimit(String keyPrefix, String appUid, String fromScene) {
+    private void doSystemLimit(String keyPrefix, AppLimitRequest request) {
         List<AppLimitConfigDTO> limitConfigList = appDictionaryService.appSystemLimitConfig();
         String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
         if (StringUtils.isBlank(loginUserId)) {
             throw exception("you may be not login, please try again or contact the administrator");
         }
         for (AppLimitConfigDTO config : limitConfigList) {
+
+            if (CollectionUtil.isNotEmpty(request.getInclude())) {
+                if (!request.getInclude().contains(config.getCode())) {
+                    continue;
+                }
+            }
+
+            if (CollectionUtil.isNotEmpty(request.getExclude())) {
+                if (request.getExclude().contains(config.getCode())) {
+                    continue;
+                }
+            }
+
             // 未开启直接不进行限流
             if (!config.getEnable()) {
                 continue;
@@ -207,16 +222,16 @@ public class AppLimitServiceImpl implements AppLimitService {
                 throw exception("system error, please try again or contact the administrator");
             }
             AppLimitContext context = new AppLimitContext();
-            context.setAppUid(appUid);
-            context.setFromScene(fromScene);
+            context.setAppUid(request.getAppUid());
+            context.setFromScene(request.getFromScene());
             context.setUserId(loginUserId);
             String limitKey;
             if (LimitByEnum.USER.name().equals(config.getLimitBy())) {
-                limitKey = getLimitKey(keyPrefix, appUid, fromScene, loginUserId);
+                limitKey = getLimitKey(keyPrefix, request.getAppUid(), request.getFromScene(), loginUserId);
             } else if (LimitByEnum.ADVERTISING.name().equals(config.getLimitBy())) {
-                limitKey = getLimitKey(ADVERTISING_PREFIX, appUid, fromScene, loginUserId);
+                limitKey = getLimitKey(ADVERTISING_PREFIX, request.getAppUid(), request.getFromScene(), loginUserId);
             } else {
-                limitKey = getLimitKey(keyPrefix, appUid, fromScene);
+                limitKey = getLimitKey(keyPrefix, request.getAppUid(), request.getFromScene());
             }
             log.info("限流：Key值: {} ", limitKey);
             context.setLimitKey(limitKey);
@@ -228,13 +243,11 @@ public class AppLimitServiceImpl implements AppLimitService {
     /**
      * 执行渠道限流
      *
-     * @param mediumUid 媒介UID
-     * @param fromScene 执行场景
-     * @param endUser   游客ID
+     * @param request 请求数据
      */
-    private void doChannelLimit(String mediumUid, String fromScene, String endUser) {
-        AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(mediumUid);
-        AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, mediumUid);
+    private void doChannelLimit(AppLimitRequest request) {
+        AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(request.getMediumUid());
+        AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getMediumUid());
         log.info("应用渠道发布限流: 应用UID: {}, 发布UID: {}，渠道UID: {}, 渠道名称: {}", channel.getAppUid(), channel.getPublishUid(), channel.getAppUid(), channel.getName());
         // 用户配置限流
         List<AppLimitConfigDTO> limitConfigList = this.defaultIfNullPublishLimitList(channel.getAppUid(), channel.getPublishUid(), channel.getUid());
@@ -246,10 +259,23 @@ public class AppLimitServiceImpl implements AppLimitService {
             Optional<AppLimitConfigDTO> optional = limitConfigList.stream().filter(item -> item.getCode().equals(config.getCode())).findAny();
             // 使用渠道限流的配置
             if (optional.isPresent()) {
-                AppLimitContext context = getChannelLimitContext(channel.getAppUid(), fromScene, endUser, optional.get());
+                AppLimitContext context = getChannelLimitContext(channel.getAppUid(), request.getFromScene(), request.getEndUser(), optional.get());
                 doLimit(context);
                 continue;
             }
+
+            if (CollectionUtil.isNotEmpty(request.getInclude())) {
+                if (!request.getInclude().contains(config.getCode())) {
+                    continue;
+                }
+            }
+
+            if (CollectionUtil.isNotEmpty(request.getExclude())) {
+                if (request.getExclude().contains(config.getCode())) {
+                    continue;
+                }
+            }
+
             // 未开启直接不进行限流
             if (!config.getEnable()) {
                 continue;
@@ -261,7 +287,7 @@ public class AppLimitServiceImpl implements AppLimitService {
             if (config.getTimeInterval() == null || config.getTimeInterval() < 1) {
                 throw exception("system error, please try again or contact the administrator");
             }
-            AppLimitContext context = getChannelLimitContext(channel.getAppUid(), fromScene, endUser, config);
+            AppLimitContext context = getChannelLimitContext(channel.getAppUid(), request.getFromScene(), request.getEndUser(), config);
             doLimit(context);
         }
     }

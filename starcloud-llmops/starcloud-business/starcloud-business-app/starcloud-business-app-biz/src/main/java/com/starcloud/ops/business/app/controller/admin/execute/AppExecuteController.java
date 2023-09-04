@@ -19,6 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
 
 /**
  * 应用执行
@@ -52,6 +53,7 @@ public class AppExecuteController {
         executeRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
         // 执行限流
         AppLimitRequest limitRequest = AppLimitRequest.of(executeRequest.getAppUid(), executeRequest.getScene());
+        limitRequest.setExclude(Collections.singletonList("RATE"));
         if (!appLimitService.appLimit(limitRequest, emitter)) {
             return emitter;
         }
