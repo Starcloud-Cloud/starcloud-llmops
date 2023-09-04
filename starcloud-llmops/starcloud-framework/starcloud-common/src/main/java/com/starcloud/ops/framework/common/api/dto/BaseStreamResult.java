@@ -23,6 +23,11 @@ public class BaseStreamResult implements Serializable {
     private static final long serialVersionUID = -8232082960327730897L;
 
     /**
+     * 是否成功
+     */
+    private Boolean success;
+
+    /**
      * 状态吗
      */
     private Integer code;
@@ -39,8 +44,9 @@ public class BaseStreamResult implements Serializable {
      * @param content content
      * @return 结果
      */
-    public static BaseStreamResult of(Integer code, String content) {
+    public static BaseStreamResult of(Boolean success, Integer code, String content) {
         BaseStreamResult result = new BaseStreamResult();
+        result.setSuccess(success);
         result.setCode(code);
         result.setContent(content);
         return result;

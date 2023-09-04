@@ -43,7 +43,7 @@ public class SseEmitterUtil {
         if (isSendReadyMessage) {
             try {
                 message = "Subscribe successfully, about to execute " + message;
-                BaseStreamResult result = BaseStreamResult.of(300900000, message);
+                BaseStreamResult result = BaseStreamResult.of(Boolean.TRUE, 300900000, message);
                 sseEmitter.send(result);
             } catch (IOException e) {
                 sseEmitter.completeWithError(e);
