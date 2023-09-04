@@ -1,18 +1,15 @@
 package com.starcloud.ops.business.app.service.chat.impl;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
-import com.starcloud.ops.business.app.api.chat.config.dto.BaseExpandConfigDTO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigReqVO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.dal.databoject.config.ChatExpandConfigDO;
 import com.starcloud.ops.business.app.dal.mysql.config.ChatExpandConfigMapper;
-import com.starcloud.ops.business.app.enums.config.ChatExpandConfigEnum;
+import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -40,9 +37,9 @@ public class ChatExpandConfigServiceImpl implements ChatExpandConfigService {
 
     @Override
     public String create(ChatExpandConfigReqVO reqVO) {
-        if (StringUtils.isBlank(reqVO.getAppConfigId())) {
-            reqVO.setAppConfigId(IdUtil.fastSimpleUUID());
-        }
+        ChatAppEntity chatAppEntity = AppFactory.factoryChatApp(reqVO.getAppConfigId());
+        chatAppEntity.getChatConfig().setAppConfigId(reqVO.getAppConfigId());
+        chatAppEntity.update();
 
         ChatExpandConfigDO configDO = ChatConfigConvert.INSTANCE.convert(reqVO);
         chatExpandConfigMapper.insert(configDO);
