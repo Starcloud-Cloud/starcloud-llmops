@@ -147,7 +147,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             Long start = System.currentTimeMillis();
             String newLines = BaseMessage.getBufferString(restMessages);
 
-            log.info("start summary history\n {}, {}", newLines, existingSummary);
+            log.info("start summary history\nnewLines:\n{}\n\nexistingSummary:\n{}\n\n", newLines, existingSummary);
 
             BaseLLMResult llmResult = this.predictNewSummary(restMessages, existingSummary);
             Long end = System.currentTimeMillis();
@@ -159,7 +159,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             log.info("success summary history, {} ms", end - start);
             //简单拼接下内容
-            this.createSummaryMessage(llmResult, this.renderPrompt(restMessages, existingSummary));
+            //因为message太长了，只好取上一次的总结内容
+            this.createSummaryMessage(llmResult, existingSummary);
             String summary = llmResult.getText();
             if (StrUtil.isNotBlank(summary)) {
 
