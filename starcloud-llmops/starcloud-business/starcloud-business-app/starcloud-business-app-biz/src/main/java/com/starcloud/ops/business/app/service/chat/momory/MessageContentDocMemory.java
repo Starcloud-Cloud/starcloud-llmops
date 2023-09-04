@@ -168,8 +168,8 @@ public class MessageContentDocMemory {
                 String content = doc.getContent();
                 doc.getExt();
                 doc.getToolName();
-
                 //@todo 需要增加扩展信息，如messageId
+
                 if (MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name().equals(doc.getType())) {
 
                     //上游已经保存过
@@ -245,7 +245,7 @@ public class MessageContentDocMemory {
             DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(sourceDataId, true);
 
             //@todo 判断状态 需要封装
-            if (detailsInfoVO != null && detailsInfoVO.getStatus() == 1) {
+            if (detailsInfoVO != null) {
 
                 if (StrUtil.isNotBlank(detailsInfoVO.getSummary())) {
                     //更新下最新的内容
@@ -254,6 +254,8 @@ public class MessageContentDocMemory {
                     //summary = StrUtil.subPre(summary, 200);
                     doc.setContent(detailsInfoVO.getContent());
                 }
+            } else {
+                log.error("storageHistory is fail, getSourceDataListData is null. sourceDataId: {}", sourceDataId);
             }
 
         } catch (Exception e) {
