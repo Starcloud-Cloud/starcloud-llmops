@@ -66,7 +66,7 @@ public class PromptUtil {
         /**
          * 文档ID
          */
-        private String docId;
+        private Long docId;
 
         /**
          * 文档块ID

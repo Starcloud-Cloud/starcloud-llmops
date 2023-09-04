@@ -88,7 +88,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         }
 
         // 查询内容
-        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataByUid(sourceDataUploadDTO.getSourceDataId(), true);
+        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataById(sourceDataUploadDTO.getSourceDataId(), true);
         String desc = detailsInfoVO.getDescription();
         handlerResponse.setSuccess(true);
 

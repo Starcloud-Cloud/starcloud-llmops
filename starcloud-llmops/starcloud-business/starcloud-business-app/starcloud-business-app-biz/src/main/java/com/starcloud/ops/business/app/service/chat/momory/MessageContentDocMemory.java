@@ -161,7 +161,7 @@ public class MessageContentDocMemory {
      */
     private void storageHistory(MessageContentDocDTO doc) {
 
-        String sourceDataId = "";
+        Long sourceDataId = 0l;
 
         try {
 
@@ -169,7 +169,7 @@ public class MessageContentDocMemory {
             if (doc.getId() != null) {
 
                 //更新状态？
-                sourceDataId = String.valueOf(doc.getId());
+                sourceDataId = doc.getId();
 
                 log.info("MessageContentDocMemory storageHistory update: {} {}", doc.getId(), doc.getTitle());
 
@@ -204,7 +204,7 @@ public class MessageContentDocMemory {
                             throw new RuntimeException("文档记录保存失败");
                         }
 
-                        doc.setId(Long.valueOf(sourceDataUploadDTO.getSourceDataId()));
+                        doc.setId(sourceDataUploadDTO.getSourceDataId());
                         sourceDataId = sourceDataUploadDTO.getSourceDataId();
 
                         log.info("MessageContentDocMemory uploadUrlsSourceData add: {} {}", doc.getId(), doc.getTitle());
@@ -241,7 +241,7 @@ public class MessageContentDocMemory {
                             throw new RuntimeException("文档记录保存失败");
                         }
 
-                        doc.setId(Long.valueOf(sourceDataUploadDTO.getSourceDataId()));
+                        doc.setId(sourceDataUploadDTO.getSourceDataId());
                         sourceDataId = sourceDataUploadDTO.getSourceDataId();
 
                         log.info("MessageContentDocMemory uploadCharactersSourceData add: {} {}", doc.getId(), doc.getTitle());
@@ -250,7 +250,7 @@ public class MessageContentDocMemory {
             }
 
             //重新查询内容, 可获取到总结
-            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(sourceDataId, true);
+            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataById(sourceDataId, true);
             //@todo 判断状态 需要封装
             if (detailsInfoVO != null) {
                 if (StrUtil.isNotBlank(detailsInfoVO.getSummary())) {

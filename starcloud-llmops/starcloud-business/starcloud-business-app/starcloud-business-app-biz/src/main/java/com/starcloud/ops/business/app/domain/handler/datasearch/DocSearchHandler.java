@@ -66,7 +66,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
      * 使用方法
      */
     private String toolInstructions = "1. Enter the search query: Type in the content query you wish to search for in the input box.\n" +
-            "2. Input context document IDs: Provide a collection of known document IDs to assist the tool in understanding your query better.\n";
+            "2. Input context document ID: Provide a known document ID to assist the tool in understanding your query better.\n";
 
 
     /**
@@ -84,7 +84,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
      * 示例输入
      */
     private String exampleInput = "query: \"About Product Features\"\n" +
-            "Document ID collection: [\"doc123\", \"doc456\", \"doc789\"]\n";
+            "Document ID collection: 12\n";
 
 
     /**
@@ -92,7 +92,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
      */
     private String exampleOutput = "[\n" +
             "  {\n" +
-            "    \"docId\": \"doc123\",\n" +
+            "    \"docId\": 12,\n" +
             "    \"blockId\": \"block234\",\n" +
             "    \"position\": 125,\n" +
             "    \"content\": \"This article discusses the product features and advantages.\"\n" +
@@ -123,9 +123,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
 
-
         String query = context.getRequest().getQuery();
-        List<Long> docsId = context.getRequest().getDocsId();
 
         //@todo 通过上下文获取当前可能配置的 tools 执行 tips
         InteractiveInfo interactiveInfo = InteractiveInfo.buildTips("内容搜索中[" + query + "]...").setShowType("docs").setToolHandler(this).setInput(context.getRequest());
@@ -146,7 +144,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
         List<PromptUtil.PromptDocBlock> docBlocks = Optional.ofNullable(records).orElse(new ArrayList<>()).stream().map(recordDTO -> {
 
             PromptUtil.PromptDocBlock promptDocBlock = new PromptUtil.PromptDocBlock();
-            promptDocBlock.setDocId(recordDTO.getDocumentId());
+            promptDocBlock.setDocId(Long.valueOf(recordDTO.getDocumentId()));
             promptDocBlock.setBlockId(recordDTO.getId());
             promptDocBlock.setPosition(recordDTO.getPosition());
             promptDocBlock.setContent(recordDTO.getContent());
@@ -169,7 +167,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
         //数据集，可能只要文档ID即可
         MatchByDocIdRequest matchByDocIdRequest = new MatchByDocIdRequest();
-        matchByDocIdRequest.setDocId(request.getDocsId());
+        matchByDocIdRequest.setDocId(Arrays.asList(request.getDocId()));
         matchByDocIdRequest.setText(request.getQuery());
         matchByDocIdRequest.setK(3L);
 
@@ -191,12 +189,16 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
     public static class Request {
 
         @JsonProperty(required = true)
-        @JsonPropertyDescription("documents id list")
-        private List<Long> docsId;
+        @JsonPropertyDescription("documents id")
+        private Long docId;
 
         @JsonProperty(required = true)
         @JsonPropertyDescription("search documents query")
         private String query;
+
+        @JsonProperty(required = false)
+        @JsonPropertyDescription("Content search or complete content fetching.")
+        private String type;
 
     }
 
