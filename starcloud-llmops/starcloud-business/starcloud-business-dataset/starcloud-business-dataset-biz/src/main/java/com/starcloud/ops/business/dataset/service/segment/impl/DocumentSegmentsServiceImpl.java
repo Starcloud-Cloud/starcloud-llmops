@@ -433,6 +433,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
     @Override
     public MatchQueryVO matchQuery(MatchByDocIdRequest request) {
+        if (CollectionUtils.isEmpty(request.getDocId())) {
+            return MatchQueryVO.builder().queryText(request.getText()).build();
+        }
         List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDocIds(request.getDocId());
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(segmentIds)) {
