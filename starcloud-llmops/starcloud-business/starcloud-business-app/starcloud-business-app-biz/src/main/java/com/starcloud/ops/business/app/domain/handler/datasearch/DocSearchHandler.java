@@ -152,10 +152,9 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
             return promptDocBlock;
 
         }).collect(Collectors.toList());
-
         result.setDocs(docBlocks);
+
         handlerResponse.setSuccess(true);
-        //不在保存到上下文中
         handlerResponse.setOutput(result);
 
         interactiveInfo.setData(docBlocks);

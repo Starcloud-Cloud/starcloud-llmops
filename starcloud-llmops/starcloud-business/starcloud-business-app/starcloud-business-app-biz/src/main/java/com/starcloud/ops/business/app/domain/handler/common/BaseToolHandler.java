@@ -120,7 +120,7 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
 
         messageContentDocDTO.setTime(DateUtil.now());
         messageContentDocDTO.setTitle(this.getName());
-        messageContentDocDTO.setContent(JsonUtils.toJsonString(handlerResponse.getOutput()));
+        messageContentDocDTO.setContent(handlerResponse.getAnswer());
 
         messageContentDocDTOList.add(messageContentDocDTO);
 

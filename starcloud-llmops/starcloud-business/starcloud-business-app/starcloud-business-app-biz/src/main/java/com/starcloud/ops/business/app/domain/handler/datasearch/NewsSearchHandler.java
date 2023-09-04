@@ -82,10 +82,9 @@ public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Reque
         }).collect(Collectors.toList());
 
         handlerResponse.setOutput(new SearchEngineHandler.Response(dataList));
-
         handlerResponse.setExt(dataList);
-        interactiveInfo.setData(dataList);
 
+        interactiveInfo.setData(dataList);
         interactiveInfo.setTips("查询完成");
         context.sendCallbackInteractiveEnd(interactiveInfo);
 

@@ -78,7 +78,6 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
         handlerResponse.setExt(dataList);
 
         interactiveInfo.setData(dataList);
-
         interactiveInfo.setTips("查询完成");
 
         context.sendCallbackInteractiveEnd(interactiveInfo);
