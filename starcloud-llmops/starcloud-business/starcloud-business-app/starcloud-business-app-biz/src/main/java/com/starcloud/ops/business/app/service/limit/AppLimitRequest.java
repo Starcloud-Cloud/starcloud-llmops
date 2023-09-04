@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -25,11 +23,6 @@ import java.util.List;
 public class AppLimitRequest implements Serializable {
 
     private static final long serialVersionUID = 2345561400654818438L;
-
-    /**
-     * 默认排除限流规则
-     */
-    private static final List<String> DEFAULT_EXCLUDE = Arrays.asList("BASE_GENERATE_IMAGE_LIMIT", "GENERATE_TEXT", "GENERATE_ARTICLE_LIMIT", "CHAT_ROBOT");
 
     /**
      * 应用唯一标识
@@ -54,19 +47,6 @@ public class AppLimitRequest implements Serializable {
      */
     @Schema(description = "执行场景")
     private String fromScene;
-
-    /**
-     * 包含的限流规则，如果配置，则只会执行包含的限流规则
-     */
-    @Schema(description = "包含的限流规则")
-    private List<String> include;
-
-    /**
-     * include 和 exclude 配置相同的 key 的话，exclude 生效 需要排除的限流规则
-     */
-    @Schema(description = "需要排除的限流规则")
-    private List<String> exclude = DEFAULT_EXCLUDE;
-
 
     /**
      * 获取请求数据

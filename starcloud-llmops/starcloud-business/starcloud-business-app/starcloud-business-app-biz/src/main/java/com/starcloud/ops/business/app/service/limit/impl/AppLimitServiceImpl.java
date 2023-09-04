@@ -198,18 +198,6 @@ public class AppLimitServiceImpl implements AppLimitService {
         }
         for (AppLimitConfigDTO config : limitConfigList) {
 
-            if (CollectionUtil.isNotEmpty(request.getInclude())) {
-                if (!request.getInclude().contains(config.getCode())) {
-                    continue;
-                }
-            }
-
-            if (CollectionUtil.isNotEmpty(request.getExclude())) {
-                if (request.getExclude().contains(config.getCode())) {
-                    continue;
-                }
-            }
-
             // 未开启直接不进行限流
             if (!config.getEnable()) {
                 continue;
@@ -264,18 +252,6 @@ public class AppLimitServiceImpl implements AppLimitService {
                 continue;
             }
 
-            if (CollectionUtil.isNotEmpty(request.getInclude())) {
-                if (!request.getInclude().contains(config.getCode())) {
-                    continue;
-                }
-            }
-
-            if (CollectionUtil.isNotEmpty(request.getExclude())) {
-                if (request.getExclude().contains(config.getCode())) {
-                    continue;
-                }
-            }
-
             // 未开启直接不进行限流
             if (!config.getEnable()) {
                 continue;
@@ -310,8 +286,8 @@ public class AppLimitServiceImpl implements AppLimitService {
         } catch (AppLimitException exception) {
             // 广告情况
             if (300900006 == exception.getCode()) {
-                String adsMessage = "[ADS_MESSAGE_STAR]" + exception.getMessage() + "[ADS_MESSAGE_DONE]";
-                BaseStreamResult adsResult = BaseStreamResult.of(Boolean.TRUE, 300900006, adsMessage);
+                BaseStreamResult adsResult = BaseStreamResult.of(Boolean.TRUE, 200, exception.getMessage());
+                adsResult.setType("ads-msg");
                 try {
                     emitter.send(adsResult);
                 } catch (IOException e) {
@@ -563,7 +539,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @return 限流异常
      */
     private static AppLimitException exception(String message) {
-        return AppLimitException.exception(300900002, message);
+        return AppLimitException.exception(500, message);
     }
 
     /**

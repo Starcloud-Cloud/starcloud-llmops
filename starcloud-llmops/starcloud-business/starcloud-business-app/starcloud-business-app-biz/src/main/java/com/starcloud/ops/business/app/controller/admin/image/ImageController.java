@@ -64,7 +64,6 @@ public class ImageController {
     public CommonResult<ImageMessageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
         // 执行限流
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_IMAGE.name() : request.getScene());
-        limitRequest.setExclude(Collections.singletonList("RATE"));
         appLimitService.appLimit(limitRequest);
         return CommonResult.success(imageService.generateImage(request));
     }
