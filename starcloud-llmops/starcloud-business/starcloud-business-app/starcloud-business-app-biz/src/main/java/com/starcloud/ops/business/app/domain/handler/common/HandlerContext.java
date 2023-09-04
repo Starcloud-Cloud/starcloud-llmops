@@ -94,7 +94,7 @@ public class HandlerContext<Q> {
             current.setErrorMsg(error);
             this.sendCallbackInteractiveEnd(current);
 
-            log.info("BaseHandler {} execute sendCallbackInteractiveEnd: {}", this.getClass().getSimpleName(), JSONUtil.toJsonStr(current));
+            log.info("BaseHandler {} execute sendCallbackInteractiveEnd: {}", this.getClass().getSimpleName(), JsonUtils.toJsonString(current));
         }
 
     }
@@ -118,7 +118,7 @@ public class HandlerContext<Q> {
                     .messageUid(this.getMessageUid())
                     .build();
 
-            log.info("sendCallbackInteractive: {}", interactiveInfo);
+            log.info("sendCallbackInteractive: {}", JsonUtils.toJsonString(interactiveInfo));
 
             this.getSseEmitter().send(result);
         }

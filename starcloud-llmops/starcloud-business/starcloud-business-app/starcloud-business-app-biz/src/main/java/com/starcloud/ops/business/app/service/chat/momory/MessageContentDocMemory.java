@@ -165,6 +165,10 @@ public class MessageContentDocMemory {
 
         try {
 
+            String appUid = this.messageMemory.getChatRequestVO().getAppUid();
+            String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
+
+
             //之前用过文档存储，如联网功能
             if (doc.getId() != null) {
 
@@ -190,6 +194,8 @@ public class MessageContentDocMemory {
                     uploadUrlReqVO.setCleanSync(true);
                     uploadUrlReqVO.setSplitSync(false);
                     uploadUrlReqVO.setIndexSync(false);
+                    uploadUrlReqVO.setAppId(appUid);
+                    uploadUrlReqVO.setSessionId(conversationUid);
 
                     uploadUrlReqVO.setUrls(Arrays.asList(doc.getUrl()));
 
@@ -225,6 +231,8 @@ public class MessageContentDocMemory {
                     characterReqVO.setCleanSync(true);
                     characterReqVO.setSplitSync(false);
                     characterReqVO.setIndexSync(false);
+                    characterReqVO.setAppId(appUid);
+                    characterReqVO.setSessionId(conversationUid);
 
                     //@todo 增加扩展字段
 
