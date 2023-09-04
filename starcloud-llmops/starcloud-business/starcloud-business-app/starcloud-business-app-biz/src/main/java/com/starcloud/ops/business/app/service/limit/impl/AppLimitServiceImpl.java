@@ -102,10 +102,11 @@ public class AppLimitServiceImpl implements AppLimitService {
      *
      * @param request 请求数据
      * @param emitter sse
+     * @return true 通过限流，false 未通过限流
      */
     @Override
-    public void appLimit(AppLimitRequest request, SseEmitter emitter) {
-        this.doLimitSse(request, emitter, this::appLimit);
+    public boolean appLimit(AppLimitRequest request, SseEmitter emitter) {
+        return this.doLimitSse(request, emitter, this::appLimit);
     }
 
     /**
@@ -136,10 +137,11 @@ public class AppLimitServiceImpl implements AppLimitService {
      *
      * @param request 请求数据
      * @param emitter sse
+     * @return true 通过限流，false 未通过限流
      */
     @Override
-    public void marketLimit(AppLimitRequest request, SseEmitter emitter) {
-        this.doLimitSse(request, emitter, this::marketLimit);
+    public boolean marketLimit(AppLimitRequest request, SseEmitter emitter) {
+        return this.doLimitSse(request, emitter, this::marketLimit);
     }
 
     /**
@@ -173,10 +175,11 @@ public class AppLimitServiceImpl implements AppLimitService {
      *
      * @param request 请求数据
      * @param emitter sse
+     * @return true 通过限流，false 未通过限流
      */
     @Override
-    public void channelLimit(AppLimitRequest request, SseEmitter emitter) {
-        this.doLimitSse(request, emitter, this::channelLimit);
+    public boolean channelLimit(AppLimitRequest request, SseEmitter emitter) {
+        return this.doLimitSse(request, emitter, this::channelLimit);
     }
 
     /**
@@ -268,25 +271,29 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param request  请求
      * @param emitter  sse
      * @param consumer 限流执行器
+     * @return true 通过限流，false 未通过限流
      */
-    private void doLimitSse(AppLimitRequest request, SseEmitter emitter, Consumer<AppLimitRequest> consumer) {
+    private boolean doLimitSse(AppLimitRequest request, SseEmitter emitter, Consumer<AppLimitRequest> consumer) {
         if (Objects.isNull(emitter)) {
             throw exception("system error, please try again or contact the administrator");
         }
         try {
             consumer.accept(request);
+            return Boolean.TRUE;
         } catch (AppLimitException exception) {
             // 广告情况
             if (300900006 == exception.getCode()) {
                 String adsMessage = "[ADS_MESSAGE_STAR]" + exception.getMessage() + "[ADS_MESSAGE_DONE]";
                 StreamingSseCallBackHandler callBackHandler = new StreamingSseCallBackHandler(emitter);
                 callBackHandler.onLLMNewToken(adsMessage);
-                return;
+                return Boolean.TRUE;
             }
             // 其余异常
             emitter.completeWithError(exception);
+            return Boolean.FALSE;
         } catch (Exception exception) {
             emitter.completeWithError(exception);
+            return Boolean.FALSE;
         }
     }
 
