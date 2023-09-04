@@ -25,10 +25,7 @@ import com.starcloud.ops.business.dataset.dal.mysql.segment.SegmentsEmbeddingsDO
 import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
-import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
-import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
-import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
-import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
+import com.starcloud.ops.business.dataset.pojo.request.*;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
@@ -416,6 +413,27 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.error("matchQuery.getDatasets is fail: {}", e.getMessage(), e);
         }
 
+        List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(segmentIds)) {
+            return MatchQueryVO.builder().queryText(request.getText()).build();
+        }
+        EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
+        KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().segmentIds(segmentIds).k(request.getK()).build();
+        List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
+        List<RecordDTO> recordDTOS = new ArrayList<>(knnQueryHitList.size());
+        Map<String, DocumentSegmentDO> segmentDOMap = segmentDOS.stream().collect(Collectors.toMap(DocumentSegmentDO::getId, Function.identity(), (a, b) -> b));
+        for (KnnQueryHit knnQueryHit : knnQueryHitList) {
+            String segmentId = knnQueryHit.getDocument().getSegmentId();
+            RecordDTO recordDTO = DocumentSegmentConvert.INSTANCE.segmentDo2Record(segmentDOMap.get(segmentId)).setScore(knnQueryHit.getScore());
+            recordDTOS.add(recordDTO);
+        }
+        return MatchQueryVO.builder().records(recordDTOS).queryText(request.getText()).build();
+    }
+
+
+    @Override
+    public MatchQueryVO matchQuery(MatchByDocIdRequest request) {
+        List<DocumentSegmentDO> segmentDOS = segmentMapper.selectByDocIds(request.getDocId());
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(segmentIds)) {
             return MatchQueryVO.builder().queryText(request.getText()).build();

@@ -17,7 +17,15 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
     default List<DocumentSegmentDO> selectByDatasetIds(List<String> datasetIds) {
         LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDeleted, false)
-                .in(DocumentSegmentDO::getDatasetId,datasetIds)
+                .in(DocumentSegmentDO::getDatasetId, datasetIds)
+                .orderByAsc(DocumentSegmentDO::getCreateTime);
+        return this.selectList(queryWrapper);
+    }
+
+
+    default List<DocumentSegmentDO> selectByDocIds(List<Long> docIds) {
+        LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
+                .in(DocumentSegmentDO::getDocumentId, docIds)
                 .orderByAsc(DocumentSegmentDO::getCreateTime);
         return this.selectList(queryWrapper);
     }
@@ -25,42 +33,41 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
     default List<DocumentSegmentDO> selectByDocId(String DocumentId) {
         LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDeleted, false)
-                .eq(DocumentSegmentDO::getDocumentId,DocumentId)
+                .eq(DocumentSegmentDO::getDocumentId, DocumentId)
                 .orderByAsc(DocumentSegmentDO::getCreateTime);
         return this.selectList(queryWrapper);
     }
 
-    default int updateStatus(String documentId,String status) {
+    default int updateStatus(String documentId, String status) {
         LambdaUpdateWrapper<DocumentSegmentDO> updateWrapper = Wrappers.lambdaUpdate(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDocumentId, documentId)
-                .set(DocumentSegmentDO::getStatus,status);
-        return this.update(null,updateWrapper);
+                .set(DocumentSegmentDO::getStatus, status);
+        return this.update(null, updateWrapper);
     }
 
-    default List<DocumentSegmentDO> segmentDetail(String datasetId,boolean disable, String docId, int lastPosition) {
+    default List<DocumentSegmentDO> segmentDetail(String datasetId, boolean disable, String docId, int lastPosition) {
         LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDeleted, false)
                 .eq(DocumentSegmentDO::getDisabled, disable)
-                .eq(DocumentSegmentDO::getDocumentId,docId)
+                .eq(DocumentSegmentDO::getDocumentId, docId)
                 .eq(DocumentSegmentDO::getDatasetId, datasetId)
-                .gt(DocumentSegmentDO::getPosition,lastPosition);
+                .gt(DocumentSegmentDO::getPosition, lastPosition);
         return this.selectList(queryWrapper);
     }
 
-    default int updateEnable(String datasetId, String segmentId, boolean enable){
+    default int updateEnable(String datasetId, String segmentId, boolean enable) {
         LambdaUpdateWrapper<DocumentSegmentDO> updateWrapper = Wrappers.lambdaUpdate(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDocumentId, datasetId)
-                .eq(DocumentSegmentDO::getId,segmentId)
-                .set(DocumentSegmentDO::getDisabled,!enable);
-        return this.update(null,updateWrapper);
+                .eq(DocumentSegmentDO::getId, segmentId)
+                .set(DocumentSegmentDO::getDisabled, !enable);
+        return this.update(null, updateWrapper);
     }
 
     default PageResult<DocumentSegmentDO> page(SegmentPageQuery segmentPageQuery) {
         LambdaQueryWrapper<DocumentSegmentDO> queryWrapper = Wrappers.lambdaQuery(DocumentSegmentDO.class)
-                .eq(DocumentSegmentDO::getDatasetId,segmentPageQuery.getDatasetUid())
-                .eq(DocumentSegmentDO::getDocumentId,segmentPageQuery.getDocumentUid())
-                .orderByAsc(DocumentSegmentDO::getPosition)
-                ;
+                .eq(DocumentSegmentDO::getDatasetId, segmentPageQuery.getDatasetUid())
+                .eq(DocumentSegmentDO::getDocumentId, segmentPageQuery.getDocumentUid())
+                .orderByAsc(DocumentSegmentDO::getPosition);
 
         return selectPage(segmentPageQuery, queryWrapper);
     }
@@ -68,8 +75,8 @@ public interface DocumentSegmentMapper extends BaseMapperX<DocumentSegmentDO> {
     default int deleteSegment(String datasetId, String documentId) {
         LambdaUpdateWrapper<DocumentSegmentDO> deleteWrapper = Wrappers.lambdaUpdate(DocumentSegmentDO.class)
                 .eq(DocumentSegmentDO::getDatasetId, datasetId)
-                .eq(DocumentSegmentDO::getDocumentId,documentId)
-                .set(DocumentSegmentDO::getDeleted,true);
-        return this.update(null,deleteWrapper);
+                .eq(DocumentSegmentDO::getDocumentId, documentId)
+                .set(DocumentSegmentDO::getDeleted, true);
+        return this.update(null, deleteWrapper);
     }
 }
