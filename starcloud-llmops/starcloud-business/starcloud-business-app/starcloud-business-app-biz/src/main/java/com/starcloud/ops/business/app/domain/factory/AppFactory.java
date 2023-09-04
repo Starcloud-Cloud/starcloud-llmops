@@ -29,8 +29,6 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppConsts;
-import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
-import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -66,11 +64,6 @@ public class AppFactory {
     private static AppPublishRepository appPublishRepository = SpringUtil.getBean(AppPublishRepository.class);
 
     /**
-     * 应用限流服务
-     */
-    private static AppLimitService appLimitService = SpringUtil.getBean(AppLimitService.class);
-
-    /**
      * 获取 执行实体
      *
      * @param request 请求参数
@@ -89,12 +82,10 @@ public class AppFactory {
             // 应用市场场景
             if (AppSceneEnum.WEB_MARKET.name().equals(request.getScene()) || AppSceneEnum.OPTIMIZE_PROMPT.name().equals(request.getScene())) {
                 AppMarketEntity market = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(appId) : AppFactory.factoryMarket(appId, request.getAppReqVO());
-                appLimitService.marketLimit(AppLimitRequest.of(market.getUid(), request.getScene()), request.getSseEmitter());
                 return market;
                 // 应用创作中心
             } else if (AppSceneEnum.WEB_ADMIN.name().equals(request.getScene())) {
                 AppEntity appEntity = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(appId) : AppFactory.factoryApp(appId, request.getAppReqVO());
-                appLimitService.appLimit(AppLimitRequest.of(appEntity.getUid(), request.getScene()), request.getSseEmitter());
                 return appEntity;
             }
         }
@@ -103,7 +94,6 @@ public class AppFactory {
         if (StringUtils.isNotBlank(request.getMediumUid())) {
             String mediumId = request.getMediumUid();
             AppEntity appEntity = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryShareApp(mediumId) : AppFactory.factoryShareApp(mediumId, request.getAppReqVO());
-            appLimitService.channelLimit(AppLimitRequest.of(mediumId, request.getScene(), request.getEndUser()), request.getSseEmitter());
             return appEntity;
         }
 
@@ -119,21 +109,18 @@ public class AppFactory {
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
 
         if (AppSceneEnum.CHAT_MARKET.name().equalsIgnoreCase(chatRequest.getScene())) {
-            appLimitService.marketLimit(AppLimitRequest.of(chatRequest.getAppUid(), chatRequest.getScene()), chatRequest.getSseEmitter());
             AppMarketEntity appMarketEntity = AppFactory.factoryMarket(chatRequest.getAppUid());
             return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
         }
 
         if (AppSceneEnum.CHAT_TEST.name().equalsIgnoreCase(chatRequest.getScene())) {
             String appId = chatRequest.getAppUid();
-            appLimitService.appLimit(AppLimitRequest.of(appId, chatRequest.getScene()), chatRequest.getSseEmitter());
             ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
             return appEntity;
         }
 
         if (StringUtils.isNotBlank(chatRequest.getMediumUid())) {
             String mediumId = chatRequest.getMediumUid();
-            appLimitService.channelLimit(AppLimitRequest.of(mediumId, chatRequest.getScene(), chatRequest.getEndUser()), chatRequest.getSseEmitter());
             return factory(chatRequest.getMediumUid());
         }
 
@@ -163,8 +150,6 @@ public class AppFactory {
             imageAppEntity.setType(AppTypeEnum.MYSELF.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());
             imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
-            // 限流逻辑
-            appLimitService.appLimit(AppLimitRequest.of(imageAppEntity.getUid(), request.getScene()));
             return imageAppEntity;
         }
         ImageAppEntity imageAppEntity = factoryImageApp(appUid);

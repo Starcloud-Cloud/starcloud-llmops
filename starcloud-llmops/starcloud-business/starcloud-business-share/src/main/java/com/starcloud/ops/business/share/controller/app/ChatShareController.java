@@ -8,6 +8,8 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatSkillVO;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.ChatSkillService;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
@@ -60,6 +62,9 @@ public class ChatShareController {
     private ChatShareService chatShareService;
 
     @Resource
+    private AppLimitService appLimitService;
+
+    @Resource
     private ChatService chatService;
 
     @GetMapping("/detail/{mediumUid}")
@@ -109,6 +114,10 @@ public class ChatShareController {
         }
 
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "share chat");
+
+        // 执行限流
+        appLimitService.channelLimit(AppLimitRequest.of(chatRequestVO.getMediumUid(), chatRequestVO.getScene(), chatRequestVO.getEndUser()), emitter);
+
         chatRequestVO.setSseEmitter(emitter);
         chatRequestVO.setEndUser(endUserId);
         chatShareService.shareChat(chatRequestVO);
