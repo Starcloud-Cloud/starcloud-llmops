@@ -575,8 +575,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public List<DatasetSourceDataDetailRespVO> getSessionSourceDataList(String appId, String sessionId, Integer dataModel, Boolean getContent) {
-        if (dataModel==null||dataModel<0){
-            dataModel =DataSourceDataModelEnum.DOCUMENT.getStatus();
+        if (dataModel == null || dataModel < 0) {
+            dataModel = DataSourceDataModelEnum.DOCUMENT.getStatus();
         }
         // 根据应用 ID与会话 ID 获取数据集信息
         Long datasetId = validateSessionDatasets(appId, sessionId);
