@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
@@ -26,7 +27,7 @@ public class PromptUtil {
         List<String> blockLines = new ArrayList<>();
         for (int i = 0; i < blocks.size(); i++) {
             MessageContentDocDTO contentDocDTO = blocks.get(i);
-            blockLines.add((i + 1) + ". " + JSONUtil.toJsonStr(contentDocDTO));
+            blockLines.add((i + 1) + ". " + JsonUtils.toJsonString(contentDocDTO));
         }
 
         return StrUtil.join("\n", blockLines);
@@ -37,7 +38,7 @@ public class PromptUtil {
         List<String> blockLines = new ArrayList<>();
         for (int i = 0; i < blocks.size(); i++) {
             PromptDocBlock promptDocBlock = blocks.get(i);
-            blockLines.add((i + 1) + ". " + JSONUtil.toJsonStr(promptDocBlock));
+            blockLines.add((i + 1) + ". " + JsonUtils.toJsonString(promptDocBlock));
         }
 
         return StrUtil.join("\n", blockLines);
@@ -49,7 +50,7 @@ public class PromptUtil {
         List<String> blockLines = new ArrayList<>();
         for (int i = 0; i < blocks.size(); i++) {
             PromptDocBlock promptDocBlock = blocks.get(i);
-            blockLines.add((i + 1) + ". " + JSONUtil.toJsonStr(promptDocBlock));
+            blockLines.add((i + 1) + ". " + JsonUtils.toJsonString(promptDocBlock));
         }
 
         return StrUtil.join("\n", blockLines);

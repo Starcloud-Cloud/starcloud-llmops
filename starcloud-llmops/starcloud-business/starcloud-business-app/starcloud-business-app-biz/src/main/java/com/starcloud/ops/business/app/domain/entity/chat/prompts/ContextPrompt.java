@@ -127,7 +127,7 @@ public class ContextPrompt extends BasePromptConfig {
 
             if (this.getMessageContentDocMemory().hasHistory()) {
 
-                MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().getHistory();
+                MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
 
                 return PromptUtil.parseDocContentLines(contentDocHistory.getDocs());
             }
