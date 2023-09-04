@@ -4,6 +4,8 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.service.chat.ChatService;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationRespVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
@@ -16,8 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -32,6 +36,9 @@ public class ChatController {
     @Autowired
     private ChatService chatService;
 
+    @Resource
+    private AppLimitService appLimitService;
+
     @Operation(summary = "聊天")
     @PostMapping("/completions")
     public SseEmitter conversation(@RequestBody @Valid ChatRequestVO request, HttpServletResponse httpServletResponse) {
@@ -40,6 +47,13 @@ public class ChatController {
 
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "chat");
         request.setSseEmitter(emitter);
+
+        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
+//        limitRequest.setExclude(Collections.singletonList("RATE"));
+        if (!appLimitService.appLimit(limitRequest, emitter)) {
+            return emitter;
+        }
+
         chatService.chat(request);
         return emitter;
     }
