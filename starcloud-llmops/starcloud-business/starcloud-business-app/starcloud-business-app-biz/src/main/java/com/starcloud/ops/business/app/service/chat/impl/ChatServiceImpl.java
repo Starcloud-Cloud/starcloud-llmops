@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.recommend.RecommendAppFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
@@ -167,7 +168,13 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String createChatApp(String uid, String name) {
-        AppRespVO recommendApp = appService.getRecommendApp(uid);
+        AppRespVO recommendApp;
+        if (StringUtils.isBlank(uid)) {
+            recommendApp = RecommendAppFactory.emptyChatRobotApp();
+        } else {
+            recommendApp = appService.getRecommendApp(uid);
+        }
+
         AppEntity appEntity = AppConvert.INSTANCE.convertApp(recommendApp);
         appEntity.setUid(null);
         appEntity.setName(name);
