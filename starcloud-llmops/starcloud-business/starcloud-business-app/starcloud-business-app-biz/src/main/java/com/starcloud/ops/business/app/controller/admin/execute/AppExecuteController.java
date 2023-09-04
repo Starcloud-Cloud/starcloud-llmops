@@ -4,6 +4,8 @@ import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +35,9 @@ public class AppExecuteController {
     @Resource
     private AppService appService;
 
+    @Resource
+    private AppLimitService appLimitService;
+
     @PostMapping("/app")
     @Operation(summary = "执行应用")
     public SseEmitter execute(@RequestBody AppExecuteReqVO executeRequest, HttpServletResponse httpServletResponse) {
@@ -41,6 +46,9 @@ public class AppExecuteController {
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
         // 设置 SSE
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "app");
+
+        // 执行限流
+        appLimitService.appLimit(AppLimitRequest.of(executeRequest.getAppUid(), executeRequest.getScene()), emitter);
 
         executeRequest.setSseEmitter(emitter);
         // WEB_ADMIN 场景
@@ -58,6 +66,9 @@ public class AppExecuteController {
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
         // 设置 SSE
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "market");
+        // 执行限流
+        appLimitService.marketLimit(AppLimitRequest.of(executeRequest.getAppUid(), executeRequest.getScene()), emitter);
+
         executeRequest.setSseEmitter(emitter);
         // WEB_MARKET 场景, 应用市场专用
         if (StringUtils.isBlank(executeRequest.getScene())) {
