@@ -245,6 +245,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         this.getMessageMemory().setChatAppEntity(this);
         this.getMessageMemory().setChatRequestVO(request);
+        this.getMessageMemory().initContentDocMemory();
 
         SseEmitter emitter = request.getSseEmitter();
 
