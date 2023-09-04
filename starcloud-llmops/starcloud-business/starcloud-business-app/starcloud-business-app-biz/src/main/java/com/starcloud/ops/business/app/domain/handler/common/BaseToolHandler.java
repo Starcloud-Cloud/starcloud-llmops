@@ -79,6 +79,15 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
 
 
     /**
+     * 是否把执行的结果保存为上下文
+     *
+     * @return
+     */
+    public Boolean isAddHistory() {
+        return true;
+    }
+
+    /**
      * 生成个handler 实例
      *
      * @param name
@@ -153,7 +162,7 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
      */
     public void addRespHistory(HandlerContext<Q> context, HandlerResponse<R> handlerResponse) {
 
-        if (handlerResponse.getSuccess() && Objects.nonNull(handlerResponse.getOutput())) {
+        if (handlerResponse.getSuccess() && this.isAddHistory()) {
 
             List<MessageContentDocDTO> messageContentDocDTO = this.convertContentDoc(context, handlerResponse);
 

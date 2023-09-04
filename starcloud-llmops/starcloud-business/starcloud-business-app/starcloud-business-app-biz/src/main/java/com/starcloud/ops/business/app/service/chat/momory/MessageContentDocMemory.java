@@ -4,11 +4,10 @@ package com.starcloud.ops.business.app.service.chat.momory;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.CharacterDTO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadCharacterReqVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
@@ -16,6 +15,7 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 另扩展出来的Memory，存储对话中所有上传的文档和工具执行的结果的历史记录
@@ -42,18 +42,20 @@ public class MessageContentDocMemory {
      * 初始化历史记录
      */
     public void initHistory() {
+//
+//        this.messageMemory.getChatRequestVO();
+//        this.messageMemory.getLogAppMessage();
+//        this.messageMemory.getChatAppEntity();
 
-        this.messageMemory.getChatRequestVO();
-        this.messageMemory.getLogAppMessage();
-        this.messageMemory.getChatAppEntity();
-
+        String appUid = this.messageMemory.getChatRequestVO().getAppUid();
+        String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
 
         //查询数据集表
-        this.searchSourceData();
+        List<DatasetSourceDataDetailRespVO> sourceDataBasicInfoVOS = this.searchSourceData(appUid, conversationUid);
 
 
         //填充history
-        List<MessageContentDocDTO> history = this.convertMessageContentDoc(null);
+        List<MessageContentDocDTO> history = this.convertMessageContentDoc(sourceDataBasicInfoVOS);
         this.history = new MessageContentDocHistory(history);
 
     }
@@ -65,19 +67,66 @@ public class MessageContentDocMemory {
     /**
      * 查询当前上下文的全部文档记录
      */
-    public List<DatasetSourceDataBasicInfoVO> searchSourceData() {
+    protected List<DatasetSourceDataDetailRespVO> searchSourceData(String appUid, String conversationUid) {
 
+        List<DatasetSourceDataDetailRespVO> sourceDataDetailRespVOS = datasetSourceDataService.getSessionSourceDataList(appUid, conversationUid, null, false);
 
-        return new ArrayList<>();
+        return sourceDataDetailRespVOS;
     }
 
 
     /**
      * 文档记录转换为 上下文文档结构
      */
-    public List<MessageContentDocDTO> convertMessageContentDoc(List<DatasetSourceDataBasicInfoVO> datasetSourceDataBasicInfoVOS) {
+    protected List<MessageContentDocDTO> convertMessageContentDoc(List<DatasetSourceDataDetailRespVO> dataBasicInfoVOS) {
 
         List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();
+
+        Optional.ofNullable(dataBasicInfoVOS).orElse(new ArrayList<>()).stream().map(dataBasicInfoVO -> {
+
+            MessageContentDocDTO contentDocDTO = new MessageContentDocDTO();
+
+
+            dataBasicInfoVO.getDataType();
+
+            dataBasicInfoVO.getSummary();
+
+
+            dataBasicInfoVO.getId();
+            dataBasicInfoVO.getDescription();
+            dataBasicInfoVO.getStatus();
+
+            dataBasicInfoVO.getCreateTime();
+            dataBasicInfoVO.getName();
+
+           // dataBasicInfoVO.getAddress();
+
+            contentDocDTO.setId(dataBasicInfoVO.getId());
+            contentDocDTO.setContent(dataBasicInfoVO.getContent());
+            contentDocDTO.setSummary(dataBasicInfoVO.getSummary());
+            contentDocDTO.setTitle(dataBasicInfoVO.getName());
+
+//            contentDocDTO.setUrl();
+
+            if (DataSourceDataTypeEnum.HTML.name().equals(dataBasicInfoVO.getDataType())) {
+
+                contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
+
+            } else if (DataSourceDataTypeEnum.DOCUMENT.name().equals(dataBasicInfoVO.getDataType())) {
+
+                contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.FILE.name());
+
+            } else {
+
+                //默认都为工具调用结果
+
+                contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.name());
+            }
+
+
+            return contentDocDTO;
+
+        }).collect(Collectors.toList());
 
 
         return messageContentDocDTOList;
@@ -129,38 +178,53 @@ public class MessageContentDocMemory {
 
                 String title = doc.getTitle();
                 String content = doc.getContent();
-
-                doc.getType();
                 doc.getExt();
-
-                UploadCharacterReqVO uploadCharacterReqVOS = new UploadCharacterReqVO();
-                UploadCharacterReqVO characterReqVO = new UploadCharacterReqVO();
-                characterReqVO.setSync(true);
-                characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle(title).setContext(content)));
-
+                doc.getToolName();
 
                 //@todo 需要增加扩展信息，如messageId
+                if (MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name().equals(doc.getType())) {
+
+                    //上游已经保存过
+                    log.info("storageHistory web: {}", JsonUtils.toJsonString(doc));
 
 
-                //@todo 确定上传到哪个数据集
+                } else if (MessageContentDocDTO.MessageContentDocTypeEnum.FILE.name().equals(doc.getType())) {
 
+                    //文件不会直接保存都，都是先单独上传，后续用文档ID去处理
 
-                //save db
-                List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceData(uploadCharacterReqVOS);
-                SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
+                    log.info("storageHistory file: {}", JsonUtils.toJsonString(doc));
 
-                //存在
-                if (sourceDataUploadDTO != null) {
+                } else {
 
-                    doc.setId(Long.valueOf(sourceDataUploadDTO.getSourceDataId()));
-                    sourceDataId = sourceDataUploadDTO.getSourceDataId();
+                    //默认是工具类型上传
 
-                    if (!sourceDataUploadDTO.getStatus()) {
-                        throw new RuntimeException("文档记录保存失败");
+                    UploadCharacterReqVO characterReqVO = new UploadCharacterReqVO();
+                    characterReqVO.setCleanSync(true);
+                    characterReqVO.setSplitSync(false);
+                    characterReqVO.setIndexSync(false);
+
+                    characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle(title).setContext(content)));
+
+                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceData(characterReqVO);
+
+                    SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
+
+                    //存在
+                    if (sourceDataUploadDTO != null) {
+
+                        if (!sourceDataUploadDTO.getStatus()) {
+                            throw new RuntimeException("文档记录保存失败");
+                        }
+
+                        doc.setId(Long.valueOf(sourceDataUploadDTO.getSourceDataId()));
+                        sourceDataId = sourceDataUploadDTO.getSourceDataId();
+
+                        log.info("MessageContentDocMemory storageHistory add: {} {}", doc.getId(), doc.getTitle());
                     }
 
-                    log.info("MessageContentDocMemory storageHistory add: {} {}", doc.getId(), doc.getTitle());
                 }
+
+
             }
 
             //重新查询内容, 可获取到总结
@@ -169,12 +233,13 @@ public class MessageContentDocMemory {
             //@todo 判断状态 需要封装
             if (detailsInfoVO != null && detailsInfoVO.getStatus() == 1) {
 
-                String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
-
-                summary = StrUtil.subPre(summary, 200);
-
-                //更新下最新的内容
-                doc.setContent(summary);
+                if (StrUtil.isNotBlank(detailsInfoVO.getSummary())) {
+                    //更新下最新的内容
+                    doc.setSummary(detailsInfoVO.getSummary());
+                } else {
+                    //summary = StrUtil.subPre(summary, 200);
+                    doc.setContent(detailsInfoVO.getContent());
+                }
             }
 
         } catch (Exception e) {

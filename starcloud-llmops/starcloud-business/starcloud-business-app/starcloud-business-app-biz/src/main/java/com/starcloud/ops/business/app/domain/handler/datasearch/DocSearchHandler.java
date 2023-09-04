@@ -6,6 +6,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveData;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -111,21 +112,27 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
      */
     private Double maxScore = 0.7d;
 
+
+    @Override
+    public Boolean isAddHistory() {
+        return false;
+    }
+
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
 
 
         String query = context.getRequest().getQuery();
-        List<String> docsId = context.getRequest().getDocsId();
+        List<Long> docsId = context.getRequest().getDocsId();
 
         //@todo 通过上下文获取当前可能配置的 tools 执行 tips
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildTips("文档内容搜索中...");
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildTips("内容搜索中[" + query + "]...").setShowType("docs").setToolHandler(this).setInput(context.getRequest());
 
         context.sendCallbackInteractiveStart(interactiveInfo);
 
 
         //查询出文档列表
-        List<RecordDTO> records = new ArrayList<>();
+        List<RecordDTO> records = this.searchDocs(context.getRequest());
 
 
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
@@ -134,7 +141,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
         Response result = new Response();
 
-        List<PromptUtil.PromptDocBlock> promptDocBlocks = Optional.ofNullable(records).orElse(new ArrayList<>()).stream().map(recordDTO -> {
+        List<PromptUtil.PromptDocBlock> docBlocks = Optional.ofNullable(records).orElse(new ArrayList<>()).stream().map(recordDTO -> {
 
             PromptUtil.PromptDocBlock promptDocBlock = new PromptUtil.PromptDocBlock();
             promptDocBlock.setDocId(recordDTO.getDocumentId());
@@ -146,11 +153,12 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
         }).collect(Collectors.toList());
 
-        result.setDocBlocks(promptDocBlocks);
-
+        result.setDocs(docBlocks);
         handlerResponse.setSuccess(true);
+        //不在保存到上下文中
         handlerResponse.setOutput(result);
 
+        interactiveInfo.setData(docBlocks);
         context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;
@@ -161,7 +169,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
         //数据集，可能只要文档ID即可
         MatchQueryRequest matchQueryRequest = new MatchQueryRequest();
         matchQueryRequest.setText(request.getQuery());
-        matchQueryRequest.setK(4L);
+        matchQueryRequest.setK(3L);
 
         //@todo 文档ID列表
 
@@ -181,7 +189,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
         @JsonProperty(required = true)
         @JsonPropertyDescription("documents id list")
-        private List<String> docsId;
+        private List<Long> docsId;
 
         @JsonProperty(required = true)
         @JsonPropertyDescription("search documents query")
@@ -193,7 +201,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
     @Data
     public static class Response implements Serializable {
 
-        private List<PromptUtil.PromptDocBlock> docBlocks;
+        private List<PromptUtil.PromptDocBlock> docs;
     }
 
 }

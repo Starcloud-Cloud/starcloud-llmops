@@ -111,6 +111,7 @@ public abstract class BaseHandler<Q, R> {
 
 //            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
             handlerResponse.setSuccess(true);
+
             handlerResponse.setAnswer(JsonUtils.toJsonString(source.getOutput()));
 
         } catch (ServiceException e) {

@@ -4,6 +4,7 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveData;
@@ -17,7 +18,6 @@ import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
-import com.starcloud.ops.llm.langchain.core.utils.JsonUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -58,14 +58,14 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         String url = context.getRequest().getUrl();
 
         //@todo 通过上下文获取当前可能配置的 tools 执行 tips
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容中...").setToolHandler(this).setInput(context.getRequest());
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("AI分析链接内容中...").setToolHandler(this).setInput(context.getRequest());
         ;
 
         context.sendCallbackInteractiveStart(interactiveInfo);
 
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
-        handlerResponse.setMessage(url);
+        handlerResponse.setMessage(JsonUtils.toJsonString(context.getRequest()));
 
 
         UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
@@ -89,16 +89,12 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         // 查询内容
         DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(sourceDataUploadDTO.getSourceDataId(), true);
-        String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
-
-        //summary = StrUtil.subPre(summary, summarySubSize);
-
+        String desc = detailsInfoVO.getDescription();
         handlerResponse.setSuccess(true);
-        handlerResponse.setAnswer(summary);
 
         Response result = new Response();
         // 先截取
-        result.setDescription(summary);
+        result.setDescription(desc);
         result.setDocId(detailsInfoVO.getId());
         handlerResponse.setOutput(result);
 
@@ -106,13 +102,13 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         InteractiveData interactiveData = new InteractiveData();
 
         interactiveData.setTitle(detailsInfoVO.getName());
-        interactiveData.setContent(summary);
+        interactiveData.setContent(result.getDescription());
         interactiveData.setUrl(url);
         interactiveData.setTime(DateUtil.now());
 
         List<InteractiveData> dataList = Arrays.asList(interactiveData);
 
-        handlerResponse.setExt(dataList);
+        //handlerResponse.setExt(dataList);
 
         interactiveInfo.setData(dataList);
         interactiveInfo.setTips("分析链接完成");
@@ -137,7 +133,8 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         messageContentDocDTO.setTime(DateUtil.now());
         messageContentDocDTO.setTitle(this.getName());
-        messageContentDocDTO.setContent(JsonUtils.toJsonString(handlerResponse.getOutput()));
+        messageContentDocDTO.setContent(handlerResponse.getOutput().getDescription());
+        messageContentDocDTO.setId(handlerResponse.getOutput().getDocId());
 
         messageContentDocDTOList.add(messageContentDocDTO);
 
