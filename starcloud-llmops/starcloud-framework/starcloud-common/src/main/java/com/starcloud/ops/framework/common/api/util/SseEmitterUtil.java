@@ -45,7 +45,7 @@ public class SseEmitterUtil {
             try {
                 message = "Subscribe successfully, about to execute " + message;
                 StreamResult result = new StreamResult();
-                result.setCode(100000);
+                result.setCode(250);
                 result.setContent(message);
                 sseEmitter.send(message);
             } catch (IOException e) {
