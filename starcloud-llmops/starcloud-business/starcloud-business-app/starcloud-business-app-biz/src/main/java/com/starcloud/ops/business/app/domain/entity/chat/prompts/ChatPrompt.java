@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbM
 import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
 import com.starcloud.ops.llm.langchain.core.memory.template.ChatMemoryPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
@@ -47,6 +48,11 @@ public class ChatPrompt extends BasePromptConfig {
             "AI: \n";
 
 
+    private String promptMaster = "System Time: {NowTime}\n" +
+            "{PrePrompt}\n" +
+            "{ContextPrompt}\n";
+
+
     //只有用户输入后
     private String promptV3 = "{input}";
 
@@ -79,8 +85,11 @@ public class ChatPrompt extends BasePromptConfig {
 
     public ChatPromptTemplate buildChatPromptTemplate(ConversationSummaryDbMessageMemory messageMemory) {
 
-        SystemMessagePromptTemplate systemMessagePromptTemplate = new SystemMessagePromptTemplate(this.chatPrePrompt.buildPromptWithContent(this.contextPrompt));
-        HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(this.buildPrompt());
+        SystemMessagePromptTemplate systemMessagePromptTemplate = new SystemMessagePromptTemplate(this.buildPrompt());
+
+        //写死一个
+        StringPromptTemplate stringPromptTemplate = new PromptTemplate(this.promptV3, new ArrayList<>());
+        HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(stringPromptTemplate);
 
         //增加历史记录
         return ChatMemoryPromptTemplate.fromMessages(systemMessagePromptTemplate, humanMessagePromptTemplate, messageMemory);
@@ -130,7 +139,7 @@ public class ChatPrompt extends BasePromptConfig {
 
     @Override
     protected Boolean _isEnable() {
-        return this.chatPrePrompt != null && this.contextPrompt != null;
+        return true;
     }
 
     @Override
@@ -142,16 +151,10 @@ public class ChatPrompt extends BasePromptConfig {
         }
 
         variables.add(BaseVariable.newString("NowTime", DateUtil.now()));
+        variables.add(BaseVariable.newTemplate("PrePrompt", this.chatPrePrompt.buildPrompt()));
         variables.add(BaseVariable.newTemplate("ContextPrompt", this.contextPrompt.buildPrompt()));
-        variables.add(BaseVariable.newString("HistoryPrompt", this.historyPrompt.buildPromptStr(true)));
-        PromptTemplate template;
-        if (this.toolPrompt) {
-            template = new PromptTemplate(this.promptVTool, variables);
-        } else {
-            template = new PromptTemplate(this.promptV1, variables);
-        }
 
-        return template;
+        return new PromptTemplate(this.promptMaster, variables);
     }
 
 }
