@@ -74,7 +74,6 @@ public class ContextPrompt extends BasePromptConfig {
             "[end]\n\n" +
             "Use the following [CONTEXT] as your learned knowledge:\n" +
             "[CONTEXT]\n" +
-            "{context}\n" +
             "{contextDoc}\n" +
             "[END CONTEXT]\n\n" +
             "Please Note:\n" +
@@ -140,10 +139,8 @@ public class ContextPrompt extends BasePromptConfig {
         });
 
         //直接搜索的结果
-        List<MessageContentDocDTO> searchMessageContentDocDTOList = this.parseContentLines(this.searchResult);
-
-
-        BaseVariable variable = BaseVariable.newString("context", PromptUtil.parseDocContentLines(searchMessageContentDocDTOList));
+//        List<MessageContentDocDTO> searchMessageContentDocDTOList = this.parseContentLines(this.searchResult);
+//        BaseVariable variable = BaseVariable.newString("context", PromptUtil.parseDocContentLines(searchMessageContentDocDTOList));
 
         return PromptTemplate.fromTemplate(() -> {
 
@@ -151,7 +148,7 @@ public class ContextPrompt extends BasePromptConfig {
                 return this.promptV2;
             }
             return null;
-        }, Arrays.asList(variable, contextDoc));
+        }, Arrays.asList(contextDoc));
 
     }
 
