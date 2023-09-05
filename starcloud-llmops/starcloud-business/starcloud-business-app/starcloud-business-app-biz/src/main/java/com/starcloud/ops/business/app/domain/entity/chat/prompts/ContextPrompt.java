@@ -105,16 +105,14 @@ public class ContextPrompt extends BasePromptConfig {
     @Override
     protected Boolean _isEnable() {
 
-        return false;
+        this.searchResult = this.searchDataset(this.query);
 
-//        this.searchResult = this.searchDataset(this.query);
-//
-//        //直接搜索 或 上下文文档
-//        if (this.getMessageContentDocMemory().hasHistory() || this.searchResult != null) {
-//            return true;
-//        }
-//
-//        return false;
+        //直接搜索 或 上下文文档
+        if (this.getMessageContentDocMemory().hasHistory() || this.searchResult != null) {
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -127,18 +125,25 @@ public class ContextPrompt extends BasePromptConfig {
 
             if (this.getMessageContentDocMemory().hasHistory()) {
 
+                List<MessageContentDocDTO> sortResult = new ArrayList<>();
                 MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
+                //叠加搜索结果
+                List<MessageContentDocDTO> searchResult = this.parseContentLines(this.searchResult);
 
-                return PromptUtil.parseDocContentLines(contentDocHistory.getDocs());
+                sortResult.addAll(searchResult);
+                sortResult.addAll(contentDocHistory.getDocs());
+
+                return PromptUtil.parseDocContentLines(sortResult);
             }
 
             return "";
         });
 
-        String contentLines = this.parseContentLines(this.searchResult);
+        //直接搜索的结果
+        List<MessageContentDocDTO> searchMessageContentDocDTOList = this.parseContentLines(this.searchResult);
 
 
-        BaseVariable variable = BaseVariable.newString("context", contentLines);
+        BaseVariable variable = BaseVariable.newString("context", PromptUtil.parseDocContentLines(searchMessageContentDocDTOList));
 
         return PromptTemplate.fromTemplate(() -> {
 
@@ -190,14 +195,13 @@ public class ContextPrompt extends BasePromptConfig {
         return this.searchResult;
     }
 
-    private String parseContentLines(MatchQueryVO matchQueryVO) {
+    private List<MessageContentDocDTO> parseContentLines(MatchQueryVO matchQueryVO) {
 
         List<Long> docIds = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map(d -> Long.valueOf(d.getId())).collect(Collectors.toList());
 
         List<DatasetSourceDataBasicInfoVO> docs = datasetSourceDataService.getSourceDataListData(docIds);
 
-
-        List<MessageContentDocDTO> promptDocBlocks = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map(recordDTO -> {
+        List<MessageContentDocDTO> messageContentDocDTOList = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map(recordDTO -> {
 
             DatasetSourceDataBasicInfoVO doc = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().filter(docVo -> docVo.getId().equals(Long.valueOf(recordDTO.getId()))).findFirst().orElse(null);
 
@@ -225,7 +229,7 @@ public class ContextPrompt extends BasePromptConfig {
             return null;
         }).filter(Objects::nonNull).collect(Collectors.toList());
 
-        return PromptUtil.parseDocContentLines(promptDocBlocks);
+        return messageContentDocDTOList;
     }
 
 
