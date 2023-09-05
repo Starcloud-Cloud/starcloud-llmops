@@ -37,6 +37,12 @@ public class AppLimitRequest implements Serializable {
     private String mediumUid;
 
     /**
+     * 用户ID，
+     */
+    @Schema(description = "用户ID")
+    private String userId;
+
+    /**
      * 游客唯一表示
      */
     @Schema(description = "游客唯一表示")

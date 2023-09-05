@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.recommend;
+package com.starcloud.ops.business.app.enums;
 
 /**
  * @author nacoyer
