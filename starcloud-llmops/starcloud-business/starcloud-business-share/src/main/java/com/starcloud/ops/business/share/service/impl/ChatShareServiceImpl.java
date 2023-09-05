@@ -48,7 +48,7 @@ public class ChatShareServiceImpl implements ChatShareService {
     @Override
     public void shareChat(ChatRequestVO chatRequestVO) {
         if (StringUtils.isBlank(chatRequestVO.getMediumUid())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(600001, "Please use the latest sharing link"));
+            throw ServiceExceptionUtil.exception(new ErrorCode(500, "MediumUid is required"));
         }
         ChatAppEntity chatAppEntity = AppFactory.factory(chatRequestVO);
         TenantContextHolder.setTenantId(chatAppEntity.getTenantId());
