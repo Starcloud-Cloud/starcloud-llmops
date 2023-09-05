@@ -291,6 +291,8 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("今天天津的天气怎么样？");
 
+        chatRequest.setQuery("1+1=?");
+
         chatService.chat(chatRequest);
 
     }
@@ -308,13 +310,15 @@ public class ChatTest extends BaseDbUnitTest {
         //带数据集的
         //带数据集的
         chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
-        chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
+        //chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
 
         chatRequest.setUserId(186L);
 
         chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
 
-        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("1+1=?");
 
         chatService.chat(chatRequest);
 

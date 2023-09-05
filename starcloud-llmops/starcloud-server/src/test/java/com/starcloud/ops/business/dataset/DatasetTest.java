@@ -104,7 +104,7 @@ public class DatasetTest extends BaseDbUnitTest {
 
         uploadCharacterReqVO.setSessionId("dsadasdsadadas");
         UploadCharacterReqVO characterReqVO = new UploadCharacterReqVO();
-        characterReqVO.setSync(true);
+        characterReqVO.setCleanSync(true);
         characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle("title").setContext("content")));
         datasetSourceDataService.uploadCharactersSourceDataBySession(uploadCharacterReqVO);
 

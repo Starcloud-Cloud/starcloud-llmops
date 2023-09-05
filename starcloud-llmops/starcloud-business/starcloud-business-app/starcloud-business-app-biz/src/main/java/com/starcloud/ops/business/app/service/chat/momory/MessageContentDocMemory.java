@@ -47,7 +47,7 @@ public class MessageContentDocMemory {
 //        this.messageMemory.getLogAppMessage();
 //        this.messageMemory.getChatAppEntity();
 
-        String appUid = this.messageMemory.getChatRequestVO().getAppUid();
+        String appUid = this.messageMemory.getChatAppEntity().getUid();
         String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
 
         //查询数据集表

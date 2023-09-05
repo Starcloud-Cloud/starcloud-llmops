@@ -37,7 +37,7 @@ public class ChatPrePrompt extends BasePromptConfig {
 
 
     private String promptGpt = "{UserPrompt}\n" +
-            "{PreTonePrompt}{PreMaxReturnPrompt}{PreReplyLangPrompt}\n" + "{ContextPrompt}\n";
+            "{PreTonePrompt}{PreMaxReturnPrompt}{PreReplyLangPrompt}\n";
 
 
     public ChatPrePrompt(String userPrompt, PrePromptConfigEntity prePromptConfigEntity) {
@@ -77,12 +77,7 @@ public class ChatPrePrompt extends BasePromptConfig {
 
         List<BaseVariable> variables = CollectionUtil.newArrayList(variable, tone, maxReturn, replyLang);
 
-        if (contextPrompt != null) {
-            variables.add(BaseVariable.newTemplate("ContextPrompt", contextPrompt.buildPrompt()));
-            return new PromptTemplate(this.promptGpt, variables);
-        } else {
-            return new PromptTemplate(this.promptV1, variables);
-        }
+        return new PromptTemplate(this.promptGpt, variables);
     }
 
 
