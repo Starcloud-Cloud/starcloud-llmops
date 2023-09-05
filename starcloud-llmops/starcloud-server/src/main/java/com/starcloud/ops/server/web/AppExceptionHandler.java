@@ -23,7 +23,11 @@ public class AppExceptionHandler {
     @ExceptionHandler(value = AppLimitException.class)
     public CommonResult<?> defaultExceptionHandler(AppLimitException exception) {
         log.error("[AppLimitException]: message: {}", exception.getMessage(), exception);
-        return CommonResult.error(exception.getCode(), exception.getMessage());
+        Integer code = exception.getCode();
+        if (code != 300900005 && code != 300900006) {
+            code = 500;
+        }
+        return CommonResult.error(code, exception.getMessage());
     }
 
 }

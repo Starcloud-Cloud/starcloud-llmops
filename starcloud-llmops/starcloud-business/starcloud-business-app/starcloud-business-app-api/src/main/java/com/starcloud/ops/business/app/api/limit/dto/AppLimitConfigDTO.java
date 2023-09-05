@@ -58,7 +58,7 @@ public class AppLimitConfigDTO implements Serializable {
      * 限流数量
      */
     @Schema(description = "限流数量")
-    private Integer limit;
+    private Integer threshold;
 
     /**
      * 限流时间间隔

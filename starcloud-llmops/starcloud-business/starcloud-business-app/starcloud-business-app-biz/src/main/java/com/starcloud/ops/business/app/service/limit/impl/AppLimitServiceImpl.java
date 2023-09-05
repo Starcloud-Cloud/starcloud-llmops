@@ -303,7 +303,7 @@ public class AppLimitServiceImpl implements AppLimitService {
                 continue;
             }
 
-            if (config.getLimit() == null || config.getLimit() <= 0) {
+            if (config.getThreshold() == null || config.getThreshold() <= 0) {
                 throw exception("system error, please try again or contact the administrator");
             }
             // 日期判断，日期配置不能小于 1
@@ -361,7 +361,9 @@ public class AppLimitServiceImpl implements AppLimitService {
     private void doLimit(AppLimitContext context) {
         // 获取限流配置
         AppLimitConfigDTO config = context.getConfig();
-        RLock lock = redissonClient.getLock(getLockKey(context.getLimitKey()));
+        // 限流计数 Key
+        String limitKey = context.getLimitKey();
+        RLock lock = redissonClient.getLock(getLockKey(limitKey));
         // 如果获取锁失败，直接抛出异常。
         if (!lock.tryLock()) {
             throw exceptionLimit("系统繁忙，请稍后再试！");
@@ -370,77 +372,90 @@ public class AppLimitServiceImpl implements AppLimitService {
             // 获取时间单位
             ChronoUnit timeUnit = ChronoUnit.valueOf(config.getTimeUnit());
             // 将配置中的时间转换成毫秒
-            long millisecond = transformMillisecond(config.getTimeInterval(), timeUnit);
+            long timeout = transformMillisecond(config.getTimeInterval(), timeUnit);
 
             // 从 Redis 中获取当前的限流数量
-            RBucket<Integer> limitBucket = redissonClient.getBucket(context.getLimitKey());
+            RBucket<Integer> limitBucket = redissonClient.getBucket(limitKey);
             // 从 Redis 中取出当前的时间值
-            String timeKey = APP_LIMIT_TIME_INTERVAL_PREDIX + context.getLimitKey();
+            String timeKey = APP_LIMIT_TIME_INTERVAL_PREDIX + limitKey;
             RBucket<Long> timeBucket = redissonClient.getBucket(timeKey);
 
             // 如果 Key 存在。则直接进行处理
             if (limitBucket.isExists()) {
                 // 获取当前的限流数量
-                Integer currentLimit = limitBucket.get();
+                Integer currentThreshold = limitBucket.get();
                 // 如果时间存在的情况，说明未过期
                 if (timeBucket.isExists()) {
                     // 超出限制，说明需要进行限流，直接抛出异常即可
-                    if (currentLimit >= config.getLimit()) {
+                    if (currentThreshold >= config.getThreshold()) {
                         // 如果是打广告的话，超出限制时候需要删除 key,下次重新计数
                         if (AppLimitByEnum.ADVERTISING.name().equals(config.getLimitBy())) {
                             limitBucket.set(0);
+                            log.info("限流：广告超出阈值，计时信息为：Key：{}，Expire：{}", timeKey, timeBucket.remainTimeToLive());
+                            log.info("限流：广告超出阈值，计数重置 0：Key: {}, Value: 0", limitKey);
                             throw exceptionAdvertising(config.getMessage());
                         }
+                        log.info("限流：超出阈值，计时信息为：Key：{}，Expire：{}", timeKey, timeBucket.remainTimeToLive());
+                        log.info("限流：超出阈值，计数信息为：Key: {}, Value：{}", limitKey, limitBucket.get());
                         throw exceptionLimit(config.getMessage());
                     }
                     // 说明未超出限流配置，限流数量 + 1
-                    limitBucket.set(currentLimit + 1);
+                    int threshold = currentThreshold + 1;
+                    limitBucket.set(threshold);
+                    log.info("限流：未超出阈值，计时信息为：Key：{}，Expire：{}", timeKey, timeBucket.remainTimeToLive());
+                    log.info("限流：未超出阈值，计数自增 1：Key：{}，Value：{}", limitKey, threshold);
                     return;
                 }
 
                 // 不存在，说明已经过期。时间重置，限流数量重置
-                timeBucket.set(millisecond, millisecond, TimeUnit.MILLISECONDS);
+                timeBucket.set(timeout, timeout, TimeUnit.MILLISECONDS);
+                log.info("限流：重置计时 Key：{}, Value: {}", timeKey, timeout);
                 limitBucket.set(1);
+                log.info("限流：重置计数 Key：{}, Value：1", limitKey);
                 return;
             }
 
             // 查询日志消息表中的已经执行的数量
             Page<LogAppMessageRespVO> page = this.pageAppLogMessage(context);
-            log.info("限流：Redis Key 不存在，查询已经执行次数: {}", page.getTotal());
+            log.info("限流: 计数Key不存在，查询已经执行次数: {}", page.getTotal());
             // 如果已经执行的数量大于 0，则设置已经执行的数量，限流数量恢复
             if (page.getTotal() > 0) {
-
-                // 获取第一条的执行记录，过期时间 = millisecond - (现在时间 - 第一次的执行时间)
+                // 获取第一条的执行记录，过期时间 = timeout - (现在时间 - 第一次的执行时间)
                 LocalDateTime firstTime = Optional.ofNullable(page.getRecords()).map(records -> records.get(0)).map(LogAppMessageRespVO::getCreateTime).orElse(LocalDateTime.now());
-                long expire = millisecond - (System.currentTimeMillis() - firstTime.atZone(ZoneOffset.systemDefault()).toInstant().toEpochMilli());
-                //  如果过期时间小于等于 0 ，则重置为 millisecond
-                expire = expire <= 0L ? millisecond : expire;
+                long expire = timeout - (System.currentTimeMillis() - firstTime.atZone(ZoneOffset.systemDefault()).toInstant().toEpochMilli());
+                //  如果过期时间小于等于 0 ，则重置为 timeout
+                expire = expire <= 0L ? timeout : expire;
 
-                // 时间设置为 expire
+                // 限流计时设置为 expire
                 timeBucket.set(expire, expire, TimeUnit.MICROSECONDS);
 
                 // 超出限制，说明需要进行限流，直接抛出异常即可
-                if (page.getTotal() >= config.getLimit()) {
+                if (page.getTotal() >= config.getThreshold()) {
                     // 如果是打广告的话，超出限制重置广告计数
                     if (AppLimitByEnum.ADVERTISING.name().equals(config.getLimitBy())) {
                         limitBucket.set(0);
+                        log.info("限流：广告超出阈值，计时信息为：Key：{}，Expire：{}", timeKey, timeBucket.remainTimeToLive());
+                        log.info("限流：广告超出阈值，计数重置 0：Key: {}, Value: 0", limitKey);
                         throw exceptionAdvertising(config.getMessage());
                     }
+                    log.info("限流：超出阈值，计时信息为：Key：{}，Expire：{}", timeKey, timeBucket.remainTimeToLive());
+                    log.info("限流：超出阈值，计数信息为：Key: {}, Value：{}", limitKey, limitBucket.get());
                     throw exceptionLimit(config.getMessage());
                 }
 
-                // 如果已经执行的数量小于限流数量，恢复限流数量
-                int limit = Long.valueOf(page.getTotal()).intValue() + 1;
-                // 恢复限流数量
-                limitBucket.set(limit);
-                log.info("限流：恢复 Redis 数据: Key: {}, Value: {}, Expire: {}", context.getLimitKey(), limit, expire);
+                // 此时说明未超出限流阈值，计数 +1 即可
+                int threshold = Long.valueOf(page.getTotal()).intValue() + 1;
+                limitBucket.set(threshold);
+                log.info("限流：恢复计时：计时信息为：Key：{}，Expire：{}", timeKey, expire);
+                log.info("限流：恢复计数：计数信息未：Key：{}, Value：{}", limitKey, threshold);
                 return;
             }
 
             // 说明未执行过，初始化限流数量。
-            timeBucket.set(millisecond, millisecond, TimeUnit.MICROSECONDS);
+            timeBucket.set(timeout, timeout, TimeUnit.MICROSECONDS);
             limitBucket.set(1);
-            log.info("限流: 初始化 Redis 数据: Key: {}, Value: {}, Expire: {}", context.getLimitKey(), 1, millisecond);
+            log.info("限流：初始化计时：计时信息为：Key：{}，Expire：{}", timeKey, timeout);
+            log.info("限流：初始化计数：计数信息为：Key: {}, Value: {}", limitKey, 1);
         } catch (Exception exception) {
             log.error("限流异常：{}", exception.getMessage());
             throw exception;
@@ -467,19 +482,19 @@ public class AppLimitServiceImpl implements AppLimitService {
         List<AppLimitConfigDTO> list = new ArrayList<>();
 
         AppLimitConfigDTO rateConfig = publishLimit.getRateConfig();
-        if (rateConfig.getEnable() && rateConfig.getLimit() != null && rateConfig.getLimit() > 0
+        if (rateConfig.getEnable() && rateConfig.getThreshold() != null && rateConfig.getThreshold() > 0
                 && rateConfig.getTimeInterval() != null && rateConfig.getTimeInterval() > 0) {
             list.add(rateConfig);
         }
 
         AppLimitConfigDTO userRateConfig = publishLimit.getUserRateConfig();
-        if (userRateConfig.getEnable() && userRateConfig.getLimit() != null && userRateConfig.getLimit() > 0
+        if (userRateConfig.getEnable() && userRateConfig.getThreshold() != null && userRateConfig.getThreshold() > 0
                 && userRateConfig.getTimeInterval() != null && userRateConfig.getTimeInterval() > 0) {
             list.add(userRateConfig);
         }
 
         AppLimitConfigDTO advertisingConfig = publishLimit.getAdvertisingConfig();
-        if (advertisingConfig.getEnable() && advertisingConfig.getLimit() != null && advertisingConfig.getLimit() > 0
+        if (advertisingConfig.getEnable() && advertisingConfig.getThreshold() != null && advertisingConfig.getThreshold() > 0
                 && advertisingConfig.getTimeInterval() != null && advertisingConfig.getTimeInterval() > 0) {
             list.add(advertisingConfig);
         }
@@ -654,7 +669,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param config 配置信息
      */
     private void validateConfig(AppLimitConfigDTO config) {
-        if (config.getLimit() == null || config.getLimit() <= 0) {
+        if (config.getThreshold() == null || config.getThreshold() <= 0) {
             throw exception("system error, please try again or contact the administrator");
         }
         // 日期判断，日期配置不能小于 1
