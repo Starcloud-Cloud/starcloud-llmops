@@ -56,8 +56,6 @@ public class ChatPrompt extends BasePromptConfig {
     //只有用户输入后
     private String promptV3 = "{input}";
 
-    private Boolean gptMessage = false;
-
     private ChatPrePrompt chatPrePrompt;
 
     private ContextPrompt contextPrompt;
@@ -76,9 +74,13 @@ public class ChatPrompt extends BasePromptConfig {
         this.toolPrompt = toolPrompt;
         List<BaseMessagePromptTemplate> messagePromptTemplates = new ArrayList<>();
 
+
         //prePrompt 放到system里面
-        messagePromptTemplates.add(new SystemMessagePromptTemplate(this.chatPrePrompt.buildPrompt()));
-        messagePromptTemplates.add(new HumanMessagePromptTemplate(this.buildPrompt()));
+        messagePromptTemplates.add(new SystemMessagePromptTemplate(this.buildPrompt()));
+
+        StringPromptTemplate stringPromptTemplate = new PromptTemplate(this.promptV3, new ArrayList<>());
+        HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(stringPromptTemplate);
+        messagePromptTemplates.add(humanMessagePromptTemplate);
 
         return ChatPromptTemplate.fromMessages(messagePromptTemplates);
     }
@@ -145,10 +147,6 @@ public class ChatPrompt extends BasePromptConfig {
     @Override
     protected PromptTemplate _buildPrompt() {
         List<BaseVariable> variables = new ArrayList<>();
-
-        if (this.gptMessage) {
-            return new PromptTemplate(this.promptV3, variables);
-        }
 
         variables.add(BaseVariable.newString("NowTime", DateUtil.now()));
         variables.add(BaseVariable.newTemplate("PrePrompt", this.chatPrePrompt.buildPrompt()));

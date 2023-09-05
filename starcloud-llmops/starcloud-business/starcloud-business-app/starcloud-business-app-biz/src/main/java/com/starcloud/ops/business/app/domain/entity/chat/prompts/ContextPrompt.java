@@ -122,20 +122,17 @@ public class ContextPrompt extends BasePromptConfig {
         //@todo 处理 上下文中动态增加的文档历史
         BaseVariable contextDoc = BaseVariable.newFun("contextDoc", () -> {
 
+            List<MessageContentDocDTO> sortResult = new ArrayList<>();
+            //叠加搜索结果
+            List<MessageContentDocDTO> searchResult = this.parseContentLines(this.searchResult);
+            sortResult.addAll(searchResult);
+
             if (this.getMessageContentDocMemory().hasHistory()) {
-
-                List<MessageContentDocDTO> sortResult = new ArrayList<>();
                 MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
-                //叠加搜索结果
-                List<MessageContentDocDTO> searchResult = this.parseContentLines(this.searchResult);
-
-                sortResult.addAll(searchResult);
                 sortResult.addAll(contentDocHistory.getDocs());
-
-                return PromptUtil.parseDocContentLines(sortResult);
             }
 
-            return "";
+            return PromptUtil.parseDocContentLines(sortResult);
         });
 
         //直接搜索的结果
@@ -194,13 +191,13 @@ public class ContextPrompt extends BasePromptConfig {
 
     private List<MessageContentDocDTO> parseContentLines(MatchQueryVO matchQueryVO) {
 
-        List<Long> docIds = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map(d -> Long.valueOf(d.getId())).collect(Collectors.toList());
+        List<Long> docIds = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map(d -> Long.valueOf(d.getDocumentId())).collect(Collectors.toList());
 
         List<DatasetSourceDataBasicInfoVO> docs = datasetSourceDataService.getSourceDataListData(docIds);
 
         List<MessageContentDocDTO> messageContentDocDTOList = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map(recordDTO -> {
 
-            DatasetSourceDataBasicInfoVO doc = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().filter(docVo -> docVo.getId().equals(Long.valueOf(recordDTO.getId()))).findFirst().orElse(null);
+            DatasetSourceDataBasicInfoVO doc = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().filter(docVo -> docVo.getId().equals(Long.valueOf(recordDTO.getDocumentId()))).findFirst().orElse(null);
 
             if (doc != null) {
                 MessageContentDocDTO contentDocDTO = new MessageContentDocDTO();
@@ -217,7 +214,7 @@ public class ContextPrompt extends BasePromptConfig {
 
                 contentDocDTO.setTitle(doc.getName());
                 contentDocDTO.setUrl(doc.getAddress());
-                contentDocDTO.setContent(doc.getDescription());
+                contentDocDTO.setContent(recordDTO.getContent());
                 //contentDocDTO.setTime(doc.getCreateTime());
 
                 return contentDocDTO;

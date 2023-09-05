@@ -260,8 +260,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
 
-        chatPrompt.setGptMessage(true);
-
         int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
         //设置 memory 必要参数
         this.getMessageMemory().setSummaryMaxTokens(maxTokens);

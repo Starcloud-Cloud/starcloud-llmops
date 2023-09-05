@@ -280,7 +280,7 @@ public class ChatTest extends BaseDbUnitTest {
         ChatRequestVO chatRequest = new ChatRequestVO();
 
         //带数据集的
-        chatRequest.setAppUid("971e790946d04513aad3b29e695720f0");
+        chatRequest.setAppUid("2a651f163be6492aac1b1e612f45da8d");
         chatRequest.setUserId(186L);
 
         chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
@@ -291,7 +291,7 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("今天天津的天气怎么样？");
 
-        chatRequest.setQuery("1+1=?");
+        chatRequest.setQuery("亚马逊商城是否适合我的业务?");
 
         chatService.chat(chatRequest);
 
