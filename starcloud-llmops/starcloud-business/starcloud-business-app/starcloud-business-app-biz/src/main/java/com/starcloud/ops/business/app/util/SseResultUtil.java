@@ -41,7 +41,7 @@ public class SseResultUtil {
                     .messageUid(this.getMessageUid())
                     .build();
 
-            log.info("sendCallbackInteractive: {}", JsonUtils.toJsonString(result));
+            log.info("SseResultUtil sendCallbackInteractive: {}", JsonUtils.toJsonString(result));
 
             this.getSseEmitter().send(result);
         }

@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 public class MessageContentDocDTO {
 
 
+    private Integer n;
+
     /**
      * 对应数据集中的文档ID
      */

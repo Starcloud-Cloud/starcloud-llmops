@@ -293,6 +293,8 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("亚马逊商城是否适合我的业务?");
 
+        chatRequest.setQuery("今天是几号?");
+
         chatService.chat(chatRequest);
 
     }

@@ -1,11 +1,9 @@
 package com.starcloud.ops.business.app.domain.entity.chat.prompts;
 
-
-import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
-import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
 import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
 import com.starcloud.ops.llm.langchain.core.memory.template.ChatMemoryPromptTemplate;
@@ -20,18 +18,13 @@ import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 聊天 的整体 prompt
  */
 @Data
 public class ChatPrompt extends BasePromptConfig {
-
-    private Boolean toolPrompt;
 
     private String promptV1 = "System Time: {NowTime}\n" +
             "{ContextPrompt}\n" +
@@ -48,7 +41,7 @@ public class ChatPrompt extends BasePromptConfig {
             "AI: \n";
 
 
-    private String promptMaster = "System Time: {NowTime}\n" +
+    private String promptMaster = "Current system time: {NowTime}.\n" +
             "{PrePrompt}\n" +
             "{ContextPrompt}\n";
 
@@ -71,9 +64,7 @@ public class ChatPrompt extends BasePromptConfig {
 
     public ChatPromptTemplate buildChatPromptTemplate(Boolean toolPrompt) {
 
-        this.toolPrompt = toolPrompt;
         List<BaseMessagePromptTemplate> messagePromptTemplates = new ArrayList<>();
-
 
         //prePrompt 放到system里面
         messagePromptTemplates.add(new SystemMessagePromptTemplate(this.buildPrompt()));
@@ -148,7 +139,7 @@ public class ChatPrompt extends BasePromptConfig {
     protected PromptTemplate _buildPrompt() {
         List<BaseVariable> variables = new ArrayList<>();
 
-        variables.add(BaseVariable.newString("NowTime", DateUtil.now()));
+        variables.add(BaseVariable.newString("NowTime", (new Date()).toString()));
         variables.add(BaseVariable.newTemplate("PrePrompt", this.chatPrePrompt.buildPrompt()));
         variables.add(BaseVariable.newTemplate("ContextPrompt", this.contextPrompt.buildPrompt()));
 
