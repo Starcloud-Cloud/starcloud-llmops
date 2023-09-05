@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.chat.callback;
 
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
@@ -222,6 +223,7 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
     }
 
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
