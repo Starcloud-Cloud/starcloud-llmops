@@ -55,9 +55,9 @@ public class AppLimitConfigDTO implements Serializable {
     private Boolean enable;
 
     /**
-     * 限流数量
+     * 限流阈值
      */
-    @Schema(description = "限流数量")
+    @Schema(description = "限流阈值")
     private Integer threshold;
 
     /**
