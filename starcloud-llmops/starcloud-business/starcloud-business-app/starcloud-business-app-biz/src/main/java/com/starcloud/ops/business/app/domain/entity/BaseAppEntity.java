@@ -290,16 +290,16 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public R execute(Q request) {
+        log.info("应用执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
+        // 扣除权益用户，记录日志用户
+        if (request.getUserId() == null) {
+            request.setUserId(this.getRunUserId(request));
+        }
         // 会话记录
         this.initConversationLog(request);
 
         try {
-            log.info("应用执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
 
-            // 扣除权益用户，记录日志用户
-            if (request.getUserId() == null) {
-                request.setUserId(this.getRunUserId(request));
-            }
             log.info("应用执行：权益扣除用户, 日志记录用户 ID：{}, ", request.getUserId());
             // 基础校验
             this.validate(request);
@@ -339,16 +339,15 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void asyncExecute(Q request) {
+        log.info("应用异步执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
+        // 扣除权益用户，记录日志用户
+        if (request.getUserId() == null) {
+            request.setUserId(this.getRunUserId(request));
+        }
         //会话处理
         this.initConversationLog(request);
 
         try {
-            log.info("应用异步执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
-
-            // 扣除权益用户，记录日志用户
-            if (request.getUserId() == null) {
-                request.setUserId(this.getRunUserId(request));
-            }
             log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, ", request.getUserId());
             // 基础校验
             this.validate(request);

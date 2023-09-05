@@ -410,9 +410,10 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
         if (CollUtil.isEmpty(systemRuleConfigs)) {
             throw exception(DATASET_HANDLE_SYS_RULE_NO_EXISTS);
         }
+        List<DatasetHandleRulesDO> precisionRule = systemRuleConfigs.stream().filter(rulesDO -> !rulesDO.getRuleFilter().equals("*")).collect(Collectors.toList());
 
         DataSourceDataTypeEnum dataTypeEnum = DataSourceDataTypeEnum.valueOf(ruleType);
-        for (DatasetHandleRulesDO ruleDO : systemRuleConfigs) {
+        for (DatasetHandleRulesDO ruleDO : precisionRule) {
             List<String> filters = CollUtil.toList(ruleDO.getRuleFilter().split(","));
 
             boolean isMatch = false;
