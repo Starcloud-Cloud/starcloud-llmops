@@ -42,6 +42,13 @@ public interface AppDictionaryService {
      *
      * @return 是否开启限流
      */
-    Boolean limitSwitch();
+    Boolean appLimitSwitch();
+
+    /**
+     * 用户白名单，白名单之内的用户ID，不进行限流
+     *
+     * @return 用户白名单
+     */
+    List<String> appLimitUserWhiteList();
 
 }

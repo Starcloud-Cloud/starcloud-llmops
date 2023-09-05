@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -33,6 +34,19 @@ public class AppLimitConfigDTO implements Serializable {
      */
     @Schema(description = "限流依据: APP: 应用级别限流，USER： 用户级别限流，TEAM： 团队级别限流")
     private String limitBy;
+
+    /**
+     * 匹配的应用，如果配置，则改配置只针对配置的应用生效，不配置对所有的应用生效
+     */
+    @Schema(description = "匹配的应用，如果配置，则改配置只针对配置的应用生效，不配置对所有的应用生效")
+    private List<String> matchApps;
+
+    /**
+     * 忽略的应用集合，如果配置，则配置了的应用，不会进行限流。未配置，则对所有的应用生效 <br>
+     * 如果 matchApps 和 ignoreApps 配置了相同的应用 UID，以 ignoreApps 的规则为准，不会进行限流
+     */
+    @Schema(description = "忽略的应用集合，如果配置，则配置了的应用，不会进行限流。未配置，则对所有的应用生效")
+    private List<String> ignoreApps;
 
     /**
      * 是否启用
