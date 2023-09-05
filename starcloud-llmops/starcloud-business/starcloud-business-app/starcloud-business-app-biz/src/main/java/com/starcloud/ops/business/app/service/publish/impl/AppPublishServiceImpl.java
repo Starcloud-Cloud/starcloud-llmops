@@ -252,7 +252,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         if (AppModelEnum.CHAT.name().equals(app.getModel())) {
             BaseAppEntity baseApp = AppConvert.INSTANCE.convert(app, true);
             baseApp.getChatConfig().setAppConfigId(uid);
-            app = AppConvert.INSTANCE.convert(baseApp);
+            app.setConfig(JSONUtil.toJsonStr(baseApp.getChatConfig()));
             appPublish.setAppInfo(JSONUtil.toJsonStr(app));
             // 插入 chat配置
             chatExpandConfigService.copyConfig(app.getUid(), uid);
