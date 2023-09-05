@@ -438,7 +438,7 @@ public class AppLimitServiceImpl implements AppLimitService {
             }
 
             // 说明未执行过，初始化限流数量。
-            timeBucket.set(millisecond);
+            timeBucket.set(millisecond, millisecond, TimeUnit.MICROSECONDS);
             limitBucket.set(1);
             log.info("限流: 初始化 Redis 数据: Key: {}, Value: {}, Expire: {}", context.getLimitKey(), 1, millisecond);
         } catch (Exception exception) {
