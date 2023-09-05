@@ -9,7 +9,7 @@ import lombok.Getter;
  * @since 2023-08-30
  */
 @Getter
-public enum LimitByEnum implements IEnumable<Integer> {
+public enum AppLimitByEnum implements IEnumable<Integer> {
 
     /**
      * 根据应用进行限流
@@ -47,7 +47,7 @@ public enum LimitByEnum implements IEnumable<Integer> {
      * @param code  编码
      * @param label 标签
      */
-    LimitByEnum(Integer code, String label) {
+    AppLimitByEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
     }
