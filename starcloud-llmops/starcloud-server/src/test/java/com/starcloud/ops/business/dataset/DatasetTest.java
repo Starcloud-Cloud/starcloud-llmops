@@ -73,7 +73,7 @@ public class DatasetTest extends BaseDbUnitTest {
 
         //有语言识别问题
         String url = "https://sell.amazon.com/learn/inventory-management";
-        Document doc = JsoupUtil.loadUrl(url);
+        Document doc = JsoupUtil.loadUrl(url,null);
 
         if (doc != null) {
             //
@@ -104,7 +104,6 @@ public class DatasetTest extends BaseDbUnitTest {
 
         uploadCharacterReqVO.setSessionId("dsadasdsadadas");
         UploadCharacterReqVO characterReqVO = new UploadCharacterReqVO();
-        characterReqVO.setSync(true);
         characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle("title").setContext("content")));
         datasetSourceDataService.uploadCharactersSourceDataBySession(uploadCharacterReqVO);
 
