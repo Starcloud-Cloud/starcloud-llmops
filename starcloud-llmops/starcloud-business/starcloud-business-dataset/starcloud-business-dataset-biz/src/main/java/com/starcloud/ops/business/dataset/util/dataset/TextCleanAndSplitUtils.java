@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.dataset.util.dataset;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataFormatEnum;
+import com.starcloud.ops.business.dataset.pojo.dto.BlackCleanVO;
 import com.starcloud.ops.business.dataset.pojo.dto.CommonCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.HTMLCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
@@ -12,10 +14,13 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.safety.Safelist;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +29,37 @@ import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.FILE_T
 
 public class TextCleanAndSplitUtils {
 
+
+    public static Safelist WHITELIST = new Safelist()
+
+            .addTags(
+                    "a", "b", "blockquote", "br", "caption", "cite", "code", "col",
+                    "colgroup", "dd", "div", "dl", "dt", "em", "h1", "h2", "h3", "h4", "h5", "h6",
+                    "i", "img", "li", "ol", "p", "pre", "q", "small", "span", "strike", "strong",
+                    "sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "u",
+                    "ul")
+
+
+            .addAttributes("a", "href", "title")
+            .addAttributes(":all", "js-content")
+            .addAttributes("blockquote", "cite")
+            .addAttributes("col", "span", "width")
+            .addAttributes("colgroup", "span", "width")
+            .addAttributes("img", "align", "alt", "height", "src", "title", "width")
+            .addAttributes("ol", "start", "type")
+            .addAttributes("q", "cite")
+            .addAttributes("table", "summary", "width")
+            .addAttributes("td", "abbr", "axis", "colspan", "rowspan", "width")
+            .addAttributes(
+                    "th", "abbr", "axis", "colspan", "rowspan", "scope",
+                    "width")
+            .addAttributes("ul", "type")
+
+            .addProtocols("a", "href", "ftp", "http", "https", "mailto")
+            .addProtocols("blockquote", "cite", "http", "https")
+            .addProtocols("cite", "cite", "http", "https")
+            .addProtocols("img", "src", "http", "https")
+            .addProtocols("q", "cite", "http", "https");
     public static final List<String> ALLOWTYPE = Arrays.asList("TXT", "PDF");
 
     public static String splitText(String text, SplitRule splitRule, String type) {
@@ -50,7 +86,7 @@ public class TextCleanAndSplitUtils {
             throw new RuntimeException("数据预处理失败，无法请求到地址！");
         }
         // 根据标签白名单和黑名单清洗数据
-        if (CollUtil.isNotEmpty(htmlCleanRule.getWhiteList()) || CollUtil.isNotEmpty(htmlCleanRule.getBlackList())) {
+        if (CollUtil.isNotEmpty(htmlCleanRule.getWhiteList()) || htmlCleanRule.getBlackList() != null) {
             text = processHtmlTags(text, htmlCleanRule.getWhiteList(), htmlCleanRule.getBlackList());
         }
 
@@ -125,66 +161,49 @@ public class TextCleanAndSplitUtils {
      * @param blackRules
      * @return
      */
-    private static String processHtmlTags(String data, List<String> whiteRules, List<String> blackRules) {
-
-
+    private static String processHtmlTags(String data, List<String> whiteRules, BlackCleanVO blackRules) {
         Document doc = Jsoup.parse(data);
 
-        if (CollUtil.isEmpty(whiteRules)) {
-            // 处理黑名单，直接移除指定标签内容
-            if (CollUtil.isNotEmpty(blackRules)) {
-                String blackRule = String.join(",", blackRules);
-                try {
-                    doc.select(blackRule).remove();
-                } catch (RuntimeException e) {
-                    throw new RuntimeException("数据预处理异常，网页黑名单规则:(" + blackRule + ")错误");
-                }
+        try {
+            // 处理黑名单
+            if (blackRules != null) {
+                String blackRule = String.join(",", blackRules.getTags());
+                WHITELIST.removeTags(blackRule);
 
-            }
-        } else {
-            String whiteRule = String.join(",", whiteRules);
-
-            if (CollUtil.isNotEmpty(blackRules)) {
-                String blackRule = String.join(",", blackRules);
-                Element select;
-                try {
-                    select = doc.select(whiteRule).first();
-                } catch (RuntimeException e) {
-                    throw new RuntimeException("数据预处理异常，网页白名单规则错误");
-                }
-                if (select != null) {
-
-                    try {
-                        Elements blackData = select.select(blackRule);
-                        for (Element h1Element : blackData) {
-                            h1Element.remove();
-                        }
-                        return blackData.html();
-
-                    } catch (RuntimeException e) {
-                        throw new RuntimeException("数据预处理异常，网页黑名单规则错误");
+                for (Map<String, String> map : blackRules.getAttributes()) {
+                    for (Map.Entry<String, String> entry : map.entrySet()) {
+                        WHITELIST.removeAttributes(entry.getKey(), entry.getValue());
                     }
-
-                } else {
-                    return "未根据网页规则获取数据，请检查您的规则";
                 }
-
-
-            } else {
-                try {
-                    // 只处理白名单
-                    Elements whiteText = doc.select(whiteRule);
-                    doc.body().html(whiteText.html());
-                } catch (RuntimeException e) {
-                    throw new RuntimeException("数据预处理异常，网页白名单规则:(" + whiteRule + ")错误");
-                }
-
             }
+
+            String cleanedHtml;
+
+            if (CollUtil.isEmpty(whiteRules)) {
+                // 白名单为空，直接使用全局白名单清理
+                cleanedHtml = Jsoup.clean(doc.html(), WHITELIST);
+            } else {
+                // 处理白名单
+                String whiteRule = String.join(",", whiteRules);
+                Elements whiteText = doc.select(whiteRule);
+
+                if (StrUtil.isBlank(whiteText.html())) {
+                    throw new RuntimeException("数据预处理异常，网页白名单规则错误，无法预处理数据");
+                }
+
+                cleanedHtml = Jsoup.clean(whiteText.html(), WHITELIST);
+            }
+
+            if (StrUtil.isBlank(cleanedHtml)) {
+                throw new RuntimeException("数据预处理异常，清理后的数据为空");
+            }
+
+            return cleanedHtml;
+        } catch (RuntimeException e) {
+            throw new RuntimeException("数据预处理异常：" + e.getMessage());
         }
-
-        return doc.html();
-
     }
+
 
     /**
      * 根据用户定义的转换格式存储清洗后的数据
@@ -221,6 +240,29 @@ public class TextCleanAndSplitUtils {
     private static String removeUrlsEmails(String text) {
         Pattern email = Pattern.compile("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)");
         return email.matcher(text).replaceAll(StringUtils.EMPTY);
+    }
+
+
+    public static void main(String[] args) throws IOException {
+        // String URL="https://sell.amazon.com/pricing#referral-fees";
+        String URL = "https://mp.weixin.qq.com/s?__biz=Mzg5NDk3NzQyNA==&mid=2247485169&idx=1&sn=488decf3d46394226d5d249e41f20a30&chksm=c016120ef7619b18c4d30b791f52d2f44c52c54ba9ffcd89163191f0130f87451eb4f1b686c6&scene=178&cur_album_id=2968967010405842946#rd";
+        //
+        Document document = Jsoup.connect(URL).get();
+        // String basic = Jsoup.clean(document.html(), Safelist.basic());
+        // String basicWithImages = Jsoup.clean(document.html(), Safelist.basicWithImages());
+        // String simpleText = Jsoup.clean(document.html(), Safelist.simpleText());
+        // String relaxed = Jsoup.clean(document.html(), Safelist.relaxed());
+        // String whitelist = Jsoup.clean(document.html(),WHITELIST);
+        // String basicMark = html2Markdown(basic);
+        // String basicWithImagesMark = html2Markdown(basicWithImages);
+        // String simpleTextMark = html2Markdown(simpleText);
+        // String relaxedMark = html2Markdown(relaxed);
+        // String whitelistMark = html2Markdown(whitelist);
+        // System.out.println(whitelistMark);
+
+        String weqeq = Jsoup.clean(document.html(), WHITELIST);
+        System.out.println(weqeq);
+
     }
 
 
