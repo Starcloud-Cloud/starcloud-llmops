@@ -77,14 +77,14 @@ public class WxMpChatServiceImpl implements WxMpChatService {
 
     @Override
     public void chatAndReply(ChatRequestVO chatRequestVO, Long mqUserId, String openId) {
-        AppLimitRequest limitRequest = AppLimitRequest.of(chatRequestVO.getAppUid(), chatRequestVO.getScene());
-        try {
-            appLimitService.appLimit(limitRequest);
-        } catch (AppLimitException e) {
-            redisTemplate.delete(openId + "-ready");
-            sendMsg(mqUserId, e.getMessage());
-            return;
-        }
+//        AppLimitRequest limitRequest = AppLimitRequest.of(chatRequestVO.getAppUid(), chatRequestVO.getScene());
+//        try {
+//            appLimitService.appLimit(limitRequest);
+//        } catch (AppLimitException e) {
+//            redisTemplate.delete(openId + "-ready");
+//            sendMsg(mqUserId, e.getMessage());
+//            return;
+//        }
 
         threadWithContext.asyncExecute(() -> {
             try {
