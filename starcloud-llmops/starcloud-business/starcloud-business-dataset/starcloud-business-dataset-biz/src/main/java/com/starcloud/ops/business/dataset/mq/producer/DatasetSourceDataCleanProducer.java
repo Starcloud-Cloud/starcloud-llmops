@@ -69,7 +69,7 @@ public class DatasetSourceDataCleanProducer extends AbstractDatasetSourceProduce
         message.setUserId(sendMessage.getUserId());
         message.setCleanSync(sendMessage.getCleanSync());
         message.setSplitSync(sendMessage.getSplitSync());
-        message.setIndexSync(message.getIndexSync());
+        message.setIndexSync(sendMessage.getIndexSync());
 
         dataSetSourceDataCleanSendConsumer.onMessage(message);
     }

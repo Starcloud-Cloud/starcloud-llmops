@@ -19,6 +19,7 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
 import com.starcloud.ops.business.dataset.enums.DatasetPermissionEnum;
 import com.starcloud.ops.business.dataset.enums.DatasetProviderEnum;
+import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -168,7 +169,7 @@ public class DatasetsServiceImpl implements DatasetsService {
 
         List<DatasetsDO> datasetsDOS = datasetsMapper.selectList(Wrappers.lambdaQuery(DatasetsDO.class)
                 .eq(DatasetsDO::getAppId, appId)
-                .isNull(DatasetsDO::getConversationId));
+                .isNull(DatasetsDO::getSessionId));
 
         if (CollUtil.isEmpty(datasetsDOS)) {
             throw exception(DATASETS_APPID_NOT_EXISTS);
@@ -185,7 +186,7 @@ public class DatasetsServiceImpl implements DatasetsService {
         DatasetsDO datasetsDO = datasetsMapper.selectOne(
                 Wrappers.lambdaQuery(DatasetsDO.class)
                         .eq(DatasetsDO::getAppId, appId)
-                        .isNull(DatasetsDO::getConversationId));
+                        .isNull(DatasetsDO::getSessionId));
         return datasetsDO != null;
     }
 
@@ -196,7 +197,7 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @return Boolean
      */
     @Override
-    public Long createDatasetsByApp(String appId) {
+    public DatasetsDO createDatasetsByApp(String appId) {
         DatasetsDO datasetsDO = new DatasetsDO();
         datasetsDO.setUid(DatasetUID.createDatasetUID());
         datasetsDO.setName(String.format("应用%s的数据集", appId));
@@ -208,7 +209,7 @@ public class DatasetsServiceImpl implements DatasetsService {
         // 数据插入
         datasetsMapper.insert(datasetsDO);
 
-        return datasetsDO.getId();
+        return datasetsDO;
     }
 
 
@@ -223,18 +224,19 @@ public class DatasetsServiceImpl implements DatasetsService {
             TenantContextHolder.setIgnore(false);
             UserContextHolder.setUserId(Long.valueOf(appRespVO.getCreator()));
         }
-        try {
-            DatasetsDO datasetsDO = datasetsMapper.selectOne(
-                    Wrappers.lambdaQuery(DatasetsDO.class)
-                            .eq(DatasetsDO::getAppId, appId)
-                            .eq(DatasetsDO::getConversationId, sessionId));
-            if (datasetsDO == null) {
-                throw exception(DATASETS_CONVERSATION_NOT_EXISTS);
-            }
-            return datasetsDO;
-        } catch (RuntimeException e) {
+
+        List<DatasetsDO> datasetsDOS = datasetsMapper.selectList(
+                Wrappers.lambdaQuery(DatasetsDO.class)
+                        .eq(DatasetsDO::getAppId, appId)
+                        .eq(DatasetsDO::getSessionId, sessionId));
+        if (CollUtil.isEmpty(datasetsDOS)) {
+            throw exception(DATASETS_CONVERSATION_NOT_EXISTS);
+        }
+        if (datasetsDOS.size() > 1) {
             throw exception(DATASETS_CONVERSATION_REPEAT_BIND);
         }
+        return datasetsDOS.get(0);
+
     }
 
 
@@ -248,7 +250,7 @@ public class DatasetsServiceImpl implements DatasetsService {
         DatasetsDO datasetsDO = datasetsMapper.selectOne(
                 Wrappers.lambdaQuery(DatasetsDO.class)
                         .eq(DatasetsDO::getAppId, appId)
-                        .eq(DatasetsDO::getConversationId, sessionId));
+                        .eq(DatasetsDO::getSessionId, sessionId));
         return datasetsDO != null;
     }
 
@@ -259,19 +261,25 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @param sessionId 会话 ID
      * @return Boolean
      */
-    public Long createDatasetsBySession(String appId, String sessionId) {
+    public DatasetsDO createDatasetsBySession(String appId, String sessionId, BaseDBHandleDTO baseDBHandleDTO) {
         DatasetsDO datasetsDO = new DatasetsDO();
         datasetsDO.setUid(DatasetUID.createDatasetUID());
         datasetsDO.setName(String.format("会话%s的数据集", sessionId));
         datasetsDO.setDescription(String.format("会话%s的数据集", sessionId));
         datasetsDO.setAppId(appId);
-        datasetsDO.setConversationId(sessionId);
+        datasetsDO.setSessionId(sessionId);
         datasetsDO.setProvider(DatasetProviderEnum.SYSTEM.getName());
         datasetsDO.setPermission(DatasetPermissionEnum.PRIVATELY_OWNED.getStatus());
         datasetsDO.setEnabled(true);
+
+
+        datasetsDO.setCreator(baseDBHandleDTO.getCreator());
+        datasetsDO.setCreator(baseDBHandleDTO.getUpdater());
+        datasetsDO.setTenantId(baseDBHandleDTO.getTenantId());
+        datasetsDO.setEndUser(baseDBHandleDTO.getEndUser());
         // 数据插入
         datasetsMapper.insert(datasetsDO);
 
-        return datasetsDO.getId();
+        return datasetsDO;
     }
 }

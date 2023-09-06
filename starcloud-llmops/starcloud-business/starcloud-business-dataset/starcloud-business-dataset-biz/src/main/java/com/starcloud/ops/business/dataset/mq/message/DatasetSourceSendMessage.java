@@ -35,7 +35,13 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
      * 用户 ID
      */
     @NotNull(message = " 用户 ID不能为空")
-    private Long userId;
+    private String userId;
+
+    /**
+     * 用户 ID
+     */
+    @NotNull(message = " 租户 ID不能为空")
+    private Long tenantId;
 
     @NotNull(message = "数据状态")
     private Integer status;

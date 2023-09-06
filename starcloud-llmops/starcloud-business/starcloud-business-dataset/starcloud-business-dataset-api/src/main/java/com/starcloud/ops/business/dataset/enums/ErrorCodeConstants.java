@@ -29,6 +29,7 @@ public interface ErrorCodeConstants {
 
     ErrorCode DATASETS_CONVERSATION_NOT_EXISTS = new ErrorCode(2007001009, "该会话下的知识库不存在");
     ErrorCode DATASETS_CONVERSATION_REPEAT_BIND = new ErrorCode(2007001010, "该会话下存在多个知识库");
+    ErrorCode DATASETS_CONVERSATION_USER_SESSION_NOT_EXISTS = new ErrorCode(2007001011, "用户信息不存在，请重新设置用户信息");
 
 
 

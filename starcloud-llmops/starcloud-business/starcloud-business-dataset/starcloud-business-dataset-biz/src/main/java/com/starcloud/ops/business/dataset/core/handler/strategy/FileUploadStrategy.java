@@ -44,7 +44,7 @@ public class FileUploadStrategy implements UploadStrategy {
      * @return UploadFileRespDTO
      */
     @Override
-    public UploadContentDTO process(Long userId) {
+    public UploadContentDTO process(String userId) {
         log.info("====> 文件开始上传 ,初始化数据状态为 false");
         UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
@@ -107,7 +107,7 @@ public class FileUploadStrategy implements UploadStrategy {
      * @param extension 文件 扩展名
      * @return 文件路径
      */
-    private String uploadFile(String fileId, byte[] fileByte, String extension, Long userId) {
+    private String uploadFile(String fileId, byte[] fileByte, String extension, String userId) {
 
         String fileName = fileId + "." + extension;
         String path = String.format(PATH_OBJECT + "%s" + "/", userId) + fileName;

@@ -17,7 +17,7 @@ public class HTMLCleanRule {
     /**
      * 黑名单列表
      */
-    private List<String> blackList;
+    private BlackCleanVO blackList;
 
     /**
      * 转换格式 - TXT MarkDown ....

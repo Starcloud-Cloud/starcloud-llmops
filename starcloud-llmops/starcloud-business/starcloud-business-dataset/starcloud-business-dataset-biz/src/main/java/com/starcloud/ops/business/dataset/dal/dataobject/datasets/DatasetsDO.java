@@ -63,13 +63,16 @@ public class DatasetsDO extends TenantBaseDO {
     /**
      *  会话 ID
      */
-    private String conversationId;
+    private String sessionId;
     /**
      * 是否启用
      */
     private Boolean enabled;
 
-
+    /**
+     * 游客
+     */
+    private Long endUser;
 
 
 

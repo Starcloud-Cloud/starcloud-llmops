@@ -368,7 +368,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     this.afterExecute(request, exception);
 
                 } catch (Exception exception) {
-                    log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
+                    log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(),exception);
                     // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), false);
                     this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));

@@ -53,7 +53,7 @@ public class UrlUploadStrategy implements UploadStrategy {
      * @return
      */
     @Override
-    public UploadContentDTO process(Long userId) {
+    public UploadContentDTO process(String userId) {
 
         UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
@@ -83,7 +83,7 @@ public class UrlUploadStrategy implements UploadStrategy {
         // 获取网页的title
         String name = getUrlTitle(doc);
 
-        name = name.isEmpty() ? url : name;
+        name = StrUtil.isBlank(name) ? url : name;
 
         uploadFileRespDTO.setName(name);
 
@@ -154,7 +154,7 @@ public class UrlUploadStrategy implements UploadStrategy {
      * @param userId 文件 path 可以为空
      * @return 文件路径
      */
-    private String uploadFile(String fileId, String data, Long userId) {
+    private String uploadFile(String fileId, String data, String userId) {
 
 
         // 将结果转换为InputStream流

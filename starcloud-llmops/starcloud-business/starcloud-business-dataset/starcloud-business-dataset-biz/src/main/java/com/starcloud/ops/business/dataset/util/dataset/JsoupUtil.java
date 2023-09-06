@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.safety.Safelist;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -26,6 +27,8 @@ public class JsoupUtil {
 
     // 创建代理对象
     private static final Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(PROXY_HOST, PROXY_PORT));
+
+
 
     /**
      * @param url            链接

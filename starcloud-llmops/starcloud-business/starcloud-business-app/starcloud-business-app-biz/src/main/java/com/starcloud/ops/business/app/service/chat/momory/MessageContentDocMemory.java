@@ -197,8 +197,8 @@ public class MessageContentDocMemory {
                     uploadUrlReqVO.setSessionId(conversationUid);
 
                     uploadUrlReqVO.setUrls(Arrays.asList(doc.getUrl()));
-
-                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+                    // TODO 添加创建人或者游客
+                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO,null);
 
                     SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
@@ -236,8 +236,8 @@ public class MessageContentDocMemory {
                     //@todo 增加扩展字段
 
                     characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle(title).setContext(content)));
-
-                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceData(characterReqVO);
+                    // TODO 添加创建人或者游客
+                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceDataBySession(characterReqVO,null);
 
                     SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 

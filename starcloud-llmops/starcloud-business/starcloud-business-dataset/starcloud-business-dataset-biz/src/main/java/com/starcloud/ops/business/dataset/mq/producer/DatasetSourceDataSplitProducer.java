@@ -69,7 +69,7 @@ public class DatasetSourceDataSplitProducer extends AbstractDatasetSourceProduce
         message.setUserId(sendMessage.getUserId());
         message.setCleanSync(sendMessage.getCleanSync());
         message.setSplitSync(sendMessage.getSplitSync());
-        message.setIndexSync(message.getIndexSync());
+        message.setIndexSync(sendMessage.getIndexSync());
 
         splitSendConsumer.onMessage(message);
     }

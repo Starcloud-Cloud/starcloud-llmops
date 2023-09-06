@@ -70,7 +70,7 @@ public class DatasetSourceDataController {
         reqVO.setIndexSync(false);
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.DOCUMENT.name());
-        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadFilesSourceData(reqVO);
+        SourceDataUploadDTO sourceDataUrlUploadDTO = datasetSourceDataService.uploadFilesSourceData(reqVO,null);
         return success(sourceDataUrlUploadDTO);
     }
 
@@ -83,7 +83,7 @@ public class DatasetSourceDataController {
         reqVO.setIndexSync(false);
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.HTML.name());
-        return success(datasetSourceDataService.uploadUrlsSourceData(reqVO));
+        return success(datasetSourceDataService.uploadUrlsSourceData(reqVO,null));
     }
 
 
@@ -96,7 +96,7 @@ public class DatasetSourceDataController {
 
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.CHARACTERS.name());
-        return success(datasetSourceDataService.uploadCharactersSourceData(reqVO));
+        return success(datasetSourceDataService.uploadCharactersSourceData(reqVO,null));
     }
 
     @PutMapping("/update")

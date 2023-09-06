@@ -77,8 +77,8 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         uploadUrlReqVO.setSessionId(context.getConversationUid());
         uploadUrlReqVO.setUrls(Arrays.asList(url));
         uploadUrlReqVO.setAppId(context.getAppUid());
-
-        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO);
+        // TODO 添加创建人或者游客
+        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO,null);
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
         if (!sourceDataUploadDTO.getStatus()) {
