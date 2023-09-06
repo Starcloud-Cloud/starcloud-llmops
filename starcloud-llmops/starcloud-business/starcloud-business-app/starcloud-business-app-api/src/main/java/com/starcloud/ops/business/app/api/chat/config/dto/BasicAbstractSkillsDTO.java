@@ -15,6 +15,12 @@ public abstract class BasicAbstractSkillsDTO implements BaseExpandConfigDTO{
     @Schema(description = "技能简介")
     private String desc;
 
+    @Schema(description = "头像")
+    private String icon;
+
+    @Schema(description = "提示文案")
+    private String copyWriting;
+
     @Override
     public void valid() {
         if (StringUtil.isBlank(name)) {
