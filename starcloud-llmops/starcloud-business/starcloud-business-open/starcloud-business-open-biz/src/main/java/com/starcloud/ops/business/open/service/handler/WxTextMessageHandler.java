@@ -61,10 +61,10 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) {
         try {
-            Boolean aBoolean = redisLock(wxMessage.getMsgId());
-            if (!aBoolean) {
-                return null;
-            }
+//            Boolean aBoolean = redisLock(wxMessage.getMsgId());
+//            if (!aBoolean) {
+//                return null;
+//            }
             String wxAppId = MpContextHolder.getAppId();
             MpAutoReplyDO mpAutoReplyDO = mpAutoReplyService.selectListByAppIdAndMessage(wxAppId, wxMessage.getMsgType());
             if (mpAutoReplyDO == null || mpAutoReplyDO.getResponseContent() == null
@@ -72,10 +72,10 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
                 return mpAutoReplyService.replyForMessage(MpContextHolder.getAppId(), wxMessage);
             }
             String prompt = mpAutoReplyDO.getResponseContent().substring(PREFIX.length());
-            //限流
-            if (!limiter(wxMessage.getFromUser())) {
-                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("提问超过限制! 20秒后重试").build();
-            }
+//            //限流
+//            if (!limiter(wxMessage.getFromUser())) {
+//                return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content("提问超过限制! 20秒后重试").build();
+//            }
             WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
             mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
             // 上次对话结束
