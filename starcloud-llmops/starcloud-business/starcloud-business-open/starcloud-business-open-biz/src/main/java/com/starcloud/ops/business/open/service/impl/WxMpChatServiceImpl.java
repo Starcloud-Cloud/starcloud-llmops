@@ -19,8 +19,11 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.exception.AppLimitException;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.open.service.WxMpChatService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
@@ -52,6 +55,9 @@ public class WxMpChatServiceImpl implements WxMpChatService {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Resource
+    private AppLimitService appLimitService;
+
     @Override
     public void parseUrl(String url, Long mqUserId, String prompt) {
         //todo 调用数据集
@@ -71,6 +77,14 @@ public class WxMpChatServiceImpl implements WxMpChatService {
 
     @Override
     public void chatAndReply(ChatRequestVO chatRequestVO, Long mqUserId, String openId) {
+        AppLimitRequest limitRequest = AppLimitRequest.of(chatRequestVO.getMediumUid(), chatRequestVO.getScene(), chatRequestVO.getEndUser());
+        try {
+            appLimitService.channelLimit(limitRequest);
+        } catch (AppLimitException e) {
+            sendMsg(mqUserId, e.getMessage());
+            return;
+        }
+
         threadWithContext.asyncExecute(() -> {
             try {
                 ChatAppEntity<ChatRequestVO, JsonData> appEntity = AppFactory.factory(chatRequestVO);

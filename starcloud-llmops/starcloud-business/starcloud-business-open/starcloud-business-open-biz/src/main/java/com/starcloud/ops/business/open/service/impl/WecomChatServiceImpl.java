@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.exception.AppLimitException;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
@@ -71,7 +72,13 @@ public class WecomChatServiceImpl implements WecomChatService {
         String endUserId = endUserService.weChatLogin(userNameMd5);
 
         AppLimitRequest limitRequest = AppLimitRequest.of(channelRespVO.getMediumUid(), AppSceneEnum.WECOM_GROUP.name(), endUserId);
-        appLimitService.channelLimit(limitRequest);
+
+        try {
+            appLimitService.channelLimit(limitRequest);
+        } catch (AppLimitException e) {
+            sendMsg(reqVO.getGroupRemark(), e.getMessage(), reqVO.getReceivedName());
+            return;
+        }
 
         ChatRequestVO chatRequestVO = new ChatRequestVO();
         chatRequestVO.setAppUid(channelRespVO.getAppUid());
@@ -97,8 +104,6 @@ public class WecomChatServiceImpl implements WecomChatService {
             } catch (ServiceException e) {
                 if (USER_BENEFITS_USELESS_INSUFFICIENT.getCode().intValue() == e.getCode()) {
                     sendMsg(reqVO.getGroupRemark(), "令牌不足，请联系群管理员添加。", reqVO.getReceivedName());
-                } else if (300900005 == e.getCode() || 300900006 == e.getCode()) {
-                    sendMsg(reqVO.getGroupRemark(), e.getMessage(), reqVO.getReceivedName());
                 } else {
                     log.error("execute error:", e);
                     sendMsg(reqVO.getGroupRemark(), "应用执行异常，请联系管理员", reqVO.getReceivedName());
