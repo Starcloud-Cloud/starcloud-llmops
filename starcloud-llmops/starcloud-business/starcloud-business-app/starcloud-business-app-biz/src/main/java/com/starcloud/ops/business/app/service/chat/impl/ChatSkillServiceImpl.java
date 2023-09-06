@@ -81,13 +81,13 @@ public class ChatSkillServiceImpl implements ChatSkillService {
     public AllChatSkilVO allChatSkill() {
         List<ChatSkillVO> systemSkill = this.listSystemSkill();
         AppMarketPageQuery marketPageQuery = new AppMarketPageQuery();
-        marketPageQuery.setModel(AppModelEnum.CHAT.name());
+        marketPageQuery.setModel(AppModelEnum.COMPLETION.name());
         marketPageQuery.setPageNo(1);
         marketPageQuery.setPageSize(1000);
         List<AppMarketRespVO> marketApps = appMarketService.page(marketPageQuery).getList();
 
         AppPageQuery appPageQuery = new AppPageQuery();
-        appPageQuery.setModel(AppModelEnum.CHAT.name());
+        appPageQuery.setModel(AppModelEnum.COMPLETION.name());
         appPageQuery.setPageNo(1);
         appPageQuery.setPageSize(1000);
         List<AppRespVO> apps = appService.page(appPageQuery).getList();
