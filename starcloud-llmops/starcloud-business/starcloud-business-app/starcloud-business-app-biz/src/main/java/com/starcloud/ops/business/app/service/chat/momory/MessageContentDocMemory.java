@@ -42,24 +42,10 @@ public class MessageContentDocMemory {
      * 初始化历史记录
      */
     public void initHistory() {
-//
-//        this.messageMemory.getChatRequestVO();
-//        this.messageMemory.getLogAppMessage();
-//        this.messageMemory.getChatAppEntity();
-
         String appUid = this.messageMemory.getChatAppEntity().getUid();
         String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
-
-        //查询数据集表
-        List<DatasetSourceDataDetailRespVO> sourceDataBasicInfoVOS = this.searchSourceData(appUid, conversationUid);
-
-
-        //填充history
-        List<MessageContentDocDTO> history = this.convertMessageContentDoc(sourceDataBasicInfoVOS);
-        this.history = new MessageContentDocHistory(history);
-
-        log.info("MessageContentDocMemory init: {}", JsonUtils.toJsonString(history));
-
+        log.info("MessageContentDocMemory init start, appUid:[{}] conversationUid[{}]", appUid, conversationUid);
+        this.reloadHistory();
     }
 
     public Boolean hasHistory() {
@@ -150,7 +136,20 @@ public class MessageContentDocMemory {
      */
     public MessageContentDocHistory reloadHistory() {
 
-        return this.getHistory();
+        String appUid = this.messageMemory.getChatAppEntity().getUid();
+        String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
+
+        //查询数据集表
+        List<DatasetSourceDataDetailRespVO> sourceDataBasicInfoVOS = this.searchSourceData(appUid, conversationUid);
+
+
+        //填充history
+        List<MessageContentDocDTO> history = this.convertMessageContentDoc(sourceDataBasicInfoVOS);
+        this.history = new MessageContentDocHistory(history);
+
+        log.info("MessageContentDocMemory reloadHistory appUid[{}] conversationUid[{}]: {}", appUid, conversationUid, JsonUtils.toJsonString(this.history));
+
+        return this.history;
     }
 
 

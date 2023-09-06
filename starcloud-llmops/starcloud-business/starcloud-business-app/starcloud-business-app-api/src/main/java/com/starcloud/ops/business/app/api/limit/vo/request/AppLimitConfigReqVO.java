@@ -35,10 +35,10 @@ public class AppLimitConfigReqVO implements Serializable {
     /**
      * 限流数量
      */
-    @Schema(description = "限流数量")
-    @NotNull(message = "限流数量不能为空")
-    @Min(value = 1, message = "限流数量不能小于1")
-    private Integer limit;
+    @Schema(description = "限流阈值")
+    @NotNull(message = "限流阈值不能为空")
+    @Min(value = 1, message = "限流阈值不能小于1")
+    private Integer threshold;
 
     /**
      * 限流时间

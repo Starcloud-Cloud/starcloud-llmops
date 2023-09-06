@@ -27,7 +27,7 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setLimit(60);
+            config.setThreshold(60);
             config.setTimeInterval(60L);
             config.setTimeUnit("SECONDS");
             config.setMessage("当前访问用户过多，请稍后再试！");
@@ -40,7 +40,7 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setLimit(60);
+            config.setThreshold(60);
             config.setTimeInterval(60L);
             config.setIgnoreApps(RATE_IGNORE_APPS);
             config.setTimeUnit("SECONDS");
@@ -59,7 +59,7 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(AppLimitByEnum.USER.name());
-            config.setLimit(60);
+            config.setThreshold(60);
             config.setTimeInterval(1L);
             config.setTimeUnit("MONTHS");
             config.setMessage("抱歉，您已经达到最大访问上限！");
@@ -72,7 +72,7 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.USER.name());
-            config.setLimit(60);
+            config.setThreshold(60);
             config.setTimeInterval(1L);
             config.setTimeUnit("MONTHS");
             config.setMessage("抱歉，您已经达到最大访问上限！");
@@ -90,7 +90,7 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(AppLimitByEnum.ADVERTISING.name());
-            config.setLimit(20);
+            config.setThreshold(20);
             config.setTimeInterval(1L);
             config.setTimeUnit("MONTHS");
             config.setMessage("魔法AI - 基于AI技术，轻松创建数字员工，赶快来魔法AI创建一个属于自己的数字员工吧。");
@@ -103,7 +103,7 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.ADVERTISING.name());
-            config.setLimit(20);
+            config.setThreshold(20);
             config.setTimeInterval(1L);
             config.setTimeUnit("MONTHS");
             config.setMessage("魔法AI - 基于AI技术，轻松创建数字员工，赶快来魔法AI创建一个属于自己的数字员工吧。");
@@ -126,7 +126,7 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setLimit(100);
+            config.setThreshold(100);
             config.setTimeInterval(60L);
             config.setMatchApps(DEFAULT_RECOMMEND_APPS);
             config.setTimeUnit("SECONDS");
@@ -150,7 +150,7 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setLimit(100);
+            config.setThreshold(100);
             config.setTimeInterval(60L);
             config.setMatchApps(Collections.singletonList(RecommendAppConsts.BASE_GENERATE_IMAGE));
             config.setTimeUnit("SECONDS");

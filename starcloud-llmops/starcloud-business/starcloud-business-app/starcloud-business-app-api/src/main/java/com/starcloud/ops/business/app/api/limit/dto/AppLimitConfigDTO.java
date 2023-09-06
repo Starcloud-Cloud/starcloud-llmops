@@ -55,10 +55,10 @@ public class AppLimitConfigDTO implements Serializable {
     private Boolean enable;
 
     /**
-     * 限流数量
+     * 限流阈值
      */
-    @Schema(description = "限流数量")
-    private Integer limit;
+    @Schema(description = "限流阈值")
+    private Integer threshold;
 
     /**
      * 限流时间间隔

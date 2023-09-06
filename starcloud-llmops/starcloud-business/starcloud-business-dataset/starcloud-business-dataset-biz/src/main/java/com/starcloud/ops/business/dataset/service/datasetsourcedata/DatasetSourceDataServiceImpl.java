@@ -813,7 +813,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             return datasetsService.getDatasetInfoByAppId(appId).getId();
         } else {
             log.info("应用{}不存在数据集，开始创建数据集，应用 ID 为", appId);
-            return datasetsService.createDatasetsByApp(appId);
+            //return datasetsService.createDatasetsByApp(appId);
+            return 0l;
         }
     }
 
@@ -839,7 +840,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             return datasetsService.getDatasetInfoBySession(appId, sessionId).getId();
         } else {
             log.info("应用{}的会话{}不存在数据集，开始创建数据集", appId, sessionId);
-            return datasetsService.createDatasetsBySession(appId, sessionId);
+            //return datasetsService.createDatasetsBySession(appId, sessionId);
+            return 0l;
         }
     }
 

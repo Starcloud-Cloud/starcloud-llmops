@@ -94,7 +94,7 @@ public interface AppPublishLimitConvert {
         config.setCode(code);
         config.setLimitBy(limitBy);
         config.setEnable(request.getEnable());
-        config.setLimit(request.getLimit());
+        config.setThreshold(request.getThreshold());
         config.setTimeInterval(request.getTimeInterval());
         config.setTimeUnit(request.getTimeUnit());
         config.setMessage(request.getMessage());

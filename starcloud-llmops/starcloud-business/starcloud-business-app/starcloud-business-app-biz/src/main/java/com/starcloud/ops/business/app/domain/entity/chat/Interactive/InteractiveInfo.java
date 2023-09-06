@@ -162,7 +162,6 @@ public class InteractiveInfo implements Serializable {
         //查出具体文档信息
         List<DatasetSourceDataBasicInfoVO> docs = datasetSourceDataService.getSourceDataListData(docIds);
 
-
         interactiveInfo.setData(Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
 
             DatasetSourceDataBasicInfoVO source = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().filter((dataBasicInfoVO) -> {
