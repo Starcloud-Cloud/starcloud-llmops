@@ -107,8 +107,8 @@ public class StringUploadStrategy implements UploadStrategy {
     /**
      * 保存文件，并返回文件的访问路径
      *
-     * @param fileId     文件 ID
-     * @param data 文件
+     * @param fileId 文件 ID
+     * @param data   文件
      * @param userId
      * @return 文件路径
      */

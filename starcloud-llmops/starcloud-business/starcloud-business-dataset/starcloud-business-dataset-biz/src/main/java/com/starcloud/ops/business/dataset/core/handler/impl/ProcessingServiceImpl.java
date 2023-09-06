@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.dataset.core.handler.impl;
 
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -9,8 +8,6 @@ import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadFileReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageCreateReqVO;
-import com.starcloud.ops.business.dataset.convert.datasetstorage.DatasetStorageConvert;
 import com.starcloud.ops.business.dataset.core.handler.ProcessingService;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadResult;
@@ -40,7 +37,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.DATASET_SOURCE_UPLOAD_DATA_FAIL_APPID;
 
 /**
@@ -97,7 +93,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         process.setSplitSync(reqVO.getSplitSync());
         process.setIndexSync(reqVO.getIndexSync());
         // 执行通用逻辑并且返回
-        return commonProcess(process,baseDBHandleDTO);
+        return commonProcess(process, baseDBHandleDTO);
     }
 
 
@@ -121,7 +117,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         process.setSplitSync(reqVO.getSplitSync());
         process.setIndexSync(reqVO.getIndexSync());
         // 执行通用逻辑并且返回
-        return commonProcess(process,baseDBHandleDTO);
+        return commonProcess(process, baseDBHandleDTO);
     }
 
     @Override
@@ -142,7 +138,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         process.setIndexSync(reqVO.getIndexSync());
 
         // 执行通用逻辑并且返回
-        return commonProcess(process,baseDBHandleDTO);
+        return commonProcess(process, baseDBHandleDTO);
     }
 
 
@@ -154,16 +150,16 @@ public class ProcessingServiceImpl implements ProcessingService {
 
         if (!process.getStatus()) {
             // 如果上传或者解析出错 则保留数据记录
-            saveErrorSourceData(process,baseDBHandleDTO);
+            saveErrorSourceData(process, baseDBHandleDTO);
             return uploadResult;
         }
         log.info("====> 数据上传操作执行完毕,开始保存数据");
 
         // 保存上传记录
-        Long storageId = saveStorageData(process,baseDBHandleDTO);
+        Long storageId = saveStorageData(process, baseDBHandleDTO);
         log.info("====> 上传记录保存成功,开始保存源数据 ");
         // 保存源数据
-        DatasetSourceDataDO sourceDataDO = this.saveSourceData(process, storageId,baseDBHandleDTO);
+        DatasetSourceDataDO sourceDataDO = this.saveSourceData(process, storageId, baseDBHandleDTO);
         log.info("====> 源数据保存成功,开始异步发送队列信息 ");
         // 异步发送队列信息
 
@@ -198,7 +194,7 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
 
-    private Long saveStorageData(UploadContentDTO process,BaseDBHandleDTO baseDBHandleDTO) {
+    private Long saveStorageData(UploadContentDTO process, BaseDBHandleDTO baseDBHandleDTO) {
         DatasetStorageDO datasetStorageDO = new DatasetStorageDO();
         datasetStorageDO.setUid(DatasetUID.createStorageUID());
         datasetStorageDO.setName(process.getName());
@@ -223,7 +219,7 @@ public class ProcessingServiceImpl implements ProcessingService {
      * @param storageId 数据保存ID
      * @return DatasetSourceDataDO
      */
-    private DatasetSourceDataDO saveSourceData(UploadContentDTO process, Long storageId,BaseDBHandleDTO baseDBHandleDTO) {
+    private DatasetSourceDataDO saveSourceData(UploadContentDTO process, Long storageId, BaseDBHandleDTO baseDBHandleDTO) {
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(DatasetSourceDataDO::getDatasetId, process.getDatasetId());
@@ -255,7 +251,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         return dataDO;
     }
 
-    private void saveErrorSourceData(UploadContentDTO process,BaseDBHandleDTO baseDBHandleDTO) {
+    private void saveErrorSourceData(UploadContentDTO process, BaseDBHandleDTO baseDBHandleDTO) {
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
 

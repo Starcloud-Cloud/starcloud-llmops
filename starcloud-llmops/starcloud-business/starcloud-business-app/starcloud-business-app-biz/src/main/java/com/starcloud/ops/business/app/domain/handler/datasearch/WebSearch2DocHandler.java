@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,7 +14,6 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
@@ -78,7 +76,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         uploadUrlReqVO.setUrls(Arrays.asList(url));
         uploadUrlReqVO.setAppId(context.getAppUid());
         // TODO 添加创建人或者游客
-        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO,null);
+        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, null);
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
         if (!sourceDataUploadDTO.getStatus()) {
@@ -109,7 +107,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         List<InteractiveData> dataList = Arrays.asList(interactiveData);
 
-        //handlerResponse.setExt(dataList);
+        // handlerResponse.setExt(dataList);
 
         interactiveInfo.setData(dataList);
         interactiveInfo.setTips("分析链接完成");
@@ -125,7 +123,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
     @Override
     protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
 
-        //解析返回的内容 生成 MessageContentDocDTO
+        // 解析返回的内容 生成 MessageContentDocDTO
         List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();
 
         MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();

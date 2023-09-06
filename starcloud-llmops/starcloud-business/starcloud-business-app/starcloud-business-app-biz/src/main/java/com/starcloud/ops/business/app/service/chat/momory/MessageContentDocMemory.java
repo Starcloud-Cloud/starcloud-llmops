@@ -11,7 +11,6 @@ import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -74,11 +73,11 @@ public class MessageContentDocMemory {
 
             MessageContentDocDTO contentDocDTO = new MessageContentDocDTO();
 
-            //初始化为了减少内容，主要总结的，如果总结没有取描述
+            // 初始化为了减少内容，主要总结的，如果总结没有取描述
             String summary = StrUtil.isNotBlank(dataBasicInfoVO.getSummary()) ? dataBasicInfoVO.getSummary() : dataBasicInfoVO.getDescription();
             // dataBasicInfoVO.getAddress();
             contentDocDTO.setId(dataBasicInfoVO.getId());
-            //contentDocDTO.setContent(dataBasicInfoVO.getContent());
+            // contentDocDTO.setContent(dataBasicInfoVO.getContent());
             contentDocDTO.setSummary(summary);
             contentDocDTO.setTitle(dataBasicInfoVO.getName());
 
@@ -94,10 +93,10 @@ public class MessageContentDocMemory {
 
             } else {
 
-                //默认都为工具调用结果
+                // 默认都为工具调用结果
                 contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.name());
 
-                //contentDocDTO.setToolName("toolName");
+                // contentDocDTO.setToolName("toolName");
             }
 
             return contentDocDTO;
@@ -123,7 +122,7 @@ public class MessageContentDocMemory {
                 this.storageHistory(doc);
             }
 
-            //增加到当前历史中，上面异常也可以增加到历史，因为方法传入的就表示有返回值了，可以做为上下文了
+            // 增加到当前历史中，上面异常也可以增加到历史，因为方法传入的就表示有返回值了，可以做为上下文了
             this.getHistory().addDoc(doc);
         });
 
@@ -139,11 +138,11 @@ public class MessageContentDocMemory {
         String appUid = this.messageMemory.getChatAppEntity().getUid();
         String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
 
-        //查询数据集表
+        // 查询数据集表
         List<DatasetSourceDataDetailRespVO> sourceDataBasicInfoVOS = this.searchSourceData(appUid, conversationUid);
 
 
-        //填充history
+        // 填充history
         List<MessageContentDocDTO> history = this.convertMessageContentDoc(sourceDataBasicInfoVOS);
         this.history = new MessageContentDocHistory(history);
 
@@ -168,10 +167,10 @@ public class MessageContentDocMemory {
             String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
 
 
-            //之前用过文档存储，如联网功能
+            // 之前用过文档存储，如联网功能
             if (doc.getId() != null) {
 
-                //更新状态？
+                // 更新状态？
                 sourceDataId = doc.getId();
 
                 log.info("MessageContentDocMemory storageHistory update: {} {}", doc.getId(), doc.getTitle());
@@ -186,7 +185,7 @@ public class MessageContentDocMemory {
 
                 if (MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name().equals(doc.getType())) {
 
-                    //上游已经保存过
+                    // 上游已经保存过
                     log.info("storageHistory web: {}", JsonUtils.toJsonString(doc));
 
                     UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
@@ -198,11 +197,11 @@ public class MessageContentDocMemory {
 
                     uploadUrlReqVO.setUrls(Arrays.asList(doc.getUrl()));
                     // TODO 添加创建人或者游客
-                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO,null);
+                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, null);
 
                     SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
-                    //存在
+                    // 存在
                     if (sourceDataUploadDTO != null) {
 
                         if (!sourceDataUploadDTO.getStatus()) {
@@ -218,13 +217,13 @@ public class MessageContentDocMemory {
 
                 } else if (MessageContentDocDTO.MessageContentDocTypeEnum.FILE.name().equals(doc.getType())) {
 
-                    //文件不会直接保存都，都是先单独上传，后续用文档ID去处理
+                    // 文件不会直接保存都，都是先单独上传，后续用文档ID去处理
 
                     log.info("storageHistory file: {}", JsonUtils.toJsonString(doc));
 
                 } else {
 
-                    //默认是工具类型上传
+                    // 默认是工具类型上传
 
                     UploadCharacterReqVO characterReqVO = new UploadCharacterReqVO();
                     characterReqVO.setCleanSync(true);
@@ -237,11 +236,11 @@ public class MessageContentDocMemory {
 
                     characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle(title).setContext(content)));
                     // TODO 添加创建人或者游客
-                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceDataBySession(characterReqVO,null);
+                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceDataBySession(characterReqVO, null);
 
                     SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
-                    //存在
+                    // 存在
                     if (sourceDataUploadDTO != null) {
 
                         if (!sourceDataUploadDTO.getStatus()) {
@@ -256,15 +255,15 @@ public class MessageContentDocMemory {
                 }
             }
 
-            //重新查询内容, 可获取到总结
+            // 重新查询内容, 可获取到总结
             DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataById(sourceDataId, true);
             //@todo 判断状态 需要封装
             if (detailsInfoVO != null) {
                 if (StrUtil.isNotBlank(detailsInfoVO.getSummary())) {
-                    //更新下最新的内容
+                    // 更新下最新的内容
                     doc.setSummary(detailsInfoVO.getSummary());
                 } else {
-                    //summary = StrUtil.subPre(summary, 200);
+                    // summary = StrUtil.subPre(summary, 200);
                     doc.setContent(detailsInfoVO.getContent());
                 }
             } else {
@@ -273,7 +272,7 @@ public class MessageContentDocMemory {
 
         } catch (Exception e) {
 
-            //上传文档到异常不处理，如果失败就不增加到上下文。只靠messageHistory 老逻辑的历史记录 去实现上下文
+            // 上传文档到异常不处理，如果失败就不增加到上下文。只靠messageHistory 老逻辑的历史记录 去实现上下文
 
             log.error("MessageContentDocMemory addHistory is error: {}", e.getMessage(), e);
         }

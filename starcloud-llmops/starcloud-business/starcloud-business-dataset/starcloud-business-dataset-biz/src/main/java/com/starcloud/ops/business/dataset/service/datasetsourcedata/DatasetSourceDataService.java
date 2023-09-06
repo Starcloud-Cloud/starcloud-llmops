@@ -29,21 +29,21 @@ public interface DatasetSourceDataService {
      *
      * @return 编号
      */
-    SourceDataUploadDTO uploadFilesSourceData(UploadFileReqVO reqVO,BaseDBHandleDTO baseDBHandleDTO);
+    SourceDataUploadDTO uploadFilesSourceData(UploadFileReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO);
 
     /**
      * 上传URL-支持批量上传
      *
      * @return 编号
      */
-    List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO,BaseDBHandleDTO baseDBHandleDTO);
+    List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO);
 
     /**
      * 上传字符-支持批量上传
      *
      * @return 编号
      */
-    List<SourceDataUploadDTO> uploadCharactersSourceData(UploadCharacterReqVO reqVOS,BaseDBHandleDTO baseDBHandleDTO);
+    List<SourceDataUploadDTO> uploadCharactersSourceData(UploadCharacterReqVO reqVOS, BaseDBHandleDTO baseDBHandleDTO);
 
     /**
      * 更新数据集源数据
@@ -138,7 +138,7 @@ public interface DatasetSourceDataService {
     /**
      * 获取主键 ID数据源详情
      *
-     * @param id    数据集源数据编号
+     * @param id     数据集源数据编号
      * @param enable 如果 enable 为 true 则详情内容默认为清洗后的数据
      */
     DatasetSourceDataDetailsInfoVO getSourceDataById(Long id, Boolean enable);
@@ -196,12 +196,12 @@ public interface DatasetSourceDataService {
      *
      * @return 上传结果
      */
-    List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO,BaseDBHandleDTO baseDBHandleDTO);
+    List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO);
 
     /**
      * 通过会话上传自定义文本
      *
      * @return 上传结果
      */
-    List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS ,BaseDBHandleDTO baseDBHandleDTO);
+    List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS, BaseDBHandleDTO baseDBHandleDTO);
 }
