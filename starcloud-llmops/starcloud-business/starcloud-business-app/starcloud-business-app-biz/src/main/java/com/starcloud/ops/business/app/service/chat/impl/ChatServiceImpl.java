@@ -185,6 +185,8 @@ public class ChatServiceImpl implements ChatService {
         appEntity.setSource(AppSourceEnum.WEB.name());
         appEntity.setUid(null);
         appEntity.setName(name);
+        appEntity.setCreator(null);
+        appEntity.setUpdater(null);
         appEntity.insert();
         return appEntity.getUid();
     }
