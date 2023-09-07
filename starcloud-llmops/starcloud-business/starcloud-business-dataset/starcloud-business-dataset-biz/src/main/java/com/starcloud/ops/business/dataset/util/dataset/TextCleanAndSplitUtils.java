@@ -15,14 +15,13 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.FILE_TYPE_NOT_ALLOW;
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
 
 public class TextCleanAndSplitUtils {
 
@@ -130,23 +129,31 @@ public class TextCleanAndSplitUtils {
     private static String processHtmlTags(String data, List<String> whiteRules, List<String> blackRules) {
         Document doc = Jsoup.parse(data);
 
-        if(CollUtil.isNotEmpty(whiteRules)){
+        if (CollUtil.isNotEmpty(whiteRules)) {
             String whiteRule = String.join(",", whiteRules);
 
             String whiteContent = doc.select(whiteRule).html();
-            if (StrUtil.isBlank(whiteContent)){
-                throw exception(11);
+            if (StrUtil.isBlank(whiteContent)) {
+                throw exception(DATASET_HANDLE_RULE_WHITE_CLEAN_FAIL);
             }
-            doc= Jsoup.parse(whiteContent);
+            doc = Jsoup.parse(whiteContent);
         }
 
-        if(CollUtil.isNotEmpty(blackRules)){
+        if (CollUtil.isNotEmpty(blackRules)) {
             String blackRule = String.join(",", blackRules);
 
             Elements select = doc.select(blackRule);
             for (Element element : select) {
                 element.remove();
             }
+            if (StrUtil.isBlank(doc.html())) {
+                throw exception(DATASET_HANDLE_RULE_BLACK_CLEAN_FAIL);
+            }
+        }
+
+        String html = doc.html();
+        if (StrUtil.isBlank(html)) {
+            throw exception(DATASET_HANDLE_RULE_CLEAN_FAIL);
         }
         return doc.html();
     }
@@ -187,34 +194,6 @@ public class TextCleanAndSplitUtils {
     private static String removeUrlsEmails(String text) {
         Pattern email = Pattern.compile("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)");
         return email.matcher(text).replaceAll(StringUtils.EMPTY);
-    }
-
-
-    public static void main(String[] args) throws IOException {
-        // String URL="https://sell.amazon.com/pricing#referral-fees";
-        String URL = "https://mp.weixin.qq.com/s?__biz=Mzg5NDk3NzQyNA==&mid=2247485169&idx=1&sn=488decf3d46394226d5d249e41f20a30&chksm=c016120ef7619b18c4d30b791f52d2f44c52c54ba9ffcd89163191f0130f87451eb4f1b686c6&scene=178&cur_album_id=2968967010405842946#rd";
-        //
-        Document document = Jsoup.connect(URL).get();
-
-        Elements select = document.select("#js_content");
-
-        System.out.println(document.html());
-
-
-        // String basic = Jsoup.clean(document.html(), Safelist.basic());
-        // String basicWithImages = Jsoup.clean(document.html(), Safelist.basicWithImages());
-        // String simpleText = Jsoup.clean(document.html(), Safelist.simpleText());
-        // String relaxed = Jsoup.clean(document.html(), Safelist.relaxed());
-        // String whitelist = Jsoup.clean(document.html(),WHITELIST);
-        // String basicMark = html2Markdown(basic);
-        // String basicWithImagesMark = html2Markdown(basicWithImages);
-        // String simpleTextMark = html2Markdown(simpleText);
-        // String relaxedMark = html2Markdown(relaxed);
-        // String whitelistMark = html2Markdown(whitelist);
-        // System.out.println(whitelistMark);
-
-        // String weqeq = Jsoup.clean(document.html(), WHITELIST);
-
     }
 
 
