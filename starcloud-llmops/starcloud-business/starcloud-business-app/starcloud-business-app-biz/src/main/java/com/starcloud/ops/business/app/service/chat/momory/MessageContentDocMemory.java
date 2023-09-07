@@ -27,7 +27,7 @@ public class MessageContentDocMemory {
 
     private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
-    private MessageContentDocHistory history;
+    private MessageContentDocHistory history = new MessageContentDocHistory(new ArrayList<>());
 
     private ConversationSummaryDbMessageMemory messageMemory;
 
@@ -142,10 +142,9 @@ public class MessageContentDocMemory {
         // 查询数据集表
         List<DatasetSourceDataDetailRespVO> sourceDataBasicInfoVOS = this.searchSourceData(appUid, conversationUid);
 
-
         // 填充history
         List<MessageContentDocDTO> history = this.convertMessageContentDoc(sourceDataBasicInfoVOS);
-        this.history = new MessageContentDocHistory(history);
+        this.history.setDocs(history);
 
         log.info("MessageContentDocMemory reloadHistory appUid[{}] conversationUid[{}]: {}", appUid, conversationUid, JsonUtils.toJsonString(this.history));
 
