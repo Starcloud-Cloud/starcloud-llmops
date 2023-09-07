@@ -27,7 +27,7 @@ public class MessageContentDocMemory {
 
     private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
-    private MessageContentDocHistory history;
+    private MessageContentDocHistory history = new MessageContentDocHistory(new ArrayList<>());
 
     private ConversationSummaryDbMessageMemory messageMemory;
 
@@ -76,21 +76,19 @@ public class MessageContentDocMemory {
 
             // 初始化为了减少内容，主要总结的，如果总结没有取描述
             String summary = StrUtil.isNotBlank(dataBasicInfoVO.getSummary()) ? dataBasicInfoVO.getSummary() : dataBasicInfoVO.getDescription();
-            // dataBasicInfoVO.getAddress();
             contentDocDTO.setId(dataBasicInfoVO.getId());
-            // contentDocDTO.setContent(dataBasicInfoVO.getContent());
             contentDocDTO.setSummary(summary);
             contentDocDTO.setTitle(dataBasicInfoVO.getName());
-
-//            contentDocDTO.setUrl();
 
             if (DataSourceDataTypeEnum.HTML.name().equals(dataBasicInfoVO.getDataType())) {
 
                 contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
+                contentDocDTO.setUrl(dataBasicInfoVO.getInitAddress());
 
             } else if (DataSourceDataTypeEnum.DOCUMENT.name().equals(dataBasicInfoVO.getDataType())) {
 
                 contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.FILE.name());
+                contentDocDTO.setUrl(dataBasicInfoVO.getInitAddress());
 
             } else {
 
@@ -142,10 +140,9 @@ public class MessageContentDocMemory {
         // 查询数据集表
         List<DatasetSourceDataDetailRespVO> sourceDataBasicInfoVOS = this.searchSourceData(appUid, conversationUid);
 
-
         // 填充history
         List<MessageContentDocDTO> history = this.convertMessageContentDoc(sourceDataBasicInfoVOS);
-        this.history = new MessageContentDocHistory(history);
+        this.history.setDocs(history);
 
         log.info("MessageContentDocMemory reloadHistory appUid[{}] conversationUid[{}]: {}", appUid, conversationUid, JsonUtils.toJsonString(this.history));
 

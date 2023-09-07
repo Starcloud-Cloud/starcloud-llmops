@@ -1,16 +1,12 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.alibaba.fastjson.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.api.chat.config.dto.SystemHandlerSkillDTO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.*;
 import com.starcloud.ops.business.app.domain.entity.skill.*;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.config.AppTypeEnum;
@@ -107,26 +103,22 @@ public class ChatConfigEntity extends BaseConfigEntity {
     /**
      * 挂载的 gpt插件技能列表
      */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private List<HandlerSkill> handlerSkills;
+    private transient List<HandlerSkill> handlerSkills;
 
     /**
      * 挂载的 gpt插件技能列表
      */
-    private List<GptPluginSkill> gptPluginSkills;
+    private transient List<GptPluginSkill> gptPluginSkills;
 
     /**
      * 挂载的 API技能列表
      */
-    private List<ApiSkill> apiSkills;
+    private transient List<ApiSkill> apiSkills;
 
     /**
      * 挂载的 应用技能列表
      */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private List<AppWorkflowSkill> appWorkflowSkills;
+    private transient List<AppWorkflowSkill> appWorkflowSkills;
 
     /**
      * 技能配置

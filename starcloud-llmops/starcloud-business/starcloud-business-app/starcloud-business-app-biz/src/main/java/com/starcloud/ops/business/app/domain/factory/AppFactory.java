@@ -128,6 +128,11 @@ public class AppFactory {
         return appEntity;
     }
 
+    public static ChatAppEntity factroyMarket(String appUid) {
+        AppMarketEntity appMarketEntity = AppFactory.factoryMarket(appUid);
+        return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
+    }
+
     public static ChatAppEntity factory(String mediumUid) {
         return appPublishRepository.getChatEntityByMediumUid(mediumUid);
     }
