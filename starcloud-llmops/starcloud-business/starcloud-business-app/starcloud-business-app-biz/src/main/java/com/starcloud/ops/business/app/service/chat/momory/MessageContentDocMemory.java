@@ -76,21 +76,19 @@ public class MessageContentDocMemory {
 
             // 初始化为了减少内容，主要总结的，如果总结没有取描述
             String summary = StrUtil.isNotBlank(dataBasicInfoVO.getSummary()) ? dataBasicInfoVO.getSummary() : dataBasicInfoVO.getDescription();
-            // dataBasicInfoVO.getAddress();
             contentDocDTO.setId(dataBasicInfoVO.getId());
-            // contentDocDTO.setContent(dataBasicInfoVO.getContent());
             contentDocDTO.setSummary(summary);
             contentDocDTO.setTitle(dataBasicInfoVO.getName());
-
-//            contentDocDTO.setUrl();
 
             if (DataSourceDataTypeEnum.HTML.name().equals(dataBasicInfoVO.getDataType())) {
 
                 contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
+                contentDocDTO.setUrl(dataBasicInfoVO.getInitAddress());
 
             } else if (DataSourceDataTypeEnum.DOCUMENT.name().equals(dataBasicInfoVO.getDataType())) {
 
                 contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.FILE.name());
+                contentDocDTO.setUrl(dataBasicInfoVO.getInitAddress());
 
             } else {
 
