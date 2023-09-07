@@ -16,13 +16,17 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
+import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
@@ -169,13 +173,16 @@ public class ChatServiceImpl implements ChatService {
     @Transactional(rollbackFor = Exception.class)
     public String createChatApp(String uid, String name) {
         AppRespVO recommendApp;
+        BaseAppEntity appEntity;
         if (StringUtils.isBlank(uid)) {
             recommendApp = RecommendAppFactory.emptyChatRobotApp();
+            appEntity = AppConvert.INSTANCE.convertApp(recommendApp);
         } else {
-            recommendApp = appService.getRecommendApp(uid);
+            appEntity = AppFactory.factroyMarket(uid);
         }
 
-        AppEntity appEntity = AppConvert.INSTANCE.convertApp(recommendApp);
+        appEntity.setType(AppTypeEnum.MYSELF.name());
+        appEntity.setSource(AppSourceEnum.WEB.name());
         appEntity.setUid(null);
         appEntity.setName(name);
         appEntity.insert();
