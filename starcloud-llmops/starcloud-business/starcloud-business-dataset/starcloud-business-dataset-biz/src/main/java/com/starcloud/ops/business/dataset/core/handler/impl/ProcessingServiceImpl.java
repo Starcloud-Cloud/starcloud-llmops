@@ -274,8 +274,10 @@ public class ProcessingServiceImpl implements ProcessingService {
                 .setDatasetId(process.getDatasetId())
                 .setStatus(DataSetSourceDataStatusEnum.ANALYSIS_ERROR.getStatus())
                 .setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO))
+                .setEndUser(baseDBHandleDTO.getEndUser())
                 .setErrorCode(process.getErrCode())
-                .setErrorMessage(process.getErrMsg());
+                .setCreator(String.valueOf(baseDBHandleDTO.getCreator()))
+                .setUpdater(String.valueOf(baseDBHandleDTO.getCreator()));
         if (DataSourceDataTypeEnum.HTML.name().equals(process.getDataType())) {
             sourceDataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO.setInitAddress(process.getName())));
         }
