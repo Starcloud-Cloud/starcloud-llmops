@@ -167,7 +167,7 @@ public class MessageContentDocMemory {
             String appUid = this.messageMemory.getChatRequestVO().getAppUid();
             String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
             Long userId = this.messageMemory.getChatRequestVO().getUserId();
-            Long endUser = Long.valueOf(this.messageMemory.getChatRequestVO().getEndUser());
+            Long endUser = this.messageMemory.getChatRequestVO().getEndUserId();
 
 
             // 之前用过文档存储，如联网功能

@@ -53,7 +53,7 @@ public class UrlUploadStrategy implements UploadStrategy {
      * @return
      */
     @Override
-    public UploadContentDTO process(String userId) {
+    public UploadContentDTO process(Long userId) {
 
         UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
@@ -154,7 +154,7 @@ public class UrlUploadStrategy implements UploadStrategy {
      * @param userId 文件 path 可以为空
      * @return 文件路径
      */
-    private String uploadFile(String fileId, String data, String userId) {
+    private String uploadFile(String fileId, String data, Long userId) {
 
 
         // 将结果转换为InputStream流

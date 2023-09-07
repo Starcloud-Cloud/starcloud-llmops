@@ -13,12 +13,12 @@ public class BaseDBHandleDTO {
     /**
      * 创建人
      */
-    private String creator;
+    private Long creator;
 
     /**
      * 更新人
      */
-    private String updater;
+    private Long updater;
 
     /**
      * 租户 ID

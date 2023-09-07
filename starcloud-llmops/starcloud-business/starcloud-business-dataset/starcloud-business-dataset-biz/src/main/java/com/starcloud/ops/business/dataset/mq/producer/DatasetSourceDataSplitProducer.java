@@ -51,9 +51,11 @@ public class DatasetSourceDataSplitProducer extends AbstractDatasetSourceProduce
                 .setSplitRule(sendMessage.getSplitRule())
                 .setRetryCount(0)
                 .setUserId(sendMessage.getUserId())
+                .setTenantId(sendMessage.getTenantId())
                 .setCleanSync(sendMessage.getCleanSync())
                 .setSplitSync(sendMessage.getSplitSync())
                 .setIndexSync(sendMessage.getIndexSync());
+
         redisMQTemplate.send(message);
     }
 
@@ -67,6 +69,7 @@ public class DatasetSourceDataSplitProducer extends AbstractDatasetSourceProduce
         message.setDataSourceId(sendMessage.getDataSourceId());
         message.setSplitRule(sendMessage.getSplitRule());
         message.setUserId(sendMessage.getUserId());
+        message.setTenantId(sendMessage.getTenantId());
         message.setCleanSync(sendMessage.getCleanSync());
         message.setSplitSync(sendMessage.getSplitSync());
         message.setIndexSync(sendMessage.getIndexSync());

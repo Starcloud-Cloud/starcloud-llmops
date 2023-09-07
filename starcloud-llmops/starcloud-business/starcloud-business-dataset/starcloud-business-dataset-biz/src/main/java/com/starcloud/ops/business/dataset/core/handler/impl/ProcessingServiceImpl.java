@@ -204,8 +204,8 @@ public class ProcessingServiceImpl implements ProcessingService {
         datasetStorageDO.setMimeType(process.getMimeType().toUpperCase());
         datasetStorageDO.setUsed(false);
 
-        datasetStorageDO.setCreator(baseDBHandleDTO.getUpdater());
-        datasetStorageDO.setUpdater(baseDBHandleDTO.getUpdater());
+        datasetStorageDO.setCreator(String.valueOf(baseDBHandleDTO.getUpdater()));
+        datasetStorageDO.setUpdater(String.valueOf(baseDBHandleDTO.getUpdater()));
         datasetStorageDO.setTenantId(baseDBHandleDTO.getTenantId());
 
         datasetStorageMapper.insert(datasetStorageDO);
@@ -244,8 +244,8 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataDO.setStatus(DataSetSourceDataStatusEnum.UPLOAD_COMPLETED.getStatus());
         dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO));
 
-        dataDO.setCreator(baseDBHandleDTO.getUpdater());
-        dataDO.setUpdater(baseDBHandleDTO.getUpdater());
+        dataDO.setCreator(String.valueOf(baseDBHandleDTO.getUpdater()));
+        dataDO.setUpdater(String.valueOf(baseDBHandleDTO.getUpdater()));
         dataDO.setTenantId(baseDBHandleDTO.getTenantId());
         datasetSourceDataMapper.insert(dataDO);
         return dataDO;
