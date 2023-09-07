@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
+import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class MessageContentDocMemory {
 
     private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
-    private MessageContentDocHistory history;
+    private MessageContentDocHistory history = new MessageContentDocHistory(new ArrayList<>());
 
     private ConversationSummaryDbMessageMemory messageMemory;
 
@@ -75,21 +76,19 @@ public class MessageContentDocMemory {
 
             // 初始化为了减少内容，主要总结的，如果总结没有取描述
             String summary = StrUtil.isNotBlank(dataBasicInfoVO.getSummary()) ? dataBasicInfoVO.getSummary() : dataBasicInfoVO.getDescription();
-            // dataBasicInfoVO.getAddress();
             contentDocDTO.setId(dataBasicInfoVO.getId());
-            // contentDocDTO.setContent(dataBasicInfoVO.getContent());
             contentDocDTO.setSummary(summary);
             contentDocDTO.setTitle(dataBasicInfoVO.getName());
-
-//            contentDocDTO.setUrl();
 
             if (DataSourceDataTypeEnum.HTML.name().equals(dataBasicInfoVO.getDataType())) {
 
                 contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
+                contentDocDTO.setUrl(dataBasicInfoVO.getInitAddress());
 
             } else if (DataSourceDataTypeEnum.DOCUMENT.name().equals(dataBasicInfoVO.getDataType())) {
 
                 contentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.FILE.name());
+                contentDocDTO.setUrl(dataBasicInfoVO.getInitAddress());
 
             } else {
 
@@ -141,10 +140,9 @@ public class MessageContentDocMemory {
         // 查询数据集表
         List<DatasetSourceDataDetailRespVO> sourceDataBasicInfoVOS = this.searchSourceData(appUid, conversationUid);
 
-
         // 填充history
         List<MessageContentDocDTO> history = this.convertMessageContentDoc(sourceDataBasicInfoVOS);
-        this.history = new MessageContentDocHistory(history);
+        this.history.setDocs(history);
 
         log.info("MessageContentDocMemory reloadHistory appUid[{}] conversationUid[{}]: {}", appUid, conversationUid, JsonUtils.toJsonString(this.history));
 
@@ -165,6 +163,8 @@ public class MessageContentDocMemory {
 
             String appUid = this.messageMemory.getChatRequestVO().getAppUid();
             String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
+            Long userId = this.messageMemory.getChatRequestVO().getUserId();
+            Long endUser = Long.valueOf(this.messageMemory.getChatRequestVO().getEndUser());
 
 
             // 之前用过文档存储，如联网功能
@@ -197,7 +197,13 @@ public class MessageContentDocMemory {
 
                     uploadUrlReqVO.setUrls(Arrays.asList(doc.getUrl()));
                     // TODO 添加创建人或者游客
-                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, null);
+
+
+                    BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+                    //baseDBHandleDTO.setCreator(userId);
+                    baseDBHandleDTO.setEndUser(endUser);
+
+                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, baseDBHandleDTO);
 
                     SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 

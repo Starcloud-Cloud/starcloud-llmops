@@ -28,6 +28,8 @@ public class HandlerContext<Q> {
 
     private Long userId;
 
+    private Long endUser;
+
     private String appUid;
 
     private String conversationUid;
@@ -125,14 +127,14 @@ public class HandlerContext<Q> {
 
     }
 
-    public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId) {
+    public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId, Long endUser) {
 
-        return new HandlerContext<Q>().setAppUid(appUid).setUserId(userId).setConversationUid(conversationUid);
+        return new HandlerContext<Q>().setAppUid(appUid).setUserId(userId).setEndUser(endUser).setConversationUid(conversationUid);
     }
 
-    public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId, Q request) {
+    public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId, Long endUser, Q request) {
 
-        return new HandlerContext<Q>().setAppUid(appUid).setUserId(userId).setConversationUid(conversationUid).setRequest(request);
+        return new HandlerContext<Q>().setAppUid(appUid).setUserId(userId).setEndUser(endUser).setConversationUid(conversationUid).setRequest(request);
     }
 
 

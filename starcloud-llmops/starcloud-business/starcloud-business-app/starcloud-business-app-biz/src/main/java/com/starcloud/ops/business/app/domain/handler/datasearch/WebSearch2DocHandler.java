@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
+import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
@@ -55,9 +56,10 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         String url = context.getRequest().getUrl();
 
+
         //@todo 通过上下文获取当前可能配置的 tools 执行 tips
         InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("AI分析链接内容中...").setToolHandler(this).setInput(context.getRequest());
-        ;
+
 
         context.sendCallbackInteractiveStart(interactiveInfo);
 
@@ -76,7 +78,12 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         uploadUrlReqVO.setUrls(Arrays.asList(url));
         uploadUrlReqVO.setAppId(context.getAppUid());
         // TODO 添加创建人或者游客
-        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, null);
+
+        BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+        //baseDBHandleDTO.setCreator(context.getUserId());
+        baseDBHandleDTO.setEndUser(context.getEndUser());
+
+        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, baseDBHandleDTO);
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
         if (!sourceDataUploadDTO.getStatus()) {
