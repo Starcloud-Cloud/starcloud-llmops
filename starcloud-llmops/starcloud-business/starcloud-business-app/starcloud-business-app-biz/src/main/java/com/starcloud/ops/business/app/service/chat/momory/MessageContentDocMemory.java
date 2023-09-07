@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
+import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
@@ -165,6 +166,8 @@ public class MessageContentDocMemory {
 
             String appUid = this.messageMemory.getChatRequestVO().getAppUid();
             String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
+            Long userId = this.messageMemory.getChatRequestVO().getUserId();
+            Long endUser = Long.valueOf(this.messageMemory.getChatRequestVO().getEndUser());
 
 
             // 之前用过文档存储，如联网功能
@@ -197,7 +200,13 @@ public class MessageContentDocMemory {
 
                     uploadUrlReqVO.setUrls(Arrays.asList(doc.getUrl()));
                     // TODO 添加创建人或者游客
-                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, null);
+
+
+                    BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+                    //baseDBHandleDTO.setCreator(userId);
+                    baseDBHandleDTO.setEndUser(endUser);
+
+                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, baseDBHandleDTO);
 
                     SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 

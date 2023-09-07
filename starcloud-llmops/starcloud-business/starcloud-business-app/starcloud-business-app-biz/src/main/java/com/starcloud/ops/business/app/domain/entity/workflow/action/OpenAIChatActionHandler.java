@@ -1,11 +1,13 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.hutool.core.util.StrUtil;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeSta;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.mchange.lang.LongUtils;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
@@ -48,6 +50,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         //获取前端传的完整字段（老结构）
         Map<String, Object> params = request.getStepParams();
         Long userId = this.getAppContext().getUserId();
+        Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
 
         String prompt = (String) params.getOrDefault("PROMPT", "hi, what you name?");
@@ -65,7 +68,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
             handlerRequest.setDocsUid(request.getDatesetList());
         }
 
-        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, handlerRequest);
+        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, endUser, handlerRequest);
 
         HandlerResponse<String> handlerResponse = openAIChatHandler.execute(handlerContext);
         log.info("OpenAI ChatGPT Action 执行结束...");

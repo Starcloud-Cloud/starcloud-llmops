@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.app.vo.request;
 
+import cn.hutool.core.util.StrUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -58,5 +59,9 @@ public class AppContextReqVO implements Serializable {
      */
     @Schema(description = "消息ID")
     private String messageUid;
+
+    public Long getEndUserId() {
+        return StrUtil.isNotBlank(this.endUser) ? Long.valueOf(this.endUser) : null;
+    }
 
 }

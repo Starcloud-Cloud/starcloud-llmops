@@ -53,6 +53,7 @@ public class ChatPrompt extends BasePromptConfig {
 
     private ContextPrompt contextPrompt;
 
+    @Deprecated
     private HistoryPrompt historyPrompt;
 
     public ChatPrompt(ChatPrePrompt chatPrePrompt, ContextPrompt contextPrompt, HistoryPrompt historyPrompt) {

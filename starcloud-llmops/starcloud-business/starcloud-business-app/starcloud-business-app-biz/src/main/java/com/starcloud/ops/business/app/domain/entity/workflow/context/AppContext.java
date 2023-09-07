@@ -97,6 +97,11 @@ public class AppContext {
     @JSONField(serialize = false)
     private SseEmitter sseEmitter;
 
+
+    public Long getEndUserId() {
+        return StrUtil.isNotBlank(this.endUser) ? Long.valueOf(this.endUser) : null;
+    }
+
     /**
      * 构造函数, 用于创建新的会话
      *

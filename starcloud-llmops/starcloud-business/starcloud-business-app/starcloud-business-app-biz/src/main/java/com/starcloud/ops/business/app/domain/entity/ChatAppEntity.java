@@ -403,7 +403,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         WebSearchConfigEntity searchConfigEntity = chatConfig.getWebSearchConfig();
 
         //工具入参
-        HandlerContext appContext = HandlerContext.createContext(request.getAppUid(), request.getConversationUid(), request.getUserId());
+        HandlerContext appContext = HandlerContext.createContext(request.getAppUid(), request.getConversationUid(), request.getUserId(), request.getEndUserId());
         appContext.setSseEmitter(emitter);
 
         //web search
@@ -416,23 +416,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             webSearch2Doc.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
             HandlerSkill handlerSkill = new HandlerSkill(webSearch2Doc);
             loadTools.add(handlerSkill.createFunTool(appContext));
-
-//            //GoogleSearch
-//            HandlerSkill handlerSkill1 = HandlerSkill.of("GoogleSearchHandler");
-//            handlerSkill1.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-//            loadTools.add(handlerSkill1.createFunTool(appContext));
-//
-//
-//            //GoogleSearch images
-//            HandlerSkill imagesSkill = HandlerSkill.of("ImageSearchHandler");
-//            imagesSkill.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-//            loadTools.add(imagesSkill.createFunTool(appContext));
-//
-//            //GoogleSearch news
-//            HandlerSkill newsSkill = HandlerSkill.of("NewsSearchHandler");
-//            newsSkill.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-//            loadTools.add(newsSkill.createFunTool(appContext));
-
 
             HandlerSkill searchEngine = HandlerSkill.of("SearchEngineHandler");
             searchEngine.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
