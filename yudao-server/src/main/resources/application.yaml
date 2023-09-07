@@ -156,6 +156,7 @@ yudao:
       - /admin-api/llm/worktool/callback/**   # 平台回调
       - /app-api/share/**       # 游客访问
       - /admin-api/share/**
+      - /admin-api/llm/chat/config/detail/*
     ignore-tables:
       - system_tenant
       - system_tenant_package

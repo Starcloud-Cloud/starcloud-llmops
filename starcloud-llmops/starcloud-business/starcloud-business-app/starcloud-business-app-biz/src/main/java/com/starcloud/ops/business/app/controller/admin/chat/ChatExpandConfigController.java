@@ -7,9 +7,11 @@ import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +24,9 @@ public class ChatExpandConfigController {
     @Resource
     private ChatExpandConfigService configService;
 
-    @GetMapping("/{appConfigId}")
+    @GetMapping("/detail/{appConfigId}")
     @Schema(description = "查询聊天配置")
+    @PermitAll
     public CommonResult<Map<Integer, List<ChatExpandConfigRespVO>>> detail(@PathVariable("appConfigId") String appConfigId) {
         return CommonResult.success(configService.getConfig(appConfigId));
     }
