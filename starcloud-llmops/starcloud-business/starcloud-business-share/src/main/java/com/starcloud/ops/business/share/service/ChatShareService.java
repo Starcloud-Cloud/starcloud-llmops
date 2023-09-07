@@ -2,7 +2,7 @@ package com.starcloud.ops.business.share.service;
 
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
-import com.starcloud.ops.business.share.controller.app.vo.ChatDetailReqVO;
+import com.starcloud.ops.business.share.controller.app.vo.request.ChatDetailReqVO;
 
 import java.util.Map;
 

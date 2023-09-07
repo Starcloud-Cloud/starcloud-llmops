@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.config.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.config.ChatExpandConfigEnum;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import lombok.Data;
@@ -64,7 +65,13 @@ public class ChatConfigEntity extends BaseConfigEntity {
                 .filter(chatExpandConfigRespVO -> !chatExpandConfigRespVO.getDisabled() && chatExpandConfigRespVO.getAppWorkflowSkillDTO() != null)
                 .map(chatExpandConfigRespVO -> {
                     AppWorkflowSkill appWorkflowSkill = ChatConfigConvert.INSTANCE.convert(chatExpandConfigRespVO.getAppWorkflowSkillDTO());
-                    AppEntity appEntity = AppFactory.factoryApp(appWorkflowSkill.getSkillAppUid());
+                    AppEntity appEntity;
+                    if (AppTypeEnum.APP.getCode().equals(chatExpandConfigRespVO.getAppWorkflowSkillDTO().getAppType())) {
+                        appEntity = AppFactory.factoryApp(appWorkflowSkill.getSkillAppUid());
+                    } else {
+                        appEntity = AppFactory.factoryMarket(appWorkflowSkill.getSkillAppUid());
+                    }
+
                     appWorkflowSkill.setApp(appEntity);
                     appWorkflowSkill.setEnabled(appEntity != null);
                     return appWorkflowSkill;

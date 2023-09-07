@@ -112,8 +112,9 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
         modifyAppPublishLimit.setChannelUid(null);
         modifyAppPublishLimit.setDeleted(Boolean.FALSE);
         appPublishLimitMapper.modify(modifyAppPublishLimit);
+
         // 重新存入
-        appPublishLimitRedisMapper.set(modifyAppPublishLimit);
+        appPublishLimitRedisMapper.set(appPublishLimitMapper.get(request.getUid()));
     }
 
     /**
@@ -130,6 +131,10 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
         }
         List<Long> idList = list.stream().map(AppPublishLimitDO::getId).collect(Collectors.toList());
         appPublishLimitMapper.updatePublishUidByIdList(idList, publishUid);
+        for (AppPublishLimitDO appPublishLimitDO : list) {
+            appPublishLimitRedisMapper.set(appPublishLimitMapper.get(appPublishLimitDO.getUid()));
+        }
+
     }
 
     /**
@@ -139,7 +144,10 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
      */
     @Override
     public void delete(String uid) {
+        AppPublishLimitDO appPublishLimitDO = appPublishLimitMapper.get(uid);
+        AppValidate.notNull(appPublishLimitDO, ErrorCodeConstants.APP_PUBLISH_LIMIT_NOT_EXISTS_UID);
         appPublishLimitMapper.delete(uid);
+        appPublishLimitRedisMapper.delete(appPublishLimitDO.getAppUid());
     }
 
     /**
@@ -150,6 +158,7 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     @Override
     public void deleteByAppUid(String appUid) {
         appPublishLimitMapper.deleteByAppUid(appUid);
+        appPublishLimitRedisMapper.delete(appUid);
     }
 
     /**
@@ -160,6 +169,10 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     @Override
     public void deleteByPublishUid(String publishUid) {
         appPublishLimitMapper.deleteByPublishUid(publishUid);
+        List<AppPublishLimitDO> list = appPublishLimitMapper.listByPublishUid(publishUid);
+        for (AppPublishLimitDO appPublishLimitDO : list) {
+            appPublishLimitRedisMapper.delete(appPublishLimitDO.getAppUid());
+        }
     }
 
     /**

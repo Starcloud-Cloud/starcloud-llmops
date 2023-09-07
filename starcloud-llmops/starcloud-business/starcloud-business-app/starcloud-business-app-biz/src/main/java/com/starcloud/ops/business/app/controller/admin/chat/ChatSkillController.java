@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.chat;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.AllChatSkilVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatSkillVO;
 import com.starcloud.ops.business.app.service.chat.ChatService;
@@ -33,8 +34,6 @@ public class ChatSkillController {
     @Autowired
     private ChatSkillService chatSkillService;
 
-
-
     @Operation(summary = "默认技能列表")
     @GetMapping("/list")
     public CommonResult<List<ChatSkillVO>> list() {
@@ -42,6 +41,13 @@ public class ChatSkillController {
         List<ChatSkillVO> chatSkillVOS = chatSkillService.listSkill();
 
         return CommonResult.success(chatSkillVOS);
+    }
+
+    @Operation(summary = "所有技能列表")
+    @GetMapping("/all")
+    public CommonResult<AllChatSkilVO> all() {
+        AllChatSkilVO chatSkill = chatSkillService.allChatSkill();
+        return CommonResult.success(chatSkill);
     }
 
 

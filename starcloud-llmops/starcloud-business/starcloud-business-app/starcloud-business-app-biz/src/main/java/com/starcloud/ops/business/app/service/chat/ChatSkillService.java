@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.chat;
 
+import com.starcloud.ops.business.app.controller.admin.chat.vo.AllChatSkilVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatSkillVO;
 
 import java.util.List;
@@ -19,6 +20,9 @@ public interface ChatSkillService {
      * 返回当前机器人配置的技能列表
      */
     List<ChatSkillVO> chatSkill(String appUid);
+
+
+    AllChatSkilVO allChatSkill();
 
 
 }
