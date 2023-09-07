@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.chat.config.dto.SystemHandlerSkillDTO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
@@ -105,6 +107,8 @@ public class ChatConfigEntity extends BaseConfigEntity {
     /**
      * 挂载的 gpt插件技能列表
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private List<HandlerSkill> handlerSkills;
 
     /**
@@ -120,6 +124,8 @@ public class ChatConfigEntity extends BaseConfigEntity {
     /**
      * 挂载的 应用技能列表
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private List<AppWorkflowSkill> appWorkflowSkills;
 
     /**

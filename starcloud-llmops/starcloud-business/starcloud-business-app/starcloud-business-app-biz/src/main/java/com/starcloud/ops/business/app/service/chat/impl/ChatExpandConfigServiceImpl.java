@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -36,6 +37,7 @@ public class ChatExpandConfigServiceImpl implements ChatExpandConfigService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String create(ChatExpandConfigReqVO reqVO) {
         ChatAppEntity chatAppEntity = AppFactory.factoryChatApp(reqVO.getAppConfigId());
         if (chatAppEntity == null || chatAppEntity.getChatConfig() == null) {

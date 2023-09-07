@@ -2,17 +2,19 @@ package com.starcloud.ops.business.app.recommend;
 
 import cn.hutool.cache.Cache;
 import cn.hutool.cache.CacheUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
+import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -57,8 +59,7 @@ public class RecommendAppCache {
      */
     public static List<AppRespVO> get(String model) {
         if (StringUtils.isNotBlank(model) && AppModelEnum.CHAT.name().equals(model)) {
-            AppRespVO chatRobotApp = get().stream().filter(app -> AppModelEnum.CHAT.name().equals(app.getModel())).findAny().orElse(null);
-            return Collections.singletonList(chatRobotApp);
+            return get().stream().filter(app -> AppModelEnum.CHAT.name().equals(app.getModel())).collect(Collectors.toList());
         }
         return get().stream().filter(app -> !AppModelEnum.CHAT.name().equals(app.getModel())).collect(Collectors.toList());
     }
@@ -83,14 +84,18 @@ public class RecommendAppCache {
      * @return 推荐应用列表
      */
     public static List<AppRespVO> initRecommendedApps() {
-        return Arrays.asList(
-                // 生成文本应用
-                RecommendAppFactory.defGenerateTextApp(),
-                // 生成文章应用
-                RecommendAppFactory.defGenerateArticleApp(),
-                // 聊天机器人
-                RecommendAppFactory.defChatRobotApp()
-        );
+        List<AppRespVO> appRespVOS = new ArrayList<AppRespVO>() {
+            {
+                super.add(RecommendAppFactory.defGenerateTextApp());
+                super.add(RecommendAppFactory.defGenerateArticleApp());
+            }
+        };
+        AppMarketMapper marketMapper = SpringUtil.getBean(AppMarketMapper.class);
+        List<AppMarketDO> appMarketDOS = marketMapper.listChatMarketApp();
+        if (CollectionUtil.isNotEmpty(appMarketDOS)) {
+            appRespVOS.addAll(AppMarketConvert.INSTANCE.convert(appMarketDOS));
+        }
+        return appRespVOS;
     }
 
 }
