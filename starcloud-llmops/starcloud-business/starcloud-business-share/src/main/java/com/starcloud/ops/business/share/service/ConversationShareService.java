@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.share.service;
 
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.share.controller.admin.vo.AppDetailRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareReq;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareResp;
 
@@ -38,4 +39,12 @@ public interface ConversationShareService {
      * @return
      */
     List<ConversationShareResp> shareRecord(String conversationUid);
+
+    /**
+     * 获取分享应用详情
+     *
+     * @param shareKey
+     * @return
+     */
+    AppDetailRespVO appDetail(String shareKey);
 }
