@@ -6,7 +6,9 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.SseResultUtil;
 import lombok.Data;
@@ -37,6 +39,8 @@ public class HandlerContext<Q> {
     private String messageUid;
 
     private SseEmitter sseEmitter;
+
+    private AppSceneEnum scene;
 
     private Q request;
 
@@ -124,17 +128,17 @@ public class HandlerContext<Q> {
 
             this.getSseEmitter().send(result);
         }
-
     }
 
-    public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId, Long endUser) {
+    public static <Q> HandlerContext<Q> createContext(ChatRequestVO chatRequestVO) {
 
-        return new HandlerContext<Q>().setAppUid(appUid).setUserId(userId).setEndUser(endUser).setConversationUid(conversationUid);
+        return new HandlerContext<Q>().setAppUid(chatRequestVO.getAppUid()).setUserId(chatRequestVO.getUserId()).setEndUser(Long.valueOf(chatRequestVO.getEndUser())).setConversationUid(chatRequestVO.getConversationUid()).setScene(AppSceneEnum.valueOf(chatRequestVO.getScene()));
     }
 
-    public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId, Long endUser, Q request) {
 
-        return new HandlerContext<Q>().setAppUid(appUid).setUserId(userId).setEndUser(endUser).setConversationUid(conversationUid).setRequest(request);
+    public static <Q> HandlerContext<Q> createContext(String appUid, String conversationUid, Long userId, Long endUser, AppSceneEnum scene, Q request) {
+
+        return new HandlerContext<Q>().setAppUid(appUid).setUserId(userId).setEndUser(endUser).setConversationUid(conversationUid).setScene(scene).setRequest(request);
     }
 
 

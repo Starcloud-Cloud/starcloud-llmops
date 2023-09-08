@@ -68,7 +68,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
             handlerRequest.setDocsUid(request.getDatesetList());
         }
 
-        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, endUser, handlerRequest);
+        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, endUser, this.getAppContext().getScene(), handlerRequest);
 
         HandlerResponse<String> handlerResponse = openAIChatHandler.execute(handlerContext);
         log.info("OpenAI ChatGPT Action 执行结束...");

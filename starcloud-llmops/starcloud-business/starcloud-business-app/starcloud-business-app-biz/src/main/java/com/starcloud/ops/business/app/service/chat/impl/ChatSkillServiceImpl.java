@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.domain.handler.datasearch.*;
+import com.starcloud.ops.business.app.domain.handler.imggeneration.ImageGenerationHandler;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.chat.ChatSkillService;
@@ -104,8 +105,8 @@ public class ChatSkillServiceImpl implements ChatSkillService {
     protected List<ChatSkillVO> listSystemSkill() {
 
         List<ChatSkillVO> skillVOS = new ArrayList<ChatSkillVO>() {{
-//            add(ChatSkillVO.buildFromHandler(new WebSearch2DocHandler()));
-//            add(ChatSkillVO.buildFromHandler(new SearchEngineHandler()));
+            add(ChatSkillVO.buildFromHandler(new WebSearch2DocHandler()));
+            add(ChatSkillVO.buildFromHandler(new ImageGenerationHandler()));
         }};
 
         return skillVOS;

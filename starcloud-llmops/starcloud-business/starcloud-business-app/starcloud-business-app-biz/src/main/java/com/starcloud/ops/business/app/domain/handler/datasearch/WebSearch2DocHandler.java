@@ -149,7 +149,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
 
     @Data
-    public static class Request {
+    public static class Request implements Serializable {
 
         @JsonProperty(required = true)
         @JsonPropertyDescription("a website url")

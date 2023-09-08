@@ -258,7 +258,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         Map<String, Object> cleanInputs = getVariableItem(chatConfig.getVariable());
 
         //工具入参
-        HandlerContext appContext = this.instanceHandlerContext(request, emitter);
+        HandlerContext appContext = this.instanceHandlerContext(request);
 
         ChatPrePrompt chatPrePrompt = new ChatPrePrompt(chatConfig.getPrePrompt(), chatConfig.getPrePromptConfig());
         ContextPrompt contextPrompt = new ContextPrompt(chatConfig, request.getQuery(), this.getMessageMemory().getMessageContentDocMemory(), appContext);
@@ -396,13 +396,12 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 初始化工具调用上下文
      *
      * @param request
-     * @param emitter
      * @return
      */
-    private HandlerContext instanceHandlerContext(ChatRequestVO request, SseEmitter emitter) {
+    private HandlerContext instanceHandlerContext(ChatRequestVO request) {
 
-        HandlerContext appContext = HandlerContext.createContext(request.getAppUid(), request.getConversationUid(), request.getUserId(), request.getEndUserId());
-        appContext.setSseEmitter(emitter);
+        HandlerContext appContext = HandlerContext.createContext(request);
+        appContext.setSseEmitter(request.getSseEmitter());
 
         return appContext;
     }
@@ -425,7 +424,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         WebSearchConfigEntity searchConfigEntity = chatConfig.getWebSearchConfig();
 
         //工具入参
-        HandlerContext appContext = this.instanceHandlerContext(request, emitter);
+        HandlerContext appContext = this.instanceHandlerContext(request);
 
         //web search
         if (searchConfigEntity != null && searchConfigEntity.getEnabled()) {
