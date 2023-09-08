@@ -56,6 +56,7 @@ public class ConversationShareController {
 
     @GetMapping("/list/{conversationUid}")
     @Operation(summary = "分享记录")
+    @PermitAll
     public CommonResult<List<ConversationShareResp>> shareRecord(@PathVariable("conversationUid") String conversationUid) {
         return CommonResult.success(shareService.shareRecord(conversationUid));
     }
