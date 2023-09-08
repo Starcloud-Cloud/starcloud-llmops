@@ -217,7 +217,7 @@ public class MessageContentDocMemory {
                         doc.setId(sourceDataUploadDTO.getSourceDataId());
                         sourceDataId = sourceDataUploadDTO.getSourceDataId();
 
-                        log.info("MessageContentDocMemory uploadUrlsSourceData add: {} {}", doc.getId(), doc.getTitle());
+                        log.info("MessageContentDocMemory uploadUrlsSourceData success: {} {}", doc.getId(), doc.getTitle());
                     }
 
 

@@ -163,29 +163,7 @@ public class ContextPrompt extends BasePromptConfig {
         //@todo 处理 上下文中动态增加的文档历史
         BaseVariable contextDoc = BaseVariable.newFun("contextDoc", () -> {
 
-            List<MessageContentDocDTO> sortResult = new ArrayList<>();
-
-            //数据集搜索
-            List<MessageContentDocDTO> searchResult = this.parseContentLines(this.searchResult);
-            sortResult.addAll(searchResult);
-
-
-            //上下文内容结果
-            MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
-            //@todo 因为现在 message 和 上下文中都有内容，所以为了精简，如果已经总结了就放到 上下文中，不然就继续依赖message历史让LLM做提示
-            List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
-                return docDTO.getSummary().equals("1");
-            }).collect(Collectors.toList());
-            sortResult.addAll(summaryDocs);
-
-            /**
-             * @todo 后续优化流程
-             * 1，搜索当前会话 和 机器人的 数据集内容，向量搜索（会有还未向量的）
-             * 2，把还未向量的文档+描述 ，直接叠加到 上下文中
-             * 3，最后 放到 prompt中
-             */
-
-
+            List<MessageContentDocDTO> sortResult = this.loadMessageContentDoc();
 
             return PromptUtil.parseDocContentLines(sortResult);
         });
@@ -198,6 +176,44 @@ public class ContextPrompt extends BasePromptConfig {
             return null;
         }, Arrays.asList(contextDoc));
 
+    }
+
+
+    /**
+     * 加载所有 上下文的文档内容
+     * 1，文档搜索
+     * 2，工具执行结果
+     * <p>
+     *
+     * @todo 后续优化流程
+     * * 1，搜索当前会话 和 机器人的 数据集内容，向量搜索（会有还未向量的）
+     * * 2，把还未向量的文档+描述 ，直接叠加到 上下文中
+     * * 3，最后 放到 prompt中
+     */
+    private List<MessageContentDocDTO> loadMessageContentDoc() {
+
+        List<MessageContentDocDTO> sortResult = new ArrayList<>();
+        try {
+            //数据集搜索
+            List<MessageContentDocDTO> searchResult = this.parseContent(this.searchResult);
+            sortResult.addAll(searchResult);
+
+            //上下文内容结果
+            MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
+            //@todo 因为现在 message 和 上下文中都有内容，所以为了精简，如果已经总结了就放到 上下文中，不然就继续依赖message历史让LLM做提示
+            List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
+                return docDTO.getSummary().equals("1");
+            }).collect(Collectors.toList());
+            sortResult.addAll(summaryDocs);
+
+        } catch (Exception e) {
+
+            //查询异常，就放弃上下文了
+            log.error("loadMessageContentDoc is error: {}", e.getMessage(), e);
+        }
+
+
+        return sortResult;
     }
 
 
@@ -262,7 +278,7 @@ public class ContextPrompt extends BasePromptConfig {
         return this.searchResult;
     }
 
-    private List<MessageContentDocDTO> parseContentLines(MatchQueryVO matchQueryVO) {
+    private List<MessageContentDocDTO> parseContent(MatchQueryVO matchQueryVO) {
 
         List<Long> docIds = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map(d -> Long.valueOf(d.getDocumentId())).collect(Collectors.toList());
 
