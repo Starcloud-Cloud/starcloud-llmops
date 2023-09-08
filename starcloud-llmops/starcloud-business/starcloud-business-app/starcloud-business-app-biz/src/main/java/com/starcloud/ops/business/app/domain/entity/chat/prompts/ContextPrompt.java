@@ -104,7 +104,7 @@ public class ContextPrompt extends BasePromptConfig {
     /**
      * Google搜索标记
      */
-    private Boolean googleSearchStatus;
+    private boolean googleSearchStatus;
 
 
     /**
@@ -165,12 +165,12 @@ public class ContextPrompt extends BasePromptConfig {
 
             List<MessageContentDocDTO> sortResult = new ArrayList<>();
 
-            //文档搜索
+            //数据集搜索
             List<MessageContentDocDTO> searchResult = this.parseContentLines(this.searchResult);
             sortResult.addAll(searchResult);
 
 
-            //工具结果
+            //上下文内容结果
             MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
             //@todo 因为现在 message 和 上下文中都有内容，所以为了精简，如果已经总结了就放到 上下文中，不然就继续依赖message历史让LLM做提示
             List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
@@ -178,12 +178,17 @@ public class ContextPrompt extends BasePromptConfig {
             }).collect(Collectors.toList());
             sortResult.addAll(summaryDocs);
 
+            /**
+             * @todo 后续优化流程
+             * 1，搜索当前会话 和 机器人的 数据集内容，向量搜索（会有还未向量的）
+             * 2，把还未向量的文档+描述 ，直接叠加到 上下文中
+             * 3，最后 放到 prompt中
+             */
+
+
+
             return PromptUtil.parseDocContentLines(sortResult);
         });
-
-        //直接搜索的结果
-//        List<MessageContentDocDTO> searchMessageContentDocDTOList = this.parseContentLines(this.searchResult);
-//        BaseVariable variable = BaseVariable.newString("context", PromptUtil.parseDocContentLines(searchMessageContentDocDTOList));
 
         return PromptTemplate.fromTemplate(() -> {
 
@@ -196,6 +201,13 @@ public class ContextPrompt extends BasePromptConfig {
     }
 
 
+    /**
+     * Google内容搜索
+     * 调用 handler
+     *
+     * @param query
+     * @return
+     */
     protected Boolean googleSearch(String query) {
 
         if (StrUtil.isNotBlank(query) && !this.googleSearchStatus) {
@@ -208,7 +220,7 @@ public class ContextPrompt extends BasePromptConfig {
             request.setQuery(query);
             this.handlerContext.setRequest(request);
 
-            //内容已经 发送sse 和 保存上下文了
+            //已经发送sse 和 保存上下文了
             HandlerResponse handlerResponse = handlerSkill.execute(this.handlerContext);
 
             log.info("ContextPrompt googleSearch status: {}, {}", handlerResponse.getSuccess(), JsonUtils.toJsonString(handlerResponse.getOutput()));
