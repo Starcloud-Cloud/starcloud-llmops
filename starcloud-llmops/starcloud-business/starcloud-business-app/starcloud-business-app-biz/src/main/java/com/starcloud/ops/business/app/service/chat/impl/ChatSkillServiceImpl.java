@@ -78,8 +78,9 @@ public class ChatSkillServiceImpl implements ChatSkillService {
         AppMarketPageQuery marketPageQuery = new AppMarketPageQuery();
         marketPageQuery.setPageNo(1);
         marketPageQuery.setPageSize(1000);
-        marketPageQuery.setTags(Collections.singletonList("ChatSkill"));
-        List<AppMarketRespVO> marketApps = appMarketService.page(marketPageQuery).getList();
+        List<AppMarketRespVO> marketApps = appMarketService.page(marketPageQuery).getList()
+                .stream().filter(appMarketRespVO -> appMarketRespVO.getTags() != null && appMarketRespVO.getTags().contains("ChatSkill"))
+                .collect(Collectors.toList());
 
         AppPageQuery appPageQuery = new AppPageQuery();
         appPageQuery.setPageNo(1);
