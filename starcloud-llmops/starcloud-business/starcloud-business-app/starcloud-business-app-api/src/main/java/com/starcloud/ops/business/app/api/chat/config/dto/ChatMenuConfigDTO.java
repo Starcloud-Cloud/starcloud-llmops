@@ -22,11 +22,11 @@ public class ChatMenuConfigDTO implements BaseExpandConfigDTO {
     @Schema(description = "回复内容")
     private String value;
 
-    @Schema(description = "隐藏按钮")
-    private Boolean isButton;
+    @Schema(description = "1 菜单 2 关键词")
+    private Integer type;
 
-    @Schema(description = "图片")
-    private List<String> picture;
+    @Schema(description = "图片/视频")
+    private List<ChatMediaDTO> medias;
 
     @Override
     public void valid() {

@@ -84,7 +84,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             String cleanPath = uploadFile(cleanResultVO.getResult(), message.getUserId(), cleanResultVO.getFormatSuffix());
 
             // 保存清洗地址
-            Long cleanId = setStorageData(cleanResultVO.getResultName(), cleanPath, cleanResultVO.getConvertFormat(), (long) cleanResultVO.getResult().length(), message.getUserId());
+            Long cleanId = setStorageData(cleanResultVO.getResultName(), cleanPath, cleanResultVO.getConvertFormat(), (long) cleanResultVO.getResult().length(), message.getUserId(),message.getTenantId());
 
             // 获取描述
             String descriptionContent = getDescriptionContent(sourceDataDO, cleanResultVO.getResult());
@@ -146,7 +146,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
      * @param formatSuffix 文件后缀
      * @return 上传后的地址
      */
-    private String uploadFile(String data, String userId, String formatSuffix) {
+    private String uploadFile(String data, Long userId, String formatSuffix) {
 
         // 将结果转换为InputStream流
         InputStream utf8Stream = IoUtil.toUtf8Stream(data);
@@ -169,7 +169,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
      * @param userId         用户 ID
      * @return 存储ID
      */
-    private Long setStorageData(String sourceName, String storageAddress, String type, Long size, String userId) {
+    private Long setStorageData(String sourceName, String storageAddress, String type, Long size, Long userId,Long tenantId) {
         DatasetStorageDO datasetStorageDO = new DatasetStorageDO();
 
         datasetStorageDO.setUid(IdUtil.getSnowflakeNextIdStr());
@@ -179,9 +179,9 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
         datasetStorageDO.setSize(size);
         datasetStorageDO.setMimeType(getMimeType(getExtension(sourceName)));
         datasetStorageDO.setUsed(false);
-        datasetStorageDO.setCreator(userId);
-        datasetStorageDO.setUpdater(userId);
-        // datasetStorageDO.setTenantId();
+        datasetStorageDO.setCreator(String.valueOf(userId));
+        datasetStorageDO.setUpdater(String.valueOf(userId));
+        datasetStorageDO.setTenantId(tenantId);
 
         datasetStorageMapper.insert(datasetStorageDO);
         // 数据入库

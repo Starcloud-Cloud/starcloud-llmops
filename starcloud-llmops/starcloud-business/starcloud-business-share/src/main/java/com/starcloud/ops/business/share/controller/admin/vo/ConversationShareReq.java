@@ -15,6 +15,9 @@ public class ConversationShareReq {
     @NotBlank
     private String conversationUid;
 
+    @Schema(description = "媒介id")
+    private String mediumUid;
+
     @Schema(description = "分享Uid")
     private String shareUid;
 

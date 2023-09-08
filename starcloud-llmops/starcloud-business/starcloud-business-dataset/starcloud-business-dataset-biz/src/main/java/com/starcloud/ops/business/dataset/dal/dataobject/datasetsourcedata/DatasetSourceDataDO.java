@@ -198,5 +198,10 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      * 状态
      */
     private Integer status;
+    /**
+     * 游客 ID
+     */
+    private Long endUser;
+
 
 }

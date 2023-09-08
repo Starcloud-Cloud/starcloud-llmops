@@ -35,7 +35,7 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
      * 用户 ID
      */
     @NotNull(message = " 用户 ID不能为空")
-    private String userId;
+    private Long userId;
 
     /**
      * 用户 ID

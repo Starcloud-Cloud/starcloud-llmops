@@ -3,6 +3,7 @@ package com.starcloud.ops.business.share.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.share.controller.admin.vo.AppDetailRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareReq;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareResp;
 import com.starcloud.ops.business.share.service.ConversationShareService;
@@ -39,7 +40,14 @@ public class ConversationShareController {
         return CommonResult.success(true);
     }
 
-    @GetMapping("/detail/{shareKey}")
+    @GetMapping("/app/{shareKey}")
+    @Operation(summary = "应用详情")
+    @PermitAll
+    public CommonResult<AppDetailRespVO> appDetail(@PathVariable("shareKey") String shareKey) {
+        return CommonResult.success(shareService.appDetail(shareKey));
+    }
+
+    @GetMapping("/history/{shareKey}")
     @Operation(summary = "会话详情")
     @PermitAll
     public CommonResult<List<LogAppMessageRespVO>> conversationDetail(@PathVariable("shareKey") String shareKey) {

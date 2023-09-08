@@ -33,6 +33,11 @@ public class ShareConversationDO extends TenantBaseDO {
     private String appUid;
 
     /**
+     * 媒介id
+     */
+    private String mediumUid;
+
+    /**
      * 会话uid
      */
     private String conversationUid;

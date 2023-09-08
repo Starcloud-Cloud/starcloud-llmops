@@ -680,6 +680,10 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     @Override
     public List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
 
+        if (baseDBHandleDTO == null) {
+            throw exception(DATASETS_CONVERSATION_USER_SESSION_NOT_EXISTS);
+        }
+
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.HTML.name());
         if (StrUtil.isBlank(reqVO.getBatch())) {
@@ -902,9 +906,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             if (baseDBHandleDTO.getCreator() != null) {
                 baseDBHandleDTO.setCreator(baseDBHandleDTO.getCreator());
             } else {
-                baseDBHandleDTO.setCreator(appRespVO.getCreator());
+                baseDBHandleDTO.setCreator(Long.valueOf(appRespVO.getCreator()));
             }
-            baseDBHandleDTO.setUpdater(appRespVO.getCreator());
+            baseDBHandleDTO.setUpdater(Long.valueOf(appRespVO.getCreator()));
             baseDBHandleDTO.setTenantId(appRespVO.getTenantId());
             return datasetsService.createDatasetsBySession(appId, sessionId, baseDBHandleDTO);
         }
@@ -947,8 +951,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             baseDBHandleDTO = new BaseDBHandleDTO();
         }
         if (baseDBHandleDTO.getCreator() == null) {
-            baseDBHandleDTO.setCreator(datasetsDO.getCreator());
-            baseDBHandleDTO.setUpdater(datasetsDO.getUpdater());
+            baseDBHandleDTO.setCreator(Long.valueOf(datasetsDO.getCreator()));
+            baseDBHandleDTO.setUpdater(Long.valueOf(datasetsDO.getUpdater()));
             baseDBHandleDTO.setTenantId(datasetsDO.getTenantId());
         }
         return baseDBHandleDTO;

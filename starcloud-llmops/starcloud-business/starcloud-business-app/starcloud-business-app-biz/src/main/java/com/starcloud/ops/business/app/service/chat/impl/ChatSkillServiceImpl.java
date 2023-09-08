@@ -10,10 +10,7 @@ import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.domain.handler.datasearch.DocSearchHandler;
-import com.starcloud.ops.business.app.domain.handler.datasearch.GoogleSearchHandler;
-import com.starcloud.ops.business.app.domain.handler.datasearch.NewsSearchHandler;
-import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
+import com.starcloud.ops.business.app.domain.handler.datasearch.*;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.chat.ChatSkillService;
@@ -22,9 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -83,7 +78,9 @@ public class ChatSkillServiceImpl implements ChatSkillService {
         AppMarketPageQuery marketPageQuery = new AppMarketPageQuery();
         marketPageQuery.setPageNo(1);
         marketPageQuery.setPageSize(1000);
-        List<AppMarketRespVO> marketApps = appMarketService.page(marketPageQuery).getList();
+        List<AppMarketRespVO> marketApps = appMarketService.page(marketPageQuery).getList()
+                .stream().filter(appMarketRespVO -> appMarketRespVO.getTags() != null && appMarketRespVO.getTags().contains("ChatSkill"))
+                .collect(Collectors.toList());
 
         AppPageQuery appPageQuery = new AppPageQuery();
         appPageQuery.setPageNo(1);
@@ -107,10 +104,8 @@ public class ChatSkillServiceImpl implements ChatSkillService {
     protected List<ChatSkillVO> listSystemSkill() {
 
         List<ChatSkillVO> skillVOS = new ArrayList<ChatSkillVO>() {{
-            add(ChatSkillVO.buildFromHandler(new DocSearchHandler()));
-            add(ChatSkillVO.buildFromHandler(new GoogleSearchHandler()));
-            add(ChatSkillVO.buildFromHandler(new NewsSearchHandler()));
-            add(ChatSkillVO.buildFromHandler(new WebSearch2DocHandler()));
+//            add(ChatSkillVO.buildFromHandler(new WebSearch2DocHandler()));
+//            add(ChatSkillVO.buildFromHandler(new SearchEngineHandler()));
         }};
 
         return skillVOS;

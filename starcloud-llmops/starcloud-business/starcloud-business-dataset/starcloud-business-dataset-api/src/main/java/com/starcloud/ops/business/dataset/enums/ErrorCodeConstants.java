@@ -73,6 +73,9 @@ public interface ErrorCodeConstants {
 
     ErrorCode DATASET_HANDLE_RULE_TYPE_UNKNOWN = new ErrorCode(2007005004, " 未知数据类型，请核对数据后重新提交");
     ErrorCode DATASET_HANDLE_RULE_FAIL = new ErrorCode(2007005004, " 调试规则失败，未匹配到规则，请核对数据后重新提交");
+    ErrorCode DATASET_HANDLE_RULE_CLEAN_FAIL = new ErrorCode(2007005005, "数据预处理失败，网页规则处理异常，请核对规则数据后重新提交");
+    ErrorCode DATASET_HANDLE_RULE_WHITE_CLEAN_FAIL = new ErrorCode(2007005006, " 调试规则失败，网页白名单规则处理异常，请核对规则数据后重新提交");
+    ErrorCode DATASET_HANDLE_RULE_BLACK_CLEAN_FAIL = new ErrorCode(2007005007, " 调试规则失败，网页黑名单规则处理异常，请核对规则数据后重新提交");
 
 
 }

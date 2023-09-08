@@ -49,6 +49,7 @@ public class DatasetSourceDataCleanProducer extends AbstractDatasetSourceProduce
                 .setDataSourceId(sendMessage.getDataSourceId())
                 .setSplitRule(sendMessage.getSplitRule())
                 .setUserId(sendMessage.getUserId())
+                .setUserId(sendMessage.getTenantId())
                 .setRetryCount(0)
                 .setCleanSync(sendMessage.getCleanSync())
                 .setSplitSync(sendMessage.getSplitSync())
@@ -67,6 +68,7 @@ public class DatasetSourceDataCleanProducer extends AbstractDatasetSourceProduce
         message.setDataSourceId(sendMessage.getDataSourceId());
         message.setSplitRule(sendMessage.getSplitRule());
         message.setUserId(sendMessage.getUserId());
+        message.setTenantId(sendMessage.getTenantId());
         message.setCleanSync(sendMessage.getCleanSync());
         message.setSplitSync(sendMessage.getSplitSync());
         message.setIndexSync(sendMessage.getIndexSync());
