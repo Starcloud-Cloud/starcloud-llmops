@@ -101,22 +101,39 @@ public class HandlerSkill extends BaseSkillEntity {
             skillCustomConfig.getShowType();
 
             //不会抛出异常
-            HandlerResponse handlerResponse = this.handler.execute(handlerContext);
+            HandlerResponse handlerResponse = this.execute(handlerContext);
 
             log.info("FunTool HandlerSkill: {} response:\n{}", this.getHandler().getName(), JSONUtil.toJsonPrettyStr(handlerResponse));
-
-            //放在这里是因为暂时只有 聊天技能调用 才做记录
-            this.handler.addRespHistory(handlerContext, handlerResponse);
-
-            //@todo 这里可增加 扣权益记录
-
-            //@todo 考虑是否可以判断抛出 FailToolExecution
 
             //这里只返回内容，要么返回为空。因为传到到LLM后只会判断返回值有无
             return handlerResponse.toJsonOutput();
         };
 
         return createFunTool(handler.getName(), handler.getDescription(), cc, function);
+    }
+
+
+    /**
+     * 直接执行ToolHandler
+     * 1，会存储上下文文档
+     *
+     * @param context
+     * @return
+     */
+    public HandlerResponse execute(HandlerContext context) {
+
+        //不会抛出异常
+        HandlerResponse handlerResponse = this.handler.execute(context);
+        //放在这里是因为暂时只有 聊天技能调用 才做记录
+        this.handler.addRespHistory(context, handlerResponse);
+
+
+        //@todo 这里可增加 扣权益记录
+
+        //@todo 考虑是否可以判断抛出 FailToolExecution
+
+
+        return handlerResponse;
     }
 
 
