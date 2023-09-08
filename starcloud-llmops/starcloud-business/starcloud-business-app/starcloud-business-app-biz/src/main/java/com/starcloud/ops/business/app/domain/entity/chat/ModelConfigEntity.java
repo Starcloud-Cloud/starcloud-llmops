@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
-
-import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
 import lombok.Data;
 
@@ -9,9 +7,11 @@ import lombok.Data;
 public class ModelConfigEntity {
 
     /**
-     * 提供者  ： openai
+     * 提供者
+     *
+     * @see ModelProviderEnum
      */
-    private String provider;
+    private ModelProviderEnum provider;
 
     /**
      * 最大多少tokens对 prompt进行强制总结
@@ -22,6 +22,19 @@ public class ModelConfigEntity {
      * 模型配置
      */
     private OpenaiCompletionParams completionParams;
+
+
+    /**
+     * llm标识
+     */
+    public static enum ModelProviderEnum {
+
+        GPT35,
+
+        GPT4,
+
+        QWEN
+    }
 
 
 }

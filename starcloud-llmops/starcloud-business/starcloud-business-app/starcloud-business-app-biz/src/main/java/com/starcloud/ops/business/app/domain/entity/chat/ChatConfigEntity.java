@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
@@ -74,6 +75,19 @@ public class ChatConfigEntity extends BaseConfigEntity {
                     appWorkflowSkill.setEnabled(appEntity != null);
                     return appWorkflowSkill;
                 }).collect(Collectors.toList());
+
+
+        //模型选择处理下
+
+        ModelConfigEntity.ModelProviderEnum setProvider = this.getModelConfig().getProvider();
+
+        if (ModelConfigEntity.ModelProviderEnum.GPT35.equals(setProvider)) {
+            this.getModelConfig().getCompletionParams().setModel(ModelType.GPT_3_5_TURBO.getName());
+        }
+
+        if (ModelConfigEntity.ModelProviderEnum.GPT4.equals(setProvider)) {
+            this.getModelConfig().getCompletionParams().setModel(ModelType.GPT_4.getName());
+        }
 
     }
 
