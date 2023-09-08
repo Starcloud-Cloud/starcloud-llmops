@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.core.config.translate;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +13,9 @@ import org.springframework.stereotype.Component;
  * @since 2023-07-24
  */
 @Data
+@ToString
+@NoArgsConstructor
+@EqualsAndHashCode
 @Component
 @ConfigurationProperties(prefix = "starcloud-llm.business.app.translator")
 public class TranslatorProperties {
@@ -21,6 +27,9 @@ public class TranslatorProperties {
 
 
     @Data
+    @ToString
+    @NoArgsConstructor
+    @EqualsAndHashCode
     @Component
     @ConfigurationProperties(prefix = "starcloud-llm.business.app.translator.aliyun")
     public static class AliyunTranslatorProperties {

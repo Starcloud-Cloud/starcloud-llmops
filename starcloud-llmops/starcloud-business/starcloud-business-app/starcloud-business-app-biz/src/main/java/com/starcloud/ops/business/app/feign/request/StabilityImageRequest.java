@@ -16,7 +16,6 @@ import lombok.ToString;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
-import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
@@ -33,7 +32,7 @@ import java.util.List;
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "StabilityRequest", description = "Stability Ai 基础请求")
-public class VSearchImageRequest implements Serializable {
+public class StabilityImageRequest implements Serializable {
 
     private static final long serialVersionUID = 5346767232312319994L;
 

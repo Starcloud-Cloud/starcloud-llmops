@@ -2,8 +2,8 @@ package com.starcloud.ops.business.app.service.image;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
-import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
-import com.starcloud.ops.business.app.feign.response.VSearchImage;
+import com.starcloud.ops.business.app.feign.request.StabilityImageRequest;
+import com.starcloud.ops.business.app.feign.response.StabilityImage;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
  * @version 1.0.0
  * @since 2023-07-12
  */
-public interface VSearchImageService {
+public interface StabilityImageService {
 
     /**
      * 生成图片
@@ -22,7 +22,7 @@ public interface VSearchImageService {
      * @param request 请求参数
      * @return 图片列表
      */
-    List<VSearchImage> generate(VSearchImageRequest request);
+    List<StabilityImage> generate(StabilityImageRequest request);
 
     /**
      * 文字生成图片

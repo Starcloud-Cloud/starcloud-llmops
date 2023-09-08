@@ -6,8 +6,8 @@ import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
-import com.starcloud.ops.business.app.feign.response.VSearchImage;
+import com.starcloud.ops.business.app.feign.request.StabilityImageRequest;
+import com.starcloud.ops.business.app.feign.response.StabilityImage;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
@@ -39,7 +39,7 @@ public interface VSearchConvert {
      * @param vSearchImage vSearchImage
      * @return ImageDTO
      */
-    ImageDTO convert(VSearchImage vSearchImage);
+    ImageDTO convert(StabilityImage vSearchImage);
 
     /**
      * List<VSearchImage> 转 List<ImageDTO>
@@ -47,7 +47,7 @@ public interface VSearchConvert {
      * @param vSearchImageList vSearchImageList
      * @return List<ImageDTO>
      */
-    default List<ImageDTO> convert(List<VSearchImage> vSearchImageList) {
+    default List<ImageDTO> convert(List<StabilityImage> vSearchImageList) {
         return CollectionUtil.emptyIfNull(vSearchImageList).stream().filter(Objects::nonNull).map(this::convert).collect(Collectors.toList());
     }
 
@@ -57,8 +57,8 @@ public interface VSearchConvert {
      * @param request 请求参数
      * @return VSearchImageRequest
      */
-    default VSearchImageRequest convert(ImageRequest request) {
-        VSearchImageRequest vSearchImageRequest = new VSearchImageRequest();
+    default StabilityImageRequest convert(ImageRequest request) {
+        StabilityImageRequest vSearchImageRequest = new StabilityImageRequest();
         vSearchImageRequest.setEngine(request.getEngine());
 
         // prompts

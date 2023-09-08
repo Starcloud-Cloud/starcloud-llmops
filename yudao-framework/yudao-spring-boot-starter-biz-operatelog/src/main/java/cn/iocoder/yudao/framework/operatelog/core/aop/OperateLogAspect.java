@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
@@ -366,10 +367,30 @@ public class OperateLogAspect {
             return isIgnoreArgs(((Map<?, ?>) object).values());
         }
         // obj
-        return object instanceof MultipartFile
+        return containsMultipartFileField(object.getClass()) || object instanceof MultipartFile
                 || object instanceof HttpServletRequest
                 || object instanceof HttpServletResponse
                 || object instanceof BindingResult;
     }
 
+    public static boolean containsMultipartFileField(Class<?> clazz) {
+        Field[] fields = clazz.getDeclaredFields();
+
+        for (Field field : fields) {
+            if (field.getType() == MultipartFile.class) {
+                return true;
+            }
+
+            // 如果字段的类型是一个自定义类，继续递归检查该类
+            if (!field.getType().isPrimitive() && !field.getType().getName().startsWith("java.")) {
+                if (containsMultipartFileField(field.getType())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 }
+

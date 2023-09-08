@@ -20,7 +20,7 @@ import java.io.Serializable;
 @ToString
 @Schema(name = "StabilityResponse", description = "Stability Ai 基础响应")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class VSearchResponse<R> implements Serializable {
+public class ImageResponse<R> implements Serializable {
 
     private static final long serialVersionUID = 4052376340382017013L;
 

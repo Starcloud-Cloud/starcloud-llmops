@@ -7,11 +7,11 @@ import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.convert.image.VSearchConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.feign.VSearchClient;
-import com.starcloud.ops.business.app.feign.request.VSearchImageRequest;
-import com.starcloud.ops.business.app.feign.response.VSearchImage;
-import com.starcloud.ops.business.app.feign.response.VSearchResponse;
-import com.starcloud.ops.business.app.service.image.VSearchImageService;
+import com.starcloud.ops.business.app.feign.StabilityImageClient;
+import com.starcloud.ops.business.app.feign.request.StabilityImageRequest;
+import com.starcloud.ops.business.app.feign.response.StabilityImage;
+import com.starcloud.ops.business.app.feign.response.ImageResponse;
+import com.starcloud.ops.business.app.service.image.StabilityImageService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -27,10 +27,10 @@ import java.util.Objects;
  * @since 2023-07-12
  */
 @Service
-public class VSearchImageServiceImpl implements VSearchImageService {
+public class StabilityImageServiceImpl implements StabilityImageService {
 
     @Resource
-    private VSearchClient vSearchClient;
+    private StabilityImageClient vSearchClient;
 
     /**
      * 生成图片
@@ -39,9 +39,9 @@ public class VSearchImageServiceImpl implements VSearchImageService {
      * @return 图片列表
      */
     @Override
-    public List<VSearchImage> generate(VSearchImageRequest request) {
+    public List<StabilityImage> generate(StabilityImageRequest request) {
         // 生成图片
-        VSearchResponse<List<VSearchImage>> response = vSearchClient.generateImage(request);
+        ImageResponse<List<StabilityImage>> response = vSearchClient.generateImage(request);
         // 校验响应结果
         validateImagesResponse(response);
         // 返回结果
@@ -57,8 +57,8 @@ public class VSearchImageServiceImpl implements VSearchImageService {
     @Override
     public List<ImageDTO> textToImage(ImageRequest request) {
         // 生成图片
-        VSearchImageRequest imageRequest = VSearchConvert.INSTANCE.convert(request);
-        List<VSearchImage> imageList = this.generate(imageRequest);
+        StabilityImageRequest imageRequest = VSearchConvert.INSTANCE.convert(request);
+        List<StabilityImage> imageList = this.generate(imageRequest);
         // 转换结果并且返回
         return VSearchConvert.INSTANCE.convert(imageList);
     }
@@ -68,7 +68,7 @@ public class VSearchImageServiceImpl implements VSearchImageService {
      *
      * @param response 响应结果
      */
-    private void validateImagesResponse(VSearchResponse<List<VSearchImage>> response) {
+    private void validateImagesResponse(ImageResponse<List<StabilityImage>> response) {
         if (Objects.isNull(response)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_FAIL);
         }
