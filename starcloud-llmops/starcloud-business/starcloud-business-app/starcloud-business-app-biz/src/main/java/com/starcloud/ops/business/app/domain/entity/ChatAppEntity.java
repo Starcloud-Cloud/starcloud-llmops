@@ -26,8 +26,11 @@ import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
+import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.handler.datasearch.GoogleSearchHandler;
+import com.starcloud.ops.business.app.domain.handler.datasearch.SearchEngineHandler;
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
 import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
@@ -254,8 +257,11 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         // 从表单配置中筛选输入变量，处理必填字段、默认值和选项值
         Map<String, Object> cleanInputs = getVariableItem(chatConfig.getVariable());
 
+        //工具入参
+        HandlerContext appContext = this.instanceHandlerContext(request, emitter);
+
         ChatPrePrompt chatPrePrompt = new ChatPrePrompt(chatConfig.getPrePrompt(), chatConfig.getPrePromptConfig());
-        ContextPrompt contextPrompt = new ContextPrompt(chatConfig.getDatesetEntities(), request.getQuery(), this.getMessageMemory().getMessageContentDocMemory());
+        ContextPrompt contextPrompt = new ContextPrompt(chatConfig, request.getQuery(), this.getMessageMemory().getMessageContentDocMemory(), appContext);
         HistoryPrompt historyPrompt = new HistoryPrompt(this.getMessageMemory());
 
         ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
@@ -385,6 +391,22 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         return agentExecutor;
     }
 
+
+    /**
+     * 初始化工具调用上下文
+     *
+     * @param request
+     * @param emitter
+     * @return
+     */
+    private HandlerContext instanceHandlerContext(ChatRequestVO request, SseEmitter emitter) {
+
+        HandlerContext appContext = HandlerContext.createContext(request.getAppUid(), request.getConversationUid(), request.getUserId(), request.getEndUserId());
+        appContext.setSseEmitter(emitter);
+
+        return appContext;
+    }
+
     /**
      * 技能转换 为 LLM 的 function 结构
      * 最后转换为 LLM中的 FunTool，通过回调再次调用"技能"的功能实现
@@ -403,23 +425,22 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         WebSearchConfigEntity searchConfigEntity = chatConfig.getWebSearchConfig();
 
         //工具入参
-        HandlerContext appContext = HandlerContext.createContext(request.getAppUid(), request.getConversationUid(), request.getUserId(), request.getEndUserId());
-        appContext.setSseEmitter(emitter);
+        HandlerContext appContext = this.instanceHandlerContext(request, emitter);
 
         //web search
         if (searchConfigEntity != null && searchConfigEntity.getEnabled()) {
 
-            //爬取网页
-            WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
-            String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
-            webSearch2Doc.setDescription(description);
-            webSearch2Doc.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-            HandlerSkill handlerSkill = new HandlerSkill(webSearch2Doc);
-            loadTools.add(handlerSkill.createFunTool(appContext));
-
-            HandlerSkill searchEngine = HandlerSkill.of("SearchEngineHandler");
-            searchEngine.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-            loadTools.add(searchEngine.createFunTool(appContext));
+//            //爬取网页
+//            WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
+//            String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
+//            webSearch2Doc.setDescription(description);
+//            webSearch2Doc.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+//            HandlerSkill handlerSkill = new HandlerSkill(webSearch2Doc);
+//            loadTools.add(handlerSkill.createFunTool(appContext));
+//
+//            HandlerSkill searchEngine = HandlerSkill.of("SearchEngineHandler");
+//            searchEngine.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+//            loadTools.add(searchEngine.createFunTool(appContext));
 
         }
 

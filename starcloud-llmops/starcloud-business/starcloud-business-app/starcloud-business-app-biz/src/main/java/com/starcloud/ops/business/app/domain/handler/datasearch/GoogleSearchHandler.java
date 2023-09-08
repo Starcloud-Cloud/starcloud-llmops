@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.handler.datasearch;
 
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveData;
@@ -14,10 +15,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -98,6 +96,10 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
 
         return Optional.ofNullable(interactiveDataList).orElse(new ArrayList<>()).stream().map((interactiveData) -> {
 
+            //Google返回的推荐结果，没有URL，内容较少，所以也不存在上下文中，直接放在message结果中即可。
+            if (StrUtil.isBlank(interactiveData.getUrl())) {
+                return null;
+            }
             MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();
 
             messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
@@ -108,7 +110,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
 
             return messageContentDocDTO;
 
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
 

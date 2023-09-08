@@ -7,7 +7,12 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
+import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.domain.handler.datasearch.SearchEngineHandler;
 import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocHistory;
 import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocMemory;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
@@ -87,34 +92,67 @@ public class ContextPrompt extends BasePromptConfig {
 
     private String query;
 
+    private ChatConfigEntity chatConfig;
+
     private List<DatesetEntity> datesetEntities;
 
+    /**
+     * 文档到搜索结果
+     */
     private MatchQueryVO searchResult;
+
+    /**
+     * Google搜索标记
+     */
+    private boolean googleSearchStatus;
+
 
     /**
      * 上下文文档历史
      */
     private MessageContentDocMemory messageContentDocMemory;
 
+    /**
+     * handler调用上下文
+     */
+    private HandlerContext handlerContext;
 
-    public ContextPrompt(List<DatesetEntity> datesetEntities, String query, MessageContentDocMemory messageContentDocMemory) {
+
+    public ContextPrompt(ChatConfigEntity chatConfig, String query, MessageContentDocMemory messageContentDocMemory, HandlerContext handlerContext) {
         this.query = query;
-        this.datesetEntities = datesetEntities;
+        this.chatConfig = chatConfig;
+        this.datesetEntities = chatConfig.getDatesetEntities();
         this.messageContentDocMemory = messageContentDocMemory;
+        this.handlerContext = handlerContext;
     }
 
 
     @Override
     protected Boolean _isEnable() {
 
-        this.searchResult = this.searchDataset(this.query);
+        if (this.canSearchDataset()) {
+            this.searchResult = this.searchDataset(this.query);
+        }
+
+        if (this.canSearchWeb()) {
+            this.googleSearchStatus = this.googleSearch(this.query);
+        }
 
         //直接搜索 或 上下文文档
-        if (this.getMessageContentDocMemory().hasHistory() || this.searchResult != null) {
+        if (this.googleSearchStatus || this.searchResult != null) {
             return true;
         }
 
         return false;
+    }
+
+
+    private Boolean canSearchDataset() {
+        return true;
+    }
+
+    private Boolean canSearchWeb() {
+        return this.chatConfig.getWebSearchConfig() != null && this.chatConfig.getWebSearchConfig().getEnabled();
     }
 
 
@@ -125,22 +163,10 @@ public class ContextPrompt extends BasePromptConfig {
         //@todo 处理 上下文中动态增加的文档历史
         BaseVariable contextDoc = BaseVariable.newFun("contextDoc", () -> {
 
-            List<MessageContentDocDTO> sortResult = new ArrayList<>();
-            //叠加搜索结果
-            List<MessageContentDocDTO> searchResult = this.parseContentLines(this.searchResult);
-            sortResult.addAll(searchResult);
-
-            if (this.getMessageContentDocMemory().hasHistory()) {
-                MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
-                sortResult.addAll(contentDocHistory.getDocs());
-            }
+            List<MessageContentDocDTO> sortResult = this.loadMessageContentDoc();
 
             return PromptUtil.parseDocContentLines(sortResult);
         });
-
-        //直接搜索的结果
-//        List<MessageContentDocDTO> searchMessageContentDocDTOList = this.parseContentLines(this.searchResult);
-//        BaseVariable variable = BaseVariable.newString("context", PromptUtil.parseDocContentLines(searchMessageContentDocDTOList));
 
         return PromptTemplate.fromTemplate(() -> {
 
@@ -154,13 +180,73 @@ public class ContextPrompt extends BasePromptConfig {
 
 
     /**
-     * 搜索对话上下文 文档
+     * 加载所有 上下文的文档内容
+     * 1，文档搜索
+     * 2，工具执行结果
+     * <p>
+     *
+     * @todo 后续优化流程
+     * * 1，搜索当前会话 和 机器人的 数据集内容，向量搜索（会有还未向量的）
+     * * 2，把还未向量的文档+描述 ，直接叠加到 上下文中
+     * * 3，最后 放到 prompt中
      */
-    private void searchMessageContentDoc() {
-        //从 Memory 中查询
+    private List<MessageContentDocDTO> loadMessageContentDoc() {
+
+        List<MessageContentDocDTO> sortResult = new ArrayList<>();
+        try {
+            //数据集搜索
+            List<MessageContentDocDTO> searchResult = this.parseContent(this.searchResult);
+            sortResult.addAll(searchResult);
+
+            //上下文内容结果
+            MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
+            //@todo 因为现在 message 和 上下文中都有内容，所以为了精简，如果已经总结了就放到 上下文中，不然就继续依赖message历史让LLM做提示
+            List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
+                return docDTO.getSummary().equals("1");
+            }).collect(Collectors.toList());
+            sortResult.addAll(summaryDocs);
+
+        } catch (Exception e) {
+
+            //查询异常，就放弃上下文了
+            log.error("loadMessageContentDoc is error: {}", e.getMessage(), e);
+        }
 
 
+        return sortResult;
     }
+
+
+    /**
+     * Google内容搜索
+     * 调用 handler
+     *
+     * @param query
+     * @return
+     */
+    protected Boolean googleSearch(String query) {
+
+        if (StrUtil.isNotBlank(query) && Boolean.FALSE.equals(this.googleSearchStatus)) {
+
+            HandlerSkill handlerSkill = HandlerSkill.of("GoogleSearchHandler");
+            handlerSkill.getHandler().setMessageContentDocMemory(this.getMessageContentDocMemory());
+
+            SearchEngineHandler.Request request = new SearchEngineHandler.Request();
+            request.setType("content");
+            request.setQuery(query);
+            this.handlerContext.setRequest(request);
+
+            //已经发送sse 和 保存上下文了
+            HandlerResponse handlerResponse = handlerSkill.execute(this.handlerContext);
+
+            log.info("ContextPrompt googleSearch status: {}, {}: {}", handlerResponse.getSuccess(), query, JsonUtils.toJsonString(handlerResponse.getOutput()));
+
+            this.googleSearchStatus = handlerResponse.getSuccess();
+        }
+
+        return this.googleSearchStatus;
+    }
+
 
     /**
      * 数据集查询文档内容
@@ -192,7 +278,7 @@ public class ContextPrompt extends BasePromptConfig {
         return this.searchResult;
     }
 
-    private List<MessageContentDocDTO> parseContentLines(MatchQueryVO matchQueryVO) {
+    private List<MessageContentDocDTO> parseContent(MatchQueryVO matchQueryVO) {
 
         List<Long> docIds = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map(d -> Long.valueOf(d.getDocumentId())).collect(Collectors.toList());
 
