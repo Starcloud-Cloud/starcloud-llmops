@@ -39,7 +39,7 @@ public class StringUploadStrategy implements UploadStrategy {
 
 
     @Override
-    public UploadContentDTO process(String userId) {
+    public UploadContentDTO process(Long userId) {
 
         UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
@@ -112,7 +112,7 @@ public class StringUploadStrategy implements UploadStrategy {
      * @param userId
      * @return 文件路径
      */
-    private String uploadFile(String fileId, String data, String userId) {
+    private String uploadFile(String fileId, String data, Long userId) {
 
         // 将结果转换为InputStream流
         InputStream utf8Stream = IoUtil.toUtf8Stream(data);

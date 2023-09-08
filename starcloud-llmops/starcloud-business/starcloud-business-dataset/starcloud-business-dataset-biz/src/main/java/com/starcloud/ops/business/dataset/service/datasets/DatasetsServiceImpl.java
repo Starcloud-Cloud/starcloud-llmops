@@ -273,8 +273,8 @@ public class DatasetsServiceImpl implements DatasetsService {
         datasetsDO.setEnabled(true);
 
 
-        datasetsDO.setCreator(baseDBHandleDTO.getCreator());
-        datasetsDO.setCreator(baseDBHandleDTO.getUpdater());
+        datasetsDO.setCreator(String.valueOf(baseDBHandleDTO.getCreator()));
+        datasetsDO.setCreator(String.valueOf(baseDBHandleDTO.getUpdater()));
         datasetsDO.setTenantId(baseDBHandleDTO.getTenantId());
         datasetsDO.setEndUser(baseDBHandleDTO.getEndUser());
         // 数据插入
