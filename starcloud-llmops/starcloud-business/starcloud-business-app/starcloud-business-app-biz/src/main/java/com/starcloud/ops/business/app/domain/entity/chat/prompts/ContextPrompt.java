@@ -226,7 +226,7 @@ public class ContextPrompt extends BasePromptConfig {
      */
     protected Boolean googleSearch(String query) {
 
-        if (StrUtil.isNotBlank(query) && !this.googleSearchStatus) {
+        if (StrUtil.isNotBlank(query) && Boolean.FALSE.equals(this.googleSearchStatus)) {
 
             HandlerSkill handlerSkill = HandlerSkill.of("GoogleSearchHandler");
             handlerSkill.getHandler().setMessageContentDocMemory(this.getMessageContentDocMemory());
@@ -239,7 +239,7 @@ public class ContextPrompt extends BasePromptConfig {
             //已经发送sse 和 保存上下文了
             HandlerResponse handlerResponse = handlerSkill.execute(this.handlerContext);
 
-            log.info("ContextPrompt googleSearch status: {}, {}", handlerResponse.getSuccess(), JsonUtils.toJsonString(handlerResponse.getOutput()));
+            log.info("ContextPrompt googleSearch status: {}, {}: {}", handlerResponse.getSuccess(), query, JsonUtils.toJsonString(handlerResponse.getOutput()));
 
             this.googleSearchStatus = handlerResponse.getSuccess();
         }
