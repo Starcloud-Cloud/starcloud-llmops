@@ -5,8 +5,10 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
@@ -201,7 +203,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
 
         //@see StylePresetEnum
         @JsonProperty(required = true)
-        @JsonPropertyDescription("Guiding the image model toward a particular style.Values include: ENHANCE, ANIME, PHOTOGRAPHIC, COMIC_BOOK. Can only use this value.")
+        @JsonPropertyDescription("Guiding the image model toward a particular style.Values include: enhance, anime, photographic, comic-book. Can only use this value.")
         private String stylePreset;
 
     }
