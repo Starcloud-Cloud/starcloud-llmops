@@ -58,7 +58,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
 
         //@todo 通过上下文获取当前可能配置的 tools 执行 tips
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("AI分析链接内容中...").setToolHandler(this).setInput(context.getRequest());
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("分析链接内容中[" + url + "]...").setToolHandler(this).setInput(context.getRequest());
 
 
         context.sendCallbackInteractiveStart(interactiveInfo);
@@ -80,7 +80,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         // TODO 添加创建人或者游客
 
         BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
-        //baseDBHandleDTO.setCreator(context.getUserId());
+        baseDBHandleDTO.setCreator(context.getUserId());
         baseDBHandleDTO.setEndUser(context.getEndUser());
 
         List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, baseDBHandleDTO);

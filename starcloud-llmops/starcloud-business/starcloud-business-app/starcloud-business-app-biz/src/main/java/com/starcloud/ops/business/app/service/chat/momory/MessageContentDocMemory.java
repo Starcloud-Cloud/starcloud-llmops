@@ -183,6 +183,10 @@ public class MessageContentDocMemory {
                 doc.getToolName();
                 //@todo 需要增加扩展信息，如messageId
 
+                BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+                baseDBHandleDTO.setCreator(userId);
+                baseDBHandleDTO.setEndUser(endUser);
+
                 if (MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name().equals(doc.getType())) {
 
                     // 上游已经保存过
@@ -197,11 +201,6 @@ public class MessageContentDocMemory {
 
                     uploadUrlReqVO.setUrls(Arrays.asList(doc.getUrl()));
                     // TODO 添加创建人或者游客
-
-
-                    BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
-                    //baseDBHandleDTO.setCreator(userId);
-                    baseDBHandleDTO.setEndUser(endUser);
 
                     List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, baseDBHandleDTO);
 
@@ -242,7 +241,7 @@ public class MessageContentDocMemory {
 
                     characterReqVO.setCharacterVOS(Collections.singletonList(new CharacterDTO().setTitle(title).setContext(content)));
                     // TODO 添加创建人或者游客
-                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceDataBySession(characterReqVO, null);
+                    List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceDataBySession(characterReqVO, baseDBHandleDTO);
 
                     SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
