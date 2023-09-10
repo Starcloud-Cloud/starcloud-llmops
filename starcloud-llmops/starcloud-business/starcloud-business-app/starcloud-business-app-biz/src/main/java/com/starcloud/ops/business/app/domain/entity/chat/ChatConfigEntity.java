@@ -17,10 +17,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,11 +49,14 @@ public class ChatConfigEntity extends BaseConfigEntity {
                 .map(chatExpandConfigRespVO -> {
                     HandlerSkill handlerSkill = ChatConfigConvert.INSTANCE.convert(chatExpandConfigRespVO.getSystemHandlerSkillDTO());
                     BaseToolHandler toolHandler = BaseToolHandler.of(chatExpandConfigRespVO.getSystemHandlerSkillDTO().getCode());
-                    handlerSkill.setHandler(toolHandler);
-                    handlerSkill.setEnabled(toolHandler != null);
-                    return handlerSkill;
+                    if (toolHandler != null) {
+                        handlerSkill.setHandler(toolHandler);
+                        return handlerSkill;
+                    }
 
-                }).collect(Collectors.toList());
+                    return null;
+
+                }).filter(Objects::nonNull).collect(Collectors.toList());
 
 
         List<ChatExpandConfigRespVO> appWorkflow = config.get(ChatExpandConfigEnum.APP_WORKFLOW.getCode());

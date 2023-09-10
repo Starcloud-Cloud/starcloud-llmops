@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 
 import cn.hutool.core.util.TypeUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
@@ -25,6 +26,7 @@ public class HandlerSkill extends BaseSkillEntity {
     private SkillTypeEnum type = SkillTypeEnum.HANDLER;
 
     @JsonIgnore
+    @JSONField(serialize = false)
     private BaseToolHandler handler;
 
     public HandlerSkill(BaseToolHandler baseHandler) {

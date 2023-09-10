@@ -22,6 +22,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.RecommendAppConsts;
 import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.app.service.image.ImageService;
@@ -42,6 +43,7 @@ import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -57,6 +59,7 @@ import java.util.stream.Collectors;
  */
 @Data
 @Slf4j
+@Component
 public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandler.Request, ImageGenerationHandler.Response> {
 
     public static ImageService imageService = SpringUtil.getBean(ImageService.class);
@@ -171,7 +174,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
         ImageReqVO imageReqVO = new ImageReqVO();
 
         imageReqVO.setEndUser(String.valueOf(context.getEndUser()));
-        imageReqVO.setAppUid(context.getAppUid());
+        imageReqVO.setAppUid(RecommendAppConsts.BASE_GENERATE_IMAGE);
         imageReqVO.setScene(context.getScene().name());
         imageReqVO.setUserId(context.getUserId());
 

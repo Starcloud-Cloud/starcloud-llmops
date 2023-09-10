@@ -326,4 +326,31 @@ public class ChatTest extends BaseDbUnitTest {
 
     }
 
+    /**
+     * 带工具聊天 + 历史
+     */
+    @Test
+    public void runImageTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        //带数据集的
+        chatRequest.setAppUid("f21278f7cfb9462893efd0507f3bbafc");
+        //chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
+
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("画一个直升机");
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+
 }
