@@ -5,6 +5,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.dashscope.aigc.generation.GenerationResult;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
@@ -14,6 +15,7 @@ import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrePrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrompt;
@@ -52,6 +54,7 @@ import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
+import com.starcloud.ops.llm.langchain.core.model.chat.ChatQwen;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
@@ -279,42 +282,62 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
             SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
         }
 
-
-        //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
-        if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
-                || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills())
-                || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills())
-                || CollectionUtil.isNotEmpty(chatConfig.getHandlerSkills())
-        )) {
-
-            ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
-
-            AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, chatPromptTemplate, emitter);
-
-            //把上下文文档内容的 变量占位符传入
-            AgentFinish agentAction = agentExecutor.call(Arrays.asList(humanInput));
-
-            //扣费，记录 tool 调用日志
-
-
-            //GPT 在做次总结
-
-            //@todo  生成 message
-
-            return JsonData.of(agentAction);
-
-        } else {
+        //千问调用
+        if (ModelConfigEntity.ModelProviderEnum.QWEN.equals(this.getChatConfig().getModelConfig().getProvider())) {
 
             ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(false);
 
-            LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
+            LLMChain<GenerationResult> llmChain = buildQwenLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
 
-            BaseLLMResult<ChatCompletionResult> result = llmChain.call(Arrays.asList(humanInput));
+            BaseLLMResult<GenerationResult> result = llmChain.call(Arrays.asList(humanInput));
 
             return JsonData.of(result);
+
+        } else {
+
+            //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
+            if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
+                    || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills())
+                    || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills())
+                    || CollectionUtil.isNotEmpty(chatConfig.getHandlerSkills())
+            )) {
+
+                ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
+
+                AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, chatPromptTemplate, emitter);
+
+                //把上下文文档内容的 变量占位符传入
+                AgentFinish agentAction = agentExecutor.call(Arrays.asList(humanInput));
+
+                //扣费，记录 tool 调用日志
+
+
+                //GPT 在做次总结
+
+                //@todo  生成 message
+
+                return JsonData.of(agentAction);
+
+            } else {
+
+                ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(false);
+
+                LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
+
+                BaseLLMResult<ChatCompletionResult> result = llmChain.call(Arrays.asList(humanInput));
+
+                return JsonData.of(result);
+            }
+
         }
 
     }
+
+
+    private void executeQwen() {
+
+    }
+
 
     @JsonIgnore
     @JSONField(serialize = false)
@@ -338,6 +361,34 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         }
         return filteredInputs;
+    }
+
+    /**
+     * 千问 LLm
+     *
+     * @param request
+     * @param maxTokens
+     * @param chatConfig
+     * @param chatPromptTemplate
+     * @param emitter
+     * @return
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private LLMChain<GenerationResult> buildQwenLlm(ChatRequestVO request, int maxTokens,
+                                                    ChatConfigEntity chatConfig,
+                                                    ChatPromptTemplate chatPromptTemplate,
+                                                    SseEmitter emitter) {
+        ChatQwen chatQwen = new ChatQwen();
+
+        chatQwen.setTopP(chatConfig.getModelConfig().getCompletionParams().getTemperature());
+        chatQwen.setStream(true);
+
+        chatQwen.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
+        LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);
+
+        llmChain.setMemory(this.getMessageMemory());
+        return llmChain;
     }
 
     @JsonIgnore

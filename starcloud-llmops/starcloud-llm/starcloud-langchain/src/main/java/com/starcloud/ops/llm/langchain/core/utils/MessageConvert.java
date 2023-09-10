@@ -1,6 +1,8 @@
 package com.starcloud.ops.llm.langchain.core.utils;
 
 
+import com.alibaba.dashscope.common.Message;
+import com.alibaba.dashscope.common.Role;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.*;
 import com.theokanning.openai.completion.chat.ChatFunctionCall;
@@ -55,6 +57,38 @@ public class MessageConvert {
 
             return new ChatMessage(baseMessage.getType(), content);
 
+        }
+
+    }
+
+
+    /**
+     * 千问
+     *
+     * @param baseMessage
+     * @return
+     */
+    public static Message BaseMessage2QwenMessage(BaseMessage baseMessage) {
+
+        String role = baseMessage.getType();
+        String content = baseMessage.getContent();
+        Map<String, Object> args = baseMessage.getAdditionalArgs();
+
+        if (baseMessage instanceof SystemMessage) {
+
+            return Message.builder().role(Role.SYSTEM.getValue()).content(content).build();
+
+        } else if (baseMessage instanceof AIMessage) {
+
+            return Message.builder().role(Role.ASSISTANT.getValue()).content(content).build();
+
+        } else if (baseMessage instanceof HumanMessage) {
+
+            return Message.builder().role(Role.USER.getValue()).content(content).build();
+
+        } else {
+
+            return Message.builder().role(baseMessage.getType()).content(content).build();
         }
 
     }
