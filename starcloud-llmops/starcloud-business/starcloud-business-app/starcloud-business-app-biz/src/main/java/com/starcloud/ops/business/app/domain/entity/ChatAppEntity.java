@@ -425,7 +425,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         chatOpenAI.setStream(false);
         chatOpenAI.setModel(ModelType.GPT_4.getName());
-        chatOpenAI.setTemperature(0.7d);
+//        chatOpenAI.setTemperature(0.7d);
 
         chatOpenAI.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
 
