@@ -86,8 +86,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
     /**
      * 使用方法
      */
-    private String toolInstructions = "1. Enter the search query: Type in the query you wish to search for in the input box.\n" +
-            "2. Specify search type: Choose the appropriate search type from the options: \"image\", \"content\", or \"news\".";
+    private String toolInstructions = "";
 
 
     /**
@@ -201,7 +200,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
     public static class Request implements Serializable {
 
         @JsonProperty(required = true)
-        @JsonPropertyDescription("need to generate a prompt of the image")
+        @JsonPropertyDescription("need to generate a prompt of the image.Must be in English, if not, need to take the initiative to translate into English")
         private String prompt;
 
         //@see StylePresetEnum
