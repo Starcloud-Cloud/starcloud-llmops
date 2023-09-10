@@ -155,7 +155,7 @@ public class InteractiveInfo implements Serializable {
         interactiveInfo.setShowType("docs");
         interactiveInfo.setSuccess(true);
 
-        List<Long> docIds = Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
+        List<Long> docIds = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
             return Long.valueOf(recordDTO.getDocumentId());
         }).collect(Collectors.toList());
 
