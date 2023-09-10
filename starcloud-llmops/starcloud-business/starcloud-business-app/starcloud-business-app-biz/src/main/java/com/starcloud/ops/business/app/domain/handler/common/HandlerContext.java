@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -132,7 +133,7 @@ public class HandlerContext<Q> {
 
     public static <Q> HandlerContext<Q> createContext(ChatRequestVO chatRequestVO) {
 
-        return new HandlerContext<Q>().setAppUid(chatRequestVO.getAppUid()).setUserId(chatRequestVO.getUserId()).setEndUser(Long.valueOf(chatRequestVO.getEndUser())).setConversationUid(chatRequestVO.getConversationUid()).setScene(AppSceneEnum.valueOf(chatRequestVO.getScene()));
+        return new HandlerContext<Q>().setAppUid(chatRequestVO.getAppUid()).setUserId(chatRequestVO.getUserId()).setEndUser(Optional.ofNullable(chatRequestVO.getEndUser()).map(Long::valueOf).orElse(null)).setConversationUid(chatRequestVO.getConversationUid()).setScene(AppSceneEnum.valueOf(chatRequestVO.getScene()));
     }
 
 
