@@ -171,8 +171,9 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
         imageRequest.setSamples(1);
 
         ImageReqVO imageReqVO = new ImageReqVO();
-
-        imageReqVO.setEndUser(String.valueOf(context.getEndUser()));
+        if (context.getEndUser() != null) {
+            imageReqVO.setEndUser(String.valueOf(context.getEndUser()));
+        }
         imageReqVO.setAppUid(RecommendAppConsts.BASE_GENERATE_IMAGE);
         imageReqVO.setScene(context.getScene().name());
         imageReqVO.setUserId(context.getUserId());
