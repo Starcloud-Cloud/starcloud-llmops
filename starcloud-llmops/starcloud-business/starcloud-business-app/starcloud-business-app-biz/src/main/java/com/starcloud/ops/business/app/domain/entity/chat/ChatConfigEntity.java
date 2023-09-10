@@ -51,6 +51,7 @@ public class ChatConfigEntity extends BaseConfigEntity {
                     BaseToolHandler toolHandler = BaseToolHandler.of(chatExpandConfigRespVO.getSystemHandlerSkillDTO().getCode());
                     if (toolHandler != null) {
                         handlerSkill.setHandler(toolHandler);
+                        handlerSkill.setEnabled(true);
                         return handlerSkill;
                     }
 
