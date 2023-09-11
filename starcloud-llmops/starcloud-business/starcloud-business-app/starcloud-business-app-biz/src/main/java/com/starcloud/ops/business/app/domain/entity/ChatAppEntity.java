@@ -12,11 +12,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
-import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.*;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrePrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ContextPrompt;
@@ -284,7 +281,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         }
 
         //千问调用
-        if (ModelConfigEntity.ModelProviderEnum.QWEN.name().equals(this.getChatConfig().getModelConfig().getProvider())) {
+        if (ModelProviderEnum.QWEN.name().equals(this.getChatConfig().getModelConfig().getProvider())) {
 
             ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(false);
 

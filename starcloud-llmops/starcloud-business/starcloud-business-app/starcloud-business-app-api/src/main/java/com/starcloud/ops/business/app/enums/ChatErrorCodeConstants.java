@@ -24,4 +24,18 @@ public interface ChatErrorCodeConstants {
      */
     ErrorCode TOOL_RUN_ERROR = new ErrorCode(400200001, "AI调用技能异常，请稍后重试");
 
+
+    /**
+     * 聊天功能权限判断
+     * 模型切换
+     */
+    ErrorCode CONFIG_MODEL_ERROR = new ErrorCode(400300001, "大语言模型切换异常，你还没有模型权限[{}]");
+
+    /**
+     * 聊天功能权限判断
+     * 联网
+     */
+    ErrorCode CONFIG_WEB_SEARCH_ERROR = new ErrorCode(400300002, "联网功能开启异常，你还没有联网权限");
+
+
 }

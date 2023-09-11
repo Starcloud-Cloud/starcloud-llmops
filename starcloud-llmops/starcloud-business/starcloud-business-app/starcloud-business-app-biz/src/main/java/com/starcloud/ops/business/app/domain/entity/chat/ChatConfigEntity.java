@@ -83,11 +83,11 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
         String setProvider = this.getModelConfig().getProvider();
 
-        if (ModelConfigEntity.ModelProviderEnum.GPT35.name().equals(setProvider)) {
+        if (ModelProviderEnum.GPT35.name().equals(setProvider)) {
             this.getModelConfig().getCompletionParams().setModel(ModelTypeEnum.GPT_3_5_TURBO.getName());
         }
 
-        if (ModelConfigEntity.ModelProviderEnum.GPT4.name().equals(setProvider)) {
+        if (ModelProviderEnum.GPT4.name().equals(setProvider)) {
             this.getModelConfig().getCompletionParams().setModel(ModelTypeEnum.GPT_4.getName());
         }
 

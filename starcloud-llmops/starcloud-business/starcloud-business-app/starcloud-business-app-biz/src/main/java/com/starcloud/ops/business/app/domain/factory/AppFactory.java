@@ -1,11 +1,13 @@
 package com.starcloud.ops.business.app.domain.factory;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -20,9 +22,12 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.domain.repository.publish.AppPublishRepository;
+import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -30,12 +35,14 @@ import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.RecommendAppConsts;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 获取应用工厂
@@ -108,25 +115,82 @@ public class AppFactory {
      */
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
 
+        ChatAppEntity appEntity = null;
+
         if (AppSceneEnum.CHAT_MARKET.name().equalsIgnoreCase(chatRequest.getScene())) {
             AppMarketEntity appMarketEntity = AppFactory.factoryMarket(chatRequest.getAppUid());
-            return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
-        }
+            appEntity = AppMarketConvert.INSTANCE.convert2(appMarketEntity);
+            updateChatAppConfig(chatRequest, appEntity);
 
-        if (AppSceneEnum.CHAT_TEST.name().equalsIgnoreCase(chatRequest.getScene())) {
+        } else if (AppSceneEnum.CHAT_TEST.name().equalsIgnoreCase(chatRequest.getScene())) {
             String appId = chatRequest.getAppUid();
-            ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
-            return appEntity;
-        }
+            appEntity = factoryChatApp(chatRequest.getAppUid());
+            updateChatAppConfig(chatRequest, appEntity);
 
-        if (StringUtils.isNotBlank(chatRequest.getMediumUid())) {
+        } else if (StringUtils.isNotBlank(chatRequest.getMediumUid())) {
             String mediumId = chatRequest.getMediumUid();
-            return factory(chatRequest.getMediumUid());
+            appEntity = factory(chatRequest.getMediumUid());
+
+        } else {
+            appEntity = factoryChatApp(chatRequest.getAppUid());
         }
 
-        ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
+
         return appEntity;
     }
+
+    /**
+     * 设置前端传入的参数, 判断是否有权限
+     * 1, 登录的
+     * 2，游客, 无法修改使用应用的原有配置
+     * <p>
+     * 1，查看当前应用配置，参数不能降级
+     * 2，判断是否有升级后的权限
+     */
+    private static void updateChatAppConfig(ChatRequestVO chatRequest, ChatAppEntity appEntity) {
+
+        //用户已登录，判断是否有升级的权限
+        if (chatRequest.getUserId() != null) {
+
+            PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
+
+            if (StrUtil.isNotBlank(chatRequest.getModelType())) {
+                ModelProviderEnum providerEnum = IEnumable.nameOf(chatRequest.getModelType(), ModelProviderEnum.class);
+                if (providerEnum == null) {
+                    //不合法参数
+                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
+                }
+
+                //无配置不处理
+                if (StrUtil.isNotBlank(providerEnum.getPermissions())) {
+
+                    if (!permissionApi.hasAnyPermissions(chatRequest.getUserId(), providerEnum.getPermissions())) {
+
+                        //没权限抛异常
+                        throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
+                    }
+                }
+
+                Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).ifPresent(modelConfig -> modelConfig.setProvider(chatRequest.getModelType()));
+            }
+
+
+            if (chatRequest.getWebSearch() != null) {
+                //设置开启，但是没权限
+                if (chatRequest.getWebSearch() && !permissionApi.hasAnyPermissions(chatRequest.getUserId(), "chat:config:websearch")) {
+
+                    //没权限抛异常
+                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_WEB_SEARCH_ERROR);
+                }
+
+                //设置开启 或 关闭了
+                Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getWebSearchConfig).ifPresent(webSearchConfig -> webSearchConfig.setEnabled(chatRequest.getWebSearch()));
+            }
+
+        }
+
+    }
+
 
     public static ChatAppEntity factroyMarket(String appUid) {
         AppMarketEntity appMarketEntity = AppFactory.factoryMarket(appUid);

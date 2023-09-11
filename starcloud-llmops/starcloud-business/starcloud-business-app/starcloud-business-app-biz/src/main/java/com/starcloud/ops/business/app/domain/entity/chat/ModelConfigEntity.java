@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Data;
 
 @Data
@@ -22,19 +23,5 @@ public class ModelConfigEntity {
      * 模型配置
      */
     private OpenaiCompletionParams completionParams;
-
-
-    /**
-     * llm标识
-     */
-    public static enum ModelProviderEnum {
-
-        GPT35,
-
-        GPT4,
-
-        QWEN
-    }
-
 
 }
