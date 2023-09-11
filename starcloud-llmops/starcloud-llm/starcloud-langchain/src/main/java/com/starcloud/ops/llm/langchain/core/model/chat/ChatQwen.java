@@ -16,6 +16,7 @@ import com.starcloud.ops.llm.langchain.core.model.chat.base.BaseChatModel;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.*;
 import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import com.starcloud.ops.llm.langchain.core.utils.MessageConvert;
@@ -39,7 +40,7 @@ public class ChatQwen extends BaseChatModel<GenerationResult> {
 
     private static QwenAIConfig qwenAIConfig = SpringUtil.getBean("qwenAIConfig");
 
-    private String model = Generation.Models.QWEN_V1;
+    private String model = ModelTypeEnum.QWEN.getName();
 
     private Double topP = 0.5d;
 

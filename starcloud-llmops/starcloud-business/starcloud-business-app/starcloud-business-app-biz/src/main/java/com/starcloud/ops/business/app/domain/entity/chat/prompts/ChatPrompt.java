@@ -14,6 +14,7 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseMessageProm
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -101,8 +102,8 @@ public class ChatPrompt extends BasePromptConfig {
         String dataSetStr = this.contextPrompt.buildPromptStr();
         OpenaiCompletionParams completionParams = modelConfig.getCompletionParams();
 
-        Optional<ModelType> optionalModel = ModelType.fromName(completionParams.getModel());
-        ModelType modelType = ModelType.GPT_3_5_TURBO;
+        Optional<ModelTypeEnum> optionalModel = ModelTypeEnum.fromName(completionParams.getModel());
+        ModelTypeEnum modelType = ModelTypeEnum.GPT_3_5_TURBO;
         if (optionalModel.isPresent()) {
             modelType = optionalModel.get();
         }
@@ -112,10 +113,10 @@ public class ChatPrompt extends BasePromptConfig {
         }
 
         if (StringUtils.isNotBlank(prePrompt)) {
-            maxTokens -= TokenUtils.intTokens(modelType, prePrompt);
+            maxTokens -= TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, prePrompt);
         }
         if (StringUtils.isNotBlank(dataSetStr)) {
-            maxTokens -= TokenUtils.intTokens(modelType, dataSetStr);
+            maxTokens -= TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, dataSetStr);
         }
 
         //扣除用户设置的最大返回结果的 tokens
@@ -126,7 +127,7 @@ public class ChatPrompt extends BasePromptConfig {
             maxTokens -= 550 * 1.1;
         }
 
-        maxTokens -= TokenUtils.intTokens(modelType, userQuery);
+        maxTokens -= TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, userQuery);
         return maxTokens;
 
     }

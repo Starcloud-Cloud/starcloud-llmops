@@ -11,7 +11,7 @@ public class ModelConfigEntity {
      *
      * @see ModelProviderEnum
      */
-    private ModelProviderEnum provider;
+    private String provider;
 
     /**
      * 最大多少tokens对 prompt进行强制总结

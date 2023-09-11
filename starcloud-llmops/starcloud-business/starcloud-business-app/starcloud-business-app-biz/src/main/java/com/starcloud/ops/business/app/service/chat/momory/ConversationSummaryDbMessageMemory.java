@@ -32,6 +32,7 @@ import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.*;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.*;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
@@ -102,7 +103,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         //总结用模型
         ChatOpenAI chatOpenAi = new ChatOpenAI();
         //16k 去总结
-        chatOpenAi.setModel(ModelType.GPT_3_5_TURBO_16K.getName());
+        chatOpenAi.setModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
         chatOpenAi.setMaxTokens(500);
         chatOpenAi.setTemperature(0d);
 
@@ -488,12 +489,11 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         BaseLLMUsage llmUsage = (BaseLLMUsage) baseMessage.getAdditionalArgs().getOrDefault("usage", new BaseLLMUsage());
         Long llmElapsed = (Long) baseMessage.getAdditionalArgs().getOrDefault("llm_elapsed", 0l);
 
-        ModelType modelType = TokenCalculator.fromName(llmParams.getOrDefault("model", "").toString());
-
         String variables = JsonUtils.toJsonString(llmParams);
 
         String answer = baseMessage.getContent();
 
+        ModelTypeEnum modelType = TokenCalculator.fromName(llmParams.getOrDefault("model", "").toString());
         Long messageTokens = llmUsage.getPromptTokens();
         BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, true);
         Long answerTokens = llmUsage.getCompletionTokens();
@@ -615,8 +615,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         String historyStr = BaseMessage.getBufferString(messages);
 
         //@todo 总结也不一定看模型，还要看成本，保证比较小的tokens下进行对话，所以比较的是计算后剩余可用的tokens
-        Optional<ModelType> optionalModelType = ModelType.fromName(ModelType.GPT_3_5_TURBO.getName());
-        return optionalModelType.map(type -> TokenUtils.intTokens(type, historyStr)).orElseGet(() -> TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, historyStr));
+        return  TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, historyStr);
     }
 
 

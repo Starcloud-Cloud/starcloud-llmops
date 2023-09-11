@@ -15,6 +15,7 @@ import com.starcloud.ops.llm.langchain.core.model.llm.azure.AzureAiApi;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.*;
 import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import com.starcloud.ops.llm.langchain.core.utils.MessageConvert;
@@ -53,7 +54,7 @@ import java.util.stream.Collectors;
 @Data
 public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
-    private String model = ModelType.GPT_3_5_TURBO.getName();
+    private String model = ModelTypeEnum.GPT_3_5_TURBO.getName();
 
     private List<ChatMessage> messages;
 

@@ -13,6 +13,7 @@ import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandle
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
@@ -57,7 +58,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         //appStepResponse.setStepConfig(JSON.toJSONString(variablesMaps));
         appStepResponse.setMessage(prompt);
 
-        ModelType modelType = TokenCalculator.fromName(request.getModel());
+        ModelTypeEnum modelType = TokenCalculator.fromName(request.getModel());
         appStepResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(modelType, true));
         appStepResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(modelType, false));
 
@@ -117,7 +118,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
     @Data
     public static class Request {
 
-        private String model = ModelType.GPT_3_5_TURBO.getName();
+        private String model = ModelTypeEnum.GPT_3_5_TURBO.getName();
 
         /**
          * 后续新参数 都是一个个独立字段即可

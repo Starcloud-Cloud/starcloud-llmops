@@ -58,6 +58,7 @@ import com.starcloud.ops.llm.langchain.core.model.chat.ChatQwen;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
@@ -283,7 +284,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         }
 
         //千问调用
-        if (ModelConfigEntity.ModelProviderEnum.QWEN.equals(this.getChatConfig().getModelConfig().getProvider())) {
+        if (ModelConfigEntity.ModelProviderEnum.QWEN.name().equals(this.getChatConfig().getModelConfig().getProvider())) {
 
             ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(false);
 
@@ -424,7 +425,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         ChatConfigConvert.INSTANCE.updateParams(chatConfig.getModelConfig().getCompletionParams(), chatOpenAI);
 
         chatOpenAI.setStream(false);
-        chatOpenAI.setModel(ModelType.GPT_4.getName());
+        chatOpenAI.setModel(ModelTypeEnum.GPT_4.getName());
 //        chatOpenAI.setTemperature(0.7d);
 
         chatOpenAI.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));

@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.config.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.config.ChatExpandConfigEnum;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
@@ -80,14 +81,14 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
         //模型选择处理下
 
-        ModelConfigEntity.ModelProviderEnum setProvider = this.getModelConfig().getProvider();
+        String setProvider = this.getModelConfig().getProvider();
 
-        if (ModelConfigEntity.ModelProviderEnum.GPT35.equals(setProvider)) {
-            this.getModelConfig().getCompletionParams().setModel(ModelType.GPT_3_5_TURBO.getName());
+        if (ModelConfigEntity.ModelProviderEnum.GPT35.name().equals(setProvider)) {
+            this.getModelConfig().getCompletionParams().setModel(ModelTypeEnum.GPT_3_5_TURBO.getName());
         }
 
-        if (ModelConfigEntity.ModelProviderEnum.GPT4.equals(setProvider)) {
-            this.getModelConfig().getCompletionParams().setModel(ModelType.GPT_4.getName());
+        if (ModelConfigEntity.ModelProviderEnum.GPT4.name().equals(setProvider)) {
+            this.getModelConfig().getCompletionParams().setModel(ModelTypeEnum.GPT_4.getName());
         }
 
     }

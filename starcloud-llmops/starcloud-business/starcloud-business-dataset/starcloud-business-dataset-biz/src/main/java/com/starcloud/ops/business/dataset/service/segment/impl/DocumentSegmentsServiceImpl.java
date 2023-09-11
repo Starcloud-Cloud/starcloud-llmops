@@ -41,6 +41,7 @@ import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDT
 import com.starcloud.ops.llm.langchain.core.model.llm.document.EmbeddingDetail;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryHit;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.starcloud.ops.llm.langchain.core.utils.VectorSerializeUtils;
@@ -114,7 +115,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             String cleanText = TextCleanAndSplitUtils.splitText(text, splitRule);
             List<String> splitText = SplitterContainer.TOKEN_TEXT_SPLITTER.getSplitter().splitText(cleanText, splitRule.getChunkSize(), splitRule.getSeparator());
             Long totalTokens = splitText.stream().mapToLong(split -> TokenUtils.tokens(ModelType.TEXT_DAVINCI_002, split)).sum();
-            BigDecimal totalPrice = TokenCalculator.getTextPrice(totalTokens, ModelType.TEXT_EMBEDDING_ADA_002);
+            BigDecimal totalPrice = TokenCalculator.getTextPrice(totalTokens, ModelTypeEnum.TEXT_EMBEDDING_ADA_002);
             return SplitForecastResponse.builder().totalTokens(totalTokens).splitList(splitText).totalSegment(splitText.size()).totalPrice(totalPrice).build();
         } catch (IOException | TikaException e) {
             log.error("split forecast error:", e);
