@@ -296,13 +296,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         } else {
 
-            //@todo 中间会有 function执行到逻辑, 调用方法 和 参数都要修改
-            if ((chatConfig.getWebSearchConfig() != null && BooleanUtil.isTrue(chatConfig.getWebSearchConfig().getEnabled()))
-                    || (CollectionUtil.isNotEmpty(chatConfig.getApiSkills())
-                    || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills())
-                    || CollectionUtil.isNotEmpty(chatConfig.getHandlerSkills())
-            )) {
-
+            if (this.isTool(chatConfig)) {
                 ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 
                 AgentExecutor agentExecutor = buildLLmTools(request, chatConfig, chatPromptTemplate, emitter);
@@ -335,8 +329,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     }
 
 
-    private void executeQwen() {
-
+    private Boolean isTool(ChatConfigEntity chatConfig) {
+        return CollectionUtil.isNotEmpty(chatConfig.getApiSkills()) || CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills()) || CollectionUtil.isNotEmpty(chatConfig.getHandlerSkills());
     }
 
 
