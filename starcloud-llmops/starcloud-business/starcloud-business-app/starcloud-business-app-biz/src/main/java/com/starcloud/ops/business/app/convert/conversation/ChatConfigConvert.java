@@ -76,7 +76,7 @@ public interface ChatConfigConvert {
                 respVO.setSystemHandlerSkillDTO(JSONUtil.toBean(chatExpandConfig.getConfig(), SystemHandlerSkillDTO.class));
                 break;
             default:
-                throw exception(CHAT_CONFIG_TYPE_ERROR,configType.getDescription());
+                throw exception(CHAT_CONFIG_TYPE_ERROR, configType.getDescription());
         }
         return respVO;
     }
@@ -110,7 +110,7 @@ public interface ChatConfigConvert {
                 chatExpandConfigDO.setConfig(JSONUtil.toJsonStr(reqVO.getSystemHandlerSkillDTO()));
                 break;
             default:
-                throw exception(CHAT_CONFIG_TYPE_ERROR,menu.getDescription());
+                throw exception(CHAT_CONFIG_TYPE_ERROR, menu.getDescription());
         }
 
         chatExpandConfigDO.setAppConfigId(reqVO.getAppConfigId());
@@ -130,7 +130,7 @@ public interface ChatConfigConvert {
         baseExpandConfigDTO.valid();
     }
 
-
+    @Mapping(source = "copyWriting", target = "tips")
     HandlerSkill convert(SystemHandlerSkillDTO systemHandlerSkillDTO);
 
     AppWorkflowSkill convert(AppWorkflowSkillDTO appWorkflowSkillDTO);
