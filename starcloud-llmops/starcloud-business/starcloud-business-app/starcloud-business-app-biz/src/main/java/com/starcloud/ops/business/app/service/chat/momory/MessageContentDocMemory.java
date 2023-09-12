@@ -120,7 +120,6 @@ public class MessageContentDocMemory {
             if (this.getStorage()) {
                 this.storageHistory(doc);
             }
-
             // 增加到当前历史中，上面异常也可以增加到历史，因为方法传入的就表示有返回值了，可以做为上下文了
             this.getHistory().addDoc(doc);
         });
@@ -132,7 +131,7 @@ public class MessageContentDocMemory {
      * 查询加载历史
      * 1，主要查询出之前对话中 文档的总结信息（因为总结是异步的）
      */
-    public MessageContentDocHistory reloadHistory() {
+    protected MessageContentDocHistory reloadHistory() {
 
         String appUid = this.messageMemory.getChatAppEntity().getUid();
         String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();

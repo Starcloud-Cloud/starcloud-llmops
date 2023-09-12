@@ -198,11 +198,13 @@ public class ContextPrompt extends BasePromptConfig {
             List<MessageContentDocDTO> searchResult = this.parseContent(this.searchResult);
             sortResult.addAll(searchResult);
 
-            //上下文内容结果
-            MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
-            //@todo 因为现在 message 和 上下文中都有内容，所以为了精简，如果已经总结了就放到 上下文中，不然就继续依赖message历史让LLM做提示
+            //直接查询当前上下文内容
+            MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().getHistory();
+
             List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
-                return docDTO.getSummary().equals("1");
+                //@todo 因为现在 message 和 上下文中都有内容，所以为了精简，如果已经总结了就放到 上下文中，不然就继续依赖message历史让LLM做提示
+                //id 为空说明 上游异常没保存下来，当时这里还是需要作文上下文处理的
+                return docDTO.getId() == null || docDTO.getSummary().equals("1");
             }).collect(Collectors.toList());
             sortResult.addAll(summaryDocs);
 

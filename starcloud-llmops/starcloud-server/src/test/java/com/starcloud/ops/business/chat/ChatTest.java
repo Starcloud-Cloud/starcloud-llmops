@@ -358,8 +358,8 @@ public class ChatTest extends BaseDbUnitTest {
 
         ChatRequestVO chatRequest = new ChatRequestVO();
 
+        chatRequest.setWebSearch(true);
 
-        chatRequest.setModelType(ModelTypeEnum.QWEN.name());
 
         //带数据集的
         //带数据集的
@@ -372,7 +372,7 @@ public class ChatTest extends BaseDbUnitTest {
 
         //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
-        chatRequest.setQuery("1+1=？");
+        chatRequest.setQuery("今天杭州的新闻");
 
         chatService.chat(chatRequest);
 

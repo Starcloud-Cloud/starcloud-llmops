@@ -170,7 +170,7 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
                 //执行的 messageId拿不到
                 Map params = new HashMap();
                 params.put("tool", this.getName());
-                params.put("messageId", "messageId");
+                params.put("messageId", context.getMessageUid());
 
                 d.setExt(params);
 
