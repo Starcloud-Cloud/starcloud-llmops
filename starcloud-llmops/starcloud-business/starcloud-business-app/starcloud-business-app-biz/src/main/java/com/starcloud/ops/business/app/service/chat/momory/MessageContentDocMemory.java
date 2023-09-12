@@ -283,7 +283,7 @@ public class MessageContentDocMemory {
 
             // 上传文档到异常不处理，如果失败就不增加到上下文。只靠messageHistory 老逻辑的历史记录 去实现上下文
 
-            log.error("MessageContentDocMemory addHistory is error: {}", e.getMessage(), e);
+            log.error("MessageContentDocMemory storageHistory is error: {}", e.getMessage(), e);
         }
 
     }
