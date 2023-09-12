@@ -78,7 +78,7 @@ public interface DatasetsService {
      * @param uid 数据集编号
      * @return 数据集
      */
-    DatasetsDO getDatasets(String uid);
+    DatasetsDO getDataByUid(String uid);
 
     /**
      * 根据主键 ID 获取数据
@@ -103,6 +103,14 @@ public interface DatasetsService {
      * @return 数据集
      */
     DatasetsDO getDatasetInfoByAppId(String appId);
+
+    /**
+     * 根据应用ID 获取应用下所有的获取数据集详情 包括应用会话下的数据集
+     *
+     * @param appId 应用 ID
+     * @return 数据集
+     */
+    DatasetsDO getAllDatasetInfoByAppId(String appId);
 
 
     /**

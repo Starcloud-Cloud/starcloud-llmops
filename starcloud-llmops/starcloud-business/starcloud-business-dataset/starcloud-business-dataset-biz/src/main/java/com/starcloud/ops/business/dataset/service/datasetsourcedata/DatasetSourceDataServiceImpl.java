@@ -122,7 +122,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             createDataset(reqVO.getAppId(), reqVO.getSessionId(), baseDBHandleDTO);
         }
         // 根据应用或者会话设置用户信息
-        setBaseDbHandleInfo(reqVO.getAppId(), reqVO.getSessionId(), baseDBHandleDTO);
+        baseDBHandleDTO = setBaseDbHandleInfo(reqVO.getAppId(), reqVO.getSessionId(), baseDBHandleDTO);
 
         SourceDataUploadDTO sourceDataUrlUploadDTO = new SourceDataUploadDTO();
         sourceDataUrlUploadDTO.setAppId(reqVO.getAppId());
@@ -192,7 +192,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         }
 
         // 根据应用或者会话设置用户信息
-        BaseDBHandleDTO baseDbHandleInfo = setBaseDbHandleInfo(reqVO.getAppId(), reqVO.getSessionId(), baseDBHandleDTO);
+        baseDBHandleDTO = setBaseDbHandleInfo(reqVO.getAppId(), reqVO.getSessionId(), baseDBHandleDTO);
 
         List<SourceDataUploadDTO> resultDTOs = new ArrayList<>();
         for (String url : reqVO.getUrls()) {
@@ -219,7 +219,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             singleReqVO.setCleanSync(reqVO.getCleanSync());
             singleReqVO.setSplitSync(reqVO.getSplitSync());
             singleReqVO.setIndexSync(reqVO.getIndexSync());
-            ListenableFuture<UploadResult> executed = this.executeAsyncWithUrl(singleReqVO, baseDbHandleInfo);
+            ListenableFuture<UploadResult> executed = this.executeAsyncWithUrl(singleReqVO, baseDBHandleDTO);
 
             try {
                 UploadResult result = executed.get();
@@ -270,7 +270,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         }
 
         // 根据应用或者会话设置用户信息
-        BaseDBHandleDTO baseDbHandleInfo = setBaseDbHandleInfo(reqVOS.getAppId(), reqVOS.getSessionId(), baseDBHandleDTO);
+        baseDBHandleDTO = setBaseDbHandleInfo(reqVOS.getAppId(), reqVOS.getSessionId(), baseDBHandleDTO);
 
         List<SourceDataUploadDTO> resultDTOs = new ArrayList<>();
 
@@ -292,7 +292,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             singleReqVO.setIndexSync(reqVOS.getIndexSync());
 
             singleReqVO.setCharacterVOS(Collections.singletonList(reqVO));
-            ListenableFuture<UploadResult> executed = this.executeAsyncWithCharacters(singleReqVO, baseDbHandleInfo);
+            ListenableFuture<UploadResult> executed = this.executeAsyncWithCharacters(singleReqVO, baseDBHandleDTO);
 
             try {
                 UploadResult result = executed.get();
@@ -944,7 +944,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         if (StrUtil.isBlank(sessionId)) {
             datasetsDO = datasetsService.getDatasetInfoByAppId(appId);
         } else {
-
             datasetsDO = datasetsService.getDatasetInfoBySession(appId, sessionId);
         }
         if (baseDBHandleDTO == null) {

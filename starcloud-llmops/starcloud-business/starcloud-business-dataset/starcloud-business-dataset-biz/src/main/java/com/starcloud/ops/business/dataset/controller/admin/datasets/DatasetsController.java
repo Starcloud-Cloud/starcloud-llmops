@@ -71,7 +71,7 @@ public class DatasetsController {
     @Parameter(name = "id", description = "编号", required = true)
     //@PreAuthorize("@ss.hasPermission('starcloud-llmops:datasets:query')")
     public CommonResult<DatasetsRespVO> getDatasets(@PathVariable("uid")  String uid) {
-        DatasetsDO datasets = datasetsService.getDatasets(uid);
+        DatasetsDO datasets = datasetsService.getDataByUid(uid);
         return success(DatasetsConvert.convert(datasets));
     }
 

@@ -109,7 +109,7 @@ public class DatasetsServiceImpl implements DatasetsService {
 
 
     @Override
-    public DatasetsDO getDatasets(String uid) {
+    public DatasetsDO getDataByUid(String uid) {
         LambdaQueryWrapper<DatasetsDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(DatasetsDO::getUid, uid);
         DatasetsDO datasetsDO;
@@ -117,7 +117,7 @@ public class DatasetsServiceImpl implements DatasetsService {
         datasetsDO = datasetsMapper.selectOne(wrapper);
 
         if (datasetsDO == null) {
-            throw exception(DATASETS_ERROR_REPEAT, uid);
+            throw exception(DATASETS_NOT_EXIST_ERROR, uid);
         }
         return datasetsDO;
     }
@@ -170,6 +170,26 @@ public class DatasetsServiceImpl implements DatasetsService {
         List<DatasetsDO> datasetsDOS = datasetsMapper.selectList(Wrappers.lambdaQuery(DatasetsDO.class)
                 .eq(DatasetsDO::getAppId, appId)
                 .isNull(DatasetsDO::getSessionId));
+
+        if (CollUtil.isEmpty(datasetsDOS)) {
+            throw exception(DATASETS_APPID_NOT_EXISTS);
+        }
+        if (datasetsDOS.size() > 1) {
+            throw exception(DATASETS_APPID_REPEAT_BIND);
+        }
+        return datasetsDOS.get(0);
+    }
+    /**
+     * 根据应用ID 获取应用下所有的获取数据集详情 包括应用会话下的数据集
+     *
+     * @param appId 应用 ID
+     * @return 数据集
+     */
+    @Override
+    public DatasetsDO getAllDatasetInfoByAppId(String appId) {
+
+        List<DatasetsDO> datasetsDOS = datasetsMapper.selectList(Wrappers.lambdaQuery(DatasetsDO.class)
+                .eq(DatasetsDO::getAppId, appId));
 
         if (CollUtil.isEmpty(datasetsDOS)) {
             throw exception(DATASETS_APPID_NOT_EXISTS);
