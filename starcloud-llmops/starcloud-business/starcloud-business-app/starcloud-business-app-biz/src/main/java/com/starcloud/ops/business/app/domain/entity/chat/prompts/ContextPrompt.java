@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
+import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
@@ -152,7 +153,7 @@ public class ContextPrompt extends BasePromptConfig {
     }
 
     private Boolean canSearchWeb() {
-        return this.chatConfig.getWebSearchConfig() != null && this.chatConfig.getWebSearchConfig().getEnabled();
+        return Optional.ofNullable(this.chatConfig.getWebSearchConfig()).map(WebSearchConfigEntity::getEnabled).orElse(false);
     }
 
 
