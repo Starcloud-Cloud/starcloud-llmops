@@ -78,19 +78,6 @@ public class ChatConfigEntity extends BaseConfigEntity {
                     return appWorkflowSkill;
                 }).collect(Collectors.toList());
 
-
-        //模型选择处理下
-
-        String setProvider = this.getModelConfig().getProvider();
-
-        if (ModelProviderEnum.GPT35.name().equals(setProvider)) {
-            this.getModelConfig().getCompletionParams().setModel(ModelTypeEnum.GPT_3_5_TURBO.getName());
-        }
-
-        if (ModelProviderEnum.GPT4.name().equals(setProvider)) {
-            this.getModelConfig().getCompletionParams().setModel(ModelTypeEnum.GPT_4.getName());
-        }
-
     }
 
 

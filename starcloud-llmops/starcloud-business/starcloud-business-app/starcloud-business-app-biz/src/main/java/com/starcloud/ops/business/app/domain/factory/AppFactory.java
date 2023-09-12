@@ -120,13 +120,9 @@ public class AppFactory {
         if (AppSceneEnum.CHAT_MARKET.name().equalsIgnoreCase(chatRequest.getScene())) {
             AppMarketEntity appMarketEntity = AppFactory.factoryMarket(chatRequest.getAppUid());
             appEntity = AppMarketConvert.INSTANCE.convert2(appMarketEntity);
-            updateChatAppConfig(chatRequest, appEntity);
-
         } else if (AppSceneEnum.CHAT_TEST.name().equalsIgnoreCase(chatRequest.getScene())) {
             String appId = chatRequest.getAppUid();
             appEntity = factoryChatApp(chatRequest.getAppUid());
-            updateChatAppConfig(chatRequest, appEntity);
-
         } else if (StringUtils.isNotBlank(chatRequest.getMediumUid())) {
             String mediumId = chatRequest.getMediumUid();
             appEntity = factory(chatRequest.getMediumUid());
@@ -138,58 +134,6 @@ public class AppFactory {
 
         return appEntity;
     }
-
-    /**
-     * 设置前端传入的参数, 判断是否有权限
-     * 1, 登录的
-     * 2，游客, 无法修改使用应用的原有配置
-     * <p>
-     * 1，查看当前应用配置，参数不能降级
-     * 2，判断是否有升级后的权限
-     */
-    private static void updateChatAppConfig(ChatRequestVO chatRequest, ChatAppEntity appEntity) {
-
-        //用户已登录，判断是否有升级的权限
-        if (chatRequest.getUserId() != null) {
-
-            PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
-
-            if (StrUtil.isNotBlank(chatRequest.getModelType())) {
-                ModelProviderEnum providerEnum = IEnumable.nameOf(chatRequest.getModelType(), ModelProviderEnum.class);
-                if (providerEnum == null) {
-                    //不合法参数
-                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
-                }
-
-                //无配置不处理
-                if (StrUtil.isNotBlank(providerEnum.getPermissions())) {
-
-                    if (!permissionApi.hasAnyPermissions(chatRequest.getUserId(), providerEnum.getPermissions())) {
-
-                        //没权限抛异常
-                        throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
-                    }
-                }
-
-                Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).ifPresent(modelConfig -> modelConfig.setProvider(chatRequest.getModelType()));
-            }
-
-
-            if (chatRequest.getWebSearch() != null) {
-                //设置开启，但是没权限
-                if (chatRequest.getWebSearch() && !permissionApi.hasAnyPermissions(chatRequest.getUserId(), "chat:config:websearch")) {
-
-                    //没权限抛异常
-                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_WEB_SEARCH_ERROR);
-                }
-
-                //设置开启 或 关闭了
-                Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getWebSearchConfig).ifPresent(webSearchConfig -> webSearchConfig.setEnabled(chatRequest.getWebSearch()));
-            }
-        }
-
-    }
-
 
     public static ChatAppEntity factroyMarket(String appUid) {
         AppMarketEntity appMarketEntity = AppFactory.factoryMarket(appUid);

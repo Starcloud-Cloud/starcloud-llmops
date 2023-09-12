@@ -3,8 +3,11 @@ package com.starcloud.ops.business.app.domain.entity;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import com.alibaba.dashscope.aigc.generation.GenerationResult;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,6 +36,7 @@ import com.starcloud.ops.business.app.domain.handler.datasearch.SearchEngineHand
 import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
 import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
+import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
@@ -45,6 +49,7 @@ import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsServic
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
@@ -221,6 +226,67 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      */
     @Override
     protected void beforeExecute(ChatRequestVO chatRequestVO) {
+
+        this.updateChatAppConfig(chatRequestVO, this);
+    }
+
+    /**
+     * 设置前端传入的参数, 判断是否有权限
+     * 1, 登录的
+     * 2，游客, 无法修改使用应用的原有配置
+     * <p>
+     * 1，查看当前应用配置，参数不能降级
+     * 2，判断是否有升级后的权限
+     */
+    private void updateChatAppConfig(ChatRequestVO chatRequest, ChatAppEntity appEntity) {
+
+        //用户已登录，判断是否有升级的权限
+        if (chatRequest.getUserId() != null) {
+
+            PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
+
+            if (StrUtil.isNotBlank(chatRequest.getModelType())) {
+                ModelProviderEnum providerEnum = IEnumable.nameOf(chatRequest.getModelType(), ModelProviderEnum.class);
+                if (providerEnum == null) {
+                    //不合法参数
+                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
+                }
+
+                //无配置不处理
+                if (StrUtil.isNotBlank(providerEnum.getPermissions())) {
+
+                    if (!permissionApi.hasAnyPermissions(chatRequest.getUserId(), providerEnum.getPermissions())) {
+
+                        //没权限抛异常
+                        throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
+                    }
+                }
+
+                Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).ifPresent(modelConfig -> modelConfig.setProvider(chatRequest.getModelType()));
+
+                //模型选择处理下
+                if (ModelProviderEnum.GPT35.name().equals(chatRequest.getModelType())) {
+                    Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).map(ModelConfigEntity::getCompletionParams).ifPresent(params -> params.setModel(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+                }
+
+                if (ModelProviderEnum.GPT4.name().equals(chatRequest.getModelType())) {
+                    Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).map(ModelConfigEntity::getCompletionParams).ifPresent(params -> params.setModel(ModelTypeEnum.GPT_4.getName()));
+                }
+            }
+
+
+            if (chatRequest.getWebSearch() != null) {
+                //设置开启，但是没权限
+                if (chatRequest.getWebSearch() && !permissionApi.hasAnyPermissions(chatRequest.getUserId(), "chat:config:websearch")) {
+
+                    //没权限抛异常
+                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_WEB_SEARCH_ERROR);
+                }
+
+                //设置开启 或 关闭了
+                Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getWebSearchConfig).ifPresent(webSearchConfig -> webSearchConfig.setEnabled(chatRequest.getWebSearch()));
+            }
+        }
 
     }
 
