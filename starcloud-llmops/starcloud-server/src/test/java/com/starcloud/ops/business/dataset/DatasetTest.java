@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
+import java.io.IOException;
 import java.util.Collections;
 
 @Slf4j
@@ -65,7 +66,12 @@ public class DatasetTest extends BaseDbUnitTest {
 
         // 有语言识别问题
         String url = "https://sell.amazon.com/learn/inventory-management";
-        Document doc = JsoupUtil.loadUrl(url, null);
+        Document doc = null;
+        try {
+            doc = JsoupUtil.loadUrl(url, null);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         if (doc != null) {
             //

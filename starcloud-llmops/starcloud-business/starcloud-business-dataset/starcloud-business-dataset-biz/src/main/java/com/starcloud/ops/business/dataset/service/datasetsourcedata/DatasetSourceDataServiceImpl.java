@@ -115,7 +115,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public SourceDataUploadDTO uploadFilesSourceData(UploadFileReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
-
         if (!validateDataset(reqVO.getAppId(), reqVO.getSessionId())) {
 
             // 不存在则创建数据集
@@ -679,7 +678,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      */
     @Override
     public List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
-
+        long startTime = System.currentTimeMillis();
+        log.info("开始上传文件，开始时间为{}", startTime);
         if (baseDBHandleDTO == null) {
             throw exception(DATASETS_CONVERSATION_USER_SESSION_NOT_EXISTS);
         }
@@ -689,7 +689,11 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         if (StrUtil.isBlank(reqVO.getBatch())) {
             reqVO.setBatch(IdUtil.fastUUID());
         }
-        return this.uploadUrlsSourceData(reqVO, baseDBHandleDTO);
+
+        List<SourceDataUploadDTO> sourceDataUploadDTOS = this.uploadUrlsSourceData(reqVO, baseDBHandleDTO);
+        long endTime = System.currentTimeMillis();
+        log.info("上传结束，结束时间为{}，总耗时{}", startTime, (endTime - startTime) / 1000);
+        return sourceDataUploadDTOS;
     }
 
     /**
@@ -951,9 +955,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         }
         if (baseDBHandleDTO.getCreator() == null) {
             baseDBHandleDTO.setCreator(Long.valueOf(datasetsDO.getCreator()));
+        }
+        if (baseDBHandleDTO.getUpdater() == null || baseDBHandleDTO.getTenantId() == null) {
             baseDBHandleDTO.setUpdater(Long.valueOf(datasetsDO.getUpdater()));
             baseDBHandleDTO.setTenantId(datasetsDO.getTenantId());
         }
+
         return baseDBHandleDTO;
     }
 
