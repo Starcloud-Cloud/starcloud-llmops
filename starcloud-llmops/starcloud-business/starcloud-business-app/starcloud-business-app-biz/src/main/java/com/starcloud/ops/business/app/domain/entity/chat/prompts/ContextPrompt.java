@@ -7,8 +7,10 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
@@ -17,6 +19,7 @@ import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocHisto
 import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocMemory;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.app.util.PromptUtil;
+import com.starcloud.ops.business.app.util.SseResultUtil;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
@@ -134,7 +137,8 @@ public class ContextPrompt extends BasePromptConfig {
             this.searchResult = this.searchDataset(this.query);
         }
 
-        if (this.canSearchWeb()) {
+        //文档查询不为空 就不联网查询了
+        if (this.searchResult == null && this.canSearchWeb()) {
             this.googleSearchStatus = this.googleSearch(this.query);
         }
 
@@ -153,6 +157,21 @@ public class ContextPrompt extends BasePromptConfig {
 
     private Boolean canSearchWeb() {
         return this.chatConfig.getWebSearchConfig() != null && this.chatConfig.getWebSearchConfig().getEnabled();
+    }
+
+
+    /**
+     * 直接把查询到到数据集文档发送到前端
+     *
+     * @param request
+     */
+    public void sendInteractive(ChatRequestVO request) {
+
+        if (this.isEnable()) {
+            //只发送 数据集查询到的内容
+            InteractiveInfo interactiveInfo = InteractiveInfo.buildDocs(this.getSearchResult());
+            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
+        }
     }
 
 
@@ -238,8 +257,13 @@ public class ContextPrompt extends BasePromptConfig {
             request.setQuery(query);
             this.handlerContext.setRequest(request);
 
+            //@todo 增加message日志
+
             //已经发送sse 和 保存上下文了
             HandlerResponse handlerResponse = handlerSkill.execute(this.handlerContext);
+
+
+            //@todo 增加message日志
 
             log.info("ContextPrompt googleSearch status: {}, {}: {}", handlerResponse.getSuccess(), query, JsonUtils.toJsonString(handlerResponse.getOutput()));
 

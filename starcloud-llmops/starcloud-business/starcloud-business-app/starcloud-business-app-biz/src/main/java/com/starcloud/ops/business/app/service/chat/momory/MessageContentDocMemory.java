@@ -129,7 +129,7 @@ public class MessageContentDocMemory {
 
     /**
      * 查询加载历史
-     * 1，主要查询出之前对话中 文档的总结信息（因为总结是异步的）
+     * 1，主要查询出之前对话过程中存储的 上下文文档的总结信息（因为总结是异步的）
      */
     protected MessageContentDocHistory reloadHistory() {
 

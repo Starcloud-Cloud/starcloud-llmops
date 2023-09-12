@@ -339,12 +339,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
 
-        //直接把查询到到文档发送到前端
-        if (contextPrompt.isEnable()) {
-            //生成文档列表结果
-            InteractiveInfo interactiveInfo = InteractiveInfo.buildDocs(contextPrompt.getSearchResult());
-            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
-        }
+        contextPrompt.sendInteractive(request);
 
         //千问调用
         if (ModelProviderEnum.QWEN.name().equals(this.getChatConfig().getModelConfig().getProvider())) {
