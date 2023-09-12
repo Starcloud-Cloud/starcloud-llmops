@@ -45,7 +45,7 @@ public class ChatController {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
 
-        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "chat");
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "chat");
         request.setSseEmitter(emitter);
 
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
