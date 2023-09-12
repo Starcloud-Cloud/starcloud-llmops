@@ -271,9 +271,6 @@ public class MessageContentDocMemory {
                 if (StrUtil.isNotBlank(detailsInfoVO.getSummary())) {
                     // 更新下最新的内容
                     doc.setSummary(detailsInfoVO.getSummary());
-                } else {
-                    // summary = StrUtil.subPre(summary, 200);
-                    doc.setContent(detailsInfoVO.getContent());
                 }
             } else {
                 log.error("storageHistory is fail, getSourceDataListData is null. sourceDataId: {}", sourceDataId);
