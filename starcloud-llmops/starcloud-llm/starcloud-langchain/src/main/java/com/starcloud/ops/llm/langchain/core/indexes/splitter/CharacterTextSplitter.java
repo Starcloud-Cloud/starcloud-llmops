@@ -36,7 +36,7 @@ public class CharacterTextSplitter extends BasicTextSplitter {
                     startIndex = endIndex + separator.length();
                 } else {
                     // 如果没有找到分割符，则直接截取指定长度的子串
-                    result.add(text.substring(startIndex, startIndex + chunkSize) + separator);
+                    result.add(text.substring(startIndex, startIndex + chunkSize));
                     startIndex += chunkSize;
                 }
             } else {
