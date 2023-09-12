@@ -14,11 +14,6 @@ public class RecordDTO {
     private Double score;
 
     /**
-     * 数据库id
-     */
-    private String id;
-
-    /**
      * 数据集id
      */
     private String datasetId;
@@ -27,6 +22,11 @@ public class RecordDTO {
      * 文档Id
      */
     private String documentId;
+
+    /**
+     * 分段id
+     */
+    private String segmentId;
 
     /**
      * 分段序号
@@ -59,21 +59,13 @@ public class RecordDTO {
     private String content;
 
     /**
-     * 启用/禁用
-     */
-    private Boolean disabled;
-
-    /**
      * 租户id
      */
     private Long tenantId;
 
     private LocalDateTime createTime;
 
-    private LocalDateTime updateTime;
-
     private String creator;
 
-    private String updater;
 
 }
