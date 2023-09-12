@@ -233,18 +233,18 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             boolean await = countDownLatch.await(100, TimeUnit.SECONDS);
             int successNum = atomicInteger.get();
             if (!await) {
-                log.info("count down finish, success number {}, total ={}", successNum,segmentDOS.size());
-                throw exception(new ErrorCode(501,"部分索引失败，请重试"));
+                log.info("count down finish, success number {}, total ={}", successNum, segmentDOS.size());
+                throw exception(new ErrorCode(501, "部分索引失败，请重试"));
             }
             if (successNum < segmentDOS.size()) {
-                log.info("count down finish, success number {}, total ={}", successNum,segmentDOS.size());
-                throw exception(new ErrorCode(501,"部分索引失败，请重试"));
+                log.info("count down finish, success number {}, total ={}", successNum, segmentDOS.size());
+                throw exception(new ErrorCode(501, "部分索引失败，请重试"));
             }
             long end = System.currentTimeMillis();
             log.info("index success， success number {}, total ={} ,rt：{} ms", successNum, segmentDOS.size(), end - start);
         } catch (InterruptedException e) {
             log.info("index error，docId = {}", documentId, e);
-            throw exception(new ErrorCode(501,"index InterruptedException"));
+            throw exception(new ErrorCode(501, "index InterruptedException"));
         }
 
     }
@@ -333,18 +333,19 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             DatasetsDO datasetsDO = datasetsService.getDatasetInfoByAppId(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
             datasetIds = Collections.singletonList(datasetsDO.getId().toString());
         } catch (Exception e) {
-            log.error("matchQuery.getDatasets is fail: {}, {}", e.getMessage(),request.getDatasetUid(), e);
+            log.error("matchQuery.getDatasets is fail: {}, {}", e.getMessage(), request.getDatasetUid());
             return null;
+
         }
 
         EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
                 .datasetIds(datasetIds).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
-        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList,request)).queryText(request.getText()).build();
+        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).queryText(request.getText()).build();
     }
 
-    private  List<RecordDTO> buildRecord(List<KnnQueryHit> knnQueryHitList, BaseQueryRequest request) {
+    private List<RecordDTO> buildRecord(List<KnnQueryHit> knnQueryHitList, BaseQueryRequest request) {
         return knnQueryHitList.stream().filter(knnQueryHit -> {
             if (request.getMinScore() != null) {
                 return knnQueryHit.getScore().compareTo(request.getMinScore()) > 0;
@@ -365,7 +366,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().documentIds(request.getDocId().stream().map(String::valueOf).collect(Collectors.toList())).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
-        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList,request)).queryText(request.getText()).build();
+        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).queryText(request.getText()).build();
     }
 
     @Override

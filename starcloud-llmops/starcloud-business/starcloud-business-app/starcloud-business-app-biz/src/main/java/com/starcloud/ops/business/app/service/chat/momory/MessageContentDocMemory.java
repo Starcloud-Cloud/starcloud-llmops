@@ -75,10 +75,15 @@ public class MessageContentDocMemory {
             MessageContentDocDTO contentDocDTO = new MessageContentDocDTO();
 
             // 初始化为了减少内容，主要总结的，如果总结没有取描述
-            String summary = StrUtil.isNotBlank(dataBasicInfoVO.getSummary()) ? dataBasicInfoVO.getSummary() : dataBasicInfoVO.getDescription();
             contentDocDTO.setId(dataBasicInfoVO.getId());
-            contentDocDTO.setSummary(summary);
             contentDocDTO.setTitle(dataBasicInfoVO.getName());
+
+            if (StrUtil.isNotBlank(dataBasicInfoVO.getSummary())) {
+                contentDocDTO.setSummary(dataBasicInfoVO.getSummary());
+            }
+            if (StrUtil.isNotBlank(dataBasicInfoVO.getDescription())) {
+                contentDocDTO.setContent(dataBasicInfoVO.getDescription());
+            }
 
             if (DataSourceDataTypeEnum.HTML.name().equals(dataBasicInfoVO.getDataType())) {
 
