@@ -4,7 +4,6 @@ package com.starcloud.ops.business.app.domain.entity.chat.prompts;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -21,11 +20,8 @@ import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocD
 import com.starcloud.ops.business.app.util.PromptUtil;
 import com.starcloud.ops.business.app.util.SseResultUtil;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
-import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
-import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
-import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchByDataSetIdRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
@@ -291,7 +287,7 @@ public class ContextPrompt extends BasePromptConfig {
                     .stream().filter(DatesetEntity::getEnabled).map(DatesetEntity::getDatasetUid).collect(Collectors.toList());
 
             //@todo 需要 block 对象
-            MatchQueryRequest matchQueryRequest = new MatchQueryRequest();
+            MatchByDataSetIdRequest matchQueryRequest = new MatchByDataSetIdRequest();
             matchQueryRequest.setText(query);
             matchQueryRequest.setK(3L);
             matchQueryRequest.setDatasetUid(datasetUid);

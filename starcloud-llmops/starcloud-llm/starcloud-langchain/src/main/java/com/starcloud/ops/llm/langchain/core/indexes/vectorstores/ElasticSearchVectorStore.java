@@ -1,5 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.indexes.vectorstores;
 
+import cn.hutool.core.collection.CollectionUtil;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.KnnQuery;
@@ -52,11 +53,25 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
 
     @Override
     public List<KnnQueryHit> knnSearch(List<Float> queryVector, KnnQueryDTO queryDTO) {
-        List<FieldValue> fieldValueList = queryDTO.getSegmentIds().stream().map(FieldValue::of).collect(Collectors.toList());
-        TermsQuery termsQuery = TermsQuery.of(t -> t.field("segmentId").terms(v -> v.value(fieldValueList)));
-        MatchQuery matchQuery = MatchQuery.of(m -> m.field("status").query(true));
-        BoolQuery boolQuery = BoolQuery.of(b -> b.must(m -> m.match(matchQuery)).filter(f -> f.terms(termsQuery)));
-        Query query = Query.of(q -> q.bool(boolQuery));;
+        queryDTO.checkDefaultValue();
+        TermQuery status = TermQuery.of(t -> t.field("status").value(true));
+
+        TermsQuery termsQuery;
+        if (CollectionUtil.isNotEmpty(queryDTO.getDatasetIds())) {
+            List<FieldValue> datasetIds = queryDTO.getDatasetIds().stream().map(FieldValue::of).collect(Collectors.toList());
+            termsQuery = TermsQuery.of(t -> t.field("datasetId").terms(f -> f.value(datasetIds)));
+        } else if (CollectionUtil.isNotEmpty(queryDTO.getDocumentIds())) {
+            List<FieldValue> documentIds = queryDTO.getDocumentIds().stream().map(FieldValue::of).collect(Collectors.toList());
+            termsQuery = TermsQuery.of(t -> t.field("documentId").terms(f -> f.value(documentIds)));
+        } else if (CollectionUtil.isNotEmpty(queryDTO.getSegmentIds())) {
+            List<FieldValue> segmentIds = queryDTO.getSegmentIds().stream().map(FieldValue::of).collect(Collectors.toList());
+            termsQuery = TermsQuery.of(t -> t.field("segmentId").terms(f -> f.value(segmentIds)));
+        } else {
+            throw new IllegalArgumentException("数据集id、文档id、分段id不能同时为空");
+        }
+        BoolQuery boolQuery = BoolQuery.of(b -> b.must(new Query(status)).must(new Query(termsQuery)));
+        Query query = Query.of(q -> q.bool(boolQuery));
+
         KnnQuery knnQuery = new KnnQuery.Builder()
                 .k(queryDTO.getK())
                 .field("vector")
@@ -67,10 +82,9 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
         SearchRequest vector = new SearchRequest.Builder().knn(knnQuery).index(INDEX_NAME).build();
         try {
             SearchResponse<DocumentSegmentDTO> search = esClient.search(vector, DocumentSegmentDTO.class);
-            List<KnnQueryHit> knnQueryHitList = search.hits().hits().stream().map(hit -> {
+            return search.hits().hits().stream().map(hit -> {
                 return KnnQueryHit.builder().score(hit.score()).document(hit.source()).build();
             }).collect(Collectors.toList());
-            return knnQueryHitList;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

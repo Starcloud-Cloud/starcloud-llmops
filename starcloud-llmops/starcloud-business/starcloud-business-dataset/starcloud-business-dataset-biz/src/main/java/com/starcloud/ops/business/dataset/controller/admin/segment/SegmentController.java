@@ -6,7 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
-import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchByDataSetIdRequest;
 import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
@@ -54,7 +54,7 @@ public class SegmentController {
 
     @PostMapping("/match/text")
     @Operation(summary = "文档分段命中测试", description = "文档分段命中测试")
-    public CommonResult matchTest(@RequestBody @Valid MatchQueryRequest request) {
+    public CommonResult matchTest(@RequestBody @Valid MatchByDataSetIdRequest request) {
         return CommonResult.success(documentSegmentsService.matchQuery(request));
     }
 

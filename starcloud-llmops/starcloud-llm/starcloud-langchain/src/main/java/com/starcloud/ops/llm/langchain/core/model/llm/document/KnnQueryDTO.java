@@ -10,10 +10,24 @@ import java.util.List;
 @Builder
 public class KnnQueryDTO {
 
+
+    private List<String> datasetIds;
+
+    private List<String> documentIds;
+
     private List<String> segmentIds;
 
-    private Long k = 2L;
 
-    private Long numCandidates = 5L;
+    private Long k;
 
+    private Long numCandidates;
+
+    public void checkDefaultValue() {
+        if (k == null || k <= 0L) {
+            k = 2L;
+        }
+        if (numCandidates == null || numCandidates <= 0L) {
+            numCandidates = 5L;
+        }
+    }
 }

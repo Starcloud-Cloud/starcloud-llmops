@@ -6,16 +6,13 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveData;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
-import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.app.util.PromptUtil;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.request.MatchByDocIdRequest;
-import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
@@ -145,7 +142,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
             PromptUtil.PromptDocBlock promptDocBlock = new PromptUtil.PromptDocBlock();
             promptDocBlock.setDocId(Long.valueOf(recordDTO.getDocumentId()));
-            promptDocBlock.setBlockId(recordDTO.getId());
+            promptDocBlock.setBlockId(recordDTO.getSegmentId());
             promptDocBlock.setPosition(recordDTO.getPosition());
             promptDocBlock.setContent(recordDTO.getContent());
 
