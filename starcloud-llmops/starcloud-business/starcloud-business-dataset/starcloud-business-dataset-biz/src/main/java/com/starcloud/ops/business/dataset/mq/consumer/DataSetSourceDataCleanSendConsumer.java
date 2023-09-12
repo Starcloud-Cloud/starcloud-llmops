@@ -127,8 +127,10 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             }
 
             if (message.getSplitSync()) {
+                log.info("同步执行数据分块操作，数据为{}",JSONObject.toJSONString(message));
                 dataSplitProducer.sendMessage(message);
             } else {
+                log.info("异步执行数据分块操作，数据为{}",JSONObject.toJSONString(message));
                 // 发送消息
                 dataSplitProducer.asyncSendMessage(message);
 

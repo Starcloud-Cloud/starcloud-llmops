@@ -8,6 +8,7 @@ import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
+import com.starcloud.ops.business.dataset.util.dataset.JsoupUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -61,16 +62,7 @@ public class UrlUploadStrategy implements UploadStrategy {
         // 设置文件名称
         Document doc;
         try {
-
-            String normalize = URLUtil.normalize(url);
-
-            Connection connection = Jsoup.connect(normalize);
-
-            // 设置请求头中的 Accept-Language 属性
-            connection.header("Accept-Language", language);
-
-            doc = connection.get();
-
+             doc = JsoupUtil.loadUrl(url, language);
 
         } catch (Exception e) {
             uploadFileRespDTO.setName(url);

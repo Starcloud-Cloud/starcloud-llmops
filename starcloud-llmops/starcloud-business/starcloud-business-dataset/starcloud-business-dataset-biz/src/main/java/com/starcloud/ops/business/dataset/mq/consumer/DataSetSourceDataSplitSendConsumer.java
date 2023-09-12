@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.dataset.mq.consumer;
 
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetstorage.DatasetStorageDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetstorage.DatasetStorageMapper;
@@ -111,9 +112,11 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
             }
 
             if (message.getIndexSync()) {
+                log.info("同步执行数据索引操作，数据为{}", JSONObject.toJSONString(message));
                 dataIndexProducer.sendMessage(message);
 
             } else {
+                log.info("异步执行数据索引操作，数据为{}",JSONObject.toJSONString(message));
                 dataIndexProducer.asyncSendMessage(message);
             }
         }

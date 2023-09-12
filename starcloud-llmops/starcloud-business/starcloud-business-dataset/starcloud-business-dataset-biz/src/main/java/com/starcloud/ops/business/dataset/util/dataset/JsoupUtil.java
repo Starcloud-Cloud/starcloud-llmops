@@ -8,6 +8,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 
@@ -34,25 +35,22 @@ public class JsoupUtil {
      * @return doc 对象
      */
 
-    public static Document loadUrl(String url, String acceptLanguage) {
+    public static Document loadUrl(String url, String acceptLanguage) throws IOException {
         if (StrUtil.isBlank(acceptLanguage)) {
             acceptLanguage = "zh";
         }
 
-        try {
-            // url转换为标准格式
-            String normalize = URLUtil.normalize(url);
-            // 创建链接
-            Connection connect = Jsoup.connect(normalize);
-            // 代理设置
-            // connect.proxy(proxy)
-            connect.header("Accept-Language", acceptLanguage);
-            return Jsoup.connect(normalize).get();
-        } catch (Exception e) {
-            log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
-        }
+        // url转换为标准格式
+        String normalize = URLUtil.normalize(url);
+        // 创建链接
+        Connection connect = Jsoup.connect(normalize);
+        // 代理设置
+        // connect.proxy(proxy)
 
-        return null;
+        connect.header("Accept-Language", acceptLanguage);
+        // 设置超时时间
+        connect.timeout(5000);
+        return Jsoup.connect(normalize).get();
     }
 
     public static String html2Markdown(String html) {
