@@ -280,7 +280,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 if (chatRequest.getWebSearch() && !permissionApi.hasAnyPermissions(chatRequest.getUserId(), "chat:config:websearch")) {
 
                     //没权限抛异常
-                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_WEB_SEARCH_ERROR);
+                    //throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_WEB_SEARCH_ERROR);
                 }
 
                 //设置开启 或 关闭了
