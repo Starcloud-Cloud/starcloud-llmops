@@ -163,8 +163,7 @@ public class ContextPrompt extends BasePromptConfig {
      */
     public void sendInteractive(ChatRequestVO request) {
 
-        if (this.isEnable()) {
-            //只发送 数据集查询到的内容
+        if (this.getSearchResult() != null && CollectionUtil.isNotEmpty(this.getSearchResult().getRecords())) {
             InteractiveInfo interactiveInfo = InteractiveInfo.buildDocs(this.getSearchResult());
             SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
         }

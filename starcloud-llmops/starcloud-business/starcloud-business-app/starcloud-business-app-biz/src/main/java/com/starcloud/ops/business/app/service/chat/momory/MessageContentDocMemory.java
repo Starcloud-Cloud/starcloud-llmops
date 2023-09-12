@@ -194,7 +194,7 @@ public class MessageContentDocMemory {
                 if (MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name().equals(doc.getType())) {
 
                     // 上游已经保存过
-                    log.info("storageHistory web: {}", JsonUtils.toJsonString(doc));
+                    log.info("MessageContentDocMemory storageHistory web start: {}", JsonUtils.toJsonString(doc));
 
                     UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
                     uploadUrlReqVO.setCleanSync(true);
@@ -214,7 +214,7 @@ public class MessageContentDocMemory {
                     if (sourceDataUploadDTO != null) {
 
                         if (!sourceDataUploadDTO.getStatus()) {
-                            throw new RuntimeException("文档记录保存失败");
+                            throw new RuntimeException("会话文档保存失败: " + JsonUtils.toJsonString(doc));
                         }
 
                         doc.setId(sourceDataUploadDTO.getSourceDataId());
@@ -253,7 +253,7 @@ public class MessageContentDocMemory {
                     if (sourceDataUploadDTO != null) {
 
                         if (!sourceDataUploadDTO.getStatus()) {
-                            throw new RuntimeException("文档记录保存失败");
+                            throw new RuntimeException("会话文档保存失败: " + JsonUtils.toJsonString(doc));
                         }
 
                         doc.setId(sourceDataUploadDTO.getSourceDataId());
