@@ -298,7 +298,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         if (StrUtil.isBlank(reqVO.getSessionId())) {
             return datasetsService.getDatasetInfoByAppId(reqVO.getAppId());
         }
-        return datasetsService.getDatasetInfoByAppId(reqVO.getAppId());
+        return datasetsService.getDatasetInfoBySession(reqVO.getAppId(), reqVO.getSessionId());
     }
 
 
