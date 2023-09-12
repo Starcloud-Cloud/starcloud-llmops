@@ -9,7 +9,7 @@ import java.util.concurrent.*;
 public class IndexThreadPoolExecutor {
 
     private static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(16, 32,
-            60, TimeUnit.MICROSECONDS, new ArrayBlockingQueue<>(200), new ThreadFactory() {
+            60, TimeUnit.MICROSECONDS, new ArrayBlockingQueue<>(500), new ThreadFactory() {
         @Override
         public Thread newThread(@NotNull Runnable r) {
             return new Thread(r, "IndexThreadPoolExecutor");
