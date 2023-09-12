@@ -163,8 +163,7 @@ public class ContextPrompt extends BasePromptConfig {
      */
     public void sendInteractive(ChatRequestVO request) {
 
-        if (this.isEnable()) {
-            //只发送 数据集查询到的内容
+        if (this.getSearchResult() != null && CollectionUtil.isNotEmpty(this.getSearchResult().getRecords())) {
             InteractiveInfo interactiveInfo = InteractiveInfo.buildDocs(this.getSearchResult());
             SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
         }
@@ -213,6 +212,8 @@ public class ContextPrompt extends BasePromptConfig {
             List<MessageContentDocDTO> searchResult = this.parseContent(this.searchResult);
             sortResult.addAll(searchResult);
 
+            log.info("ContextPrompt loadMessageContentDoc dataSet result:{}", JsonUtils.toJsonString(searchResult));
+
             //直接查询当前上下文内容
             MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().getHistory();
 
@@ -221,6 +222,9 @@ public class ContextPrompt extends BasePromptConfig {
                 //id 为空说明 上游异常没保存下来，当时这里还是需要作文上下文处理的
                 return StrUtil.isNotBlank(docDTO.getContent());
             }).collect(Collectors.toList());
+
+            log.info("ContextPrompt loadMessageContentDoc ContentDoc result:{}", JsonUtils.toJsonString(summaryDocs));
+
             if (CollectionUtil.isNotEmpty(summaryDocs)) {
                 sortResult.addAll(summaryDocs);
             }
