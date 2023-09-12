@@ -36,10 +36,10 @@ public class ChatRequestVO extends AppContextReqVO {
      * @see com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum
      */
     @Schema(description = "使用的大语言模型", defaultValue = "GPT35")
-    private String modelType = ModelProviderEnum.GPT35.name();
+    private String modelType;
 
     @Schema(description = "联网聊天")
-    private Boolean webSearch = false;
+    private Boolean webSearch;
 
     /**
      * jsonSchemas 格式的数据，后面会使用这种方式传递参数
