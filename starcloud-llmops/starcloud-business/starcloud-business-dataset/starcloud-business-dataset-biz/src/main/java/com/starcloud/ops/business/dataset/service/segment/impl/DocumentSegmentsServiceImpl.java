@@ -409,7 +409,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         List<DocumentSegmentDO> segmentDOS = new ArrayList<>();
         try {
             // FIXME: 2023/9/12  这里的参数为 appId 即应用 ID
-            DatasetsDO datasetsDO = datasetsService.getDataByUid(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
+            DatasetsDO datasetsDO = datasetsService.getDatasetInfoByAppId(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
             segmentDOS = segmentMapper.selectByDatasetIds(Arrays.asList(String.valueOf(datasetsDO.getId())));
         } catch (Exception e) {
             log.error("matchQuery.getDatasets is fail: {}", e.getMessage(), e);
