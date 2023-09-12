@@ -68,9 +68,7 @@ public class MessageContentDocMemory {
      */
     protected List<MessageContentDocDTO> convertMessageContentDoc(List<DatasetSourceDataDetailRespVO> dataBasicInfoVOS) {
 
-        List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();
-
-        Optional.ofNullable(dataBasicInfoVOS).orElse(new ArrayList<>()).stream().map(dataBasicInfoVO -> {
+        List<MessageContentDocDTO> messageContentDocDTOList = Optional.ofNullable(dataBasicInfoVOS).orElse(new ArrayList<>()).stream().map(dataBasicInfoVO -> {
 
             MessageContentDocDTO contentDocDTO = new MessageContentDocDTO();
 

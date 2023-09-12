@@ -64,6 +64,7 @@ public class ChatPrompt extends BasePromptConfig {
     }
 
 
+    @Deprecated
     public ChatPromptTemplate buildChatPromptTemplate(Boolean toolPrompt) {
 
         List<BaseMessagePromptTemplate> messagePromptTemplates = new ArrayList<>();

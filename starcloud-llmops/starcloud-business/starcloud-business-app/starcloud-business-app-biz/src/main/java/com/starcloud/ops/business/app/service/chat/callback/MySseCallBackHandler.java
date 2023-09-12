@@ -144,7 +144,7 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
                 StreamResult streamResult = StreamResult.builder()
                         .code(200)
                         .type("m")
-                        .content(agentFinish.getOutput().toString())
+                        .content(String.valueOf(agentFinish.getOutput()))
                         .build();
 
                 //结束失败了

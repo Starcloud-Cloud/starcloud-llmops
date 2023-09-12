@@ -378,5 +378,35 @@ public class ChatTest extends BaseDbUnitTest {
 
     }
 
+    //上下文，带 工具
+    @Test
+    public void runModel2TypeTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        chatRequest.setWebSearch(false);
+
+
+        //带数据集的
+        //带数据集的
+        chatRequest.setAppUid("ff9d2961fb084d209f8cff5c27267157");
+        //chatRequest.setConversationUid("f83dbbb1056145909b24bc8db046f739");
+
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("页面主要提到了哪些APP？");
+
+        chatRequest.setQuery("分析下https://www.hangzhou2022.cn/yywh/yyjy/202309/t20230911_71519.shtml");
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+
 
 }

@@ -217,11 +217,13 @@ public class ContextPrompt extends BasePromptConfig {
             //直接查询当前上下文内容
             MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().getHistory();
 
+            //@todo 对于重复的文档内容，需要过滤掉
             List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
                 //@todo 因为现在 message 和 上下文中都有内容，所以为了精简，如果已经总结了就放到 上下文中，不然就继续依赖message历史让LLM做提示
                 //id 为空说明 上游异常没保存下来，当时这里还是需要作文上下文处理的
                 return StrUtil.isNotBlank(docDTO.getContent());
-            }).collect(Collectors.toList());
+                //数据太多，只能先取前5条
+            }).limit(4).collect(Collectors.toList());
 
             log.info("ContextPrompt loadMessageContentDoc ContentDoc result:{}", JsonUtils.toJsonString(summaryDocs));
 

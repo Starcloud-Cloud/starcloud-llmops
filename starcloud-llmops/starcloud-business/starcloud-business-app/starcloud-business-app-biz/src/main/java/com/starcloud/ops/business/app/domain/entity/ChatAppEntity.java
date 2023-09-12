@@ -344,7 +344,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         //千问调用
         if (ModelProviderEnum.QWEN.name().equals(this.getChatConfig().getModelConfig().getProvider())) {
 
-            ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(false);
+            ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 
             LLMChain<GenerationResult> llmChain = buildQwenLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
 
@@ -369,11 +369,13 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
                 //@todo  生成 message
 
+                log.info("agentAction result: {}", agentAction.getOutput());
+
                 return JsonData.of(agentAction);
 
             } else {
 
-                ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(false);
+                ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 
                 LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
 
