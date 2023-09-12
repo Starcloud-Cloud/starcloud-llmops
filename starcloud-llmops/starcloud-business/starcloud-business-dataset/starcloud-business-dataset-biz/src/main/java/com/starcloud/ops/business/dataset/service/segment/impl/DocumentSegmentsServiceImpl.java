@@ -412,7 +412,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             DatasetsDO datasetsDO = datasetsService.getDatasetInfoByAppId(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
             segmentDOS = segmentMapper.selectByDatasetIds(Arrays.asList(String.valueOf(datasetsDO.getId())));
         } catch (Exception e) {
-            log.error("matchQuery.getDatasets is fail: {}", e.getMessage(), e);
+            log.error("matchQuery.getDatasets is fail: {}", e.getMessage());
         }
 
         List<String> segmentIds = segmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
