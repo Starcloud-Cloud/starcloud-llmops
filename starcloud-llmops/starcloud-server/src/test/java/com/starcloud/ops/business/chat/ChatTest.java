@@ -363,7 +363,7 @@ public class ChatTest extends BaseDbUnitTest {
 
         //带数据集的
         //带数据集的
-        chatRequest.setAppUid("ff9d2961fb084d209f8cff5c27267157");
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
         //chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
 
         chatRequest.setUserId(186L);

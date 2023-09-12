@@ -68,7 +68,7 @@ public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Reque
 
         handlerResponse.setSuccess(true);
 
-        List<InteractiveData> dataList = Optional.ofNullable(searchInfoDetails).orElse(new ArrayList<>()).stream().limit(3).map(detail -> {
+        List<InteractiveData> dataList = Optional.ofNullable(searchInfoDetails).orElse(new ArrayList<>()).stream().limit(4).map(detail -> {
 
             InteractiveData interactiveData = new InteractiveData();
 

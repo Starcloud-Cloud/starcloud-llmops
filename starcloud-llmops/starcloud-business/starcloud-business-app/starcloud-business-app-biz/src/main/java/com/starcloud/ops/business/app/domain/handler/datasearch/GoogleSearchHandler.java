@@ -131,7 +131,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
 
             String type = entry.getKey();
             //暂时支持取这2种结果
-            if ("answerBox".equals(type) || "organic".equals(type)) {
+            if ("answerBox".equals(type)) {
 
                 SerpAPITool.SearchInfoDetail searchInfoDetail = entry.getValue().get(0);
                 if (searchInfoDetail != null) {
@@ -145,6 +145,24 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
 
                     interactiveDataList.add(interactiveData);
                 }
+            }
+
+            if ("organic".equals(type)) {
+
+                //取3个
+                List<InteractiveData> result = Optional.ofNullable(entry.getValue()).orElse(new ArrayList<>()).stream().limit(3).map(detail -> {
+
+                    InteractiveData interactiveData = new InteractiveData();
+
+                    interactiveData.setTitle(detail.getTitle());
+                    interactiveData.setContent(detail.getContent());
+                    interactiveData.setUrl(detail.getLink());
+                    interactiveData.setTime(detail.getTime());
+                    return interactiveData;
+
+                }).collect(Collectors.toList());
+
+                interactiveDataList.addAll(result);
             }
         }
 
