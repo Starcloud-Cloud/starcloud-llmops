@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.chat.vo;
 
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
@@ -34,7 +35,7 @@ public class ChatRequestVO extends AppContextReqVO {
     /**
      * @see com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum
      */
-    @Schema(description = "使用的大语言模型")
+    @Schema(description = "使用的大语言模型", defaultValue = "GPT35")
     private String modelType = ModelProviderEnum.GPT35.name();
 
     @Schema(description = "联网聊天")

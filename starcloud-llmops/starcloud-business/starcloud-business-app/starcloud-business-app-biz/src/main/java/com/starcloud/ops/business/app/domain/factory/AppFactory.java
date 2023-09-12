@@ -186,7 +186,6 @@ public class AppFactory {
                 //设置开启 或 关闭了
                 Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getWebSearchConfig).ifPresent(webSearchConfig -> webSearchConfig.setEnabled(chatRequest.getWebSearch()));
             }
-
         }
 
     }

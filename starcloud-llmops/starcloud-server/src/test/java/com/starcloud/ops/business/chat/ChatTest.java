@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -255,8 +256,7 @@ public class ChatTest extends BaseDbUnitTest {
 
         //chatRequest.setQuery("杭州 8月29号天怎么样，跟8月28号天气比较尼？");
 
-       // chatRequest.setQuery("查询下 杭州 2023年8月29号和8月30号的天气，并做个温度比较给我。");
-
+        // chatRequest.setQuery("查询下 杭州 2023年8月29号和8月30号的天气，并做个温度比较给我。");
 
 
         chatRequest.setQuery("查下苹果最新的有哪些消息？");
@@ -298,7 +298,6 @@ public class ChatTest extends BaseDbUnitTest {
         chatService.chat(chatRequest);
 
     }
-
 
 
     /**
@@ -351,6 +350,33 @@ public class ChatTest extends BaseDbUnitTest {
 
     }
 
+    /**
+     * 模型切换
+     */
+    @Test
+    public void runModelTypeTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+
+        chatRequest.setModelType(ModelTypeEnum.QWEN.name());
+
+        //带数据集的
+        //带数据集的
+        chatRequest.setAppUid("ff9d2961fb084d209f8cff5c27267157");
+        //chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
+
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("1+1=？");
+
+        chatService.chat(chatRequest);
+
+    }
 
 
 }
