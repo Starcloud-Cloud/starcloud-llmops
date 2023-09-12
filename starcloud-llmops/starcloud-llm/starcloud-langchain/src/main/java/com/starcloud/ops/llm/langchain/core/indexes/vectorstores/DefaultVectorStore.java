@@ -50,9 +50,9 @@ public class DefaultVectorStore implements BasicVectorStore {
         queryDTO.checkDefaultValue();
         List<Map<String, Object>> maps = null;
         if (CollectionUtil.isNotEmpty(queryDTO.getDatasetIds())) {
-            maps = mapper.selectByDataSetIds(queryDTO.getSegmentIds());
+            maps = mapper.selectByDataSetIds(queryDTO.getDatasetIds());
         } else if (CollectionUtil.isNotEmpty(queryDTO.getDocumentIds())) {
-            maps = mapper.selectByDocIds(queryDTO.getSegmentIds());
+            maps = mapper.selectByDocIds(queryDTO.getDocumentIds());
         } else if (CollectionUtil.isNotEmpty(queryDTO.getSegmentIds())) {
             maps = mapper.selectByDocIds(queryDTO.getSegmentIds());
         } else {
