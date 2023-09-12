@@ -3,6 +3,7 @@ package com.starcloud.ops.llm.langchain.core.indexes.splitter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 public class CharacterTextSplitter extends BasicTextSplitter {
 
@@ -14,34 +15,21 @@ public class CharacterTextSplitter extends BasicTextSplitter {
     @Override
     protected List<String> split(String text, int chunkSize, List<String> separators) {
         List<String> result = new ArrayList<>();
-        int startIndex = 0;
+        StringJoiner sj = new StringJoiner("|");
+        for (String sep : separators) {
+            sj.add(sep);
+        }
 
-        while (startIndex < text.length()) {
-            int endIndex = text.length();
-            String separator = null;
-
-            // 在当前位置查找分割符
-            for (String sep : separators) {
-                int index = text.indexOf(sep, startIndex);
-                if (index != -1 && index < endIndex) {
-                    endIndex = index;
-                    separator = sep;
-                }
-            }
-
-            if (endIndex - startIndex > chunkSize) {
-                if (separator != null) {
-                    // 使用分割符切割字符串
-                    result.add(text.substring(startIndex, endIndex) + separator);
-                    startIndex = endIndex + separator.length();
-                } else {
-                    // 如果没有找到分割符，则直接截取指定长度的子串
-                    result.add(text.substring(startIndex, startIndex + chunkSize));
-                    startIndex += chunkSize;
-                }
+        String[] arr = text.split(sj.toString()); // 使用正则表达式拆分字符串
+        for (String s : arr) {
+            if (s.length() <= chunkSize) {
+                result.add(s);
             } else {
-                result.add(text.substring(startIndex, endIndex) + separator);
-                startIndex = endIndex + 1;
+                int start = 0;
+                while (start < s.length()) {
+                    result.add(s.substring(start, Math.min(start + chunkSize, s.length())));
+                    start += chunkSize;
+                }
             }
         }
         return result;
