@@ -113,7 +113,7 @@ public class ChatShareController {
             chatRequestVO.setConversationUid(IdUtil.fastSimpleUUID());
         }
 
-        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "share chat");
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "share chat");
         chatRequestVO.setSseEmitter(emitter);
         chatRequestVO.setEndUser(endUserId);
         // 执行限流

@@ -266,11 +266,13 @@ public class MessageContentDocMemory {
 
             // 重新查询内容, 可获取到总结
             DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataById(sourceDataId, true);
-            //@todo 判断状态 需要封装
+
             if (detailsInfoVO != null) {
                 if (StrUtil.isNotBlank(detailsInfoVO.getSummary())) {
                     // 更新下最新的内容
                     doc.setSummary(detailsInfoVO.getSummary());
+                    //精简内容只留总结的
+                    doc.setContent(null);
                 }
             } else {
                 log.error("storageHistory is fail, getSourceDataListData is null. sourceDataId: {}", sourceDataId);
