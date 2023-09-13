@@ -14,7 +14,7 @@ public abstract class BaseQueryRequest {
     @NotBlank(message = "文本内容不能为空")
     private String text;
 
-    @Schema(description = "搜索文档数")
+    @Schema(description = "搜索文档数",defaultValue = "2")
     private Long k ;
 
     @Schema(description = "最低打分")

@@ -314,6 +314,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         Assert.notBlank(datasetId, "datasetId is null");
         Assert.notBlank(documentId, "dataId is null");
         validateTenantId(documentId);
+        List<DocumentSegmentDO> documentSegmentDOS = segmentMapper.selectByDocId(documentId);
+        List<String> segmentIds = documentSegmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
+        basicVectorStore.removeSegment(segmentIds);
         int i = segmentMapper.deleteSegment(datasetId, documentId);
         return i > 0;
     }
@@ -342,7 +345,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
                 .datasetIds(datasetIds).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
-        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).queryText(request.getText()).build();
+        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).tokens(queryText.getTotalTokens()).queryText(request.getText()).build();
     }
 
     private List<RecordDTO> buildRecord(List<KnnQueryHit> knnQueryHitList, BaseQueryRequest request) {
@@ -366,7 +369,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().documentIds(request.getDocId().stream().map(String::valueOf).collect(Collectors.toList())).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
-        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).queryText(request.getText()).build();
+        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).queryText(request.getText()).tokens(queryText.getTotalTokens()).build();
     }
 
     @Override
