@@ -73,7 +73,7 @@ public class MessageContentDocDTO {
     /**
      * 数据时间
      */
-    private LocalDateTime time;
+    private String time;
 
 
     /**

@@ -107,7 +107,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
             messageContentDocDTO.setTitle(interactiveData.getTitle());
             messageContentDocDTO.setContent(interactiveData.getContent());
             messageContentDocDTO.setUrl(interactiveData.getUrl());
-            messageContentDocDTO.setTime(LocalDateTimeUtil.parse(interactiveData.getTime()));
+            messageContentDocDTO.setTime(interactiveData.getTime());
 
             return messageContentDocDTO;
 

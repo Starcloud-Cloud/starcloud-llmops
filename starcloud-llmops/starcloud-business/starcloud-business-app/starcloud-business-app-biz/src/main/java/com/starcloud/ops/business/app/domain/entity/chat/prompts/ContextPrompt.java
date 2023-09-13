@@ -346,7 +346,7 @@ public class ContextPrompt extends BasePromptConfig {
                 contentDocDTO.setTitle(doc.getName());
                 contentDocDTO.setUrl(doc.getAddress());
                 contentDocDTO.setContent(recordDTO.getContent());
-                contentDocDTO.setTime(doc.getCreateTime());
+                contentDocDTO.setTime(doc.getCreateTime().toString());
 
                 //扩展信息
                 Map ext = new HashMap() {{

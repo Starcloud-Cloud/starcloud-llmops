@@ -50,7 +50,7 @@ public class InteractiveDoc implements Serializable {
     private Object ext;
 
 
-    private LocalDateTime updateTime;
+    private String updateTime;
 
 }
 

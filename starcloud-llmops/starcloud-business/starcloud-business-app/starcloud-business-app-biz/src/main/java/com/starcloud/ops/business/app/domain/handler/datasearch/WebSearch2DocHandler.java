@@ -142,7 +142,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
 
-        messageContentDocDTO.setTime(LocalDateTimeUtil.now());
+        messageContentDocDTO.setTime(LocalDateTimeUtil.now().toString());
         messageContentDocDTO.setTitle(this.getName());
         messageContentDocDTO.setContent(handlerResponse.getOutput().getDescription());
         messageContentDocDTO.setId(handlerResponse.getOutput().getDocId());
