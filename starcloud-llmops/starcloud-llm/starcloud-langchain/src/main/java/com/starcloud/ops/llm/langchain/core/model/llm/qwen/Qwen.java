@@ -2,6 +2,7 @@ package com.starcloud.ops.llm.langchain.core.model.llm.qwen;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.dashscope.aigc.generation.Generation;
 import com.alibaba.dashscope.aigc.generation.GenerationResult;
@@ -65,7 +66,12 @@ public class Qwen extends BaseLLM<GenerationResult> {
 
             String modelName = this.getModel();
 
-            QwenParam qwenParam = QwenParam.builder().model(this.getModel()).topP(this.getTopP() > 1d ? 1d : this.getTopP()).enableSearch(this.getEnableSearch()).resultFormat(this.getResultFormat()).build();
+            QwenParam qwenParam = QwenParam.builder().model(this.getModel()).enableSearch(this.getEnableSearch()).resultFormat(this.getResultFormat()).build();
+
+            //上游最大值是2，这里最大值是1
+            Double top = Double.valueOf(NumberUtil.decimalFormat("0.0", this.getTopP() / 2));
+            qwenParam.setTopP(top);
+
             qwenParam.setApiKey(qwenAIConfig.getApiKey());
             qwenParam.setPrompt(texts.get(0));
 
