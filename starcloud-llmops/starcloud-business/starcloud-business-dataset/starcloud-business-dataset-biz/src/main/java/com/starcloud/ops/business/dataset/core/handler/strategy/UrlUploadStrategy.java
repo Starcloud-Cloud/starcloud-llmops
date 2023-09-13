@@ -62,7 +62,7 @@ public class UrlUploadStrategy implements UploadStrategy {
         // 设置文件名称
         Document doc;
         try {
-             doc = JsoupUtil.loadUrl(url, language);
+            doc = JsoupUtil.loadUrl(url, language);
 
         } catch (Exception e) {
             uploadFileRespDTO.setName(url);
@@ -76,6 +76,10 @@ public class UrlUploadStrategy implements UploadStrategy {
         String name = getUrlTitle(doc);
 
         name = StrUtil.isBlank(name) ? url : name;
+        // 如果长度不足 300，返回全部字符串
+        if (name.length() >= 300) {
+            name = name.substring(0, 300);
+        }
 
         uploadFileRespDTO.setName(name);
 

@@ -84,8 +84,13 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
      */
     @Override
     public Boolean createRules(DatasetHandleRulesCreateReqVO createReqVO) {
-        // 获取数据集信息
-        DatasetsDO datasets = datasetsService.getDatasetInfoByAppId(createReqVO.getAppId());
+        DatasetsDO datasets;
+        if (datasetsService.validateAppDatasetsExists(createReqVO.getAppId())) {
+            // 获取数据集信息
+            datasets = datasetsService.getDatasetInfoByAppId(createReqVO.getAppId());
+        } else {
+            datasets = datasetsService.createDatasetsByApp(createReqVO.getAppId());
+        }
 
         // 数据转换
         DatasetHandleRulesDO convert = DatasetHandleRulesConvert.INSTANCE.convert(createReqVO, datasets.getId());
@@ -448,8 +453,6 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
         log.error("全量匹配系统规则失败");
         throw exception(DATASET_HANDLE_SYS_RULE_NO_EXISTS);
     }
-
-
 
 
     /**
