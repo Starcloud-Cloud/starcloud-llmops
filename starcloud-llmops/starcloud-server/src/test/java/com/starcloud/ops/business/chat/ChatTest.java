@@ -384,7 +384,7 @@ public class ChatTest extends BaseDbUnitTest {
 
         ChatRequestVO chatRequest = new ChatRequestVO();
 
-        chatRequest.setWebSearch(false);
+        chatRequest.setWebSearch(true);
 
 
         //带数据集的
@@ -401,6 +401,8 @@ public class ChatTest extends BaseDbUnitTest {
         chatRequest.setQuery("页面主要提到了哪些APP？");
 
         chatRequest.setQuery("分析下https://www.hangzhou2022.cn/yywh/yyjy/202309/t20230911_71519.shtml");
+
+        chatRequest.setQuery("杭州天气怎么样子？");
 
         chatService.chat(chatRequest);
 
