@@ -4,14 +4,15 @@ import cn.hutool.core.collection.CollectionUtil;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.KnnQuery;
+import co.elastic.clients.elasticsearch._types.Script;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
-import co.elastic.clients.elasticsearch.core.BulkRequest;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryHit;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Component
 @ConditionalOnProperty(name = "starcloud-llm.vector.store", havingValue = "elasticsearch")
+@Slf4j
 public class ElasticSearchVectorStore implements BasicVectorStore {
 
     private static final String INDEX_NAME = "vector_index_l2";
@@ -82,6 +84,7 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
         SearchRequest vector = new SearchRequest.Builder().knn(knnQuery).index(INDEX_NAME).build();
         try {
             SearchResponse<DocumentSegmentDTO> search = esClient.search(vector, DocumentSegmentDTO.class);
+            hit(search.hits().hits(), queryDTO);
             return search.hits().hits().stream().map(hit -> {
                 return KnnQueryHit.builder().score(hit.score()).document(hit.source()).build();
             }).collect(Collectors.toList());
@@ -110,5 +113,29 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void hit(List<Hit<DocumentSegmentDTO>> hits, KnnQueryDTO queryDTO) {
+        if (CollectionUtil.isEmpty(hits)) {
+            return;
+        }
+        List<String> segmentIds = hits.stream()
+                .filter(dtoHit -> dtoHit.source() != null)
+                .filter(dtoHit -> queryDTO.getMinScore() == null || dtoHit.score().compareTo(queryDTO.getMinScore()) > 0)
+                .map(dtoHit -> dtoHit.source().getSegmentId()).collect(Collectors.toList());
+
+        if (CollectionUtil.isEmpty(segmentIds)) {
+            return;
+        }
+        List<FieldValue> segmentField = segmentIds.stream().map(FieldValue::of).collect(Collectors.toList());
+        TermsQuery terms = TermsQuery.of(t -> t.field("segmentId").terms(f -> f.value(segmentField)));
+        Query query = Query.of(q -> q.bool(b -> b.must(new Query(terms))));
+        Script of = Script.of(s -> s.inline(i -> i.source("if(ctx._source.hitCount == null) { ctx._source.hitCount = 1} else { ctx._source.hitCount += 1}")));
+        try {
+            esClient.updateByQuery(q -> q.index(INDEX_NAME).query(query).script(of));
+        } catch (IOException e) {
+            log.info("hit count error", e);
+        }
+
     }
 }

@@ -34,6 +34,9 @@ public class RecordDTO {
     @Schema(description = "分段Id")
     private String segmentId;
 
+    @Schema(description = "命中次数")
+    private Integer hitCount;
+
     /**
      * 分段序号
      */
