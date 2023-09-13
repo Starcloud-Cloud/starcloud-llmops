@@ -189,7 +189,6 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                     documentSegmentDTO.setContent(split);
                     documentSegmentDTO.setPosition(segmentDO.getPosition());
                     documentSegmentDTO.setWordCount(segmentDO.getWordCount());
-                    documentSegmentDTO.setTokens(segmentDO.getTokens());
                     documentSegmentDTO.setSegmentHash(segmentHash);
                     documentSegmentDTO.setStatus(true);
                     documentSegmentDTO.setCreateTime(System.currentTimeMillis());
@@ -197,6 +196,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                     if (ObjectUtil.isNotNull(segmentsEmbeddingsDO)) {
                         segmentsEmbeddingsDO.setId(null);
                         segmentDO.setTokens(segmentsEmbeddingsDO.getTokens());
+                        documentSegmentDTO.setTokens(segmentsEmbeddingsDO.getTokens());
                         documentSegmentDTO.setVector(VectorSerializeUtils.deserialize(segmentsEmbeddingsDO.getVector()));
                     } else {
                         EmbeddingDetail embeddingDetail = basicEmbedding.embedText(split);
@@ -205,6 +205,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                         segmentsEmbeddingsDO.setVector(VectorSerializeUtils.serialize(embeddingDetail.getEmbedding()));
                         segmentDO.setTokens(embeddingDetail.getTotalTokens());
                         documentSegmentDTO.setVector(embeddingDetail.getEmbedding());
+                        documentSegmentDTO.setTokens(embeddingDetail.getTotalTokens());
                     }
                     segmentsEmbeddingsDO.setTenantId(tenantId);
                     segmentsEmbeddingsDO.setCreator(creator);
