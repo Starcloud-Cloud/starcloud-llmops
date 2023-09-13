@@ -435,7 +435,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         ChatQwen chatQwen = new ChatQwen();
 
         chatQwen.setTopP(chatConfig.getModelConfig().getCompletionParams().getTemperature());
-        chatQwen.setStream(true);
+        chatQwen.setStream(false);
 
         chatQwen.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
         LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);

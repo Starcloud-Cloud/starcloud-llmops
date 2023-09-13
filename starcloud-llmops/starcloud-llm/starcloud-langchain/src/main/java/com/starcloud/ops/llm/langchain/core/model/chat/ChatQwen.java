@@ -1,5 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.model.chat;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.dashscope.aigc.generation.Generation;
 import com.alibaba.dashscope.aigc.generation.GenerationOutput;
@@ -12,6 +13,7 @@ import com.alibaba.dashscope.common.ResultCallback;
 import com.alibaba.dashscope.utils.JsonUtils;
 import com.starcloud.ops.llm.langchain.config.QwenAIConfig;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
+import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.BaseChatModel;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
@@ -54,7 +56,7 @@ public class ChatQwen extends BaseChatModel<GenerationResult> {
 
     private String resultFormat = "message";
 
-    private MessageManager msgManager = new MessageManager(50);
+    private MessageManager msgManager = new MessageManager(100);
 
     @Override
     public String getModelType() {
@@ -64,7 +66,10 @@ public class ChatQwen extends BaseChatModel<GenerationResult> {
     @Override
     public ChatResult<GenerationResult> _generate(List<BaseMessage> messages, List<String> tops, List<FunctionDescription> functions, CallbackManagerForLLMRun callbackManagerForLLMRun) {
 
-        QwenParam qwenParam = QwenParam.builder().model(this.getModel()).seed(this.getSeed()).model(this.getModel()).topP(this.getTopP()).enableSearch(this.getEnableSearch()).resultFormat(this.getResultFormat()).build();
+        QwenParam qwenParam = QwenParam.builder().model(this.getModel()).seed(this.getSeed()).model(this.getModel()).enableSearch(this.getEnableSearch()).resultFormat(this.getResultFormat()).build();
+        //上游最大值是2，这里最大值是1
+        Double top = Double.valueOf(NumberUtil.decimalFormat("0.0", this.getTopP() / 2));
+        qwenParam.setTopP(top);
         qwenParam.setApiKey(qwenAIConfig.getApiKey());
 
         List<Message> chatMessages = Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(MessageConvert::BaseMessage2QwenMessage).collect(Collectors.toList());
@@ -158,6 +163,11 @@ public class ChatQwen extends BaseChatModel<GenerationResult> {
 
                 BaseMessage baseMessage = this.convertToMessage(chatMessage);
                 ChatGeneration chatGeneration = ChatGeneration.builder().generationInfo(result).usage(baseLLMUsage).chatMessage(baseMessage).text(baseMessage.getContent()).build();
+
+                //因为千问走流方式获取内容会重复，不知道什么原因，所以先关闭走同步，然后一次性发送到前端
+                if (callbackManagerForLLMRun.hasHandler(StreamingSseCallBackHandler.class)) {
+                    callbackManagerForLLMRun.onLLMNewToken(baseMessage.getContent());
+                }
 
                 return ChatResult.data(Arrays.asList(chatGeneration), result, baseLLMUsage);
 
