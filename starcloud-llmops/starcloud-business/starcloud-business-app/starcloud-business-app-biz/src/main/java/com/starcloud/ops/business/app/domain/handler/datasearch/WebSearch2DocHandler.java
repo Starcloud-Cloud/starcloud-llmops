@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -141,7 +142,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
 
-        messageContentDocDTO.setTime(DateUtil.now());
+        messageContentDocDTO.setTime(LocalDateTimeUtil.now());
         messageContentDocDTO.setTitle(this.getName());
         messageContentDocDTO.setContent(handlerResponse.getOutput().getDescription());
         messageContentDocDTO.setId(handlerResponse.getOutput().getDocId());

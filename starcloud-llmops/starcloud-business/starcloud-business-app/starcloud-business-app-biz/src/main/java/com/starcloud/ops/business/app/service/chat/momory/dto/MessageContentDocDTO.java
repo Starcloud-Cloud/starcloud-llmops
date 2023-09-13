@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
+
 /**
  * 另扩展出来的Memory，存储对话中所有上传的文档和工具执行的结果的历史记录
  * 统一包装为文档，最后生成为 上下文prompt，方便处理对话中的历史问题
@@ -38,15 +40,12 @@ public class MessageContentDocDTO {
      */
     private String toolName;
 
+
+
     /**
      * 标题
      */
     private String title;
-
-    /**
-     * 数据时间
-     */
-    private String time;
 
 
     /**
@@ -69,6 +68,12 @@ public class MessageContentDocDTO {
      * 字数
      */
     private Long words;
+
+
+    /**
+     * 数据时间
+     */
+    private LocalDateTime time;
 
 
     /**

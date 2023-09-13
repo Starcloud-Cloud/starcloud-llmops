@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.handler.common;
 
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -124,7 +125,7 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
 
         messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.name());
 
-        messageContentDocDTO.setTime(DateUtil.now());
+        messageContentDocDTO.setTime(LocalDateTimeUtil.now());
         messageContentDocDTO.setTitle(this.getName());
         messageContentDocDTO.setContent(handlerResponse.getAnswer());
 

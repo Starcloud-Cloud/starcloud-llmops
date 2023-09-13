@@ -328,7 +328,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         HandlerContext appContext = this.instanceHandlerContext(request);
 
         ChatPrePrompt chatPrePrompt = new ChatPrePrompt(chatConfig.getPrePrompt(), chatConfig.getPrePromptConfig());
-        ContextPrompt contextPrompt = new ContextPrompt(chatConfig, request.getQuery(), this.getMessageMemory().getMessageContentDocMemory(), appContext);
+        ContextPrompt contextPrompt = new ContextPrompt(chatConfig, request, this.getMessageMemory().getMessageContentDocMemory(), appContext);
         HistoryPrompt historyPrompt = new HistoryPrompt(this.getMessageMemory());
 
         ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
@@ -338,8 +338,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         this.getMessageMemory().setSummaryMaxTokens(maxTokens);
 
         BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
-
-        contextPrompt.sendInteractive(request);
 
         //千问调用
         if (ModelProviderEnum.QWEN.name().equals(this.getChatConfig().getModelConfig().getProvider())) {

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.handler.datasearch;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -106,7 +107,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
             messageContentDocDTO.setTitle(interactiveData.getTitle());
             messageContentDocDTO.setContent(interactiveData.getContent());
             messageContentDocDTO.setUrl(interactiveData.getUrl());
-            messageContentDocDTO.setTime(interactiveData.getTime());
+            messageContentDocDTO.setTime(LocalDateTimeUtil.parse(interactiveData.getTime()));
 
             return messageContentDocDTO;
 
