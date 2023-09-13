@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -50,6 +51,10 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
     private String description = "A portal to the internet. Use this when you need to get specific content from a website. Input should be a  url (i.e. https://www.google.com). The output should be a json string with two keys: \"content\" and\" docKey\". The value of \"content\" is a summary of the content of the website, and the value of\" docKey\" is the tag of the website to point to.";
 
     private int summarySubSize = 300;
+
+    private String usage = "帮我看下 https://www.hangzhou2022.cn/fw/emwtjd/202308/t20230825_70460.shtml 说了什么？ \n" +
+            "https://www.hangzhou2022.cn/xwzx/jdxw/ttxw/202308/t20230824_70312.shtml 总结下里面的内容";
+
 
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
@@ -137,7 +142,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
 
-        messageContentDocDTO.setTime(DateUtil.now());
+        messageContentDocDTO.setTime(LocalDateTimeUtil.now().toString());
         messageContentDocDTO.setTitle(this.getName());
         messageContentDocDTO.setContent(handlerResponse.getOutput().getDescription());
         messageContentDocDTO.setId(handlerResponse.getOutput().getDocId());

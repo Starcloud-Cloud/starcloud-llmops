@@ -17,18 +17,9 @@ public class InteractiveDoc implements Serializable {
     private Long id;
 
     /**
-     * 相似度
-     */
-    private Double score;
-
-    /**
-     * 分段序号
-     */
-    private Integer position;
-
-    /**
      * 数据集id
      */
+    @Deprecated
     private String datasetId;
 
 
@@ -53,8 +44,13 @@ public class InteractiveDoc implements Serializable {
      */
     private String desc;
 
+    /**
+     *
+     */
+    private Object ext;
 
-    private LocalDateTime updateTime;
+
+    private String updateTime;
 
 }
 

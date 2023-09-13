@@ -28,14 +28,18 @@ public class SseResultUtil {
      *
      * @param interactiveInfo
      */
-    @SneakyThrows
     public void sendCallbackInteractive(InteractiveInfo interactiveInfo) {
+        this.sendCallbackInteractive("i", interactiveInfo);
+    }
+
+    @SneakyThrows
+    public void sendCallbackInteractive(String type, InteractiveInfo interactiveInfo) {
 
         if (this.getSseEmitter() != null) {
 
             MySseCallBackHandler.StreamResult result = MySseCallBackHandler.StreamResult.builder()
                     .code(200)
-                    .type("i")
+                    .type(type)
                     .content(JsonUtils.toJsonString(interactiveInfo))
                     .conversationUid(this.getConversationUid())
                     .messageUid(this.getMessageUid())

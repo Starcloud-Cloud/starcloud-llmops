@@ -90,6 +90,9 @@ public class ContextPrompt extends BasePromptConfig {
             "- Avoid mentioning that you obtained the information from the context.\n" +
             "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the `{n}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n\n";
 
+
+    private ChatRequestVO chatRequestVO;
+
     private String query;
 
     private ChatConfigEntity chatConfig;
@@ -118,8 +121,9 @@ public class ContextPrompt extends BasePromptConfig {
     private HandlerContext handlerContext;
 
 
-    public ContextPrompt(ChatConfigEntity chatConfig, String query, MessageContentDocMemory messageContentDocMemory, HandlerContext handlerContext) {
-        this.query = query;
+    public ContextPrompt(ChatConfigEntity chatConfig, ChatRequestVO chatRequestVO, MessageContentDocMemory messageContentDocMemory, HandlerContext handlerContext) {
+        this.chatRequestVO = chatRequestVO;
+        this.query = chatRequestVO.getQuery();
         this.chatConfig = chatConfig;
         this.datesetEntities = chatConfig.getDatesetEntities();
         this.messageContentDocMemory = messageContentDocMemory;
@@ -158,15 +162,18 @@ public class ContextPrompt extends BasePromptConfig {
 
 
     /**
-     * 直接把查询到到数据集文档发送到前端
-     *
-     * @param request
+     * 发送所有文档内容到前端，让前端转换为。实现"文档来源"功能
+     * 1，搜索到的文档（通过 向量搜索出来的文档块内容）
+     * 2，上下文内容（根据当前联网内容获取到的描述内容，LLM通过上下文自行选出的）
      */
-    public void sendInteractive(ChatRequestVO request) {
+    public void sendDocsInteractive(List<MessageContentDocDTO> messageContentDocDTOS) {
 
-        if (this.getSearchResult() != null && CollectionUtil.isNotEmpty(this.getSearchResult().getRecords())) {
-            InteractiveInfo interactiveInfo = InteractiveInfo.buildDocs(this.getSearchResult());
-            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
+        if (CollectionUtil.isNotEmpty(messageContentDocDTOS)) {
+
+            InteractiveInfo interactiveInfo = InteractiveInfo.buildMessageContent(messageContentDocDTOS);
+
+            ChatRequestVO request = this.getChatRequestVO();
+            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive("docs", interactiveInfo);
         }
     }
 
@@ -179,6 +186,10 @@ public class ContextPrompt extends BasePromptConfig {
         BaseVariable contextDoc = BaseVariable.newFun("contextDoc", () -> {
 
             List<MessageContentDocDTO> sortResult = this.loadMessageContentDoc();
+
+            //发送到前端
+            this.sendDocsInteractive(sortResult);
+
 
             return PromptUtil.parseDocContentLines(sortResult);
         });
@@ -221,9 +232,8 @@ public class ContextPrompt extends BasePromptConfig {
 
             //@todo 对于重复的文档内容，需要过滤掉
             List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
-                //@todo 因为现在 message 和 上下文中都有内容，所以为了精简，如果已经总结了就放到 上下文中，不然就继续依赖message历史让LLM做提示
-                //id 为空说明 上游异常没保存下来，当时这里还是需要作文上下文处理的
-                return StrUtil.isNotBlank(docDTO.getContent());
+                //id 为空说明 上游异常没保存下来，当时这里还是需要作文上下文处理的. 不支持工具到返回结果，因为工具的结果已经放在的message历史中给到LLM了
+                return StrUtil.isNotBlank(docDTO.getContent()) && !MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.equals(docDTO.getType());
                 //数据太多，只能先取前5条
             }).limit(4).collect(Collectors.toList());
 
@@ -336,13 +346,21 @@ public class ContextPrompt extends BasePromptConfig {
                 contentDocDTO.setTitle(doc.getName());
                 contentDocDTO.setUrl(doc.getAddress());
                 contentDocDTO.setContent(recordDTO.getContent());
-                //contentDocDTO.setTime(doc.getCreateTime());
+                contentDocDTO.setTime(doc.getCreateTime().toString());
+
+                //扩展信息
+                Map ext = new HashMap() {{
+                    put("position", recordDTO.getPosition());
+                    put("score", recordDTO.getScore());
+                }};
+                contentDocDTO.setExt(ext);
 
                 return contentDocDTO;
             }
 
             return null;
         }).filter(Objects::nonNull).collect(Collectors.toList());
+
 
         return messageContentDocDTOList;
     }

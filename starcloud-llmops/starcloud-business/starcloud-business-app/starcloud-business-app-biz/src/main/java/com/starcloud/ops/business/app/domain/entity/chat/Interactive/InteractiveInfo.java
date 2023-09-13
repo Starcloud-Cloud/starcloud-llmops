@@ -5,6 +5,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
@@ -14,10 +15,7 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -143,45 +141,27 @@ public class InteractiveInfo implements Serializable {
     }
 
 
-    /**
-     * 文档内容，传到前端，做文档列表渲染
-     *
-     * @param matchQueryVO
-     * @return
-     */
-    public static InteractiveInfo buildDocs(MatchQueryVO matchQueryVO) {
+    public static InteractiveInfo buildMessageContent(List<MessageContentDocDTO> messageContentDocDTOS) {
         InteractiveInfo interactiveInfo = new InteractiveInfo();
 
         interactiveInfo.setShowType("docs");
         interactiveInfo.setSuccess(true);
 
-        List<Long> docIds = Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
-            return Long.valueOf(recordDTO.getDocumentId());
-        }).collect(Collectors.toList());
-
-        //查出具体文档信息
-        List<DatasetSourceDataBasicInfoVO> docs = datasetSourceDataService.getSourceDataListData(docIds);
-
-        interactiveInfo.setData(Optional.ofNullable(matchQueryVO).map(MatchQueryVO::getRecords).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
-
-            DatasetSourceDataBasicInfoVO source = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().filter((dataBasicInfoVO) -> {
-                return recordDTO.getDocumentId().equals(String.valueOf(dataBasicInfoVO.getId()));
-            }).findFirst().orElse(null);
+        interactiveInfo.setData(Optional.ofNullable(messageContentDocDTOS).orElse(new ArrayList<>()).stream().map(content -> {
 
             InteractiveDoc docInteractiveInfo = new InteractiveDoc();
 
-            if (source != null) {
+            docInteractiveInfo.setId(content.getId());
 
-                docInteractiveInfo.setId(source.getId());
-                docInteractiveInfo.setPosition(recordDTO.getPosition());
-                docInteractiveInfo.setScore(recordDTO.getScore());
-                docInteractiveInfo.setDatasetId(recordDTO.getDatasetId());
-                docInteractiveInfo.setName(source.getName());
-                docInteractiveInfo.setType(source.getDataType());
-                docInteractiveInfo.setUrl(source.getAddress());
-                docInteractiveInfo.setDesc(source.getDescription());
-                docInteractiveInfo.setUpdateTime(source.getUpdateTime());
+            // 文档查询的扩展字段
+            if (content.getExt() != null) {
+                docInteractiveInfo.setExt(content.getExt());
             }
+            docInteractiveInfo.setName(content.getTitle());
+            docInteractiveInfo.setType(content.getType());
+            docInteractiveInfo.setUrl(content.getUrl());
+            docInteractiveInfo.setDesc(content.getContent());
+            docInteractiveInfo.setUpdateTime(content.getTime());
 
             return docInteractiveInfo;
 

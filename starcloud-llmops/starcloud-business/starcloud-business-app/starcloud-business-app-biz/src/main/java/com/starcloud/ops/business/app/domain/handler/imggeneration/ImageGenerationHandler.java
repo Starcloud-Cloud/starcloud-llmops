@@ -73,6 +73,9 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
     private String description = "Generate images. This is used when you need to generate an image. The input is a sentence describing an image. The output is an access address to an image.";
 
 
+    private String usage = "帮我生成一张跑车的照片\n" +
+            "帮我生成一张少女在湖边散步的照片";
+
     /**
      * 工具名称
      */
@@ -144,7 +147,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
 
         List<InteractiveData> dataList = Optional.ofNullable(imageDTOS).orElse(new ArrayList<>()).stream().map(imageDTO -> {
             InteractiveData interactiveData = new InteractiveData();
-            interactiveData.setUrl(imageDTO.getUrl());
+            interactiveData.setImageUrl(imageDTO.getUrl());
             interactiveData.setTime(DateUtil.now());
             return interactiveData;
         }).collect(Collectors.toList());
