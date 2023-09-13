@@ -111,6 +111,10 @@ public class ChatSkillServiceImpl implements ChatSkillService {
         List<ChatSkillVO> skillVOS = new ArrayList<ChatSkillVO>() {{
             add(ChatSkillVO.buildFromHandler(new WebSearch2DocHandler()));
             add(ChatSkillVO.buildFromHandler(new ImageGenerationHandler()));
+
+            add(ChatSkillVO.buildFromHandler(new NewsSearchHandler()));
+            add(ChatSkillVO.buildFromHandler(new ImageSearchHandler()));
+
         }};
 
         return skillVOS;

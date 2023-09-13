@@ -32,7 +32,7 @@ public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Reque
 
     private String userName = "互联网搜索新闻";
 
-    private String userDescription = "可以自动联网查询新闻";
+    private String userDescription = "可以自动联网查询最近的新闻";
 
     private String name = "NewsSearchHandler";
 
