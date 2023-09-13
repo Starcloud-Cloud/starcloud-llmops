@@ -1,14 +1,18 @@
 package com.starcloud.ops.business.dataset.mq.consumer;
 
+import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataIndexSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
+import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataIndexProducer;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
 
@@ -24,6 +28,9 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
 
     @Resource
     private DocumentSegmentsService documentSegmentsService;
+
+    @Resource
+    private DatasetSourceDataIndexProducer dataIndexProducer;
 
     /**
      * @param message
@@ -66,5 +73,18 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
      */
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
+    if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
+            log.warn("数据索引异常，开始重试，当前重试次数为{}",message.getRetryCount());
+            if (message.getCleanSync()) {
+                log.info("同步执行数据创建索引操作，数据为{}", JSONObject.toJSONString(message));
+                dataIndexProducer.sendMessage(message);
+            } else {
+                log.info("异步执行数据数据创建索引操作，数据为{}", JSONObject.toJSONString(message));
+                // 发送消息
+                dataIndexProducer.asyncSendMessage(message);
+            }
+        } else {
+            log.error("执行数据创建索引操作失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
+        }
     }
 }
