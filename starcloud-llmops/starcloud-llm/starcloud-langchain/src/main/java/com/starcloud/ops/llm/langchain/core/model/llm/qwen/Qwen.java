@@ -65,7 +65,7 @@ public class Qwen extends BaseLLM<GenerationResult> {
 
             String modelName = this.getModel();
 
-            QwenParam qwenParam = QwenParam.builder().model(this.getModel()).topP(this.getTopP()).enableSearch(this.getEnableSearch()).resultFormat(this.getResultFormat()).build();
+            QwenParam qwenParam = QwenParam.builder().model(this.getModel()).topP(this.getTopP() > 1d ? 1d : this.getTopP()).enableSearch(this.getEnableSearch()).resultFormat(this.getResultFormat()).build();
             qwenParam.setApiKey(qwenAIConfig.getApiKey());
             qwenParam.setPrompt(texts.get(0));
 
