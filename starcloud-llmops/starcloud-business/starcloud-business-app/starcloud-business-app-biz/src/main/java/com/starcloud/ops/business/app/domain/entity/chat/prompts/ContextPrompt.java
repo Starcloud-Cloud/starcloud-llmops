@@ -173,7 +173,7 @@ public class ContextPrompt extends BasePromptConfig {
             InteractiveInfo interactiveInfo = InteractiveInfo.buildMessageContent(messageContentDocDTOS);
 
             ChatRequestVO request = this.getChatRequestVO();
-            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive(interactiveInfo);
+            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive("docs", interactiveInfo);
         }
     }
 
