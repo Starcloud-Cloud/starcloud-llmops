@@ -140,11 +140,11 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
                 log.warn("数据清洗异常，开始重试，当前重试次数为{}",message.getRetryCount());
                 if (message.getCleanSync()) {
                     log.info("同步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
-                    dataSplitProducer.sendMessage(message);
+                    dataCleanProducer.sendMessage(message);
                 } else {
                     log.info("异步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
                     // 发送消息
-                    dataSplitProducer.asyncSendMessage(message);
+                    dataCleanProducer.asyncSendMessage(message);
                 }
             } else {
                 log.error("执行数据清洗失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
