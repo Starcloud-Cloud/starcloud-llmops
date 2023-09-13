@@ -30,6 +30,11 @@ public class DocumentSegmentDTO {
     private String segmentId;
 
     /**
+     * 命中次数
+     */
+    private Integer hitCount;
+
+    /**
      * 分段序号
      */
     private Integer position;

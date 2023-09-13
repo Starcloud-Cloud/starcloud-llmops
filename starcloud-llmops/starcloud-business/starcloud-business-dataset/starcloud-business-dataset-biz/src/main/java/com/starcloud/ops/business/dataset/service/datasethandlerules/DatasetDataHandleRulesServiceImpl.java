@@ -67,14 +67,17 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
      */
     @Override
     public PageResult<DatasetHandleRulesRespVO> getRulePage(DatasetHandleRulesPageReqVO pageReqVO) {
+        if (datasetsService.validateAppDatasetsExists(pageReqVO.getAppId())) {
+            // 获取数据集信息
+            DatasetsDO datasets = datasetsService.getDatasetInfoByAppId(pageReqVO.getAppId());
 
-        // 获取数据集信息
-        DatasetsDO datasets = datasetsService.getDatasetInfoByAppId(pageReqVO.getAppId());
+            PageResult<DatasetHandleRulesDO> datasetHandleRulesDOPageResult = handleRulesMapper.selectPage(pageReqVO, datasets.getId());
 
-        PageResult<DatasetHandleRulesDO> datasetHandleRulesDOPageResult = handleRulesMapper.selectPage(pageReqVO, datasets.getId());
+            // 数据转换
+            return DatasetHandleRulesConvert.INSTANCE.convertPage(datasetHandleRulesDOPageResult);
+        }
+        return new PageResult<DatasetHandleRulesRespVO>();
 
-        // 数据转换
-        return DatasetHandleRulesConvert.INSTANCE.convertPage(datasetHandleRulesDOPageResult);
     }
 
     /**

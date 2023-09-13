@@ -139,7 +139,9 @@ public interface ErrorCodeConstants {
     /**
      * 修改配置的类型错误
      */
-    ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400009, "{} 实际的配置类型是 {}");
+    ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400010, "{} 实际的配置类型是 {}");
+
+    ErrorCode CHAT_CONFIG_IS_REPEAT = new ErrorCode(300400011, "{}已经存在 , {}");
 
 
     /**
