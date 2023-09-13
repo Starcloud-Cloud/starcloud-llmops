@@ -57,7 +57,7 @@ public class ChatExpandConfigServiceImpl implements ChatExpandConfigService {
     private void validExists(ChatExpandConfigReqVO reqVO, ChatConfigEntity chatConfig) {
         if (reqVO.getSystemHandlerSkillDTO() != null && CollectionUtil.isNotEmpty(chatConfig.getHandlerSkills())) {
             String code = reqVO.getSystemHandlerSkillDTO().getCode();
-            boolean match = chatConfig.getHandlerSkills().stream().anyMatch(handlerSkill -> StringUtils.equals(handlerSkill.getCode(), code));
+            boolean match = chatConfig.getHandlerSkills().stream().anyMatch(handlerSkill -> StringUtils.equals(handlerSkill.getName(), code));
             if (match) {
                 throw exception(CHAT_CONFIG_IS_REPEAT, "系统技能配置", code);
             }
