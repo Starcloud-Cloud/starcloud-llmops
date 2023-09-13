@@ -1,12 +1,15 @@
 package com.starcloud.ops.business.app.service.chat.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import com.alibaba.druid.util.StringUtils;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigReqVO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.dal.databoject.config.ChatExpandConfigDO;
 import com.starcloud.ops.business.app.dal.mysql.config.ChatExpandConfigMapper;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -45,10 +48,27 @@ public class ChatExpandConfigServiceImpl implements ChatExpandConfigService {
         }
         chatAppEntity.getChatConfig().setAppConfigId(reqVO.getAppConfigId());
         chatAppEntity.update();
-
+        validExists(reqVO, chatAppEntity.getChatConfig());
         ChatExpandConfigDO configDO = ChatConfigConvert.INSTANCE.convert(reqVO);
         chatExpandConfigMapper.insert(configDO);
         return configDO.getAppConfigId();
+    }
+
+    private void validExists(ChatExpandConfigReqVO reqVO, ChatConfigEntity chatConfig) {
+        if (reqVO.getSystemHandlerSkillDTO() != null && CollectionUtil.isNotEmpty(chatConfig.getHandlerSkills())) {
+            String code = reqVO.getSystemHandlerSkillDTO().getCode();
+            boolean match = chatConfig.getHandlerSkills().stream().anyMatch(handlerSkill -> StringUtils.equals(handlerSkill.getCode(), code));
+            if (match) {
+                throw exception(CHAT_CONFIG_IS_REPEAT, "系统技能配置", code);
+            }
+        }
+        if (reqVO.getAppWorkflowSkillDTO() != null && CollectionUtil.isNotEmpty(chatConfig.getAppWorkflowSkills())) {
+            String appUid = reqVO.getAppWorkflowSkillDTO().getSkillAppUid();
+            boolean match = chatConfig.getAppWorkflowSkills().stream().anyMatch(appWorkflowSkill -> StringUtils.equals(appWorkflowSkill.getSkillAppUid(), appUid));
+            if (match) {
+                throw exception(CHAT_CONFIG_IS_REPEAT, "应用技能配置", appUid);
+            }
+        }
     }
 
     @Override
