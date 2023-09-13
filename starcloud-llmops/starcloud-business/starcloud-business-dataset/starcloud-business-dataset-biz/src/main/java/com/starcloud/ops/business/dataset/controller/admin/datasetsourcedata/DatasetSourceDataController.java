@@ -2,6 +2,7 @@ package com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
@@ -64,6 +65,7 @@ public class DatasetSourceDataController {
 
     @PostMapping("/uploadFiles")
     @Operation(summary = "上传文件")
+    @OperateLog(enable = false)
     public CommonResult<SourceDataUploadDTO> uploadFiles(UploadFileReqVO reqVO) {
         reqVO.setCleanSync(false);
         reqVO.setSplitSync(false);
@@ -76,6 +78,7 @@ public class DatasetSourceDataController {
 
     @PostMapping("/uploadUrls")
     @Operation(summary = "批量上传HTML")
+    @OperateLog(enable = false)
     public CommonResult<List<SourceDataUploadDTO>> uploadUrls(@Validated @RequestBody UploadUrlReqVO reqVO) {
 
         reqVO.setCleanSync(false);
@@ -89,6 +92,7 @@ public class DatasetSourceDataController {
 
     @PostMapping("/uploadCharacters")
     @Operation(summary = "上传字符串文本")
+    @OperateLog(enable = false)
     public CommonResult<List<SourceDataUploadDTO>> uploadCharacter(@Validated @RequestBody UploadCharacterReqVO reqVO) {
         reqVO.setCleanSync(false);
         reqVO.setSplitSync(false);

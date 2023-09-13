@@ -64,7 +64,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
 
     public static ImageService imageService = SpringUtil.getBean(ImageService.class);
 
-    private String userName = "图片生成";
+    private String userName = "生成图片";
 
     private String userDescription = "可以根据描述词, 生成出任意风格的图片";
 
@@ -72,9 +72,11 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
 
     private String description = "Generate images. This is used when you need to generate an image. The input is a sentence describing an image. The output is an access address to an image.";
 
+    private String icon = "AddPhotoAlternate";
 
-    private String usage = "帮我生成一张跑车的照片电影风格的\n" +
-            "帮我生成一张少女在湖边散步的照片卡通风格的";
+
+    private String usage = "1.帮我生成一张跑车的照片电影风格的\n" +
+            "2.帮我生成一张少女在湖边散步的照片卡通风格的";
 
     /**
      * 工具名称

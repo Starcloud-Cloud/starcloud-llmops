@@ -1,5 +1,6 @@
 package com.starcloud.ops.llm.langchain.llm;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.util.JSONPObject;
@@ -96,6 +97,10 @@ public class ToolTest extends SpringBootTests {
     }
 
 
+    public static void main(String[] args) {
+        Double d = Double.valueOf(NumberUtil.decimalFormat("0.0", 1.5 / 2));
+        System.out.print(d);
+    }
 
 
 }

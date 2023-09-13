@@ -45,14 +45,18 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
     private String userName = "文档内容搜索";
 
-    private String userDescription = "可以对已经上传后的文档进行搜索，支持自然语言的搜索";
+    private String userDescription = "可以对已经上传后的文档进行自然语言的搜索";
 
     private String name = "DocSearchHandler";
+
+
+    private String icon = "ContentPasteSearch";
 
     /**
      * 工具名称
      */
     private String toolName = "Document Content Search";
+
 
     /**
      * 工具描述
