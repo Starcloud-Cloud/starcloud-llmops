@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.chat.momory;
 
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -45,7 +46,7 @@ public class MessageContentDocMemory {
         String appUid = this.messageMemory.getChatAppEntity().getUid();
         String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
         log.info("MessageContentDocMemory init start, appUid:[{}] conversationUid[{}]", appUid, conversationUid);
-        this.reloadHistory();
+        this.loadHistory();
     }
 
     public Boolean hasHistory() {
@@ -118,11 +119,9 @@ public class MessageContentDocMemory {
      */
     public void addHistory(List<MessageContentDocDTO> messageContentDocDTOList) {
 
-        Optional.ofNullable(messageContentDocDTOList).orElse(new ArrayList<>()).forEach(doc -> {
+        this.storageHistoryList(messageContentDocDTOList);
 
-            if (this.getStorage()) {
-                this.storageHistory(doc);
-            }
+        Optional.ofNullable(messageContentDocDTOList).orElse(new ArrayList<>()).forEach(doc -> {
             // 增加到当前历史中，上面异常也可以增加到历史，因为方法传入的就表示有返回值了，可以做为上下文了
             this.getHistory().addDoc(doc);
         });
@@ -134,7 +133,7 @@ public class MessageContentDocMemory {
      * 查询加载历史
      * 1，主要查询出之前对话过程中存储的 上下文文档的总结信息（因为总结是异步的）
      */
-    protected MessageContentDocHistory reloadHistory() {
+    protected MessageContentDocHistory loadHistory() {
 
         String appUid = this.messageMemory.getChatAppEntity().getUid();
         String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
@@ -146,11 +145,116 @@ public class MessageContentDocMemory {
         List<MessageContentDocDTO> history = this.convertMessageContentDoc(sourceDataBasicInfoVOS);
         this.history.setDocs(history);
 
-        log.info("MessageContentDocMemory reloadHistory appUid[{}] conversationUid[{}]: {}", appUid, conversationUid, JsonUtils.toJsonString(this.history));
+        log.info("MessageContentDocMemory loadHistory appUid[{}] conversationUid[{}]: {}", appUid, conversationUid, JsonUtils.toJsonString(this.history));
 
         return this.history;
     }
 
+
+    /**
+     * 刷新上下文文档的总结字段内容
+     * 1，总结是异步的，所以在这每次都刷新一遍
+     *
+     * @todo 查询返回的内容 和 总结内容
+     */
+    public MessageContentDocHistory reloadHistory() {
+
+
+        return this.history;
+    }
+
+
+    /**
+     * 批量上传上下文文档
+     *
+     * @param
+     */
+    private void storageHistoryList(List<MessageContentDocDTO> docs) {
+
+        try {
+
+            String appUid = this.messageMemory.getChatRequestVO().getAppUid();
+            String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
+            Long userId = this.messageMemory.getChatRequestVO().getUserId();
+            Long endUser = this.messageMemory.getChatRequestVO().getEndUserId();
+
+            //一次只会有一种类型
+            Map<String, List<MessageContentDocDTO>> docMaps = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().filter(doc -> {
+                if (doc.getId() != null || StrUtil.isBlank(doc.getUrl())) {
+                    log.info("MessageContentDocMemory storageHistoryList doc exception: {}", JsonUtils.toJsonString(doc));
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.groupingBy(MessageContentDocDTO::getType));
+
+            BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+            baseDBHandleDTO.setCreator(userId);
+            baseDBHandleDTO.setEndUser(endUser);
+
+            //分类型处理
+
+            //web
+            List<MessageContentDocDTO> urlDocs = docMaps.getOrDefault(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name(), new ArrayList<>());
+            List<String> docUrls = Optional.ofNullable(urlDocs).orElse(new ArrayList<>()).stream().map(MessageContentDocDTO::getUrl).collect(Collectors.toList());
+
+            if (CollectionUtil.isNotEmpty(docUrls)) {
+
+                UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
+                uploadUrlReqVO.setCleanSync(true);
+                uploadUrlReqVO.setSplitSync(false);
+                uploadUrlReqVO.setIndexSync(false);
+                uploadUrlReqVO.setAppId(appUid);
+                uploadUrlReqVO.setSessionId(conversationUid);
+
+                uploadUrlReqVO.setUrls(docUrls);
+                List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, baseDBHandleDTO);
+
+                Assert.equals(urlDocs.size(), sourceDataUploadDTOS.size(), "storageHistoryList uploadUrls is fail");
+
+                for (int i = 0; i < sourceDataUploadDTOS.size(); i++) {
+                    Long docId = sourceDataUploadDTOS.get(i).getSourceDataId();
+                    urlDocs.get(i).setId(docId);
+                }
+            }
+
+
+            //tool
+            List<MessageContentDocDTO> toolDocs = docMaps.getOrDefault(MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.name(), new ArrayList<>());
+            List<CharacterDTO> characterDTOList = Optional.ofNullable(toolDocs).orElse(new ArrayList<>()).stream().map(doc -> {
+                return new CharacterDTO().setTitle(doc.getTitle()).setContext(doc.getContent());
+            }).collect(Collectors.toList());
+
+            if (CollectionUtil.isNotEmpty(characterDTOList)) {
+                UploadCharacterReqVO characterReqVO = new UploadCharacterReqVO();
+                characterReqVO.setCleanSync(true);
+                characterReqVO.setSplitSync(false);
+                characterReqVO.setIndexSync(false);
+                characterReqVO.setAppId(appUid);
+                characterReqVO.setSessionId(conversationUid);
+
+                characterReqVO.setCharacterVOS(characterDTOList);
+
+                List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadCharactersSourceDataBySession(characterReqVO, baseDBHandleDTO);
+
+                Assert.equals(toolDocs.size(), sourceDataUploadDTOS.size(), "storageHistoryList uploadCharacters is fail");
+
+                for (int i = 0; i < sourceDataUploadDTOS.size(); i++) {
+                    Long docId = sourceDataUploadDTOS.get(i).getSourceDataId();
+                    toolDocs.get(i).setId(docId);
+                }
+            }
+
+            //FILE
+            //文件不会直接保存都，都是先单独上传，后续用文档ID去处理
+
+        } catch (Exception e) {
+
+            // 上传文档到异常不处理，如果失败就不增加到上下文。只靠messageHistory 老逻辑的历史记录 去实现上下文
+
+            log.error("MessageContentDocMemory storageHistory is error: {}", e.getMessage(), e);
+        }
+
+    }
 
     /**
      * 保存文档历史
@@ -262,19 +366,19 @@ public class MessageContentDocMemory {
                 }
             }
 
-            // 重新查询内容, 可获取到总结
-            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataById(sourceDataId, true);
-
-            if (detailsInfoVO != null) {
-                if (StrUtil.isNotBlank(detailsInfoVO.getSummary())) {
-                    // 更新下最新的内容
-                    doc.setSummary(detailsInfoVO.getSummary());
-                    //精简内容只留总结的
-                    doc.setContent(null);
-                }
-            } else {
-                log.error("storageHistory is fail, getSourceDataListData is null. sourceDataId: {}", sourceDataId);
-            }
+//            // 重新查询内容, 可获取到总结
+//            DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataById(sourceDataId, true);
+//
+//            if (detailsInfoVO != null) {
+//                if (StrUtil.isNotBlank(detailsInfoVO.getSummary())) {
+//                    // 更新下最新的内容
+//                    doc.setSummary(detailsInfoVO.getSummary());
+//                    //精简内容只留总结的
+//                    doc.setContent(null);
+//                }
+//            } else {
+//                log.error("storageHistory is fail, getSourceDataListData is null. sourceDataId: {}", sourceDataId);
+//            }
 
         } catch (Exception e) {
 

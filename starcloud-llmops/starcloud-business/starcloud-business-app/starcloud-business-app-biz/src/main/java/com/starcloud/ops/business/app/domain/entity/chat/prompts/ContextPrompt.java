@@ -215,6 +215,7 @@ public class ContextPrompt extends BasePromptConfig {
 
             log.info("ContextPrompt loadMessageContentDoc dataSet result:{}", JsonUtils.toJsonString(searchResult));
 
+            this.getMessageContentDocMemory().reloadHistory();
             //直接查询当前上下文内容
             MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().getHistory();
 
