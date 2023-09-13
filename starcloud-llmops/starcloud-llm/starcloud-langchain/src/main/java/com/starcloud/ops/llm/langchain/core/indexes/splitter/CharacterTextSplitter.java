@@ -22,7 +22,7 @@ public class CharacterTextSplitter extends BasicTextSplitter {
 
         String[] arr = text.split(sj.toString()); // 使用正则表达式拆分字符串
         for (String s : arr) {
-            if (s.length() <= chunkSize) {
+            if (s.length() <= chunkSize * 2) {
                 result.add(s);
             } else {
                 int start = 0;
