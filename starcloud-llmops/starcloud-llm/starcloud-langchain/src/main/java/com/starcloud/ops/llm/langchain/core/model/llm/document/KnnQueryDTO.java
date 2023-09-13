@@ -22,6 +22,8 @@ public class KnnQueryDTO {
 
     private Long numCandidates;
 
+    private Double minScore;
+
     public void checkDefaultValue() {
         if (k == null || k <= 0L) {
             k = 2L;

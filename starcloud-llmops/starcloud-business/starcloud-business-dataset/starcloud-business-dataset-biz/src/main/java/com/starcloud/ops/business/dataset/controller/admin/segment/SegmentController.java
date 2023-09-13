@@ -67,8 +67,8 @@ public class SegmentController {
         return CommonResult.success(documentSegmentsService.matchQuery(request));
     }
 
-    @GetMapping("/split/delete/{datasetId}/{documentId}}")
-    @Operation(summary = "文档分段禁用/启用", description = "文档分段禁用/启用")
+    @DeleteMapping("/split/delete/{datasetId}/{documentId}}")
+    @Operation(summary = "删除文档分段", description = "删除文档分段")
     public CommonResult<Boolean> deleteDoc(@PathVariable("datasetId") String datasetId,
                                            @PathVariable("documentId") String documentId) {
         documentSegmentsService.deleteSegment(datasetId, documentId);

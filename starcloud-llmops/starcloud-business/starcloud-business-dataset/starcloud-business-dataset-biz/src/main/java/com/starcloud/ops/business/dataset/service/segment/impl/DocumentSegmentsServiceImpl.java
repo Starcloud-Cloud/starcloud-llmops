@@ -343,7 +343,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
         EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
-                .datasetIds(datasetIds).k(request.getK()).build();
+                .datasetIds(datasetIds).minScore(request.getMinScore()).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
         return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).tokens(queryText.getTotalTokens()).queryText(request.getText()).build();
     }
@@ -367,7 +367,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             return MatchQueryVO.builder().queryText(request.getText()).build();
         }
         EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
-        KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().documentIds(request.getDocId().stream().map(String::valueOf).collect(Collectors.toList())).k(request.getK()).build();
+        KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
+                .documentIds(request.getDocId().stream().map(String::valueOf).collect(Collectors.toList()))
+                .k(request.getK()).minScore(request.getMinScore()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
         return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).queryText(request.getText()).tokens(queryText.getTotalTokens()).build();
     }
