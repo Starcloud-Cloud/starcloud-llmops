@@ -179,13 +179,7 @@ public class MessageContentDocMemory {
             Long endUser = this.messageMemory.getChatRequestVO().getEndUserId();
 
             //一次只会有一种类型
-            Map<String, List<MessageContentDocDTO>> docMaps = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().filter(doc -> {
-                if (doc.getId() != null || StrUtil.isBlank(doc.getUrl())) {
-                    log.info("MessageContentDocMemory storageHistoryList doc exception: {}", JsonUtils.toJsonString(doc));
-                    return false;
-                }
-                return true;
-            }).collect(Collectors.groupingBy(MessageContentDocDTO::getType));
+            Map<String, List<MessageContentDocDTO>> docMaps = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().collect(Collectors.groupingBy(MessageContentDocDTO::getType));
 
             BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
             baseDBHandleDTO.setCreator(userId);
@@ -194,8 +188,15 @@ public class MessageContentDocMemory {
             //分类型处理
 
             //web
-            List<MessageContentDocDTO> urlDocs = docMaps.getOrDefault(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name(), new ArrayList<>());
-            List<String> docUrls = Optional.ofNullable(urlDocs).orElse(new ArrayList<>()).stream().map(MessageContentDocDTO::getUrl).collect(Collectors.toList());
+            List<MessageContentDocDTO> urlDocs = Optional.ofNullable(docMaps.get(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name())).orElse(new ArrayList<>()).stream().filter(doc -> {
+                if (doc.getId() != null || StrUtil.isBlank(doc.getUrl())) {
+                    log.info("storageHistoryList urlDocs exception: {}", JsonUtils.toJsonString(doc));
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.toList());
+
+            List<String> docUrls = Optional.of(urlDocs).orElse(new ArrayList<>()).stream().map(MessageContentDocDTO::getUrl).collect(Collectors.toList());
 
             if (CollectionUtil.isNotEmpty(docUrls)) {
 
@@ -219,8 +220,16 @@ public class MessageContentDocMemory {
 
 
             //tool
-            List<MessageContentDocDTO> toolDocs = docMaps.getOrDefault(MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.name(), new ArrayList<>());
-            List<CharacterDTO> characterDTOList = Optional.ofNullable(toolDocs).orElse(new ArrayList<>()).stream().map(doc -> {
+
+            List<MessageContentDocDTO> toolDocs = Optional.ofNullable(docMaps.get(MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.name())).orElse(new ArrayList<>()).stream().filter(doc -> {
+                if (doc.getId() != null || StrUtil.isBlank(doc.getTitle())) {
+                    log.info("storageHistoryList toolDocs exception: {}", JsonUtils.toJsonString(doc));
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.toList());
+
+            List<CharacterDTO> characterDTOList = Optional.of(toolDocs).orElse(new ArrayList<>()).stream().map(doc -> {
                 return new CharacterDTO().setTitle(doc.getTitle()).setContext(doc.getContent());
             }).collect(Collectors.toList());
 
