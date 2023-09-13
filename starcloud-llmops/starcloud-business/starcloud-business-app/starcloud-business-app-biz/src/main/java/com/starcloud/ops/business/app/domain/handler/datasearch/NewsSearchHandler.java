@@ -38,6 +38,8 @@ public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Reque
 
     private String description = "Search News engines. Useful when you need to search for news on the Internet. The input should be a news related to search queries.";
 
+    private String usage = "帮我搜索下最近亚运会的新闻\n" +
+            "搜下关于杭州地铁的新闻";
 
     private static SerpAPITool serpAPITool = new SerpAPITool();
 

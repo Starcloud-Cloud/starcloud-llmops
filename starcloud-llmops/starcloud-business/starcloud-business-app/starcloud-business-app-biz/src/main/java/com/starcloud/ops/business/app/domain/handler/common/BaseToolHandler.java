@@ -79,6 +79,12 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
 
 
     /**
+     * 使用说明
+     */
+    private String usage;
+
+
+    /**
      * 是否把执行的结果保存为上下文
      *
      * @return
