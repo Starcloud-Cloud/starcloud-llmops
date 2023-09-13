@@ -221,7 +221,6 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                     segmentMapper.updateById(segmentDO);
                 } catch (Exception e) {
                     log.error("embedding index error:", e);
-                    throw exception(DATASETS_EMBEDDING_ERROR);
                 } finally {
                     countDownLatch.countDown();
                 }
