@@ -147,7 +147,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
 
         List<InteractiveData> dataList = Optional.ofNullable(imageDTOS).orElse(new ArrayList<>()).stream().map(imageDTO -> {
             InteractiveData interactiveData = new InteractiveData();
-            interactiveData.setUrl(imageDTO.getUrl());
+            interactiveData.setImageUrl(imageDTO.getUrl());
             interactiveData.setTime(DateUtil.now());
             return interactiveData;
         }).collect(Collectors.toList());
