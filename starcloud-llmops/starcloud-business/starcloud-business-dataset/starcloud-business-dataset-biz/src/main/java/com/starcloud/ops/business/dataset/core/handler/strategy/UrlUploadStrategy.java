@@ -3,15 +3,12 @@ package com.starcloud.ops.business.dataset.core.handler.strategy;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
 import com.starcloud.ops.business.dataset.util.dataset.JsoupUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
@@ -58,19 +55,18 @@ public class UrlUploadStrategy implements UploadStrategy {
 
         UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
-        // 判断 URL 是网页还是文件流
         // 设置文件名称
         Document doc;
         try {
             doc = JsoupUtil.loadUrl(url, language);
-
         } catch (Exception e) {
             uploadFileRespDTO.setName(url);
             uploadFileRespDTO.setErrCode(String.valueOf(SOURCE_DATA_UPLOAD_URL_FAIL_INACCESSIBLE.getCode()));
             uploadFileRespDTO.setErrMsg(SOURCE_DATA_UPLOAD_URL_FAIL_INACCESSIBLE.getMsg());
-            log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
+            log.error("====> 使用代理请求网页解析失败,数据状态为 false，网页链接为{}", url, e);
             return uploadFileRespDTO;
         }
+
 
         // 获取网页的title
         String name = getUrlTitle(doc);

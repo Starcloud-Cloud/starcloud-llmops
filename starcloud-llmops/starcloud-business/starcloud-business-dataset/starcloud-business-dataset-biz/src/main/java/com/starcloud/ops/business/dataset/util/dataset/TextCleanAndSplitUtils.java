@@ -2,20 +2,16 @@ package com.starcloud.ops.business.dataset.util.dataset;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.URLUtil;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataFormatEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.CommonCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.HTMLCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import io.github.furstenheim.CopyDown;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -39,15 +35,8 @@ public class TextCleanAndSplitUtils {
         String text;
         // 根据用户设置语言设置
         try {
-            String normalize = URLUtil.normalize(data);
-
-            Connection connection = Jsoup.connect(normalize);
-
-            // 设置请求头中的 Accept-Language 属性
-
-            connection.header("Accept-Language", htmlCleanRule.getAcceptLanguage());
-
-            text = connection.get().toString();
+            Document document = JsoupUtil.loadUrl(data, htmlCleanRule.getAcceptLanguage());
+            text = document.outerHtml();
         } catch (Exception e) {
             throw new RuntimeException("数据预处理失败，无法请求到地址！");
         }

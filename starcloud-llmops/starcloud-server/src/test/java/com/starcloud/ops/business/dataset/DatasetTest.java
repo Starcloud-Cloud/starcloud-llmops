@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
-import java.io.IOException;
 import java.util.Collections;
 
 @Slf4j
@@ -69,7 +68,7 @@ public class DatasetTest extends BaseDbUnitTest {
         Document doc = null;
         try {
             doc = JsoupUtil.loadUrl(url, null);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
