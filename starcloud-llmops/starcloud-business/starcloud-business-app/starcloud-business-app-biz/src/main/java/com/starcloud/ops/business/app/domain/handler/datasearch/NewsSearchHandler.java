@@ -41,6 +41,8 @@ public class NewsSearchHandler extends BaseToolHandler<SearchEngineHandler.Reque
     private String usage = "帮我搜索下最近亚运会的新闻\n" +
             "搜下关于杭州地铁的新闻";
 
+    private String icon = "FiberNew";
+
     private static SerpAPITool serpAPITool = new SerpAPITool();
 
 

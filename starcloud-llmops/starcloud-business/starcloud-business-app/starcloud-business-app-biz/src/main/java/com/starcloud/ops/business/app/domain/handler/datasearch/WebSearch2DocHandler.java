@@ -56,6 +56,9 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
             "https://www.hangzhou2022.cn/xwzx/jdxw/ttxw/202308/t20230824_70312.shtml 总结下里面的内容";
 
 
+    private String icon = "FindInPage";
+
+
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
 

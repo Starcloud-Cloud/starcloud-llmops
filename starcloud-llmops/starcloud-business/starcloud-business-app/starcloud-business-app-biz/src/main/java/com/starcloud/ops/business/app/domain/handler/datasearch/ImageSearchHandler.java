@@ -43,6 +43,8 @@ public class ImageSearchHandler extends BaseToolHandler<SearchEngineHandler.Requ
     private String usage = "帮我搜索下亚运会图片\n" +
             "帮我搜索篮球比赛的图片";
 
+    private String icon = "ImageSearch";
+
     private static SerpAPITool serpAPITool = new SerpAPITool();
 
     /**
