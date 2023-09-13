@@ -52,8 +52,8 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
     private int summarySubSize = 300;
 
-    private String usage = "帮我看下 https://www.hangzhou2022.cn/fw/emwtjd/202308/t20230825_70460.shtml 说了什么？ \n" +
-            "https://www.hangzhou2022.cn/xwzx/jdxw/ttxw/202308/t20230824_70312.shtml 总结下里面的内容";
+    private String usage = "1.帮我看下 https://www.hangzhou2022.cn/fw/emwtjd/202308/t20230825_70460.shtml 说了什么？ \n" +
+            "2.https://www.hangzhou2022.cn/xwzx/jdxw/ttxw/202308/t20230824_70312.shtml 总结下里面的内容";
 
 
     private String icon = "FindInPage";

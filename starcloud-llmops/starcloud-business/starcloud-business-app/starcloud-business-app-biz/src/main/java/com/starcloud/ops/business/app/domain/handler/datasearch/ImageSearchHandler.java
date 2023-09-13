@@ -40,8 +40,8 @@ public class ImageSearchHandler extends BaseToolHandler<SearchEngineHandler.Requ
 
     private String description = "Search images engines. Useful when you need to search for images on the web. The input should be an image-related search query.";
 
-    private String usage = "帮我搜索下亚运会图片\n" +
-            "帮我搜索篮球比赛的图片";
+    private String usage = "1.帮我搜索下亚运会图片\n" +
+            "2.帮我搜索篮球比赛的图片";
 
     private String icon = "ImageSearch";
 

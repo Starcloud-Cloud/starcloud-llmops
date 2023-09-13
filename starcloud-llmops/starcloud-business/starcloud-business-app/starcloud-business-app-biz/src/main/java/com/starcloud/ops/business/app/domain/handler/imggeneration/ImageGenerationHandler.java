@@ -75,8 +75,8 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
     private String icon = "AddPhotoAlternate";
 
 
-    private String usage = "帮我生成一张跑车的照片电影风格的\n" +
-            "帮我生成一张少女在湖边散步的照片卡通风格的";
+    private String usage = "1.帮我生成一张跑车的照片电影风格的\n" +
+            "2.帮我生成一张少女在湖边散步的照片卡通风格的";
 
     /**
      * 工具名称
