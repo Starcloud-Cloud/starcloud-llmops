@@ -15,6 +15,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -143,10 +144,10 @@ public class TextCleanAndSplitUtils {
             String blackRule = String.join(",", blackRules);
 
             Elements select = doc.select(blackRule);
-            for (Element element : select) {
-                element.remove();
-            }
-            if (StrUtil.isBlank(doc.html())) {
+
+            select.remove();
+
+            if (StrUtil.isBlank(doc.outerHtml())) {
                 throw exception(DATASET_HANDLE_RULE_BLACK_CLEAN_FAIL);
             }
         }

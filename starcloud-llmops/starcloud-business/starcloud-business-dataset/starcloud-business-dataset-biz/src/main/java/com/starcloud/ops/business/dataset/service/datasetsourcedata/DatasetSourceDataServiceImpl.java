@@ -128,17 +128,15 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         sourceDataUrlUploadDTO.setAppId(reqVO.getAppId());
         sourceDataUrlUploadDTO.setBatch(reqVO.getBatch());
 
-
-        String[] allowedTypes = {"application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain", "text/markdown", "text/csv"};
-
-        Tika tika = new Tika();
+        String[] allowedTypes = {"pdf", "doc","docx", "text","txt", "md", "csv"};
+        String extName = getFileExtension(Objects.requireNonNull(reqVO.getFile().getOriginalFilename()));
 
         boolean isValidFileType = false;
         try {
-            String mimeType = tika.detect(reqVO.getFile().getOriginalFilename());
+            // String mimeType = tika.detect(reqVO.getFile().getOriginalFilename());
             // 检查是否是允许的文件类型
             for (String allowedType : allowedTypes) {
-                if (mimeType.equals(allowedType)) {
+                if (extName.equals(allowedType)) {
                     isValidFileType = true;
                     break;
                 }
@@ -147,19 +145,19 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             log.error("获取文件类型失败");
         }
 
-
-        // 使用Tika检测文件类型
-        MediaType mediaType;
-        String mediaTypeExtension;
-        String extName = getFileExtension(Objects.requireNonNull(reqVO.getFile().getOriginalFilename()));
-        try (TikaInputStream tis = TikaInputStream.get(reqVO.getFile().getInputStream())) {
-            mediaType = TikaConfig.getDefaultConfig().getDetector().detect(tis, new Metadata());
-            mediaTypeExtension = MimeTypes.getDefaultMimeTypes().forName(mediaType.toString()).getExtension();
-            mediaTypeExtension = mediaTypeExtension.replace(".", "");
-        } catch (IOException | MimeTypeException e) {
-            throw new RuntimeException("Could not read file", e);
-        }
-        if (!isValidFileType && !mediaTypeExtension.equals(extName)) {
+        //
+        // // 使用Tika检测文件类型
+        // MediaType mediaType;
+        // String mediaTypeExtension;
+        // String extName = getFileExtension(Objects.requireNonNull(reqVO.getFile().getOriginalFilename()));
+        // try (TikaInputStream tis = TikaInputStream.get(reqVO.getFile().getInputStream())) {
+        //     mediaType = TikaConfig.getDefaultConfig().getDetector().detect(tis, new Metadata());
+        //     mediaTypeExtension = MimeTypes.getDefaultMimeTypes().forName(mediaType.toString()).getExtension();
+        //     mediaTypeExtension = mediaTypeExtension.replace(".", "");
+        // } catch (IOException | MimeTypeException e) {
+        //     throw new RuntimeException("Could not read file", e);
+        // }
+        if (!isValidFileType) {
             sourceDataUrlUploadDTO.setStatus(false);
             sourceDataUrlUploadDTO.setErrMsg("文件格式暂时无法适配，我们紧急处理中！");
             return sourceDataUrlUploadDTO;
@@ -365,6 +363,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
     public void deleteDatasetSourceData(String uid) {
         // 校验存在
         validateDatasetSourceDataExists(uid);
+        // FIXME: 2023/9/13 删除分段
+        
         // 删除
         datasetSourceDataMapper.delete(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid));
     }
