@@ -37,6 +37,7 @@ import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
@@ -127,6 +128,26 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         sourceDataUrlUploadDTO.setAppId(reqVO.getAppId());
         sourceDataUrlUploadDTO.setBatch(reqVO.getBatch());
 
+
+        String[] allowedTypes = {"application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain", "text/markdown", "text/csv"};
+
+        Tika tika = new Tika();
+
+        boolean isValidFileType = false;
+        try {
+            String mimeType = tika.detect(reqVO.getFile().getOriginalFilename());
+            // 检查是否是允许的文件类型
+            for (String allowedType : allowedTypes) {
+                if (mimeType.equals(allowedType)) {
+                    isValidFileType = true;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            log.error("获取文件类型失败");
+        }
+
+
         // 使用Tika检测文件类型
         MediaType mediaType;
         String mediaTypeExtension;
@@ -138,7 +159,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         } catch (IOException | MimeTypeException e) {
             throw new RuntimeException("Could not read file", e);
         }
-        if (!mediaTypeExtension.equals(extName)) {
+        if (!isValidFileType && !mediaTypeExtension.equals(extName)) {
             sourceDataUrlUploadDTO.setStatus(false);
             sourceDataUrlUploadDTO.setErrMsg("文件格式暂时无法适配，我们紧急处理中！");
             return sourceDataUrlUploadDTO;
@@ -272,7 +293,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         baseDBHandleDTO = setBaseDbHandleInfo(reqVOS.getAppId(), reqVOS.getSessionId(), baseDBHandleDTO);
 
         List<SourceDataUploadDTO> resultDTOs = new ArrayList<>();
-
+        // FIXME: 2023/9/13 顺序返回结果
         for (CharacterDTO reqVO : reqVOS.getCharacterVOS()) {
             SourceDataUploadDTO sourceDataUploadDTO = new SourceDataUploadDTO();
             sourceDataUploadDTO.setAppId(reqVOS.getAppId());
@@ -399,7 +420,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             // "文件名无扩展名，无法确定文件类型"
             throw exception(1);
         }
-// 不包含点，所以使用dotIndex + 1
+        // 不包含点，所以使用dotIndex + 1
         return fileName.substring(dotIndex + 1);
     }
 
