@@ -66,15 +66,15 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
 
     private String userName = "图片生成";
 
-    private String userDescription = "可以根据描述词, 生成出任何风格的图片";
+    private String userDescription = "可以根据描述词, 生成出任意风格的图片";
 
     private String name = "ImageGenerationHandler";
 
     private String description = "Generate images. This is used when you need to generate an image. The input is a sentence describing an image. The output is an access address to an image.";
 
 
-    private String usage = "帮我生成一张跑车的照片\n" +
-            "帮我生成一张少女在湖边散步的照片";
+    private String usage = "帮我生成一张跑车的照片电影风格的\n" +
+            "帮我生成一张少女在湖边散步的照片卡通风格的";
 
     /**
      * 工具名称
@@ -209,7 +209,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
 
         //@see StylePresetEnum
         @JsonProperty(required = true)
-        @JsonPropertyDescription("Guiding the image model toward a particular style.Values include: enhance, anime, photographic, comic-book. Can only use this value.")
+        @JsonPropertyDescription("Guiding the image model toward a particular style.Values include: enhance, anime, photographic, comic-book, fantasy-art, analog-film, neon-punk, isometric, low-poly, origami, line-art, cinematic, 3d-model, pixel-art. Can only use this value.")
         private String stylePreset;
 
     }
