@@ -531,7 +531,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         HandlerContext appContext = this.instanceHandlerContext(request);
 
         //web search
-        if (searchConfigEntity != null && searchConfigEntity.getEnabled()) {
+        if (searchConfigEntity != null && Boolean.TRUE.equals(searchConfigEntity.getEnabled())) {
 
 //            //爬取网页
 //            WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
