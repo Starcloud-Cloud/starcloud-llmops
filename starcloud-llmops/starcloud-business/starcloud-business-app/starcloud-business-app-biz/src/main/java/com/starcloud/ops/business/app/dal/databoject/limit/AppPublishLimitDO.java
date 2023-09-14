@@ -55,20 +55,20 @@ public class AppPublishLimitDO extends TenantBaseDO {
     private String channelUid;
 
     /**
-     * 频率限制配置
+     * 应用限流配置
      */
-    @TableField("rate_config")
-    private String rateConfig;
+    @TableField("app_limit_rule")
+    private String appLimitRule;
 
     /**
-     * 用户用量限制配置
+     * 用户限流配置
      */
-    @TableField("user_rate_config")
-    private String userRateConfig;
+    @TableField("user_limit_rule")
+    private String userLimitRule;
 
     /**
-     * 广告位限制配置
+     * 广告限制配置
      */
-    @TableField("advertising_config")
-    private String advertisingConfig;
+    @TableField("advertising_rule")
+    private String advertisingRule;
 }

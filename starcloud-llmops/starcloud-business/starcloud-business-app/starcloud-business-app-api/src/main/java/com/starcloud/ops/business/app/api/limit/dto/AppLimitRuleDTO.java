@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.limit.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,8 +19,9 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @EqualsAndHashCode
-@Schema(name = "LimitConfigDTO", description = "限流详细配置DTO")
-public class AppLimitConfigDTO implements Serializable {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(name = "AppLimitRuleDTO", description = "限流详细配置DTO")
+public class AppLimitRuleDTO implements Serializable {
 
     private static final long serialVersionUID = 4978714304963662944L;
 

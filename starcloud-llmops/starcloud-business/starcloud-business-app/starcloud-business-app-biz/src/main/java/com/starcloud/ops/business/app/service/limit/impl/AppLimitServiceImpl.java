@@ -4,14 +4,14 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
-import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitRuleDTO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitQuery;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.limit.AppLimitByEnum;
-import com.starcloud.ops.business.app.enums.limit.AppLimitConfigEnum;
+import com.starcloud.ops.business.app.enums.limit.AppLimitRuleEnum;
 import com.starcloud.ops.business.app.exception.AppLimitException;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
@@ -217,8 +217,8 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param request   请求数据
      */
     private void doSystemLimit(String keyPrefix, AppLimitRequest request) {
-        List<AppLimitConfigDTO> limitConfigList = appDictionaryService.appSystemLimitConfig();
-        for (AppLimitConfigDTO config : limitConfigList) {
+        List<AppLimitRuleDTO> limitRuleList = appDictionaryService.systemLimitRuleList();
+        for (AppLimitRuleDTO config : limitRuleList) {
             // 校验配置信息
             validateConfig(config);
 
@@ -228,7 +228,7 @@ public class AppLimitServiceImpl implements AppLimitService {
             }
 
             // NO_ADS_SCENES 中的场景不需要打广告
-            if (AppLimitConfigEnum.ADVERTISING.name().equals(config.getCode()) && NO_ADS_SCENES.contains(request.getFromScene())) {
+            if (AppLimitRuleEnum.ADVERTISING.name().equals(config.getCode()) && NO_ADS_SCENES.contains(request.getFromScene())) {
                 continue;
             }
 
@@ -268,16 +268,19 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     private void doChannelLimit(AppLimitRequest request) {
         AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(request.getMediumUid());
+
         AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getMediumUid());
+
         log.info("应用渠道发布限流: 应用UID: {}, 发布UID: {}，渠道UID: {}, 渠道名称: {}", channel.getAppUid(), channel.getPublishUid(), channel.getAppUid(), channel.getName());
+
         // 用户配置限流
-        List<AppLimitConfigDTO> limitConfigList = this.defaultIfNullPublishLimitList(channel.getAppUid(), channel.getPublishUid(), channel.getUid());
+        List<AppLimitRuleDTO> limitRuleList = this.defaultIfNullPublishLimitList(channel.getAppUid(), channel.getPublishUid(), channel.getUid());
         // 系统配置限流
-        List<AppLimitConfigDTO> systemLimitConfigList = appDictionaryService.appSystemLimitConfig();
+        List<AppLimitRuleDTO> systemLimitRuleList = appDictionaryService.systemLimitRuleList();
         // 循环执行限流
-        for (final AppLimitConfigDTO config : systemLimitConfigList) {
+        for (final AppLimitRuleDTO config : systemLimitRuleList) {
             // 判断是否使用渠道限流的配置
-            Optional<AppLimitConfigDTO> optional = limitConfigList.stream().filter(item -> item.getCode().equals(config.getCode())).findAny();
+            Optional<AppLimitRuleDTO> optional = limitRuleList.stream().filter(item -> item.getCode().equals(config.getCode())).findAny();
             // 使用渠道限流的配置
             if (optional.isPresent()) {
                 AppLimitContext context = getChannelLimitContext(channel.getAppUid(), request.getFromScene(), request.getEndUser(), optional.get());
@@ -360,7 +363,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     private void doLimit(AppLimitContext context) {
         // 获取限流配置
-        AppLimitConfigDTO config = context.getConfig();
+        AppLimitRuleDTO config = context.getConfig();
         // 限流计数 Key
         String limitKey = context.getLimitKey();
         RLock lock = redissonClient.getLock(getLockKey(limitKey));
@@ -465,6 +468,54 @@ public class AppLimitServiceImpl implements AppLimitService {
     }
 
     /**
+     * 获取最粽限流配置
+     *
+     * @param request 请求
+     * @return 限流配置
+     */
+    private List<AppLimitRuleDTO> getLimitRuleList(AppLimitRequest request) {
+        // 用户配置限流
+        String appUid;
+        List<AppLimitRuleDTO> limitRuleList = new ArrayList<>();
+        if (StringUtils.isNotBlank(request.getAppUid())) {
+            appUid = request.getAppUid();
+        } else {
+            AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(request.getMediumUid());
+            AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getMediumUid());
+            appUid = channel.getAppUid();
+        }
+
+        // 获取限流信息
+        AppPublishLimitQuery query = new AppPublishLimitQuery();
+        query.setAppUid(appUid);
+        AppPublishLimitRespVO limitResponse = appPublishLimitService.get(query);
+        // 处理限流规则
+        AppLimitRuleDTO appRateLimit = limitResponse.getAppLimitRule();
+        if (appRateLimit.getEnable() && appRateLimit.getThreshold() > 0 && appRateLimit.getTimeInterval() > 0) {
+            limitRuleList.add(appRateLimit);
+        }
+        AppLimitRuleDTO userLimitRule = limitResponse.getUserLimitRule();
+        if (userLimitRule.getEnable() && userLimitRule.getThreshold() > 0 && userLimitRule.getTimeInterval() > 0) {
+            limitRuleList.add(userLimitRule);
+        }
+        AppLimitRuleDTO advertisingLimitRule = limitResponse.getAdvertisingRule();
+        if (advertisingLimitRule.getEnable() && advertisingLimitRule.getThreshold() > 0) {
+            limitRuleList.add(advertisingLimitRule);
+        }
+
+        List<AppLimitRuleDTO> systemLimitRuleList = appDictionaryService.systemLimitRuleList();
+
+        // 用户未配置限流信息，使用系统默认限流
+        if (CollectionUtil.isEmpty(limitRuleList)) {
+            return systemLimitRuleList;
+        }
+
+
+
+        return null;
+    }
+
+    /**
      * 获取发布限流配置
      *
      * @param appUid     应用 UID
@@ -472,30 +523,27 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param channelUid 渠道UID
      * @return 发布限流配置
      */
-    private List<AppLimitConfigDTO> defaultIfNullPublishLimitList(String appUid, String publishUid, String channelUid) {
+    private List<AppLimitRuleDTO> defaultIfNullPublishLimitList(String appUid, String publishUid, String channelUid) {
         AppPublishLimitQuery query = new AppPublishLimitQuery();
         query.setAppUid(appUid);
         query.setPublishUid(publishUid);
         query.setChannelUid(channelUid);
-        AppPublishLimitRespVO publishLimit = appPublishLimitService.defaultIfNull(query);
+        AppPublishLimitRespVO publishLimit = appPublishLimitService.get(query);
 
-        List<AppLimitConfigDTO> list = new ArrayList<>();
+        List<AppLimitRuleDTO> list = new ArrayList<>();
 
-        AppLimitConfigDTO rateConfig = publishLimit.getRateConfig();
-        if (rateConfig.getEnable() && rateConfig.getThreshold() != null && rateConfig.getThreshold() > 0
-                && rateConfig.getTimeInterval() != null && rateConfig.getTimeInterval() > 0) {
+        AppLimitRuleDTO rateConfig = publishLimit.getAppLimitRule();
+        if (rateConfig.getEnable() && rateConfig.getThreshold() != null && rateConfig.getThreshold() > 0 && rateConfig.getTimeInterval() != null && rateConfig.getTimeInterval() > 0) {
             list.add(rateConfig);
         }
 
-        AppLimitConfigDTO userRateConfig = publishLimit.getUserRateConfig();
-        if (userRateConfig.getEnable() && userRateConfig.getThreshold() != null && userRateConfig.getThreshold() > 0
-                && userRateConfig.getTimeInterval() != null && userRateConfig.getTimeInterval() > 0) {
+        AppLimitRuleDTO userRateConfig = publishLimit.getUserLimitRule();
+        if (userRateConfig.getEnable() && userRateConfig.getThreshold() != null && userRateConfig.getThreshold() > 0 && userRateConfig.getTimeInterval() != null && userRateConfig.getTimeInterval() > 0) {
             list.add(userRateConfig);
         }
 
-        AppLimitConfigDTO advertisingConfig = publishLimit.getAdvertisingConfig();
-        if (advertisingConfig.getEnable() && advertisingConfig.getThreshold() != null && advertisingConfig.getThreshold() > 0
-                && advertisingConfig.getTimeInterval() != null && advertisingConfig.getTimeInterval() > 0) {
+        AppLimitRuleDTO advertisingConfig = publishLimit.getAdvertisingRule();
+        if (advertisingConfig.getEnable() && advertisingConfig.getThreshold() != null && advertisingConfig.getThreshold() > 0 && advertisingConfig.getTimeInterval() != null && advertisingConfig.getTimeInterval() > 0) {
             list.add(advertisingConfig);
         }
 
@@ -509,7 +557,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @return 分页日志消息
      */
     private Page<LogAppMessageRespVO> pageAppLogMessage(AppLimitContext context) {
-        AppLimitConfigDTO config = context.getConfig();
+        AppLimitRuleDTO config = context.getConfig();
         // 查询日志消息表中的已经执行的数量
         AppLogMessageQuery appLogMessageQuery = new AppLogMessageQuery();
         appLogMessageQuery.setAppUid(context.getAppUid());
@@ -530,28 +578,28 @@ public class AppLimitServiceImpl implements AppLimitService {
     /**
      * 获取渠道限流上下文
      *
-     * @param appUid      应用 UID
-     * @param fromScene   执行场景
-     * @param endUser     游客ID
-     * @param limitConfig 限流配置
+     * @param appUid    应用 UID
+     * @param fromScene 执行场景
+     * @param endUser   游客ID
+     * @param limitRule 限流配置
      * @return 限流上下文
      */
-    private AppLimitContext getChannelLimitContext(String appUid, String fromScene, String endUser, AppLimitConfigDTO limitConfig) {
+    private AppLimitContext getChannelLimitContext(String appUid, String fromScene, String endUser, AppLimitRuleDTO limitRule) {
         AppLimitContext context = new AppLimitContext();
         context.setAppUid(appUid);
         context.setFromScene(fromScene);
         context.setEndUser(endUser);
         String limitKey;
-        if (AppLimitByEnum.USER.name().equals(limitConfig.getLimitBy())) {
+        if (AppLimitByEnum.USER.name().equals(limitRule.getLimitBy())) {
             limitKey = getLimitKey(APP_LIMIT_PREFIX, appUid, fromScene, endUser);
-        } else if (AppLimitByEnum.ADVERTISING.name().equals(limitConfig.getLimitBy())) {
+        } else if (AppLimitByEnum.ADVERTISING.name().equals(limitRule.getLimitBy())) {
             limitKey = getLimitKey(ADVERTISING_PREFIX, appUid, fromScene, endUser);
         } else {
             limitKey = getLimitKey(APP_LIMIT_PREFIX, appUid, fromScene);
         }
         log.info("渠道限流：Key值: {} ", limitKey);
         context.setLimitKey(limitKey);
-        context.setConfig(limitConfig);
+        context.setConfig(limitRule);
         return context;
     }
 
@@ -668,7 +716,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      *
      * @param config 配置信息
      */
-    private void validateConfig(AppLimitConfigDTO config) {
+    private void validateConfig(AppLimitRuleDTO config) {
         if (config.getThreshold() == null || config.getThreshold() <= 0) {
             throw exception("system error, please try again or contact the administrator");
         }

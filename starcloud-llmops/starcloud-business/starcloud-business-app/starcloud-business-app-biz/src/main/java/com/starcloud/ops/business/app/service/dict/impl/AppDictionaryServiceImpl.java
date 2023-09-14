@@ -7,29 +7,32 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitRuleDTO;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.limit.AppLimitConfigEnum;
+import com.starcloud.ops.business.app.enums.limit.AppLimitRuleEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-08-04
  */
+@Slf4j
 @Service
 public class AppDictionaryServiceImpl implements AppDictionaryService {
 
@@ -73,29 +76,44 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      * @return 应用限流兜底配置
      */
     @Override
-    public List<AppLimitConfigDTO> appSystemLimitConfig() {
-        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_LIMIT_DEFAULT_CONFIG);
-        List<AppLimitConfigDTO> systemLimitConfig = defaultSystemLimitConfig();
-        if (CollectionUtil.isEmpty(dictDataList)) {
-            return systemLimitConfig;
+    public List<AppLimitRuleDTO> systemLimitRuleList() {
+        // 转换字典限流配置
+        List<AppLimitRuleDTO> dictionaryLimitRuleList = CollectionUtil.emptyIfNull(getDictionaryList(AppConstants.APP_LIMIT_DEFAULT_CONFIG))
+                .stream()
+                .filter(Objects::nonNull)
+                .map(item -> {
+                    AppLimitRuleDTO limitRule;
+                    try {
+                        limitRule = JSONUtil.toBean(item.getRemark(), AppLimitRuleDTO.class);
+                    } catch (Exception e) {
+                        log.warn("DictDataDO remark Json to AppLimitRuleDTO fail, Will ignore this rule：code: {}", item.getValue());
+                        limitRule = null;
+                    }
+                    if (Objects.nonNull(limitRule)) {
+                        limitRule.setCode(item.getValue().toUpperCase());
+                    }
+                    return limitRule;
+                })
+                .filter(Objects::nonNull)
+                .filter(AppLimitRuleDTO::getEnable)
+                .collect(Collectors.toList());
+
+        List<AppLimitRuleDTO> systemLimitRuleList = AppLimitRuleEnum.defaultSystemLimitRuleList();
+
+        // 字典未配置，取 AppLimitRuleEnum 的最后兜底配置
+        if (CollectionUtil.isEmpty(dictionaryLimitRuleList)) {
+            return systemLimitRuleList;
         }
 
-        List<AppLimitConfigDTO> list = new ArrayList<>();
-        for (AppLimitConfigDTO config : systemLimitConfig) {
-            Optional<DictDataDO> any = dictDataList.stream().filter(item -> config.getCode().equalsIgnoreCase(item.getValue())).findAny();
-            if (any.isPresent()) {
-                DictDataDO dataDO = any.get();
-                AppLimitConfigDTO limitConfig = JSONUtil.toBean(dataDO.getRemark(), AppLimitConfigDTO.class);
-                if (limitConfig.getEnable()) {
-                    limitConfig.setCode(dataDO.getValue().toUpperCase());
-                    list.add(limitConfig);
-                    continue;
-                }
-            }
-            list.add(config);
-        }
+        // 取并集，并且 code 相同时候，取 字典 配置
+        Map<String, AppLimitRuleDTO> mergeMap = Stream.concat(dictionaryLimitRuleList.stream(), systemLimitRuleList.stream())
+                .collect(Collectors.toMap(
+                        AppLimitRuleDTO::getCode,
+                        Function.identity(),
+                        (existing, replacement) -> dictionaryLimitRuleList.contains(replacement) ? replacement : existing)
+                );
 
-        return list;
+        return new ArrayList<>(mergeMap.values());
     }
 
     /**
@@ -105,7 +123,6 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      */
     @Override
     public Boolean appLimitSwitch() {
-
         List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_LIMIT_SWITCH);
         if (CollectionUtil.isEmpty(dictDataList)) {
             return Boolean.TRUE;
@@ -157,15 +174,6 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
             return Collections.emptyList();
         }
         return dictDataList;
-    }
-
-    /**
-     * 获取应用系统限流兜底配置
-     *
-     * @return 应用限流兜底配置
-     */
-    private static List<AppLimitConfigDTO> defaultSystemLimitConfig() {
-        return Arrays.stream(AppLimitConfigEnum.values()).map(AppLimitConfigEnum::getDefaultSystemConfig).collect(Collectors.toList());
     }
 
 }

@@ -11,7 +11,7 @@ import com.starcloud.ops.business.app.dal.databoject.limit.AppPublishLimitDO;
 import com.starcloud.ops.business.app.dal.mysql.limit.AppPublishLimitMapper;
 import com.starcloud.ops.business.app.dal.redis.limit.AppPublishLimitRedisMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.limit.AppLimitConfigEnum;
+import com.starcloud.ops.business.app.enums.limit.AppLimitRuleEnum;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.springframework.stereotype.Service;
@@ -57,7 +57,7 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
      * @return 应用发布限流信息
      */
     @Override
-    public AppPublishLimitRespVO defaultIfNull(AppPublishLimitQuery query) {
+    public AppPublishLimitRespVO get(AppPublishLimitQuery query) {
 
         // 缓存中取出来
         AppPublishLimitDO appPublishLimitDO = appPublishLimitRedisMapper.get(query.getAppUid());
@@ -185,9 +185,9 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
         response.setAppUid(query.getAppUid());
         response.setPublishUid(query.getPublishUid());
         response.setChannelUid(query.getChannelUid());
-        response.setRateConfig(AppLimitConfigEnum.RATE.getDefaultConfig());
-        response.setUserRateConfig(AppLimitConfigEnum.USER_RATE.getDefaultConfig());
-        response.setAdvertisingConfig(AppLimitConfigEnum.ADVERTISING.getDefaultConfig());
+        response.setAppLimitRule(AppLimitRuleEnum.APP_RATE.defaultRule());
+        response.setUserLimitRule(AppLimitRuleEnum.USER_RATE.defaultRule());
+        response.setAdvertisingRule(AppLimitRuleEnum.ADVERTISING.defaultRule());
         return response;
     }
 }

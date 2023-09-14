@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.enums.limit;
 
-import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitRuleDTO;
 import com.starcloud.ops.business.app.enums.RecommendAppConsts;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
@@ -8,6 +8,8 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -15,15 +17,15 @@ import java.util.List;
  * @since 2023-08-28
  */
 @Getter
-public enum AppLimitConfigEnum implements IEnumable<Integer> {
+public enum AppLimitRuleEnum implements IEnumable<Integer> {
 
     /**
-     * 默认使用频率限流配置
+     * 默认使应用频率限流配置
      */
-    RATE(1, "默认使用频率限流配置") {
+    APP_RATE(1, "默认使用频率限流配置") {
         @Override
-        public AppLimitConfigDTO getDefaultConfig() {
-            AppLimitConfigDTO config = new AppLimitConfigDTO();
+        public AppLimitRuleDTO defaultRule() {
+            AppLimitRuleDTO config = new AppLimitRuleDTO();
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(AppLimitByEnum.APP.name());
@@ -35,12 +37,12 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
         }
 
         @Override
-        public AppLimitConfigDTO getDefaultSystemConfig() {
-            AppLimitConfigDTO config = new AppLimitConfigDTO();
+        public AppLimitRuleDTO defaultSystemRule() {
+            AppLimitRuleDTO config = new AppLimitRuleDTO();
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setThreshold(60);
+            config.setThreshold(120);
             config.setTimeInterval(60L);
             config.setIgnoreApps(RATE_IGNORE_APPS);
             config.setTimeUnit("SECONDS");
@@ -54,27 +56,27 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
      */
     USER_RATE(2, "默认用户使用频率限流配置") {
         @Override
-        public AppLimitConfigDTO getDefaultConfig() {
-            AppLimitConfigDTO config = new AppLimitConfigDTO();
+        public AppLimitRuleDTO defaultRule() {
+            AppLimitRuleDTO config = new AppLimitRuleDTO();
             config.setCode(name());
             config.setEnable(Boolean.FALSE);
             config.setLimitBy(AppLimitByEnum.USER.name());
             config.setThreshold(60);
             config.setTimeInterval(1L);
-            config.setTimeUnit("MONTHS");
+            config.setTimeUnit("SECONDS");
             config.setMessage("抱歉，您已经达到最大访问上限！");
             return config;
         }
 
         @Override
-        public AppLimitConfigDTO getDefaultSystemConfig() {
-            AppLimitConfigDTO config = new AppLimitConfigDTO();
+        public AppLimitRuleDTO defaultSystemRule() {
+            AppLimitRuleDTO config = new AppLimitRuleDTO();
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.USER.name());
-            config.setThreshold(60);
+            config.setThreshold(120);
             config.setTimeInterval(1L);
-            config.setTimeUnit("MONTHS");
+            config.setTimeUnit("SECONDS");
             config.setMessage("抱歉，您已经达到最大访问上限！");
             return config;
         }
@@ -85,48 +87,41 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
      */
     ADVERTISING(3, "默认广告限流配置") {
         @Override
-        public AppLimitConfigDTO getDefaultConfig() {
-            AppLimitConfigDTO config = new AppLimitConfigDTO();
-            config.setCode(name());
-            config.setEnable(Boolean.FALSE);
-            config.setLimitBy(AppLimitByEnum.ADVERTISING.name());
-            config.setThreshold(20);
-            config.setTimeInterval(1L);
-            config.setTimeUnit("MONTHS");
-            config.setMessage("魔法AI - 基于AI技术，轻松创建数字员工，赶快来魔法AI创建一个属于自己的数字员工吧。");
-            return config;
-        }
-
-        @Override
-        public AppLimitConfigDTO getDefaultSystemConfig() {
-            AppLimitConfigDTO config = new AppLimitConfigDTO();
+        public AppLimitRuleDTO defaultRule() {
+            AppLimitRuleDTO config = new AppLimitRuleDTO();
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.ADVERTISING.name());
             config.setThreshold(20);
             config.setTimeInterval(1L);
-            config.setTimeUnit("MONTHS");
+            config.setTimeUnit("SECONDS");
             config.setMessage("魔法AI - 基于AI技术，轻松创建数字员工，赶快来魔法AI创建一个属于自己的数字员工吧。");
             return config;
+        }
+
+        @Override
+        public AppLimitRuleDTO defaultSystemRule() {
+            // 系统不配置广告限流
+            return null;
         }
     },
 
     /**
      * 推荐应用限流规则
      */
-    RECOMMEND_APP(4, "默认广告限流配置") {
+    RECOMMEND_TARE(4, "默认广告限流配置") {
         @Override
-        public AppLimitConfigDTO getDefaultConfig() {
+        public AppLimitRuleDTO defaultRule() {
             return null;
         }
 
         @Override
-        public AppLimitConfigDTO getDefaultSystemConfig() {
-            AppLimitConfigDTO config = new AppLimitConfigDTO();
+        public AppLimitRuleDTO defaultSystemRule() {
+            AppLimitRuleDTO config = new AppLimitRuleDTO();
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setThreshold(100);
+            config.setThreshold(500);
             config.setTimeInterval(60L);
             config.setMatchApps(DEFAULT_RECOMMEND_APPS);
             config.setTimeUnit("SECONDS");
@@ -138,19 +133,19 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
     /**
      * 推荐应用限流规则
      */
-    BASE_GENERATE_IMAGE(5, "默认图片生产限流") {
+    IMAGE_RATE(5, "默认图片生产限流") {
         @Override
-        public AppLimitConfigDTO getDefaultConfig() {
+        public AppLimitRuleDTO defaultRule() {
             return null;
         }
 
         @Override
-        public AppLimitConfigDTO getDefaultSystemConfig() {
-            AppLimitConfigDTO config = new AppLimitConfigDTO();
+        public AppLimitRuleDTO defaultSystemRule() {
+            AppLimitRuleDTO config = new AppLimitRuleDTO();
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setThreshold(100);
+            config.setThreshold(500);
             config.setTimeInterval(60L);
             config.setMatchApps(Collections.singletonList(RecommendAppConsts.BASE_GENERATE_IMAGE));
             config.setTimeUnit("SECONDS");
@@ -176,14 +171,14 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
      *
      * @return 默认限流配置
      */
-    public abstract AppLimitConfigDTO getDefaultConfig();
+    public abstract AppLimitRuleDTO defaultRule();
 
     /**
      * 获取系统默认限流配置，最后的兜底
      *
      * @return 默认限流配置
      */
-    public abstract AppLimitConfigDTO getDefaultSystemConfig();
+    public abstract AppLimitRuleDTO defaultSystemRule();
 
     /**
      * 配置编码
@@ -201,8 +196,20 @@ public enum AppLimitConfigEnum implements IEnumable<Integer> {
      * @param code  编码
      * @param label 标签
      */
-    AppLimitConfigEnum(Integer code, String label) {
+    AppLimitRuleEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
+    }
+
+    /**
+     * 获取系统兜底限流配置
+     *
+     * @return 系统兜底限流配置
+     */
+    public static List<AppLimitRuleDTO> defaultSystemLimitRuleList() {
+        return Arrays.stream(values()).map(AppLimitRuleEnum::defaultSystemRule)
+                .filter(Objects::nonNull)
+                .filter(AppLimitRuleDTO::getEnable)
+                .collect(Collectors.toList());
     }
 }

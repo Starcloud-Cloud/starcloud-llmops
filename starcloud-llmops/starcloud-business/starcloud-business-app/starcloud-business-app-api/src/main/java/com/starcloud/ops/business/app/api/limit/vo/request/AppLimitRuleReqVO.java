@@ -20,8 +20,8 @@ import java.io.Serializable;
 @ToString
 @NoArgsConstructor
 @EqualsAndHashCode
-@Schema(name = "LimitConfigReqVO", description = "限流配置基础请求")
-public class AppLimitConfigReqVO implements Serializable {
+@Schema(name = "AppLimitRuleReqVO", description = "限流配置基础请求")
+public class AppLimitRuleReqVO implements Serializable {
 
     private static final long serialVersionUID = 5429362672093413179L;
 

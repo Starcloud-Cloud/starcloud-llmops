@@ -49,20 +49,20 @@ public class AppPublishLimitReqVO implements Serializable {
      */
     @Schema(description = "频率限制配置")
     @Valid
-    private AppLimitConfigReqVO rateConfig;
+    private AppLimitRuleReqVO appLimitRule;
 
     /**
      * 用户用量限制配置
      */
     @Schema(description = "用户使用频率限流配置")
     @Valid
-    private AppLimitConfigReqVO userRateConfig;
+    private AppLimitRuleReqVO userLimitRule;
 
     /**
      * 广告位限制配置
      */
     @Schema(description = "广告位限制配置")
     @Valid
-    private AppLimitConfigReqVO advertisingConfig;
+    private AppLimitRuleReqVO advertisingRule;
 
 }

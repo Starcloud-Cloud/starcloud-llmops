@@ -28,7 +28,7 @@ public interface AppPublishLimitService {
      * @param query 查询条件
      * @return 应用发布限流信息
      */
-    AppPublishLimitRespVO defaultIfNull(AppPublishLimitQuery query);
+    AppPublishLimitRespVO get(AppPublishLimitQuery query);
 
     /**
      * 创建应用发布限流信息

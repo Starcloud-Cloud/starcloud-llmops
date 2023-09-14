@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.limit.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitRuleDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -54,19 +54,19 @@ public class AppPublishLimitRespVO implements Serializable {
      * 频率限制配置
      */
     @Schema(description = "频率限制配置")
-    private AppLimitConfigDTO rateConfig;
+    private AppLimitRuleDTO appLimitRule;
 
     /**
      * 用户用量限制配置
      */
     @Schema(description = "用户使用频率限制配置")
-    private AppLimitConfigDTO userRateConfig;
+    private AppLimitRuleDTO userLimitRule;
 
     /**
      * 广告位限制配置
      */
     @Schema(description = "广告位限制配置")
-    private AppLimitConfigDTO advertisingConfig;
+    private AppLimitRuleDTO advertisingRule;
 
     /**
      * 创建人
