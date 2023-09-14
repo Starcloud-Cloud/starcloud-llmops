@@ -21,5 +21,9 @@ public class SplitRule {
      * 分隔符
      */
     private List<String> separator;
+    /**
+     * 分段规则类型- 0-系统或者1-自定义
+     */
+    private Integer type;
 
 }

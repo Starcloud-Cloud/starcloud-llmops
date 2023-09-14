@@ -17,7 +17,7 @@ public class HTMLCleanRule {
     /**
      * 黑名单列表
      */
-    private List<String>  blackList;
+    private List<String> blackList;
 
     /**
      * 转换格式 - TXT MarkDown ....
@@ -25,7 +25,7 @@ public class HTMLCleanRule {
     private String convertFormat;
 
     /**
-     *  设置网页语言 默认为中文 zh
+     * 设置网页语言 默认为中文 zh
      */
     private String acceptLanguage;
 }
