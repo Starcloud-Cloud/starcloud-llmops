@@ -151,7 +151,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
             if ("organic".equals(type)) {
 
                 //取3个
-                List<InteractiveData> result = Optional.ofNullable(entry.getValue()).orElse(new ArrayList<>()).stream().limit(2).map(detail -> {
+                List<InteractiveData> result = Optional.ofNullable(entry.getValue()).orElse(new ArrayList<>()).stream().limit(3).map(detail -> {
 
                     InteractiveData interactiveData = new InteractiveData();
 
