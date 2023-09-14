@@ -531,8 +531,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         HandlerContext appContext = this.instanceHandlerContext(request);
 
         //web search
-        if (searchConfigEntity != null && searchConfigEntity.getEnabled()) {
-
+//        if (searchConfigEntity != null && Boolean.TRUE.equals(searchConfigEntity.getEnabled())) {
+//
 //            //爬取网页
 //            WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
 //            String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
@@ -544,8 +544,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 //            HandlerSkill searchEngine = HandlerSkill.of("SearchEngineHandler");
 //            searchEngine.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
 //            loadTools.add(searchEngine.createFunTool(appContext));
-
-        }
+//
+//        }
 
         List<BaseTool> handlerFunTools = Optional.ofNullable(chatConfig.getHandlerSkills()).orElse(new ArrayList<>()).stream().filter(HandlerSkill::getEnabled).map(handlerSkill -> {
 
