@@ -61,7 +61,7 @@ public class CharacterTextSplitter extends BasicTextSplitter {
 
         List<String> result = new ArrayList<>();
         for (String s : list) {
-            if (s.length() <= chunkSize * 2) {
+            if (s.length() <= (chunkSize * 3 / 2)) {
                 result.add(s);
             } else {
                 int start = 0;

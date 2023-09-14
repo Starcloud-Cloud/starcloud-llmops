@@ -106,6 +106,12 @@
             <artifactId>starcloud-business-app-api</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-limits-biz</artifactId>
+            <version>${starcloud.revision}</version>
+            <scope>compile</scope>
+        </dependency>
 
 
     </dependencies>

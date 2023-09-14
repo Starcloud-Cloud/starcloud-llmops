@@ -2,11 +2,14 @@ package com.starcloud.ops.business.dataset.service.segment.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.xiaoymin.knife4j.core.util.Assert;
@@ -17,7 +20,6 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.SegmentsEmbeddingsDO;
-import com.starcloud.ops.business.dataset.dal.mysql.datasethandlerules.DatasetHandleRulesMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.DocumentSegmentMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.SegmentsEmbeddingsDOMapper;
@@ -34,6 +36,8 @@ import com.starcloud.ops.business.dataset.service.task.IndexThreadPoolExecutor;
 import com.starcloud.ops.business.dataset.service.task.SummaryEntity;
 import com.starcloud.ops.business.dataset.service.task.SummaryTask;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanAndSplitUtils;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStore;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
@@ -50,6 +54,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -95,13 +100,16 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     private DatasetsService datasetsService;
 
     @Autowired
-    private DatasetHandleRulesMapper splitRulesMapper;
-
-    @Autowired
     private DatasetSourceDataMapper sourceDataMapper;
 
     @Autowired
     private SummaryTask summaryTask;
+
+    @Autowired
+    private UserBenefitsService userBenefitsService;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public SplitForecastResponse splitForecast(FileSplitRequest fileSplitRequest) {
@@ -199,7 +207,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                         documentSegmentDTO.setTokens(segmentsEmbeddingsDO.getTokens());
                         documentSegmentDTO.setVector(VectorSerializeUtils.deserialize(segmentsEmbeddingsDO.getVector()));
                     } else {
-                        EmbeddingDetail embeddingDetail = basicEmbedding.embedText(split);
+                        EmbeddingDetail embeddingDetail = embedding(split);
                         segmentsEmbeddingsDO = new SegmentsEmbeddingsDO();
                         segmentsEmbeddingsDO.setTokens(embeddingDetail.getTotalTokens());
                         segmentsEmbeddingsDO.setVector(VectorSerializeUtils.serialize(embeddingDetail.getEmbedding()));
@@ -341,7 +349,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
         }
 
-        EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
+        EmbeddingDetail queryText = embedding(request.getText());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
                 .datasetIds(datasetIds).minScore(request.getMinScore()).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
@@ -366,12 +374,40 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         if (CollectionUtils.isEmpty(request.getDocId())) {
             return MatchQueryVO.builder().queryText(request.getText()).build();
         }
-        EmbeddingDetail queryText = basicEmbedding.embedText(request.getText());
+        EmbeddingDetail queryText = embedding(request.getText());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
                 .documentIds(request.getDocId().stream().map(String::valueOf).collect(Collectors.toList()))
                 .k(request.getK()).minScore(request.getMinScore()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
         return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).queryText(request.getText()).tokens(queryText.getTotalTokens()).build();
+    }
+
+
+    private EmbeddingDetail embedding(String text) {
+        String hash = strToHex(text);
+        try {
+            String embJson = redisTemplate.boundValueOps(hash).get();
+            EmbeddingDetail bean = JSONUtil.toBean(embJson, EmbeddingDetail.class);
+            if (bean != null && !CollectionUtils.isEmpty(bean.getEmbedding())) {
+                return bean;
+            }
+        } catch (Exception e) {
+            log.warn("获取缓存embedding失败", e);
+        }
+        try {
+            Long userId = WebFrameworkUtils.getLoginUserId();
+            userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
+            EmbeddingDetail embeddingDetail = basicEmbedding.embedText(text);
+            redisTemplate.boundValueOps(hash).set(JSONUtil.toJsonStr(embeddingDetail), 1, TimeUnit.DAYS);
+            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), embeddingDetail.getTotalTokens(), userId, null);
+            return embeddingDetail;
+        } catch (ServiceException e) {
+            log.error("权益计算异常：{}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("计算embedding异常：{}", e.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(500, "计算embedding异常,请重试:" + e.getMessage()));
+        }
     }
 
     @Override
@@ -380,7 +416,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         if (CollectionUtils.isEmpty(request.getDatasetUid())) {
             return similarSegment;
         }
-        EmbeddingDetail queryEmbedding = basicEmbedding.embedText(request.getQuery());
+        EmbeddingDetail queryEmbedding = embedding(request.getQuery());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().datasetIds(request.getDatasetUid()).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryEmbedding.getEmbedding(), knnQueryDTO);
         for (KnnQueryHit knnQueryHit : knnQueryHitList) {

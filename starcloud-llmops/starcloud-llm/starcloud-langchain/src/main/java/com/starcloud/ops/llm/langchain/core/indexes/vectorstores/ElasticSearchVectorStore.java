@@ -14,6 +14,7 @@ import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryHit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ElasticSearchVectorStore implements BasicVectorStore {
 
-    private static final String INDEX_NAME = "vector_index_l2";
+    @Value("${starcloud.elasticsearch.index.name:vector_index_l2}")
+    private String indexName;
 
     @Autowired
     private ElasticsearchClient esClient;
@@ -38,7 +40,7 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
         for (DocumentSegmentDTO document : segments) {
             BulkOperation operation = BulkOperation.of(builder -> builder
                     .index(index -> index
-                            .index(INDEX_NAME)
+                            .index(indexName)
                             .document(document)
                             .id(document.getSegmentId())
                     ));
@@ -81,7 +83,7 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
                 .queryVector(queryVector)
                 .filter(query)
                 .build();
-        SearchRequest vector = new SearchRequest.Builder().knn(knnQuery).index(INDEX_NAME).build();
+        SearchRequest vector = new SearchRequest.Builder().knn(knnQuery).index(indexName).build();
         try {
             SearchResponse<DocumentSegmentDTO> search = esClient.search(vector, DocumentSegmentDTO.class);
             hit(search.hits().hits(), queryDTO);
@@ -106,7 +108,7 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
             operations.add(operation);
         }
         BulkRequest request = BulkRequest.of(builder -> builder
-                .index(INDEX_NAME)
+                .index(indexName)
                 .operations(operations));
         try {
             esClient.bulk(request);
@@ -122,7 +124,11 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
         List<String> segmentIds = hits.stream()
                 .filter(dtoHit -> dtoHit.source() != null)
                 .filter(dtoHit -> queryDTO.getMinScore() == null || dtoHit.score().compareTo(queryDTO.getMinScore()) > 0)
-                .map(dtoHit -> dtoHit.source().getSegmentId()).collect(Collectors.toList());
+                .map(dtoHit -> {
+                    DocumentSegmentDTO segmentDTO = dtoHit.source();
+                    segmentDTO.setHitCount(segmentDTO.getHitCount() == null ? 1 : segmentDTO.getHitCount() + 1);
+                    return segmentDTO.getSegmentId();
+                }).collect(Collectors.toList());
 
         if (CollectionUtil.isEmpty(segmentIds)) {
             return;
@@ -132,7 +138,7 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
         Query query = Query.of(q -> q.bool(b -> b.must(new Query(terms))));
         Script of = Script.of(s -> s.inline(i -> i.source("if(ctx._source.hitCount == null) { ctx._source.hitCount = 1} else { ctx._source.hitCount += 1}")));
         try {
-            esClient.updateByQuery(q -> q.index(INDEX_NAME).query(query).script(of));
+            esClient.updateByQuery(q -> q.index(indexName).query(query).script(of));
         } catch (IOException e) {
             log.info("hit count error", e);
         }
