@@ -2,6 +2,7 @@ package com.starcloud.ops.llm.langchain.llm;
 
 import cn.hutool.json.JSONConfig;
 import cn.hutool.json.JSONUtil;
+import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.llm.langchain.SpringBootTests;
 import com.starcloud.ops.llm.langchain.config.SerpAPIToolConfig;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;

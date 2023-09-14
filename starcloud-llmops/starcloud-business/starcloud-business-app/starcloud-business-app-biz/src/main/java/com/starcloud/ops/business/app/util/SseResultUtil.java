@@ -1,9 +1,8 @@
 package com.starcloud.ops.business.app.util;
 
-
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.entity.chat.MySseCallBackHandler;
+import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -29,20 +28,24 @@ public class SseResultUtil {
      *
      * @param interactiveInfo
      */
-    @SneakyThrows
     public void sendCallbackInteractive(InteractiveInfo interactiveInfo) {
+        this.sendCallbackInteractive("i", interactiveInfo);
+    }
+
+    @SneakyThrows
+    public void sendCallbackInteractive(String type, InteractiveInfo interactiveInfo) {
 
         if (this.getSseEmitter() != null) {
 
             MySseCallBackHandler.StreamResult result = MySseCallBackHandler.StreamResult.builder()
                     .code(200)
-                    .type("i")
-                    .content(JSONUtil.toJsonStr(interactiveInfo))
+                    .type(type)
+                    .content(JsonUtils.toJsonString(interactiveInfo))
                     .conversationUid(this.getConversationUid())
                     .messageUid(this.getMessageUid())
                     .build();
 
-            log.info("sendCallbackInteractive: {}", interactiveInfo);
+            log.info("SseResultUtil sendCallbackInteractive: {}", JsonUtils.toJsonString(result));
 
             this.getSseEmitter().send(result);
         }

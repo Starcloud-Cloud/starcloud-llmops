@@ -122,6 +122,29 @@ public interface ErrorCodeConstants {
     ErrorCode APP_PUBLISH_DUPLICATE = new ErrorCode(300400006, "The app has been published, please cancel the publish and try again !");
 
     /**
+     * chat配置为null
+     */
+    ErrorCode CONFIG_ERROR = new ErrorCode(300400007, "{}不能为空!");
+
+    /**
+     * 配置类型不支持
+     */
+    ErrorCode CHAT_CONFIG_TYPE_ERROR = new ErrorCode(300400008, "不支持此配置类型:{}");
+
+    /**
+     * chat配置不存在
+     */
+    ErrorCode CHAT_CONFIG_NOT_EXIST = new ErrorCode(300400009, "此id对应的配置不存在:{}");
+
+    /**
+     * 修改配置的类型错误
+     */
+    ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400010, "{} 实际的配置类型是 {}");
+
+    ErrorCode CHAT_CONFIG_IS_REPEAT = new ErrorCode(300400011, "{}已经存在 , {}");
+
+
+    /**
      * 应用发布渠道 Uid 是必须的
      */
     ErrorCode APP_CHANNEL_UID_IS_REQUIRED = new ErrorCode(300500001, "The app publish channel uid is required, please check and try again ! ");

@@ -13,7 +13,7 @@ import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.share.controller.app.vo.ChatDetailReqVO;
+import com.starcloud.ops.business.share.controller.app.vo.request.ChatDetailReqVO;
 import com.starcloud.ops.business.share.service.ChatShareService;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
 import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
@@ -113,7 +113,7 @@ public class ChatShareController {
             chatRequestVO.setConversationUid(IdUtil.fastSimpleUUID());
         }
 
-        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "share chat");
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "share chat");
         chatRequestVO.setSseEmitter(emitter);
         chatRequestVO.setEndUser(endUserId);
         // 执行限流

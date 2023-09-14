@@ -45,7 +45,7 @@ public class ChatController {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
 
-        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "chat");
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "chat");
         request.setSseEmitter(emitter);
 
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
@@ -60,7 +60,7 @@ public class ChatController {
 
     @Operation(summary = "创建聊天应用")
     @PostMapping("/app/create")
-    public CommonResult<String> createChatApp(@RequestParam("uid") String uid, @RequestParam("robotName") String robotName) {
+    public CommonResult<String> createChatApp(@RequestParam(value = "uid", required = false) String uid, @RequestParam("robotName") String robotName) {
         return CommonResult.success(chatService.createChatApp(uid, robotName));
     }
 
@@ -95,10 +95,9 @@ public class ChatController {
 
     @GetMapping("/avatar/default")
     @Operation(summary = "获取推荐头像")
-    public CommonResult<List<String>> defaultAvatar(){
+    public CommonResult<List<String>> defaultAvatar() {
         return success(chatService.defaultAvatar());
     }
-
 
 
     @Operation(summary = "聊天建议")

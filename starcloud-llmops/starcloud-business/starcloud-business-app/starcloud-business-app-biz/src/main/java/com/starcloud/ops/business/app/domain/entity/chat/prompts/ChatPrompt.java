@@ -1,25 +1,25 @@
 package com.starcloud.ops.business.app.domain.entity.chat.prompts;
 
-
+import cn.hutool.core.date.LocalDateTimeUtil;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
-import com.starcloud.ops.business.app.enums.PromptTempletEnum;
+import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
 import com.starcloud.ops.llm.langchain.core.agent.base.BaseSingleActionAgent;
+import com.starcloud.ops.llm.langchain.core.memory.template.ChatMemoryPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 聊天 的整体 prompt
@@ -27,23 +27,34 @@ import java.util.Optional;
 @Data
 public class ChatPrompt extends BasePromptConfig {
 
-    private Boolean toolPrompt;
-
-    private String promptV1 = "{ContextPrompt}{HistoryPrompt}" +
+    private String promptV1 = "System Time: {NowTime}\n" +
+            "{ContextPrompt}\n" +
+            "Below is the history of the conversation, please answer after referring to all the requirements.\n\n{HistoryPrompt}" +
             "Human: {input}\n" +
             "AI: \n";
 
-    private String promptVTool = "{ContextPrompt}{HistoryPrompt}" +
+    private String promptVTool = "System Time: {NowTime}\n" +
+            "{ContextPrompt}\n" +
+            "Below is the history of the conversation, please answer after referring to all the requirements.\n\n[History Start]{HistoryPrompt}" +
             "Human: {input}\n" +
             //工具调用历史，只显示一次完整工具调用的历史，不包含用户输入
             "{" + BaseSingleActionAgent.TEMP_VARIABLE_SCRATCHPAD + "}" +
             "AI: \n";
 
 
+    private String promptMaster = "Current system time: {NowTime}.\n" +
+            "{PrePrompt}\n" +
+            "{ContextPrompt}\n";
+
+
+    //只有用户输入后
+    private String promptV3 = "{input}";
+
     private ChatPrePrompt chatPrePrompt;
 
     private ContextPrompt contextPrompt;
 
+    @Deprecated
     private HistoryPrompt historyPrompt;
 
     public ChatPrompt(ChatPrePrompt chatPrePrompt, ContextPrompt contextPrompt, HistoryPrompt historyPrompt) {
@@ -53,16 +64,31 @@ public class ChatPrompt extends BasePromptConfig {
     }
 
 
+    @Deprecated
     public ChatPromptTemplate buildChatPromptTemplate(Boolean toolPrompt) {
 
-        this.toolPrompt = toolPrompt;
         List<BaseMessagePromptTemplate> messagePromptTemplates = new ArrayList<>();
 
         //prePrompt 放到system里面
-        messagePromptTemplates.add(SystemMessagePromptTemplate.fromTemplate(this.chatPrePrompt.buildPromptStr()));
-        messagePromptTemplates.add(HumanMessagePromptTemplate.fromTemplate(this.buildPromptStr()));
+        messagePromptTemplates.add(new SystemMessagePromptTemplate(this.buildPrompt()));
+
+        StringPromptTemplate stringPromptTemplate = new PromptTemplate(this.promptV3, new ArrayList<>());
+        HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(stringPromptTemplate);
+        messagePromptTemplates.add(humanMessagePromptTemplate);
 
         return ChatPromptTemplate.fromMessages(messagePromptTemplates);
+    }
+
+    public ChatPromptTemplate buildChatPromptTemplate(ConversationSummaryDbMessageMemory messageMemory) {
+
+        SystemMessagePromptTemplate systemMessagePromptTemplate = new SystemMessagePromptTemplate(this.buildPrompt());
+
+        //写死一个
+        StringPromptTemplate stringPromptTemplate = new PromptTemplate(this.promptV3, new ArrayList<>());
+        HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(stringPromptTemplate);
+
+        //增加历史记录
+        return ChatMemoryPromptTemplate.fromMessages(systemMessagePromptTemplate, humanMessagePromptTemplate, messageMemory);
     }
 
     /**
@@ -77,8 +103,8 @@ public class ChatPrompt extends BasePromptConfig {
         String dataSetStr = this.contextPrompt.buildPromptStr();
         OpenaiCompletionParams completionParams = modelConfig.getCompletionParams();
 
-        Optional<ModelType> optionalModel = ModelType.fromName(completionParams.getModel());
-        ModelType modelType = ModelType.GPT_3_5_TURBO;
+        Optional<ModelTypeEnum> optionalModel = ModelTypeEnum.fromName(completionParams.getModel());
+        ModelTypeEnum modelType = ModelTypeEnum.GPT_3_5_TURBO;
         if (optionalModel.isPresent()) {
             modelType = optionalModel.get();
         }
@@ -88,10 +114,10 @@ public class ChatPrompt extends BasePromptConfig {
         }
 
         if (StringUtils.isNotBlank(prePrompt)) {
-            maxTokens -= TokenUtils.intTokens(modelType, prePrompt);
+            maxTokens -= TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, prePrompt);
         }
         if (StringUtils.isNotBlank(dataSetStr)) {
-            maxTokens -= TokenUtils.intTokens(modelType, dataSetStr);
+            maxTokens -= TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, dataSetStr);
         }
 
         //扣除用户设置的最大返回结果的 tokens
@@ -102,32 +128,25 @@ public class ChatPrompt extends BasePromptConfig {
             maxTokens -= 550 * 1.1;
         }
 
-        maxTokens -= TokenUtils.intTokens(modelType, userQuery);
+        maxTokens -= TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, userQuery);
         return maxTokens;
 
     }
 
     @Override
     protected Boolean _isEnable() {
-        return this.chatPrePrompt != null && this.contextPrompt != null;
+        return true;
     }
 
     @Override
-    protected String _buildPromptStr() {
-
+    protected PromptTemplate _buildPrompt() {
         List<BaseVariable> variables = new ArrayList<>();
 
-        variables.add(BaseVariable.newString("ContextPrompt", this.contextPrompt.buildPromptStr(true)));
-        variables.add(BaseVariable.newString("HistoryPrompt", this.historyPrompt.buildPromptStr(true)));
-        PromptTemplate template;
-        if (this.toolPrompt) {
-            template = new PromptTemplate(this.promptVTool);
-        } else {
-            template = new PromptTemplate(this.promptV1);
-        }
+        variables.add(BaseVariable.newString("NowTime", (new Date()).toString()));
+        variables.add(BaseVariable.newTemplate("PrePrompt", this.chatPrePrompt.buildPrompt()));
+        variables.add(BaseVariable.newTemplate("ContextPrompt", this.contextPrompt.buildPrompt()));
 
-        return template.format(variables);
+        return new PromptTemplate(this.promptMaster, variables);
     }
-
 
 }

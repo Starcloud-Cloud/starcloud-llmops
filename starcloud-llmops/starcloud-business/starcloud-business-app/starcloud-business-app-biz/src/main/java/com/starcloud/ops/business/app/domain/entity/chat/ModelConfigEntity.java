@@ -1,15 +1,16 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
-
-import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Data;
 
 @Data
 public class ModelConfigEntity {
 
     /**
-     * 提供者  ： openai
+     * 提供者
+     *
+     * @see ModelProviderEnum
      */
     private String provider;
 
@@ -22,6 +23,5 @@ public class ModelConfigEntity {
      * 模型配置
      */
     private OpenaiCompletionParams completionParams;
-
 
 }

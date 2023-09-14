@@ -8,6 +8,7 @@ import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import com.theokanning.openai.completion.CompletionRequest;
@@ -31,7 +32,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class BaseOpenAI extends BaseLLM<CompletionResult> {
 
-    private String model = ModelType.GPT_3_5_TURBO.getName();
+    private String model = ModelTypeEnum.GPT_3_5_TURBO.getName();
 
     private String prompt;
 

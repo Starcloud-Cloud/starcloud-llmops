@@ -62,6 +62,16 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     List<AppMarketDO> listMarketApp(@Param("query") AppMarketListQuery query);
 
     /**
+     * 查询员工广场
+     * @return
+     */
+    default List<AppMarketDO> listChatMarketApp() {
+        LambdaQueryWrapper<AppMarketDO> wrapper = queryMapper(true)
+                .eq(AppMarketDO::getModel,AppModelEnum.CHAT.name());
+        return selectList(wrapper);
+    }
+
+    /**
      * 根据应用 uid 获取应用详情
      *
      * @param uid      应用 uid

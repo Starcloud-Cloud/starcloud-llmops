@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.share.controller.app.vo;
+package com.starcloud.ops.business.share.controller.app.vo.request;
 
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;

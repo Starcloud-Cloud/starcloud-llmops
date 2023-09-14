@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.domain.entity;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -289,16 +288,16 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public R execute(Q request) {
+        log.info("应用执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
+        // 扣除权益用户，记录日志用户
+        if (request.getUserId() == null) {
+            request.setUserId(this.getRunUserId(request));
+        }
         // 会话记录
         this.initConversationLog(request);
 
         try {
-            log.info("应用执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
 
-            // 扣除权益用户，记录日志用户
-            if (request.getUserId() == null) {
-                request.setUserId(this.getRunUserId(request));
-            }
             log.info("应用执行：权益扣除用户, 日志记录用户 ID：{}, ", request.getUserId());
             // 基础校验
             this.validate(request);
@@ -310,7 +309,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
             // 更新会话记录
             this.updateAppConversationLog(request.getConversationUid(), true);
-            log.info("应用执行结束: 应用UID: {}, \n执行结果: {}", this.getUid(), JSONUtil.parse(result).toStringPretty());
+            log.info("应用执行结束: 应用UID: {}", this.getUid());
             return result;
 
         } catch (ServiceException exception) {
@@ -338,16 +337,15 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void asyncExecute(Q request) {
-        //会话处理
+        log.info("应用异步执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
+        // 扣除权益用户，记录日志用户
+        if (request.getUserId() == null) {
+            request.setUserId(this.getRunUserId(request));
+        }
+        // 会话处理
         this.initConversationLog(request);
 
         try {
-            log.info("应用异步执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
-
-            // 扣除权益用户，记录日志用户
-            if (request.getUserId() == null) {
-                request.setUserId(this.getRunUserId(request));
-            }
             log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, ", request.getUserId());
             // 基础校验
             this.validate(request);
@@ -368,7 +366,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     this.afterExecute(request, exception);
 
                 } catch (Exception exception) {
-                    log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
+                    log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
                     // 更新会话记录
                     this.updateAppConversationLog(request.getConversationUid(), false);
                     this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));

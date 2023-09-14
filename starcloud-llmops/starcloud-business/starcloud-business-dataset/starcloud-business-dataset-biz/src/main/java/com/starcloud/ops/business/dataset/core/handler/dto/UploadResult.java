@@ -14,9 +14,14 @@ public class UploadResult {
     private String datasetId;
 
     /**
-     * 数据 ID
+     * 数据 编号 UID
      */
-    private String sourceDataId;
+    private String sourceDataUid;
+
+    /**
+     * 数据 主键 ID
+     */
+    private Long sourceDataId;
 
     /**
      * 数据名称

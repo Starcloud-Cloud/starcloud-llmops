@@ -1,17 +1,20 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.hutool.core.util.StrUtil;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeSta;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.mchange.lang.LongUtils;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
+import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -41,12 +44,13 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     @Override
     protected ActionResponse _execute(Request request) {
         log.info("OpenAI ChatGPT Action 执行开始...");
-        StreamingSseCallBackHandler callBackHandler = new StreamingSseCallBackHandler(this.getAppContext().getSseEmitter(), this.getAppContext().getConversationUid());
+        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
         OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(callBackHandler);
 
         //获取前端传的完整字段（老结构）
         Map<String, Object> params = request.getStepParams();
         Long userId = this.getAppContext().getUserId();
+        Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
 
         String prompt = (String) params.getOrDefault("PROMPT", "hi, what you name?");
@@ -64,7 +68,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
             handlerRequest.setDocsUid(request.getDatesetList());
         }
 
-        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, handlerRequest);
+        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, endUser, this.getAppContext().getScene(), handlerRequest);
 
         HandlerResponse<String> handlerResponse = openAIChatHandler.execute(handlerContext);
         log.info("OpenAI ChatGPT Action 执行结束...");
@@ -76,7 +80,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         ActionResponse actionResponse = new ActionResponse();
 
         actionResponse.setSuccess(handlerResponse.getSuccess());
-        actionResponse.setErrorCode(handlerResponse.getErrorCode());
+        actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
         actionResponse.setErrorMsg(handlerResponse.getErrorMsg());
         actionResponse.setType(handlerResponse.getType());
         actionResponse.setIsShow(true);

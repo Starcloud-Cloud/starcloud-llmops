@@ -15,14 +15,16 @@ public enum DataSourceDataFormatEnum {
     /**
      * TXT
      */
-    TXT,
+    TXT("普通文本",".txt"),
 
     /**
      *  MARKDOWN
      */
-    MARKDOWN,
-
+    MARKDOWN("MarkDown",".md"),
     ;
+
+    private final String name;
+    private final String suffix;
 
 
 }

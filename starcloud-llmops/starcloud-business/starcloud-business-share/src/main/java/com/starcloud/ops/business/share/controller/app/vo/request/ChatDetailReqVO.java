@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.share.controller.app.vo;
+package com.starcloud.ops.business.share.controller.app.vo.request;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;

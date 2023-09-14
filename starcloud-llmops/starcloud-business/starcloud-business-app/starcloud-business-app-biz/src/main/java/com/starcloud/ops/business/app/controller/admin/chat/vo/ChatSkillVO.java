@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.chat.vo;
 
 import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -27,6 +28,9 @@ public class ChatSkillVO {
     @Schema(description = "技能图标")
     private String icon;
 
+    @Schema(description = "使用说明")
+    private String usage;
+
     @Schema(description = "技能标签")
     private List<String> tags;
 
@@ -37,7 +41,7 @@ public class ChatSkillVO {
      * @param handler
      * @return
      */
-    public static ChatSkillVO buildFromHandler(BaseHandler handler) {
+    public static ChatSkillVO buildFromHandler(BaseToolHandler handler) {
 
         ChatSkillVO skillVO = new ChatSkillVO();
 
@@ -47,6 +51,7 @@ public class ChatSkillVO {
         skillVO.setDesc(handler.getUserDescription());
         skillVO.setTags(handler.getTags());
         skillVO.setIcon(handler.getIcon());
+        skillVO.setUsage(handler.getUsage());
 
         return skillVO;
     }

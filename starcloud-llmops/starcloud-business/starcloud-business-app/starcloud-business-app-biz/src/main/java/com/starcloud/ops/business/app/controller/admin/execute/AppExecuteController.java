@@ -45,7 +45,7 @@ public class AppExecuteController {
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
         // 设置 SSE
-        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "app");
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "app");
 
         executeRequest.setSseEmitter(emitter);
         // WEB_ADMIN 场景
@@ -67,7 +67,7 @@ public class AppExecuteController {
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
         // 设置 SSE
-        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(60000L, "market");
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "market");
         executeRequest.setSseEmitter(emitter);
         // WEB_MARKET 场景, 应用市场专用
         if (StringUtils.isBlank(executeRequest.getScene())) {

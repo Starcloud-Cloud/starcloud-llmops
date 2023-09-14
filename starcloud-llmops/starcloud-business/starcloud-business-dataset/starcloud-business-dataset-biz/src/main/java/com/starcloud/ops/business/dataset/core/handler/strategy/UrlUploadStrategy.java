@@ -3,14 +3,12 @@ package com.starcloud.ops.business.dataset.core.handler.strategy;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.starcloud.ops.business.dataset.core.handler.UploadStrategy;
 import com.starcloud.ops.business.dataset.core.handler.dto.UploadContentDTO;
+import com.starcloud.ops.business.dataset.util.dataset.JsoupUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
@@ -20,6 +18,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.SOURCE_DATA_UPLOAD_FAIL;
+import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.SOURCE_DATA_UPLOAD_URL_FAIL_INACCESSIBLE;
 
 @Slf4j
 @Component
@@ -38,7 +40,7 @@ public class UrlUploadStrategy implements UploadStrategy {
     private static final String PATH_OBJECT = "dataset-source-data/";
 
     // Setter方法，用于接收MultipartFile对象
-    public void setUrl(String url,String language) {
+    public void setUrl(String url, String language) {
         this.url = url;
         this.language = language;
     }
@@ -53,31 +55,27 @@ public class UrlUploadStrategy implements UploadStrategy {
 
         UploadContentDTO uploadFileRespDTO = new UploadContentDTO();
 
-        // 判断 URL 是网页还是文件流
         // 设置文件名称
         Document doc;
         try {
-
-            String normalize = URLUtil.normalize(url);
-
-            Connection connection = Jsoup.connect(normalize);
-
-            // 设置请求头中的 Accept-Language 属性
-            connection.header("Accept-Language", language);
-
-            doc = connection.get();
-
-
+            doc = JsoupUtil.loadUrl(url, language);
         } catch (Exception e) {
             uploadFileRespDTO.setName(url);
-            log.error("====> 网页解析失败,数据状态为 false，网页链接为{}", url);
+            uploadFileRespDTO.setErrCode(String.valueOf(SOURCE_DATA_UPLOAD_URL_FAIL_INACCESSIBLE.getCode()));
+            uploadFileRespDTO.setErrMsg(SOURCE_DATA_UPLOAD_URL_FAIL_INACCESSIBLE.getMsg());
+            log.error("====> 使用代理请求网页解析失败,数据状态为 false，网页链接为{}", url, e);
             return uploadFileRespDTO;
         }
+
 
         // 获取网页的title
         String name = getUrlTitle(doc);
 
-        name = name.isEmpty() ? url : name;
+        name = StrUtil.isBlank(name) ? url : name;
+        // 如果长度不足 300，返回全部字符串
+        if (name.length() >= 300) {
+            name = name.substring(0, 300);
+        }
 
         uploadFileRespDTO.setName(name);
 
@@ -101,6 +99,8 @@ public class UrlUploadStrategy implements UploadStrategy {
             uploadFileRespDTO.setFilepath(filePath);
             uploadFileRespDTO.setStatus(true);
         } catch (Exception e) {
+            uploadFileRespDTO.setErrCode(String.valueOf(SOURCE_DATA_UPLOAD_FAIL.getCode()));
+            uploadFileRespDTO.setErrMsg(SOURCE_DATA_UPLOAD_FAIL.getMsg());
             log.error("====> URL上传失败,数据状态为 false");
             return uploadFileRespDTO;
 
@@ -175,13 +175,19 @@ public class UrlUploadStrategy implements UploadStrategy {
             if (charset == null || charset.isEmpty()) {
                 charset = CharsetUtil.UTF_8;
             }
-
+            String title;
             // 获取网页的title，使用实际编码进行解析
-            return new String(doc.title().getBytes(StandardCharsets.UTF_8), Charset.forName(charset));
+            title = new String(doc.title().getBytes(StandardCharsets.UTF_8), Charset.forName(charset));
+            if (StrUtil.isBlank(title)) {
+                title = Objects.requireNonNull(doc.select("meta[property=og:title]").first()).attr("content");
+            }
+            return title;
+
         } catch (RuntimeException e) {
             return null;
         }
     }
+
 
     /**
      * 获取网页描述

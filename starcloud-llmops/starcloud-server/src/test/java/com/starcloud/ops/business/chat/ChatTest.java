@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,10 +24,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 
@@ -57,6 +60,9 @@ public class ChatTest extends BaseDbUnitTest {
     @MockBean
     private FileApi fileApi;
 
+    @MockBean
+    private RedissonClient redissonClient;
+
 
     @BeforeEach
     public void before() {
@@ -82,6 +88,28 @@ public class ChatTest extends BaseDbUnitTest {
         JsonData jsonParams = chatAppEntity.execute(chatRequest);
 
     }
+
+    /**
+     * 普通对话
+     */
+    @Test
+    public void runMyChat1Test() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        chatRequest.setAppUid("8df9343b57464dab8974b2704c6a18e4");
+        chatRequest.setUserId(188L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        chatRequest.setQuery("你好11？");
+
+
+        chatService.chat(chatRequest);
+
+    }
+
 
     /**
      * 普通带历史聊天
@@ -142,7 +170,9 @@ public class ChatTest extends BaseDbUnitTest {
         //带数据集的
         chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
 
-        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
 
         chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
 
@@ -168,7 +198,6 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setQuery("今天杭州的天气怎么样？");
 
-        chatRequest.setQuery("1+1=？");
 
         chatService.chat(chatRequest);
 
@@ -204,6 +233,45 @@ public class ChatTest extends BaseDbUnitTest {
 
 
     /**
+     * 工具调用 联网查询
+     */
+    @Test
+    public void runMyChatWebSearchTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+        //chatRequest.setSseEmitter(new SseEmitter());
+
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+
+        chatRequest.setQuery("今天杭州的天气怎么样？");
+
+        chatRequest.setQuery("今天北京的天气怎么样？");
+
+        chatRequest.setQuery("今天天津的天气怎么样？");
+
+        //chatRequest.setQuery("杭州 8月29号天怎么样，跟8月28号天气比较尼？");
+
+        // chatRequest.setQuery("查询下 杭州 2023年8月29号和8月30号的天气，并做个温度比较给我。");
+
+
+        chatRequest.setQuery("查下苹果最新的有哪些消息？");
+
+        chatRequest.setQuery("搜索下 最新黑悟空的图片");
+
+
+        chatRequest.setQuery("今天天津的天气怎么样？");
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+    /**
      * 查询带文档的chat
      */
     @Test
@@ -212,15 +280,135 @@ public class ChatTest extends BaseDbUnitTest {
         ChatRequestVO chatRequest = new ChatRequestVO();
 
         //带数据集的
-        chatRequest.setAppUid("971e790946d04513aad3b29e695720f0");
+        chatRequest.setAppUid("2a651f163be6492aac1b1e612f45da8d");
+        chatRequest.setUserId(186L);
 
-        chatRequest.setScene(AppSceneEnum.WEB_ADMIN.name());
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
 
         chatRequest.setQuery("什么是电子商务？");
 
+        chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("今天天津的天气怎么样？");
+
+        chatRequest.setQuery("亚马逊商城是否适合我的业务?");
+
+        chatRequest.setQuery("今天是几号?");
 
         chatService.chat(chatRequest);
 
     }
+
+
+    /**
+     * 带工具聊天 + 历史
+     */
+    @Test
+    public void runMyChatToolHistory2Test() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+        //chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
+
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("1+1=?");
+
+        chatService.chat(chatRequest);
+
+    }
+
+    /**
+     * 带工具聊天 + 历史
+     */
+    @Test
+    public void runImageTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        //带数据集的
+        //带数据集的
+        chatRequest.setAppUid("f21278f7cfb9462893efd0507f3bbafc");
+        //chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
+
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("画一个直升机");
+
+        chatService.chat(chatRequest);
+
+    }
+
+    /**
+     * 模型切换
+     */
+    @Test
+    public void runModelTypeTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        chatRequest.setWebSearch(true);
+
+
+        //带数据集的
+        //带数据集的
+        chatRequest.setAppUid("b9397ce23a284a05a4602a64fab939f0");
+        //chatRequest.setConversationUid("5e97181f087a4c62b672deaa4fd8d090");
+
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("今天杭州的天气怎么样");
+
+        chatService.chat(chatRequest);
+
+    }
+
+    //上下文，带 工具
+    @Test
+    public void runModel2TypeTest() {
+
+        ChatRequestVO chatRequest = new ChatRequestVO();
+
+        chatRequest.setWebSearch(true);
+
+
+        //带数据集的
+        //带数据集的
+        chatRequest.setAppUid("ff9d2961fb084d209f8cff5c27267157");
+        //chatRequest.setConversationUid("f83dbbb1056145909b24bc8db046f739");
+
+        chatRequest.setUserId(186L);
+
+        chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
+
+        //chatRequest.setQuery("帮我看下 https://www.google.com/doodles/celebrating-else-lasker-schuler，并总结里面的内容");
+
+        chatRequest.setQuery("页面主要提到了哪些APP？");
+
+        chatRequest.setQuery("分析下https://www.hangzhou2022.cn/yywh/yyjy/202309/t20230911_71519.shtml");
+
+        chatRequest.setQuery("杭州天气怎么样子？");
+
+        chatService.chat(chatRequest);
+
+    }
+
+
+
 
 }

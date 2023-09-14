@@ -104,4 +104,32 @@ public class RecommendAppFactory {
         return app;
     }
 
+    public static AppRespVO emptyChatRobotApp() {
+        AppRespVO app = new AppRespVO();
+        app.setUid(RecommendAppConsts.CHAT_ROBOT);
+//        app.setName("亚马逊AI助手");
+//        app.setDescription("作为一名亚马逊运营AI助手，我熟悉亚马逊运营中的各种基础技能，可以帮你做市场研究和分析、优化产品listing、优化广告文案、处理客户问题。");
+        app.setModel(AppModelEnum.CHAT.name());
+        app.setType(AppTypeEnum.MYSELF.name());
+        app.setSource(AppSourceEnum.WEB.name());
+        app.setTags(Collections.singletonList("Chat"));
+        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setScenes(AppUtils.DEFAULT_SCENES);
+        app.setImages(Collections.singletonList("https://download.hotsalecloud.com/avatar/f88670eed0534ccd9bd80df21b92bf2c.svg"));
+        app.setIcon("seo");
+
+        ChatConfigRespVO chatConfigRespVO = new ChatConfigRespVO();
+        ModelConfigRespVO openaiModel = ModelConfigRespVO.builder().provider("openai").completionParams(new OpenaiCompletionRespVo()).build();
+        OpeningStatementRespVO openingStatementRespVO = new OpeningStatementRespVO();
+        openingStatementRespVO.setEnabled(true);
+        openingStatementRespVO.setStatement("你好！我是一个人工智能助手，我可以回答你的问题、提供信息、进行翻译、提供建议等等。请告诉我你需要什么帮助。");
+        chatConfigRespVO.setOpeningStatement(openingStatementRespVO);
+        DescriptionRespVo descriptionRespVo = new DescriptionRespVo();
+        descriptionRespVo.setEnabled(true);
+        chatConfigRespVO.setDescription(descriptionRespVo);
+        chatConfigRespVO.setModelConfig(openaiModel);
+        app.setChatConfig(chatConfigRespVO);
+        return app;
+    }
+
 }

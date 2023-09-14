@@ -1,11 +1,13 @@
 package com.starcloud.ops.business.app.domain.factory;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -20,9 +22,12 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.domain.repository.publish.AppPublishRepository;
+import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -30,12 +35,14 @@ import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.RecommendAppConsts;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 获取应用工厂
@@ -108,24 +115,29 @@ public class AppFactory {
      */
     public static ChatAppEntity factory(@Valid ChatRequestVO chatRequest) {
 
+        ChatAppEntity appEntity = null;
+
         if (AppSceneEnum.CHAT_MARKET.name().equalsIgnoreCase(chatRequest.getScene())) {
             AppMarketEntity appMarketEntity = AppFactory.factoryMarket(chatRequest.getAppUid());
-            return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
-        }
-
-        if (AppSceneEnum.CHAT_TEST.name().equalsIgnoreCase(chatRequest.getScene())) {
+            appEntity = AppMarketConvert.INSTANCE.convert2(appMarketEntity);
+        } else if (AppSceneEnum.CHAT_TEST.name().equalsIgnoreCase(chatRequest.getScene())) {
             String appId = chatRequest.getAppUid();
-            ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
-            return appEntity;
-        }
-
-        if (StringUtils.isNotBlank(chatRequest.getMediumUid())) {
+            appEntity = factoryChatApp(chatRequest.getAppUid());
+        } else if (StringUtils.isNotBlank(chatRequest.getMediumUid())) {
             String mediumId = chatRequest.getMediumUid();
-            return factory(chatRequest.getMediumUid());
+            appEntity = factory(chatRequest.getMediumUid());
+
+        } else {
+            appEntity = factoryChatApp(chatRequest.getAppUid());
         }
 
-        ChatAppEntity appEntity = factoryChatApp(chatRequest.getAppUid());
+
         return appEntity;
+    }
+
+    public static ChatAppEntity factroyMarket(String appUid) {
+        AppMarketEntity appMarketEntity = AppFactory.factoryMarket(appUid);
+        return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
     }
 
     public static ChatAppEntity factory(String mediumUid) {

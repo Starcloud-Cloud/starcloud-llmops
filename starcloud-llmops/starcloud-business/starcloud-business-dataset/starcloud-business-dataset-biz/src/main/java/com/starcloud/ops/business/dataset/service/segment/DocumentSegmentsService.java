@@ -1,19 +1,14 @@
 package com.starcloud.ops.business.dataset.service.segment;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
-import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
-import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
-import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
-import com.starcloud.ops.business.dataset.pojo.request.SimilarQueryRequest;
+import com.starcloud.ops.business.dataset.pojo.request.*;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import org.apache.tika.exception.TikaException;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.List;
 
 public interface DocumentSegmentsService {
@@ -27,14 +22,7 @@ public interface DocumentSegmentsService {
     public SplitForecastResponse splitForecast(FileSplitRequest fileSplitRequest);
 
     /**
-     * 文件拆分、计算embedding
-     *
-     * @return
-     */
-    public void splitAndIndex(SplitRule splitRule, String datasetId, String documentId, String url);
-
-    /**
-     * 岸规则拆分文本
+     * 规则拆分文本
      * @param dataSourceId
      * @param text
      * @param splitRule
@@ -65,7 +53,14 @@ public interface DocumentSegmentsService {
      * @param request
      * @return
      */
-    public MatchQueryVO matchQuery(MatchQueryRequest request);
+    public MatchQueryVO matchQuery(MatchByDataSetIdRequest request);
+
+    /**
+     * 匹配文档中的分段
+     * @param request
+     * @return
+     */
+    MatchQueryVO matchQuery(MatchByDocIdRequest request);
 
     /**
      * 相似查询

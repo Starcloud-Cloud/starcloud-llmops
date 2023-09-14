@@ -8,17 +8,14 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.share.controller.app.vo.ChatDetailReqVO;
+import com.starcloud.ops.business.share.controller.app.vo.request.ChatDetailReqVO;
 import com.starcloud.ops.business.share.service.ChatShareService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -48,7 +45,7 @@ public class ChatShareServiceImpl implements ChatShareService {
     @Override
     public void shareChat(ChatRequestVO chatRequestVO) {
         if (StringUtils.isBlank(chatRequestVO.getMediumUid())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(600001, "Please use the latest sharing link"));
+            throw ServiceExceptionUtil.exception(new ErrorCode(500, "MediumUid is required"));
         }
         ChatAppEntity chatAppEntity = AppFactory.factory(chatRequestVO);
         TenantContextHolder.setTenantId(chatAppEntity.getTenantId());

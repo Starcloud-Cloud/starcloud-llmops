@@ -1,5 +1,6 @@
 package com.starcloud.ops.llm.langchain.core.indexes.vectorstores;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.DocumentSegmentDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryDTO;
 import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryHit;
@@ -46,17 +47,26 @@ public class DefaultVectorStore implements BasicVectorStore {
 
     @Override
     public List<KnnQueryHit> knnSearch(List<Float> queryVector, KnnQueryDTO queryDTO) {
-        List<Map<String, Object>> maps = mapper.selectBySegmentIds(queryDTO.getSegmentIds());
+        queryDTO.checkDefaultValue();
+        List<Map<String, Object>> maps = null;
+        if (CollectionUtil.isNotEmpty(queryDTO.getDatasetIds())) {
+            maps = mapper.selectByDataSetIds(queryDTO.getDatasetIds());
+        } else if (CollectionUtil.isNotEmpty(queryDTO.getDocumentIds())) {
+            maps = mapper.selectByDocIds(queryDTO.getDocumentIds());
+        } else if (CollectionUtil.isNotEmpty(queryDTO.getSegmentIds())) {
+            maps = mapper.selectByDocIds(queryDTO.getSegmentIds());
+        } else {
+            throw new IllegalArgumentException("数据集id、文档id、分段id不能同时为空");
+        }
         List<KnnQueryHit> knnQueryHitList = new ArrayList<>();
-
         for (Map<String, Object> map : maps) {
             List<Float> vector = deserialize((byte[]) map.get("vector"));
             DocumentSegmentDTO documentSegment = DocumentSegmentDTO.builder()
                     .tenantId(Long.valueOf(map.get("tenant_id").toString()))
-                    .dataSetId(String.valueOf(map.get("dataset_id")))
+                    .datasetId(String.valueOf(map.get("dataset_id")))
                     .documentId(String.valueOf(map.get("document_id")))
                     .segmentId(String.valueOf(map.get("segment_id")))
-                    .segmentText(String.valueOf(map.get("content")))
+                    .content(String.valueOf(map.get("content")))
                     .vector(vector)
                     .build();
             double[] docVec = vector.stream().mapToDouble(Float::floatValue).toArray();
@@ -100,6 +110,31 @@ public class DefaultVectorStore implements BasicVectorStore {
                 + "</script>"
         )
         List<Map<String, Object>> selectBySegmentIds(List<String> list);
+
+
+        @Select("<script> "
+                + "select e.tenant_id,e.dataset_id,e.document_id,e.segment_id,e.vector,s.content"
+                + " from llm_document_segments s INNER JOIN llm_segments_embeddings e ON s.id =  e.segment_id"
+                + " where s.deleted = false and s.document_id in "
+                + "  <foreach collection='list' item='item' index='index' "
+                + "    open='(' separator=',' close=')' >                 "
+                + "    #{item}                                            "
+                + "  </foreach>"
+                + "</script>"
+        )
+        List<Map<String, Object>> selectByDocIds(List<String> list);
+
+        @Select("<script> "
+                + "select e.tenant_id,e.dataset_id,e.document_id,e.segment_id,e.vector,s.content"
+                + " from llm_document_segments s INNER JOIN llm_segments_embeddings e ON s.id =  e.segment_id"
+                + " where s.deleted = false and s.dataset_id in "
+                + "  <foreach collection='list' item='item' index='index' "
+                + "    open='(' separator=',' close=')' >                 "
+                + "    #{item}                                            "
+                + "  </foreach>"
+                + "</script>"
+        )
+        List<Map<String, Object>> selectByDataSetIds(List<String> list);
 
         @Update(
                 "<script> "

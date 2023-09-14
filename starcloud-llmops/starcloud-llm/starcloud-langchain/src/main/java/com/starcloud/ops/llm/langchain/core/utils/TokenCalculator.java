@@ -1,6 +1,7 @@
 package com.starcloud.ops.llm.langchain.core.utils;
 
 import com.knuddels.jtokkit.api.ModelType;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -8,18 +9,18 @@ import java.math.RoundingMode;
 
 public class TokenCalculator {
 
-    public static ModelType fromName(String model) {
-        return ModelType.fromName(model).orElse(ModelType.GPT_3_5_TURBO);
+    public static ModelTypeEnum fromName(String model) {
+        return ModelTypeEnum.fromName(model).orElse(ModelTypeEnum.GPT_3_5_TURBO);
     }
 
-    public static BigDecimal getTextPrice(Long tokens, ModelType modelType) {
+    public static BigDecimal getTextPrice(Long tokens, ModelTypeEnum modelType) {
         BigDecimal price = new BigDecimal(tokens).
                 divide(new BigDecimal(1000), 3, RoundingMode.HALF_UP)
                 .multiply(getUnitPrice(modelType, true), MathContext.DECIMAL32);
         return price;
     }
 
-    public static BigDecimal getTextPrice(Long tokens, ModelType modelType, Boolean isOutput) {
+    public static BigDecimal getTextPrice(Long tokens, ModelTypeEnum modelType, Boolean isOutput) {
         BigDecimal price = new BigDecimal(tokens).
                 divide(new BigDecimal(1000), 3, RoundingMode.HALF_UP)
                 .multiply(getUnitPrice(modelType, isOutput), MathContext.DECIMAL32);
@@ -27,7 +28,7 @@ public class TokenCalculator {
     }
 
 
-    public static BigDecimal getUnitPrice(ModelType modelType, Boolean isOutput) {
+    public static BigDecimal getUnitPrice(ModelTypeEnum modelType, Boolean isOutput) {
         // todo  不同模型计算基数补充
         BigDecimal unitPrice;
         switch (modelType) {
@@ -46,6 +47,9 @@ public class TokenCalculator {
                 break;
             case GPT_4_32K:
                 unitPrice = isOutput ? new BigDecimal(0.06) : new BigDecimal(0.12);
+                break;
+            case QWEN:
+                unitPrice = isOutput ? new BigDecimal(0.0016) : new BigDecimal(0.0016);
                 break;
             default:
                 unitPrice = new BigDecimal(0);

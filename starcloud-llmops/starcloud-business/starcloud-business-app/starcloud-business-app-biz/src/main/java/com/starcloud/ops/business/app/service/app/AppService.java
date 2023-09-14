@@ -74,6 +74,14 @@ public interface AppService {
     AppRespVO get(String uid);
 
     /**
+     * 根据应用 UID 获取应用详情-简单
+     *
+     * @param uid 应用 UID
+     * @return 应用详情
+     */
+    AppRespVO getSimple(String uid);
+
+    /**
      * 创建模版
      *
      * @param request 应用请求信息

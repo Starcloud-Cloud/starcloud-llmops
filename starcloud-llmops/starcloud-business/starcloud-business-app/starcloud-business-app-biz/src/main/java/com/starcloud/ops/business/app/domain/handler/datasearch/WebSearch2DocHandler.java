@@ -1,23 +1,28 @@
 package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveData;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
-import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
+import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +38,7 @@ import java.util.Optional;
 @Data
 @Slf4j
 @Component
-public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Request, WebSearch2DocHandler.Response> {
+public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.Request, WebSearch2DocHandler.Response> {
 
     private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
@@ -47,65 +52,112 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
     private int summarySubSize = 300;
 
+    private String usage = "1.帮我看下 https://www.hangzhou2022.cn/fw/emwtjd/202308/t20230825_70460.shtml 说了什么？ \n" +
+            "2.https://www.hangzhou2022.cn/xwzx/jdxw/ttxw/202308/t20230824_70312.shtml 总结下里面的内容";
+
+
+    private String icon = "FindInPage";
+
+
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
 
         String url = context.getRequest().getUrl();
 
+
         //@todo 通过上下文获取当前可能配置的 tools 执行 tips
-        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard(url).setTips("AI分析链接内容");
+        InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("分析链接内容中[" + url + "]...").setToolHandler(this).setInput(context.getRequest());
+
 
         context.sendCallbackInteractiveStart(interactiveInfo);
 
-        String datasetId = context.getAppUid();
-
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
-        handlerResponse.setMessage(url);
-
-        Response result = new Response();
+        handlerResponse.setMessage(JsonUtils.toJsonString(context.getRequest()));
 
 
         UploadUrlReqVO uploadUrlReqVO = new UploadUrlReqVO();
-        uploadUrlReqVO.setSync(true);
+
+        uploadUrlReqVO.setCleanSync(true);
+        uploadUrlReqVO.setSplitSync(false);
+        uploadUrlReqVO.setIndexSync(false);
+
+        uploadUrlReqVO.setSessionId(context.getConversationUid());
         uploadUrlReqVO.setUrls(Arrays.asList(url));
-        uploadUrlReqVO.setDatasetId(datasetId);
+        uploadUrlReqVO.setAppId(context.getAppUid());
+        // TODO 添加创建人或者游客
 
-        SplitRule splitRule = new SplitRule();
-        splitRule.setAutomatic(true);
-        splitRule.setRemoveExtraSpaces(true);
+        BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+        baseDBHandleDTO.setCreator(context.getUserId());
+        baseDBHandleDTO.setEndUser(context.getEndUser());
 
-        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceData(uploadUrlReqVO);
+        List<SourceDataUploadDTO> sourceDataUploadDTOS = datasetSourceDataService.uploadUrlsSourceDataBySession(uploadUrlReqVO, baseDBHandleDTO);
         SourceDataUploadDTO sourceDataUploadDTO = Optional.ofNullable(sourceDataUploadDTOS).orElse(new ArrayList<>()).stream().findFirst().get();
 
         if (!sourceDataUploadDTO.getStatus()) {
-            log.error("WebSearch2DocHandler uploadUrlsSourceData is fail:{}, {}", url, sourceDataUploadDTO.getErrMsg());
+            log.error("WebSearch2DocHandler uploadUrlsSourceDataBySession is fail:{}, {}", url, sourceDataUploadDTO.getErrMsg());
 
             throw new RuntimeException("URL解析失败");
         }
 
-        //查询内容
-        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataListData(datasetId, true);
-        String summary = StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
-
-        summary = StrUtil.subPre(summary, summarySubSize);
-
-        //先截取
-        result.setSummary(summary);
-        result.setDocKey(detailsInfoVO.getUid());
-
+        // 查询内容
+        DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataById(sourceDataUploadDTO.getSourceDataId(), true);
+        String desc = detailsInfoVO.getDescription();
         handlerResponse.setSuccess(true);
-        handlerResponse.setAnswer(summary);
+
+        Response result = new Response();
+        // 先截取
+        result.setTitle(detailsInfoVO.getName());
+        result.setDescription(desc);
+        result.setDocId(detailsInfoVO.getId());
         handlerResponse.setOutput(result);
 
+
+        InteractiveData interactiveData = new InteractiveData();
+
+        interactiveData.setTitle(detailsInfoVO.getName());
+        interactiveData.setContent(result.getDescription());
+        interactiveData.setUrl(url);
+        interactiveData.setTime(DateUtil.now());
+
+        List<InteractiveData> dataList = Arrays.asList(interactiveData);
+
+        // handlerResponse.setExt(dataList);
+
+        interactiveInfo.setData(dataList);
+        interactiveInfo.setTips("分析链接完成");
         context.sendCallbackInteractiveEnd(interactiveInfo);
 
         return handlerResponse;
     }
 
+    /**
+     * 包装为 下午文 文档结构
+     * 默认实现，工具类型返回
+     */
+    @Override
+    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
+
+        // 解析返回的内容 生成 MessageContentDocDTO
+        List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();
+
+        MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();
+
+        messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
+
+        messageContentDocDTO.setTime(LocalDateTimeUtil.now().toString());
+        messageContentDocDTO.setTitle(this.getName());
+        messageContentDocDTO.setContent(handlerResponse.getOutput().getDescription());
+        messageContentDocDTO.setId(handlerResponse.getOutput().getDocId());
+
+        messageContentDocDTOList.add(messageContentDocDTO);
+
+        return messageContentDocDTOList;
+    }
+
 
     @Data
-    public static class Request {
+    public static class Request implements Serializable {
 
         @JsonProperty(required = true)
         @JsonPropertyDescription("a website url")
@@ -115,11 +167,13 @@ public class WebSearch2DocHandler extends BaseHandler<WebSearch2DocHandler.Reque
 
 
     @Data
-    public static class Response {
+    public static class Response implements Serializable {
 
-        private String summary;
+        private String title;
 
-        private String docKey;
+        private String description;
+
+        private Long docId;
 
     }
 

@@ -1,7 +1,10 @@
 package com.starcloud.ops.business.app.controller.admin.chat.vo;
 
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -26,13 +29,22 @@ public class ChatRequestVO extends AppContextReqVO {
 
     @Schema(description = "聊天内容")
     @NotBlank(message = "聊天内容 不能为空")
-    @Length(max = 100, message = "聊天内容不能超过100个字符")
+    @Length(max = 200, message = "聊天内容不能超过200个字符")
     private String query;
+
+    /**
+     * @see com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum
+     */
+    @Schema(description = "使用的大语言模型", defaultValue = "GPT35")
+    private String modelType;
+
+    @Schema(description = "联网聊天")
+    private Boolean webSearch;
 
     /**
      * jsonSchemas 格式的数据，后面会使用这种方式传递参数
      */
-    private JsonData jsonParams;
+    private JsonData params;
 
     /**
      * 临时上传的文档，默认上传到应用+会话对应的数据集中
