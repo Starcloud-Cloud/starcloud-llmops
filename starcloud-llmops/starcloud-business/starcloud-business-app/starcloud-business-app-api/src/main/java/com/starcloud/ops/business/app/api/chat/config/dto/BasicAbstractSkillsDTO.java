@@ -21,6 +21,9 @@ public abstract class BasicAbstractSkillsDTO implements BaseExpandConfigDTO{
     @Schema(description = "提示文案")
     private String copyWriting;
 
+    @Schema(description = "使用说明")
+    private String usage;
+
     @Override
     public void valid() {
         if (StringUtil.isBlank(name)) {
