@@ -49,7 +49,7 @@ public class DatasetSourceDataSplitProducer extends AbstractDatasetSourceProduce
                 .setDatasetId(sendMessage.getDatasetId())
                 .setDataSourceId(sendMessage.getDataSourceId())
                 .setSplitRule(sendMessage.getSplitRule())
-                .setRetryCount(0)
+                .setRetryCount(sendMessage.getRetryCount())
                 .setUserId(sendMessage.getUserId())
                 .setTenantId(sendMessage.getTenantId())
                 .setCleanSync(sendMessage.getCleanSync())
@@ -64,7 +64,7 @@ public class DatasetSourceDataSplitProducer extends AbstractDatasetSourceProduce
 
         DatasetSourceDataSplitSendMessage message = new DatasetSourceDataSplitSendMessage();
 
-        message.setRetryCount(0);
+        message.setRetryCount(sendMessage.getRetryCount());
         message.setDatasetId(sendMessage.getDatasetId());
         message.setDataSourceId(sendMessage.getDataSourceId());
         message.setSplitRule(sendMessage.getSplitRule());
