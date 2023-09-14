@@ -10,6 +10,7 @@ import io.github.furstenheim.CopyDown;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.safety.Safelist;
 import org.jsoup.select.Elements;
 
 import java.util.Arrays;
@@ -49,38 +50,38 @@ public class TextCleanAndSplitUtils {
     }
 
     public static String processCommonRule(String text, CommonCleanRule commonCleanRule) {
-        Document doc = Jsoup.parse(text);
-        StringBuilder processedText = new StringBuilder(doc.text());
 
-        if (commonCleanRule.getRemoveAllHtmlTags()) {
-            processedText = new StringBuilder(doc.text());
-        }
+
 
         if (commonCleanRule.getRemoveAllImage()) {
             String imgRegex = "<img.*?>";
             Pattern imgPattern = Pattern.compile(imgRegex, Pattern.CASE_INSENSITIVE);
-            Matcher matcher = imgPattern.matcher(processedText);
-            processedText = new StringBuilder(matcher.replaceAll(""));
+            Matcher matcher = imgPattern.matcher(text);
+            text = matcher.replaceAll("");
         }
 
         if (commonCleanRule.getRemoveConsecutiveSpaces()) {
-            processedText = new StringBuilder(processedText.toString().replaceAll("\\s+", " "));
+            text = text.replaceAll(" +", " ");
         }
 
         if (commonCleanRule.getRemoveConsecutiveNewlines()) {
-            processedText = new StringBuilder(processedText.toString().replaceAll("\\n+", "\n"));
+            text = text.replaceAll("\\n+", "\n");
         }
 
         if (commonCleanRule.getRemoveConsecutiveTabs()) {
-            processedText = new StringBuilder(processedText.toString().replaceAll("\\t+", "\t"));
+            text = text.replaceAll("\\t+", "\t");
         }
 
         if (commonCleanRule.getRemoveUrlsEmails()) {
             String emailRegex = "([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)";
-            processedText = new StringBuilder(processedText.toString().replaceAll(emailRegex, ""));
+            text = text.replaceAll(emailRegex, "");
         }
 
-        return processedText.toString();
+        if (commonCleanRule.getRemoveAllHtmlTags()) {
+            text= Jsoup.clean(text, Safelist.none());
+        }
+
+        return text;
     }
 
 
