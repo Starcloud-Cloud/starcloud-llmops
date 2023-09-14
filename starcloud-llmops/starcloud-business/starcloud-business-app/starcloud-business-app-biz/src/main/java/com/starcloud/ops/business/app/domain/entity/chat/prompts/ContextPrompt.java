@@ -153,7 +153,7 @@ public class ContextPrompt extends BasePromptConfig {
 
 
     private Boolean canSearchDataset() {
-        return false;
+        return true;
     }
 
     private Boolean canSearchWeb() {
