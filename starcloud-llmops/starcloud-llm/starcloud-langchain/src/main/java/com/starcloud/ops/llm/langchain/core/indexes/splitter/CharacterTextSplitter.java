@@ -43,6 +43,9 @@ public class CharacterTextSplitter extends BasicTextSplitter {
     protected List<String> split(String text, int chunkSize, List<String> separators) {
         List<String> list = null;
         for (String separator : separators) {
+            if (".".equals(separator)) {
+                separator = "\\.";
+            }
             if (list == null) {
                 String[] splits = text.split(separator);
                 list = CollectionUtil.toList(splits);
