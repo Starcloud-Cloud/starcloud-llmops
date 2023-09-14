@@ -75,5 +75,4 @@ public class SegmentController {
         return CommonResult.success(true);
     }
 
-
 }
