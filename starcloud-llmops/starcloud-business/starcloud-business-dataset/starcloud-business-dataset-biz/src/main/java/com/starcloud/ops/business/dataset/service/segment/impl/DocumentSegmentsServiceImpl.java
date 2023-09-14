@@ -390,11 +390,8 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.warn("获取缓存embedding失败", e);
         }
         try {
-            Long userId = WebFrameworkUtils.getLoginUserId();
-            userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
             EmbeddingDetail embeddingDetail = basicEmbedding.embedText(text);
             redisTemplate.boundValueOps(hash).set(JSONUtil.toJsonStr(embeddingDetail), 1, TimeUnit.DAYS);
-            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), embeddingDetail.getTotalTokens(), userId, null);
             return embeddingDetail;
         } catch (ServiceException e) {
             log.error("权益计算异常：{}", e.getMessage());
