@@ -91,7 +91,7 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     private ModelConfigEntity modelConfig;
 
-    private WebSearchConfigEntity webSearchConfig;
+    private WebSearchConfigEntity webSearchConfig = new WebSearchConfigEntity();
 
     private List<DatesetEntity> datesetEntities;
 
