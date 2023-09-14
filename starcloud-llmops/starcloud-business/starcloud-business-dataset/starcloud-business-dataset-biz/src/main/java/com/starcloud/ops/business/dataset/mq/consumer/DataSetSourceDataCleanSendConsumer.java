@@ -16,6 +16,7 @@ import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
+import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataCleanProducer;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataSplitProducer;
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
@@ -42,6 +43,10 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
 
     @Resource
     private DatasetSourceDataSplitProducer dataSplitProducer;
+
+
+    @Resource
+    private DatasetSourceDataCleanProducer dataCleanProducer;
 
     @Resource
     private DatasetStorageMapper datasetStorageMapper;
@@ -84,7 +89,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             String cleanPath = uploadFile(cleanResultVO.getResult(), message.getUserId(), cleanResultVO.getFormatSuffix());
 
             // 保存清洗地址
-            Long cleanId = setStorageData(cleanResultVO.getResultName(), cleanPath, cleanResultVO.getConvertFormat(), (long) cleanResultVO.getResult().length(), message.getUserId(),message.getTenantId());
+            Long cleanId = setStorageData(cleanResultVO.getResultName(), cleanPath, cleanResultVO.getConvertFormat(), (long) cleanResultVO.getResult().length(), message.getUserId(), message.getTenantId());
 
             // 获取描述
             String descriptionContent = getDescriptionContent(sourceDataDO, cleanResultVO.getResult());
@@ -121,19 +126,28 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
     protected void sendMessage(DatasetSourceSendMessage message) {
 
         if (0 == dictDataService.getDictData("QueueSwitch", "sendMessage").getStatus()) {
+            if (Objects.equals(message.getStatus(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus())) {
 
-            if (Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
-                throw new RuntimeException(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName());
-            }
-
-            if (message.getSplitSync()) {
-                log.info("同步执行数据分块操作，数据为{}",JSONObject.toJSONString(message));
-                dataSplitProducer.sendMessage(message);
+                if (message.getSplitSync()) {
+                    log.info("同步执行数据分块操作，数据为{}", JSONObject.toJSONString(message));
+                    dataSplitProducer.sendMessage(message);
+                } else {
+                    log.info("异步执行数据分块操作，数据为{}", JSONObject.toJSONString(message));
+                    // 发送消息
+                    dataSplitProducer.asyncSendMessage(message);
+                }
+            } else if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
+                log.warn("数据清洗异常，开始重试，当前重试次数为{}",message.getRetryCount());
+                if (message.getCleanSync()) {
+                    log.info("同步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
+                    dataCleanProducer.sendMessage(message);
+                } else {
+                    log.info("异步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
+                    // 发送消息
+                    dataCleanProducer.asyncSendMessage(message);
+                }
             } else {
-                log.info("异步执行数据分块操作，数据为{}",JSONObject.toJSONString(message));
-                // 发送消息
-                dataSplitProducer.asyncSendMessage(message);
-
+                log.error("执行数据清洗失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
             }
         }
 
@@ -171,7 +185,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
      * @param userId         用户 ID
      * @return 存储ID
      */
-    private Long setStorageData(String sourceName, String storageAddress, String type, Long size, Long userId,Long tenantId) {
+    private Long setStorageData(String sourceName, String storageAddress, String type, Long size, Long userId, Long tenantId) {
         DatasetStorageDO datasetStorageDO = new DatasetStorageDO();
 
         datasetStorageDO.setUid(IdUtil.getSnowflakeNextIdStr());

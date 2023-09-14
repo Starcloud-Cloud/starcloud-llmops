@@ -10,6 +10,7 @@ import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendM
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataSplitSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataIndexProducer;
+import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataSplitProducer;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,9 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
 
     @Resource
     private DatasetSourceDataIndexProducer dataIndexProducer;
+
+    @Resource
+    private DatasetSourceDataSplitProducer dataSplitProducer;
 
     @Resource
     private DatasetStorageMapper datasetStorageMapper;
@@ -107,19 +111,34 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
 
         if (0 == dictDataService.getDictData("QueueSwitch", "sendMessage").getStatus()) {
 
-            if (Objects.equals(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(), message.getStatus())) {
-                throw new RuntimeException(DataSetSourceDataStatusEnum.SPLIT_ERROR.getName());
-            }
 
-            if (message.getIndexSync()) {
-                log.info("同步执行数据索引操作，数据为{}", JSONObject.toJSONString(message));
-                dataIndexProducer.sendMessage(message);
+            if (Objects.equals(message.getStatus(), DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus())) {
 
+                if (message.getIndexSync()) {
+                    log.info("同步执行数据索引操作，数据为{}", JSONObject.toJSONString(message));
+                    dataIndexProducer.sendMessage(message);
+
+                } else {
+                    log.info("异步执行数据索引操作，数据为{}",JSONObject.toJSONString(message));
+                    dataIndexProducer.asyncSendMessage(message);
+                }
+            } else if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(), message.getStatus())) {
+                log.warn("数据分块异常，开始重试，当前重试次数为{}",message.getRetryCount());
+                if (message.getCleanSync()) {
+                    log.info("同步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
+                    dataSplitProducer.sendMessage(message);
+                } else {
+                    log.info("异步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
+                    // 发送消息
+                    dataSplitProducer.asyncSendMessage(message);
+                }
             } else {
-                log.info("异步执行数据索引操作，数据为{}",JSONObject.toJSONString(message));
-                dataIndexProducer.asyncSendMessage(message);
+                log.error("执行数据分块失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
             }
         }
+
+
+
 
     }
 
