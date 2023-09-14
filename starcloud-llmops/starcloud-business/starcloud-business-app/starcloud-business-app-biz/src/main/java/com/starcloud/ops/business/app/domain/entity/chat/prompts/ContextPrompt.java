@@ -307,7 +307,7 @@ public class ContextPrompt extends BasePromptConfig {
             //@todo 需要 block 对象
             MatchByDataSetIdRequest matchQueryRequest = new MatchByDataSetIdRequest();
             matchQueryRequest.setText(query);
-            matchQueryRequest.setK(3L);
+            matchQueryRequest.setK(2L);
             matchQueryRequest.setDatasetUid(datasetUid);
             MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchQueryRequest);
 

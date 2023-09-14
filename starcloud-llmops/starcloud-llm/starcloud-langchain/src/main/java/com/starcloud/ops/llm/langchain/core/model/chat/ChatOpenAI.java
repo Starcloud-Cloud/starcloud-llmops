@@ -89,7 +89,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         OpenAiService openAiService;
 
-        if (StrUtil.isNotBlank(openAIConfig.getProxyHost())) {
+        if (CollectionUtil.isNotEmpty(openAIConfig.getProxyHosts())) {
             openAiService = addProxy(openAIConfig);
         } else if (Boolean.TRUE.equals(openAIConfig.getAzure())) {
             openAiService = azureAiService(openAIConfig);
@@ -231,8 +231,10 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                     @Override
                     public List<Proxy> select(URI uri) {
-                        List<Proxy> result = new ArrayList<>();
-                        result.add(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(openAIConfig.getProxyHost(), openAIConfig.getProxyPort())));
+                        List<Proxy> result = Optional.ofNullable(openAIConfig.getProxyHosts()).orElse(new ArrayList<>()).stream().map(host -> {
+                            return new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host, openAIConfig.getProxyPort()));
+                        }).collect(Collectors.toList());
+
                         return result;
                     }
 
