@@ -76,4 +76,17 @@ public class SegmentController {
     }
 
 
+    @GetMapping("/split/enable/{datasetId}/{documentId}")
+    @Operation(summary = "文档分段禁用/启用", description = "文档分段禁用/启用")
+    public CommonResult<Boolean> test(
+            @PathVariable("datasetId") String datasetId,
+            @PathVariable("documentId") String documentId,
+            @RequestParam(value = "disable") boolean enable
+
+    ) {
+        documentSegmentsService.indexDoc(datasetId, documentId);
+        return null;
+    }
+
+
 }

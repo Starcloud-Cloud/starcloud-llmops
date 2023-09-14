@@ -405,7 +405,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.error("权益计算异常：{}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("计算embedding异常：{}", e.getMessage());
+            log.error("计算embedding异常", e);
             throw ServiceExceptionUtil.exception(new ErrorCode(500, "计算embedding异常,请重试:" + e.getMessage()));
         }
     }
