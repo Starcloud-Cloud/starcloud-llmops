@@ -52,7 +52,7 @@ public class DatasetSourceDataIndexProducer extends AbstractDatasetSourceProduce
                 .setSplitRule(sendMessage.getSplitRule())
                 .setUserId(sendMessage.getUserId())
                 .setTenantId(sendMessage.getTenantId())
-                .setRetryCount(0)
+                .setRetryCount(sendMessage.getRetryCount())
                 .setCleanSync(sendMessage.getCleanSync())
                 .setSplitSync(sendMessage.getSplitSync())
                 .setIndexSync(sendMessage.getIndexSync());
@@ -64,7 +64,7 @@ public class DatasetSourceDataIndexProducer extends AbstractDatasetSourceProduce
 
         DatasetSourceDataIndexSendMessage message = new DatasetSourceDataIndexSendMessage();
 
-        message.setRetryCount(0);
+        message.setRetryCount(message.getRetryCount());
         message.setDatasetId(sendMessage.getDatasetId());
         message.setDataSourceId(sendMessage.getDataSourceId());
         message.setSplitRule(sendMessage.getSplitRule());

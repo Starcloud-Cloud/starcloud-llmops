@@ -77,9 +77,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
     protected void processBusinessLogic(DatasetSourceSendMessage message) {
         log.info("开始清洗数据，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
 
-        int retryCount = message.getRetryCount();
         try {
-
             // 根据数据源 ID获取数据储存ID
             DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
             // 执行数据清洗
@@ -110,7 +108,6 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
             message.setErrCode(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName() + ":" + e.getMessage());
-            message.setRetryCount(++retryCount);
             log.info("清洗失败，错误原因是:({})", e.getMessage(), e);
         }
 
@@ -127,7 +124,8 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
 
         if (0 == dictDataService.getDictData("QueueSwitch", "sendMessage").getStatus()) {
             if (Objects.equals(message.getStatus(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus())) {
-
+                // 如果执行成功 重置重试次数
+                message.setRetryCount(0);
                 if (message.getSplitSync()) {
                     log.info("同步执行数据分块操作，数据为{}", JSONObject.toJSONString(message));
                     dataSplitProducer.sendMessage(message);
@@ -137,6 +135,8 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
                     dataSplitProducer.asyncSendMessage(message);
                 }
             } else if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
+                int retryCount = message.getRetryCount();
+                message.setRetryCount(++retryCount);
                 log.warn("数据清洗异常，开始重试，当前重试次数为{}",message.getRetryCount());
                 if (message.getCleanSync()) {
                     log.info("同步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));

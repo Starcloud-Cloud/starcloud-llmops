@@ -47,22 +47,19 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
     @Override
     protected void processBusinessLogic(DatasetSourceSendMessage message) {
 
-        log.info("开始创建索引，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
-        int retryCount = message.getRetryCount();
+        log.info("开始创建索引，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
         try {
             // 创建索引
-             documentSegmentsService.indexDoc(String.valueOf(message.getDatasetId()), String.valueOf(message.getDataSourceId()));
+            documentSegmentsService.indexDoc(String.valueOf(message.getDatasetId()), String.valueOf(message.getDataSourceId()));
 
             // 设置数据状态
             message.setStatus(DataSetSourceDataStatusEnum.COMPLETED.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.COMPLETED.getName());
-            log.info("创建索引完成，数据集 ID 为({}),源数据 ID 为({})",message.getDatasetId(),message.getDataSourceId());
+            log.info("创建索引完成，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
         } catch (Exception e) {
-            // 设置数据源状态
-            message.setRetryCount(++retryCount);
             message.setStatus(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.INDEX_ERROR.getName());
-            log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", message.getUserId(), getTenantId(), message.getDatasetId(),message.getDataSourceId(),e.getMessage(),e);
+            log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", message.getUserId(), getTenantId(), message.getDatasetId(), message.getDataSourceId(), e.getMessage(), e);
         }
 
 
@@ -73,8 +70,10 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
      */
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
-    if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
-            log.warn("数据索引异常，开始重试，当前重试次数为{}",message.getRetryCount());
+        if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
+            int retryCount = message.getRetryCount();
+            message.setRetryCount(++retryCount);
+            log.warn("数据索引异常，开始重试，当前重试次数为{}", message.getRetryCount());
             if (message.getCleanSync()) {
                 log.info("同步执行数据创建索引操作，数据为{}", JSONObject.toJSONString(message));
                 dataIndexProducer.sendMessage(message);
