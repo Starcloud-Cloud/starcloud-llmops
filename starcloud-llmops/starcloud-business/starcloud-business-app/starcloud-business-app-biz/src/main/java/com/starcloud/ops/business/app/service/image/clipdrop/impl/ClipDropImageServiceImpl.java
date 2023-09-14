@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.image.clipdrop.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.ClipDropImageClient;
 import com.starcloud.ops.business.app.feign.request.clipdrop.CleanupClipDropRequest;
@@ -11,9 +12,7 @@ import com.starcloud.ops.business.app.feign.request.clipdrop.SketchToImageClipDr
 import com.starcloud.ops.business.app.feign.request.clipdrop.TextToImageClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
 import com.starcloud.ops.business.app.feign.response.ClipDropImage;
-import com.starcloud.ops.business.app.feign.response.ImageResponse;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
-import com.starcloud.ops.business.core.config.oss.AliyunOssClient;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -39,9 +38,6 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
     @Resource
     private ClipDropImageClient clipDropImageClient;
 
-    @Resource
-    private AliyunOssClient aliyunOssClient;
-
     /**
      * 放大图片
      *
@@ -49,16 +45,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> upscale(UpscaleClipDropRequest request) {
+    public ClipDropImage upscale(UpscaleClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.upscale(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop upscale image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop upscale image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -69,16 +65,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> cleanup(CleanupClipDropRequest request) {
+    public ClipDropImage cleanup(CleanupClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.cleanup(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop cleanup image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop cleanup image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -89,16 +85,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> portraitDepthEstimation(ImageFileClipDropRequest request) {
+    public ClipDropImage portraitDepthEstimation(ImageFileClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.portraitDepthEstimation(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop portrait depth estimation image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop portrait depth estimation image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -109,16 +105,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> portraitSurfaceNormals(ImageFileClipDropRequest request) {
+    public ClipDropImage portraitSurfaceNormals(ImageFileClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.portraitSurfaceNormals(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop portrait surface normals image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop portrait surface normals image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -129,16 +125,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> reimagine(ImageFileClipDropRequest request) {
+    public ClipDropImage reimagine(ImageFileClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.reimagine(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop reimagine image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop reimagine image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -149,16 +145,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> removeBackground(ImageFileClipDropRequest request) {
+    public ClipDropImage removeBackground(ImageFileClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.removeBackground(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop remove background image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop remove background image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -169,16 +165,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> removeText(ImageFileClipDropRequest request) {
+    public ClipDropImage removeText(ImageFileClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.removeText(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop remove text image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop remove text background image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -189,16 +185,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> replaceBackground(ReplaceBackgroundClipDropRequest request) {
+    public ClipDropImage replaceBackground(ReplaceBackgroundClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.replaceBackground(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop replace background image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop replace background background image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -209,16 +205,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> sketchToImage(SketchToImageClipDropRequest request) {
+    public ClipDropImage sketchToImage(SketchToImageClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.sketchToImage(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop sketch to image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop sketch to image background image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -229,16 +225,16 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @return 图片响应实体
      */
     @Override
-    public ImageResponse<ClipDropImage> textToImage(TextToImageClipDropRequest request) {
+    public ClipDropImage textToImage(TextToImageClipDropRequest request) {
         try {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.textToImage(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
             log.error("ClipDrop text to image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            return ImageResponse.failure(exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         } catch (Exception exception) {
             log.error("ClipDrop text to image background image failure: ErrorMessage: {}", exception.getMessage(), exception);
-            return ImageResponse.failure(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
 
@@ -248,25 +244,23 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param responseEntity 响应体
      * @return 响应信息
      */
-    private ImageResponse<ClipDropImage> transformResponse(ResponseEntity<byte[]> responseEntity) {
+    private ClipDropImage transformResponse(ResponseEntity<byte[]> responseEntity) {
         HttpStatus statusCode = responseEntity.getStatusCode();
         if (!HttpStatus.OK.equals(statusCode)) {
             log.error("ClipDrop 生成图片失败，错误码：{}", responseEntity.getStatusCodeValue());
-            return ImageResponse.failure(responseEntity.getStatusCodeValue(), "请求失败，请稍候重试！");
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), "ClipDrop 生成图片失败"));
         }
         HttpHeaders headers = responseEntity.getHeaders();
         MediaType contentType = Optional.ofNullable(headers.getContentType()).orElse(MediaType.IMAGE_PNG);
-        ClipDropImage image = new ClipDropImage();
         String uuid = IdUtil.fastSimpleUUID();
         byte[] binary = responseEntity.getBody();
         String mediaType = contentType.toString();
+
+        ClipDropImage image = new ClipDropImage();
         image.setUuid(uuid);
         image.setBinary(binary);
         image.setMediaType(mediaType);
-        // 上传到 OSS
-//        String url = aliyunOssClient.putAiGenerateImage(uuid, mediaType, binary);
-//        image.setUrl(url);
-        return ImageResponse.success(image);
+        return image;
     }
 
 

@@ -92,7 +92,7 @@ public class StabilityImageR implements Serializable {
     @Schema(description = "扩散过程遵循提示文本的严格程度（值越高，图像越靠近提示）")
     @Min(value = 0, message = "cfgScale must be greater than or equal to 0")
     @Max(value = 35, message = "cfgScale must be less than or equal to 35")
-    private Double cfgScale;
+    private Integer cfgScale;
 
     /**
      * 用于扩散过程的采样器。如果省略此值，我们将自动为您选择合适的采样器

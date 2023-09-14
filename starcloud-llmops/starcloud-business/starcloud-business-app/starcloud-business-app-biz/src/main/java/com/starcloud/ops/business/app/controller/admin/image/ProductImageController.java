@@ -7,20 +7,22 @@ import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.controller.admin.image.vo.task.ImageTask;
 import com.starcloud.ops.business.app.controller.admin.image.vo.task.StabilityImageR;
 import com.starcloud.ops.business.app.controller.admin.image.vo.task.TaskExecuteRequest;
-import com.starcloud.ops.business.app.feign.request.StabilityImageRequest;
-import com.starcloud.ops.business.app.feign.response.StabilityImage;
+import com.starcloud.ops.business.app.enums.vsearch.MaskSourceEnum;
+import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
+import com.starcloud.ops.business.app.feign.request.VectorSearchImageRequest;
+import com.starcloud.ops.business.app.feign.request.stability.MaskingStabilityImageRequest;
+import com.starcloud.ops.business.app.feign.response.VectorSearchImage;
 import com.starcloud.ops.business.app.service.image.ProductImageService;
 import com.starcloud.ops.business.app.service.image.stability.StabilityImageService;
+import com.starcloud.ops.business.app.service.vsearch.VectorSearchService;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -93,13 +95,13 @@ public class ProductImageController {
 
 
     @Resource
-    private StabilityImageService stabilityImageService;
+    private VectorSearchService vectorSearchService;
 
     @PostMapping(value = "/mask", consumes = "multipart/form-data")
     @Operation(summary = "执行任务", description = "执行任务")
     @ApiOperationSupport(order = 5, author = "nacoyer")
-    public CommonResult<List<StabilityImage>> mask(StabilityImageR req) throws IOException {
-        StabilityImageRequest request = new StabilityImageRequest();
+    public CommonResult<List<VectorSearchImage>> mask(StabilityImageR req) throws IOException {
+        VectorSearchImageRequest request = new VectorSearchImageRequest();
         if (req.getInitImage() != null) {
             // initImage 转为 base64
             String init = Base64.getEncoder().encodeToString(req.getInitImage().getBytes());
@@ -128,10 +130,47 @@ public class ProductImageController {
         request.setHeight(req.getHeight());
         request.setWidth(req.getWidth());
         request.setSteps(req.getSteps());
-        request.setCfgScale(req.getCfgScale());
+        request.setCfgScale(8.0);
         request.setSampler(req.getSampler());
         request.setSamples(req.getSamples());
 
-        return CommonResult.success(stabilityImageService.generate(request));
+        return CommonResult.success(vectorSearchService.generateImage(request));
+    }
+
+    @Resource
+    private StabilityImageService stabilityImageService;
+
+    @PostMapping(value = "/mask2", consumes = "multipart/form-data")
+    @Operation(summary = "执行任务", description = "执行任务")
+    @ApiOperationSupport(order = 5, author = "nacoyer")
+    public CommonResult<String> mask2(StabilityImageR req) throws IOException {
+        MaskingStabilityImageRequest request = new MaskingStabilityImageRequest();
+        if (req.getInitImage() != null) {
+            // initImage 转为 base64
+            String init = Base64.getEncoder().encodeToString(req.getInitImage().getBytes());
+            request.setInitImage(init);
+        }
+
+        request.setMaskSource(MaskSourceEnum.MASK_IMAGE_WHITE.name());
+        if (req.getMaskImage() != null) {
+            // maskImage 转为 base64
+            String mask = Base64.getEncoder().encodeToString(req.getMaskImage().getBytes());
+            request.setMaskImage(mask);
+        }
+
+        List<TextPrompt> prompts = new ArrayList<>();
+
+        TextPrompt textPrompt = new TextPrompt();
+        textPrompt.setText(req.getPrompt());
+        textPrompt.setWeight(1.0);
+        prompts.add(textPrompt);
+
+        request.setTextPrompts(prompts);
+        request.setSteps(req.getSteps());
+        request.setCfgScale(req.getCfgScale());
+        request.setSampler(IEnumable.codeOf(req.getSampler(), SamplerEnum.class).name());
+        request.setSamples(req.getSamples());
+        stabilityImageService.masking(req.getEngine(), request);
+        return CommonResult.success("success");
     }
 }

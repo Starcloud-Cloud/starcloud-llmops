@@ -19,7 +19,7 @@ import lombok.ToString;
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "StabilityImage", description = "Stability Ai 图片")
-public class StabilityImage {
+public class VectorSearchImage {
 
     /**
      * 图片的唯一标识

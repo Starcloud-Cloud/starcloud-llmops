@@ -21,7 +21,7 @@ import java.io.Serializable;
 @ToString
 @Schema(name = "StabilityResponse", description = "Stability Ai 基础响应")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ImageResponse<R> implements Serializable {
+public class VectorSearchResponse<R> implements Serializable {
 
     private static final long serialVersionUID = 4052376340382017013L;
 
@@ -55,8 +55,8 @@ public class ImageResponse<R> implements Serializable {
      * @param result 响应结果
      * @return 成功响应
      */
-    public static <R> ImageResponse<R> success(R result) {
-        ImageResponse<R> response = new ImageResponse<>();
+    public static <R> VectorSearchResponse<R> success(R result) {
+        VectorSearchResponse<R> response = new VectorSearchResponse<>();
         response.setSuccess(Boolean.FALSE);
         response.setCode(200);
         response.setMessage(null);
@@ -71,8 +71,8 @@ public class ImageResponse<R> implements Serializable {
      * @param message 错误信息
      * @return 响应
      */
-    public static <R> ImageResponse<R> failure(Integer code, String message) {
-        ImageResponse<R> response = new ImageResponse<>();
+    public static <R> VectorSearchResponse<R> failure(Integer code, String message) {
+        VectorSearchResponse<R> response = new VectorSearchResponse<>();
         response.setSuccess(Boolean.FALSE);
         response.setCode(code);
         response.setMessage(message);
@@ -86,8 +86,8 @@ public class ImageResponse<R> implements Serializable {
      * @param errorCode 错误吗
      * @return 响应
      */
-    public static <R> ImageResponse<R> failure(ErrorCode errorCode) {
-        ImageResponse<R> response = new ImageResponse<>();
+    public static <R> VectorSearchResponse<R> failure(ErrorCode errorCode) {
+        VectorSearchResponse<R> response = new VectorSearchResponse<>();
         response.setSuccess(Boolean.FALSE);
         response.setCode(errorCode.getCode());
         response.setMessage(errorCode.getMsg());

@@ -8,16 +8,18 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.convert.vsearch.VectorSearchConvert;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.service.image.stability.StabilityImageService;
+import com.starcloud.ops.business.app.feign.request.VectorSearchImageRequest;
+import com.starcloud.ops.business.app.feign.response.VectorSearchImage;
+import com.starcloud.ops.business.app.service.vsearch.VectorSearchService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -60,7 +62,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private static StabilityImageService vSearchImageService = SpringUtil.getBean(StabilityImageService.class);
+    private static VectorSearchService vectorSearchService = SpringUtil.getBean(VectorSearchService.class);
 
     /**
      * AppRepository
@@ -253,7 +255,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @JSONField(serialize = false)
     private ImageMessageRespVO textToImage(ImageReqVO request) {
         ImageRequest imageRequest = request.getImageRequest();
-        List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
+        VectorSearchImageRequest vectorSearchImageRequest = VectorSearchConvert.INSTANCE.convert(imageRequest);
+        List<VectorSearchImage> imageList = vectorSearchService.generateImage(vectorSearchImageRequest);
         ImageMessageRespVO imageResponse = new ImageMessageRespVO();
         imageResponse.setPrompt(request.getImageRequest().getPrompt());
         imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getImageRequest().getNegativePrompt(), Boolean.FALSE));
@@ -262,7 +265,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
         imageResponse.setHeight(request.getImageRequest().getHeight());
         imageResponse.setSteps(request.getImageRequest().getSteps());
         imageResponse.setCreateTime(LocalDateTime.now());
-        imageResponse.setImages(imageList);
+        imageResponse.setImages(VectorSearchConvert.INSTANCE.convert(imageList));
         return imageResponse;
     }
 

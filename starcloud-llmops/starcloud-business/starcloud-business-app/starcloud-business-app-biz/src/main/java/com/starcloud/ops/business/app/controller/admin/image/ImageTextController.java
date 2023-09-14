@@ -7,7 +7,7 @@ import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRe
 import com.starcloud.ops.business.app.feign.request.clipdrop.ReplaceBackgroundClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
 import com.starcloud.ops.business.app.feign.response.ClipDropImage;
-import com.starcloud.ops.business.app.feign.response.ImageResponse;
+import com.starcloud.ops.business.app.feign.response.VectorSearchResponse;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,7 +44,7 @@ public class ImageTextController {
     @Operation(summary = "放大图片", description = "放大图片")
     @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<Object> upscale(@Validated UpscaleClipDropRequest request) {
-        ImageResponse<ClipDropImage> response = clipDropImageService.upscale(request);
+        ClipDropImage response = clipDropImageService.upscale(request);
 
         log.info(JSONUtil.toJsonStr(response));
         return CommonResult.success(response);
@@ -54,7 +54,7 @@ public class ImageTextController {
     @Operation(summary = "去除背景", description = "放大图片")
     @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<Object> removeBackground(@Validated ImageFileClipDropRequest request) {
-        ImageResponse<ClipDropImage> response = clipDropImageService.removeBackground(request);
+        ClipDropImage response = clipDropImageService.removeBackground(request);
 
         log.info(JSONUtil.toJsonStr(response));
         return CommonResult.success(response);
@@ -64,7 +64,7 @@ public class ImageTextController {
     @Operation(summary = "替换背景", description = "放大图片")
     @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<Object> replaceBackground(@Validated ReplaceBackgroundClipDropRequest request) {
-        ImageResponse<ClipDropImage> response = clipDropImageService.replaceBackground(request);
+        ClipDropImage response = clipDropImageService.replaceBackground(request);
 
         log.info(JSONUtil.toJsonStr(response));
         return CommonResult.success(response);
@@ -77,12 +77,12 @@ public class ImageTextController {
         DeferredResult<Object> deferredResult = new DeferredResult<>(1000L);
 
         threadWithContext.asyncExecute(() -> {
-            ImageResponse<ClipDropImage> response = clipDropImageService.removeBackground(request);
+            ClipDropImage response = clipDropImageService.removeBackground(request);
             deferredResult.setResult(response);
         });
 
         deferredResult.onTimeout(() -> {
-            deferredResult.setResult(ImageResponse.success("ddd"));
+            deferredResult.setResult(VectorSearchResponse.success("ddd"));
 
         });
         return deferredResult;

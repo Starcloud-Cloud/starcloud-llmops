@@ -25,9 +25,14 @@ public class StabilityFeignConfiguration {
     private String apiKey;
 
     /**
-     * ClipDrop 认证
+     * Stability 认证
      */
     private static final String AUTHORIZATION = "Authorization";
+
+    /**
+     * Bearer 前缀
+     */
+    private static final String BEARER_PREFIX = "Bearer ";
 
     /**
      * stability open feign 拦截器
@@ -41,7 +46,8 @@ public class StabilityFeignConfiguration {
                 log.error("Stability add 'Authorization' failure, because missing stability api key.");
                 throw ServiceExceptionUtil.exception(new ErrorCode(300300099, "Stability missing api key."));
             }
-            template.header(AUTHORIZATION, apiKey);
+            String authorization = BEARER_PREFIX + apiKey;
+            template.header(AUTHORIZATION, authorization);
             log.info("Stability add 'Authorization' success");
         };
     }

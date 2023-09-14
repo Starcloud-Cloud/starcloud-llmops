@@ -7,7 +7,6 @@ import com.starcloud.ops.business.app.feign.request.clipdrop.SketchToImageClipDr
 import com.starcloud.ops.business.app.feign.request.clipdrop.TextToImageClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
 import com.starcloud.ops.business.app.feign.response.ClipDropImage;
-import com.starcloud.ops.business.app.feign.response.ImageResponse;
 
 /**
  * ClipDrop AI 生图服务
@@ -25,7 +24,7 @@ public interface ClipDropImageService {
      * @param request 请求内容
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> upscale(UpscaleClipDropRequest request);
+    ClipDropImage upscale(UpscaleClipDropRequest request);
 
     /**
      * 图片修复
@@ -33,7 +32,7 @@ public interface ClipDropImageService {
      * @param request 图片修复请求
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> cleanup(CleanupClipDropRequest request);
+    ClipDropImage cleanup(CleanupClipDropRequest request);
 
     /**
      * 纵向深度估算
@@ -41,7 +40,7 @@ public interface ClipDropImageService {
      * @param request 纵向深度估算请求数据
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> portraitDepthEstimation(ImageFileClipDropRequest request);
+    ClipDropImage portraitDepthEstimation(ImageFileClipDropRequest request);
 
     /**
      * 纵向曲面法线
@@ -49,7 +48,7 @@ public interface ClipDropImageService {
      * @param request 要处理的原始图像请求
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> portraitSurfaceNormals(ImageFileClipDropRequest request);
+    ClipDropImage portraitSurfaceNormals(ImageFileClipDropRequest request);
 
     /**
      * 重新构想
@@ -57,7 +56,7 @@ public interface ClipDropImageService {
      * @param request 要处理的原始图像请求
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> reimagine(ImageFileClipDropRequest request);
+    ClipDropImage reimagine(ImageFileClipDropRequest request);
 
     /**
      * 删除图片背景，智能抠图
@@ -65,7 +64,7 @@ public interface ClipDropImageService {
      * @param request 要处理的图片请求
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> removeBackground(ImageFileClipDropRequest request);
+    ClipDropImage removeBackground(ImageFileClipDropRequest request);
 
     /**
      * 删除图片文字
@@ -73,7 +72,7 @@ public interface ClipDropImageService {
      * @param request 要处理的图片请求
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> removeText(ImageFileClipDropRequest request);
+    ClipDropImage removeText(ImageFileClipDropRequest request);
 
     /**
      * 替换背景
@@ -81,7 +80,7 @@ public interface ClipDropImageService {
      * @param request 替换背景请求
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> replaceBackground(ReplaceBackgroundClipDropRequest request);
+    ClipDropImage replaceBackground(ReplaceBackgroundClipDropRequest request);
 
     /**
      * 草稿图生成图片
@@ -89,7 +88,7 @@ public interface ClipDropImageService {
      * @param request 草稿图生成图片请求
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> sketchToImage(SketchToImageClipDropRequest request);
+    ClipDropImage sketchToImage(SketchToImageClipDropRequest request);
 
     /**
      * 草稿图生成图片
@@ -97,5 +96,5 @@ public interface ClipDropImageService {
      * @param request 草稿图生成图片请求
      * @return 图片响应实体
      */
-    ImageResponse<ClipDropImage> textToImage(TextToImageClipDropRequest request);
+    ClipDropImage textToImage(TextToImageClipDropRequest request);
 }

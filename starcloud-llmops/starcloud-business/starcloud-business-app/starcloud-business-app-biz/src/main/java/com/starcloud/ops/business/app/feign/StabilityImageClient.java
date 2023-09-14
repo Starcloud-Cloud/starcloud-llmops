@@ -1,15 +1,12 @@
 package com.starcloud.ops.business.app.feign;
 
 import com.starcloud.ops.business.app.feign.config.StabilityFeignConfiguration;
-import com.starcloud.ops.business.app.feign.request.StabilityImageRequest;
-import com.starcloud.ops.business.app.feign.response.StabilityImage;
-import com.starcloud.ops.business.app.feign.response.ImageResponse;
+import com.starcloud.ops.business.app.feign.request.stability.MaskingStabilityImageRequest;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.List;
 
 /**
  * Stability AI 生成图片 <br>
@@ -17,15 +14,10 @@ import java.util.List;
  *
  * @author nacoyer
  */
-@FeignClient(name = "${feign.remote.stability.name}", url = "${feign.remote.stability.url}", path = "/stability", configuration = StabilityFeignConfiguration.class)
+@FeignClient(name = "${feign.remote.stability.name}", url = "${feign.remote.stability.url}", path = "/v1", configuration = StabilityFeignConfiguration.class)
 public interface StabilityImageClient {
 
-    /**
-     * 生成图片
-     *
-     * @return 生成图片结果
-     */
-    @PostMapping(value = "/generateImage")
-    ImageResponse<List<StabilityImage>> generateImage(@Validated @RequestBody StabilityImageRequest request);
 
+    @PostMapping("/generation/{engine_id}/image-to-image/masking")
+    ResponseEntity<String> masking(@PathVariable("engine_id") String engineId, @RequestBody MaskingStabilityImageRequest request);
 }

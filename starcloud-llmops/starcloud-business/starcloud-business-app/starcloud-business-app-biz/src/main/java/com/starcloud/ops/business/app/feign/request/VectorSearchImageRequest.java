@@ -32,7 +32,7 @@ import java.util.List;
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "StabilityRequest", description = "Stability Ai 基础请求")
-public class StabilityImageRequest implements Serializable {
+public class VectorSearchImageRequest implements Serializable {
 
     private static final long serialVersionUID = 5346767232312319994L;
 

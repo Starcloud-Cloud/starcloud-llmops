@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.convert.image;
+package com.starcloud.ops.business.app.convert.vsearch;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -6,8 +6,8 @@ import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.TextPrompt;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.feign.request.StabilityImageRequest;
-import com.starcloud.ops.business.app.feign.response.StabilityImage;
+import com.starcloud.ops.business.app.feign.request.VectorSearchImageRequest;
+import com.starcloud.ops.business.app.feign.response.VectorSearchImage;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
@@ -19,36 +19,36 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * 对 VSearch 接口实体转换的封装
+ * 对 VectorSearch 接口实体转换的封装
  *
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-07-12
  */
 @Mapper
-public interface VSearchConvert {
+public interface VectorSearchConvert {
 
     /**
      * VsearchConvert
      */
-    VSearchConvert INSTANCE = Mappers.getMapper(VSearchConvert.class);
+    VectorSearchConvert INSTANCE = Mappers.getMapper(VectorSearchConvert.class);
 
     /**
      * VSearchImage 转 ImageDTO
      *
-     * @param vSearchImage vSearchImage
+     * @param vectorSearchImage vSearchImage
      * @return ImageDTO
      */
-    ImageDTO convert(StabilityImage vSearchImage);
+    ImageDTO convert(VectorSearchImage vectorSearchImage);
 
     /**
      * List<VSearchImage> 转 List<ImageDTO>
      *
-     * @param vSearchImageList vSearchImageList
+     * @param vectorSearchImageList vSearchImageList
      * @return List<ImageDTO>
      */
-    default List<ImageDTO> convert(List<StabilityImage> vSearchImageList) {
-        return CollectionUtil.emptyIfNull(vSearchImageList).stream().filter(Objects::nonNull).map(this::convert).collect(Collectors.toList());
+    default List<ImageDTO> convert(List<VectorSearchImage> vectorSearchImageList) {
+        return CollectionUtil.emptyIfNull(vectorSearchImageList).stream().filter(Objects::nonNull).map(this::convert).collect(Collectors.toList());
     }
 
     /**
@@ -57,8 +57,8 @@ public interface VSearchConvert {
      * @param request 请求参数
      * @return VSearchImageRequest
      */
-    default StabilityImageRequest convert(ImageRequest request) {
-        StabilityImageRequest vSearchImageRequest = new StabilityImageRequest();
+    default VectorSearchImageRequest convert(ImageRequest request) {
+        VectorSearchImageRequest vSearchImageRequest = new VectorSearchImageRequest();
         vSearchImageRequest.setEngine(request.getEngine());
 
         // prompts
