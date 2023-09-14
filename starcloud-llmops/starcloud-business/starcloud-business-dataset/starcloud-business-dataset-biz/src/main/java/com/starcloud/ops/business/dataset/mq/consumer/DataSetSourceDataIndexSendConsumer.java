@@ -51,7 +51,6 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
         try {
             // 创建索引
             documentSegmentsService.indexDoc(String.valueOf(message.getDatasetId()), String.valueOf(message.getDataSourceId()));
-
             // 设置数据状态
             message.setStatus(DataSetSourceDataStatusEnum.COMPLETED.getStatus());
             message.setErrMsg(DataSetSourceDataStatusEnum.COMPLETED.getName());
@@ -70,7 +69,7 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
      */
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
-        if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
+        if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(), message.getStatus())) {
             int retryCount = message.getRetryCount();
             message.setRetryCount(++retryCount);
             log.warn("数据索引异常，开始重试，当前重试次数为{}", message.getRetryCount());
