@@ -1,6 +1,5 @@
-package com.starcloud.ops.business.app.service.image.impl;
+package com.starcloud.ops.business.app.service.image.clipdrop;
 
-import com.starcloud.ops.business.app.feign.ClipDropImageClient;
 import com.starcloud.ops.business.app.feign.request.clipdrop.CleanupClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.ReplaceBackgroundClipDropRequest;
@@ -9,26 +8,16 @@ import com.starcloud.ops.business.app.feign.request.clipdrop.TextToImageClipDrop
 import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
 import com.starcloud.ops.business.app.feign.response.ClipDropImage;
 import com.starcloud.ops.business.app.feign.response.ImageResponse;
-import com.starcloud.ops.business.app.service.image.ClipDropImageService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
 
 /**
- * ClipDrop AI 生图服务 实现
+ * ClipDrop AI 生图服务
  *
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-09-07
  */
-@Slf4j
-@Service
-public class ClipDropImageServiceImpl implements ClipDropImageService {
-
-    @Resource
-    private ClipDropImageClient clipDropImageClient;
-
+@SuppressWarnings("unused")
+public interface ClipDropImageService {
 
     /**
      * 放大图片
@@ -36,10 +25,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 请求内容
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> upscale(UpscaleClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> upscale(UpscaleClipDropRequest request);
 
     /**
      * 图片修复
@@ -47,10 +33,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 图片修复请求
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> cleanup(CleanupClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> cleanup(CleanupClipDropRequest request);
 
     /**
      * 纵向深度估算
@@ -58,10 +41,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 纵向深度估算请求数据
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> portraitDepthEstimation(ImageFileClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> portraitDepthEstimation(ImageFileClipDropRequest request);
 
     /**
      * 纵向曲面法线
@@ -69,10 +49,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 要处理的原始图像请求
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> portraitSurfaceNormals(ImageFileClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> portraitSurfaceNormals(ImageFileClipDropRequest request);
 
     /**
      * 重新构想
@@ -80,10 +57,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 要处理的原始图像请求
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> reimagine(ImageFileClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> reimagine(ImageFileClipDropRequest request);
 
     /**
      * 删除图片背景，智能抠图
@@ -91,10 +65,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 要处理的图片请求
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> removeBackground(ImageFileClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> removeBackground(ImageFileClipDropRequest request);
 
     /**
      * 删除图片文字
@@ -102,10 +73,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 要处理的图片请求
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> removeText(ImageFileClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> removeText(ImageFileClipDropRequest request);
 
     /**
      * 替换背景
@@ -113,10 +81,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 替换背景请求
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> replaceBackground(ReplaceBackgroundClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> replaceBackground(ReplaceBackgroundClipDropRequest request);
 
     /**
      * 草稿图生成图片
@@ -124,10 +89,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 草稿图生成图片请求
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> sketchToImage(SketchToImageClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> sketchToImage(SketchToImageClipDropRequest request);
 
     /**
      * 草稿图生成图片
@@ -135,8 +97,5 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
      * @param request 草稿图生成图片请求
      * @return 图片响应实体
      */
-    @Override
-    public ImageResponse<ClipDropImage> textToImage(TextToImageClipDropRequest request) {
-        return null;
-    }
+    ImageResponse<ClipDropImage> textToImage(TextToImageClipDropRequest request);
 }

@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service.image;
+package com.starcloud.ops.business.app.service.image.stability;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;

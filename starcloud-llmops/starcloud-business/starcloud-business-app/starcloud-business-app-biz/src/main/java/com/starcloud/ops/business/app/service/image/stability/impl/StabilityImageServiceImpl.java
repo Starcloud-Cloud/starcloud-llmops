@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service.image.impl;
+package com.starcloud.ops.business.app.service.image.stability.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -11,7 +11,7 @@ import com.starcloud.ops.business.app.feign.StabilityImageClient;
 import com.starcloud.ops.business.app.feign.request.StabilityImageRequest;
 import com.starcloud.ops.business.app.feign.response.StabilityImage;
 import com.starcloud.ops.business.app.feign.response.ImageResponse;
-import com.starcloud.ops.business.app.service.image.StabilityImageService;
+import com.starcloud.ops.business.app.service.image.stability.StabilityImageService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
