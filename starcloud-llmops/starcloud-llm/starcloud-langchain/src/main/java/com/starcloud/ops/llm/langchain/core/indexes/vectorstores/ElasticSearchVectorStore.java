@@ -83,10 +83,12 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
                 .queryVector(queryVector)
                 .filter(query)
                 .build();
-        SearchRequest vector = new SearchRequest.Builder().knn(knnQuery).index(indexName).build();
+        SearchRequest vector = new SearchRequest.Builder()
+                .minScore(queryDTO.getMinScore() == null ? 0 : queryDTO.getMinScore())
+                .knn(knnQuery).index(indexName).build();
         try {
             SearchResponse<DocumentSegmentDTO> search = esClient.search(vector, DocumentSegmentDTO.class);
-            hit(search.hits().hits(), queryDTO);
+            hit(search.hits().hits());
             return search.hits().hits().stream().map(hit -> {
                 return KnnQueryHit.builder().score(hit.score()).document(hit.source()).build();
             }).collect(Collectors.toList());
@@ -117,13 +119,12 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
         }
     }
 
-    public void hit(List<Hit<DocumentSegmentDTO>> hits, KnnQueryDTO queryDTO) {
+    public void hit(List<Hit<DocumentSegmentDTO>> hits) {
         if (CollectionUtil.isEmpty(hits)) {
             return;
         }
         List<String> segmentIds = hits.stream()
                 .filter(dtoHit -> dtoHit.source() != null)
-                .filter(dtoHit -> queryDTO.getMinScore() == null || dtoHit.score().compareTo(queryDTO.getMinScore()) > 0)
                 .map(dtoHit -> {
                     DocumentSegmentDTO segmentDTO = dtoHit.source();
                     segmentDTO.setHitCount(segmentDTO.getHitCount() == null ? 1 : segmentDTO.getHitCount() + 1);

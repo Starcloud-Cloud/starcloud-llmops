@@ -353,16 +353,11 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
                 .datasetIds(datasetIds).minScore(request.getMinScore()).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
-        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).tokens(queryText.getTotalTokens()).queryText(request.getText()).build();
+        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList)).tokens(queryText.getTotalTokens()).queryText(request.getText()).build();
     }
 
-    private List<RecordDTO> buildRecord(List<KnnQueryHit> knnQueryHitList, BaseQueryRequest request) {
-        return knnQueryHitList.stream().filter(knnQueryHit -> {
-            if (request.getMinScore() != null) {
-                return knnQueryHit.getScore().compareTo(request.getMinScore()) > 0;
-            }
-            return true;
-        }).map(knnQueryHit -> {
+    private List<RecordDTO> buildRecord(List<KnnQueryHit> knnQueryHitList) {
+        return knnQueryHitList.stream().map(knnQueryHit -> {
             RecordDTO recordDTO = DocumentSegmentConvert.INSTANCE.convert(knnQueryHit.getDocument());
             recordDTO.setScore(knnQueryHit.getScore());
             return recordDTO;
@@ -379,7 +374,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                 .documentIds(request.getDocId().stream().map(String::valueOf).collect(Collectors.toList()))
                 .k(request.getK()).minScore(request.getMinScore()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
-        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList, request)).queryText(request.getText()).tokens(queryText.getTotalTokens()).build();
+        return MatchQueryVO.builder().records(buildRecord(knnQueryHitList)).queryText(request.getText()).tokens(queryText.getTotalTokens()).build();
     }
 
 
