@@ -84,11 +84,13 @@ public class ContextPrompt extends BasePromptConfig {
             "[CONTEXT]\n" +
             "{contextDoc}\n" +
             "[END CONTEXT]\n" +
-            "Please Note:\n" +
-            "- If you don't know, just say that you don't know.\n" +
-            "- If you don't know when you are not sure, ask for clarification.\n" +
+            "Note When answer:\n" +
+            "- If you don't know, just say that you don't know!!!\n" +
+            "- If you don't know when you are not sure, ask for clarification!!!\n" +
             "- Avoid mentioning that you obtained the information from the context.\n" +
-            "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the `{n}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n\n";
+            "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the `{n}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n" +
+            "Please Note If you don't know, just say that you don't know!!!\n" +
+            "Please Note If you don't know when you are not sure, ask for clarification!!!\n\n";
 
 
     private ChatRequestVO chatRequestVO;
