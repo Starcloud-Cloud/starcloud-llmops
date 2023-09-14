@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.service.log;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
@@ -9,6 +11,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfo
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -29,6 +32,14 @@ public interface AppLogService {
      * @return 日志元数据
      */
     Map<String, List<Option>> logMetaData(String type);
+
+    /**
+     * 根据条件查询分页查询日志消息数量
+     *
+     * @param query 查询条件
+     * @return 日志消息数量
+     */
+    Page<LogAppMessageRespVO> pageAppLogMessage(AppLogMessageQuery query);
 
     /**
      * 获取应用执行日志消息
@@ -56,6 +67,14 @@ public interface AppLogService {
      * @return 日志消息统计数据
      */
     List<LogAppMessageStatisticsListVO> listLogMessageStatistics(LogAppMessageStatisticsListReqVO query);
+
+    /**
+     * 根据应用市场 UID 分页查询应用执行日志会话数据 <br>
+     *
+     * @param query 查询条件
+     * @return 应用市场执行日志会话数据
+     */
+    PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query);
 
     /**
      * 根据 应用 UID 分页查询应用执行日志会话数据 <br>

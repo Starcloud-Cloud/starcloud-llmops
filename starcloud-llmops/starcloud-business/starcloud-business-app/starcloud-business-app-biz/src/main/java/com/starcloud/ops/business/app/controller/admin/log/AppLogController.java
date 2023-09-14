@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
@@ -95,6 +96,13 @@ public class AppLogController {
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<PageResult<LogAppConversationInfoRespVO>> infoPageByAppUid(@Valid @RequestBody LogAppConversationInfoPageAppUidReqVO query) {
         return success(appLogService.pageLogConversationByAppUid(query));
+    }
+
+    @PostMapping("/infoPageByMarketUid")
+    @Operation(summary = "根据应用市场 UID 获得应用执行日志信息分页")
+    @ApiOperationSupport(order = 7, author = "nacoyer")
+    public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@Valid @RequestBody LogAppConversationInfoPageAppUidReqVO query) {
+        return success(appLogService.pageLogConversationByMarketUid(query));
     }
 
 }

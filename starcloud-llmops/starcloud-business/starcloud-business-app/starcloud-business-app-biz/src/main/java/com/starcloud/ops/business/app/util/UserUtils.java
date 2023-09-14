@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
  * @version 1.0.0
  * @since 2023-08-15
  */
+@SuppressWarnings("all")
 public class UserUtils {
 
     /**
@@ -65,7 +66,7 @@ public class UserUtils {
      */
     public static String getUsername(String userId) {
 
-        if (StringUtils.isBlank(userId)) {
+        if (StringUtils.isBlank(userId) || StringUtils.equalsIgnoreCase(userId, "null")) {
             return "用户";
         }
 

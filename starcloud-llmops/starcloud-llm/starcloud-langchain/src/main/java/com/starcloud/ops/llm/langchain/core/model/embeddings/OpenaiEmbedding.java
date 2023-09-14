@@ -1,6 +1,5 @@
 package com.starcloud.ops.llm.langchain.core.model.embeddings;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
@@ -10,9 +9,11 @@ import com.theokanning.openai.embedding.Embedding;
 import com.theokanning.openai.embedding.EmbeddingRequest;
 import com.theokanning.openai.embedding.EmbeddingResult;
 import com.theokanning.openai.service.OpenAiService;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import retrofit2.Retrofit;
 
 import java.io.IOException;
@@ -21,10 +22,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.theokanning.openai.service.OpenAiService.*;
 
+@Slf4j
 @Component
 @ConditionalOnProperty(value = "starcloud.llm.embedding.model", havingValue = "opeanai", matchIfMissing = true)
 public class OpenaiEmbedding implements BasicEmbedding {
@@ -63,15 +66,31 @@ public class OpenaiEmbedding implements BasicEmbedding {
 
     private OpenAiService buildClient() {
         OpenAIConfig openAIConfig = SpringUtil.getBean(OpenAIConfig.class);
-        if (openAIConfig == null || StrUtil.isBlank(openAIConfig.getProxyHost())) {
+        if (openAIConfig == null || CollectionUtils.isEmpty(openAIConfig.getProxyHosts())) {
             return new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()));
         }
         ObjectMapper mapper = defaultObjectMapper();
 
+
+
         OkHttpClient client = defaultClient(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()))
                 .newBuilder()
-                .proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(openAIConfig.getProxyHost(), openAIConfig.getProxyPort())))
+                .proxySelector(new ProxySelector() {
+                    @Override
+                    public List<Proxy> select(URI uri) {
+                        List<Proxy> result = Optional.ofNullable(openAIConfig.getProxyHosts()).orElse(new ArrayList<>()).stream().map(host -> {
+                            return new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host, openAIConfig.getProxyPort()));
+                        }).collect(Collectors.toList());
+                        return result;
+                    }
+
+                    @Override
+                    public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+                        log.error("proxy is fail: {} ", ioe.getMessage(), ioe);
+                    }
+                })
                 .build();
+
         Retrofit retrofit = defaultRetrofit(client, mapper);
         OpenAiApi api = retrofit.create(OpenAiApi.class);
 

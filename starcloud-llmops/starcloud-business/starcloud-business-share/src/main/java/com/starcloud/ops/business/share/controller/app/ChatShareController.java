@@ -4,34 +4,36 @@ import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatSkillVO;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
-import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.ChatService;
+import com.starcloud.ops.business.app.service.chat.ChatSkillService;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.app.service.chat.ChatSkillService;
-import com.starcloud.ops.business.share.controller.app.vo.ChatDetailReqVO;
-import com.starcloud.ops.business.share.controller.app.vo.ChatReq;
+import com.starcloud.ops.business.share.controller.app.vo.request.ChatDetailReqVO;
 import com.starcloud.ops.business.share.service.ChatShareService;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
 import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
+import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -58,6 +60,9 @@ public class ChatShareController {
 
     @Resource
     private ChatShareService chatShareService;
+
+    @Resource
+    private AppLimitService appLimitService;
 
     @Resource
     private ChatService chatService;
@@ -108,9 +113,14 @@ public class ChatShareController {
             chatRequestVO.setConversationUid(IdUtil.fastSimpleUUID());
         }
 
-        SseEmitter emitter = new SseEmitter(60000L);
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "share chat");
         chatRequestVO.setSseEmitter(emitter);
         chatRequestVO.setEndUser(endUserId);
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(chatRequestVO.getMediumUid(), chatRequestVO.getScene(), chatRequestVO.getEndUser());
+        if (!appLimitService.channelLimit(limitRequest, emitter)) {
+            return emitter;
+        }
         chatShareService.shareChat(chatRequestVO);
         return emitter;
     }

@@ -9,6 +9,8 @@ package com.starcloud.ops.business.app.dal.redis;
  */
 public interface RedisKeyConstants {
 
-    String RECOMMENDED_TEMPLATES_KEY = "recommended_templates";
-
+    /**
+     * 限流配置前缀
+     */
+    String PUBLISH_LIMIT_RECORD_PREFIX = "PUBLISH_LIMIT_RECORD:";
 }

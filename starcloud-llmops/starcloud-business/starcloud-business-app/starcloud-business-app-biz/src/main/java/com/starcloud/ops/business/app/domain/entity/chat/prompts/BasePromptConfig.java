@@ -3,8 +3,11 @@ package com.starcloud.ops.business.app.domain.entity.chat.prompts;
 
 import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.domain.entity.config.BaseConfigEntity;
+import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import lombok.Data;
+
+import java.util.Arrays;
 
 /**
  * 基础 prompt配置类
@@ -25,7 +28,7 @@ public abstract class BasePromptConfig extends BaseConfigEntity {
      *
      * @return
      */
-    protected abstract String _buildPromptStr();
+    protected abstract PromptTemplate _buildPrompt();
 
     /**
      * 判断是否激活，是否启用
@@ -44,10 +47,17 @@ public abstract class BasePromptConfig extends BaseConfigEntity {
     }
 
 
+    public PromptTemplate buildPrompt() {
+
+        return this._buildPrompt();
+
+    }
+
     public String buildPromptStr() {
 
-        if (this.isEnable()) {
-            return this._buildPromptStr();
+        if (this.isEnable() && this.buildPrompt() != null) {
+            PromptValue promptValue = this.buildPrompt().formatPrompt();
+            return promptValue.toStr();
         }
 
         return "";

@@ -8,17 +8,12 @@ import lombok.ToString;
 public class CleanRuleVO {
 
     /**
-     * 删除连续空格
+     *  html 专用规则
      */
-    private CleanRule URL;
+    private HTMLCleanRule htmlCleanRule;
 
     /**
-     * 删除连续换行符
+     * 通用规则
      */
-    private CleanRule CHARACTERS;
-    /**
-     * 删除制表符
-     */
-    private CleanRule DOCUMENT;
-
+    private CommonCleanRule commonCleanRule;
 }

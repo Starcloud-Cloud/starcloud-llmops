@@ -15,6 +15,7 @@ import com.starcloud.ops.llm.langchain.core.model.llm.azure.AzureAiApi;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.*;
 import com.starcloud.ops.llm.langchain.core.schema.tool.FunctionDescription;
 import com.starcloud.ops.llm.langchain.core.utils.MessageConvert;
@@ -53,7 +54,7 @@ import java.util.stream.Collectors;
 @Data
 public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
-    private String model = ModelType.GPT_3_5_TURBO.getName();
+    private String model = ModelTypeEnum.GPT_3_5_TURBO.getName();
 
     private List<ChatMessage> messages;
 
@@ -88,7 +89,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
         OpenAiService openAiService;
 
-        if (StrUtil.isNotBlank(openAIConfig.getProxyHost())) {
+        if (CollectionUtil.isNotEmpty(openAIConfig.getProxyHosts())) {
             openAiService = addProxy(openAIConfig);
         } else if (Boolean.TRUE.equals(openAIConfig.getAzure())) {
             openAiService = azureAiService(openAIConfig);
@@ -113,60 +114,7 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
             StringBuffer sb = new StringBuffer();
 
-            ChatOpenAI chatOpenAI = this;
-
             openAiService.streamChatCompletion(chatCompletionRequest)
-//                    .subscribe(new FlowableSubscriber<ChatCompletionChunk>() {
-//
-//                        @Override
-//                        public void onSubscribe(Subscription s) {
-//
-//                        }
-//
-//                        @Override
-//                        public void onNext(ChatCompletionChunk t) {
-//
-//                            String msg = t.getChoices().get(0).getMessage().getContent();
-//                            if (msg != null) {
-//                                sb.append(msg);
-//                                chatOpenAI.getCallbackManager().onLLMNewToken(msg);
-//                            }
-//                            if ("stop".equals(t.getChoices().get(0).getFinishReason())) {
-//
-//                                String endString = "&end&";
-//
-//                                chatOpenAI.getCallbackManager().onLLMNewToken(endString);
-//
-////                            this.getCallbackManager().onLLMEnd("stop");
-//
-//                            }
-//                        }
-//
-//                        @Override
-//                        public void onError(Throwable e) {
-//
-//                            log.error("chat stream error:", e);
-//
-//                            chatOpenAI.getCallbackManager().onLLMError(e.getMessage(), e);
-//                        }
-//
-//                        @Override
-//                        public void onComplete() {
-//
-//                            String resultMsg = sb.toString();
-//
-//                            Long resultToke = chatOpenAI.getNumTokens(resultMsg);
-//                            Long totalTokens = resultToke + requestToken;
-//
-//                            //todo usage
-//                            baseLLMUsage.setCompletionTokens(resultToke).setTotalTokens(totalTokens);
-//
-//                            chatResult.setChatGenerations(Arrays.asList(ChatGeneration.builder().chatMessage(AIMessage.builder().content(resultMsg).build()).usage(baseLLMUsage).build()));
-//                            chatResult.setUsage(baseLLMUsage);
-//
-//                            chatOpenAI.getCallbackManager().onLLMEnd("complete", resultMsg, totalTokens);
-//                        }
-//                    });
                     .doOnError(e -> {
 
                         log.error("openAiService doOnError: {}", e.getMessage(), e);
@@ -283,8 +231,10 @@ public class ChatOpenAI extends BaseChatModel<ChatCompletionResult> {
 
                     @Override
                     public List<Proxy> select(URI uri) {
-                        List<Proxy> result = new ArrayList<>();
-                        result.add(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(openAIConfig.getProxyHost(), openAIConfig.getProxyPort())));
+                        List<Proxy> result = Optional.ofNullable(openAIConfig.getProxyHosts()).orElse(new ArrayList<>()).stream().map(host -> {
+                            return new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host, openAIConfig.getProxyPort()));
+                        }).collect(Collectors.toList());
+
                         return result;
                     }
 

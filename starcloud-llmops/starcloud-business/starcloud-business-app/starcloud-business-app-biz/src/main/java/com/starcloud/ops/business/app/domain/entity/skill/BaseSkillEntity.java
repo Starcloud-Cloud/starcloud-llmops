@@ -23,6 +23,10 @@ public abstract class BaseSkillEntity {
 
     private String desc;
 
+    private String icon;
+
+    private String tips;
+
     private SkillTypeEnum type;
 
     private BaseAccredit accredit;

@@ -23,7 +23,6 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
-import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -54,9 +53,6 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppPublishService appPublishService;
-
-    @Resource
-    private AppPublishChannelService appPublishChannelService;
 
     @Resource
     private AppDictionaryService appDictionaryService;
@@ -139,6 +135,19 @@ public class AppServiceImpl implements AppService {
     }
 
     /**
+     * 根据应用 UID 获取应用详情-简单
+     *
+     * @param uid 应用 UID
+     * @return 应用详情
+     */
+    @Override
+    public AppRespVO getSimple(String uid) {
+        AppDO app = appMapper.get(uid, Boolean.TRUE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        return AppConvert.INSTANCE.convertResponse(app,  Boolean.FALSE);
+    }
+
+    /**
      * 创建应用
      *
      * @param request 应用信息
@@ -188,8 +197,6 @@ public class AppServiceImpl implements AppService {
         appMapper.delete(uid);
         // 删除应用发布信息
         appPublishService.deleteByAppUid(uid);
-        // 删除应用发布渠道信息
-        appPublishChannelService.deleteByAppUid(uid);
     }
 
     /**
@@ -219,7 +226,13 @@ public class AppServiceImpl implements AppService {
     @Override
     @SuppressWarnings("all")
     public void asyncExecute(AppExecuteReqVO request) {
-        BaseAppEntity app = AppFactory.factory(request);
-        app.asyncExecute(request);
+        try {
+            BaseAppEntity app = AppFactory.factory(request);
+            app.asyncExecute(request);
+        } catch (Exception exception) {
+            if (request.getSseEmitter() != null) {
+                request.getSseEmitter().completeWithError(exception);
+            }
+        }
     }
 }

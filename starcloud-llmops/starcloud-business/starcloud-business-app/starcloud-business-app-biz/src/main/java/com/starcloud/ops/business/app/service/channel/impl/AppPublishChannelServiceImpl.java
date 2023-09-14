@@ -12,7 +12,7 @@ import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelMo
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
-import com.starcloud.ops.business.app.convert.channel.AppPublishChannelConverter;
+import com.starcloud.ops.business.app.convert.channel.AppPublishChannelConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     @Override
     public List<AppPublishChannelRespVO> listByAppUid(String appUid) {
         List<AppPublishChannelDO> publishChannelList = appPublishChannelMapper.listByAppUid(appUid);
-        return CollectionUtil.emptyIfNull(publishChannelList).stream().map(AppPublishChannelConverter.INSTANCE::convert).collect(Collectors.toList());
+        return CollectionUtil.emptyIfNull(publishChannelList).stream().map(AppPublishChannelConvert.INSTANCE::convert).collect(Collectors.toList());
     }
 
     /**
@@ -82,7 +83,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     @Override
     public List<AppPublishChannelRespVO> listByAppPublishUid(String appPublishUid) {
         List<AppPublishChannelDO> publishChannelList = appPublishChannelMapper.listByPublishUid(appPublishUid);
-        return CollectionUtil.emptyIfNull(publishChannelList).stream().map(AppPublishChannelConverter.INSTANCE::convert).collect(Collectors.toList());
+        return CollectionUtil.emptyIfNull(publishChannelList).stream().map(AppPublishChannelConvert.INSTANCE::convert).collect(Collectors.toList());
     }
 
     /**
@@ -104,7 +105,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
             Integer typeCode = channel.getType();
             List<AppPublishChannelRespVO> groupedList = groupedMap.get(typeCode);
             if (groupedList != null) {
-                groupedList.add(AppPublishChannelConverter.INSTANCE.convert(channel));
+                groupedList.add(AppPublishChannelConvert.INSTANCE.convert(channel));
             }
         }
 
@@ -120,7 +121,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     @Override
     public AppPublishChannelRespVO get(String uid) {
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(uid, Boolean.FALSE);
-        return AppPublishChannelConverter.INSTANCE.convert(appPublishChannel);
+        return AppPublishChannelConvert.INSTANCE.convert(appPublishChannel);
     }
 
     /**
@@ -132,7 +133,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     @Override
     public AppPublishChannelRespVO getByMediumUid(String mediumUid) {
         AppPublishChannelDO byMediumUid = appPublishChannelMapper.getByMediumUid(mediumUid);
-        return AppPublishChannelConverter.INSTANCE.convert(byMediumUid);
+        return AppPublishChannelConvert.INSTANCE.convert(byMediumUid);
     }
 
 
@@ -142,7 +143,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         if (byMediumUid == null) {
             return null;
         }
-        return AppPublishChannelConverter.INSTANCE.convert(byMediumUid);
+        return AppPublishChannelConvert.INSTANCE.convert(byMediumUid);
     }
 
     /**
@@ -211,7 +212,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
 
 
         // 创建发布渠道
-        AppPublishChannelDO appPublishChannel = AppPublishChannelConverter.INSTANCE.convert(request);
+        AppPublishChannelDO appPublishChannel = AppPublishChannelConvert.INSTANCE.convert(request);
         appPublishChannelMapper.insert(appPublishChannel);
     }
 
@@ -308,12 +309,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
             return;
         }
         List<Long> idList = publishChannelList.stream().map(AppPublishChannelDO::getId).collect(Collectors.toList());
-        for (Long id : idList) {
-            AppPublishChannelDO appPublishChannel = new AppPublishChannelDO();
-            appPublishChannel.setId(id);
-            appPublishChannel.setPublishUid(publishUid);
-            appPublishChannelMapper.updateById(appPublishChannel);
-        }
+        appPublishChannelMapper.updatePublishUidByIdList(idList, publishUid);
     }
 
     /**
@@ -322,6 +318,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
      * @param uid 发布 UID
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(uid, Boolean.TRUE);
         AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, uid);
@@ -380,7 +377,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         String uid = "BD" + RandomUtil.randomInt(100000, 1000000);
         long count = appPublishChannelMapper.countByMediumUid(uid);
         while (count > 0) {
-            uid = "BD" +  RandomUtil.randomInt(100000, 1000000);
+            uid = "BD" + RandomUtil.randomInt(100000, 1000000);
             count = appPublishChannelMapper.countByMediumUid(uid);
         }
         return uid;

@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
+import com.starcloud.ops.llm.langchain.core.utils.JsonUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -40,7 +41,7 @@ public abstract class BaseMessage implements Serializable {
     }
 
     public static String getBufferString(List<BaseMessage> messages) {
-        return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(BaseMessage::getBufferString).collect(Collectors.joining("\n"));
+        return Optional.ofNullable(messages).orElse(new ArrayList<>()).stream().map(BaseMessage::getBufferString).collect(Collectors.joining("\n")) + "\n";
     }
 
     public static String getBufferString(BaseMessage message) {
@@ -54,13 +55,21 @@ public abstract class BaseMessage implements Serializable {
             Object call = message.getAdditionalArgs().get("function_call");
             if (ObjectUtil.isNotNull(call)) {
                 //这时候 message.getContent() 其实为空
-                content += "function_call " + JSONUtil.toJsonStr(call);
+                Map _hasMap = new HashMap() {{
+                    put("function_call", call);
+                }};
+                content += JsonUtils.toJsonString(_hasMap);
             }
         } else if (message instanceof SystemMessage) {
             role = "System";
         } else if (message instanceof FunctionMessage) {
             role = "Function";
-            content = ((FunctionMessage) message).getName() + " returns ```" + content + "```";
+            String finalContent = content;
+            Map _hasMap = new HashMap() {{
+                put("name", ((FunctionMessage) message).getName());
+                put("content", finalContent);
+            }};
+            content = JsonUtils.toJsonString(_hasMap);
         } else {
             role = "Human";
         }

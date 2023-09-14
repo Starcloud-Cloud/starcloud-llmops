@@ -17,7 +17,16 @@ import javax.annotation.Resource;
 public abstract class AbstractDatasetSourceProducer {
 
 
+    /**
+     * 异步发送消息
+     * @param sendMessage
+     */
     public abstract void asyncSendMessage(DatasetSourceSendMessage sendMessage);
+
+    /**
+     * 同步发送消息
+     * @param sendMessage
+     */
 
     public abstract void sendMessage(DatasetSourceSendMessage sendMessage);
 

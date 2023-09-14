@@ -88,7 +88,7 @@ public interface ErrorCodeConstants {
     /**
      * 应用执行异常
      */
-    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "App execute fail, {}");
+    ErrorCode APP_EXECUTE_FAIL = new ErrorCode(300300000, "{}");
 
     // ========== 图片生成服务错误 3-003-000-00 ==========
     /**
@@ -120,6 +120,29 @@ public interface ErrorCodeConstants {
      * 重复发布
      */
     ErrorCode APP_PUBLISH_DUPLICATE = new ErrorCode(300400006, "The app has been published, please cancel the publish and try again !");
+
+    /**
+     * chat配置为null
+     */
+    ErrorCode CONFIG_ERROR = new ErrorCode(300400007, "{}不能为空!");
+
+    /**
+     * 配置类型不支持
+     */
+    ErrorCode CHAT_CONFIG_TYPE_ERROR = new ErrorCode(300400008, "不支持此配置类型:{}");
+
+    /**
+     * chat配置不存在
+     */
+    ErrorCode CHAT_CONFIG_NOT_EXIST = new ErrorCode(300400009, "此id对应的配置不存在:{}");
+
+    /**
+     * 修改配置的类型错误
+     */
+    ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400010, "{} 实际的配置类型是 {}");
+
+    ErrorCode CHAT_CONFIG_IS_REPEAT = new ErrorCode(300400011, "{}已经存在 , {}");
+
 
     /**
      * 应用发布渠道 Uid 是必须的
@@ -162,6 +185,16 @@ public interface ErrorCodeConstants {
     ErrorCode PUBLISH_CHANNEL_UNKNOWN_ERROR = new ErrorCode(300500007, "Publish channel unknown error, please check and try again ! ");
 
     /**
+     * 应用发布限流不存在
+     */
+    ErrorCode APP_PUBLISH_LIMIT_NOT_EXISTS_UID = new ErrorCode(300500008, "The app publish limit is not exists! [UID: {}]");
+
+    /**
+     * 不支持的应用发布限流操作
+     */
+    ErrorCode APP_PUBLISH_LIMIT_OPERATE_NOT_SUPPORTED = new ErrorCode(300600016, "The app publish limit operate is not supported! [operate: {}]");
+
+    /**
      * 文件类型不是图片
      */
     ErrorCode FILE_TYPE_NOT_IMAGES = new ErrorCode(300500009, "The file type is not a picture");
@@ -200,4 +233,29 @@ public interface ErrorCodeConstants {
      * 应用执行步骤不存在
      */
     ErrorCode APP_EXECUTE_STEPS_NOT_FOUND = new ErrorCode(300600014, "应用执行步骤[{}]不存在！");
+
+    /**
+     * 大模型异常
+     */
+    ErrorCode OPENAI_ERROR = new ErrorCode(300600015, "大模型异常!");
+
+    /**
+     * 应用场景
+     */
+    ErrorCode APP_SCENE_IS_REQUIRED = new ErrorCode(300900021, "应用场景不能为空！");
+
+    /**
+     * 应用发布渠道媒介 UID 是必须的
+     */
+    ErrorCode APP_MEDIUM_UID_IS_REQUIRED = new ErrorCode(300900022, "应用发布渠道媒介UID不能为空！");
+
+    /**
+     * 游客ID不能为空
+     */
+    ErrorCode APP_END_USER_IS_REQUIRED = new ErrorCode(300900023, "游客ID不能为空！");
+
+    /**
+     * 应用发布限制已存在
+     */
+    ErrorCode APP_PUBLISH_LIMIT_EXISTS = new ErrorCode(300900024, "应用发布限制已存在！");
 }

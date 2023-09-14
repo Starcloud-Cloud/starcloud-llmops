@@ -130,11 +130,15 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
     }
 
 
+    /**
+     * 默认就用3。5计算tokens
+     * @param messages
+     * @return
+     */
     private int calculateMaxTokens(List<BaseMessage> messages) {
         String historyStr = BaseMessage.getBufferString(messages);
 
-        Optional<ModelType> optionalModelType = ModelType.fromName(modelType);
-        return optionalModelType.map(type -> TokenUtils.intTokens(type, historyStr)).orElseGet(() -> TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, historyStr));
+        return  TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, historyStr);
 
     }
 

@@ -6,9 +6,12 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.share.service.AppShareService;
 import com.starcloud.ops.business.share.util.EndUserCodeUtil;
 import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
+import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,6 +47,9 @@ public class AppShareController {
 
     @Resource
     private EndUserServiceImpl endUserService;
+
+    @Resource
+    private AppLimitService appLimitService;
 
     @GetMapping("/detail/{mediumUid}")
     @PermitAll
@@ -81,9 +87,14 @@ public class AppShareController {
         executeRequest.setEndUser(endUserId);
 
         // 设置 SSE
-        SseEmitter emitter = new SseEmitter(60000L);
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "share app");
         executeRequest.setSseEmitter(emitter);
 
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(executeRequest.getMediumUid(), executeRequest.getScene(), executeRequest.getEndUser());
+        if (!appLimitService.channelLimit(limitRequest, emitter)) {
+            return emitter;
+        }
         // 执行应用
         appShareService.shareAppExecute(executeRequest);
         return emitter;

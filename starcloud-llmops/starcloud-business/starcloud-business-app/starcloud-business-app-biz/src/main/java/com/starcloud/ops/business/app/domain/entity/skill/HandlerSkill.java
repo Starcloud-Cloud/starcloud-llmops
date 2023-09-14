@@ -2,20 +2,18 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 
 
 import cn.hutool.core.util.TypeUtil;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
-import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -27,10 +25,11 @@ public class HandlerSkill extends BaseSkillEntity {
 
     private SkillTypeEnum type = SkillTypeEnum.HANDLER;
 
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private BaseToolHandler handler;
 
-    private BaseHandler handler;
-
-    public HandlerSkill(BaseHandler baseHandler) {
+    public HandlerSkill(BaseToolHandler baseHandler) {
         this.handler = baseHandler;
     }
 
@@ -66,7 +65,7 @@ public class HandlerSkill extends BaseSkillEntity {
      * @return
      */
     public static HandlerSkill of(String name) {
-        return new HandlerSkill(BaseHandler.of(name));
+        return new HandlerSkill(BaseToolHandler.of(name));
     }
 
     @Override
@@ -103,14 +102,40 @@ public class HandlerSkill extends BaseSkillEntity {
             skillCustomConfig.getDescription();
             skillCustomConfig.getShowType();
 
-            HandlerResponse handlerResponse = this.handler.execute(handlerContext);
+            //不会抛出异常
+            HandlerResponse handlerResponse = this.execute(handlerContext);
 
-            //@todo 这里可增加 扣权益记录
+            log.info("FunTool HandlerSkill: {} response:\n{}", this.getHandler().getName(), JSONUtil.toJsonPrettyStr(handlerResponse));
 
+            //这里只返回内容，要么返回为空。因为传到到LLM后只会判断返回值有无
             return handlerResponse.toJsonOutput();
         };
 
         return createFunTool(handler.getName(), handler.getDescription(), cc, function);
+    }
+
+
+    /**
+     * 直接执行ToolHandler
+     * 1，会存储上下文文档
+     *
+     * @param context
+     * @return
+     */
+    public HandlerResponse execute(HandlerContext context) {
+
+        //不会抛出异常
+        HandlerResponse handlerResponse = this.handler.execute(context);
+        //放在这里是因为暂时只有 聊天技能调用 才做记录
+        this.handler.addRespHistory(context, handlerResponse);
+
+
+        //@todo 这里可增加 扣权益记录
+
+        //@todo 考虑是否可以判断抛出 FailToolExecution
+
+
+        return handlerResponse;
     }
 
 

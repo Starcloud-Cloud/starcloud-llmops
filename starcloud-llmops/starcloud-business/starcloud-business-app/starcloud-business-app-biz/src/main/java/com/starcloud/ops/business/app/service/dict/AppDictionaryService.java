@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.dict;
 
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
+import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
 
 import java.util.List;
 
@@ -28,4 +29,26 @@ public interface AppDictionaryService {
      * @return 示例提示集合
      */
     List<ImageMetaDTO> examplePrompt();
+
+    /**
+     * 获取应用限流兜底配置
+     *
+     * @return 应用限流兜底配置
+     */
+    List<AppLimitConfigDTO> appSystemLimitConfig();
+
+    /**
+     * 限流总开关
+     *
+     * @return 是否开启限流
+     */
+    Boolean appLimitSwitch();
+
+    /**
+     * 用户白名单，白名单之内的用户ID，不进行限流
+     *
+     * @return 用户白名单
+     */
+    List<String> appLimitUserWhiteList();
+
 }

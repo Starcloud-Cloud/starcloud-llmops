@@ -1,18 +1,29 @@
 package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
+import cn.hutool.extra.spring.SpringUtil;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBasicInfoVO;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
+import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Optional;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @Accessors(chain = true)
-public class InteractiveInfo {
+public class InteractiveInfo implements Serializable {
+
+    private static DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
 
     private String id;
 
@@ -25,14 +36,6 @@ public class InteractiveInfo {
 
     private String tips;
 
-    private String title;
-
-    private String subTitle;
-
-    private String picUrl;
-
-    private String url;
-
     /**
      * 反馈状态，0 开始，1完成，3，失败？
      */
@@ -40,44 +43,83 @@ public class InteractiveInfo {
 
     private Date time;
 
-    private Object data;
+    private Object input;
 
-    private String errorCode;
+    private List<?> data;
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private BaseToolHandler toolHandler;
+
+    private Integer errorCode;
 
     private String errorMsg;
 
+    public String tool() {
+        return this.toolHandler != null ? this.toolHandler.getUserName() : null;
+    }
+
+    public String toolDesc() {
+        return this.toolHandler != null ? this.toolHandler.getUserDescription() : null;
+    }
+
+    /**
+     * 文本内容卡片渲染
+     *
+     * @return
+     */
+    public static InteractiveInfo buildTips(String tips) {
+        InteractiveInfo interactiveInfo = new InteractiveInfo();
+
+        interactiveInfo.setShowType("tips");
+        interactiveInfo.setSuccess(true);
+        interactiveInfo.setTips(tips);
+
+        return interactiveInfo;
+    }
 
     /**
      * url 卡片，前端获取URL内的内容取渲染
      *
-     * @param url
+     * @param tips
      * @return
      */
-    public static InteractiveInfo buildUrlCard(String url) {
+    public static InteractiveInfo buildUrlCard(String tips) {
         InteractiveInfo interactiveInfo = new InteractiveInfo();
 
         interactiveInfo.setShowType("url");
         interactiveInfo.setSuccess(true);
-        interactiveInfo.setUrl(url);
+        interactiveInfo.setTips(tips);
 
         return interactiveInfo;
     }
 
 
     /**
+     * 图片卡片渲染
+     *
+     * @return
+     */
+    public static InteractiveInfo buildImgCard(String tips) {
+        InteractiveInfo interactiveInfo = new InteractiveInfo();
+
+        interactiveInfo.setShowType("img");
+        interactiveInfo.setSuccess(true);
+        interactiveInfo.setTips(tips);
+
+        return interactiveInfo;
+    }
+
+    /**
      * 多字段+图片卡片渲染
      *
      * @return
      */
-    public static InteractiveInfo buildPicCard(String title, String subTitle, String picUrl, String url) {
+    public static InteractiveInfo buildPicCard(String tips) {
         InteractiveInfo interactiveInfo = new InteractiveInfo();
 
         interactiveInfo.setShowType("pic");
         interactiveInfo.setSuccess(true);
-        interactiveInfo.setTitle(title);
-        interactiveInfo.setSubTitle(subTitle);
-        interactiveInfo.setPicUrl(picUrl);
-        interactiveInfo.setUrl(url);
 
         return interactiveInfo;
     }
@@ -94,37 +136,35 @@ public class InteractiveInfo {
 
         interactiveInfo.setShowType("text");
         interactiveInfo.setSuccess(true);
-        interactiveInfo.setData(text);
 
         return interactiveInfo;
     }
 
 
-    /**
-     * 文档内容，传到前端，做文档列表渲染
-     *
-     * @param matchQueryVO
-     * @return
-     */
-    public static InteractiveInfo buildDocs(MatchQueryVO matchQueryVO) {
+    public static InteractiveInfo buildMessageContent(List<MessageContentDocDTO> messageContentDocDTOS) {
         InteractiveInfo interactiveInfo = new InteractiveInfo();
 
         interactiveInfo.setShowType("docs");
         interactiveInfo.setSuccess(true);
-        interactiveInfo.setData(Optional.ofNullable(matchQueryVO.getRecords()).orElse(new ArrayList<>()).stream().map((recordDTO) -> {
 
-            RecordDTO recordDTO1 = new RecordDTO();
+        interactiveInfo.setData(Optional.ofNullable(messageContentDocDTOS).orElse(new ArrayList<>()).stream().map(content -> {
 
-            recordDTO1.setId(recordDTO.getId());
-            recordDTO1.setScore(recordDTO.getScore());
-            recordDTO1.setDatasetId(recordDTO.getDatasetId());
-            recordDTO1.setDocumentId(recordDTO.getDocumentId());
-            recordDTO1.setPosition(recordDTO.getPosition());
-            recordDTO1.setStatus(recordDTO.getStatus());
-            recordDTO1.setContent(recordDTO.getContent());
-            recordDTO1.setUpdateTime(recordDTO.getUpdateTime());
+            InteractiveDoc docInteractiveInfo = new InteractiveDoc();
 
-            return recordDTO1;
+            docInteractiveInfo.setId(content.getId());
+
+            // 文档查询的扩展字段
+            if (content.getExt() != null) {
+                docInteractiveInfo.setExt(content.getExt());
+            }
+            docInteractiveInfo.setName(content.getTitle());
+            docInteractiveInfo.setType(content.getType());
+            docInteractiveInfo.setUrl(content.getUrl());
+            docInteractiveInfo.setDesc(content.getContent());
+            docInteractiveInfo.setUpdateTime(content.getTime());
+
+            return docInteractiveInfo;
+
         }).collect(Collectors.toList()));
 
         return interactiveInfo;

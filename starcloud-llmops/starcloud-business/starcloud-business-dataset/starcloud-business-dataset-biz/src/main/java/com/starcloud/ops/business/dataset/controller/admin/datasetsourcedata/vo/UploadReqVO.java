@@ -2,6 +2,7 @@ package com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.simpleframework.xml.Default;
 
 import javax.validation.constraints.NotNull;
 
@@ -9,14 +10,32 @@ import javax.validation.constraints.NotNull;
 @Data
 public class UploadReqVO {
 
-    private Boolean sync;
+
+    @Schema(description = "应用 ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "应用 ID不可以为空")
+    private String appId;
+
+    @Schema(description = " 会话 ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String sessionId;
 
     @Schema(description = "上传批次", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = " 上传批次不可以为空")
     private String batch;
 
-    @Schema(description = "知识库ID", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = " 知识库 ID不可以为空")
-    private String datasetId;
+    @Schema(description = "操作类型 -文档/QA", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Integer dataModel;
+
+    @Schema(description = "数据类型", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String dataType;
+
+    @Schema(description = "分块是否同步", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean splitSync;
+
+    @Schema(description = "清洗是否同步", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean cleanSync;
+
+    @Schema(description = "索引是否同步", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean indexSync;
+
 
 }

@@ -12,8 +12,13 @@ import java.util.List;
 @Builder
 public class MatchQueryVO {
 
+    @Schema(description = "匹配文本")
     private String queryText;
 
+    @Schema(description = "计算queryText消耗的token")
+    private Long tokens;
+
+    @Schema(description = "命中的分段")
     public List<RecordDTO> records;
 
 }

@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import javax.validation.constraints.NotNull;
+
 @Schema(description = "管理后台 - 数据集规则 Request VO")
 @Data
 @EqualsAndHashCode(callSuper = true)

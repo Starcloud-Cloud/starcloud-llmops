@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.service.publish.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -13,6 +15,7 @@ import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.publish.AppPublishConverter;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
@@ -22,12 +25,15 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
+import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -68,6 +74,12 @@ public class AppPublishServiceImpl implements AppPublishService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private AppPublishLimitService appPublishLimitService;
+
+    @Resource
+    private ChatExpandConfigService chatExpandConfigService;
 
     /**
      * 分页查询应用发布记录
@@ -149,7 +161,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         AppPublishLatestRespVO response = AppPublishConverter.INSTANCE.convertLatest(publishList.get(0));
         response.setAppLastUpdateTime(app.getUpdateTime());
         response.setIsFirstCreatePublishRecord(Boolean.FALSE);
-        
+
         // 获取应用发布渠道记录，按照发布渠道类型分组
         Map<Integer, List<AppPublishChannelRespVO>> channelMap = appPublishChannelService.mapByAppPublishUidGroupByType(response.getUid());
         response.setChannelMap(channelMap);
@@ -235,6 +247,17 @@ public class AppPublishServiceImpl implements AppPublishService {
         AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
         // 组装应用发布记录数据
         AppPublishDO appPublish = AppPublishConverter.INSTANCE.convert(app);
+
+        String uid = appPublish.getUid();
+        if (AppModelEnum.CHAT.name().equals(app.getModel())) {
+            BaseAppEntity baseApp = AppConvert.INSTANCE.convert(app, true);
+            baseApp.getChatConfig().setAppConfigId(uid);
+            app.setConfig(JSONUtil.toJsonStr(baseApp.getChatConfig()));
+            appPublish.setAppInfo(JSONUtil.toJsonStr(app));
+            // 插入 chat配置
+            chatExpandConfigService.copyConfig(app.getUid(), uid);
+        }
+
         appPublish.setUserId(SecurityFrameworkUtils.getLoginUserId());
         // appPublish.setLanguage(request.getLanguage());
         // 查询该应用 UID 的发布记录
@@ -263,6 +286,9 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
         // 更新渠道表中的发布 UID
         appPublishChannelService.updatePublishUidByAppUid(request.getAppUid(), appPublish.getUid());
+        // 更新限流表中的发布 UID
+        appPublishLimitService.updatePublishUidByAppUid(request.getAppUid(), appPublish.getUid());
+
         // 保存应用发布记录
         appPublishMapper.insert(appPublish);
         return AppPublishConverter.INSTANCE.convert(appPublish);
@@ -371,6 +397,8 @@ public class AppPublishServiceImpl implements AppPublishService {
         appPublishMapper.deleteById(appPublish.getId());
         // 删除应用发布渠道记录
         appPublishChannelService.deleteByAppPublishUid(uid);
+        // 删除应用发布限流记录
+        appPublishLimitService.deleteByPublishUid(uid);
     }
 
     /**
@@ -379,6 +407,7 @@ public class AppPublishServiceImpl implements AppPublishService {
      * @param appUid 应用 UID
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteByAppUid(String appUid) {
         List<AppPublishDO> publishList = appPublishMapper.listByAppUid(appUid);
         if (CollectionUtil.isEmpty(publishList)) {
@@ -386,6 +415,10 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
         List<Long> collect = publishList.stream().map(AppPublishDO::getId).collect(Collectors.toList());
         appPublishMapper.deleteBatchIds(collect);
+        // 删除应用发布渠道记录
+        appPublishChannelService.deleteByAppUid(appUid);
+        // 删除应用发布限流记录
+        appPublishLimitService.deleteByAppUid(appUid);
     }
 
     /**
@@ -396,6 +429,17 @@ public class AppPublishServiceImpl implements AppPublishService {
      */
     private AppMarketEntity handlerMarketApp(AppPublishDO appPublish) {
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appPublish);
+
+        String marketUid = IdUtil.fastSimpleUUID();
+        if (AppModelEnum.CHAT.name().equals(appMarketEntity.getModel())) {
+            if (StringUtils.isNotBlank(appPublish.getMarketUid())) {
+                marketUid = appPublish.getMarketUid();
+            }
+            appMarketEntity.setUid(marketUid);
+            appMarketEntity.getChatConfig().setAppConfigId(marketUid);
+            chatExpandConfigService.copyConfig(appPublish.getUid(), marketUid);
+        }
+
         if (!AppModelEnum.CHAT.name().equals(appPublish.getModel())) {
             appMarketEntity.setImages(buildImages(appMarketEntity.getCategories()));
         }

@@ -25,6 +25,21 @@ public interface AppConstants {
     String IMAGE_EXAMPLE_PROMPT = "STAR_CLOUD_LLM_IMAGE_EXAMPLE_PROMPT";
 
     /**
+     * 应用限流兜底配置
+     */
+    String APP_LIMIT_DEFAULT_CONFIG = "STAR_CLOUD_LLM_APP_LIMIT_DEFAULT_CONFIG";
+
+    /**
+     * 应用限流总开关
+     */
+    String APP_LIMIT_SWITCH = "STAR_CLOUD_LLM_APP_LIMIT_SWITCH";
+
+    /**
+     * 应用限流用户白名单
+     */
+    String APP_LIMIT_USER_WHITE_LIST = "STAR_CLOUD_LLM_APP_LIMIT_USER_WHITE_LIST";
+
+    /**
      * 应用市场应用默认图片
      */
     String APP_MARKET_DEFAULT_IMAGE = "https://download.hotsalecloud.com/mofaai/images/category/seo.jpg";

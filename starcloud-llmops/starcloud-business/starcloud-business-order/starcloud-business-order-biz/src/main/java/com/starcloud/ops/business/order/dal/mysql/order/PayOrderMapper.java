@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.order.dal.mysql.order;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.QueryWrapperX;
@@ -93,6 +94,16 @@ public interface PayOrderMapper extends BaseMapperX<PayOrderDO> {
         return selectOne(new QueryWrapper<PayOrderDO>()
                 .eq("product_code", productCode)
                 .eq("status",orderStatus)
+                .eq("creator", userId)
+                .eq("tenant_id", tenantId)
+        );
+    }
+
+    default PayOrderDO selectNoCloseByProductCode(String productCode,Long userId,Long tenantId) {
+        return selectOne(new QueryWrapper<PayOrderDO>()
+                .eq("product_code", productCode)
+                .gt("expire_time", LocalDateTimeUtil.now())
+                .eq("status", 0)
                 .eq("creator", userId)
                 .eq("tenant_id", tenantId)
         );

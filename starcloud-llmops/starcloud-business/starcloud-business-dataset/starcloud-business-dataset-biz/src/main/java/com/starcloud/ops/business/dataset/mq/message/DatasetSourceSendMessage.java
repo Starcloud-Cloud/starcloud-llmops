@@ -11,10 +11,16 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode(callSuper = true)
 public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
 
-    private Boolean sync;
-
     private SplitRule splitRule;
 
+    @NotNull(message = "分块是否同步")
+    private Boolean splitSync;
+
+    @NotNull(message = "清洗是否同步")
+    private Boolean cleanSync;
+
+    @NotNull(message = "索引是否同步")
+    private Boolean indexSync;
     /**
      * 数据集编号
      */
@@ -31,8 +37,17 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
     @NotNull(message = " 用户 ID不能为空")
     private Long userId;
 
+    /**
+     * 用户 ID
+     */
+    @NotNull(message = " 租户 ID不能为空")
+    private Long tenantId;
+
     @NotNull(message = "数据状态")
     private Integer status;
+
+    @NotNull(message = "错误代码")
+    private Integer errCode;
 
     @NotNull(message = "错误信息")
     private String errMsg;

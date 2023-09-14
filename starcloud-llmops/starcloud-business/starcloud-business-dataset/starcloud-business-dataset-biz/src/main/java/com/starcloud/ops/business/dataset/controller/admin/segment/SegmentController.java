@@ -6,8 +6,10 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
-import com.starcloud.ops.business.dataset.pojo.request.MatchQueryRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchByDataSetIdRequest;
+import com.starcloud.ops.business.dataset.pojo.request.MatchByDocIdRequest;
 import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
+import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +38,7 @@ public class SegmentController {
     @GetMapping("/segment/detail")
     @Operation(summary = "文档分段明细", description = "文档分段明细")
     public CommonResult<PageResult<DocumentSegmentDO>> segmentDetail(@Validated @RequestBody SegmentPageQuery pageQuery
-            ) {
+    ) {
         return CommonResult.success(documentSegmentsService.segmentDetail(pageQuery));
     }
 
@@ -52,12 +54,25 @@ public class SegmentController {
         return success ? CommonResult.success(true) : CommonResult.error(GlobalErrorCodeConstants.LOCKED);
     }
 
-    @PostMapping("/match/text")
-    @Operation(summary = "文档分段命中测试", description = "文档分段命中测试")
-    public CommonResult matchTest(@RequestBody @Valid MatchQueryRequest request) {
+    @PostMapping("/match/dataset/text")
+    @Operation(summary = "数据集分段命中测试", description = "文档分段命中测试-datasetUid")
+    public CommonResult<MatchQueryVO> matchDatasetTest(@RequestBody @Valid MatchByDataSetIdRequest request) {
         return CommonResult.success(documentSegmentsService.matchQuery(request));
     }
 
 
+    @PostMapping("/match/document/text")
+    @Operation(summary = "文档分段命中测试", description = "文档分段命中测试-docId")
+    public CommonResult<MatchQueryVO> matchDocTest(@RequestBody @Valid MatchByDocIdRequest request) {
+        return CommonResult.success(documentSegmentsService.matchQuery(request));
+    }
+
+    @DeleteMapping("/split/delete/{datasetId}/{documentId}}")
+    @Operation(summary = "删除文档分段", description = "删除文档分段")
+    public CommonResult<Boolean> deleteDoc(@PathVariable("datasetId") String datasetId,
+                                           @PathVariable("documentId") String documentId) {
+        documentSegmentsService.deleteSegment(datasetId, documentId);
+        return CommonResult.success(true);
+    }
 
 }

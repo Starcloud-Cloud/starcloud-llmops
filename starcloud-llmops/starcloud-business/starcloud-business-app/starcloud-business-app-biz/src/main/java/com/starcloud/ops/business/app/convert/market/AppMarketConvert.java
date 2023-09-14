@@ -2,8 +2,10 @@ package com.starcloud.ops.business.app.convert.market;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -22,11 +24,13 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -256,6 +260,15 @@ public interface AppMarketConvert {
         HandlerSkill handlerSkill = HandlerSkill.of(handlerSkillVO.getName());
         handlerSkill.setEnabled(handlerSkill.getEnabled());
         return handlerSkill;
+    }
+
+    List<AppRespVO> convert(List<AppMarketDO> appMarketDOS);
+
+    default List<String> strToListStr(String str) {
+        if (StringUtils.isBlank(str)) {
+            return Lists.newArrayList();
+        }
+        return StringUtil.toList(str);
     }
 
 }
