@@ -398,16 +398,16 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
 
         userBenefitsInfoResultVO.setQueryTime(now);
-
-        int botNums = 3;
+        UserLevelEnums userLevelEnums;
         // 根据用户权限判断用户等级
         if (securityFrameworkService.hasRole("MOFAAI_PRO") && (CollUtil.isNotEmpty(monthBenefitsStrategyDOS) || CollUtil.isNotEmpty(yearBenefitsStrategyDOS))) {
-            userBenefitsInfoResultVO.setUserLevel("pro");
+            userLevelEnums =UserLevelEnums.PRO;
         } else if (securityFrameworkService.hasRole("MOFAAI_PLUS")) {
-            userBenefitsInfoResultVO.setUserLevel("plus");
+            userLevelEnums =UserLevelEnums.PLUS;
         } else {
-            userBenefitsInfoResultVO.setUserLevel("free");
+            userLevelEnums =UserLevelEnums.FREE;
         }
+        userBenefitsInfoResultVO.setUserLevel(userLevelEnums.getCode().toLowerCase());
 
 
         List<UserBenefitsBaseResultVO> benefitsList = new ArrayList<>();
@@ -417,7 +417,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.TOKEN, totalTokenCountUsed, totalTokenCount));
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.IMAGE, totalImageCountUsed, totalImageCount));
-        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.BOT, 0, botNums));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.APP, 0, userLevelEnums.getApp()));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.BOT, 0, userLevelEnums.getBot()));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.WECHAT_BOT, 0, userLevelEnums.getWechatBot()));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.BOT_DOCUMENT, 0, userLevelEnums.getBotDocument()));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.SKILL_PLUGIN, 0, userLevelEnums.getSkillPlugin()));
 //        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.APP, totalAppCountUsed, totalAppCount));
 //        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.DATASET, totalDatasetCountUsed, totalDatasetCount));
 

@@ -52,7 +52,6 @@ public class TextCleanAndSplitUtils {
     public static String processCommonRule(String text, CommonCleanRule commonCleanRule) {
 
 
-
         if (commonCleanRule.getRemoveAllImage()) {
             String imgRegex = "<img.*?>";
             Pattern imgPattern = Pattern.compile(imgRegex, Pattern.CASE_INSENSITIVE);
@@ -78,6 +77,21 @@ public class TextCleanAndSplitUtils {
         }
 
         if (commonCleanRule.getRemoveAllHtmlTags()) {
+
+            // // 去掉前端的空格
+            // text = text.replaceAll("&nbsp;", "");
+            // // <p>段落替换为换行
+            // text = text.replaceAll("<p .*?>", "\n");
+            // // <br><br/>替换为换行
+            // text = text.replaceAll("<br\\s*/?>", "\n");
+            // // 去除script内容
+            // text = text.replaceAll("<script[^>]*?>[\\s\\S]*?</script>", "");
+            // // 去掉所有的标签
+            // text = text.replaceAll("<.*?>", "");
+            // // // 清除内容中的连续回车
+            // text = text.replaceAll("\\n+", "\n");
+            // // text = text.replaceAll(" +", " ");
+            // text = text.replaceAll("\\n\\s+", "\n");
             text= Jsoup.clean(text, Safelist.none());
         }
 
