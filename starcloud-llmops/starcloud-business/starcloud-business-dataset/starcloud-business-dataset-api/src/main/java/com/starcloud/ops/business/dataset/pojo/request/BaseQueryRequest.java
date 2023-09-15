@@ -24,4 +24,7 @@ public abstract class BaseQueryRequest {
     @Max(value = 1, message = "minScore 最大值为1")
     @Min(value = 0, message = "minScore 最小值为0")
     private Double minScore;
+
+    @Schema(description = "用户Id")
+    private Long userId;
 }

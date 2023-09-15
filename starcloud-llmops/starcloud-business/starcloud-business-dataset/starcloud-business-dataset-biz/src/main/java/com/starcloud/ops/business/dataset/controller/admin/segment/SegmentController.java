@@ -75,4 +75,12 @@ public class SegmentController {
         return CommonResult.success(true);
     }
 
+    @GetMapping("/split/test/{datasetId}/{documentId}}")
+    @Operation(summary = "删除文档分段", description = "删除文档分段")
+    public CommonResult<Boolean> test(@PathVariable("datasetId") String datasetId,
+                                           @PathVariable("documentId") String documentId) {
+        documentSegmentsService.indexDoc(datasetId, documentId);
+        return CommonResult.success(true);
+    }
+
 }
