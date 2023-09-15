@@ -18,8 +18,9 @@ public class ElasticsearchRepository {
 
     public static DocumentSegmentDTO getByHash(String segmentHash) {
         ElasticsearchClient client = SpringUtil.getBean(ElasticsearchClient.class);
+        String indexName = SpringUtil.getProperty("starcloud.elasticsearch.index.name");
 
-        SearchRequest searchRequest = SearchRequest.of(s -> s.query(q -> q.term(t -> t.field("segmentHash").value(segmentHash))));
+        SearchRequest searchRequest = SearchRequest.of(s -> s.index(indexName).query(q -> q.term(t -> t.field("segmentHash").value(segmentHash))));
 
         try {
             SearchResponse<DocumentSegmentDTO> response = client.search(searchRequest, DocumentSegmentDTO.class);
