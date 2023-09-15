@@ -630,7 +630,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             datasetSourceDataDetailRespVOS.forEach(respVO -> {
                         respVO.setStorageVO(datasetStorageService.selectBaseDataById(respVO.getStorageId()));
                         if (Objects.nonNull(respVO.getRuleId())) {
-                            respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+                            // 防止用户删除用过的规则
+                            try {
+                                respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+                            } catch (Exception e) {
+                                respVO.setRuleVO(null);
+                            }
                         }
                         respVO.setContent(null);
                         respVO.setCleanContent(null);
