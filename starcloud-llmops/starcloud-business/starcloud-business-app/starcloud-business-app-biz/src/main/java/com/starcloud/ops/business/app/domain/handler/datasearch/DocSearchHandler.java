@@ -171,6 +171,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
         matchByDocIdRequest.setDocId(Arrays.asList(request.getDocId()));
         matchByDocIdRequest.setText(request.getQuery());
         matchByDocIdRequest.setK(3L);
+        matchByDocIdRequest.setMinScore(0.72d);
 
         //@todo 文档ID列表
 
