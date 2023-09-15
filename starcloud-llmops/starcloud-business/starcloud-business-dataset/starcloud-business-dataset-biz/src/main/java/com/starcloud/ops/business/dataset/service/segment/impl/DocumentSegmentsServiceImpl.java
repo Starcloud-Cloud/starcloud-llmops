@@ -9,7 +9,6 @@ import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstant
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.xiaoymin.knife4j.core.util.Assert;
@@ -19,10 +18,9 @@ import com.starcloud.ops.business.dataset.convert.segment.DocumentSegmentConvert
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
-import com.starcloud.ops.business.dataset.dal.dataobject.segment.SegmentsEmbeddingsDO;
+import com.starcloud.ops.business.dataset.dal.es.ElasticsearchRepository;
 import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.DocumentSegmentMapper;
-import com.starcloud.ops.business.dataset.dal.mysql.segment.SegmentsEmbeddingsDOMapper;
 import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
@@ -36,8 +34,6 @@ import com.starcloud.ops.business.dataset.service.task.IndexThreadPoolExecutor;
 import com.starcloud.ops.business.dataset.service.task.SummaryEntity;
 import com.starcloud.ops.business.dataset.service.task.SummaryTask;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanAndSplitUtils;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStore;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
@@ -87,8 +83,6 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Autowired
     private DocumentSegmentMapper segmentMapper;
 
-    @Autowired
-    private SegmentsEmbeddingsDOMapper embeddingsDOMapper;
 
     @Autowired
     private BasicVectorStore basicVectorStore;
@@ -105,8 +99,6 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Autowired
     private SummaryTask summaryTask;
 
-    @Autowired
-    private UserBenefitsService userBenefitsService;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -200,30 +192,17 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                     documentSegmentDTO.setSegmentHash(segmentHash);
                     documentSegmentDTO.setStatus(true);
                     documentSegmentDTO.setCreateTime(System.currentTimeMillis());
-                    SegmentsEmbeddingsDO segmentsEmbeddingsDO = embeddingsDOMapper.selectOneByHash(segmentHash);
-                    if (ObjectUtil.isNotNull(segmentsEmbeddingsDO)) {
-                        segmentsEmbeddingsDO.setId(null);
-                        segmentDO.setTokens(segmentsEmbeddingsDO.getTokens());
-                        documentSegmentDTO.setTokens(segmentsEmbeddingsDO.getTokens());
-                        documentSegmentDTO.setVector(VectorSerializeUtils.deserialize(segmentsEmbeddingsDO.getVector()));
+                    DocumentSegmentDTO repeat = ElasticsearchRepository.getByHash(segmentHash);
+                    if (ObjectUtil.isNotNull(repeat)) {
+                        segmentDO.setTokens(repeat.getTokens());
+                        documentSegmentDTO.setTokens(repeat.getTokens());
+                        documentSegmentDTO.setVector(repeat.getVector());
                     } else {
                         EmbeddingDetail embeddingDetail = embedding(split);
-                        segmentsEmbeddingsDO = new SegmentsEmbeddingsDO();
-                        segmentsEmbeddingsDO.setTokens(embeddingDetail.getTotalTokens());
-                        segmentsEmbeddingsDO.setVector(VectorSerializeUtils.serialize(embeddingDetail.getEmbedding()));
                         segmentDO.setTokens(embeddingDetail.getTotalTokens());
                         documentSegmentDTO.setVector(embeddingDetail.getEmbedding());
                         documentSegmentDTO.setTokens(embeddingDetail.getTotalTokens());
                     }
-                    segmentsEmbeddingsDO.setTenantId(tenantId);
-                    segmentsEmbeddingsDO.setCreator(creator);
-                    segmentsEmbeddingsDO.setDatasetId(datasetId);
-                    segmentsEmbeddingsDO.setDocumentId(documentId);
-                    segmentsEmbeddingsDO.setDeleted(false);
-                    segmentsEmbeddingsDO.setSegmentId(segmentDO.getId());
-                    segmentsEmbeddingsDO.setUpdater(creator);
-                    segmentsEmbeddingsDO.setSegmentHash(segmentHash);
-                    embeddingsDOMapper.insert(segmentsEmbeddingsDO);
                     basicVectorStore.addSegment(Collections.singletonList(documentSegmentDTO));
                     atomicInteger.incrementAndGet();
                     segmentDO.setStatus(DocumentSegmentEnum.INDEXED.getCode());

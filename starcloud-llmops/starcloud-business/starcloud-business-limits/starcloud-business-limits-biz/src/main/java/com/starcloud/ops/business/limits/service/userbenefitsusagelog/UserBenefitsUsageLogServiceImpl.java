@@ -91,6 +91,9 @@ public class UserBenefitsUsageLogServiceImpl implements UserBenefitsUsageLogServ
         usageLog.setUsageTime(usageTime);
         usageLog.setBenefitsType(benefitsType.getCode());
         usageLog.setAmount(amount);
+        usageLog.setCreator(userBenefitsDO.getCreator());
+        usageLog.setUpdater(userBenefitsDO.getUpdater());
+        usageLog.setTenantId(userBenefitsDO.getTenantId());
         return usageLog;
     }
 

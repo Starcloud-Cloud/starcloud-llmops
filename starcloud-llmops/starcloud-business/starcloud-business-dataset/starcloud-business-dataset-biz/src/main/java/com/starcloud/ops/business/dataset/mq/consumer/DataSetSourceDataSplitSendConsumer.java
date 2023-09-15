@@ -136,12 +136,9 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
             } else {
                 log.error("执行数据分块失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
             }
+        }else {
+            log.warn("队列开关已关闭，数据为{}", JSONObject.toJSONString(message));
         }
-
-        log.warn("队列开关已关闭，数据为{}", JSONObject.toJSONString(message));
-
-
-
     }
 
 
