@@ -36,8 +36,25 @@ public enum BenefitsTypeEnums {
      */
     TOKEN("TOKEN", "令牌","token"),
 
-    BOT("BOT", "机器人","bot"),
 
+    /**
+     * 机器人
+     */
+    BOT("BOT", "微信机器人","bot"),
+
+    /**
+     * 微信机器人
+     */
+    WECHAT_BOT("WECHAT_BOT", "微信机器人","wechatBot"),
+
+    /**
+     * 技能插件
+     */
+    SKILL_PLUGIN("SKILL_PLUGIN", "机器人技能插件","skillPlugin"),
+    /**
+     * 机器人文档数
+     */
+    BOT_DOCUMENT("BOT_DOCUMENT", "机器人文档数","botDocument"),
     ;
 
     /**
