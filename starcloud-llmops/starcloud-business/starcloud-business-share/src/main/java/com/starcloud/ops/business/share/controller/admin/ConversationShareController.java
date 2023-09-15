@@ -60,4 +60,12 @@ public class ConversationShareController {
     public CommonResult<List<ConversationShareResp>> shareRecord(@PathVariable("conversationUid") String conversationUid) {
         return CommonResult.success(shareService.shareRecord(conversationUid));
     }
+
+
+    @GetMapping("/detail/{shareKey}")
+    @Operation(summary = "分享详情")
+    @PermitAll
+    public CommonResult<ConversationShareResp> recordDetail(@PathVariable("shareKey") String shareKey) {
+        return CommonResult.success(shareService.recordDetail(shareKey));
+    }
 }

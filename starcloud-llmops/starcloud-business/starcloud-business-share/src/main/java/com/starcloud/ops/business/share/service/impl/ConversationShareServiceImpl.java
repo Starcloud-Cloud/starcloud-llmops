@@ -128,4 +128,10 @@ public class ConversationShareServiceImpl implements ConversationShareService {
         }
         return shareConversationDO;
     }
+
+    @Override
+    public ConversationShareResp recordDetail(String shareKey) {
+        ShareConversationDO shareConversationDO = shareConversationMapper.getByKey(shareKey);
+        return ConversationShareConvert.INSTANCE.convert(shareConversationDO);
+    }
 }
