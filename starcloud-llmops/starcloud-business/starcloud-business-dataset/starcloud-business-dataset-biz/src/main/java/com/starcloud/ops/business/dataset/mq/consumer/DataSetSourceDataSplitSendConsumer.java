@@ -125,7 +125,7 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
                 int retryCount = message.getRetryCount();
                 message.setRetryCount(++retryCount);
                 log.warn("数据分块异常，开始重试，当前重试次数为{}",message.getRetryCount());
-                if (message.getCleanSync()) {
+                if (message.getSplitSync()) {
                     log.info("同步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
                     dataSplitProducer.sendMessage(message);
                 } else {
