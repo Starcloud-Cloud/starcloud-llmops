@@ -40,7 +40,7 @@ public enum BenefitsTypeEnums {
     /**
      * 机器人
      */
-    BOT("BOT", "微信机器人","bot"),
+    BOT("BOT", "机器人","bot"),
 
     /**
      * 微信机器人
