@@ -47,4 +47,11 @@ public interface ConversationShareService {
      * @return
      */
     AppDetailRespVO appDetail(String shareKey);
+
+    /**
+     * 风险记录详情
+     * @param shareKey
+     * @return
+     */
+    ConversationShareResp recordDetail(String shareKey);
 }

@@ -133,7 +133,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
 
 
         //查询出文档列表
-        List<RecordDTO> records = this.searchDocs(context.getRequest());
+        List<RecordDTO> records = this.searchDocs(context.getRequest(), context.getUserId());
 
 
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
@@ -164,7 +164,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
         return handlerResponse;
     }
 
-    private List<RecordDTO> searchDocs(Request request) {
+    private List<RecordDTO> searchDocs(Request request, Long userId) {
 
         //数据集，可能只要文档ID即可
         MatchByDocIdRequest matchByDocIdRequest = new MatchByDocIdRequest();
@@ -172,6 +172,7 @@ public class DocSearchHandler extends BaseToolHandler<DocSearchHandler.Request, 
         matchByDocIdRequest.setText(request.getQuery());
         matchByDocIdRequest.setK(3L);
         matchByDocIdRequest.setMinScore(0.72d);
+        matchByDocIdRequest.setUserId(userId);
 
         //@todo 文档ID列表
 

@@ -55,10 +55,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -128,7 +125,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         sourceDataUrlUploadDTO.setAppId(reqVO.getAppId());
         sourceDataUrlUploadDTO.setBatch(reqVO.getBatch());
 
-        String[] allowedTypes = {"pdf", "doc","docx", "text","txt", "md", "csv"};
+        String[] allowedTypes = {"pdf", "doc", "docx", "text", "txt", "md", "csv"};
         String extName = getFileExtension(Objects.requireNonNull(reqVO.getFile().getOriginalFilename()));
 
         boolean isValidFileType = false;
@@ -361,10 +358,24 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
     @Override
     public void deleteDatasetSourceData(String uid) {
+
         // 校验存在
         validateDatasetSourceDataExists(uid);
-        // FIXME: 2023/9/13 删除分段
-        
+
+        DatasetSourceDataDO dataDO = getSourceDataByUID(uid, null);
+
+        if (CollUtil.contains(Arrays.asList(
+                DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(),
+                DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(),
+                DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(),
+                DataSetSourceDataStatusEnum.COMPLETED.getStatus()),dataDO.getStatus())) {
+            throw exception(DATASET_SOURCE_DELETE_FAIL);
+
+        }
+
+        // 删除索引 和 删除分块数据
+        documentSegmentsService.deleteSegment(String.valueOf(dataDO.getDatasetId()),String.valueOf(dataDO.getId()));
+
         // 删除
         datasetSourceDataMapper.delete(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid));
     }
@@ -382,6 +393,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
         if (dataDO.getEnabled()) {
+            documentSegmentsService.updateEnable(dataDO.getId(),false);
             dataDO.setEnabled(false);
             datasetSourceDataMapper.updateById(dataDO);
         } else {
@@ -401,6 +413,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
         if (!dataDO.getEnabled()) {
+            documentSegmentsService.updateEnable(dataDO.getId(),true);
             dataDO.setEnabled(true);
             datasetSourceDataMapper.updateById(dataDO);
         } else {
@@ -598,7 +611,13 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         respVO.setStorageVO(datasetStorageService.selectBaseDataById(respVO.getStorageId()));
         // 设置数据规则信息
         if (Objects.nonNull(respVO.getRuleId())) {
-            respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+            // 防止用户删除用过的规则
+            try {
+                respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+            } catch (Exception e) {
+                respVO.setRuleVO(null);
+            }
+
         }
         if (getCleanContent) {
             if (DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus() < sourceDataDO.getStatus()) {
@@ -624,7 +643,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             datasetSourceDataDetailRespVOS.forEach(respVO -> {
                         respVO.setStorageVO(datasetStorageService.selectBaseDataById(respVO.getStorageId()));
                         if (Objects.nonNull(respVO.getRuleId())) {
-                            respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+                            // 防止用户删除用过的规则
+                            try {
+                                respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+                            } catch (Exception e) {
+                                respVO.setRuleVO(null);
+                            }
                         }
                         respVO.setContent(null);
                         respVO.setCleanContent(null);
