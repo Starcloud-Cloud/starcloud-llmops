@@ -98,13 +98,25 @@ public class ElasticSearchVectorStore implements BasicVectorStore {
     }
 
     @Override
-    public void removeSegment(List<String> segmentIds) {
+    public void deleteSegment(List<String> documentIds) {
+        List<FieldValue> documentField = documentIds.stream().map(FieldValue::of).collect(Collectors.toList());
+        TermsQuery terms = TermsQuery.of(t -> t.field("documentId").terms(f -> f.value(documentField)));
+        Query query = Query.of(q -> q.bool(b -> b.must(new Query(terms))));
+        DeleteByQueryRequest delete = DeleteByQueryRequest.of(d -> d.index(indexName).query(query));
+        try {
+            esClient.deleteByQuery(delete);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void updateSegment(List<DocumentSegmentDTO> documentDTOS) {
         List<BulkOperation> operations = new ArrayList<>();
-        DocumentSegmentDTO documentSegment = DocumentSegmentDTO.builder().status(false).build();
-        for (String segmentId : segmentIds) {
+        for (DocumentSegmentDTO documentSegment : documentDTOS) {
             BulkOperation operation = BulkOperation.of(builder -> builder
                     .update(index -> index
-                            .id(segmentId)
+                            .id(documentSegment.getSegmentId())
                             .action(a -> a.doc(documentSegment))
                     ));
             operations.add(operation);

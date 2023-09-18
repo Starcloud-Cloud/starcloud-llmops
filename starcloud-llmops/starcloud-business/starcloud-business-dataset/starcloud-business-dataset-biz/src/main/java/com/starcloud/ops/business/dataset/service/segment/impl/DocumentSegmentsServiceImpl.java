@@ -34,6 +34,10 @@ import com.starcloud.ops.business.dataset.service.task.IndexThreadPoolExecutor;
 import com.starcloud.ops.business.dataset.service.task.SummaryEntity;
 import com.starcloud.ops.business.dataset.service.task.SummaryTask;
 import com.starcloud.ops.business.dataset.util.dataset.TextCleanAndSplitUtils;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsBaseResultVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStore;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
@@ -72,6 +76,7 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.dataset.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_NOT_ADEQUATE;
 
 @Service
 @Slf4j
@@ -94,7 +99,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     private DatasetsService datasetsService;
 
     @Autowired
-    private DatasetSourceDataMapper sourceDataMapper;
+    private UserBenefitsService userBenefitsService;
 
     @Autowired
     private SummaryTask summaryTask;
@@ -105,7 +110,6 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
     @Override
     public SplitForecastResponse splitForecast(FileSplitRequest fileSplitRequest) {
-        validateTenantId(fileSplitRequest.getDocumentId());
         Tika tika = new Tika();
         tika.setMaxStringLength(-1);
         try {
@@ -172,6 +176,21 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         segmentDOS = segmentDOS.stream().filter(documentSegmentDO -> !DocumentSegmentEnum.INDEXED.getCode().equals(documentSegmentDO.getStatus())).collect(Collectors.toList());
         Long tenantId = TenantContextHolder.getTenantId();
         String creator = datasets.getCreator();
+
+        Integer reduce = segmentDOS.stream().map(DocumentSegmentDO::getWordCount).reduce(0, Integer::sum);
+        UserBenefitsInfoResultVO userBenefits = userBenefitsService.getUserBenefits(Long.valueOf(creator));
+        Optional<UserBenefitsBaseResultVO> baseResultVO = userBenefits.getBenefits().stream().filter(b -> BenefitsTypeEnums.TOKEN.getCode().equals(b.getType())).findFirst();
+        if (!baseResultVO.isPresent()) {
+            log.warn("{}  token 权益为空", creator);
+            throw exception(USER_BENEFITS_NOT_ADEQUATE, creator);
+        } else {
+            Long totalNum = baseResultVO.get().getTotalNum();
+            // 每个字符预估 1.5个token ，   embedding价格按 1/15 计算
+            if (reduce * 1.5 > totalNum * 15) {
+                log.warn("{}  token 权益为不足，size={}，tokens={}", creator, reduce, totalNum);
+                throw exception(USER_BENEFITS_NOT_ADEQUATE, creator);
+            }
+        }
         CountDownLatch countDownLatch = new CountDownLatch(segmentDOS.size());
         AtomicInteger atomicInteger = new AtomicInteger(0);
 
@@ -198,7 +217,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                         documentSegmentDTO.setTokens(repeat.getTokens());
                         documentSegmentDTO.setVector(repeat.getVector());
                     } else {
-                        EmbeddingDetail embeddingDetail = embedding(split);
+                        EmbeddingDetail embeddingDetail = embedding(split, Long.valueOf(creator));
                         segmentDO.setTokens(embeddingDetail.getTotalTokens());
                         documentSegmentDTO.setVector(embeddingDetail.getEmbedding());
                         documentSegmentDTO.setTokens(embeddingDetail.getTotalTokens());
@@ -288,32 +307,26 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     }
 
     @Override
-    public boolean updateEnable(String documentId, String segmentId, boolean enable) {
-        Assert.notBlank(documentId, "datasetId is null");
-        Assert.notBlank(segmentId, "segmentId is null");
-        validateTenantId(documentId);
-        int i = segmentMapper.updateEnable(documentId, segmentId, enable);
-        return i > 0;
+    public void updateEnable(Long documentId, boolean disable) {
+        List<DocumentSegmentDO> documentSegmentDOS = segmentMapper.selectByDocIds(Collections.singletonList(documentId));
+        if (CollectionUtils.isEmpty(documentSegmentDOS)) {
+            return;
+        }
+        List<DocumentSegmentDTO> documentSegmentDTOS = documentSegmentDOS.stream()
+                .map(doc -> DocumentSegmentDTO.builder().segmentId(doc.getId()).status(!disable).build())
+                .collect(Collectors.toList());
+        basicVectorStore.updateSegment(documentSegmentDTOS);
+        segmentMapper.updateEnable(String.valueOf(documentId), disable);
     }
 
     @Override
-    public boolean deleteSegment(String datasetId, String documentId) {
+    public void deleteSegment(String datasetId, String documentId) {
         Assert.notBlank(datasetId, "datasetId is null");
         Assert.notBlank(documentId, "dataId is null");
-        validateTenantId(documentId);
-        List<DocumentSegmentDO> documentSegmentDOS = segmentMapper.selectByDocId(documentId);
-        List<String> segmentIds = documentSegmentDOS.stream().map(DocumentSegmentDO::getId).collect(Collectors.toList());
-        basicVectorStore.removeSegment(segmentIds);
-        int i = segmentMapper.deleteSegment(datasetId, documentId);
-        return i > 0;
+        basicVectorStore.deleteSegment(Collections.singletonList(documentId));
+        segmentMapper.deleteSegment(datasetId, documentId);
     }
 
-    private void validateTenantId(String documentId) {
-        LambdaQueryWrapper<DatasetSourceDataDO> queryWrapper = Wrappers.lambdaQuery(DatasetSourceDataDO.class)
-                .eq(DatasetSourceDataDO::getUid, documentId)
-                .eq(DatasetSourceDataDO::getTenantId, TenantContextHolder.getTenantId());
-        Assert.isTrue(sourceDataMapper.exists(queryWrapper), "current tenant permission denied");
-    }
 
     @Override
     public MatchQueryVO matchQuery(MatchByDataSetIdRequest request) {
@@ -328,7 +341,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
         }
 
-        EmbeddingDetail queryText = embedding(request.getText());
+        EmbeddingDetail queryText = embedding(request.getText(), request.getUserId());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
                 .datasetIds(datasetIds).minScore(request.getMinScore()).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
@@ -348,7 +361,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         if (CollectionUtils.isEmpty(request.getDocId())) {
             return MatchQueryVO.builder().queryText(request.getText()).build();
         }
-        EmbeddingDetail queryText = embedding(request.getText());
+        EmbeddingDetail queryText = embedding(request.getText(), request.getUserId());
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
                 .documentIds(request.getDocId().stream().map(String::valueOf).collect(Collectors.toList()))
                 .k(request.getK()).minScore(request.getMinScore()).build();
@@ -357,7 +370,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     }
 
 
-    private EmbeddingDetail embedding(String text) {
+    private EmbeddingDetail embedding(String text, Long userId) {
         String hash = strToHex(text);
         try {
             String embJson = redisTemplate.boundValueOps(hash).get();
@@ -369,7 +382,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.warn("获取缓存embedding失败", e);
         }
         try {
+            userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
             EmbeddingDetail embeddingDetail = basicEmbedding.embedText(text);
+            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), embeddingDetail.getTotalTokens() / 15, userId, null);
             redisTemplate.boundValueOps(hash).set(JSONUtil.toJsonStr(embeddingDetail), 1, TimeUnit.DAYS);
             return embeddingDetail;
         } catch (ServiceException e) {
@@ -379,22 +394,6 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.error("计算embedding异常", e);
             throw ServiceExceptionUtil.exception(new ErrorCode(500, "计算embedding异常,请重试:" + e.getMessage()));
         }
-    }
-
-    @Override
-    public List<String> similarQuery(SimilarQueryRequest request) {
-        List<String> similarSegment = new ArrayList<>();
-        if (CollectionUtils.isEmpty(request.getDatasetUid())) {
-            return similarSegment;
-        }
-        EmbeddingDetail queryEmbedding = embedding(request.getQuery());
-        KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder().datasetIds(request.getDatasetUid()).k(request.getK()).build();
-        List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryEmbedding.getEmbedding(), knnQueryDTO);
-        for (KnnQueryHit knnQueryHit : knnQueryHitList) {
-            String segmentText = knnQueryHit.getDocument().getContent();
-            similarSegment.add(segmentText);
-        }
-        return similarSegment;
     }
 
     private String strToHex(String text) {
