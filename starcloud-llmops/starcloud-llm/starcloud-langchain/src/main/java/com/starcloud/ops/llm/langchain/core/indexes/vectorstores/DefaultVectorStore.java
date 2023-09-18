@@ -93,9 +93,15 @@ public class DefaultVectorStore implements BasicVectorStore {
     }
 
     @Override
-    public void removeSegment(List<String> segmentIds) {
-        mapper.deleteBySegmentIds(segmentIds);
+    public void deleteSegment(List<String> documentIds) {
+        mapper.deleteByDocIds(documentIds);
     }
+
+    @Override
+    public void updateSegment(List<DocumentSegmentDTO> documentDTOS) {
+
+    }
+
 
     public interface SegmentEmbeddingMapper {
 
@@ -138,14 +144,14 @@ public class DefaultVectorStore implements BasicVectorStore {
 
         @Update(
                 "<script> "
-                + "update llm_segments_embeddings set deleted = false where segment_id in "
+                + "update llm_segments_embeddings set deleted = true where document_id in "
                 + "  <foreach collection='list' item='item' index='index' "
                 + "    open='(' separator=',' close=')' >                 "
                 + "    #{item}                                            "
                 + "  </foreach>"
                 + "</script>"
         )
-        int deleteBySegmentIds(List<String> list);
+        int deleteByDocIds(List<String> list);
 
     }
 

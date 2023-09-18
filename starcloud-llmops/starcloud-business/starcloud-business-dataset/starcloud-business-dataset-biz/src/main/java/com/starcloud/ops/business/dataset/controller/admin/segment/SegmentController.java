@@ -50,7 +50,7 @@ public class SegmentController {
             @RequestParam(value = "disable") boolean disable
 
     ) {
-        // documentSegmentsService.updateEnable(documentId, disable);
+         documentSegmentsService.updateEnable(documentId, disable);
         return CommonResult.success(true);
     }
 
