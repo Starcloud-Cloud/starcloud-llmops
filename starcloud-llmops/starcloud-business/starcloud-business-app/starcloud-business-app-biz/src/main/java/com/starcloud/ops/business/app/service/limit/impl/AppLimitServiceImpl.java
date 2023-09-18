@@ -9,7 +9,6 @@ import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitQuery;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.limit.AppLimitByEnum;
 import com.starcloud.ops.business.app.enums.limit.AppLimitRuleEnum;
 import com.starcloud.ops.business.app.exception.AppLimitException;
@@ -40,7 +39,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -59,13 +57,11 @@ public class AppLimitServiceImpl implements AppLimitService {
 
     private static final String APP_LIMIT_PREFIX = "APP:";
 
-    private static final String MARKET_LIMIT_PREFIX = "MARKET:";
+    private static final String SYSTEM_LIMIT_PREFIX = "SYSTEM:";
 
     private static final String ADVERTISING_PREFIX = "ADVERTISING:";
 
     private static final String APP_LIMIT_TIME_INTERVAL_PREDIX = "TIME_INTERVAL:";
-
-    private static final List<String> NO_ADS_SCENES = Arrays.asList(AppSceneEnum.WEB_ADMIN.name(), AppSceneEnum.WEB_MARKET.name(), AppSceneEnum.WEB_IMAGE.name(), AppSceneEnum.OPTIMIZE_PROMPT.name());
 
     @Resource
     private AppDictionaryService appDictionaryService;
@@ -89,20 +85,18 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     @Override
     public void appLimit(AppLimitRequest request) {
-        // 基础校验
-        validateRequest(request, Boolean.TRUE);
-
-        // 用户 ID
-        String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
-        if (StringUtils.isBlank(loginUserId)) {
-            throw exception("you may be not login, please try again or contact the administrator");
-        }
 
         // 限流总开关
         Boolean limitSwitch = appDictionaryService.appLimitSwitch();
         if (!limitSwitch) {
             log.info("应用限流开关：{}, 将不会执行限流逻辑！", false);
             return;
+        }
+
+        // 用户 ID
+        String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
+        if (StringUtils.isBlank(loginUserId)) {
+            throw exception("you may be not login, please try again or contact the administrator");
         }
 
         // 用户白名单, 当前登录用户在白名单中，不进行限流
@@ -113,7 +107,12 @@ public class AppLimitServiceImpl implements AppLimitService {
 
         log.info("应用限流开始：应用UID: {}, 执行场景: {}, 用户ID: {}", request.getAppUid(), request.getFromScene(), loginUserId);
         request.setUserId(loginUserId);
-        doSystemLimit(APP_LIMIT_PREFIX, request);
+        request.setIsLoginLimit(Boolean.TRUE);
+
+        // 应用配置限流
+        doAppLimit(request);
+        // 系统限流
+        doSystemLimit(request);
         log.info("应用限流结束");
     }
 
@@ -136,20 +135,17 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     @Override
     public void marketLimit(AppLimitRequest request) {
-        // 基础校验
-        validateRequest(request, Boolean.TRUE);
-
-        // 用户 ID
-        String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
-        if (StringUtils.isBlank(loginUserId)) {
-            throw exception("you may be not login, please try again or contact the administrator");
-        }
-
         // 限流总开关
         Boolean limitSwitch = appDictionaryService.appLimitSwitch();
         if (!limitSwitch) {
             log.info("应用限流开关：{}, 将不会执行限流逻辑！", false);
             return;
+        }
+
+        // 用户 ID
+        String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
+        if (StringUtils.isBlank(loginUserId)) {
+            throw exception("you may be not login, please try again or contact the administrator");
         }
 
         // 用户白名单, 当前登录用户在白名单中，不进行限流
@@ -160,7 +156,10 @@ public class AppLimitServiceImpl implements AppLimitService {
 
         log.info("应用市场限流开始：应用市场UID: {}, 执行场景: {}, 用户ID: {}", request.getAppUid(), request.getFromScene(), loginUserId);
         request.setUserId(loginUserId);
-        doSystemLimit(MARKET_LIMIT_PREFIX, request);
+        request.setIsLoginLimit(Boolean.FALSE);
+
+        // 系统限流
+        doSystemLimit(request);
         log.info("应用市场限流结束");
     }
 
@@ -183,8 +182,6 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     @Override
     public void channelLimit(AppLimitRequest request) {
-        // 基础校验
-        validateRequest(request, Boolean.FALSE);
 
         // 限流总开关
         Boolean limitSwitch = appDictionaryService.appLimitSwitch();
@@ -194,7 +191,11 @@ public class AppLimitServiceImpl implements AppLimitService {
         }
 
         log.info("应用发布渠道限流开始：应用渠道媒介ID: {}, 执行场景: {}, 游客ID: {}", request.getMediumUid(), request.getFromScene(), request.getEndUser());
-        doChannelLimit(request);
+        request.setIsLoginLimit(Boolean.FALSE);
+        // 用户配置限流
+        doAppLimit(request);
+        // 系统限流
+        doSystemLimit(request);
         log.info("应用发布渠道限流结束");
     }
 
@@ -211,109 +212,71 @@ public class AppLimitServiceImpl implements AppLimitService {
     }
 
     /**
-     * 系统默认限流
+     * 执行渠道限流
      *
-     * @param keyPrefix key 前缀
-     * @param request   请求数据
+     * @param request 请求数据
      */
-    private void doSystemLimit(String keyPrefix, AppLimitRequest request) {
-        List<AppLimitRuleDTO> limitRuleList = appDictionaryService.systemLimitRuleList();
-        for (AppLimitRuleDTO config : limitRuleList) {
-            // 校验配置信息
-            validateConfig(config);
+    private void doAppLimit(AppLimitRequest request) {
+        if (request.getIsLoginLimit()) {
+            // 白名单，不进行限流
+            List<String> appLimitWhiteList = appDictionaryService.appLimitWhiteList();
+            if (appLimitWhiteList.contains(request.getAppUid())) {
+                return;
+            }
+        } else {
+            // 查询渠道信息
+            AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(request.getMediumUid());
+            AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST);
+            request.setAppUid(channel.getAppUid());
+        }
 
-            // 未开启直接不进行限流
-            if (!config.getEnable()) {
+        // 获取限流信息
+        AppPublishLimitQuery query = new AppPublishLimitQuery();
+        query.setAppUid(request.getAppUid());
+        List<AppLimitRuleDTO> limitRuleList = this.listAppLimitRule(query);
+        // 获取不需要打广告的场景
+        List<String> noAdsScenes = appDictionaryService.appLimitNoAdsScenes();
+        for (AppLimitRuleDTO rule : limitRuleList) {
+            // 当规则名称为 ADVERTISING_RULE 时，且当前场景在不需要打广告的场景中，直接跳过
+            if (AppLimitRuleEnum.ADVERTISING_RULE.name().equals(rule.getCode()) && noAdsScenes.contains(request.getFromScene())) {
                 continue;
             }
-
-            // NO_ADS_SCENES 中的场景不需要打广告
-            if (AppLimitRuleEnum.ADVERTISING.name().equals(config.getCode()) && NO_ADS_SCENES.contains(request.getFromScene())) {
-                continue;
-            }
-
-            // 匹配App, matchApps 为空，对所有应用生肖， APP 不为空，则该条规则只对匹配到的 App 生效
-            if (CollectionUtil.isNotEmpty(config.getMatchApps()) && !config.getMatchApps().contains(request.getAppUid())) {
-                continue;
-            }
-
-            // 需要忽略限流的应用 UID
-            if (CollectionUtil.isNotEmpty(config.getIgnoreApps()) && config.getIgnoreApps().contains(request.getAppUid())) {
-                continue;
-            }
-
+            // 执行限流
             AppLimitContext context = new AppLimitContext();
             context.setAppUid(request.getAppUid());
-            context.setFromScene(request.getFromScene());
             context.setUserId(request.getUserId());
-            String limitKey;
-            if (AppLimitByEnum.USER.name().equals(config.getLimitBy())) {
-                limitKey = getLimitKey(keyPrefix, request.getAppUid(), request.getFromScene(), request.getUserId());
-            } else if (AppLimitByEnum.ADVERTISING.name().equals(config.getLimitBy())) {
-                limitKey = getLimitKey(ADVERTISING_PREFIX, request.getAppUid(), request.getFromScene(), request.getUserId());
-            } else {
-                limitKey = getLimitKey(keyPrefix, request.getAppUid(), request.getFromScene());
-            }
-            log.info("限流：Key值: {} ", limitKey);
-            context.setLimitKey(limitKey);
-            context.setConfig(config);
+            context.setEndUser(request.getEndUser());
+            context.setFromScene(request.getFromScene());
+            context.setLimitKey(limitKey(APP_LIMIT_PREFIX, rule, request));
+            context.setRule(rule);
             doLimit(context);
         }
     }
 
     /**
-     * 执行渠道限流
+     * 系统默认限流
      *
      * @param request 请求数据
      */
-    private void doChannelLimit(AppLimitRequest request) {
-        AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(request.getMediumUid());
-
-        AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getMediumUid());
-
-        log.info("应用渠道发布限流: 应用UID: {}, 发布UID: {}，渠道UID: {}, 渠道名称: {}", channel.getAppUid(), channel.getPublishUid(), channel.getAppUid(), channel.getName());
-
-        // 用户配置限流
-        List<AppLimitRuleDTO> limitRuleList = this.defaultIfNullPublishLimitList(channel.getAppUid(), channel.getPublishUid(), channel.getUid());
-        // 系统配置限流
-        List<AppLimitRuleDTO> systemLimitRuleList = appDictionaryService.systemLimitRuleList();
-        // 循环执行限流
-        for (final AppLimitRuleDTO config : systemLimitRuleList) {
-            // 判断是否使用渠道限流的配置
-            Optional<AppLimitRuleDTO> optional = limitRuleList.stream().filter(item -> item.getCode().equals(config.getCode())).findAny();
-            // 使用渠道限流的配置
-            if (optional.isPresent()) {
-                AppLimitContext context = getChannelLimitContext(channel.getAppUid(), request.getFromScene(), request.getEndUser(), optional.get());
-                doLimit(context);
-                continue;
-            }
-
-            // 校验配置信息
-            validateConfig(config);
-
-            // 未开启直接不进行限流
-            if (!config.getEnable()) {
-                continue;
-            }
-
-            // 匹配App, matchApps 为空，对所有应用生肖， APP 不为空，则该条规则只对匹配到的 App 生效
-            if (CollectionUtil.isNotEmpty(config.getMatchApps()) && !config.getMatchApps().contains(request.getAppUid())) {
+    private void doSystemLimit(AppLimitRequest request) {
+        List<AppLimitRuleDTO> limitRuleList = appDictionaryService.systemLimitRuleList();
+        for (AppLimitRuleDTO rule : limitRuleList) {
+            // 匹配App, includeApps 为空，对所有应用生肖， APP 不为空，则该条规则只对匹配到的 App 生效
+            if (CollectionUtil.isNotEmpty(rule.getIncludeApps()) && !rule.getIncludeApps().contains(request.getAppUid())) {
                 continue;
             }
 
             // 需要忽略限流的应用 UID
-            if (CollectionUtil.isNotEmpty(config.getIgnoreApps()) && config.getIgnoreApps().contains(request.getAppUid())) {
+            if (CollectionUtil.isNotEmpty(rule.getExcludeApps()) && rule.getExcludeApps().contains(request.getAppUid())) {
                 continue;
             }
-
-            if (config.getThreshold() == null || config.getThreshold() <= 0) {
-                throw exception("system error, please try again or contact the administrator");
-            }
-            // 日期判断，日期配置不能小于 1
-            if (config.getTimeInterval() == null || config.getTimeInterval() < 1) {
-                throw exception("system error, please try again or contact the administrator");
-            }
-            AppLimitContext context = getChannelLimitContext(channel.getAppUid(), request.getFromScene(), request.getEndUser(), config);
+            AppLimitContext context = new AppLimitContext();
+            context.setAppUid(request.getAppUid());
+            context.setFromScene(request.getFromScene());
+            context.setUserId(request.getUserId());
+            context.setEndUser(request.getEndUser());
+            context.setLimitKey(limitKey(SYSTEM_LIMIT_PREFIX, rule, request));
+            context.setRule(rule);
             doLimit(context);
         }
     }
@@ -363,7 +326,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     private void doLimit(AppLimitContext context) {
         // 获取限流配置
-        AppLimitRuleDTO config = context.getConfig();
+        AppLimitRuleDTO config = context.getRule();
         // 限流计数 Key
         String limitKey = context.getLimitKey();
         RLock lock = redissonClient.getLock(getLockKey(limitKey));
@@ -468,86 +431,42 @@ public class AppLimitServiceImpl implements AppLimitService {
     }
 
     /**
-     * 获取最粽限流配置
+     * 获取 应用限流规则
      *
-     * @param request 请求
-     * @return 限流配置
+     * @param query 查询条件
+     * @return 限流规则集合
      */
-    private List<AppLimitRuleDTO> getLimitRuleList(AppLimitRequest request) {
-        // 用户配置限流
-        String appUid;
+    private List<AppLimitRuleDTO> listAppLimitRule(AppPublishLimitQuery query) {
         List<AppLimitRuleDTO> limitRuleList = new ArrayList<>();
-        if (StringUtils.isNotBlank(request.getAppUid())) {
-            appUid = request.getAppUid();
-        } else {
-            AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(request.getMediumUid());
-            AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getMediumUid());
-            appUid = channel.getAppUid();
-        }
-
-        // 获取限流信息
-        AppPublishLimitQuery query = new AppPublishLimitQuery();
-        query.setAppUid(appUid);
         AppPublishLimitRespVO limitResponse = appPublishLimitService.get(query);
         // 处理限流规则
         AppLimitRuleDTO appRateLimit = limitResponse.getAppLimitRule();
-        if (appRateLimit.getEnable() && appRateLimit.getThreshold() > 0 && appRateLimit.getTimeInterval() > 0) {
+        if (validateLimitRule(appRateLimit)) {
             limitRuleList.add(appRateLimit);
         }
         AppLimitRuleDTO userLimitRule = limitResponse.getUserLimitRule();
-        if (userLimitRule.getEnable() && userLimitRule.getThreshold() > 0 && userLimitRule.getTimeInterval() > 0) {
+        if (validateLimitRule(userLimitRule)) {
             limitRuleList.add(userLimitRule);
         }
         AppLimitRuleDTO advertisingLimitRule = limitResponse.getAdvertisingRule();
-        if (advertisingLimitRule.getEnable() && advertisingLimitRule.getThreshold() > 0) {
+        if (validateLimitRule(advertisingLimitRule)) {
             limitRuleList.add(advertisingLimitRule);
         }
 
-        List<AppLimitRuleDTO> systemLimitRuleList = appDictionaryService.systemLimitRuleList();
-
-        // 用户未配置限流信息，使用系统默认限流
         if (CollectionUtil.isEmpty(limitRuleList)) {
-            return systemLimitRuleList;
+            return Collections.emptyList();
         }
-
-
-
-        return null;
+        return limitRuleList;
     }
 
     /**
-     * 获取发布限流配置
+     * 校验规则
      *
-     * @param appUid     应用 UID
-     * @param publishUid 发布UID
-     * @param channelUid 渠道UID
-     * @return 发布限流配置
+     * @param rule 校验规则
+     * @return 校验规则
      */
-    private List<AppLimitRuleDTO> defaultIfNullPublishLimitList(String appUid, String publishUid, String channelUid) {
-        AppPublishLimitQuery query = new AppPublishLimitQuery();
-        query.setAppUid(appUid);
-        query.setPublishUid(publishUid);
-        query.setChannelUid(channelUid);
-        AppPublishLimitRespVO publishLimit = appPublishLimitService.get(query);
-
-        List<AppLimitRuleDTO> list = new ArrayList<>();
-
-        AppLimitRuleDTO rateConfig = publishLimit.getAppLimitRule();
-        if (rateConfig.getEnable() && rateConfig.getThreshold() != null && rateConfig.getThreshold() > 0 && rateConfig.getTimeInterval() != null && rateConfig.getTimeInterval() > 0) {
-            list.add(rateConfig);
-        }
-
-        AppLimitRuleDTO userRateConfig = publishLimit.getUserLimitRule();
-        if (userRateConfig.getEnable() && userRateConfig.getThreshold() != null && userRateConfig.getThreshold() > 0 && userRateConfig.getTimeInterval() != null && userRateConfig.getTimeInterval() > 0) {
-            list.add(userRateConfig);
-        }
-
-        AppLimitRuleDTO advertisingConfig = publishLimit.getAdvertisingRule();
-        if (advertisingConfig.getEnable() && advertisingConfig.getThreshold() != null && advertisingConfig.getThreshold() > 0 && advertisingConfig.getTimeInterval() != null && advertisingConfig.getTimeInterval() > 0) {
-            list.add(advertisingConfig);
-        }
-
-        return list;
+    private static boolean validateLimitRule(AppLimitRuleDTO rule) {
+        return Objects.nonNull(rule) && rule.getEnable() && rule.getThreshold() > 0 && rule.getTimeInterval() >= 1;
     }
 
     /**
@@ -557,7 +476,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @return 分页日志消息
      */
     private Page<LogAppMessageRespVO> pageAppLogMessage(AppLimitContext context) {
-        AppLimitRuleDTO config = context.getConfig();
+        AppLimitRuleDTO config = context.getRule();
         // 查询日志消息表中的已经执行的数量
         AppLogMessageQuery appLogMessageQuery = new AppLogMessageQuery();
         appLogMessageQuery.setAppUid(context.getAppUid());
@@ -576,34 +495,6 @@ public class AppLimitServiceImpl implements AppLimitService {
     }
 
     /**
-     * 获取渠道限流上下文
-     *
-     * @param appUid    应用 UID
-     * @param fromScene 执行场景
-     * @param endUser   游客ID
-     * @param limitRule 限流配置
-     * @return 限流上下文
-     */
-    private AppLimitContext getChannelLimitContext(String appUid, String fromScene, String endUser, AppLimitRuleDTO limitRule) {
-        AppLimitContext context = new AppLimitContext();
-        context.setAppUid(appUid);
-        context.setFromScene(fromScene);
-        context.setEndUser(endUser);
-        String limitKey;
-        if (AppLimitByEnum.USER.name().equals(limitRule.getLimitBy())) {
-            limitKey = getLimitKey(APP_LIMIT_PREFIX, appUid, fromScene, endUser);
-        } else if (AppLimitByEnum.ADVERTISING.name().equals(limitRule.getLimitBy())) {
-            limitKey = getLimitKey(ADVERTISING_PREFIX, appUid, fromScene, endUser);
-        } else {
-            limitKey = getLimitKey(APP_LIMIT_PREFIX, appUid, fromScene);
-        }
-        log.info("渠道限流：Key值: {} ", limitKey);
-        context.setLimitKey(limitKey);
-        context.setConfig(limitRule);
-        return context;
-    }
-
-    /**
      * 转换毫秒
      *
      * @param timeout  时间
@@ -613,6 +504,34 @@ public class AppLimitServiceImpl implements AppLimitService {
     private Long transformMillisecond(Long timeout, ChronoUnit timeUnit) {
         Duration duration = Duration.of(timeout, timeUnit);
         return duration.toMillis();
+    }
+
+    /**
+     * 生成限流 key
+     *
+     * @param prefix  前缀
+     * @param rule    限流规则
+     * @param request 请求数据
+     * @return 限流 key
+     */
+    private static String limitKey(String prefix, AppLimitRuleDTO rule, AppLimitRequest request) {
+        if (request.getIsLoginLimit()) {
+            if (AppLimitByEnum.USER.name().equals(rule.getLimitBy())) {
+                return getLimitKey(prefix, request.getAppUid(), request.getFromScene(), request.getUserId());
+            } else if (AppLimitByEnum.ADVERTISING.name().equals(rule.getLimitBy())) {
+                return getLimitKey(ADVERTISING_PREFIX, request.getAppUid(), request.getFromScene(), request.getUserId());
+            } else {
+                return getLimitKey(prefix, request.getAppUid(), request.getFromScene());
+            }
+        } else {
+            if (AppLimitByEnum.USER.name().equals(rule.getLimitBy())) {
+                return getLimitKey(prefix, request.getAppUid(), request.getFromScene(), request.getEndUser());
+            } else if (AppLimitByEnum.ADVERTISING.name().equals(rule.getLimitBy())) {
+                return getLimitKey(ADVERTISING_PREFIX, request.getAppUid(), request.getFromScene(), request.getEndUser());
+            } else {
+                return getLimitKey(prefix, request.getAppUid(), request.getFromScene());
+            }
+        }
     }
 
     /**
@@ -686,43 +605,4 @@ public class AppLimitServiceImpl implements AppLimitService {
         return AppLimitException.exception(300900006, message);
     }
 
-    /**
-     * 基础校验
-     *
-     * @param request 请求数据
-     * @param isUser  是否是用户态
-     */
-    private void validateRequest(AppLimitRequest request, boolean isUser) {
-        if (isUser) {
-            if (StringUtils.isBlank(request.getAppUid())) {
-                throw exception("the app uid this required");
-            }
-        } else {
-            if (StringUtils.isBlank(request.getMediumUid())) {
-                throw exception("the mediumUid is required");
-            }
-            if (StringUtils.isBlank(request.getEndUser())) {
-                throw exception("the endUser is required");
-            }
-        }
-
-        if (StringUtils.isBlank(request.getFromScene())) {
-            throw exception("the from scene is required");
-        }
-    }
-
-    /**
-     * 校验配置信息
-     *
-     * @param config 配置信息
-     */
-    private void validateConfig(AppLimitRuleDTO config) {
-        if (config.getThreshold() == null || config.getThreshold() <= 0) {
-            throw exception("system error, please try again or contact the administrator");
-        }
-        // 日期判断，日期配置不能小于 1
-        if (config.getTimeInterval() == null || config.getTimeInterval() < 1) {
-            throw exception("system error, please try again or contact the administrator");
-        }
-    }
 }

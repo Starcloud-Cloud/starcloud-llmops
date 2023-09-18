@@ -9,10 +9,12 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
+import com.starcloud.ops.business.app.dal.redis.limit.AppPublishLimitRedisMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
@@ -20,10 +22,12 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.limit.AppLimitRuleEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
+import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -56,6 +60,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private AppPublishLimitService appPublishLimitService;
 
     /**
      * 查询应用分类列表
@@ -156,6 +163,11 @@ public class AppServiceImpl implements AppService {
     public AppRespVO create(AppReqVO request) {
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.insert();
+        // 创建应用发布限流信息
+        AppPublishLimitReqVO appPublishLimitReqVO = new AppPublishLimitReqVO();
+        appPublishLimitReqVO.setAppUid(appEntity.getUid());
+        appPublishLimitReqVO.setAppLimitRule(AppLimitRuleEnum.APP_LIMIT_RULE.defaultRule());
+        appPublishLimitService.create(appPublishLimitReqVO);
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 

@@ -37,7 +37,17 @@ public interface AppConstants {
     /**
      * 应用限流用户白名单
      */
+    String APP_LIMIT_WHITE_LIST = "STAR_CLOUD_LLM_APP_LIMIT_WHITE_LIST";
+
+    /**
+     * 应用限流用户白名单
+     */
     String APP_LIMIT_USER_WHITE_LIST = "STAR_CLOUD_LLM_APP_LIMIT_USER_WHITE_LIST";
+
+    /**
+     * 不走广告限制的场景
+     */
+    String APP_LIMIT_NO_ADS_SCENE_LIST = "STAR_CLOUD_LLM_APP_LIMIT_NO_ADS_SCENE_LIST";
 
     /**
      * 应用市场应用默认图片

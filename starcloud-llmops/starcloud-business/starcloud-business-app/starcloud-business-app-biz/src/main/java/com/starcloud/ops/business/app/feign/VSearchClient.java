@@ -17,7 +17,7 @@ import java.util.List;
  *
  * @author nacoyer
  */
-@FeignClient(name = "${feign.remote.vsearch.name}", url = "${feign.remote.vsearch.url}")
+@FeignClient(name = "${feign.remote.vector-search.name}", url = "${feign.remote.vector-search.url}")
 public interface VSearchClient {
 
     @GetMapping(value = "/")

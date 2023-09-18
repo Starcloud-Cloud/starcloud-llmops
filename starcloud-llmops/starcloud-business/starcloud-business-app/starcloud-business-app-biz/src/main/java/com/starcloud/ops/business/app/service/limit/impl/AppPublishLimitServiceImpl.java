@@ -11,7 +11,6 @@ import com.starcloud.ops.business.app.dal.databoject.limit.AppPublishLimitDO;
 import com.starcloud.ops.business.app.dal.mysql.limit.AppPublishLimitMapper;
 import com.starcloud.ops.business.app.dal.redis.limit.AppPublishLimitRedisMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.limit.AppLimitRuleEnum;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.springframework.stereotype.Service;
@@ -61,17 +60,16 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
 
         // 缓存中取出来
         AppPublishLimitDO appPublishLimitDO = appPublishLimitRedisMapper.get(query.getAppUid());
-        if (appPublishLimitDO != null) {
+        if (Objects.nonNull(appPublishLimitDO)) {
             return AppPublishLimitConvert.INSTANCE.convertResponse(appPublishLimitDO);
         }
 
         // 查询 DB
         AppPublishLimitDO appPublishLimit = appPublishLimitMapper.get(query);
-        if (Objects.isNull(appPublishLimit)) {
-            return defaultLimit(query);
-        }
+        AppValidate.notNull(appPublishLimit, ErrorCodeConstants.APP_PUBLISH_LIMIT_EXISTS);
+
         // 重新存入
-        appPublishLimitRedisMapper.set(appPublishLimit);
+        appPublishLimitRedisMapper.put(appPublishLimit);
         return AppPublishLimitConvert.INSTANCE.convertResponse(appPublishLimit);
     }
 
@@ -92,7 +90,7 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
         appPublishLimitMapper.create(appPublishLimit);
 
         // 重新存入
-        appPublishLimitRedisMapper.set(appPublishLimit);
+        appPublishLimitRedisMapper.put(appPublishLimit);
     }
 
     /**
@@ -114,7 +112,7 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
         appPublishLimitMapper.modify(modifyAppPublishLimit);
 
         // 重新存入
-        appPublishLimitRedisMapper.set(appPublishLimitMapper.get(request.getUid()));
+        appPublishLimitRedisMapper.put(appPublishLimitMapper.get(request.getUid()));
     }
 
     /**
@@ -131,10 +129,9 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
         }
         List<Long> idList = list.stream().map(AppPublishLimitDO::getId).collect(Collectors.toList());
         appPublishLimitMapper.updatePublishUidByIdList(idList, publishUid);
-        for (AppPublishLimitDO appPublishLimitDO : list) {
-            appPublishLimitRedisMapper.set(appPublishLimitMapper.get(appPublishLimitDO.getUid()));
-        }
+        List<AppPublishLimitDO> collect = appPublishLimitMapper.listByAppUid(appUid);
 
+        appPublishLimitRedisMapper.putAll(collect);
     }
 
     /**
@@ -170,24 +167,6 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     public void deleteByPublishUid(String publishUid) {
         appPublishLimitMapper.deleteByPublishUid(publishUid);
         List<AppPublishLimitDO> list = appPublishLimitMapper.listByPublishUid(publishUid);
-        for (AppPublishLimitDO appPublishLimitDO : list) {
-            appPublishLimitRedisMapper.delete(appPublishLimitDO.getAppUid());
-        }
-    }
-
-    /**
-     * 获取默认限流配置
-     *
-     * @return 默认限流配置
-     */
-    private AppPublishLimitRespVO defaultLimit(AppPublishLimitQuery query) {
-        AppPublishLimitRespVO response = new AppPublishLimitRespVO();
-        response.setAppUid(query.getAppUid());
-        response.setPublishUid(query.getPublishUid());
-        response.setChannelUid(query.getChannelUid());
-        response.setAppLimitRule(AppLimitRuleEnum.APP_RATE.defaultRule());
-        response.setUserLimitRule(AppLimitRuleEnum.USER_RATE.defaultRule());
-        response.setAdvertisingRule(AppLimitRuleEnum.ADVERTISING.defaultRule());
-        return response;
+        appPublishLimitRedisMapper.deleteByAppUidList(list.stream().map(AppPublishLimitDO::getAppUid).collect(Collectors.toList()));
     }
 }

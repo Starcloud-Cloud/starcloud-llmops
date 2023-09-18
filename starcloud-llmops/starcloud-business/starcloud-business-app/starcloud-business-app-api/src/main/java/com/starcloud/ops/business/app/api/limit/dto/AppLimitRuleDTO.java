@@ -41,14 +41,14 @@ public class AppLimitRuleDTO implements Serializable {
      * 匹配的应用，如果配置，则改配置只针对配置的应用生效，不配置对所有的应用生效
      */
     @Schema(description = "匹配的应用，如果配置，则改配置只针对配置的应用生效，不配置对所有的应用生效")
-    private List<String> matchApps;
+    private List<String> includeApps;
 
     /**
      * 忽略的应用集合，如果配置，则配置了的应用，不会进行限流。未配置，则对所有的应用生效 <br>
-     * 如果 matchApps 和 ignoreApps 配置了相同的应用 UID，以 ignoreApps 的规则为准，不会进行限流
+     * 如果 includeApps 和 excludeApps 配置了相同的应用 UID，以 excludeApps 的规则为准，不会进行限流
      */
     @Schema(description = "忽略的应用集合，如果配置，则配置了的应用，不会进行限流。未配置，则对所有的应用生效")
-    private List<String> ignoreApps;
+    private List<String> excludeApps;
 
     /**
      * 是否启用
@@ -79,5 +79,11 @@ public class AppLimitRuleDTO implements Serializable {
      */
     @Schema(description = "超出数量之后的消息")
     private String message;
+
+    /**
+     * 执行顺序
+     */
+    @Schema(description = "执行顺序")
+    private Integer order;
 
 }

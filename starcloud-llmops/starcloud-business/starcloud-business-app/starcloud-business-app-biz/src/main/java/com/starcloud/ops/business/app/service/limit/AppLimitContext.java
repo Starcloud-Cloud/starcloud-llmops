@@ -59,6 +59,6 @@ public class AppLimitContext implements Serializable {
      * 限流配置
      */
     @Schema(description = "限流配置")
-    private AppLimitRuleDTO config;
+    private AppLimitRuleDTO rule;
 
 }

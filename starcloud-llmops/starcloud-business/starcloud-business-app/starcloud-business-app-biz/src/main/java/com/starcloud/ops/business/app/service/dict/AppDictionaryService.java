@@ -22,7 +22,6 @@ public interface AppDictionaryService {
      */
     List<AppCategoryVO> categories();
 
-
     /**
      * 示例提示集合
      *
@@ -45,10 +44,25 @@ public interface AppDictionaryService {
     Boolean appLimitSwitch();
 
     /**
+     * 不需要进行应用限流的应用
+     *
+     * @return 不需要进行应用限流的应用
+     */
+    List<String> appLimitWhiteList();
+
+    /**
      * 用户白名单，白名单之内的用户ID，不进行限流
      *
      * @return 用户白名单
      */
     List<String> appLimitUserWhiteList();
+
+    /**
+     * 不走广告限流配置的场景
+     *
+     * @return 不走广告限流配置的场景
+     */
+    List<String> appLimitNoAdsScenes();
+
 
 }

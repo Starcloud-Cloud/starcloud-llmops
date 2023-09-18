@@ -7,7 +7,6 @@ import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModify
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
 import com.starcloud.ops.business.app.dal.databoject.limit.AppPublishLimitDO;
-import com.starcloud.ops.business.app.enums.limit.AppLimitByEnum;
 import com.starcloud.ops.business.app.enums.limit.AppLimitRuleEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -34,13 +33,13 @@ public interface AppPublishLimitConvert {
         appPublishLimit.setPublishUid(request.getPublishUid());
         appPublishLimit.setChannelUid(request.getChannelUid());
         // 应用使用率限流
-        AppLimitRuleDTO appLimitRule = limitRuleConverter(AppLimitRuleEnum.APP_RATE.name(), AppLimitByEnum.APP.name(), request.getAppLimitRule());
+        AppLimitRuleDTO appLimitRule = limitRuleConverter(AppLimitRuleEnum.APP_LIMIT_RULE, request.getAppLimitRule());
         appPublishLimit.setAppLimitRule(JSONUtil.toJsonStr(appLimitRule));
         // 用户使用率限流
-        AppLimitRuleDTO userLimitRule = limitRuleConverter(AppLimitRuleEnum.USER_RATE.name(), AppLimitByEnum.USER.name(), request.getUserLimitRule());
+        AppLimitRuleDTO userLimitRule = limitRuleConverter(AppLimitRuleEnum.USER_LIMIT_RULE, request.getUserLimitRule());
         appPublishLimit.setUserLimitRule(JSONUtil.toJsonStr(userLimitRule));
         // 出现广告间隔
-        AppLimitRuleDTO advertisingRule = limitRuleConverter(AppLimitRuleEnum.ADVERTISING.name(), AppLimitByEnum.ADVERTISING.name(), request.getAdvertisingRule());
+        AppLimitRuleDTO advertisingRule = limitRuleConverter(AppLimitRuleEnum.ADVERTISING_RULE, request.getAdvertisingRule());
         appPublishLimit.setAdvertisingRule(JSONUtil.toJsonStr(advertisingRule));
         appPublishLimit.setDeleted(Boolean.FALSE);
         return appPublishLimit;
@@ -84,21 +83,18 @@ public interface AppPublishLimitConvert {
     /**
      * 转换为 AppLimitRuleDTO
      *
-     * @param code    编码
-     * @param limitBy 限流依据
-     * @param request 请求
+     * @param ruleEnum 规则枚举
+     * @param request  请求
      * @return AppLimitRuleDTO
      */
-    default AppLimitRuleDTO limitRuleConverter(String code, String limitBy, AppLimitRuleReqVO request) {
-        AppLimitRuleDTO config = new AppLimitRuleDTO();
-        config.setCode(code);
-        config.setLimitBy(limitBy);
-        config.setEnable(request.getEnable());
-        config.setThreshold(request.getThreshold());
-        config.setTimeInterval(request.getTimeInterval());
-        config.setTimeUnit(request.getTimeUnit());
-        config.setMessage(request.getMessage());
-        return config;
+    default AppLimitRuleDTO limitRuleConverter(AppLimitRuleEnum ruleEnum, AppLimitRuleReqVO request) {
+        AppLimitRuleDTO rule = ruleEnum.defaultRule();
+        rule.setEnable(request.getEnable());
+        rule.setThreshold(request.getThreshold());
+        rule.setTimeInterval(request.getTimeInterval());
+        rule.setTimeUnit(request.getTimeUnit());
+        rule.setMessage(request.getMessage());
+        return rule;
     }
 
 }

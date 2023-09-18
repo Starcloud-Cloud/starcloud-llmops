@@ -1,64 +1,84 @@
 package com.starcloud.ops.business.app.dal.redis.limit;
 
-import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.dal.databoject.limit.AppPublishLimitDO;
 import com.starcloud.ops.business.app.dal.redis.RedisKeyConstants;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-05-30
  */
-@SuppressWarnings("unused")
+@SuppressWarnings("all")
 @Repository
 public class AppPublishLimitRedisMapper {
 
     @Resource
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisTemplate<String, Map<String, AppPublishLimitDO>> redisTemplate;
 
     /**
      * 获取限流信息
      *
-     * @return 推荐的模板
+     * @return 限流信息
      */
     public AppPublishLimitDO get(String appUid) {
-        String key = getKey(appUid);
-        if (Boolean.FALSE.equals(stringRedisTemplate.hasKey(key))) {
+        String key = getKey();
+        HashOperations<String, String, AppPublishLimitDO> opsForHash = redisTemplate.<String, AppPublishLimitDO>opsForHash();
+        if (opsForHash.hasKey(key, appUid)) {
             return null;
         }
-        String limit = stringRedisTemplate.opsForValue().get(key);
-        if (StringUtils.isNotBlank(limit)) {
-            return JSONUtil.toBean(limit, AppPublishLimitDO.class);
-        }
-        return null;
+        AppPublishLimitDO limit = opsForHash.get(key, appUid);
+        return limit;
     }
 
     /**
-     * 设置推荐的模板
+     * 设置限流信息
      */
-    public void set(AppPublishLimitDO limitDO) {
-        String key = getKey(limitDO.getAppUid());
-        if (Boolean.FALSE.equals(stringRedisTemplate.hasKey(key))) {
-            stringRedisTemplate.delete(key);
-        }
-        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(limitDO), 600L, TimeUnit.SECONDS);
+    public void put(AppPublishLimitDO limitDO) {
+        String key = getKey();
+        HashOperations<String, String, AppPublishLimitDO> opsForHash = redisTemplate.<String, AppPublishLimitDO>opsForHash();
+        opsForHash.put(key, limitDO.getAppUid(), limitDO);
     }
 
     /**
-     * 删除推荐的模板
+     * 设置限流信息
+     *
+     * @param list 限流信息
+     */
+    public void putAll(List<AppPublishLimitDO> list) {
+        String key = getKey();
+        HashOperations<String, String, AppPublishLimitDO> opsForHash = redisTemplate.<String, AppPublishLimitDO>opsForHash();
+        opsForHash.putAll(key, list.stream().collect(Collectors.toMap(AppPublishLimitDO::getAppUid, Function.identity())));
+    }
+
+    /**
+     * 删除限流信息
      */
     public void delete(String appUid) {
-        String key = getKey(appUid);
-        if (Boolean.FALSE.equals(stringRedisTemplate.hasKey(key))) {
-            stringRedisTemplate.delete(key);
+        String key = getKey();
+        HashOperations<String, String, AppPublishLimitDO> opsForHash = redisTemplate.<String, AppPublishLimitDO>opsForHash();
+        if (opsForHash.hasKey(key, appUid)) {
+            opsForHash.delete(key, appUid);
         }
+    }
 
+    /**
+     * 删除限流信息
+     *
+     * @param appUidList 应用 uid 列表
+     */
+    public void deleteByAppUidList(List<String> appUidList) {
+        String key = getKey();
+        HashOperations<String, String, AppPublishLimitDO> opsForHash = redisTemplate.<String, AppPublishLimitDO>opsForHash();
+        opsForHash.delete(key, appUidList.toArray());
     }
 
     /**
@@ -66,8 +86,8 @@ public class AppPublishLimitRedisMapper {
      *
      * @return Redis Key
      */
-    private String getKey(String appUid) {
-        return RedisKeyConstants.PUBLISH_LIMIT_RECORD_PREFIX + appUid;
+    private String getKey() {
+        return RedisKeyConstants.PUBLISH_LIMIT_RECORD_PREFIX;
     }
 
 }

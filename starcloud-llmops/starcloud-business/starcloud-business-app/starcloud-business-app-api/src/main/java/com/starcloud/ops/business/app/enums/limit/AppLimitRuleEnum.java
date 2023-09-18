@@ -22,76 +22,131 @@ public enum AppLimitRuleEnum implements IEnumable<Integer> {
     /**
      * 默认使应用频率限流配置
      */
-    APP_RATE(1, "默认使用频率限流配置") {
+    APP_LIMIT_RULE(1, "默认使用频率限流配置") {
         @Override
         public AppLimitRuleDTO defaultRule() {
-            AppLimitRuleDTO config = new AppLimitRuleDTO();
-            config.setCode(name());
-            config.setEnable(Boolean.FALSE);
-            config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setThreshold(60);
-            config.setTimeInterval(60L);
-            config.setTimeUnit("SECONDS");
-            config.setMessage("当前访问用户过多，请稍后再试！");
-            return config;
+            AppLimitRuleDTO rule = new AppLimitRuleDTO();
+            rule.setCode(name());
+            rule.setEnable(Boolean.FALSE);
+            rule.setLimitBy(AppLimitByEnum.APP.name());
+            rule.setOrder(getCode());
+            rule.setThreshold(60);
+            rule.setTimeInterval(60L);
+            rule.setTimeUnit("SECONDS");
+            rule.setMessage("当前访问用户过多，请稍后再试！");
+            return rule;
         }
 
         @Override
         public AppLimitRuleDTO defaultSystemRule() {
-            AppLimitRuleDTO config = new AppLimitRuleDTO();
-            config.setCode(name());
-            config.setEnable(Boolean.TRUE);
-            config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setThreshold(120);
-            config.setTimeInterval(60L);
-            config.setIgnoreApps(RATE_IGNORE_APPS);
-            config.setTimeUnit("SECONDS");
-            config.setMessage("当前访问用户过多，请稍后再试！");
-            return config;
+            AppLimitRuleDTO rule = new AppLimitRuleDTO();
+            rule.setCode(name());
+            rule.setEnable(Boolean.TRUE);
+            rule.setLimitBy(AppLimitByEnum.APP.name());
+            rule.setOrder(Integer.MAX_VALUE - 100);
+            rule.setThreshold(120);
+            rule.setTimeInterval(60L);
+            rule.setExcludeApps(RATE_IGNORE_APPS);
+            rule.setTimeUnit("SECONDS");
+            rule.setMessage("当前访问用户过多，请稍后再试！");
+            return rule;
+        }
+    },
+
+    /**
+     * 推荐应用限流规则
+     */
+    RECOMMEND_LIMIT_RULE(2, "默认广告限流配置") {
+        @Override
+        public AppLimitRuleDTO defaultRule() {
+            return null;
+        }
+
+        @Override
+        public AppLimitRuleDTO defaultSystemRule() {
+            AppLimitRuleDTO rule = new AppLimitRuleDTO();
+            rule.setCode(name());
+            rule.setEnable(Boolean.TRUE);
+            rule.setLimitBy(AppLimitByEnum.APP.name());
+            rule.setOrder(Integer.MAX_VALUE - 100);
+            rule.setThreshold(500);
+            rule.setTimeInterval(60L);
+            rule.setIncludeApps(DEFAULT_RECOMMEND_APPS);
+            rule.setTimeUnit("SECONDS");
+            rule.setMessage("当前访问用户过多，请稍后再试！");
+            return rule;
+        }
+    },
+
+    /**
+     * 图片应用限流规则
+     */
+    IMAGE_LIMIT_RULE(3, "默认图片生产限流") {
+        @Override
+        public AppLimitRuleDTO defaultRule() {
+            return null;
+        }
+
+        @Override
+        public AppLimitRuleDTO defaultSystemRule() {
+            AppLimitRuleDTO rule = new AppLimitRuleDTO();
+            rule.setCode(name());
+            rule.setEnable(Boolean.TRUE);
+            rule.setLimitBy(AppLimitByEnum.APP.name());
+            rule.setOrder(Integer.MAX_VALUE - 100);
+            rule.setThreshold(500);
+            rule.setTimeInterval(60L);
+            rule.setIncludeApps(Collections.singletonList(RecommendAppConsts.BASE_GENERATE_IMAGE));
+            rule.setTimeUnit("SECONDS");
+            rule.setMessage("当前访问用户过多，请稍后再试！");
+            return rule;
         }
     },
 
     /**
      * 默认用户总量限流配置
      */
-    USER_RATE(2, "默认用户使用频率限流配置") {
+    USER_LIMIT_RULE(4, "默认用户使用频率限流配置") {
         @Override
         public AppLimitRuleDTO defaultRule() {
-            AppLimitRuleDTO config = new AppLimitRuleDTO();
-            config.setCode(name());
-            config.setEnable(Boolean.FALSE);
-            config.setLimitBy(AppLimitByEnum.USER.name());
-            config.setThreshold(60);
-            config.setTimeInterval(1L);
-            config.setTimeUnit("SECONDS");
-            config.setMessage("抱歉，您已经达到最大访问上限！");
-            return config;
+            AppLimitRuleDTO rule = new AppLimitRuleDTO();
+            rule.setCode(name());
+            rule.setEnable(Boolean.FALSE);
+            rule.setLimitBy(AppLimitByEnum.USER.name());
+            rule.setOrder(getCode());
+            rule.setThreshold(60);
+            rule.setTimeInterval(1L);
+            rule.setTimeUnit("SECONDS");
+            rule.setMessage("抱歉，您已经达到最大访问上限！");
+            return rule;
         }
 
         @Override
         public AppLimitRuleDTO defaultSystemRule() {
-            AppLimitRuleDTO config = new AppLimitRuleDTO();
-            config.setCode(name());
-            config.setEnable(Boolean.TRUE);
-            config.setLimitBy(AppLimitByEnum.USER.name());
-            config.setThreshold(120);
-            config.setTimeInterval(1L);
-            config.setTimeUnit("SECONDS");
-            config.setMessage("抱歉，您已经达到最大访问上限！");
-            return config;
+            AppLimitRuleDTO rule = new AppLimitRuleDTO();
+            rule.setCode(name());
+            rule.setEnable(Boolean.TRUE);
+            rule.setLimitBy(AppLimitByEnum.USER.name());
+            rule.setOrder(Integer.MAX_VALUE - 10);
+            rule.setThreshold(120);
+            rule.setTimeInterval(1L);
+            rule.setTimeUnit("SECONDS");
+            rule.setMessage("抱歉，您已经达到最大访问上限！");
+            return rule;
         }
     },
 
     /**
      * 默认广告限流配置
      */
-    ADVERTISING(3, "默认广告限流配置") {
+    ADVERTISING_RULE(Integer.MAX_VALUE, "默认广告限流配置") {
         @Override
         public AppLimitRuleDTO defaultRule() {
             AppLimitRuleDTO config = new AppLimitRuleDTO();
             config.setCode(name());
             config.setEnable(Boolean.TRUE);
             config.setLimitBy(AppLimitByEnum.ADVERTISING.name());
+            config.setOrder(getCode());
             config.setThreshold(20);
             config.setTimeInterval(1L);
             config.setTimeUnit("SECONDS");
@@ -106,53 +161,6 @@ public enum AppLimitRuleEnum implements IEnumable<Integer> {
         }
     },
 
-    /**
-     * 推荐应用限流规则
-     */
-    RECOMMEND_TARE(4, "默认广告限流配置") {
-        @Override
-        public AppLimitRuleDTO defaultRule() {
-            return null;
-        }
-
-        @Override
-        public AppLimitRuleDTO defaultSystemRule() {
-            AppLimitRuleDTO config = new AppLimitRuleDTO();
-            config.setCode(name());
-            config.setEnable(Boolean.TRUE);
-            config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setThreshold(500);
-            config.setTimeInterval(60L);
-            config.setMatchApps(DEFAULT_RECOMMEND_APPS);
-            config.setTimeUnit("SECONDS");
-            config.setMessage("当前访问用户过多，请稍后再试！");
-            return config;
-        }
-    },
-
-    /**
-     * 推荐应用限流规则
-     */
-    IMAGE_RATE(5, "默认图片生产限流") {
-        @Override
-        public AppLimitRuleDTO defaultRule() {
-            return null;
-        }
-
-        @Override
-        public AppLimitRuleDTO defaultSystemRule() {
-            AppLimitRuleDTO config = new AppLimitRuleDTO();
-            config.setCode(name());
-            config.setEnable(Boolean.TRUE);
-            config.setLimitBy(AppLimitByEnum.APP.name());
-            config.setThreshold(500);
-            config.setTimeInterval(60L);
-            config.setMatchApps(Collections.singletonList(RecommendAppConsts.BASE_GENERATE_IMAGE));
-            config.setTimeUnit("SECONDS");
-            config.setMessage("当前访问用户过多，请稍后再试！");
-            return config;
-        }
-    },
     ;
 
     /**

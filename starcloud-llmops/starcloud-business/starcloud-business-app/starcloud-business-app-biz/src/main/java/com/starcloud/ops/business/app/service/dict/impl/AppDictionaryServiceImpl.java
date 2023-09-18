@@ -10,6 +10,8 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.limit.dto.AppLimitRuleDTO;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.RecommendAppConsts;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.limit.AppLimitRuleEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
@@ -18,8 +20,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -113,7 +116,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
                         (existing, replacement) -> dictionaryLimitRuleList.contains(replacement) ? replacement : existing)
                 );
 
-        return new ArrayList<>(mergeMap.values());
+        return mergeMap.values().stream().sorted(Comparator.comparingInt(AppLimitRuleDTO::getOrder)).collect(Collectors.toList());
     }
 
     /**
@@ -147,6 +150,26 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     }
 
     /**
+     * 不需要进行应用限流的应用
+     *
+     * @return 不需要进行应用限流的应用
+     */
+    @Override
+    public List<String> appLimitWhiteList() {
+        List<String> list = Arrays.asList(RecommendAppConsts.GENERATE_TEXT, RecommendAppConsts.GENERATE_ARTICLE, RecommendAppConsts.BASE_GENERATE_IMAGE, RecommendAppConsts.CHAT_ROBOT);
+        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_LIMIT_WHITE_LIST);
+        List<String> collect = CollectionUtil.emptyIfNull(dictDataList)
+                .stream()
+                .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getValue()))
+                .map(item -> item.getValue().trim().toUpperCase())
+                .collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(collect)) {
+            return list;
+        }
+        return Stream.concat(list.stream(), collect.stream()).distinct().collect(Collectors.toList());
+    }
+
+    /**
      * 用户白名单，白名单之内的用户ID，不进行限流
      *
      * @return 用户白名单
@@ -157,6 +180,26 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         return CollectionUtil.emptyIfNull(dictionaryList).stream()
                 .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getValue()))
                 .map(DictDataDO::getValue).collect(Collectors.toList());
+    }
+
+    /**
+     * 不走广告限流配置的场景
+     *
+     * @return 不走广告限流配置的场景
+     */
+    @Override
+    public List<String> appLimitNoAdsScenes() {
+        List<String> list = Arrays.asList(AppSceneEnum.WEB_ADMIN.name(), AppSceneEnum.WEB_MARKET.name(), AppSceneEnum.WEB_IMAGE.name(), AppSceneEnum.OPTIMIZE_PROMPT.name());
+        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_LIMIT_NO_ADS_SCENE_LIST);
+        List<String> collect = CollectionUtil.emptyIfNull(dictDataList)
+                .stream()
+                .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getValue()))
+                .map(item -> item.getValue().trim().toUpperCase())
+                .collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(collect)) {
+            return list;
+        }
+        return Stream.concat(list.stream(), collect.stream()).distinct().collect(Collectors.toList());
     }
 
     /**

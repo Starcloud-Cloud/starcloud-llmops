@@ -1,11 +1,13 @@
 package com.starcloud.ops.business.app.service.limit;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.exception.AppLimitException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 
@@ -23,6 +25,14 @@ import java.io.Serializable;
 public class AppLimitRequest implements Serializable {
 
     private static final long serialVersionUID = 2345561400654818438L;
+
+    /**
+     * 是否是用户登录态执行 <br>
+     * 判断条件 <br>
+     * appUid 不为空。表示用户登录态执行 <br>
+     * mediumUid 和 endUser 不为空，表示游客执行 <br>
+     */
+    private Boolean isLoginLimit;
 
     /**
      * 应用唯一标识
@@ -62,9 +72,16 @@ public class AppLimitRequest implements Serializable {
      * @return 请求数据
      */
     public static AppLimitRequest of(String appUid, String fromScene) {
+        if (StringUtils.isBlank(appUid)) {
+            throw AppLimitException.exception(500, "appUid is required");
+        }
+        if (StringUtils.isBlank(fromScene)) {
+            throw AppLimitException.exception(500, "fromScene is required");
+        }
         AppLimitRequest request = new AppLimitRequest();
         request.setAppUid(appUid);
         request.setFromScene(fromScene);
+        request.setIsLoginLimit(Boolean.TRUE);
         return request;
     }
 
@@ -78,9 +95,19 @@ public class AppLimitRequest implements Serializable {
      */
     public static AppLimitRequest of(String mediumUid, String fromScene, String endUser) {
         AppLimitRequest request = new AppLimitRequest();
+        if (StringUtils.isBlank(mediumUid)) {
+            throw AppLimitException.exception(500, "mediumUid is required");
+        }
+        if (StringUtils.isBlank(fromScene)) {
+            throw AppLimitException.exception(500, "fromScene is required");
+        }
+        if (StringUtils.isBlank(endUser)) {
+            throw AppLimitException.exception(500, "endUser is required");
+        }
         request.setMediumUid(mediumUid);
         request.setFromScene(fromScene);
         request.setEndUser(endUser);
+        request.setIsLoginLimit(Boolean.FALSE);
         return request;
     }
 

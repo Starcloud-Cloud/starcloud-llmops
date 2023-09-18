@@ -12,5 +12,5 @@ public interface RedisKeyConstants {
     /**
      * 限流配置前缀
      */
-    String PUBLISH_LIMIT_RECORD_PREFIX = "PUBLISH_LIMIT_RECORD:";
+    String PUBLISH_LIMIT_RECORD_PREFIX = "APP:PUBLISH:LIMIT:MAP";
 }
