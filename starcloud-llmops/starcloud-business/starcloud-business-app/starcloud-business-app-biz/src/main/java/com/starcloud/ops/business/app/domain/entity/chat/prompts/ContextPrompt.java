@@ -237,7 +237,7 @@ public class ContextPrompt extends BasePromptConfig {
                 //id 为空说明 上游异常没保存下来，当时这里还是需要作文上下文处理的. 不支持工具到返回结果，因为工具的结果已经放在的message历史中给到LLM了
                 return StrUtil.isNotBlank(docDTO.getContent()) && !MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.equals(docDTO.getType());
                 //数据太多，只能先取前5条
-            }).limit(4).collect(Collectors.toList());
+            }).limit(3).collect(Collectors.toList());
 
             log.info("ContextPrompt loadMessageContentDoc ContentDoc result:{}", JsonUtils.toJsonString(summaryDocs));
 
