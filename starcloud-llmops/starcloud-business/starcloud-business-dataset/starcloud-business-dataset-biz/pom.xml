@@ -149,6 +149,12 @@
             <version>${starcloud.revision}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-log-biz</artifactId>
+            <version>${starcloud.revision}</version>
+            <scope>compile</scope>
+        </dependency>
 
 
     </dependencies>

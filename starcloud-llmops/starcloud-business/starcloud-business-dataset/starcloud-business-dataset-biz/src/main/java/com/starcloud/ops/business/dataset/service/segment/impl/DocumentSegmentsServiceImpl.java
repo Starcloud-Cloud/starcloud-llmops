@@ -9,19 +9,16 @@ import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstant
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.xiaoymin.knife4j.core.util.Assert;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
 import com.starcloud.ops.business.dataset.convert.segment.DocumentSegmentConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
-import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.es.ElasticsearchRepository;
-import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSourceDataMapper;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.DocumentSegmentMapper;
 import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
+import com.starcloud.ops.business.dataset.enums.EmbeddingTypeEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import com.starcloud.ops.business.dataset.pojo.request.*;
@@ -38,6 +35,10 @@ import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBe
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.log.api.embedding.EmbeddingReqDTO;
+import com.starcloud.ops.business.log.convert.LogEmbeddingConvert;
+import com.starcloud.ops.business.log.dal.dataobject.LogEmbeddingDO;
+import com.starcloud.ops.business.log.service.embmedding.LogEmbeddingService;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStore;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
@@ -48,7 +49,6 @@ import com.starcloud.ops.llm.langchain.core.model.llm.document.KnnQueryHit;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
-import com.starcloud.ops.llm.langchain.core.utils.VectorSerializeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
@@ -58,6 +58,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
@@ -104,9 +105,11 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Autowired
     private SummaryTask summaryTask;
 
-
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Resource
+    private LogEmbeddingService logEmbeddingService;
 
     @Override
     public SplitForecastResponse splitForecast(FileSplitRequest fileSplitRequest) {
@@ -182,13 +185,13 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         Optional<UserBenefitsBaseResultVO> baseResultVO = userBenefits.getBenefits().stream().filter(b -> BenefitsTypeEnums.TOKEN.getCode().equals(b.getType())).findFirst();
         if (!baseResultVO.isPresent()) {
             log.warn("{}  token 权益为空", creator);
-            throw exception(USER_BENEFITS_NOT_ADEQUATE, creator);
+            throw exception(USER_BENEFITS_NOT_ADEQUATE, creator, reduce / 10 , 0);
         } else {
             Long totalNum = baseResultVO.get().getTotalNum();
             // 每个字符预估 1.5个token ，   embedding价格按 1/15 计算
-            if (reduce * 1.5 > totalNum * 15) {
+            if (reduce / 10 > totalNum) {
                 log.warn("{}  token 权益为不足，size={}，tokens={}", creator, reduce, totalNum);
-                throw exception(USER_BENEFITS_NOT_ADEQUATE, creator);
+                throw exception(USER_BENEFITS_NOT_ADEQUATE, creator, reduce / 10 , totalNum);
             }
         }
         CountDownLatch countDownLatch = new CountDownLatch(segmentDOS.size());
@@ -217,7 +220,14 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
                         documentSegmentDTO.setTokens(repeat.getTokens());
                         documentSegmentDTO.setVector(repeat.getVector());
                     } else {
-                        EmbeddingDetail embeddingDetail = embedding(split, Long.valueOf(creator));
+                        EmbeddingReqDTO reqDTO = new EmbeddingReqDTO();
+                        reqDTO.setDocumentId(documentId);
+                        reqDTO.setType(EmbeddingTypeEnum.DOCUMENT.name());
+                        reqDTO.setContent(split);
+                        reqDTO.setUserId(creator);
+                        reqDTO.setUpdater(creator);
+
+                        EmbeddingDetail embeddingDetail = embedding(reqDTO);
                         segmentDO.setTokens(embeddingDetail.getTotalTokens());
                         documentSegmentDTO.setVector(embeddingDetail.getEmbedding());
                         documentSegmentDTO.setTokens(embeddingDetail.getTotalTokens());
@@ -341,7 +351,13 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
         }
 
-        EmbeddingDetail queryText = embedding(request.getText(), request.getUserId());
+        EmbeddingReqDTO reqDTO = new EmbeddingReqDTO();
+        reqDTO.setType(EmbeddingTypeEnum.QUERY.name());
+        reqDTO.setContent(request.getText());
+        reqDTO.setUserId(request.getUserId().toString());
+        reqDTO.setUpdater(request.getUserId().toString());
+
+        EmbeddingDetail queryText = embedding(reqDTO);
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
                 .datasetIds(datasetIds).minScore(request.getMinScore()).k(request.getK()).build();
         List<KnnQueryHit> knnQueryHitList = basicVectorStore.knnSearch(queryText.getEmbedding(), knnQueryDTO);
@@ -361,7 +377,14 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         if (CollectionUtils.isEmpty(request.getDocId())) {
             return MatchQueryVO.builder().queryText(request.getText()).build();
         }
-        EmbeddingDetail queryText = embedding(request.getText(), request.getUserId());
+
+        EmbeddingReqDTO reqDTO = new EmbeddingReqDTO();
+        reqDTO.setType(EmbeddingTypeEnum.QUERY.name());
+        reqDTO.setContent(request.getText());
+        reqDTO.setUserId(request.getUserId().toString());
+        reqDTO.setUpdater(request.getUserId().toString());
+
+        EmbeddingDetail queryText = embedding(reqDTO);
         KnnQueryDTO knnQueryDTO = KnnQueryDTO.builder()
                 .documentIds(request.getDocId().stream().map(String::valueOf).collect(Collectors.toList()))
                 .k(request.getK()).minScore(request.getMinScore()).build();
@@ -370,8 +393,8 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     }
 
 
-    private EmbeddingDetail embedding(String text, Long userId) {
-        String hash = strToHex(text);
+    private EmbeddingDetail embedding(EmbeddingReqDTO reqDTO) {
+        String hash = strToHex(reqDTO.getContent());
         try {
             String embJson = redisTemplate.boundValueOps(hash).get();
             EmbeddingDetail bean = JSONUtil.toBean(embJson, EmbeddingDetail.class);
@@ -382,10 +405,15 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.warn("获取缓存embedding失败", e);
         }
         try {
-            userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), userId);
-            EmbeddingDetail embeddingDetail = basicEmbedding.embedText(text);
-            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), embeddingDetail.getTotalTokens() / 15, userId, null);
+            userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), Long.valueOf(reqDTO.getUserId()));
+            EmbeddingDetail embeddingDetail = basicEmbedding.embedText(reqDTO.getContent());
+            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(),
+                    embeddingDetail.getTotalTokens() / 15, Long.valueOf(reqDTO.getUserId()), null);
             redisTemplate.boundValueOps(hash).set(JSONUtil.toJsonStr(embeddingDetail), 1, TimeUnit.DAYS);
+            reqDTO.setTextHash(hash);
+            reqDTO.setWordCount(reqDTO.getContent().length());
+            reqDTO.setTokens(embeddingDetail.getTotalTokens());
+            createEmbeddingLog(reqDTO);
             return embeddingDetail;
         } catch (ServiceException e) {
             log.error("权益计算异常：{}", e.getMessage());
@@ -394,6 +422,13 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.error("计算embedding异常", e);
             throw ServiceExceptionUtil.exception(new ErrorCode(500, "计算embedding异常,请重试:" + e.getMessage()));
         }
+    }
+
+
+    private void createEmbeddingLog(EmbeddingReqDTO reqDTO) {
+        TenantContextHolder.setIgnore(true);
+        LogEmbeddingDO logEmbeddingDO = LogEmbeddingConvert.INSTANCE.convert(reqDTO);
+        logEmbeddingService.createLog(logEmbeddingDO);
     }
 
     private String strToHex(String text) {
