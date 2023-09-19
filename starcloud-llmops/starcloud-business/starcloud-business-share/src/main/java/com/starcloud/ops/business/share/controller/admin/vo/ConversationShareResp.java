@@ -34,6 +34,9 @@ public class ConversationShareResp {
     @Schema(description = "会话uid")
     private String conversationUid;
 
+    @Schema(description = "媒介id")
+    private String mediumUid;
+
     /**
      * 过期时间
      */

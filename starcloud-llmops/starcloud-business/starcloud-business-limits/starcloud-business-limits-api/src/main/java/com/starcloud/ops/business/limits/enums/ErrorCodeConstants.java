@@ -63,6 +63,7 @@ public interface ErrorCodeConstants {
 
     ErrorCode USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL = new ErrorCode(2008002008, "签到失败！今日已经签到。请明天再试。");
 
+    ErrorCode USER_BENEFITS_NOT_ADEQUATE = new ErrorCode(2008002009, "当前用户token不足 {}");
 
 
     //======================================用户权益使用记录======================================

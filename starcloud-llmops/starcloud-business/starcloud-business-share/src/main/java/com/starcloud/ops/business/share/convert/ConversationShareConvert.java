@@ -15,4 +15,6 @@ public interface ConversationShareConvert {
 
 
     List<ConversationShareResp> convert(List<ShareConversationDO> shareConversationDOS);
+
+    ConversationShareResp convert(ShareConversationDO shareConversationDO);
 }

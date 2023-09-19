@@ -3,7 +3,10 @@ package com.starcloud.ops.business.dataset.pojo.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 
 @Data
@@ -15,8 +18,14 @@ public abstract class BaseQueryRequest {
     private String text;
 
     @Schema(description = "搜索文档数",defaultValue = "2")
-    private Long k ;
+    @Max(value = 5, message = "k 最大值为5")
+    private Long k;
 
     @Schema(description = "最低打分")
+    @Max(value = 1, message = "minScore 最大值为1")
+    @Min(value = 0, message = "minScore 最小值为0")
     private Double minScore;
+
+    @Schema(description = "用户Id")
+    private Long userId;
 }

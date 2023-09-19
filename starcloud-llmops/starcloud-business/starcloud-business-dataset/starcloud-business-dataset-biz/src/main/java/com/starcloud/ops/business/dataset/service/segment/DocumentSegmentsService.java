@@ -8,8 +8,8 @@ import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.pojo.dto.SplitRule;
 import org.apache.tika.exception.TikaException;
 
+import javax.validation.Valid;
 import java.io.IOException;
-import java.util.List;
 
 public interface DocumentSegmentsService {
 
@@ -38,14 +38,14 @@ public interface DocumentSegmentsService {
     PageResult<DocumentSegmentDO> segmentDetail(SegmentPageQuery pageQuery);
 
     /**
-     * 启用/禁用分段
+     * 启用/禁用文档
      */
-    public boolean updateEnable(String documentId, String segmentId, boolean enable);
+    void updateEnable(Long documentId, boolean disable);
 
     /**
      * 删除文档所有分段
      */
-    public boolean deleteSegment(String datasetId, String documentId);
+    void deleteSegment(String datasetId, String documentId);
 
     /**
      * 文本向量匹配测试
@@ -53,22 +53,14 @@ public interface DocumentSegmentsService {
      * @param request
      * @return
      */
-    public MatchQueryVO matchQuery(MatchByDataSetIdRequest request);
+    MatchQueryVO matchQuery(@Valid MatchByDataSetIdRequest request);
 
     /**
      * 匹配文档中的分段
      * @param request
      * @return
      */
-    MatchQueryVO matchQuery(MatchByDocIdRequest request);
-
-    /**
-     * 相似查询
-     *
-     * @param request
-     * @return
-     */
-    List<String> similarQuery(SimilarQueryRequest request);
+    MatchQueryVO matchQuery(@Valid MatchByDocIdRequest request);
 
     /**
      * 创建embedding索引

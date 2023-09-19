@@ -128,7 +128,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         sourceDataUrlUploadDTO.setAppId(reqVO.getAppId());
         sourceDataUrlUploadDTO.setBatch(reqVO.getBatch());
 
-        String[] allowedTypes = {"pdf", "doc","docx", "text","txt", "md", "csv"};
+        String[] allowedTypes = {"pdf", "doc", "docx", "text", "txt", "md", "csv"};
         String extName = getFileExtension(Objects.requireNonNull(reqVO.getFile().getOriginalFilename()));
 
         boolean isValidFileType = false;
@@ -364,7 +364,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         // 校验存在
         validateDatasetSourceDataExists(uid);
         // FIXME: 2023/9/13 删除分段
-        
+
         // 删除
         datasetSourceDataMapper.delete(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid));
     }
@@ -598,7 +598,13 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         respVO.setStorageVO(datasetStorageService.selectBaseDataById(respVO.getStorageId()));
         // 设置数据规则信息
         if (Objects.nonNull(respVO.getRuleId())) {
-            respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+            // 防止用户删除用过的规则
+            try {
+                respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+            } catch (Exception e) {
+                respVO.setRuleVO(null);
+            }
+
         }
         if (getCleanContent) {
             if (DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus() < sourceDataDO.getStatus()) {
@@ -624,7 +630,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             datasetSourceDataDetailRespVOS.forEach(respVO -> {
                         respVO.setStorageVO(datasetStorageService.selectBaseDataById(respVO.getStorageId()));
                         if (Objects.nonNull(respVO.getRuleId())) {
-                            respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+                            // 防止用户删除用过的规则
+                            try {
+                                respVO.setRuleVO(handleRulesService.getRuleById(respVO.getRuleId()));
+                            } catch (Exception e) {
+                                respVO.setRuleVO(null);
+                            }
                         }
                         respVO.setContent(null);
                         respVO.setCleanContent(null);

@@ -4,6 +4,7 @@ package com.starcloud.ops.business.dataset.controller.admin.segment;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.pojo.request.FileSplitRequest;
 import com.starcloud.ops.business.dataset.pojo.request.MatchByDataSetIdRequest;
@@ -42,16 +43,15 @@ public class SegmentController {
         return CommonResult.success(documentSegmentsService.segmentDetail(pageQuery));
     }
 
-    @GetMapping("/split/enable/{documentId}/{segmentId}")
-    @Operation(summary = "文档分段禁用/启用", description = "文档分段禁用/启用")
+    @GetMapping("/split/enable/{documentId}")
+    @Operation(summary = "文档禁用/启用", description = "文档禁用/启用")
     public CommonResult<Boolean> updateEnable(
-            @PathVariable("documentId") String documentId,
-            @PathVariable("segmentId") String segmentId,
-            @RequestParam(value = "disable") boolean enable
+            @PathVariable("documentId") Long documentId,
+            @RequestParam(value = "disable") boolean disable
 
     ) {
-        boolean success = documentSegmentsService.updateEnable(documentId, segmentId, enable);
-        return success ? CommonResult.success(true) : CommonResult.error(GlobalErrorCodeConstants.LOCKED);
+         documentSegmentsService.updateEnable(documentId, disable);
+        return CommonResult.success(true);
     }
 
     @PostMapping("/match/dataset/text")
@@ -64,6 +64,7 @@ public class SegmentController {
     @PostMapping("/match/document/text")
     @Operation(summary = "文档分段命中测试", description = "文档分段命中测试-docId")
     public CommonResult<MatchQueryVO> matchDocTest(@RequestBody @Valid MatchByDocIdRequest request) {
+        request.setUserId(WebFrameworkUtils.getLoginUserId());
         return CommonResult.success(documentSegmentsService.matchQuery(request));
     }
 
