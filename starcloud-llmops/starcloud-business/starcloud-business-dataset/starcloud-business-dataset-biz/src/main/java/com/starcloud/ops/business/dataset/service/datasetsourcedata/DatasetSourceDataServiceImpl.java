@@ -369,15 +369,18 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(),
                 DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(),
                 DataSetSourceDataStatusEnum.COMPLETED.getStatus()),dataDO.getStatus())) {
-            throw exception(DATASET_SOURCE_DELETE_FAIL);
 
+            // 删除索引 和 删除分块数据
+            documentSegmentsService.deleteSegment(String.valueOf(dataDO.getDatasetId()),String.valueOf(dataDO.getId()));
+
+            // 删除
+            datasetSourceDataMapper.delete(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid));
+
+        }else {
+            throw exception(DATASET_SOURCE_DELETE_FAIL);
         }
 
-        // 删除索引 和 删除分块数据
-        documentSegmentsService.deleteSegment(String.valueOf(dataDO.getDatasetId()),String.valueOf(dataDO.getId()));
 
-        // 删除
-        datasetSourceDataMapper.delete(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid));
     }
 
     /**
