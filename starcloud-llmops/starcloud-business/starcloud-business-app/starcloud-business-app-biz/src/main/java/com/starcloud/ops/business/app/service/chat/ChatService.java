@@ -1,17 +1,12 @@
 package com.starcloud.ops.business.app.service.chat;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatHistoryPageQuery;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppConversationRespVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.framework.common.api.dto.PageResp;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 /**

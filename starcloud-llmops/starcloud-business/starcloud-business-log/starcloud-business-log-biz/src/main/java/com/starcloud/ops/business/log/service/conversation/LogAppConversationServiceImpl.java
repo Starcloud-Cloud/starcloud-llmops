@@ -7,14 +7,15 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageQuery;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationInfoPageAppUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationUpdateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListAppUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
@@ -63,16 +64,16 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     /**
      * 创建应用执行日志会话
      *
-     * @param createReqVO 创建信息
+     * @param request 创建信息
      * @return 编号
      */
     @Override
-    public Long createAppConversation(LogAppConversationCreateReqVO createReqVO) {
-        LogAppConversationDO appConversation = LogAppConversationConvert.INSTANCE.convert(createReqVO);
+    public Long createAppConversation(LogAppConversationCreateReqVO request) {
+        LogAppConversationDO appConversation = LogAppConversationConvert.INSTANCE.convert(request);
         //手动设置，不走用户态
-        appConversation.setCreator(createReqVO.getCreator());
-        appConversation.setUpdater(createReqVO.getUpdater());
-        appConversation.setTenantId(createReqVO.getTenantId());
+        appConversation.setCreator(request.getCreator());
+        appConversation.setUpdater(request.getUpdater());
+        appConversation.setTenantId(request.getTenantId());
         appConversationMapper.insert(appConversation);
         // 返回
         return appConversation.getId();
@@ -81,15 +82,15 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     /**
      * 更新应用执行日志会话
      *
-     * @param updateReqVO 更新信息
+     * @param request 更新信息
      */
     @Override
-    public void updateAppConversation(LogAppConversationUpdateReqVO updateReqVO) {
+    public void updateAppConversation(LogAppConversationUpdateReqVO request) {
         // 校验存在
         // validateAppConversationExists(updateReqVO.getId());
         // 更新
-        LogAppConversationDO updateObj = LogAppConversationConvert.INSTANCE.convert(updateReqVO);
-        appConversationMapper.update(updateObj, Wrappers.lambdaQuery(LogAppConversationDO.class).eq(LogAppConversationDO::getUid, updateReqVO.getUid()));
+        LogAppConversationDO updateObj = LogAppConversationConvert.INSTANCE.convert(request);
+        appConversationMapper.update(updateObj, Wrappers.lambdaQuery(LogAppConversationDO.class).eq(LogAppConversationDO::getUid, request.getUid()));
 
     }
 
@@ -102,6 +103,20 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     @Override
     public void updateAppConversationStatus(String uid, String status) {
         appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class).eq(LogAppConversationDO::getUid, uid).set(LogAppConversationDO::getStatus, status));
+    }
+
+    /**
+     * 更新应用执行日志会话状态
+     *
+     * @param request 更新信息
+     */
+    @Override
+    public void updateAppConversationStatus(LogAppConversationStatusReqVO request) {
+        appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class)
+                .eq(LogAppConversationDO::getUid, request.getUid())
+                .set(LogAppConversationDO::getStatus, request.getStatus())
+                .set(LogAppConversationDO::getErrorCode, request.getErrorCode())
+                .set(LogAppConversationDO::getErrorMsg, request.getErrorMsg()));
     }
 
     /**
@@ -255,7 +270,7 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
      * @return 应用执行日志会话分页
      */
     @Override
-    public PageResult<LogAppConversationInfoPO> pageLogConversation(LogAppConversationInfoPageReqVO query) {
+    public PageResult<LogAppConversationInfoPO> pageLogConversation(AppLogConversationInfoPageQuery query) {
         // 日志时间类型
         LogTimeTypeEnum logTimeTypeEnum = IEnumable.nameOf(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType(), LogTimeTypeEnum.class);
         // 设置开始时间和结束时间

@@ -23,8 +23,8 @@ import com.starcloud.ops.business.app.service.vsearch.VectorSearchService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
@@ -130,7 +130,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
                 messageRequest.setTotalPrice(answerCredit.multiply(messageRequest.getAnswerUnitPrice()).setScale(4, RoundingMode.HALF_UP));
             });
             // 更新会话日志
-            this.updateAppConversationLog(request.getConversationUid(), Boolean.TRUE);
+            //this.updateAppConversationLog(request.getConversationUid(), Boolean.TRUE);
             // 返回结果
             return imageResponse;
         } catch (ServiceException exception) {

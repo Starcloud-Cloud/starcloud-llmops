@@ -8,12 +8,19 @@ import com.starcloud.ops.business.app.api.image.vo.request.HistoryGenerateImageP
 import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.feign.VectorSearchClient;
+import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
+import com.starcloud.ops.business.app.feign.request.clipdrop.ReplaceBackgroundClipDropRequest;
+import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
+import com.starcloud.ops.business.app.feign.response.ClipDropImage;
 import com.starcloud.ops.business.app.service.image.ImageService;
+import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +48,12 @@ public class ImageController {
     private ImageService imageService;
 
     @Resource
+    private ClipDropImageService clipDropImageService;
+
+    @Resource
+    private VectorSearchClient vectorSearchClient;
+
+    @Resource
     private AppLimitService appLimitService;
 
     @GetMapping("/meta")
@@ -65,6 +78,38 @@ public class ImageController {
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_IMAGE.name() : request.getScene());
         appLimitService.appLimit(limitRequest);
         return CommonResult.success(imageService.generateImage(request));
+    }
+
+    @PostMapping(value = "/upscale", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "放大图片", description = "放大图片")
+    @ApiOperationSupport(order = 40, author = "nacoyer")
+    public CommonResult<Object> upscale(@Validated UpscaleClipDropRequest request) {
+        ClipDropImage response = clipDropImageService.upscale(request);
+        return CommonResult.success(response);
+    }
+
+    @PostMapping(value = "/removeBackground", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "去除背景", description = "去除背景")
+    @ApiOperationSupport(order = 50, author = "nacoyer")
+    public CommonResult<Object> removeBackground(@Validated ImageFileClipDropRequest request) {
+        ClipDropImage response = clipDropImageService.removeBackground(request);
+        return CommonResult.success(response);
+    }
+
+    @PostMapping(value = "/removeText", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "去除文字", description = "去除文字")
+    @ApiOperationSupport(order = 60, author = "nacoyer")
+    public CommonResult<Object> removeText(@Validated ImageFileClipDropRequest request) {
+        ClipDropImage response = clipDropImageService.removeText(request);
+        return CommonResult.success(response);
+    }
+
+    @PostMapping(value = "/replaceBackground", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "替换背景", description = "放大图片")
+    @ApiOperationSupport(order = 70, author = "nacoyer")
+    public CommonResult<Object> replaceBackground(@Validated ReplaceBackgroundClipDropRequest request) {
+        ClipDropImage response = clipDropImageService.replaceBackground(request);
+        return CommonResult.success(response);
     }
 
 }

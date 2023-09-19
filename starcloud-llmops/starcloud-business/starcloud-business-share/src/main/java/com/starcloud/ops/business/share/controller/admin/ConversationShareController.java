@@ -2,7 +2,7 @@ package com.starcloud.ops.business.share.controller.admin;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.AppDetailRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareReq;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareResp;

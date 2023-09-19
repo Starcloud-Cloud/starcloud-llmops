@@ -35,15 +35,15 @@ import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.LogAppApi;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
-import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationInfoPageAppUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageQuery;
+import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListAppUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -301,7 +301,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用执行日志会话数据
      */
     @Override
-    public PageResult<LogAppConversationInfoRespVO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query) {
+    public PageResult<AppLogConversationInfoRespVO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query) {
         // 应用 UID 不能为空
         AppValidate.notBlank(query.getAppUid(), new ErrorCode(3000001, "应用分析时，应用UID[appUid]为必填项"));
         // 查询应用类型
@@ -343,9 +343,9 @@ public class AppLogServiceImpl implements AppLogService {
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversationByAppUid(query);
-        PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
-        List<LogAppConversationInfoRespVO> list = result.getList();
-        List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
+        PageResult<AppLogConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
+        List<AppLogConversationInfoRespVO> list = result.getList();
+        List<AppLogConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
                 .peek(item -> item.setAppExecutor(UserUtils.identify(item.getCreator(), item.getEndUser())))
                 .collect(Collectors.toList());
         result.setList(collect);
@@ -360,16 +360,16 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     @DataPermission
-    public PageResult<LogAppConversationInfoRespVO> pageLogConversation(LogAppConversationInfoPageReqVO query) {
+    public PageResult<AppLogConversationInfoRespVO> pageLogConversation(AppLogConversationInfoPageQuery query) {
         if (StringUtils.isBlank(query.getFromScene())) {
             query.setFromSceneList(getFromSceneList());
         }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversation(query);
-        PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
-        List<LogAppConversationInfoRespVO> list = result.getList();
-        List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
+        PageResult<AppLogConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
+        List<AppLogConversationInfoRespVO> list = result.getList();
+        List<AppLogConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
                 .peek(item -> item.setAppExecutor(UserUtils.identify(item.getCreator(), item.getEndUser())))
                 .collect(Collectors.toList());
         result.setList(collect);

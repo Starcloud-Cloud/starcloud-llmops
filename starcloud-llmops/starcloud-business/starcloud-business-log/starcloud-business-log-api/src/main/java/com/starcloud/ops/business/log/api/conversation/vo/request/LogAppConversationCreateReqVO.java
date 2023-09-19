@@ -1,25 +1,30 @@
-package com.starcloud.ops.business.log.api.conversation.vo;
+package com.starcloud.ops.business.log.api.conversation.vo.request;
 
-import lombok.*;
-
-import java.time.LocalDateTime;
-import java.util.*;
-
+import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationBaseVO;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-import javax.validation.constraints.*;
-
+/**
+ * 管理后台 - 应用执行日志会话创建 Request VO
+ *
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-05-29
+ */
 @Schema(description = "管理后台 - 应用执行日志会话创建 Request VO")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class LogAppConversationCreateReqVO extends LogAppConversationBaseVO {
 
+    private static final long serialVersionUID = 7130705377365042499L;
+
     /**
      * 多租户编号
      */
     private Long tenantId;
-
 
     /**
      * 指定创建者
@@ -27,17 +32,9 @@ public class LogAppConversationCreateReqVO extends LogAppConversationBaseVO {
      */
     private String creator;
 
-
+    /**
+     * 指定更新者
+     */
     private String updater;
-
-//    /**
-//     * 创建时间
-//     */
-//    private LocalDateTime createTime;
-//
-//    /**
-//     * 最后更新时间
-//     */
-//    private LocalDateTime updateTime;
 
 }

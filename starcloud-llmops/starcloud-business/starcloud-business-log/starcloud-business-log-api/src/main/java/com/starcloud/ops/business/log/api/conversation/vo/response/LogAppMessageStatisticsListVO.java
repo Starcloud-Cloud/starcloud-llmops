@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.log.api.conversation.vo;
+package com.starcloud.ops.business.log.api.conversation.vo.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -22,30 +22,6 @@ import java.math.BigDecimal;
 public class LogAppMessageStatisticsListVO implements Serializable {
 
     private static final long serialVersionUID = -1741170241906440742L;
-
-//    /**
-//     * 应用 ID
-//     */
-//    @Schema(description = "apUid")
-//    private String appUid;
-//
-//    /**
-//     * 应用名称
-//     */
-//    @Schema(description = "应用名称")
-//    private String appName;
-//
-//    /**
-//     * 应用模型
-//     */
-//    @Schema(description = "应用模型")
-//    private String appMode;
-//
-//    /**
-//     * 执行场景
-//     */
-//    @Schema(description = "执行场景")
-//    private String fromScene;
 
     /**
      * 消息总数

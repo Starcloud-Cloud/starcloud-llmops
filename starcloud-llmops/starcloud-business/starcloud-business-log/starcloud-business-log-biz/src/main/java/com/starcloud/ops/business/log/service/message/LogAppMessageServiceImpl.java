@@ -6,11 +6,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageExportReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageUpdateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageUpdateReqVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
@@ -40,21 +40,21 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     /**
      * 创建应用执行日志结果
      *
-     * @param createReqVO 创建信息
+     * @param request 创建信息
      * @return 编号
      */
     @Override
-    public Long createAppMessage(LogAppMessageCreateReqVO createReqVO) {
+    public Long createAppMessage(LogAppMessageCreateReqVO request) {
         // 插入
-        LogAppMessageDO appMessage = LogAppMessageConvert.INSTANCE.convert(createReqVO);
+        LogAppMessageDO appMessage = LogAppMessageConvert.INSTANCE.convert(request);
 
-        appMessage.setCreator(createReqVO.getCreator());
-        appMessage.setUpdater(createReqVO.getCreator());
+        appMessage.setCreator(request.getCreator());
+        appMessage.setUpdater(request.getCreator());
 
-        appMessage.setCreateTime(createReqVO.getCreateTime());
-        appMessage.setUpdateTime(createReqVO.getUpdateTime());
+        appMessage.setCreateTime(request.getCreateTime());
+        appMessage.setUpdateTime(request.getUpdateTime());
 
-        appMessage.setTenantId(createReqVO.getTenantId());
+        appMessage.setTenantId(request.getTenantId());
 
         appMessageMapper.insert(appMessage);
         // 返回
@@ -64,14 +64,14 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     /**
      * 更新应用执行日志结果
      *
-     * @param updateReqVO 更新信息
+     * @param request 更新信息
      */
     @Override
-    public void updateAppMessage(LogAppMessageUpdateReqVO updateReqVO) {
+    public void updateAppMessage(LogAppMessageUpdateReqVO request) {
         // 校验存在
-        validateAppMessageExists(updateReqVO.getId());
+        validateAppMessageExists(request.getId());
         // 更新
-        LogAppMessageDO updateObj = LogAppMessageConvert.INSTANCE.convert(updateReqVO);
+        LogAppMessageDO updateObj = LogAppMessageConvert.INSTANCE.convert(request);
         appMessageMapper.updateById(updateObj);
     }
 

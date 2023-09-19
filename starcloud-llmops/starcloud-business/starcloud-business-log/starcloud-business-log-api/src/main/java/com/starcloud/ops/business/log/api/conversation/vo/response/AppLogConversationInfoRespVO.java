@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.log.api.conversation.vo;
+package com.starcloud.ops.business.log.api.conversation.vo.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @ToString
 @Schema(name = "LogAppConversationInfoRespVO", description = "应用会话信息响应 VO")
-public class LogAppConversationInfoRespVO implements Serializable {
+public class AppLogConversationInfoRespVO implements Serializable {
 
     private static final long serialVersionUID = 7875467036684665393L;
 
@@ -103,6 +103,18 @@ public class LogAppConversationInfoRespVO implements Serializable {
     private String status;
 
     /**
+     * 执行错误码
+     */
+    @Schema(description = "执行错误码")
+    private String errorCode;
+
+    /**
+     * 执行错误信息
+     */
+    @Schema(description = "执行错误信息")
+    private String errorMsg;
+
+    /**
      * 会话创建人
      */
     @Schema(description = "注册用户ID")
@@ -117,6 +129,7 @@ public class LogAppConversationInfoRespVO implements Serializable {
     /**
      * 应用执行者（游客，用户，或者具体的用户）
      */
+    @Schema(description = "应用执行者（游客，用户，或者具体的用户）")
     private String appExecutor;
 
     /**

@@ -2,10 +2,10 @@ package com.starcloud.ops.business.log.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationRespVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppConversationRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;

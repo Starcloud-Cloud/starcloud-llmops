@@ -2,10 +2,10 @@ package com.starcloud.ops.business.log.convert;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageUpdateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageUpdateReqVO;
 import com.starcloud.ops.business.log.controller.admin.LogAppMessageExcelVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import org.mapstruct.Mapper;

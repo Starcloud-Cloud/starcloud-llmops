@@ -10,7 +10,7 @@ import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.ChatSkillService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.share.controller.app.vo.request.ChatDetailReqVO;

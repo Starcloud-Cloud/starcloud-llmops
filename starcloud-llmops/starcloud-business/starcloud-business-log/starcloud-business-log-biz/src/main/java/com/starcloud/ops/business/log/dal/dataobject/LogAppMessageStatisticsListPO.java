@@ -37,6 +37,11 @@ public class LogAppMessageStatisticsListPO {
     private String fromScene;
 
     /**
+     * AI 模型
+     */
+    private String aiModel;
+
+    /**
      * 消息数
      */
     private Integer messageCount;

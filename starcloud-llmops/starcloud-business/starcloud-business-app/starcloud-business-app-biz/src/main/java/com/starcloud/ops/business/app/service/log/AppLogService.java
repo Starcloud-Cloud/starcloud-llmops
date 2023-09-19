@@ -5,15 +5,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
-import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationInfoPageAppUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageQuery;
+import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListAppUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 
 import java.util.List;
@@ -84,7 +84,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 应用执行日志会话数据
      */
-    PageResult<LogAppConversationInfoRespVO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query);
+    PageResult<AppLogConversationInfoRespVO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query);
 
     /**
      * 分页查询应用执行日志会话数据
@@ -93,7 +93,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 应用执行日志会话数据
      */
-    PageResult<LogAppConversationInfoRespVO> pageLogConversation(LogAppConversationInfoPageReqVO query);
+    PageResult<AppLogConversationInfoRespVO> pageLogConversation(AppLogConversationInfoPageQuery query);
 
     /**
      * 获取文本生成消息详情

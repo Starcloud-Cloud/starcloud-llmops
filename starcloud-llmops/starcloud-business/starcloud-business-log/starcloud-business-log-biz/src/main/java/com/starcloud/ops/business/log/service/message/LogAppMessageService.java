@@ -2,11 +2,11 @@ package com.starcloud.ops.business.log.service.message;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageExportReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageUpdateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageUpdateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 
 import javax.validation.Valid;
@@ -23,17 +23,17 @@ public interface LogAppMessageService {
     /**
      * 创建应用执行日志结果
      *
-     * @param createReqVO 创建信息
+     * @param request 创建信息
      * @return 编号
      */
-    Long createAppMessage(@Valid LogAppMessageCreateReqVO createReqVO);
+    Long createAppMessage(@Valid LogAppMessageCreateReqVO request);
 
     /**
      * 更新应用执行日志结果
      *
-     * @param updateReqVO 更新信息
+     * @param request 更新信息
      */
-    void updateAppMessage(@Valid LogAppMessageUpdateReqVO updateReqVO);
+    void updateAppMessage(@Valid LogAppMessageUpdateReqVO request);
 
     /**
      * 删除应用执行日志结果

@@ -1,13 +1,11 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
-import cn.hutool.core.util.StrUtil;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeSta;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
-import com.mchange.lang.LongUtils;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
@@ -43,6 +41,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
 
     @Override
     protected ActionResponse _execute(Request request) {
+
         log.info("OpenAI ChatGPT Action 执行开始...");
         StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
         OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(callBackHandler);
@@ -76,33 +75,23 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     }
 
     private ActionResponse convert(HandlerResponse handlerResponse) {
-
         ActionResponse actionResponse = new ActionResponse();
-
         actionResponse.setSuccess(handlerResponse.getSuccess());
         actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
         actionResponse.setErrorMsg(handlerResponse.getErrorMsg());
         actionResponse.setType(handlerResponse.getType());
         actionResponse.setIsShow(true);
         actionResponse.setMessage(handlerResponse.getMessage());
-
         actionResponse.setAnswer(handlerResponse.getAnswer());
-
         actionResponse.setOutput(JsonData.of(handlerResponse.getOutput()));
         actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
         actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
-
         actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
         actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
-
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
-
-
         return actionResponse;
-
     }
 
 

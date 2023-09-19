@@ -1,6 +1,5 @@
-package com.starcloud.ops.business.log.api.conversation.vo;
+package com.starcloud.ops.business.log.api.message.vo.query;
 
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,13 +18,13 @@ import java.util.List;
  * @since 2023-06-25
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "LogAppConversationInfoPageReqVO", description = "应用会话日志分页查询请求 VO")
-public class LogAppConversationInfoPageReqVO extends PageParam {
+@Schema(name = "LogAppMessageStatisticsListReqVO", description = "应用执行日志统计请求 VO ")
+public class LogAppMessageStatisticsListReqVO implements Serializable {
 
-    private static final long serialVersionUID = -6444036479357643539L;
+    private static final long serialVersionUID = -325310352133492316L;
 
     /**
      * 应用 UID
@@ -68,6 +68,12 @@ public class LogAppConversationInfoPageReqVO extends PageParam {
     @Schema(description = "查询时间范围类型")
     @InEnum(value = LogTimeTypeEnum.class, field = InEnum.EnumField.NAME, message = "查询时间范围类型 {value}, 支持的类型为 {values}")
     private String timeType;
+
+    /**
+     * 时间单位
+     */
+    @Schema(hidden = true)
+    private String unit;
 
     /**
      * 创建时间

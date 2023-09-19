@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -55,15 +56,12 @@ public abstract class BaseActionHandler<Q, R> {
             this.appContext = context;
             Q request = this.parseInput();
 
-            // 执行 Action
+            // 执行具体的Action
             ActionResponse actionResponse = this._execute(request);
 
             // 执行结果校验, 如果失败，抛出异常
             if (!actionResponse.getSuccess()) {
-                if (StringUtils.isBlank(actionResponse.getErrorMsg())) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, "Action 执行失败");
-                }
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, actionResponse.getErrorMsg());
+                throw ServiceExceptionUtil.exception(new ErrorCode(actionResponse.getErrorCode() == null ? ErrorCodeConstants.APP_EXECUTE_FAIL.getCode() : 1, StringUtils.isNoneBlank(actionResponse.getErrorMsg()) ? actionResponse.getErrorMsg() : "Action 执行失败"));
             }
 
             // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况

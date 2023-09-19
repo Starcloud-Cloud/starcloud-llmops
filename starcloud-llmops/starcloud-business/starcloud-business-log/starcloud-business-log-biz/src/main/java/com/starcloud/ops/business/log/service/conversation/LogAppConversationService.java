@@ -1,16 +1,15 @@
 package com.starcloud.ops.business.log.service.conversation;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationUpdateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageQuery;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationInfoPageAppUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationUpdateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListAppUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
@@ -30,17 +29,17 @@ public interface LogAppConversationService {
     /**
      * 创建应用执行日志会话
      *
-     * @param createReqVO 创建信息
+     * @param request 创建信息
      * @return 编号
      */
-    Long createAppConversation(@Valid LogAppConversationCreateReqVO createReqVO);
+    Long createAppConversation(@Valid LogAppConversationCreateReqVO request);
 
     /**
      * 更新应用执行日志会话
      *
-     * @param updateReqVO 更新信息
+     * @param request 更新信息
      */
-    void updateAppConversation(LogAppConversationUpdateReqVO updateReqVO);
+    void updateAppConversation(@Valid LogAppConversationUpdateReqVO request);
 
     /**
      * 更新应用执行日志会话状态
@@ -49,6 +48,13 @@ public interface LogAppConversationService {
      * @param status 状态
      */
     void updateAppConversationStatus(@NotEmpty(message = "会话 Uid 不能为空") String uid, @NotEmpty(message = "会话状态不能为空") String status);
+
+    /**
+     * 更新应用执行日志会话状态
+     *
+     * @param request 更新信息
+     */
+    void updateAppConversationStatus(@Valid LogAppConversationStatusReqVO request);
 
     /**
      * 删除应用执行日志会话
@@ -64,7 +70,6 @@ public interface LogAppConversationService {
      * @return 应用执行日志会话
      */
     LogAppConversationDO getAppConversation(Long id);
-
 
     /**
      * 获得应用执行日志会话
@@ -100,11 +105,12 @@ public interface LogAppConversationService {
 
     /**
      * 获取用户最新会话
-     * @param appUid
-     * @param creator
-     * @return
+     *
+     * @param appUid  应用uid
+     * @param creator 用户uid
+     * @return 应用执行日志会话
      */
-    LogAppConversationDO getUserRecentlyConversation(String appUid, String creator,String scene);
+    LogAppConversationDO getUserRecentlyConversation(String appUid, String creator, String scene);
 
     /**
      * 根据应用 UID 获取应用执行日志消息统计数据列表 <br>
@@ -140,7 +146,7 @@ public interface LogAppConversationService {
      * @param query 分页查询
      * @return 应用执行日志会话分页
      */
-    PageResult<LogAppConversationInfoPO> pageLogConversation(LogAppConversationInfoPageReqVO query);
+    PageResult<LogAppConversationInfoPO> pageLogConversation(AppLogConversationInfoPageQuery query);
 
     /**
      * 获取最新的会话

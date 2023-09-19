@@ -1,5 +1,6 @@
-package com.starcloud.ops.business.log.api.message.vo;
+package com.starcloud.ops.business.log.api.conversation.vo.query;
 
+import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -8,8 +9,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.validation.constraints.NotBlank;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -18,19 +17,18 @@ import java.time.LocalDateTime;
  * @since 2023-06-25
  */
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @NoArgsConstructor
-@ToString
-@Schema(name = "LogAppMessageStatisticsListReqVO", description = "应用执行日志统计请求 VO ")
-public class LogAppMessageStatisticsListAppUidReqVO implements Serializable {
+@Schema(name = "LogAppConversationInfoPageAppUidReqVO", description = "应用会话日志分页查询请求 VO")
+public class LogAppConversationInfoPageAppUidReqVO extends PageParam {
 
-    private static final long serialVersionUID = -4470639861956307329L;
+    private static final long serialVersionUID = -8014401115048627071L;
 
     /**
      * 应用 UID
      */
     @Schema(description = "应用 UID")
-    @NotBlank(message = "应用 UID 不能为空")
     private String appUid;
 
     /**
@@ -55,14 +53,8 @@ public class LogAppMessageStatisticsListAppUidReqVO implements Serializable {
      * 查询时间范围类型
      */
     @Schema(description = "查询时间范围类型")
-    @InEnum(value = LogTimeTypeEnum.class, field = InEnum.EnumField.NAME, message = "查询时间范围类型 {value} 不正确, 支持的类型为： {values}")
+    @InEnum(value = LogTimeTypeEnum.class, field = InEnum.EnumField.NAME, message = "查询时间范围类型 {value}, 支持的类型为 {values}")
     private String timeType;
-
-    /**
-     * 时间单位
-     */
-    @Schema(description = "时间单位", hidden = true)
-    private String unit;
 
     /**
      * 创建时间
@@ -75,5 +67,6 @@ public class LogAppMessageStatisticsListAppUidReqVO implements Serializable {
      */
     @Schema(description = "数据结束时间", hidden = true)
     private LocalDateTime endTime;
+
 
 }

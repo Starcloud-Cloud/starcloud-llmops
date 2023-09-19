@@ -4,9 +4,9 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import com.starcloud.ops.business.log.api.LogAppApi;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageQuery;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
@@ -35,7 +35,7 @@ public class AppLogTest extends BaseDbUnitTest {
     @Test
     public void getAppConversationInfoPageTest() {
 
-        LogAppConversationInfoPageReqVO pageReqVO = new LogAppConversationInfoPageReqVO();
+        AppLogConversationInfoPageQuery pageReqVO = new AppLogConversationInfoPageQuery();
 
         pageReqVO.setPageNo(1);
         pageReqVO.setPageSize(3);

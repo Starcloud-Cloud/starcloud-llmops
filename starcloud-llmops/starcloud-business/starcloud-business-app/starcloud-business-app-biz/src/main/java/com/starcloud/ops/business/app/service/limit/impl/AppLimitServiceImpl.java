@@ -21,7 +21,7 @@ import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.framework.common.api.dto.BaseStreamResult;
 import com.starcloud.ops.framework.common.api.dto.SortQuery;
 import com.starcloud.ops.framework.common.api.enums.SortType;

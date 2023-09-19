@@ -6,7 +6,7 @@ import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.log.AppLogService;
-import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
