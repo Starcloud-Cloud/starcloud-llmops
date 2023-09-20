@@ -55,10 +55,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -361,12 +358,29 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
     @Override
     public void deleteDatasetSourceData(String uid) {
+
         // 校验存在
         validateDatasetSourceDataExists(uid);
-        // FIXME: 2023/9/13 删除分段
 
-        // 删除
-        datasetSourceDataMapper.delete(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid));
+        DatasetSourceDataDO dataDO = getSourceDataByUID(uid, null);
+
+        if (CollUtil.contains(Arrays.asList(
+                DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(),
+                DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(),
+                DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(),
+                DataSetSourceDataStatusEnum.COMPLETED.getStatus()),dataDO.getStatus())) {
+
+            // 删除索引 和 删除分块数据
+            documentSegmentsService.deleteSegment(String.valueOf(dataDO.getDatasetId()),String.valueOf(dataDO.getId()));
+
+            // 删除
+            datasetSourceDataMapper.delete(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid));
+
+        }else {
+            throw exception(DATASET_SOURCE_DELETE_FAIL);
+        }
+
+
     }
 
     /**
@@ -382,6 +396,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
         if (dataDO.getEnabled()) {
+            documentSegmentsService.updateEnable(dataDO.getId(),false);
             dataDO.setEnabled(false);
             datasetSourceDataMapper.updateById(dataDO);
         } else {
@@ -401,6 +416,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
         if (!dataDO.getEnabled()) {
+            documentSegmentsService.updateEnable(dataDO.getId(),true);
             dataDO.setEnabled(true);
             datasetSourceDataMapper.updateById(dataDO);
         } else {

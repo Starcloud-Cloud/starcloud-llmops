@@ -288,10 +288,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         userBenefitsDO.setUid(IdUtil.fastSimpleUUID());
         userBenefitsDO.setUserId(String.valueOf(userId));
         userBenefitsDO.setStrategyId(String.valueOf(benefitsStrategy.getId()));
-        userBenefitsDO.setAppCountUsed(benefitsStrategy.getAppCount());
-        userBenefitsDO.setDatasetCountUsed(benefitsStrategy.getDatasetCount());
-        userBenefitsDO.setImageCountUsed(benefitsStrategy.getImageCount());
-        userBenefitsDO.setTokenCountUsed(benefitsStrategy.getTokenCount());
+        userBenefitsDO.setAppRemaining(benefitsStrategy.getAppCount());
+        userBenefitsDO.setDatasetRemaining(benefitsStrategy.getDatasetCount());
+        userBenefitsDO.setImageRemaining(benefitsStrategy.getImageCount());
+        userBenefitsDO.setTokenRemaining(benefitsStrategy.getTokenCount());
 
         userBenefitsDO.setAppCountInit(benefitsStrategy.getAppCount());
         userBenefitsDO.setDatasetCountInit(benefitsStrategy.getDatasetCount());
@@ -379,10 +379,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         if (CollUtil.isNotEmpty(resultList)) {
 
             for (UserBenefitsDO userBenefits : resultList) {
-                totalAppCountUsed += userBenefits.getAppCountUsed();
-                totalDatasetCountUsed += userBenefits.getDatasetCountUsed();
-                totalImageCountUsed += userBenefits.getImageCountUsed();
-                totalTokenCountUsed += userBenefits.getTokenCountUsed();
+                totalAppCountUsed += userBenefits.getAppRemaining();
+                totalDatasetCountUsed += userBenefits.getDatasetRemaining();
+                totalImageCountUsed += userBenefits.getImageRemaining();
+                totalTokenCountUsed += userBenefits.getTokenRemaining();
 
                 totalAppCount += userBenefits.getAppCountInit();
                 totalDatasetCount += userBenefits.getDatasetCountInit();
@@ -401,11 +401,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserLevelEnums userLevelEnums;
         // 根据用户权限判断用户等级
         if (securityFrameworkService.hasRole("MOFAAI_PRO") && (CollUtil.isNotEmpty(monthBenefitsStrategyDOS) || CollUtil.isNotEmpty(yearBenefitsStrategyDOS))) {
-            userLevelEnums =UserLevelEnums.PRO;
+            userLevelEnums = UserLevelEnums.PRO;
         } else if (securityFrameworkService.hasRole("MOFAAI_PLUS")) {
-            userLevelEnums =UserLevelEnums.PLUS;
+            userLevelEnums = UserLevelEnums.PLUS;
         } else {
-            userLevelEnums =UserLevelEnums.FREE;
+            userLevelEnums = UserLevelEnums.FREE;
         }
         userBenefitsInfoResultVO.setUserLevel(userLevelEnums.getCode().toLowerCase());
 
@@ -495,16 +495,18 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         } else {
             switch (benefitsTypeEnums) {
                 case APP:
-                    wrapper.gt(UserBenefitsDO::getAppCountUsed, 0L);
+                    wrapper.gt(UserBenefitsDO::getAppRemaining, 0L);
                     break;
                 case DATASET:
-                    wrapper.gt(UserBenefitsDO::getDatasetCountUsed, 0L);
+                    wrapper.gt(UserBenefitsDO::getDatasetRemaining, 0L);
                     break;
                 case IMAGE:
-                    wrapper.gt(UserBenefitsDO::getImageCountUsed, 0L);
+                    wrapper.gt(UserBenefitsDO::getImageRemaining, 0L);
                     break;
                 case TOKEN:
-                    wrapper.gt(UserBenefitsDO::getTokenCountUsed, 0L);
+                    wrapper.gt(UserBenefitsDO::getTokenRemaining, 0L);
+                case COMPUTATIONAL_POWER:
+                    wrapper.gt(UserBenefitsDO::getComputationalPowerRemaining, 0L);
                     break;
             }
             // 查询数据
@@ -570,24 +572,29 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             BiConsumer<UserBenefitsDO, Long> setter;
             switch (benefitsType) {
                 case APP:
-                    wrapper.gt(UserBenefitsDO::getAppCountUsed, 0L);
-                    getter = UserBenefitsDO::getAppCountUsed;
-                    setter = UserBenefitsDO::setAppCountUsed;
+                    wrapper.gt(UserBenefitsDO::getAppRemaining, 0L);
+                    getter = UserBenefitsDO::getAppRemaining;
+                    setter = UserBenefitsDO::setAppRemaining;
                     break;
                 case DATASET:
-                    wrapper.gt(UserBenefitsDO::getDatasetCountUsed, 0L);
-                    getter = UserBenefitsDO::getDatasetCountUsed;
-                    setter = UserBenefitsDO::setDatasetCountUsed;
+                    wrapper.gt(UserBenefitsDO::getDatasetRemaining, 0L);
+                    getter = UserBenefitsDO::getDatasetRemaining;
+                    setter = UserBenefitsDO::setDatasetRemaining;
                     break;
                 case IMAGE:
-                    wrapper.gt(UserBenefitsDO::getImageCountUsed, 0L);
-                    getter = UserBenefitsDO::getImageCountUsed;
-                    setter = UserBenefitsDO::setImageCountUsed;
+                    wrapper.gt(UserBenefitsDO::getImageRemaining, 0L);
+                    getter = UserBenefitsDO::getImageRemaining;
+                    setter = UserBenefitsDO::setImageRemaining;
                     break;
                 case TOKEN:
-                    wrapper.gt(UserBenefitsDO::getTokenCountUsed, 0L);
-                    getter = UserBenefitsDO::getTokenCountUsed;
-                    setter = UserBenefitsDO::setTokenCountUsed;
+                    wrapper.gt(UserBenefitsDO::getTokenRemaining, 0L);
+                    getter = UserBenefitsDO::getTokenRemaining;
+                    setter = UserBenefitsDO::setTokenRemaining;
+                    break;
+                case COMPUTATIONAL_POWER:
+                    wrapper.gt(UserBenefitsDO::getComputationalPowerRemaining, 0L);
+                    getter = UserBenefitsDO::getComputationalPowerRemaining;
+                    setter = UserBenefitsDO::setComputationalPowerRemaining;
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + benefitsType);

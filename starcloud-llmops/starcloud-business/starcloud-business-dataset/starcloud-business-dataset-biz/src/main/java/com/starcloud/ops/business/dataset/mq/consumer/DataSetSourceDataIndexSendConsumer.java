@@ -56,8 +56,9 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
             message.setErrMsg(DataSetSourceDataStatusEnum.COMPLETED.getName());
             log.info("创建索引完成，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
         } catch (Exception e) {
-            message.setStatus(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
-            message.setErrMsg(DataSetSourceDataStatusEnum.INDEX_ERROR.getName());
+            message.setStatus(DataSetSourceDataStatusEnum.INDEX_RETRY.getStatus());
+            message.setErrCode(DataSetSourceDataStatusEnum.INDEX_RETRY.getStatus());
+            message.setErrMsg(e.getMessage());
             log.error("[DataSetSourceDataCleanSendConsumer][数据创建索引失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", message.getUserId(), getTenantId(), message.getDatasetId(), message.getDataSourceId(), e.getMessage(), e);
         }
 
@@ -69,7 +70,7 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
      */
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
-        if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(), message.getStatus())) {
+        if (message.getRetryCount() < 3 && Objects.equals(DataSetSourceDataStatusEnum.INDEX_RETRY.getStatus(), message.getStatus())) {
             int retryCount = message.getRetryCount();
             message.setRetryCount(++retryCount);
             log.warn("数据索引异常，开始重试，当前重试次数为{}", message.getRetryCount());
@@ -81,7 +82,10 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
                 // 发送消息
                 dataIndexProducer.asyncSendMessage(message);
             }
-        } else if (message.getRetryCount() > 3 && Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
+        } else  {
+            message.setStatus(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
+            message.setErrCode(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
+            message.setErrMsg(message.getErrMsg());
             log.error("执行数据创建索引操作失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
         }
     }

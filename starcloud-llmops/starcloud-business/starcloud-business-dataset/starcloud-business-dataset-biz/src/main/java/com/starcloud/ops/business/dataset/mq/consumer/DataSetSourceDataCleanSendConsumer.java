@@ -105,9 +105,9 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             message.setSplitRule(cleanResultVO.getSplitRule());
             log.info("清洗数据完毕，数据集 ID 为({}),源数据 ID 为({})", message.getDatasetId(), message.getDataSourceId());
         } catch (Exception e) {
-            message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
-            message.setErrCode(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
-            message.setErrMsg(DataSetSourceDataStatusEnum.CLEANING_ERROR.getName() + ":" + e.getMessage());
+            message.setStatus(DataSetSourceDataStatusEnum.CLEANING_RETRY.getStatus());
+            message.setErrCode(DataSetSourceDataStatusEnum.CLEANING_RETRY.getStatus());
+            message.setErrMsg(e.getMessage());
             log.info("清洗失败，错误原因是:({})", e.getMessage(), e);
         }
 
@@ -121,34 +121,37 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
      */
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
-
-        if (0 == dictDataService.getDictData("QueueSwitch", "sendMessage").getStatus()) {
-            if (Objects.equals(message.getStatus(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus())) {
-                // 如果执行成功 重置重试次数
-                message.setRetryCount(0);
-                if (message.getSplitSync()) {
-                    log.info("同步执行数据分块操作，数据为{}", JSONObject.toJSONString(message));
-                    dataSplitProducer.sendMessage(message);
-                } else {
-                    log.info("异步执行数据分块操作，数据为{}", JSONObject.toJSONString(message));
-                    // 发送消息
-                    dataSplitProducer.asyncSendMessage(message);
-                }
-            } else if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(), message.getStatus())) {
-                int retryCount = message.getRetryCount();
-                message.setRetryCount(++retryCount);
-                log.warn("数据清洗异常，开始重试，当前重试次数为{}",message.getRetryCount());
-                if (message.getCleanSync()) {
-                    log.info("同步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
-                    dataCleanProducer.sendMessage(message);
-                } else {
-                    log.info("异步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
-                    // 发送消息
-                    dataCleanProducer.asyncSendMessage(message);
-                }
+        if (Objects.equals(message.getStatus(), DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus())) {
+            // 如果执行成功 重置重试次数
+            message.setRetryCount(0);
+            // 发送消息
+            if (message.getSplitSync()) {
+                log.info("同步执行数据分块操作，数据为{}", JSONObject.toJSONString(message));
+                dataSplitProducer.sendMessage(message);
             } else {
-                log.error("执行数据清洗失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
+                log.info("异步执行数据分块操作，数据为{}", JSONObject.toJSONString(message));
+                // 发送消息
+                dataSplitProducer.asyncSendMessage(message);
             }
+
+        } else if (message.getRetryCount() < 3 && Objects.equals(DataSetSourceDataStatusEnum.CLEANING_RETRY.getStatus(), message.getStatus())) {
+            int retryCount = message.getRetryCount();
+            message.setRetryCount(++retryCount);
+            log.warn("数据清洗异常，开始重试，当前重试次数为{}", message.getRetryCount());
+            if (message.getCleanSync()) {
+                log.info("同步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
+                dataCleanProducer.sendMessage(message);
+            } else {
+                log.info("异步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
+                // 发送消息
+                dataCleanProducer.asyncSendMessage(message);
+            }
+        } else {
+            message.setStatus(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
+            message.setErrCode(DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus());
+            message.setErrMsg(message.getErrMsg());
+            updateDataState(message);
+            log.error("执行数据清洗失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
         }
 
 
