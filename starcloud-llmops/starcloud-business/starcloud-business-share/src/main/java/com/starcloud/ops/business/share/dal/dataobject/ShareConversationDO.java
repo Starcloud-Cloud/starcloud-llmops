@@ -57,5 +57,15 @@ public class ShareConversationDO extends TenantBaseDO {
      */
     private Boolean endUser;
 
+    /**
+     * 邀请码
+     */
+    private String inviteCode;
+
+    /**
+     * 场景
+     */
+    private String scene;
+
 
 }

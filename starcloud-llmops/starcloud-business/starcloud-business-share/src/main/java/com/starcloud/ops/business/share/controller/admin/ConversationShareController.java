@@ -2,6 +2,7 @@ package com.starcloud.ops.business.share.controller.admin;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.AppDetailRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareReq;
@@ -19,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/share/conversation")
 @Tag(name = "魔法AI-会话分享")
+@DataPermission(enable = false)
 public class ConversationShareController {
 
     @Resource
@@ -28,16 +30,8 @@ public class ConversationShareController {
     @PostMapping("/create")
     @Operation(summary = "创建会话分享")
     @PermitAll
-    public CommonResult<String> create(@RequestBody @Valid ConversationShareReq req) {
+    public CommonResult<ConversationShareResp> create(@RequestBody @Valid ConversationShareReq req) {
         return CommonResult.success(shareService.createShareLink(req));
-    }
-
-
-    @PutMapping("/modify")
-    @Operation(summary = "修改分享记录")
-    public CommonResult<Boolean> modify(@RequestBody @Valid ConversationShareReq req) {
-        shareService.modifyRecord(req);
-        return CommonResult.success(true);
     }
 
     @GetMapping("/app/{shareKey}")
