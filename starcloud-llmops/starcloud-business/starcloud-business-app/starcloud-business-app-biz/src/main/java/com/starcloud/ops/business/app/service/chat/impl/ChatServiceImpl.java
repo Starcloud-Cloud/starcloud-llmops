@@ -156,7 +156,7 @@ public class ChatServiceImpl implements ChatService {
         LogAppConversationExportReqVO reqVO = new LogAppConversationExportReqVO();
         reqVO.setFromScene(scene);
         reqVO.setAppUid(appUid);
-        List<LogAppConversationDO> appConversationList = conversationService.getAppConversationList(reqVO);
+        List<LogAppConversationDO> appConversationList = conversationService.listAppLogConversation(reqVO);
         return LogAppConversationConvert.INSTANCE.convertList(appConversationList);
     }
 

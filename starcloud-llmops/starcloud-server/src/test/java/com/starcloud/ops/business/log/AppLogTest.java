@@ -4,12 +4,13 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import com.starcloud.ops.business.log.api.LogAppApi;
-import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageQuery;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
+import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -30,17 +31,20 @@ public class AppLogTest extends BaseDbUnitTest {
     private LogAppConversationService logAppConversationService;
 
     @Autowired
+    private LogAppMessageService logAppMessageService;
+
+    @Autowired
     private LogAppApi logAppApi;
 
     @Test
     public void getAppConversationInfoPageTest() {
 
-        AppLogConversationInfoPageQuery pageReqVO = new AppLogConversationInfoPageQuery();
+        AppLogConversationInfoPageReqVO pageReqVO = new AppLogConversationInfoPageReqVO();
 
         pageReqVO.setPageNo(1);
         pageReqVO.setPageSize(3);
 
-        PageResult<LogAppConversationInfoPO> result = logAppConversationService.pageLogConversation(pageReqVO);
+        PageResult<LogAppConversationInfoPO> result = logAppConversationService.pageLogAppConversation(pageReqVO);
 
         log.info("result: {}", result);
     }
@@ -49,12 +53,12 @@ public class AppLogTest extends BaseDbUnitTest {
     @Test
     public void getAppMessageStatisticsListTest() {
 
-        LogAppMessageStatisticsListReqVO reqVO = new LogAppMessageStatisticsListReqVO();
+        AppLogMessageStatisticsListReqVO reqVO = new AppLogMessageStatisticsListReqVO();
 
         reqVO.setAppName("app");
         //reqVO.setAppUid("appId-test66");
 
-        List<LogAppMessageStatisticsListPO> result = logAppConversationService.listLogMessageStatistics(reqVO);
+        List<LogAppMessageStatisticsListPO> result = logAppMessageService.listLogAppMessageStatistics(reqVO);
 
         log.info("result: {}", result);
     }

@@ -35,15 +35,15 @@ import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.LogAppApi;
-import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationInfoPageAppUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageQuery;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
-import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListAppUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -181,7 +181,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 日志消息统计数据
      */
     @Override
-    public List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(LogAppMessageStatisticsListAppUidReqVO query) {
+    public List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(AppLogMessageStatisticsListUidReqVO query) {
         // 应用 UID 不能为空
         AppValidate.notBlank(query.getAppUid(), new ErrorCode(3000001, "应用分析时，应用UID[appUid]为必填项"));
         // 查询应用类型
@@ -222,7 +222,7 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.listLogMessageStatisticsByAppUid(query);
+        List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
 
@@ -233,13 +233,13 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 日志消息统计数据
      */
     @Override
-    public List<LogAppMessageStatisticsListVO> listLogMessageStatistics(LogAppMessageStatisticsListReqVO query) {
+    public List<LogAppMessageStatisticsListVO> listLogMessageStatistics(AppLogMessageStatisticsListReqVO query) {
         if (StringUtils.isBlank(query.getFromScene())) {
             query.setFromSceneList(getFromSceneList());
         }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.listLogMessageStatistics(query);
+        List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
 
@@ -250,7 +250,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用市场执行日志会话数据
      */
     @Override
-    public PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query) {
+    public PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(AppLogConversationInfoPageUidReqVO query) {
         AppValidate.notBlank(query.getMarketUid(), new ErrorCode(3000001, "应用市场 UID 不能为空"));
         if (StringUtils.isNotBlank(query.getFromScene())) {
             if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene()) && !AppSceneEnum.OPTIMIZE_PROMPT.name().equals(query.getFromScene())) {
@@ -263,7 +263,7 @@ public class AppLogServiceImpl implements AppLogService {
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         query.setStatus(LogStatusEnum.SUCCESS.name());
-        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversationByAppUid(query);
+        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogAppConversation(query);
         if (pageResult.getTotal() == 0) {
             return new PageResult<>(Collections.emptyList(), 0L);
         }
@@ -301,7 +301,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用执行日志会话数据
      */
     @Override
-    public PageResult<AppLogConversationInfoRespVO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query) {
+    public PageResult<AppLogConversationInfoRespVO> pageLogConversationByAppUid(AppLogConversationInfoPageUidReqVO query) {
         // 应用 UID 不能为空
         AppValidate.notBlank(query.getAppUid(), new ErrorCode(3000001, "应用分析时，应用UID[appUid]为必填项"));
         // 查询应用类型
@@ -342,7 +342,7 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversationByAppUid(query);
+        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogAppConversation(query);
         PageResult<AppLogConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
         List<AppLogConversationInfoRespVO> list = result.getList();
         List<AppLogConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
@@ -360,13 +360,13 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     @DataPermission
-    public PageResult<AppLogConversationInfoRespVO> pageLogConversation(AppLogConversationInfoPageQuery query) {
+    public PageResult<AppLogConversationInfoRespVO> pageLogConversation(AppLogConversationInfoPageReqVO query) {
         if (StringUtils.isBlank(query.getFromScene())) {
             query.setFromSceneList(getFromSceneList());
         }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversation(query);
+        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogAppConversation(query);
         PageResult<AppLogConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
         List<AppLogConversationInfoRespVO> list = result.getList();
         List<AppLogConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
@@ -385,11 +385,11 @@ public class AppLogServiceImpl implements AppLogService {
     @Override
     public AppLogMessageRespVO getLogAppMessageDetail(AppLogMessagePageReqVO query) {
         // 获取会话记录
-        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
+        LogAppConversationDO appConversation = logAppConversationService.getAppLogConversation(query.getConversationUid());
         AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
 
         // 获取消息列表
-        Page<LogAppMessageDO> appMessagePage = logAppMessageService.getAppMessageList(query);
+        Page<LogAppMessageDO> appMessagePage = logAppMessageService.listAppLogMessage(query);
         List<LogAppMessageDO> appMessageList = appMessagePage.getRecords();
         // 校验日志消息是否存在
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
@@ -414,7 +414,7 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     public PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query) {
-        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
+        LogAppConversationDO appConversation = logAppConversationService.getAppLogConversation(query.getConversationUid());
         AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
         String images = StringUtils.EMPTY;
 
@@ -457,11 +457,11 @@ public class AppLogServiceImpl implements AppLogService {
     @Override
     public ImageLogMessageRespVO getLogImageMessageDetail(AppLogMessagePageReqVO query) {
         // 获取会话
-        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
+        LogAppConversationDO appConversation = logAppConversationService.getAppLogConversation(query.getConversationUid());
         AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
 
         // 获取消息列表
-        Page<LogAppMessageDO> appMessagePage = logAppMessageService.getAppMessageList(query);
+        Page<LogAppMessageDO> appMessagePage = logAppMessageService.listAppLogMessage(query);
         List<LogAppMessageDO> appMessageList = appMessagePage.getRecords();
         // 校验日志消息是否存在
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);

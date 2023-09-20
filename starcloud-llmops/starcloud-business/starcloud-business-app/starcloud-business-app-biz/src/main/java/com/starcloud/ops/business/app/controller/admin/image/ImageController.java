@@ -81,7 +81,6 @@ public class ImageController {
     }
 
     @PostMapping(value = "/upscale", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "放大图片", description = "放大图片")
     @ApiOperationSupport(order = 40, author = "nacoyer")
     public CommonResult<Object> upscale(@Validated UpscaleClipDropRequest request) {
         ClipDropImage response = clipDropImageService.upscale(request);
@@ -89,7 +88,6 @@ public class ImageController {
     }
 
     @PostMapping(value = "/removeBackground", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "去除背景", description = "去除背景")
     @ApiOperationSupport(order = 50, author = "nacoyer")
     public CommonResult<Object> removeBackground(@Validated ImageFileClipDropRequest request) {
         ClipDropImage response = clipDropImageService.removeBackground(request);
@@ -97,7 +95,6 @@ public class ImageController {
     }
 
     @PostMapping(value = "/removeText", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "去除文字", description = "去除文字")
     @ApiOperationSupport(order = 60, author = "nacoyer")
     public CommonResult<Object> removeText(@Validated ImageFileClipDropRequest request) {
         ClipDropImage response = clipDropImageService.removeText(request);
@@ -105,7 +102,6 @@ public class ImageController {
     }
 
     @PostMapping(value = "/replaceBackground", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "替换背景", description = "放大图片")
     @ApiOperationSupport(order = 70, author = "nacoyer")
     public CommonResult<Object> replaceBackground(@Validated ReplaceBackgroundClipDropRequest request) {
         ClipDropImage response = clipDropImageService.replaceBackground(request);

@@ -316,7 +316,7 @@ public class AppWorkflowService {
      */
     private void updateAppConversationLog(String uid, Boolean status) {
 
-        logAppApi.updateAppConversationStatus(uid, status ? LogStatusEnum.SUCCESS : LogStatusEnum.ERROR);
+        //logAppApi.updateAppConversationStatus(uid, status ? LogStatusEnum.SUCCESS : LogStatusEnum.ERROR);
 
     }
 

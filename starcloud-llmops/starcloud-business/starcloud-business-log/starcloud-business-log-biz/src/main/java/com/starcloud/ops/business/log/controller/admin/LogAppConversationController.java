@@ -44,14 +44,14 @@ public class LogAppConversationController {
     @Operation(summary = "创建应用执行日志会话")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:create')")
     public CommonResult<Long> createAppConversation(@Valid @RequestBody LogAppConversationCreateReqVO createReqVO) {
-        return success(appConversationService.createAppConversation(createReqVO));
+        return success(appConversationService.createAppLogConversation(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新应用执行日志会话")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:update')")
     public CommonResult<Boolean> updateAppConversation(@Valid @RequestBody LogAppConversationUpdateReqVO updateReqVO) {
-        appConversationService.updateAppConversation(updateReqVO);
+        appConversationService.updateAppLogConversation(updateReqVO);
         return success(true);
     }
 
@@ -60,7 +60,7 @@ public class LogAppConversationController {
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('log:app-conversation:delete')")
     public CommonResult<Boolean> deleteAppConversation(@RequestParam("id") Long id) {
-        appConversationService.deleteAppConversation(id);
+        appConversationService.deleteAppLogConversation(id);
         return success(true);
     }
 
@@ -69,7 +69,7 @@ public class LogAppConversationController {
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<LogAppConversationRespVO> getAppConversation(@RequestParam("id") Long id) {
-        LogAppConversationDO appConversation = appConversationService.getAppConversation(id);
+        LogAppConversationDO appConversation = appConversationService.getAppLogConversation(id);
         return success(LogAppConversationConvert.INSTANCE.convert(appConversation));
     }
 
@@ -78,7 +78,7 @@ public class LogAppConversationController {
     @Parameter(name = "ids", description = "编号列表", required = true, example = "1024,2048")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<List<LogAppConversationRespVO>> getAppConversationList(@RequestParam("ids") Collection<Long> ids) {
-        List<LogAppConversationDO> list = appConversationService.getAppConversationList(ids);
+        List<LogAppConversationDO> list = appConversationService.listAppLogConversation(ids);
         return success(LogAppConversationConvert.INSTANCE.convertList(list));
     }
 
@@ -86,7 +86,7 @@ public class LogAppConversationController {
     @Operation(summary = "获得应用执行日志会话分页")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<PageResult<LogAppConversationRespVO>> getAppConversationPage(@Valid LogAppConversationPageReqVO pageVO) {
-        PageResult<LogAppConversationDO> pageResult = appConversationService.getAppConversationPage(pageVO);
+        PageResult<LogAppConversationDO> pageResult = appConversationService.pageAppLogConversation(pageVO);
         return success(LogAppConversationConvert.INSTANCE.convertPage(pageResult));
     }
 

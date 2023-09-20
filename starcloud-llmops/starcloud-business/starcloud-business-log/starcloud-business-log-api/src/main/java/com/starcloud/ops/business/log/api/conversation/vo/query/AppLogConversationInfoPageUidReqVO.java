@@ -20,10 +20,10 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @NoArgsConstructor
-@Schema(name = "LogAppConversationInfoPageAppUidReqVO", description = "应用会话日志分页查询请求 VO")
-public class LogAppConversationInfoPageAppUidReqVO extends PageParam {
+@Schema(name = "AppLogConversationInfoPageUidReqVO", description = "应用会话日志分页查询请求 VO")
+public class AppLogConversationInfoPageUidReqVO extends PageParam {
 
-    private static final long serialVersionUID = -8014401115048627071L;
+    private static final long serialVersionUID = -6159758100240678584L;
 
     /**
      * 应用 UID
@@ -42,6 +42,12 @@ public class LogAppConversationInfoPageAppUidReqVO extends PageParam {
      */
     @Schema(description = "应用场景")
     private String fromScene;
+
+    /**
+     * AI模型
+     */
+    @Schema(description = "AI模型")
+    private String aiModel;
 
     /**
      * 应用状态

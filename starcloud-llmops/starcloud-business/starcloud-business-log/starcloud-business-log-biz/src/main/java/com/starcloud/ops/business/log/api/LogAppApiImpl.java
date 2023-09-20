@@ -43,11 +43,11 @@ public class LogAppApiImpl implements LogAppApi {
     public LogAppConversationCreateReqVO createAppConversation(LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
         if (StrUtil.isBlank(logAppConversationCreateReqVO.getUid())) {
             logAppConversationCreateReqVO.setUid(IdUtil.fastSimpleUUID());
-            logAppConversationService.createAppConversation(logAppConversationCreateReqVO);
+            logAppConversationService.createAppLogConversation(logAppConversationCreateReqVO);
         } else {
-            LogAppConversationDO logAppConversationDO = logAppConversationService.getAppConversation(logAppConversationCreateReqVO.getUid());
+            LogAppConversationDO logAppConversationDO = logAppConversationService.getAppLogConversation(logAppConversationCreateReqVO.getUid());
             if (logAppConversationDO == null) {
-                logAppConversationService.createAppConversation(logAppConversationCreateReqVO);
+                logAppConversationService.createAppLogConversation(logAppConversationCreateReqVO);
             }
         }
         return logAppConversationCreateReqVO;
@@ -61,7 +61,7 @@ public class LogAppApiImpl implements LogAppApi {
      */
     @Override
     public void updateAppConversationStatus(String uid, LogStatusEnum statusEnum) {
-        logAppConversationService.updateAppConversationStatus(uid, statusEnum.name());
+        logAppConversationService.updateAppLogConversationStatus(uid, statusEnum.name());
     }
 
     /**
@@ -71,17 +71,18 @@ public class LogAppApiImpl implements LogAppApi {
      */
     @Override
     public void updateAppConversationStatus(LogAppConversationStatusReqVO request) {
-        logAppConversationService.updateAppConversationStatus(request);
+        logAppConversationService.updateAppLogConversationStatus(request);
     }
 
     /**
      * 创建日志应用消息
      *
-     * @param logAppMessageCreateReqVO 日志应用消息创建请求
+     * @param request 日志应用消息创建请求
      */
     @Override
-    public void createAppMessage(LogAppMessageCreateReqVO logAppMessageCreateReqVO) {
-        logAppMessageService.createAppMessage(logAppMessageCreateReqVO);
+    public String createAppMessage(LogAppMessageCreateReqVO request) {
+        logAppMessageService.createAppLogMessage(request);
+        return request.getUid();
     }
 
     /**
@@ -92,7 +93,7 @@ public class LogAppApiImpl implements LogAppApi {
      */
     @Override
     public LogAppMessageInfoRespVO getAppMessageResult(String appMessageUid) {
-        LogAppMessageDO logAppMessageDO = logAppMessageService.getAppMessage(appMessageUid);
+        LogAppMessageDO logAppMessageDO = logAppMessageService.getAppLogMessage(appMessageUid);
         Assert.notNull(logAppMessageDO, "appMessageResult is not found");
         return LogAppMessageConvert.INSTANCE.convertInfo(logAppMessageDO);
     }

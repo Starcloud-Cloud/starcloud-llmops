@@ -18,7 +18,7 @@ import javax.validation.constraints.NotBlank;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @NoArgsConstructor
-@Schema(name = "AppLogMessagePageQuery", description = "应用会话日志详情分页查询请求 VO")
+@Schema(name = "AppLogMessagePageReqVO", description = "应用会话日志详情分页查询请求 VO")
 public class AppLogMessagePageReqVO extends PageParam {
 
     private static final long serialVersionUID = 7128980457613201477L;

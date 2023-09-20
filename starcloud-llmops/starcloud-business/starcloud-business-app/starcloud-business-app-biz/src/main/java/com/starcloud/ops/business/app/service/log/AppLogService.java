@@ -5,15 +5,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
-import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationInfoPageAppUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageQuery;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
-import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListAppUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 
 import java.util.List;
@@ -57,7 +57,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 日志消息统计数据
      */
-    List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(LogAppMessageStatisticsListAppUidReqVO query);
+    List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(AppLogMessageStatisticsListUidReqVO query);
 
     /**
      * 获取应用执行日志消息统计数据列表 <br>
@@ -66,7 +66,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 日志消息统计数据
      */
-    List<LogAppMessageStatisticsListVO> listLogMessageStatistics(LogAppMessageStatisticsListReqVO query);
+    List<LogAppMessageStatisticsListVO> listLogMessageStatistics(AppLogMessageStatisticsListReqVO query);
 
     /**
      * 根据应用市场 UID 分页查询应用执行日志会话数据 <br>
@@ -74,7 +74,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 应用市场执行日志会话数据
      */
-    PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query);
+    PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(AppLogConversationInfoPageUidReqVO query);
 
     /**
      * 根据 应用 UID 分页查询应用执行日志会话数据 <br>
@@ -84,7 +84,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 应用执行日志会话数据
      */
-    PageResult<AppLogConversationInfoRespVO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query);
+    PageResult<AppLogConversationInfoRespVO> pageLogConversationByAppUid(AppLogConversationInfoPageUidReqVO query);
 
     /**
      * 分页查询应用执行日志会话数据
@@ -93,7 +93,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 应用执行日志会话数据
      */
-    PageResult<AppLogConversationInfoRespVO> pageLogConversation(AppLogConversationInfoPageQuery query);
+    PageResult<AppLogConversationInfoRespVO> pageLogConversation(AppLogConversationInfoPageReqVO query);
 
     /**
      * 获取文本生成消息详情

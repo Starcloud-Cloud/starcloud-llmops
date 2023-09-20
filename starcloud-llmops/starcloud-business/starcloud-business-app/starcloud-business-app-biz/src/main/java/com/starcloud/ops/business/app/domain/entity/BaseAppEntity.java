@@ -323,7 +323,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.error("应用执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(1), exception.getMessage());
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()), exception.getMessage());
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage());
         }
     }
@@ -381,7 +381,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         } catch (Exception exception) {
             log.error("应用异步执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(1), exception.getMessage());
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()), exception.getMessage());
             this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
         }
     }
@@ -491,7 +491,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         reqVO.setTenantId(this.getTenantId());
         reqVO.setFromScene(request.getScene());
         this.buildAppConversationLog(request, reqVO);
-        logAppConversationService.createAppConversation(reqVO);
+        logAppConversationService.createAppLogConversation(reqVO);
         return reqVO.getUid();
     }
 
@@ -530,7 +530,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     private void updateAppConversationLog(LogAppConversationStatusReqVO request) {
-        logAppConversationService.updateAppConversationStatus(request);
+        logAppConversationService.updateAppLogConversationStatus(request);
     }
 
     /**
@@ -542,7 +542,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     private LogAppConversationDO getAppConversation(String conversationUid) {
-        return logAppConversationService.getAppConversation(conversationUid);
+        return logAppConversationService.getAppLogConversation(conversationUid);
     }
 
     /**
@@ -559,7 +559,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             reqVO.setPageSize(100);
             reqVO.setPageNo(1);
             reqVO.setAppConversationUid(conversationUid);
-            PageResult<LogAppMessageDO> pageResult = logAppMessageService.getAppMessagePage(reqVO);
+            PageResult<LogAppMessageDO> pageResult = logAppMessageService.pageAppLogMessage(reqVO);
             return Optional.ofNullable(pageResult).map(PageResult::getList).orElse(new ArrayList<>());
         }
         return new ArrayList<>();
@@ -582,7 +582,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         messageCreateRequest.setAppMode(this.getModel());
         messageCreateRequest.setTenantId(this.getTenantId());
         consumer.accept(messageCreateRequest);
-        logAppMessageService.createAppMessage(messageCreateRequest);
+        logAppMessageService.createAppLogMessage(messageCreateRequest);
         log.info("应用执行：创建日志消息结束 ...");
         return messageCreateRequest;
     }

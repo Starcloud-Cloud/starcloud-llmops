@@ -17,7 +17,7 @@ import java.util.List;
  * @version 1.0.0
  * @since 2023-09-14
  */
-@FeignClient(name = "${feign.remote.vector-search.name}", url = "${feign.remote.vector-search.url}")
+@FeignClient(name = "${feign.remote.vsearch.name}", url = "${feign.remote.vsearch.url}")
 public interface VectorSearchClient {
 
     /**

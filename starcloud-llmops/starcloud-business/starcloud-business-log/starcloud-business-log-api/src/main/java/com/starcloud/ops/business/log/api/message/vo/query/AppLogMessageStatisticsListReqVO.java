@@ -1,7 +1,5 @@
-package com.starcloud.ops.business.log.api.conversation.vo.query;
+package com.starcloud.ops.business.log.api.message.vo.query;
 
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
-import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,25 +8,24 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 应用会话日志分页查询请求
- *
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-06-25
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "AppLogConversationPageQuery", description = "应用会话日志分页查询请求 VO")
-public class AppLogConversationInfoPageQuery extends PageParam {
+@Schema(name = "AppLogMessageStatisticsListReqVO", description = "应用执行日志统计请求 VO ")
+public class AppLogMessageStatisticsListReqVO implements Serializable {
 
-    private static final long serialVersionUID = -6444036479357643539L;
-
+    private static final long serialVersionUID = -37371739526283469L;
+    
     /**
      * 应用 UID
      */
@@ -48,22 +45,21 @@ public class AppLogConversationInfoPageQuery extends PageParam {
     private String appMode;
 
     /**
-     * AI模型
-     */
-    @Schema(description = "AI模型")
-    private String aiModel;
-
-    /**
      * 应用场景
      */
     @Schema(description = "应用场景")
     private String fromScene;
 
     /**
+     * AI模型
+     */
+    @Schema(description = "AI模型")
+    private String aiModel;
+
+    /**
      * 应用状态
      */
     @Schema(description = "应用状态")
-    @InEnum(value = LogStatusEnum.class, field = InEnum.EnumField.NAME, message = "应用状态 {value} 不合法，必须在 {values} 中")
     private String status;
 
     /**
@@ -78,6 +74,12 @@ public class AppLogConversationInfoPageQuery extends PageParam {
     @Schema(description = "查询时间范围类型")
     @InEnum(value = LogTimeTypeEnum.class, field = InEnum.EnumField.NAME, message = "查询时间范围类型 {value}, 支持的类型为 {values}")
     private String timeType;
+
+    /**
+     * 时间单位
+     */
+    @Schema(hidden = true)
+    private String unit;
 
     /**
      * 创建时间

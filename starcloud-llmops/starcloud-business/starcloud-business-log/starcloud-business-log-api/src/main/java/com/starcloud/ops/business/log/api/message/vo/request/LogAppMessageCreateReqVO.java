@@ -46,6 +46,5 @@ public class LogAppMessageCreateReqVO extends LogAppMessageBaseVO {
      * 最后更新时间
      */
     private LocalDateTime updateTime;
-
-
+    
 }

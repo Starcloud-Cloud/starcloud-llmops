@@ -39,9 +39,9 @@ public interface LogAppApi {
     /**
      * 创建日志应用消息
      *
-     * @param logAppMessageCreateReqVO 日志应用消息创建请求
+     * @param request 日志应用消息创建请求
      */
-    void createAppMessage(LogAppMessageCreateReqVO logAppMessageCreateReqVO);
+    String createAppMessage(LogAppMessageCreateReqVO request);
 
     /**
      * 获取应用消息结果

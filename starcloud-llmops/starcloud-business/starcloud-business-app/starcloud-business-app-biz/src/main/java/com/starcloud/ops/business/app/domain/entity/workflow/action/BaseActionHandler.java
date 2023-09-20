@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -56,12 +57,20 @@ public abstract class BaseActionHandler<Q, R> {
             this.appContext = context;
             Q request = this.parseInput();
 
-            // 执行具体的Action
+            // 执行具体的 action
             ActionResponse actionResponse = this._execute(request);
 
             // 执行结果校验, 如果失败，抛出异常
             if (!actionResponse.getSuccess()) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(actionResponse.getErrorCode() == null ? ErrorCodeConstants.APP_EXECUTE_FAIL.getCode() : 1, StringUtils.isNoneBlank(actionResponse.getErrorMsg()) ? actionResponse.getErrorMsg() : "Action 执行失败"));
+                String errorCode = Optional.ofNullable(actionResponse.getErrorCode()).orElse(String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()));
+                Integer code;
+                try {
+                    code = Integer.parseInt(errorCode);
+                } catch (Exception e) {
+                    code = ErrorCodeConstants.APP_EXECUTE_FAIL.getCode();
+                }
+                log.error("Action 执行失败：错误码: {}, 错误信息: {}", actionResponse.getErrorCode(), actionResponse.getErrorMsg());
+                throw ServiceExceptionUtil.exception(new ErrorCode(code, StringUtils.isNoneBlank(actionResponse.getErrorMsg()) ? actionResponse.getErrorMsg() : "Action 执行失败"));
             }
 
             // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
