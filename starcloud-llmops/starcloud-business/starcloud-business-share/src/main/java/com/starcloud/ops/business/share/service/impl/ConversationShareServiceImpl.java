@@ -113,7 +113,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
         shareConversationDO.setInviteCode(inviteCode);
         shareConversationDO.setScene(req.getScene());
         shareConversationMapper.insert(shareConversationDO);
-        return null;
+        return ConversationShareConvert.INSTANCE.convert(shareConversationDO);
     }
 
     @Override
