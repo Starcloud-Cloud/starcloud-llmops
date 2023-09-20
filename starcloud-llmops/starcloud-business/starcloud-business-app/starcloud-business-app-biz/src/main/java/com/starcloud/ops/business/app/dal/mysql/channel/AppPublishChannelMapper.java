@@ -86,6 +86,12 @@ public interface AppPublishChannelMapper extends BaseMapper<AppPublishChannelDO>
         return this.selectOne(wrapper);
     }
 
+    default List<AppPublishChannelDO> getByAppUid(String appUid) {
+        LambdaQueryWrapper<AppPublishChannelDO> wrapper = queryWrapper(Boolean.TRUE);
+        wrapper.eq(AppPublishChannelDO::getAppUid, appUid);
+        return this.selectList(wrapper);
+    }
+
     /**
      * 根据 媒介 UID 查询 数量
      *
