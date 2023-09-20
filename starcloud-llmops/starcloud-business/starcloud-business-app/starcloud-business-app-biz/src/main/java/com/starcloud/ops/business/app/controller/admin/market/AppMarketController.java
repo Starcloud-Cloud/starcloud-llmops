@@ -17,6 +17,7 @@ import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -74,6 +75,7 @@ public class AppMarketController {
     }
 
     @DeleteMapping("/delete/{uid}")
+    @PreAuthorize("@ss.hasPermission('app:market:delete')")
     @Operation(summary = "删除应用市场模版", description = "根据 UID 删除应用市场应用")
     @ApiOperationSupport(order = 20, author = "nacoyer")
     public CommonResult<Boolean> delete(@PathVariable("uid") String uid) {

@@ -25,7 +25,7 @@ public interface VectorSearchClient {
      *
      * @return 生成图片结果
      */
-    @PostMapping(value = "/stability/generateImage")
+    @PostMapping(value = "/generateImage")
     VectorSearchResponse<List<VectorSearchImage>> generateImage(@Validated @RequestBody VectorSearchImageRequest request);
 
 }
