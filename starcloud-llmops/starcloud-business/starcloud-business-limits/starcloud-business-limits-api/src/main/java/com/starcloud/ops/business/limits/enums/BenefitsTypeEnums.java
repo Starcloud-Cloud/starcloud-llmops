@@ -38,6 +38,11 @@ public enum BenefitsTypeEnums {
 
 
     /**
+     * 令牌
+     */
+    COMPUTATIONAL_POWER("COMPUTATIONAL_POWER", "魔力值","computational_power"),
+
+    /**
      * 机器人
      */
     BOT("BOT", "机器人","bot"),
