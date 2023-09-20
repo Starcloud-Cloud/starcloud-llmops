@@ -54,4 +54,7 @@ public class ConversationShareResp {
      */
     @Schema(description = "游客")
     private Boolean endUser;
+
+    @Schema(description = "邀请码")
+    private String inviteCode;
 }

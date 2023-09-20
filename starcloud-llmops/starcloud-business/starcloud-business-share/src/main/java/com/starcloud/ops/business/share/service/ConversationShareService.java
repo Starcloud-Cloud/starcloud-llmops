@@ -15,7 +15,7 @@ public interface ConversationShareService {
      * @param req
      * @return
      */
-    String createShareLink(ConversationShareReq req);
+    ConversationShareResp createShareLink(ConversationShareReq req);
 
     /**
      * 修改分享记录

@@ -3,6 +3,8 @@ package com.starcloud.ops.business.share.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.starcloud.ops.business.share.controller.admin.vo.AppDetailRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareReq;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareResp;
@@ -19,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/share/conversation")
 @Tag(name = "魔法AI-会话分享")
+@DataPermission(enable = false)
 public class ConversationShareController {
 
     @Resource
@@ -28,21 +31,14 @@ public class ConversationShareController {
     @PostMapping("/create")
     @Operation(summary = "创建会话分享")
     @PermitAll
-    public CommonResult<String> create(@RequestBody @Valid ConversationShareReq req) {
+    public CommonResult<ConversationShareResp> create(@RequestBody @Valid ConversationShareReq req) {
         return CommonResult.success(shareService.createShareLink(req));
-    }
-
-
-    @PutMapping("/modify")
-    @Operation(summary = "修改分享记录")
-    public CommonResult<Boolean> modify(@RequestBody @Valid ConversationShareReq req) {
-        shareService.modifyRecord(req);
-        return CommonResult.success(true);
     }
 
     @GetMapping("/app/{shareKey}")
     @Operation(summary = "应用详情")
     @PermitAll
+    @TenantIgnore
     public CommonResult<AppDetailRespVO> appDetail(@PathVariable("shareKey") String shareKey) {
         return CommonResult.success(shareService.appDetail(shareKey));
     }
@@ -50,6 +46,7 @@ public class ConversationShareController {
     @GetMapping("/history/{shareKey}")
     @Operation(summary = "会话详情")
     @PermitAll
+    @TenantIgnore
     public CommonResult<List<LogAppMessageRespVO>> conversationDetail(@PathVariable("shareKey") String shareKey) {
         return CommonResult.success(shareService.conversationDetail(shareKey));
     }
@@ -57,6 +54,7 @@ public class ConversationShareController {
     @GetMapping("/list/{conversationUid}")
     @Operation(summary = "分享记录")
     @PermitAll
+    @TenantIgnore
     public CommonResult<List<ConversationShareResp>> shareRecord(@PathVariable("conversationUid") String conversationUid) {
         return CommonResult.success(shareService.shareRecord(conversationUid));
     }
@@ -65,6 +63,7 @@ public class ConversationShareController {
     @GetMapping("/detail/{shareKey}")
     @Operation(summary = "分享详情")
     @PermitAll
+    @TenantIgnore
     public CommonResult<ConversationShareResp> recordDetail(@PathVariable("shareKey") String shareKey) {
         return CommonResult.success(shareService.recordDetail(shareKey));
     }

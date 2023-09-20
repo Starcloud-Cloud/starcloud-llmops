@@ -124,6 +124,13 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         return AppPublishChannelConvert.INSTANCE.convert(appPublishChannel);
     }
 
+
+    @Override
+    public List<AppPublishChannelRespVO> getByAppUid(String appUid) {
+        List<AppPublishChannelDO> appPublishChannelDOS = appPublishChannelMapper.getByAppUid(appUid);
+        return AppPublishChannelConvert.INSTANCE.convert(appPublishChannelDOS);
+    }
+
     /**
      * 根据发布媒介 UID 查找发布渠道详情
      *

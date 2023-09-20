@@ -3,9 +3,14 @@ package com.starcloud.ops.business.share.service.impl;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
+import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
@@ -21,6 +26,7 @@ import com.starcloud.ops.business.share.convert.ConversationShareConvert;
 import com.starcloud.ops.business.share.dal.dataobject.ShareConversationDO;
 import com.starcloud.ops.business.share.dal.mysql.ShareConversationMapper;
 import com.starcloud.ops.business.share.service.ConversationShareService;
+import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +35,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -47,26 +54,70 @@ public class ConversationShareServiceImpl implements ConversationShareService {
     @Resource
     private LogAppMessageService messageService;
 
+    @Resource
+    private AppPublishChannelService appPublishChannelService;
+
+    @Resource
+    private AppService appService;
+
     @Override
-    public String createShareLink(ConversationShareReq req) {
-        LogAppConversationDO appConversation = conversationService.getAppLogConversation(req.getConversationUid());
+    public ConversationShareResp createShareLink(ConversationShareReq req) {
+        LogAppConversationDO appConversation = conversationService.getAppConversation(req.getConversationUid());
         if (appConversation == null) {
             throw exception(APP_CONVERSATION_NOT_EXISTS_UID, req.getConversationUid());
         }
-        String shareKey =  RandomStringUtils.random(8, Boolean.TRUE, Boolean.TRUE);
+
+        String appUid = appConversation.getAppUid();
+        String inviteCode, mediumUid = StringUtils.EMPTY;
+        if (StringUtils.isNotBlank(req.getMediumUid())) {
+            mediumUid = req.getMediumUid();
+        } else {
+            List<AppPublishChannelRespVO> appPublishChannelRespVOS = appPublishChannelService.getByAppUid(appUid);
+            Optional<AppPublishChannelRespVO> channelOptional = appPublishChannelRespVOS.stream().filter(channelRespVO -> AppPublishChannelEnum.SHARE_LINK.getCode().equals(channelRespVO.getType())).findFirst();
+            if (channelOptional.isPresent()) {
+                mediumUid = channelOptional.get().getMediumUid();
+            }
+        }
+
+        if (StringUtils.isBlank(req.getInviteCode())) {
+            Long userId = WebFrameworkUtils.getLoginUserId();
+            if (AppSceneEnum.CHAT_MARKET.name().equals(req.getScene())) {
+                inviteCode = EncryptionUtils.encrypt(userId).toString();
+            } else if (AppSceneEnum.CHAT_TEST.name().equals(req.getScene())) {
+                AppRespVO appRespVO = appService.get(appUid);
+                inviteCode = EncryptionUtils.encrypt(Long.valueOf(appRespVO.getCreator())).toString();
+            } else if (AppSceneEnum.SHARE_WEB.name().equals(req.getScene())) {
+                AppRespVO appRespVO = appService.get(appUid);
+                inviteCode = EncryptionUtils.encrypt(Long.valueOf(appRespVO.getCreator())).toString();
+            } else if (AppSceneEnum.SHARE_JS.name().equals(req.getScene())) {
+                AppRespVO appRespVO = appService.get(appUid);
+                inviteCode = EncryptionUtils.encrypt(Long.valueOf(appRespVO.getCreator())).toString();
+            } else if (AppSceneEnum.SHARE_IFRAME.name().equals(req.getScene())) {
+                AppRespVO appRespVO = appService.get(appUid);
+                inviteCode = EncryptionUtils.encrypt(Long.valueOf(appRespVO.getCreator())).toString();
+            } else {
+                throw exception(new ErrorCode(500, "错误的场景值"));
+            }
+        } else {
+            inviteCode = req.getInviteCode();
+        }
+
+        String shareKey = RandomStringUtils.random(8, Boolean.TRUE, Boolean.TRUE);
         Long loginUserId = WebFrameworkUtils.getLoginUserId();
 
         ShareConversationDO shareConversationDO = new ShareConversationDO();
         shareConversationDO.setConversationUid(req.getConversationUid());
         shareConversationDO.setDisabled(false);
         shareConversationDO.setEndUser(loginUserId == null);
-        shareConversationDO.setExpiresTime(LocalDateTime.now().plusDays(req.getExpiresTime() == null ? 3 : req.getExpiresTime() ));
+        shareConversationDO.setExpiresTime(LocalDateTime.now().plusDays(req.getExpiresTime() == null ? 3 : req.getExpiresTime()));
         shareConversationDO.setUid(IdUtil.fastSimpleUUID());
         shareConversationDO.setShareKey(shareKey);
         shareConversationDO.setAppUid(appConversation.getAppUid());
-        shareConversationDO.setMediumUid(req.getMediumUid());
+        shareConversationDO.setMediumUid(mediumUid);
+        shareConversationDO.setInviteCode(inviteCode);
+        shareConversationDO.setScene(req.getScene());
         shareConversationMapper.insert(shareConversationDO);
-        return shareKey;
+        return ConversationShareConvert.INSTANCE.convert(shareConversationDO);
     }
 
     @Override
@@ -83,7 +134,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
         LogAppMessageExportReqVO exportReqVO = new LogAppMessageExportReqVO();
         exportReqVO.setAppUid(shareConversationDO.getAppUid());
         exportReqVO.setAppConversationUid(shareConversationDO.getConversationUid());
-        List<LogAppMessageDO> appMessageList = messageService.listAppLogMessage(exportReqVO);
+        List<LogAppMessageDO> appMessageList = messageService.getAppMessageList(exportReqVO);
         appMessageList = appMessageList.stream().filter(logAppMessageDO -> logAppMessageDO.getCreateTime().isBefore(shareConversationDO.getCreateTime())).collect(Collectors.toList());
         return LogAppMessageConvert.INSTANCE.convertList(appMessageList);
     }
@@ -102,7 +153,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
             ChatAppEntity appEntity = AppFactory.factory(shareConversationDO.getMediumUid());
             return ChatAppConvert.INSTANCE.convert(appEntity);
         }
-        LogAppConversationDO appConversation = conversationService.getAppLogConversation(shareConversationDO.getConversationUid());
+        LogAppConversationDO appConversation = conversationService.getAppConversation(shareConversationDO.getConversationUid());
         if (appConversation == null) {
             throw exception(APP_CONVERSATION_NOT_EXISTS_UID, shareConversationDO.getConversationUid());
         }
