@@ -70,7 +70,6 @@ public class ConversationShareServiceImpl implements ConversationShareService {
 
         String appUid = appConversation.getAppUid();
         String inviteCode, mediumUid = StringUtils.EMPTY;
-        AppRespVO appRespVO = appService.get(appUid);
         if (StringUtils.isNotBlank(req.getMediumUid())) {
             mediumUid = req.getMediumUid();
         } else {
@@ -86,12 +85,18 @@ public class ConversationShareServiceImpl implements ConversationShareService {
             if (AppSceneEnum.CHAT_MARKET.name().equals(req.getScene())) {
                 inviteCode = EncryptionUtils.encrypt(userId).toString();
             } else if (AppSceneEnum.CHAT_TEST.name().equals(req.getScene())) {
+                AppRespVO appRespVO = appService.get(appUid);
                 inviteCode = EncryptionUtils.encrypt(Long.valueOf(appRespVO.getCreator())).toString();
             } else if (AppSceneEnum.SHARE_WEB.name().equals(req.getScene())) {
+                AppRespVO appRespVO = appService.get(appUid);
                 inviteCode = EncryptionUtils.encrypt(Long.valueOf(appRespVO.getCreator())).toString();
             } else if (AppSceneEnum.SHARE_JS.name().equals(req.getScene())) {
+                AppRespVO appRespVO = appService.get(appUid);
                 inviteCode = EncryptionUtils.encrypt(Long.valueOf(appRespVO.getCreator())).toString();
-            } else {
+            } else if (AppSceneEnum.SHARE_IFRAME.name().equals(req.getScene())) {
+                AppRespVO appRespVO = appService.get(appUid);
+                inviteCode = EncryptionUtils.encrypt(Long.valueOf(appRespVO.getCreator())).toString();
+            }else {
                 throw exception(new ErrorCode(500,"错误的场景值"));
             }
         } else {
