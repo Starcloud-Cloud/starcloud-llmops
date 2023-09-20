@@ -62,7 +62,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
 
     @Override
     public ConversationShareResp createShareLink(ConversationShareReq req) {
-        LogAppConversationDO appConversation = conversationService.getAppConversation(req.getConversationUid());
+        LogAppConversationDO appConversation = conversationService.getAppLogConversation(req.getConversationUid());
         if (appConversation == null) {
             throw exception(APP_CONVERSATION_NOT_EXISTS_UID, req.getConversationUid());
         }
@@ -134,7 +134,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
         LogAppMessageExportReqVO exportReqVO = new LogAppMessageExportReqVO();
         exportReqVO.setAppUid(shareConversationDO.getAppUid());
         exportReqVO.setAppConversationUid(shareConversationDO.getConversationUid());
-        List<LogAppMessageDO> appMessageList = messageService.getAppMessageList(exportReqVO);
+        List<LogAppMessageDO> appMessageList = messageService.listAppLogMessage(exportReqVO);
         appMessageList = appMessageList.stream().filter(logAppMessageDO -> logAppMessageDO.getCreateTime().isBefore(shareConversationDO.getCreateTime())).collect(Collectors.toList());
         return LogAppMessageConvert.INSTANCE.convertList(appMessageList);
     }
@@ -153,7 +153,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
             ChatAppEntity appEntity = AppFactory.factory(shareConversationDO.getMediumUid());
             return ChatAppConvert.INSTANCE.convert(appEntity);
         }
-        LogAppConversationDO appConversation = conversationService.getAppConversation(shareConversationDO.getConversationUid());
+        LogAppConversationDO appConversation = conversationService.getAppLogConversation(shareConversationDO.getConversationUid());
         if (appConversation == null) {
             throw exception(APP_CONVERSATION_NOT_EXISTS_UID, shareConversationDO.getConversationUid());
         }
