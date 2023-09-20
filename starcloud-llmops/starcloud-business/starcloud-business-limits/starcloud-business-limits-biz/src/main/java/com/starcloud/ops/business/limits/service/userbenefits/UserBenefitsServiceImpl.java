@@ -505,6 +505,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     break;
                 case TOKEN:
                     wrapper.gt(UserBenefitsDO::getTokenRemaining, 0L);
+                    break;
                 case COMPUTATIONAL_POWER:
                     wrapper.gt(UserBenefitsDO::getComputationalPowerRemaining, 0L);
                     break;
