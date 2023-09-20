@@ -3,6 +3,7 @@ package com.starcloud.ops.business.share.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.AppDetailRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareReq;
@@ -37,6 +38,7 @@ public class ConversationShareController {
     @GetMapping("/app/{shareKey}")
     @Operation(summary = "应用详情")
     @PermitAll
+    @TenantIgnore
     public CommonResult<AppDetailRespVO> appDetail(@PathVariable("shareKey") String shareKey) {
         return CommonResult.success(shareService.appDetail(shareKey));
     }
@@ -44,6 +46,7 @@ public class ConversationShareController {
     @GetMapping("/history/{shareKey}")
     @Operation(summary = "会话详情")
     @PermitAll
+    @TenantIgnore
     public CommonResult<List<LogAppMessageRespVO>> conversationDetail(@PathVariable("shareKey") String shareKey) {
         return CommonResult.success(shareService.conversationDetail(shareKey));
     }
@@ -51,6 +54,7 @@ public class ConversationShareController {
     @GetMapping("/list/{conversationUid}")
     @Operation(summary = "分享记录")
     @PermitAll
+    @TenantIgnore
     public CommonResult<List<ConversationShareResp>> shareRecord(@PathVariable("conversationUid") String conversationUid) {
         return CommonResult.success(shareService.shareRecord(conversationUid));
     }
@@ -59,6 +63,7 @@ public class ConversationShareController {
     @GetMapping("/detail/{shareKey}")
     @Operation(summary = "分享详情")
     @PermitAll
+    @TenantIgnore
     public CommonResult<ConversationShareResp> recordDetail(@PathVariable("shareKey") String shareKey) {
         return CommonResult.success(shareService.recordDetail(shareKey));
     }
