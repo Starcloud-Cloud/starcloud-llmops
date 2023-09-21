@@ -894,7 +894,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return UserBaseDTO
      */
     private UserBaseDTO getUserInfo(Long userId) {
-        Assert.isNull(userId,"用户信息为空，权益操作失败");
+        Assert.notNull(userId,"用户信息为空，权益操作失败");
         AdminUserDO user = adminUserService.getUser(userId);
         if (user ==null){
             throw exception(USER_BENEFITS_OPERATION_FAIL_NO_USER);
