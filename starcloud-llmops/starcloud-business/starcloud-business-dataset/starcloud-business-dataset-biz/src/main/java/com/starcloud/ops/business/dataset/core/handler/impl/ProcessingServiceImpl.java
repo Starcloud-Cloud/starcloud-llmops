@@ -92,6 +92,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         process.setCleanSync(reqVO.getCleanSync());
         process.setSplitSync(reqVO.getSplitSync());
         process.setIndexSync(reqVO.getIndexSync());
+        process.setEnableSummary(reqVO.getEnableSummary());
         // 执行通用逻辑并且返回
         return commonProcess(process, baseDBHandleDTO);
     }
@@ -116,6 +117,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         process.setCleanSync(reqVO.getCleanSync());
         process.setSplitSync(reqVO.getSplitSync());
         process.setIndexSync(reqVO.getIndexSync());
+        process.setEnableSummary(reqVO.getEnableSummary());
         // 执行通用逻辑并且返回
         return commonProcess(process, baseDBHandleDTO);
     }
@@ -136,6 +138,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         process.setCleanSync(reqVO.getCleanSync());
         process.setSplitSync(reqVO.getSplitSync());
         process.setIndexSync(reqVO.getIndexSync());
+        process.setEnableSummary(reqVO.getEnableSummary());
 
         // 执行通用逻辑并且返回
         return commonProcess(process, baseDBHandleDTO);
@@ -174,6 +177,8 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataCleanSendMessage.setCleanSync(process.getCleanSync());
         dataCleanSendMessage.setSplitSync(process.getSplitSync());
         dataCleanSendMessage.setIndexSync(process.getIndexSync());
+
+        dataCleanSendMessage.setEnableSummary(process.getEnableSummary());
 
         if (process.getCleanSync()) {
             dataSetProducer.sendMessage(dataCleanSendMessage);

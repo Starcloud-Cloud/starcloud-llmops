@@ -21,6 +21,13 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
 
     @NotNull(message = "索引是否同步")
     private Boolean indexSync;
+
+
+    /**
+     * 是否生成总结
+     */
+    @NotNull(message = "是否生成总结")
+    private Boolean enableSummary;
     /**
      * 数据集编号
      */
