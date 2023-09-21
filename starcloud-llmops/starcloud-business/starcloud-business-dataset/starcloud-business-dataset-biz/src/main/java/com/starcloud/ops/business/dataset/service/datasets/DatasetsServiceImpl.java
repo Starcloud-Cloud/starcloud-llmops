@@ -179,6 +179,7 @@ public class DatasetsServiceImpl implements DatasetsService {
         }
         return datasetsDOS.get(0);
     }
+
     /**
      * 根据应用ID 获取应用下所有的获取数据集详情 包括应用会话下的数据集
      *
@@ -186,18 +187,10 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @return 数据集
      */
     @Override
-    public DatasetsDO getAllDatasetInfoByAppId(String appId) {
+    public List<DatasetsDO> getAllDatasetInfoByAppId(String appId) {
 
-        List<DatasetsDO> datasetsDOS = datasetsMapper.selectList(Wrappers.lambdaQuery(DatasetsDO.class)
+        return datasetsMapper.selectList(Wrappers.lambdaQuery(DatasetsDO.class)
                 .eq(DatasetsDO::getAppId, appId));
-
-        if (CollUtil.isEmpty(datasetsDOS)) {
-            throw exception(DATASETS_APPID_NOT_EXISTS);
-        }
-        if (datasetsDOS.size() > 1) {
-            throw exception(DATASETS_APPID_REPEAT_BIND);
-        }
-        return datasetsDOS.get(0);
     }
 
 

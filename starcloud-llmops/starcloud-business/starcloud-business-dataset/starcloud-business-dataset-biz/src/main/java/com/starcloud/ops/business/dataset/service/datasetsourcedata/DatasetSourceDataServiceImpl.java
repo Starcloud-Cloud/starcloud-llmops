@@ -2,6 +2,7 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
@@ -374,6 +375,22 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         }
 
 
+    }
+
+    /** 删除应用下所有的数据
+     * @param appId  应用 ID
+     */
+    @Override
+    public void deleteAllDataByAppId(String appId) {
+        Assert.notBlank(appId,"删除数据失败，应用 ID为空");
+        List<DatasetsDO> datasetsDOS = datasetsService.getAllDatasetInfoByAppId(appId);
+
+        if (CollUtil.isEmpty(datasetsDOS)){
+            throw exception(DATASETS_APPID_NOT_EXISTS);
+        }
+
+        log.info("准备删除知识库下的数据，当前知识库下的数据包含{}条",datasetsDOS.size());
+        datasetsDOS.forEach(datasetsDO ->  deleteDatasetSourceData(datasetsDO.getUid()));
     }
 
     /**

@@ -8,6 +8,8 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
+
 /**
  * 数据集 Service 接口
  *
@@ -110,7 +112,7 @@ public interface DatasetsService {
      * @param appId 应用 ID
      * @return 数据集
      */
-    DatasetsDO getAllDatasetInfoByAppId(String appId);
+    List<DatasetsDO> getAllDatasetInfoByAppId(String appId);
 
 
     /**
@@ -151,5 +153,4 @@ public interface DatasetsService {
      * @param uid 数据集编号
      */
     void deleteDatasets(String uid);
-
 }

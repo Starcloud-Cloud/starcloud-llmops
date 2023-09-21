@@ -59,6 +59,10 @@ public interface DatasetSourceDataService {
      */
     void deleteDatasetSourceData(String uid);
 
+
+
+    void deleteAllDataByAppId(String appId);
+
     /**
      * 禁用源数据
      *
@@ -204,4 +208,5 @@ public interface DatasetSourceDataService {
      * @return 上传结果
      */
     List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS, UserBaseDTO baseDBHandleDTO);
+
 }
