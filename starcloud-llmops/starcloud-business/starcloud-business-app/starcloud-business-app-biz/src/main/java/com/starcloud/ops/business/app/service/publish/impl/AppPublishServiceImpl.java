@@ -136,6 +136,13 @@ public class AppPublishServiceImpl implements AppPublishService {
         return AppPublishConverter.INSTANCE.convert(appPublish);
     }
 
+
+    @Override
+    public AppPublishRespVO getMarket(String marketUid) {
+        AppPublishDO market = appPublishMapper.getMarket(marketUid, true);
+        return AppPublishConverter.INSTANCE.convert(market);
+    }
+
     /**
      * 根据应用 UID 查询最新的应用发布记录
      *

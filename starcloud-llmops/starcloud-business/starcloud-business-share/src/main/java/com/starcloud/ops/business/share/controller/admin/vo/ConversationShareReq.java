@@ -28,8 +28,12 @@ public class ConversationShareReq {
     @Min(value = 1, message = "有效期最少为1天")
     private Long expiresTime;
 
-    private String endUser;
+    @Schema(description = "邀请码")
+    private String inviteCode;
 
     @Schema(description = "uid")
     private String uid;
+
+    @Schema(description = "场景")
+    private String scene;
 }

@@ -96,6 +96,10 @@ public class WecomChatServiceImpl implements WecomChatService {
                 JsonData execute = appEntity.execute(chatRequestVO);
                 String msg = JSONUtil.parseObj(execute.getData()).getStr("text");
 
+                if (StringUtils.isBlank(msg)) {
+                    msg = JSONUtil.parseObj(execute.getData()).getJSONObject("returnValues").getStr("output");
+                }
+
                 if (StringUtils.isNotBlank(msg)) {
                     sendMsg(reqVO.getGroupRemark(), msg, reqVO.getReceivedName());
                 } else {
