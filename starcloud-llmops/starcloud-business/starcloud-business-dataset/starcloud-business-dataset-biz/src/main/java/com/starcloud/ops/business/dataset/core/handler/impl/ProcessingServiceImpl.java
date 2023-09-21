@@ -24,7 +24,7 @@ import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
 import com.starcloud.ops.business.dataset.enums.SourceDataCreateEnum;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataCleanProducer;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
 import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
@@ -76,7 +76,7 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public UploadResult fileProcessing(UploadFileReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
+    public UploadResult fileProcessing(UploadFileReqVO reqVO, UserBaseDTO baseDBHandleDTO) {
         // 根据应用 ID 获取数据集信息
         DatasetsDO datasetInfo = validateDatasets(reqVO);
 
@@ -98,7 +98,7 @@ public class ProcessingServiceImpl implements ProcessingService {
 
 
     @Override
-    public UploadResult urlProcessing(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
+    public UploadResult urlProcessing(UploadUrlReqVO reqVO, UserBaseDTO baseDBHandleDTO) {
 
         // 根据应用 ID 获取数据集信息
         DatasetsDO datasetInfo = validateDatasets(reqVO);
@@ -121,7 +121,7 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
     @Override
-    public UploadResult stringProcessing(UploadCharacterReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
+    public UploadResult stringProcessing(UploadCharacterReqVO reqVO, UserBaseDTO baseDBHandleDTO) {
         // 根据应用 ID 获取数据集信息
         DatasetsDO datasetInfo = validateDatasets(reqVO);
         log.info("====> 数据集{}开始上传字符串", datasetInfo.getId());
@@ -142,7 +142,7 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
 
-    private UploadResult commonProcess(UploadContentDTO process, BaseDBHandleDTO baseDBHandleDTO) {
+    private UploadResult commonProcess(UploadContentDTO process, UserBaseDTO baseDBHandleDTO) {
         UploadResult uploadResult = new UploadResult();
 
         uploadResult.setErrMsg(process.getErrMsg());
@@ -194,7 +194,7 @@ public class ProcessingServiceImpl implements ProcessingService {
     }
 
 
-    private Long saveStorageData(UploadContentDTO process, BaseDBHandleDTO baseDBHandleDTO) {
+    private Long saveStorageData(UploadContentDTO process, UserBaseDTO baseDBHandleDTO) {
         DatasetStorageDO datasetStorageDO = new DatasetStorageDO();
         datasetStorageDO.setUid(DatasetUID.createStorageUID());
         datasetStorageDO.setName(process.getName());
@@ -219,7 +219,7 @@ public class ProcessingServiceImpl implements ProcessingService {
      * @param storageId 数据保存ID
      * @return DatasetSourceDataDO
      */
-    private DatasetSourceDataDO saveSourceData(UploadContentDTO process, Long storageId, BaseDBHandleDTO baseDBHandleDTO) {
+    private DatasetSourceDataDO saveSourceData(UploadContentDTO process, Long storageId, UserBaseDTO baseDBHandleDTO) {
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(DatasetSourceDataDO::getDatasetId, process.getDatasetId());
@@ -251,7 +251,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         return dataDO;
     }
 
-    private void saveErrorSourceData(UploadContentDTO process, BaseDBHandleDTO baseDBHandleDTO) {
+    private void saveErrorSourceData(UploadContentDTO process, UserBaseDTO baseDBHandleDTO) {
         // 封装查询条件
         LambdaQueryWrapper<DatasetSourceDataDO> wrapper = Wrappers.lambdaQuery();
 

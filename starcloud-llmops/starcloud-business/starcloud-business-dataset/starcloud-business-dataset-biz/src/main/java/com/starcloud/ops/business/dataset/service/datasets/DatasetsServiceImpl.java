@@ -19,7 +19,7 @@ import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
 import com.starcloud.ops.business.dataset.dal.mysql.datasets.DatasetsMapper;
 import com.starcloud.ops.business.dataset.enums.DatasetPermissionEnum;
 import com.starcloud.ops.business.dataset.enums.DatasetProviderEnum;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import com.starcloud.ops.business.dataset.util.dataset.DatasetUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -281,7 +281,7 @@ public class DatasetsServiceImpl implements DatasetsService {
      * @param sessionId 会话 ID
      * @return Boolean
      */
-    public DatasetsDO createDatasetsBySession(String appId, String sessionId, BaseDBHandleDTO baseDBHandleDTO) {
+    public DatasetsDO createDatasetsBySession(String appId, String sessionId, UserBaseDTO baseDBHandleDTO) {
         DatasetsDO datasetsDO = new DatasetsDO();
         datasetsDO.setUid(DatasetUID.createDatasetUID());
         datasetsDO.setName(String.format("会话%s的数据集", sessionId));

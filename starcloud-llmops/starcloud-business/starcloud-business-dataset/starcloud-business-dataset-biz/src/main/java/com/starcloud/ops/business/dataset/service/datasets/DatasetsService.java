@@ -5,7 +5,7 @@ import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsC
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsUpdateReqVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -32,7 +32,7 @@ public interface DatasetsService {
      * @param sessionId  会话 ID
      * @return Boolean
      */
-    DatasetsDO createDatasetsBySession(String appId, String sessionId, BaseDBHandleDTO baseDBHandleDTO);
+    DatasetsDO createDatasetsBySession(String appId, String sessionId, UserBaseDTO baseDBHandleDTO);
 
     /**
      * 根据用户应用创建数据集

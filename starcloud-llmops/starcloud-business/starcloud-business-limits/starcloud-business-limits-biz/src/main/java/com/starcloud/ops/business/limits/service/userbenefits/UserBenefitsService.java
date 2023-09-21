@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.limits.service.userbenefits;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsBaseResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPagInfoResultVO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
@@ -105,5 +106,12 @@ public interface UserBenefitsService {
      * @param userId  用户 ID
      */
     void addUserBenefitsSign(Long userId);
+
+
+    /**
+     * 根据类型获取有效的权益总量
+     */
+    UserBenefitsBaseResultVO getBenefitsByType(String benefitsType, Long userId);
+
 
 }

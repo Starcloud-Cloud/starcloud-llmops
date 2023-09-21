@@ -8,7 +8,7 @@ import lombok.ToString;
  */
 @Data
 @ToString
-public class BaseDBHandleDTO {
+public class UserBaseDTO {
 
     /**
      * 创建人
