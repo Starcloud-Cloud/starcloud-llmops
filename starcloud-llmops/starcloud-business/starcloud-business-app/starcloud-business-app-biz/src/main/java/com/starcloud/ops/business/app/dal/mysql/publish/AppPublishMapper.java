@@ -86,6 +86,14 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         return this.selectOne(wrapper);
     }
 
+    default AppPublishDO getMarket(String marketUid, boolean isSimple) {
+        LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(isSimple);
+        wrapper.eq(AppPublishDO::getMarketUid, marketUid)
+                .orderByDesc(AppPublishDO::getId)
+                .last(" limit 1");
+        return this.selectOne(wrapper);
+    }
+
     /**
      * 审核发布记录
      *

@@ -5,12 +5,16 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
@@ -58,6 +62,12 @@ public class ConversationShareServiceImpl implements ConversationShareService {
     private AppPublishChannelService appPublishChannelService;
 
     @Resource
+    private AppMarketService appMarketService;
+
+    @Resource
+    private AppPublishService appPublishService;
+
+    @Resource
     private AppService appService;
 
     @Override
@@ -72,6 +82,12 @@ public class ConversationShareServiceImpl implements ConversationShareService {
         if (StringUtils.isNotBlank(req.getMediumUid())) {
             mediumUid = req.getMediumUid();
         } else {
+            if (AppSceneEnum.CHAT_MARKET.name().equals(req.getScene())) {
+                AppMarketRespVO appMarketRespVO = appMarketService.get(appConversation.getAppUid());
+                AppPublishRespVO appPublishRespVO = appPublishService.getMarket(appMarketRespVO.getUid());
+                appUid = appPublishRespVO.getAppUid();
+            }
+
             List<AppPublishChannelRespVO> appPublishChannelRespVOS = appPublishChannelService.getByAppUid(appUid);
             Optional<AppPublishChannelRespVO> channelOptional = appPublishChannelRespVOS.stream().filter(channelRespVO -> AppPublishChannelEnum.SHARE_LINK.getCode().equals(channelRespVO.getType())).findFirst();
             if (channelOptional.isPresent()) {
