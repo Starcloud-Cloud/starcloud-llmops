@@ -1,6 +1,7 @@
 package com.starcloud.ops.llm.langchain.core.memory.summary;
 
 import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.StrUtil;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
@@ -59,12 +60,17 @@ public abstract class SummarizerMixin extends BaseChatMemory {
             "{new_lines}\n" +
             "[End lines]" +
             "\n" +
-            "Identify the language used in the conversation and use the same language in the summary! The summary is limited to 500 characters!" +
+            "Identify the language used in the conversation and use the same language in the summary! The summary is limited to {max_tokens} characters!" +
             "\n" +
             "New summary:";
 
 
     private BasePromptTemplate prompt;
+
+    /**
+     * 总结输出最大tokens
+     */
+    private Integer summaryMaxTokens = 350;
 
 
     public SummarizerMixin() {
@@ -86,17 +92,27 @@ public abstract class SummarizerMixin extends BaseChatMemory {
      *
      * @param content
      */
-    public static BaseLLMResult summaryContentCall(String content) {
+    public static BaseLLMResult summaryContentCall(String content, Integer maxTokens) {
 
         Long start = System.currentTimeMillis();
 
         try {
+
+            if (StrUtil.isBlank(content)) {
+                throw new RuntimeException("summary content is empty");
+            }
+
+            if (content.length() <= 350) {
+                throw new RuntimeException("summary content is <= 350");
+            }
+
+
             //计算tokens
             int tokens = SummarizerMixin.calculateTokens(content);
 
             ChatOpenAI chatOpenAi = new ChatOpenAI();
 
-            chatOpenAi.setMaxTokens(300);
+            chatOpenAi.setMaxTokens(maxTokens);
             chatOpenAi.setTemperature(0d);
 
             //prompt 也增加下
@@ -115,7 +131,8 @@ public abstract class SummarizerMixin extends BaseChatMemory {
 
             BaseLLMResult llmResult = llmChain.call(Arrays.asList(
                     BaseVariable.newString("new_lines", content),
-                    BaseVariable.newString("summary", "")
+                    BaseVariable.newString("summary", ""),
+                    BaseVariable.newInt("max_tokens", maxTokens)
             ));
 
             if (llmResult == null) {
@@ -145,7 +162,8 @@ public abstract class SummarizerMixin extends BaseChatMemory {
 
         return new PromptTemplate(DEFAULT_SUMMARIZER_TEMPLATE, Arrays.asList(
                 BaseVariable.newString("summary"),
-                BaseVariable.newString("new_lines")
+                BaseVariable.newString("new_lines"),
+                BaseVariable.newString("max_tokens")
         ));
     }
 
@@ -158,17 +176,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
     }
 
 
-    protected String renderPrompt(List<BaseMessage> messages, String existingSummary) {
-
-        String newLines = BaseMessage.getBufferString(messages);
-
-        return this.prompt.format(Arrays.asList(
-                BaseVariable.newString("new_lines", newLines),
-                BaseVariable.newString("summary", existingSummary)
-        ));
-    }
-
-    protected BaseLLMResult predictNewSummary(List<BaseMessage> messages, String existingSummary) {
+    protected BaseLLMResult predictNewSummary(List<BaseMessage> messages, String existingSummary, Integer maxTokens) {
 
         String newLines = BaseMessage.getBufferString(messages);
 
@@ -176,8 +184,14 @@ public abstract class SummarizerMixin extends BaseChatMemory {
 
         return llmChain.call(Arrays.asList(
                 BaseVariable.newString("new_lines", newLines),
-                BaseVariable.newString("summary", existingSummary)
+                BaseVariable.newString("summary", existingSummary),
+                BaseVariable.newInt("max_tokens", maxTokens)
         ));
+    }
+
+    protected BaseLLMResult predictNewSummary(List<BaseMessage> messages, String existingSummary) {
+
+        return predictNewSummary(messages, existingSummary, this.getSummaryMaxTokens());
     }
 
 

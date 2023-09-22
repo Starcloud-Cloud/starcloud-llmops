@@ -97,7 +97,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         ChatOpenAI chatOpenAi = new ChatOpenAI();
         //16k 去总结
         chatOpenAi.setModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        chatOpenAi.setMaxTokens(500);
+        chatOpenAi.setMaxTokens(350);
         chatOpenAi.setTemperature(0d);
 
         this.setLlm(chatOpenAi);
@@ -143,7 +143,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             log.info("start summary history\nnewLines:\n{}\n\nexistingSummary:\n{}\n\n", newLines, existingSummary);
 
-            BaseLLMResult llmResult = this.predictNewSummary(restMessages, existingSummary);
+            ChatOpenAI chatOpenAI = (ChatOpenAI) this.getLlm();
+            BaseLLMResult llmResult = this.predictNewSummary(restMessages, existingSummary, chatOpenAI.getMaxTokens());
             Long end = System.currentTimeMillis();
 
             if (llmResult == null) {
@@ -154,6 +155,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             log.info("success summary history, {} ms", end - start);
             //简单拼接下内容
             //因为message太长了，只好取上一次的总结内容
+
             this.createSummaryMessage(llmResult, existingSummary);
             String summary = llmResult.getText();
             if (StrUtil.isNotBlank(summary)) {

@@ -86,7 +86,7 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     /**
      * 总结状态
      */
-    private String summaryStatus;
+    private Boolean summaryStatus;
 
     /**
      * 总结模型
