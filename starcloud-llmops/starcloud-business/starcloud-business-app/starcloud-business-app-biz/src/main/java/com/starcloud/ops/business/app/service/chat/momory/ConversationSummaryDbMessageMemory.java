@@ -51,11 +51,6 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
     private static LogAppMessageService messageService = SpringUtil.getBean(LogAppMessageService.class);
 
-    /**
-     * 最大需要总结的 tokens数量，当超过次值 需要总结了
-     */
-    private int summaryMaxTokens;
-
     private ChatRequestVO chatRequestVO;
 
     @JsonIgnore
