@@ -56,6 +56,7 @@ import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -278,6 +279,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void splitDoc(String datasetId, String dataSourceId, String text, SplitRule splitRule) {
         Assert.notBlank(dataSourceId, "dataSourceId is null");
         List<String> splitText = SplitterContainer.CHARACTER_TEXT_SPLITTER.getSplitter().splitText(text, splitRule.getChunkSize(), splitRule.getSeparator());
