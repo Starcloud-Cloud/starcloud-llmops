@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.simpleframework.xml.Default;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.validation.constraints.NotNull;
 
@@ -37,5 +39,10 @@ public class UploadReqVO {
     @Schema(description = "索引是否同步", requiredMode = Schema.RequiredMode.REQUIRED)
     private Boolean indexSync;
 
+    @Schema(description = "是否生成总结")
+    private Boolean enableSummary = false;
+
+    @Schema(description = "总结内容最大数")
+    private Integer summaryContentMaxNums;
 
 }

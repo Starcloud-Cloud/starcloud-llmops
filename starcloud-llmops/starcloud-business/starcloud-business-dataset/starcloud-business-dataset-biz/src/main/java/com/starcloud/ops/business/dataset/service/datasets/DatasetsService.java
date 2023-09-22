@@ -5,8 +5,10 @@ import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsC
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsPageReqVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasets.vo.DatasetsUpdateReqVO;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
 
 /**
  * 数据集 Service 接口
@@ -32,7 +34,7 @@ public interface DatasetsService {
      * @param sessionId  会话 ID
      * @return Boolean
      */
-    DatasetsDO createDatasetsBySession(String appId, String sessionId, BaseDBHandleDTO baseDBHandleDTO);
+    DatasetsDO createDatasetsBySession(String appId, String sessionId, UserBaseDTO baseDBHandleDTO);
 
     /**
      * 根据用户应用创建数据集
@@ -110,7 +112,7 @@ public interface DatasetsService {
      * @param appId 应用 ID
      * @return 数据集
      */
-    DatasetsDO getAllDatasetInfoByAppId(String appId);
+    List<DatasetsDO> getAllDatasetInfoByAppId(String appId);
 
 
     /**
@@ -151,5 +153,4 @@ public interface DatasetsService {
      * @param uid 数据集编号
      */
     void deleteDatasets(String uid);
-
 }

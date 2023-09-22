@@ -2,6 +2,7 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
@@ -27,7 +28,7 @@ import com.starcloud.ops.business.dataset.dal.mysql.datasetsourcedata.DatasetSou
 import com.starcloud.ops.business.dataset.enums.DataSetSourceDataStatusEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import com.starcloud.ops.business.dataset.pojo.request.SegmentPageQuery;
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
@@ -37,13 +38,6 @@ import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.tika.Tika;
-import org.apache.tika.config.TikaConfig;
-import org.apache.tika.io.TikaInputStream;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.mime.MediaType;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -112,7 +106,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public SourceDataUploadDTO uploadFilesSourceData(UploadFileReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
+    public SourceDataUploadDTO uploadFilesSourceData(UploadFileReqVO reqVO, UserBaseDTO baseDBHandleDTO) {
         if (!validateDataset(reqVO.getAppId(), reqVO.getSessionId())) {
 
             // 不存在则创建数据集
@@ -195,7 +189,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
+    public List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO, UserBaseDTO baseDBHandleDTO) {
 
         // 验证数据集是否存在
         if (!validateDataset(reqVO.getAppId(), reqVO.getSessionId())) {
@@ -234,6 +228,10 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             singleReqVO.setCleanSync(reqVO.getCleanSync());
             singleReqVO.setSplitSync(reqVO.getSplitSync());
             singleReqVO.setIndexSync(reqVO.getIndexSync());
+
+            singleReqVO.setEnableSummary(reqVO.getEnableSummary());
+            singleReqVO.setSummaryContentMaxNums(reqVO.getSummaryContentMaxNums());
+
             ListenableFuture<UploadResult> executed = this.executeAsyncWithUrl(singleReqVO, baseDBHandleDTO);
 
             try {
@@ -266,7 +264,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 上传结果
      */
     @Async
-    public ListenableFuture<UploadResult> executeAsyncWithUrl(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
+    public ListenableFuture<UploadResult> executeAsyncWithUrl(UploadUrlReqVO reqVO, UserBaseDTO baseDBHandleDTO) {
         return AsyncResult.forValue(processingService.urlProcessing(reqVO, baseDBHandleDTO));
     }
 
@@ -277,7 +275,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public List<SourceDataUploadDTO> uploadCharactersSourceData(UploadCharacterReqVO reqVOS, BaseDBHandleDTO baseDBHandleDTO) {
+    public List<SourceDataUploadDTO> uploadCharactersSourceData(UploadCharacterReqVO reqVOS, UserBaseDTO baseDBHandleDTO) {
         // 验证数据集是否存在
         if (!validateDataset(reqVOS.getAppId(), reqVOS.getSessionId())) {
             // 不存在则创建数据集
@@ -305,6 +303,8 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             singleReqVO.setCleanSync(reqVOS.getCleanSync());
             singleReqVO.setSplitSync(reqVOS.getSplitSync());
             singleReqVO.setIndexSync(reqVOS.getIndexSync());
+            singleReqVO.setEnableSummary(reqVOS.getEnableSummary());
+            singleReqVO.setSummaryContentMaxNums(reqVOS.getSummaryContentMaxNums());
 
             singleReqVO.setCharacterVOS(Collections.singletonList(reqVO));
             ListenableFuture<UploadResult> executed = this.executeAsyncWithCharacters(singleReqVO, baseDBHandleDTO);
@@ -340,7 +340,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 上传结果
      */
     @Async
-    public ListenableFuture<UploadResult> executeAsyncWithCharacters(UploadCharacterReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
+    public ListenableFuture<UploadResult> executeAsyncWithCharacters(UploadCharacterReqVO reqVO, UserBaseDTO baseDBHandleDTO) {
         return AsyncResult.forValue(processingService.stringProcessing(reqVO, baseDBHandleDTO));
     }
 
@@ -381,6 +381,22 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         }
 
 
+    }
+
+    /** 删除应用下所有的数据
+     * @param appId  应用 ID
+     */
+    @Override
+    public void deleteAllDataByAppId(String appId) {
+        Assert.notBlank(appId,"删除数据失败，应用 ID为空");
+        List<DatasetsDO> datasetsDOS = datasetsService.getAllDatasetInfoByAppId(appId);
+
+        if (CollUtil.isEmpty(datasetsDOS)){
+            throw exception(DATASETS_APPID_NOT_EXISTS);
+        }
+
+        log.info("准备删除知识库下的数据，当前知识库下的数据包含{}条",datasetsDOS.size());
+        datasetsDOS.forEach(datasetsDO ->  deleteDatasetSourceData(datasetsDO.getUid()));
     }
 
     /**
@@ -707,7 +723,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public SourceDataUploadDTO uploadFilesSourceDataBySession(UploadFileReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
+    public SourceDataUploadDTO uploadFilesSourceDataBySession(UploadFileReqVO reqVO, UserBaseDTO baseDBHandleDTO) {
 
         reqVO.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVO.setDataType(DataSourceDataTypeEnum.DOCUMENT.name());
@@ -725,7 +741,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO) {
+    public List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO, UserBaseDTO baseDBHandleDTO) {
         long startTime = System.currentTimeMillis();
         log.info("开始上传文件，开始时间为{}", startTime);
         if (baseDBHandleDTO == null) {
@@ -751,7 +767,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @return 编号
      */
     @Override
-    public List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS, BaseDBHandleDTO baseDBHandleDTO) {
+    public List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS, UserBaseDTO baseDBHandleDTO) {
 
         reqVOS.setDataModel(DataSourceDataModelEnum.DOCUMENT.getStatus());
         reqVOS.setDataType(DataSourceDataTypeEnum.CHARACTERS.name());
@@ -946,7 +962,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
      * @param sessionId 会话 ID 可以为空 为空根据应用查询
      * @return Long 数据集主键 ID
      */
-    private DatasetsDO createDataset(String appId, String sessionId, BaseDBHandleDTO baseDBHandleDTO) {
+    private DatasetsDO createDataset(String appId, String sessionId, UserBaseDTO baseDBHandleDTO) {
         // 判断是否存在会话
         if (StrUtil.isBlank(sessionId)) {
             return datasetsService.createDatasetsByApp(appId);
@@ -991,7 +1007,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         }
     }
 
-    private BaseDBHandleDTO setBaseDbHandleInfo(String appId, String sessionId, BaseDBHandleDTO baseDBHandleDTO) {
+    private UserBaseDTO setBaseDbHandleInfo(String appId, String sessionId, UserBaseDTO baseDBHandleDTO) {
         DatasetsDO datasetsDO;
         if (StrUtil.isBlank(sessionId)) {
             datasetsDO = datasetsService.getDatasetInfoByAppId(appId);
@@ -999,7 +1015,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             datasetsDO = datasetsService.getDatasetInfoBySession(appId, sessionId);
         }
         if (baseDBHandleDTO == null) {
-            baseDBHandleDTO = new BaseDBHandleDTO();
+            baseDBHandleDTO = new UserBaseDTO();
         }
         if (baseDBHandleDTO.getCreator() == null) {
             baseDBHandleDTO.setCreator(Long.valueOf(datasetsDO.getCreator()));

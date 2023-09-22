@@ -48,8 +48,6 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
     @Resource
     private FileApi fileApi;
 
-    @Resource
-    private DictDataService dictDataService;
 
     @Resource
     private DatasetSourceDataSplitProducer dataSplitProducer;

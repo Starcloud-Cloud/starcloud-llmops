@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.dataset.core.handler.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -103,4 +104,15 @@ public class UploadContentDTO {
      * 索引是否同步
      */
     private Boolean indexSync;
+
+    /**
+     * 是否生成总结
+     */
+    private Boolean enableSummary;
+
+    /**
+     * 总结内容最大数
+     */
+    private Integer summaryContentMaxNums;
+
 }

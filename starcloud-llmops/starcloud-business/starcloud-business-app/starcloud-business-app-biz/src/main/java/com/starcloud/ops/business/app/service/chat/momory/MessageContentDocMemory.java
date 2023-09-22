@@ -9,7 +9,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
@@ -181,7 +181,7 @@ public class MessageContentDocMemory {
             //一次只会有一种类型
             Map<String, List<MessageContentDocDTO>> docMaps = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().collect(Collectors.groupingBy(MessageContentDocDTO::getType));
 
-            BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+            UserBaseDTO baseDBHandleDTO = new UserBaseDTO();
             baseDBHandleDTO.setCreator(userId);
             baseDBHandleDTO.setEndUser(endUser);
 
@@ -298,7 +298,7 @@ public class MessageContentDocMemory {
                 doc.getToolName();
                 //@todo 需要增加扩展信息，如messageId
 
-                BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+                UserBaseDTO baseDBHandleDTO = new UserBaseDTO();
                 baseDBHandleDTO.setCreator(userId);
                 baseDBHandleDTO.setEndUser(endUser);
 

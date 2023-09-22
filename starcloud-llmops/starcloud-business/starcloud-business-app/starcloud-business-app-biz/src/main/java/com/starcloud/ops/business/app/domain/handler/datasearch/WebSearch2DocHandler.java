@@ -16,7 +16,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
@@ -84,7 +84,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         uploadUrlReqVO.setAppId(context.getAppUid());
         // TODO 添加创建人或者游客
 
-        BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+        UserBaseDTO baseDBHandleDTO = new UserBaseDTO();
         baseDBHandleDTO.setCreator(context.getUserId());
         baseDBHandleDTO.setEndUser(context.getEndUser());
 
