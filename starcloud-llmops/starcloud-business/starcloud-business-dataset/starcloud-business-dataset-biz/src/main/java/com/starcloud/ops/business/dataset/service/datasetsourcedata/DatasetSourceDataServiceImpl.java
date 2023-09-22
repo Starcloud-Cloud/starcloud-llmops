@@ -230,6 +230,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             singleReqVO.setIndexSync(reqVO.getIndexSync());
 
             singleReqVO.setEnableSummary(reqVO.getEnableSummary());
+            singleReqVO.setSummaryContentMaxNums(reqVO.getSummaryContentMaxNums());
 
             ListenableFuture<UploadResult> executed = this.executeAsyncWithUrl(singleReqVO, baseDBHandleDTO);
 
@@ -303,6 +304,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             singleReqVO.setSplitSync(reqVOS.getSplitSync());
             singleReqVO.setIndexSync(reqVOS.getIndexSync());
             singleReqVO.setEnableSummary(reqVOS.getEnableSummary());
+            singleReqVO.setSummaryContentMaxNums(reqVOS.getSummaryContentMaxNums());
 
             singleReqVO.setCharacterVOS(Collections.singletonList(reqVO));
             ListenableFuture<UploadResult> executed = this.executeAsyncWithCharacters(singleReqVO, baseDBHandleDTO);

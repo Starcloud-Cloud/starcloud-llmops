@@ -42,4 +42,7 @@ public class UploadReqVO {
     @Schema(description = "是否生成总结")
     private Boolean enableSummary = false;
 
+    @Schema(description = "总结内容最大数")
+    private Integer summaryContentMaxNums;
+
 }

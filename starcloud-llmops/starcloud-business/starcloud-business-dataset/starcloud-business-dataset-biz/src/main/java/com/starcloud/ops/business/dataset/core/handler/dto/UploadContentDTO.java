@@ -109,4 +109,10 @@ public class UploadContentDTO {
      * 是否生成总结
      */
     private Boolean enableSummary;
+
+    /**
+     * 总结内容最大数
+     */
+    private Integer summaryContentMaxNums;
+
 }

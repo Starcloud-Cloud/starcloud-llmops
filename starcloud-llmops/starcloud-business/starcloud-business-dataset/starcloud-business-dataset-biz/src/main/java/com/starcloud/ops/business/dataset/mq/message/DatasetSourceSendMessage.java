@@ -13,21 +13,7 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
 
     private SplitRule splitRule;
 
-    @NotNull(message = "分块是否同步")
-    private Boolean splitSync;
 
-    @NotNull(message = "清洗是否同步")
-    private Boolean cleanSync;
-
-    @NotNull(message = "索引是否同步")
-    private Boolean indexSync;
-
-
-    /**
-     * 是否生成总结
-     */
-    @NotNull(message = "是否生成总结")
-    private Boolean enableSummary;
     /**
      * 数据集编号
      */
@@ -60,5 +46,27 @@ public abstract class DatasetSourceSendMessage extends AbstractStreamMessage {
     private String errMsg;
 
     @NotNull(message = "重试次数")
-    private int retryCount;
+    private Integer retryCount;
+
+
+    @NotNull(message = "分块是否同步")
+    private Boolean splitSync;
+
+    @NotNull(message = "清洗是否同步")
+    private Boolean cleanSync;
+
+    @NotNull(message = "索引是否同步")
+    private Boolean indexSync;
+
+    /**
+     * 是否生成总结
+     */
+    @NotNull(message = "是否生成总结")
+    private Boolean enableSummary;
+
+
+    @NotNull(message = "总结内容最大数")
+    private Integer summaryContentMaxNums;
+
+
 }
