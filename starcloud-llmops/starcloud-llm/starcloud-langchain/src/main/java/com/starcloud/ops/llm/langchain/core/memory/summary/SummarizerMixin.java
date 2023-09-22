@@ -1,24 +1,31 @@
 package com.starcloud.ops.llm.langchain.core.memory.summary;
 
 import cn.hutool.core.util.ClassUtil;
+import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
+import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
+import com.starcloud.ops.llm.langchain.core.model.chat.base.BaseChatModel;
 import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMessage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLM;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import com.starcloud.ops.llm.langchain.core.schema.prompt.BasePromptTemplate;
+import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Data
 public abstract class SummarizerMixin extends BaseChatMemory {
 
@@ -63,21 +70,83 @@ public abstract class SummarizerMixin extends BaseChatMemory {
     public SummarizerMixin() {
 
         super();
-        this.prompt = new PromptTemplate(DEFAULT_SUMMARIZER_TEMPLATE, Arrays.asList(
-                BaseVariable.newString("summary"),
-                BaseVariable.newString("new_lines")
-        ));
-
+        this.prompt = buildPromptTemplate();
     }
 
     public SummarizerMixin(BaseLLM llm) {
         super();
-        this.prompt = new PromptTemplate(DEFAULT_SUMMARIZER_TEMPLATE, Arrays.asList(
+        this.prompt = buildPromptTemplate();
+
+        this.llm = llm;
+    }
+
+
+    /**
+     * 根据tokens 自动切换LLM 生成总结
+     *
+     * @param content
+     */
+    public static BaseLLMResult summaryContentCall(String content) {
+
+        Long start = System.currentTimeMillis();
+
+        try {
+            //计算tokens
+            int tokens = SummarizerMixin.calculateTokens(content);
+
+            ChatOpenAI chatOpenAi = new ChatOpenAI();
+
+            chatOpenAi.setMaxTokens(300);
+            chatOpenAi.setTemperature(0d);
+
+            //prompt 也增加下
+            int promptTokens = tokens + SummarizerMixin.calculateTokens(DEFAULT_SUMMARIZER_TEMPLATE);
+
+            if (promptTokens <= ModelTypeEnum.GPT_3_5_TURBO.getMaxContextLength()) {
+                chatOpenAi.setModel(ModelTypeEnum.GPT_3_5_TURBO.getName());
+            } else if (promptTokens <= ModelTypeEnum.GPT_3_5_TURBO_16K.getMaxContextLength()) {
+                chatOpenAi.setModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+            } else {
+                //@todo 大于最大之后 如何总结
+                throw new RuntimeException("promptTokens is Exceeding the maximum value [" + promptTokens + "]");
+            }
+
+            LLMChain<BaseLLMResult> llmChain = new LLMChain(chatOpenAi, buildPromptTemplate());
+
+            BaseLLMResult llmResult = llmChain.call(Arrays.asList(
+                    BaseVariable.newString("new_lines", content),
+                    BaseVariable.newString("summary", "")
+            ));
+
+            if (llmResult == null) {
+                throw new RuntimeException("result is null");
+            }
+
+            Long end = System.currentTimeMillis();
+            log.info("summaryContent is success, {} ms", end - start);
+            return llmResult;
+
+        } catch (Exception e) {
+
+            log.error("summaryContent is error: {}", e.getMessage(), e);
+            return null;
+        }
+
+    }
+
+
+    public static int calculateTokens(String historyStr) {
+
+        //@todo 总结也不一定看模型，还要看成本，保证比较小的tokens下进行对话，所以比较的是计算后剩余可用的tokens
+        return TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, historyStr);
+    }
+
+    protected static BasePromptTemplate buildPromptTemplate() {
+
+        return new PromptTemplate(DEFAULT_SUMMARIZER_TEMPLATE, Arrays.asList(
                 BaseVariable.newString("summary"),
                 BaseVariable.newString("new_lines")
         ));
-
-        this.llm = llm;
     }
 
     @SneakyThrows
@@ -87,6 +156,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
 
         return message;
     }
+
 
     protected String renderPrompt(List<BaseMessage> messages, String existingSummary) {
 

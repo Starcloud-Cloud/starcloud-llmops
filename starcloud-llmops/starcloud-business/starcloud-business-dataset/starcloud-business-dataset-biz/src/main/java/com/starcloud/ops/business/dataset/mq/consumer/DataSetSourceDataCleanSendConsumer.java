@@ -21,6 +21,12 @@ import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataSplitProd
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
+import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
+import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
@@ -28,7 +34,11 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -96,6 +106,24 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             sourceDataDO.setDescription(descriptionContent);
             sourceDataDO.setCleanStorageId(cleanId);
             sourceDataDO.setRuleId(cleanResultVO.getRuleId());
+
+            BaseLLMResult baseLLMResult = SummarizerMixin.summaryContentCall(cleanResultVO.getResult());
+            //失败不影响主流程
+            if (baseLLMResult != null) {
+
+                BaseLLMUsage llmUsage = baseLLMResult.getUsage();
+                List<ChatCompletionResult> completionResults = baseLLMResult.getGenerations();
+                String llmModel = Optional.ofNullable(completionResults).orElse(new ArrayList<>()).stream().findFirst().map(ChatCompletionResult::getModel).orElse("");
+
+                ModelTypeEnum modelType = TokenCalculator.fromName(llmModel);
+                Long messageTokens = llmUsage.getPromptTokens();
+                Long answerTokens = llmUsage.getCompletionTokens();
+                //总价
+                BigDecimal totalPrice = TokenCalculator.getTextPrice(messageTokens, modelType, true).add(TokenCalculator.getTextPrice(answerTokens, modelType, false));
+
+                llmUsage.getTotalTokens();
+
+            }
 
             // 更新数据
             datasetSourceDataService.updateDatasourceById(sourceDataDO);

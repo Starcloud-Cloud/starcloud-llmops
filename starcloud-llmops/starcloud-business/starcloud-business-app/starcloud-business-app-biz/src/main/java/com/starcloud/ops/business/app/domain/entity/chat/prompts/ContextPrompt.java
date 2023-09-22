@@ -302,23 +302,32 @@ public class ContextPrompt extends BasePromptConfig {
 
         if (StrUtil.isNotBlank(query) && this.searchResult == null) {
 
-            //可接收其他数据集的传入
-            List<String> datasetUid = Optional.ofNullable(this.getDatesetEntities()).orElse(new ArrayList<>())
-                    .stream().filter(DatesetEntity::getEnabled).map(DatesetEntity::getDatasetUid).collect(Collectors.toList());
+            try {
 
-            //@todo 需要 block 对象
-            MatchByDataSetIdRequest matchQueryRequest = new MatchByDataSetIdRequest();
-            matchQueryRequest.setText(query);
-            matchQueryRequest.setK(2L);
-            matchQueryRequest.setDatasetUid(datasetUid);
-            matchQueryRequest.setMinScore(0.72d);
-            matchQueryRequest.setUserId(chatRequestVO.getUserId());
-            MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchQueryRequest);
+                //可接收其他数据集的传入
+                List<String> datasetUid = Optional.ofNullable(this.getDatesetEntities()).orElse(new ArrayList<>())
+                        .stream().filter(DatesetEntity::getEnabled).map(DatesetEntity::getDatasetUid).collect(Collectors.toList());
 
-            //过滤掉 分数低的 < 0.7  文档搜索相似度阈值
-            if (matchQueryVO != null && CollectionUtil.isNotEmpty(matchQueryVO.getRecords())) {
-                this.searchResult = matchQueryVO;
+                //@todo 需要 block 对象
+                MatchByDataSetIdRequest matchQueryRequest = new MatchByDataSetIdRequest();
+                matchQueryRequest.setText(query);
+                matchQueryRequest.setK(2L);
+                matchQueryRequest.setDatasetUid(datasetUid);
+                matchQueryRequest.setMinScore(0.72d);
+                matchQueryRequest.setUserId(chatRequestVO.getUserId());
+                MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchQueryRequest);
+
+                //过滤掉 分数低的 < 0.7  文档搜索相似度阈值
+                if (matchQueryVO != null && CollectionUtil.isNotEmpty(matchQueryVO.getRecords())) {
+                    this.searchResult = matchQueryVO;
+                }
+
+            } catch (Exception e) {
+                //如果搜索有问题，就当没有搜索结果
+                this.searchResult = MatchQueryVO.builder().records(new ArrayList<>()).build();
+                log.error("ContextPrompt searchDataset is error: {}", e.getMessage(), e);
             }
+
         }
 
         return this.searchResult;

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.handler.datasearch;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -64,11 +65,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         String url = context.getRequest().getUrl();
 
-
-        //@todo 通过上下文获取当前可能配置的 tools 执行 tips
         InteractiveInfo interactiveInfo = InteractiveInfo.buildUrlCard("分析链接内容中[" + url + "]...").setToolHandler(this).setInput(context.getRequest());
-
-
         context.sendCallbackInteractiveStart(interactiveInfo);
 
         HandlerResponse<Response> handlerResponse = new HandlerResponse();
@@ -100,15 +97,18 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
             throw new RuntimeException("URL解析失败");
         }
 
+        //判断是否总结
+
+
         // 查询内容
         DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataById(sourceDataUploadDTO.getSourceDataId(), true);
-        String desc = detailsInfoVO.getDescription();
+        String content = detailsInfoVO.getSummaryStatus() && StrUtil.isNotBlank(detailsInfoVO.getSummary()) ? detailsInfoVO.getSummary() : detailsInfoVO.getDescription();
         handlerResponse.setSuccess(true);
 
         Response result = new Response();
         // 先截取
         result.setTitle(detailsInfoVO.getName());
-        result.setDescription(desc);
+        result.setContent(content);
         result.setDocId(detailsInfoVO.getId());
         handlerResponse.setOutput(result);
 
@@ -116,7 +116,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         InteractiveData interactiveData = new InteractiveData();
 
         interactiveData.setTitle(detailsInfoVO.getName());
-        interactiveData.setContent(result.getDescription());
+        interactiveData.setContent(result.getContent());
         interactiveData.setUrl(url);
         interactiveData.setTime(DateUtil.now());
 
@@ -147,7 +147,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         messageContentDocDTO.setTime(LocalDateTimeUtil.now().toString());
         messageContentDocDTO.setTitle(this.getName());
-        messageContentDocDTO.setContent(handlerResponse.getOutput().getDescription());
+        messageContentDocDTO.setContent(handlerResponse.getOutput().getContent());
         messageContentDocDTO.setId(handlerResponse.getOutput().getDocId());
 
         messageContentDocDTOList.add(messageContentDocDTO);
@@ -163,6 +163,10 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         @JsonPropertyDescription("a website url")
         private String url;
 
+        @JsonProperty(required = true)
+        @JsonPropertyDescription("Whether to summarize the url content. The default is False")
+        private Boolean needSummary;
+
     }
 
 
@@ -171,7 +175,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
         private String title;
 
-        private String description;
+        private String content;
 
         private Long docId;
 

@@ -595,20 +595,15 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         if (CollectionUtil.isEmpty(history.getMessages())) {
             return false;
         }
-        int messageTokens = this.calculateMaxTokens(history.getMessages());
+
+        String historyStr = BaseMessage.getBufferString(history.getMessages());
+
+        int messageTokens = SummarizerMixin.calculateTokens(historyStr);
         int maxTokens = this.getSummaryMaxTokens();
 
         log.info("checkNeedSummary: {} > {}", messageTokens, maxTokens);
 
         return messageTokens > maxTokens;
-    }
-
-
-    private int calculateMaxTokens(List<BaseMessage> messages) {
-        String historyStr = BaseMessage.getBufferString(messages);
-
-        //@todo 总结也不一定看模型，还要看成本，保证比较小的tokens下进行对话，所以比较的是计算后剩余可用的tokens
-        return  TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, historyStr);
     }
 
 
