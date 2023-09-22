@@ -98,7 +98,10 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         }
 
         //判断是否总结
+        uploadUrlReqVO.setEnableSummary(context.getRequest().getNeedSummary());
+        uploadUrlReqVO.setSummaryContentMaxNums(350);
 
+        //@todo 总结的执行过程需要输出到前端
 
         // 查询内容
         DatasetSourceDataDetailsInfoVO detailsInfoVO = datasetSourceDataService.getSourceDataById(sourceDataUploadDTO.getSourceDataId(), true);
