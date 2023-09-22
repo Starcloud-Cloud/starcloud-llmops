@@ -62,7 +62,7 @@ public class DatasetSourceDataBaseRespVO {
     private String summary;
 
     @Schema(description = "总结状态")
-    private Boolean summaryStatus;
+    private Long summaryStatus;
 
     @Schema(description = "字符数")
     private Long wordCount;

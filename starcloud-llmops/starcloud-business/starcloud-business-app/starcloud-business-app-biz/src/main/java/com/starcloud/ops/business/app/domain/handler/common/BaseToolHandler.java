@@ -126,7 +126,6 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
         messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.name());
 
         messageContentDocDTO.setTime(LocalDateTimeUtil.now().toString());
-        messageContentDocDTO.setTitle(this.getName());
         messageContentDocDTO.setContent(handlerResponse.getAnswer());
 
         messageContentDocDTOList.add(messageContentDocDTO);

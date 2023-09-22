@@ -192,7 +192,6 @@ public class ContextPrompt extends BasePromptConfig {
             //发送到前端
             this.sendDocsInteractive(sortResult);
 
-
             return PromptUtil.parseDocContentLines(sortResult);
         });
 
@@ -241,8 +240,9 @@ public class ContextPrompt extends BasePromptConfig {
 
             log.info("ContextPrompt loadMessageContentDoc ContentDoc result:{}", JsonUtils.toJsonString(summaryDocs));
 
+            //好像不需要把工具执行的资源结果放到上下文中
             if (CollectionUtil.isNotEmpty(summaryDocs)) {
-                sortResult.addAll(summaryDocs);
+                //sortResult.addAll(summaryDocs);
             }
 
         } catch (Exception e) {

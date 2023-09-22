@@ -105,8 +105,6 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             sourceDataDO.setCleanStorageId(cleanId);
             sourceDataDO.setRuleId(cleanResultVO.getRuleId());
 
-            //this.processSummary(message, cleanResultVO.getResult(), sourceDataDO);
-
             // 更新数据
             datasetSourceDataService.updateDatasourceById(sourceDataDO);
 
@@ -120,48 +118,6 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             message.setErrMsg(e.getMessage());
             log.info("清洗失败，错误原因是:({})", e.getMessage(), e);
         }
-    }
-
-
-    /**
-     * 执行总结流程，不影响主流程
-     *
-     * @param sourceDataDO
-     */
-    protected void processSummary(DatasetSourceSendMessage message, String content, DatasetSourceDataDO sourceDataDO) {
-
-        //未开启
-        if (Boolean.FALSE.equals(message.getEnableSummary())) {
-            return;
-        }
-
-        BaseLLMResult baseLLMResult = SummarizerMixin.summaryContentCall(content, message.getSummaryContentMaxNums());
-
-        //失败不影响主流程
-        if (baseLLMResult != null && Boolean.FALSE.equals(sourceDataDO.getSummaryStatus())) {
-
-            String summary = baseLLMResult.getText();
-            BaseLLMUsage llmUsage = baseLLMResult.getUsage();
-            List<ChatCompletionResult> completionResults = baseLLMResult.getGenerations();
-            String llmModel = Optional.ofNullable(completionResults).orElse(new ArrayList<>()).stream().findFirst().map(ChatCompletionResult::getModel).orElse("");
-
-            ModelTypeEnum modelType = TokenCalculator.fromName(llmModel);
-            Long messageTokens = llmUsage.getPromptTokens();
-            Long answerTokens = llmUsage.getCompletionTokens();
-            //总价
-            BigDecimal totalPrice = TokenCalculator.getTextPrice(messageTokens, modelType, true).add(TokenCalculator.getTextPrice(answerTokens, modelType, false));
-
-            //记录做统计用
-            sourceDataDO.setSummary(summary);
-            sourceDataDO.setSummaryStatus(true);
-            sourceDataDO.setSummaryModel(llmModel);
-            sourceDataDO.setSummaryTokens(llmUsage.getTotalTokens());
-            sourceDataDO.setSummaryTotalPrice(totalPrice);
-
-            log.info("processBusinessLogic processSummary is update");
-
-        }
-
     }
 
 

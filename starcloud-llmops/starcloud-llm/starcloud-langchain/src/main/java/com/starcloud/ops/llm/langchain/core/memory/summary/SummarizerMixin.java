@@ -65,6 +65,17 @@ public abstract class SummarizerMixin extends BaseChatMemory {
             "New summary:";
 
 
+    private static final String DEFAULT_SUMMARIZER_TEMPLATE_HTML = "Based on the content of the web page or document, make a summary and answer relevant questions.\n" +
+            "Content: ```\n" +
+            "{new_lines}\n" +
+            "```\n" +
+            "Content questions: ```\n" +
+            "{query}\n" +
+            "```\n" +
+            "- Identify the language used in the content and use the same language in the results!\n" +
+            "- Remove non-important content, such as ads, messages, chats, etc., before summarizing or answering!\n" +
+            "- The results is limited to {max_tokens} characters!";
+
     /**
      * 读取给到的文档内容，并根据相关的问题，进行回答
      * 注意 只从内容中获取信息进行回答，不要回答你并不知道的内容
@@ -99,7 +110,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
      *
      * @param content
      */
-    public static BaseLLMResult summaryContentCall(String content, Integer maxTokens) {
+    public static BaseLLMResult summaryContentCall(String content, String query, Integer maxTokens) {
 
         Long start = System.currentTimeMillis();
 
@@ -123,7 +134,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
             chatOpenAi.setTemperature(0d);
 
             //prompt 也增加下
-            int promptTokens = tokens + SummarizerMixin.calculateTokens(DEFAULT_SUMMARIZER_TEMPLATE);
+            int promptTokens = tokens + SummarizerMixin.calculateTokens(DEFAULT_SUMMARIZER_TEMPLATE_HTML);
 
             if (promptTokens <= ModelTypeEnum.GPT_3_5_TURBO.getMaxContextLength()) {
                 chatOpenAi.setModel(ModelTypeEnum.GPT_3_5_TURBO.getName());
@@ -134,12 +145,12 @@ public abstract class SummarizerMixin extends BaseChatMemory {
                 throw new RuntimeException("promptTokens is Exceeding the maximum value [" + promptTokens + "]");
             }
 
-            LLMChain<BaseLLMResult> llmChain = new LLMChain(chatOpenAi, buildPromptTemplate());
+            LLMChain<BaseLLMResult> llmChain = new LLMChain(chatOpenAi, buildPromptTemplateHtml());
 
             BaseLLMResult llmResult = llmChain.call(Arrays.asList(
                     BaseVariable.newString("new_lines", content),
-                    BaseVariable.newString("summary", ""),
-                    BaseVariable.newInt("max_tokens", maxTokens)
+                    BaseVariable.newInt("max_tokens", maxTokens),
+                    BaseVariable.newString("query", query)
             ));
 
             if (llmResult == null) {
@@ -171,6 +182,15 @@ public abstract class SummarizerMixin extends BaseChatMemory {
                 BaseVariable.newString("summary"),
                 BaseVariable.newString("new_lines"),
                 BaseVariable.newString("max_tokens")
+        ));
+    }
+
+    protected static BasePromptTemplate buildPromptTemplateHtml() {
+
+        return new PromptTemplate(DEFAULT_SUMMARIZER_TEMPLATE_HTML, Arrays.asList(
+                BaseVariable.newString("new_lines"),
+                BaseVariable.newString("max_tokens"),
+                BaseVariable.newString("query")
         ));
     }
 

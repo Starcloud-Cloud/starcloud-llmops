@@ -543,7 +543,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
         DatasetSourceDataDetailsInfoVO datasetSourceDataDetailsInfoVO = BeanUtil.copyProperties(sourceDataDO, DatasetSourceDataDetailsInfoVO.class);
 
-        if (DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus() < sourceDataDO.getStatus()) {
+        if (DataSetSourceDataStatusEnum.CLEANING_COMPLETED.getStatus() <= sourceDataDO.getStatus()) {
             // 设置清洗后内容
             DatasetStorageDO cleanDatasetDO = datasetStorageService.selectDataById(sourceDataDO.getCleanStorageId());
 
