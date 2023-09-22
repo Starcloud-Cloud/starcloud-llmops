@@ -65,6 +65,13 @@ public abstract class SummarizerMixin extends BaseChatMemory {
             "New summary:";
 
 
+    /**
+     * 读取给到的文档内容，并根据相关的问题，进行回答
+     * 注意 只从内容中获取信息进行回答，不要回答你并不知道的内容
+     * 直接输出结果即可
+     */
+
+
     private BasePromptTemplate prompt;
 
     /**

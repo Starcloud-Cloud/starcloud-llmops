@@ -105,7 +105,7 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             sourceDataDO.setCleanStorageId(cleanId);
             sourceDataDO.setRuleId(cleanResultVO.getRuleId());
 
-            this.processSummary(message, cleanResultVO.getResult(), sourceDataDO);
+            //this.processSummary(message, cleanResultVO.getResult(), sourceDataDO);
 
             // 更新数据
             datasetSourceDataService.updateDatasourceById(sourceDataDO);

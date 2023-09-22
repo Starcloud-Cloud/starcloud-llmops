@@ -16,14 +16,23 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
+import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
+import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
+import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
+import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -97,9 +106,6 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
             throw new RuntimeException("URL解析失败");
         }
 
-        //判断是否总结
-        uploadUrlReqVO.setEnableSummary(context.getRequest().getNeedSummary());
-        uploadUrlReqVO.setSummaryContentMaxNums(350);
 
         //@todo 总结的执行过程需要输出到前端
 
@@ -131,7 +137,72 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         interactiveInfo.setTips("分析链接完成");
         context.sendCallbackInteractiveEnd(interactiveInfo);
 
+        //总结执行
+        if (StrUtil.isNotBlank(detailsInfoVO.getCleanContent())) {
+
+            //未开启
+            if (Boolean.TRUE.equals(context.getRequest().getNeedSummary())) {
+
+                String query = context.getRequest().getQuery();
+
+                InteractiveInfo info = InteractiveInfo.buildUrlCard("分析链接内容并生成回答[" + query + "]...").setToolHandler(this).setInput(context.getRequest());
+                context.sendCallbackInteractiveStart(info);
+
+                this.processSummary(context.getRequest(), detailsInfoVO.getCleanContent());
+
+                info.setData(dataList);
+                info.setTips("回答完毕");
+
+                context.sendCallbackInteractiveEnd(info);
+
+            }
+        }
+
         return handlerResponse;
+    }
+
+
+    /**
+     * @todo 临时方案，需要执行 流程, 不然没地方记录消耗
+     * <p>
+     * 执行总结流程，不影响主流程
+     */
+    protected void processSummary(Request request, String content) {
+
+
+        log.info("WebSearch2DocHandler processSummary start");
+
+        //自动切换LLM进行总结了
+        BaseLLMResult baseLLMResult = SummarizerMixin.summaryContentCall(content, 350);
+
+        //失败不影响主流程
+        if (baseLLMResult != null) {
+
+            String summary = baseLLMResult.getText();
+            BaseLLMUsage llmUsage = baseLLMResult.getUsage();
+            List<ChatCompletionResult> completionResults = baseLLMResult.getGenerations();
+            String llmModel = Optional.ofNullable(completionResults).orElse(new ArrayList<>()).stream().findFirst().map(ChatCompletionResult::getModel).orElse("");
+
+            ModelTypeEnum modelType = TokenCalculator.fromName(llmModel);
+            Long messageTokens = llmUsage.getPromptTokens();
+            Long answerTokens = llmUsage.getCompletionTokens();
+            //总价
+            BigDecimal totalPrice = TokenCalculator.getTextPrice(messageTokens, modelType, true).add(TokenCalculator.getTextPrice(answerTokens, modelType, false));
+
+
+            //临时的
+            DatasetSourceDataDO sourceDataDO = new DatasetSourceDataDO();
+            //记录做统计用
+            sourceDataDO.setSummary(summary);
+            sourceDataDO.setSummaryStatus(true);
+            sourceDataDO.setSummaryModel(llmModel);
+            sourceDataDO.setSummaryTokens(llmUsage.getTotalTokens());
+            sourceDataDO.setSummaryTotalPrice(totalPrice);
+
+            log.info("WebSearch2DocHandler processSummary end: {}", JsonUtils.toJsonString(sourceDataDO));
+
+        }
+
     }
 
     /**
@@ -166,9 +237,13 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
         @JsonPropertyDescription("a website url")
         private String url;
 
-        @JsonProperty(required = true)
-        @JsonPropertyDescription("Whether to summarize the url content. The default is False")
+        @JsonProperty(required = false)
+        @JsonPropertyDescription("Whether to summarize the url content. When you have a question, you need to summarize the content. The default is false")
         private Boolean needSummary;
+
+        @JsonProperty(required = false)
+        @JsonPropertyDescription("Questions about the content")
+        private String query;
 
     }
 
