@@ -39,6 +39,11 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     private String name;
 
     /**
+     * 哈希值
+     */
+    private String hash;
+
+    /**
      * 描述
      */
     private String description;

@@ -3,7 +3,9 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
@@ -37,6 +39,7 @@ import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageS
 import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
+import com.starcloud.ops.business.dataset.util.dataset.HashUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.context.annotation.Lazy;
@@ -48,6 +51,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -140,23 +144,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             log.error("获取文件类型失败");
         }
 
-        //
-        // // 使用Tika检测文件类型
-        // MediaType mediaType;
-        // String mediaTypeExtension;
-        // String extName = getFileExtension(Objects.requireNonNull(reqVO.getFile().getOriginalFilename()));
-        // try (TikaInputStream tis = TikaInputStream.get(reqVO.getFile().getInputStream())) {
-        //     mediaType = TikaConfig.getDefaultConfig().getDetector().detect(tis, new Metadata());
-        //     mediaTypeExtension = MimeTypes.getDefaultMimeTypes().forName(mediaType.toString()).getExtension();
-        //     mediaTypeExtension = mediaTypeExtension.replace(".", "");
-        // } catch (IOException | MimeTypeException e) {
-        //     throw new RuntimeException("Could not read file", e);
-        // }
         if (!isValidFileType) {
             sourceDataUrlUploadDTO.setStatus(false);
             sourceDataUrlUploadDTO.setErrMsg("文件格式暂时无法适配，我们紧急处理中！");
             return sourceDataUrlUploadDTO;
         }
+
 
         // 读取文件内容到字节数组中
         byte[] fileContent;
@@ -168,21 +161,41 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             sourceDataUrlUploadDTO.setErrMsg("文件读取失败，请上传正确的文件");
             return sourceDataUrlUploadDTO;
         }
-        reqVO.setFileContent(fileContent);
 
-        UploadResult result = processingService.fileProcessing(reqVO, baseDBHandleDTO);
-
-
-        if (!result.getStatus()) {
+        String hash;
+        try {
+            hash = HashUtil.calculateHash(reqVO.getFile().getInputStream());
+        } catch (IOException e) {
             sourceDataUrlUploadDTO.setStatus(false);
-            sourceDataUrlUploadDTO.setSourceDataUid(result.getSourceDataUid());
-            sourceDataUrlUploadDTO.setSourceDataId(result.getSourceDataId());
+            sourceDataUrlUploadDTO.setErrMsg("文件读取失败，请上传正确的文件");
+            return sourceDataUrlUploadDTO;
+        }
+
+        DatasetSourceDataDO sameHashData = getSameHashData(hash, reqVO.getAppId(), reqVO.getSessionId());
+        if (sameHashData == null) {
+            reqVO.setHash(hash);
+            reqVO.setFileContent(fileContent);
+
+            UploadResult result = processingService.fileProcessing(reqVO, baseDBHandleDTO);
+
+            if (!result.getStatus()) {
+                sourceDataUrlUploadDTO.setStatus(false);
+                sourceDataUrlUploadDTO.setSourceDataUid(result.getSourceDataUid());
+                sourceDataUrlUploadDTO.setSourceDataId(result.getSourceDataId());
+            } else {
+                sourceDataUrlUploadDTO.setStatus(true);
+                sourceDataUrlUploadDTO.setSourceDataUid(result.getSourceDataUid());
+                sourceDataUrlUploadDTO.setSourceDataId(result.getSourceDataId());
+            }
+
         } else {
             sourceDataUrlUploadDTO.setStatus(true);
-            sourceDataUrlUploadDTO.setSourceDataUid(result.getSourceDataUid());
-            sourceDataUrlUploadDTO.setSourceDataId(result.getSourceDataId());
+            sourceDataUrlUploadDTO.setSourceDataUid(sameHashData.getUid());
+            sourceDataUrlUploadDTO.setSourceDataId(sameHashData.getId());
+            return sourceDataUrlUploadDTO;
         }
         return sourceDataUrlUploadDTO;
+
     }
 
 
@@ -207,6 +220,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         // 根据应用或者会话设置用户信息
         baseDBHandleDTO = setBaseDbHandleInfo(reqVO.getAppId(), reqVO.getSessionId(), baseDBHandleDTO);
 
+
         List<SourceDataUploadDTO> resultDTOs = new ArrayList<>();
         for (String url : reqVO.getUrls()) {
 
@@ -219,42 +233,60 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 sourceDataUploadDTO.setErrMsg(String.format("你的链接%s失效，请输入正确的链接", url));
                 break;
             }
-            // 复制之前的值到新的请求对象中
-            UploadUrlReqVO singleReqVO = new UploadUrlReqVO();
-            singleReqVO.setAppId(reqVO.getAppId());
-            singleReqVO.setSessionId(reqVO.getSessionId());
-            singleReqVO.setBatch(reqVO.getBatch());
-
-            singleReqVO.setDataModel(reqVO.getDataModel());
-            singleReqVO.setDataType(reqVO.getDataType());
-            singleReqVO.setUrls(Collections.singletonList(url));
-
-            singleReqVO.setCleanSync(reqVO.getCleanSync());
-            singleReqVO.setSplitSync(reqVO.getSplitSync());
-            singleReqVO.setIndexSync(reqVO.getIndexSync());
-
-            singleReqVO.setEnableSummary(reqVO.getEnableSummary());
-            singleReqVO.setSummaryContentMaxNums(reqVO.getSummaryContentMaxNums());
-
-            ListenableFuture<UploadResult> executed = this.executeAsyncWithUrl(singleReqVO, baseDBHandleDTO);
-
+            String hash;
             try {
-                UploadResult result = executed.get();
-                if (!result.getStatus()) {
-                    sourceDataUploadDTO.setStatus(false);
-                    sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
-                    sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
-                } else {
-                    sourceDataUploadDTO.setStatus(true);
-                    sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
-                    sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
-                }
-            } catch (InterruptedException | ExecutionException e) {
+                hash = HashUtil.calculateHash(new ByteArrayInputStream(url.getBytes()));
+            } catch (IOException e) {
                 sourceDataUploadDTO.setStatus(false);
-                sourceDataUploadDTO.setSourceDataUid("系统异常");
+                sourceDataUploadDTO.setErrMsg(String.format("你的链接%s失效", url));
+                break;
+            }
+
+            DatasetSourceDataDO sameHashData = getSameHashData(hash, reqVO.getAppId(), reqVO.getSessionId());
+            if (sameHashData == null) {
+                // 复制之前的值到新的请求对象中
+                UploadUrlReqVO singleReqVO = new UploadUrlReqVO();
+                singleReqVO.setAppId(reqVO.getAppId());
+                singleReqVO.setSessionId(reqVO.getSessionId());
+                singleReqVO.setBatch(reqVO.getBatch());
+
+                singleReqVO.setDataModel(reqVO.getDataModel());
+                singleReqVO.setDataType(reqVO.getDataType());
+                singleReqVO.setUrls(Collections.singletonList(url));
+
+                singleReqVO.setCleanSync(reqVO.getCleanSync());
+                singleReqVO.setSplitSync(reqVO.getSplitSync());
+                singleReqVO.setIndexSync(reqVO.getIndexSync());
+
+                singleReqVO.setEnableSummary(reqVO.getEnableSummary());
+                singleReqVO.setSummaryContentMaxNums(reqVO.getSummaryContentMaxNums());
+                singleReqVO.setHash(hash);
+
+                ListenableFuture<UploadResult> executed = this.executeAsyncWithUrl(singleReqVO, baseDBHandleDTO);
+
+                try {
+                    UploadResult result = executed.get();
+                    if (!result.getStatus()) {
+                        sourceDataUploadDTO.setStatus(false);
+                        sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
+                        sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
+                    } else {
+                        sourceDataUploadDTO.setStatus(true);
+                        sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
+                        sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    sourceDataUploadDTO.setStatus(false);
+                    sourceDataUploadDTO.setSourceDataUid("系统异常");
+                }
+            }else {
+                sourceDataUploadDTO.setStatus(true);
+                sourceDataUploadDTO.setSourceDataId(sameHashData.getId());
+                sourceDataUploadDTO.setSourceDataUid(sameHashData.getUid());
             }
 
             resultDTOs.add(sourceDataUploadDTO);
+
 
         }
 
@@ -296,40 +328,57 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             sourceDataUploadDTO.setAppId(reqVOS.getAppId());
             sourceDataUploadDTO.setBatch(reqVOS.getBatch());
 
-            UploadCharacterReqVO singleReqVO = new UploadCharacterReqVO();
-            // 复制之前的值到新的请求对象中
-            singleReqVO.setAppId(reqVOS.getAppId());
-            singleReqVO.setSessionId(reqVOS.getSessionId());
-            singleReqVO.setBatch(reqVOS.getBatch());
-            singleReqVO.setDataModel(reqVOS.getDataModel());
-            singleReqVO.setDataType(reqVOS.getDataType());
-
-            singleReqVO.setCleanSync(reqVOS.getCleanSync());
-            singleReqVO.setSplitSync(reqVOS.getSplitSync());
-            singleReqVO.setIndexSync(reqVOS.getIndexSync());
-            singleReqVO.setEnableSummary(reqVOS.getEnableSummary());
-            singleReqVO.setSummaryContentMaxNums(reqVOS.getSummaryContentMaxNums());
-
-            singleReqVO.setCharacterVOS(Collections.singletonList(reqVO));
-            ListenableFuture<UploadResult> executed = this.executeAsyncWithCharacters(singleReqVO, baseDBHandleDTO);
-
+            String hash;
             try {
-                UploadResult result = executed.get();
-                if (!result.getStatus()) {
-                    sourceDataUploadDTO.setStatus(false);
-                    sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
-                    sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
-                } else {
-                    sourceDataUploadDTO.setStatus(true);
-                    sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
-                    sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
-                }
-
-            } catch (InterruptedException | ExecutionException e) {
+                hash = HashUtil.calculateHash(new ByteArrayInputStream((reqVO.getTitle()+reqVO.getContext()).getBytes()));
+            } catch (IOException e) {
                 sourceDataUploadDTO.setStatus(false);
-                sourceDataUploadDTO.setSourceDataUid("系统异常");
+                sourceDataUploadDTO.setErrMsg("自定义文本异常");
+                break;
             }
 
+            DatasetSourceDataDO sameHashData = getSameHashData(hash, reqVOS.getAppId(), reqVOS.getSessionId());
+
+            UploadCharacterReqVO singleReqVO = new UploadCharacterReqVO();
+
+            if (sameHashData == null) {
+                // 复制之前的值到新的请求对象中
+                singleReqVO.setAppId(reqVOS.getAppId());
+                singleReqVO.setSessionId(reqVOS.getSessionId());
+                singleReqVO.setBatch(reqVOS.getBatch());
+                singleReqVO.setDataModel(reqVOS.getDataModel());
+                singleReqVO.setDataType(reqVOS.getDataType());
+
+                singleReqVO.setCleanSync(reqVOS.getCleanSync());
+                singleReqVO.setSplitSync(reqVOS.getSplitSync());
+                singleReqVO.setIndexSync(reqVOS.getIndexSync());
+                singleReqVO.setEnableSummary(reqVOS.getEnableSummary());
+                singleReqVO.setSummaryContentMaxNums(reqVOS.getSummaryContentMaxNums());
+
+                singleReqVO.setCharacterVOS(Collections.singletonList(reqVO));
+                ListenableFuture<UploadResult> executed = this.executeAsyncWithCharacters(singleReqVO, baseDBHandleDTO);
+
+                try {
+                    UploadResult result = executed.get();
+                    if (!result.getStatus()) {
+                        sourceDataUploadDTO.setStatus(false);
+                        sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
+                        sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
+                    } else {
+                        sourceDataUploadDTO.setStatus(true);
+                        sourceDataUploadDTO.setSourceDataUid(result.getSourceDataUid());
+                        sourceDataUploadDTO.setSourceDataId(result.getSourceDataId());
+                    }
+
+                } catch (InterruptedException | ExecutionException e) {
+                    sourceDataUploadDTO.setStatus(false);
+                    sourceDataUploadDTO.setSourceDataUid("系统异常");
+                }
+
+            }else {
+                sourceDataUploadDTO.setSourceDataUid(sameHashData.getUid());
+                sourceDataUploadDTO.setSourceDataId(sameHashData.getId());
+            }
             resultDTOs.add(sourceDataUploadDTO);
         }
 
@@ -374,23 +423,25 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
                 DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(),
                 DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(),
                 DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(),
-                DataSetSourceDataStatusEnum.COMPLETED.getStatus()),dataDO.getStatus())|| (dataDO.getCreateTime().isBefore(now) && dataDO.getCreateTime().isBefore(now.plusHours(1)))){
+                DataSetSourceDataStatusEnum.COMPLETED.getStatus()), dataDO.getStatus()) || (dataDO.getCreateTime().isBefore(now) && dataDO.getCreateTime().isBefore(now.plusHours(1)))) {
 
             // 删除索引 和 删除分块数据
-            documentSegmentsService.deleteSegment(String.valueOf(dataDO.getDatasetId()),String.valueOf(dataDO.getId()));
+            documentSegmentsService.deleteSegment(String.valueOf(dataDO.getDatasetId()), String.valueOf(dataDO.getId()));
 
             // 删除
             datasetSourceDataMapper.delete(Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getUid, uid));
 
-        }else {
+        } else {
             throw exception(DATASET_SOURCE_DELETE_FAIL);
         }
 
 
     }
 
-    /** 删除知识库下所有的数据
-     * @param  datasetId   知识库  ID
+    /**
+     * 删除知识库下所有的数据
+     *
+     * @param datasetId 知识库  ID
      */
     @Override
     @Transactional
@@ -398,23 +449,25 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         List<DatasetSourceDataDO> datasetSourceDataDOS = datasetSourceDataMapper.selectList(
                 Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getDatasetId, datasetId));
         if (CollUtil.isNotEmpty(datasetSourceDataDOS)) {
-            log.info("准备删除知识库下的数据，当前知识库下的数据包含{}条",datasetSourceDataDOS.size());
+            log.info("准备删除知识库下的数据，当前知识库下的数据包含{}条", datasetSourceDataDOS.size());
             // 根据知识库 获取数据 ID
-            datasetSourceDataDOS.forEach(dataDO ->  deleteDatasetSourceData(dataDO.getUid()));
+            datasetSourceDataDOS.forEach(dataDO -> deleteDatasetSourceData(dataDO.getUid()));
         }
     }
 
-    /** 删除应用下所有的数据
-     * @param appId  应用 ID
+    /**
+     * 删除应用下所有的数据
+     *
+     * @param appId 应用 ID
      */
     @Override
     public void deleteAllDataByAppId(String appId) {
-        Assert.notBlank(appId,"删除数据失败，应用 ID为空");
+        Assert.notBlank(appId, "删除数据失败，应用 ID为空");
         List<DatasetsDO> datasetsDOS = datasetsService.getAllDatasetInfoByAppId(appId);
 
-        log.info("准备删除应用下的数据，当前知识库下的数据包含{}条",datasetsDOS.size());
+        log.info("准备删除应用下的数据，当前知识库下的数据包含{}条", datasetsDOS.size());
         // 根据知识库 获取数据 ID
-        datasetsDOS.forEach(datasetsDO ->  deleteAllDataByDatasetId(datasetsDO.getId()));
+        datasetsDOS.forEach(datasetsDO -> deleteAllDataByDatasetId(datasetsDO.getId()));
     }
 
     /**
@@ -430,7 +483,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
         if (dataDO.getEnabled()) {
-            documentSegmentsService.updateEnable(dataDO.getId(),false);
+            documentSegmentsService.updateEnable(dataDO.getId(), false);
             dataDO.setEnabled(false);
             datasetSourceDataMapper.updateById(dataDO);
         } else {
@@ -450,7 +503,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
         if (!dataDO.getEnabled()) {
-            documentSegmentsService.updateEnable(dataDO.getId(),true);
+            documentSegmentsService.updateEnable(dataDO.getId(), true);
             dataDO.setEnabled(true);
             datasetSourceDataMapper.updateById(dataDO);
         } else {
@@ -1046,5 +1099,28 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         return baseDBHandleDTO;
     }
 
+
+    /**
+     * 获取同知识库下 hash 相同的数据
+     *
+     * @param dataHash
+     * @param appId
+     * @param sessionId
+     * @return
+     */
+    private DatasetSourceDataDO getSameHashData(String dataHash, String appId, String sessionId) {
+        DatasetsDO datasetsDO;
+        if (StrUtil.isBlank(sessionId)) {
+            datasetsDO = datasetsService.getDatasetInfoByAppId(appId);
+        } else {
+            datasetsDO = datasetsService.getDatasetInfoBySession(appId, sessionId);
+        }
+        LocalDateTime now = LocalDateTimeUtil.now();
+        return datasetSourceDataMapper.selectOne(
+                Wrappers.lambdaQuery(DatasetSourceDataDO.class)
+                        .eq(DatasetSourceDataDO::getDatasetId, datasetsDO.getId())
+                        .eq(DatasetSourceDataDO::getHash, dataHash)
+                        .between(DatasetSourceDataDO::getCreateTime, LocalDateTimeUtil.beginOfDay(now), LocalDateTimeUtil.endOfDay(now)));
+    }
 
 }

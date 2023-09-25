@@ -45,4 +45,7 @@ public class UploadReqVO {
     @Schema(description = "总结内容最大数")
     private Integer summaryContentMaxNums;
 
+    @Schema(description = " 哈希值")
+    private String hash;
+
 }
