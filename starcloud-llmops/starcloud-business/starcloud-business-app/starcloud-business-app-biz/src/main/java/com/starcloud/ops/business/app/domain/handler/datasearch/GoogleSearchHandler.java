@@ -89,7 +89,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
      * 包装为文档结构
      */
     @Override
-    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<SearchEngineHandler.Request> context, HandlerResponse<SearchEngineHandler.Response> handlerResponse) {
+    public List<MessageContentDocDTO> convertContentDoc(HandlerContext<SearchEngineHandler.Request> context, HandlerResponse<SearchEngineHandler.Response> handlerResponse) {
 
         //解析返回的内容 生成 MessageContentDocDTO
 

@@ -217,7 +217,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
      * 默认实现，工具类型返回
      */
     @Override
-    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
+    public List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
 
         // 解析返回的内容 生成 MessageContentDocDTO
         List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();

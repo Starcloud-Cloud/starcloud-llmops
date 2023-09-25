@@ -170,7 +170,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
      * 默认实现，工具类型返回
      */
     @Override
-    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
+    public List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
 
 //        StylePresetEnum
         return null;
