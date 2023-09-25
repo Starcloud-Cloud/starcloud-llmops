@@ -164,7 +164,7 @@ public class ContextPrompt extends BasePromptConfig {
 
 
     /**
-     * 发送所有文档内容到前端，让前端转换为。实现"文档来源"功能
+     * 发送所有文档内容到前端，让前端转换为。实现"内容来源"功能
      * 1，搜索到的文档（通过 向量搜索出来的文档块内容）
      * 2，上下文内容（根据当前联网内容获取到的描述内容，LLM通过上下文自行选出的）
      */
@@ -227,9 +227,8 @@ public class ContextPrompt extends BasePromptConfig {
 
             log.info("ContextPrompt loadMessageContentDoc dataSet result:{}", JsonUtils.toJsonString(searchResult));
 
-            this.getMessageContentDocMemory().reloadHistory();
             //直接查询当前上下文内容
-            MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().getHistory();
+            MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
 
             //@todo 对于重复的文档内容，需要过滤掉
             List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
@@ -239,11 +238,6 @@ public class ContextPrompt extends BasePromptConfig {
             }).limit(3).collect(Collectors.toList());
 
             log.info("ContextPrompt loadMessageContentDoc ContentDoc result:{}", JsonUtils.toJsonString(summaryDocs));
-
-            //好像不需要把工具执行的资源结果放到上下文中
-            if (CollectionUtil.isNotEmpty(summaryDocs)) {
-                //sortResult.addAll(summaryDocs);
-            }
 
         } catch (Exception e) {
 
@@ -268,20 +262,18 @@ public class ContextPrompt extends BasePromptConfig {
         if (StrUtil.isNotBlank(query) && Boolean.FALSE.equals(this.googleSearchStatus)) {
 
             HandlerSkill handlerSkill = HandlerSkill.of("GoogleSearchHandler");
-            handlerSkill.getHandler().setMessageContentDocMemory(this.getMessageContentDocMemory());
+            handlerSkill.setMessageContentDocMemory(this.getMessageContentDocMemory());
+
+            //只增加到不保存 上下文
+            handlerSkill.setHistoryStrategy(true, false);
 
             SearchEngineHandler.Request request = new SearchEngineHandler.Request();
             request.setType("content");
             request.setQuery(query);
             this.handlerContext.setRequest(request);
 
-            //@todo 增加message日志
-
-            //已经发送sse 和 保存上下文了
+            //执行并增加结果到上下文
             HandlerResponse handlerResponse = handlerSkill.execute(this.handlerContext);
-
-
-            //@todo 增加message日志
 
             log.info("ContextPrompt googleSearch status: {}, {}: {}", handlerResponse.getSuccess(), query, JsonUtils.toJsonString(handlerResponse.getOutput()));
 

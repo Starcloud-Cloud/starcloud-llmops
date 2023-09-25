@@ -33,13 +33,6 @@ import java.util.stream.Collectors;
 public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
 
     /**
-     * 工具执行结果文档话和历史记录实现
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private MessageContentDocMemory messageContentDocMemory;
-
-    /**
      * 工具名称
      */
     private String toolName;
@@ -90,6 +83,7 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
      *
      * @return
      */
+    @Deprecated
     public Boolean isAddHistory() {
         return true;
     }
@@ -116,7 +110,7 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
      * 包装为 下午文 文档结构
      * 默认实现，工具类型返回
      */
-    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Q> context, HandlerResponse<R> handlerResponse) {
+    public List<MessageContentDocDTO> convertContentDoc(HandlerContext<Q> context, HandlerResponse<R> handlerResponse) {
 
         //解析返回的内容 生成 MessageContentDocDTO
         List<MessageContentDocDTO> messageContentDocDTOList = new ArrayList<>();
@@ -160,36 +154,36 @@ public abstract class BaseToolHandler<Q, R> extends BaseHandler<Q, R> {
     }
 
 
-    /**
-     * 工具类型的handler 的执行记录实现方法
-     *
-     * @param context
-     * @param handlerResponse
-     */
-    public void addRespHistory(HandlerContext<Q> context, HandlerResponse<R> handlerResponse) {
-
-        if (handlerResponse.getSuccess() && this.isAddHistory()) {
-
-            List<MessageContentDocDTO> messageContentDocDTO = this.convertContentDoc(context, handlerResponse);
-
-            List<MessageContentDocDTO> historys = Optional.ofNullable(messageContentDocDTO).orElse(new ArrayList<>()).stream().map(d -> {
-                //执行的 messageId拿不到
-                Map params = new HashMap();
-                params.put("tool", this.getName());
-                params.put("messageId", context.getMessageUid());
-
-                d.setExt(params);
-
-                d.setToolName(this.getName());
-
-                return d;
-            }).collect(Collectors.toList());
-
-            //增加工具使用结果历史
-            this.getMessageContentDocMemory().addHistory(historys);
-        }
-
-
-    }
+//    /**
+//     * 工具类型的handler 的执行记录实现方法
+//     *
+//     * @param context
+//     * @param handlerResponse
+//     */
+//    public void addRespHistory(HandlerContext<Q> context, HandlerResponse<R> handlerResponse) {
+//
+//        if (handlerResponse.getSuccess() && this.isAddHistory()) {
+//
+//            List<MessageContentDocDTO> messageContentDocDTO = this.convertContentDoc(context, handlerResponse);
+//
+//            List<MessageContentDocDTO> historys = Optional.ofNullable(messageContentDocDTO).orElse(new ArrayList<>()).stream().map(d -> {
+//                //执行的 messageId拿不到
+//                Map params = new HashMap();
+//                params.put("tool", this.getName());
+//                params.put("messageId", context.getMessageUid());
+//
+//                d.setExt(params);
+//
+//                d.setToolName(this.getName());
+//
+//                return d;
+//            }).collect(Collectors.toList());
+//
+//            //增加工具使用结果历史
+//            this.getMessageContentDocMemory().addHistory(historys);
+//        }
+//
+//
+//    }
 
 }

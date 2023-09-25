@@ -119,6 +119,22 @@ public class MessageContentDocMemory {
      */
     public void addHistory(List<MessageContentDocDTO> messageContentDocDTOList) {
 
+        Optional.ofNullable(messageContentDocDTOList).orElse(new ArrayList<>()).forEach(doc -> {
+            // 增加到当前历史中，上面异常也可以增加到历史，因为方法传入的就表示有返回值了，可以做为上下文了
+            this.getHistory().addDoc(doc);
+        });
+
+    }
+
+    /**
+     * 保存文档上下文内容
+     * 1，每次都重新查询文档都内容获取 描述或总结
+     * 2，文档状态正常的才会增加到上下文中
+     *
+     * @param messageContentDocDTOList
+     */
+    public void saveHistory(List<MessageContentDocDTO> messageContentDocDTOList) {
+
         this.storageHistoryList(messageContentDocDTOList);
 
         Optional.ofNullable(messageContentDocDTOList).orElse(new ArrayList<>()).forEach(doc -> {
@@ -169,6 +185,7 @@ public class MessageContentDocMemory {
      *
      * @param
      */
+    @Deprecated
     private void storageHistoryList(List<MessageContentDocDTO> docs) {
 
         try {
