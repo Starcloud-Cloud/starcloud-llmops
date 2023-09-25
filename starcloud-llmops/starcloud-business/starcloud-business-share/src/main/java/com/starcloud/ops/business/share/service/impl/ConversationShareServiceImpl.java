@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -159,6 +160,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
         exportReqVO.setAppConversationUid(shareConversationDO.getConversationUid());
         List<LogAppMessageDO> appMessageList = messageService.listAppLogMessage(exportReqVO);
         appMessageList = appMessageList.stream().filter(logAppMessageDO -> logAppMessageDO.getCreateTime().isBefore(shareConversationDO.getCreateTime())).collect(Collectors.toList());
+        Collections.reverse(appMessageList);
         return LogAppMessageConvert.INSTANCE.convertList(appMessageList);
     }
 
