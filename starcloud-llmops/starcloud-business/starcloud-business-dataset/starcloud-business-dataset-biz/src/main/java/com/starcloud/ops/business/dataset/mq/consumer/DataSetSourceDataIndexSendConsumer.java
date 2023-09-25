@@ -86,6 +86,7 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
             message.setStatus(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
             message.setErrCode(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
             message.setErrMsg(message.getErrMsg());
+            updateDataState(message);
             log.error("执行数据创建索引操作失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
         }
     }
