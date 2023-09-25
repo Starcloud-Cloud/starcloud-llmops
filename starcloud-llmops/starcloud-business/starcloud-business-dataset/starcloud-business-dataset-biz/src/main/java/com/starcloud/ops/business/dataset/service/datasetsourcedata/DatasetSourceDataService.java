@@ -59,8 +59,16 @@ public interface DatasetSourceDataService {
      */
     void deleteDatasetSourceData(String uid);
 
+    /**
+     * 删除知识库下的所有数据
+     * @param datasetId 知识库 ID
+     */
+    void deleteAllDataByDatasetId(Long datasetId);
 
-
+    /**
+     * 删除应用下的所有数据
+     * @param appId 应用 ID
+     */
     void deleteAllDataByAppId(String appId);
 
     /**

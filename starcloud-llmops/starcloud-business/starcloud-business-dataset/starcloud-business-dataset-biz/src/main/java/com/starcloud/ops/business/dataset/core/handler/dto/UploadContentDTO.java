@@ -115,4 +115,9 @@ public class UploadContentDTO {
      */
     private Integer summaryContentMaxNums;
 
+    /**
+     * 哈希值
+     */
+    private String hash;
+
 }

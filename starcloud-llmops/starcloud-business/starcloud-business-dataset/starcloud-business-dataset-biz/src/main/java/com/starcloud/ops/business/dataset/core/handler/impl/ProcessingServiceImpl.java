@@ -94,6 +94,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         process.setIndexSync(reqVO.getIndexSync());
         process.setEnableSummary(reqVO.getEnableSummary());
         process.setSummaryContentMaxNums(reqVO.getSummaryContentMaxNums());
+        process.setHash(reqVO.getHash());
         // 执行通用逻辑并且返回
         return commonProcess(process, baseDBHandleDTO);
     }
@@ -120,6 +121,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         process.setIndexSync(reqVO.getIndexSync());
         process.setEnableSummary(reqVO.getEnableSummary());
         process.setSummaryContentMaxNums(reqVO.getSummaryContentMaxNums());
+        process.setHash(reqVO.getHash());
 
         // 执行通用逻辑并且返回
         return commonProcess(process, baseDBHandleDTO);
@@ -143,6 +145,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         process.setIndexSync(reqVO.getIndexSync());
         process.setEnableSummary(reqVO.getEnableSummary());
         process.setSummaryContentMaxNums(reqVO.getSummaryContentMaxNums());
+        process.setHash(reqVO.getHash());
 
         // 执行通用逻辑并且返回
         return commonProcess(process, baseDBHandleDTO);
@@ -253,6 +256,7 @@ public class ProcessingServiceImpl implements ProcessingService {
         dataDO.setDatasetId(process.getDatasetId());
         dataDO.setStatus(DataSetSourceDataStatusEnum.UPLOAD_COMPLETED.getStatus());
         dataDO.setDataSourceInfo(JSONObject.toJSONString(dataSourceInfoDTO));
+        dataDO.setHash(process.getHash());
 
         dataDO.setCreator(String.valueOf(baseDBHandleDTO.getUpdater()));
         dataDO.setUpdater(String.valueOf(baseDBHandleDTO.getUpdater()));
