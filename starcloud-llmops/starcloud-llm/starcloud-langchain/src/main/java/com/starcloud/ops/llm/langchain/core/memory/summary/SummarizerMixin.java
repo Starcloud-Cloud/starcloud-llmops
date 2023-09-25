@@ -93,7 +93,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
     /**
      * 总结输出最大tokens
      */
-    private int summaryMaxTokens = 350;
+    private int summaryMaxTokens = 500;
 
 
     public SummarizerMixin() {

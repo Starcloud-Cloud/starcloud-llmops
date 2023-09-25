@@ -59,11 +59,11 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
     private String userName = "网页和文档分析";
 
-    private String userDescription = "可访问网络上公开的网页，文档内容。可基于内容完成摘要，问答等。仅支持10M以内文档，不支持扫描件";
+    private String userDescription = "可访问网络上公开的网页，文档内容。可基于内容完成摘要，问答等。不支持扫描件";
 
     private String name = "WebSearch2DocHandler";
 
-    private String description = "A portal to the internet. Use this when you need to get specific content from a website. Input should be a  url (i.e. https://www.google.com). The output should be a json string with two keys: \"content\" and\" docKey\". The value of \"content\" is a summary of the content of the website, and the value of\" docKey\" is the tag of the website to point to.";
+    private String description = "A portal to the internet. Use this when you need to get specific content from a website. Input should be a  url (i.e. https://www.google.com). The output should be a json string with two keys: \"content\" and\" docId\". The value of \"content\" is a answer of the content of the website, and the value of\" docId\" is the ID of the website to point to.";
 
     private int summarySubSize = 300;
 
