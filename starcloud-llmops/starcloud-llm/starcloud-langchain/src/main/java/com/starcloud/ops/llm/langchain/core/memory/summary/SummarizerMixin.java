@@ -65,16 +65,21 @@ public abstract class SummarizerMixin extends BaseChatMemory {
             "New summary:";
 
 
-    private static final String DEFAULT_SUMMARIZER_TEMPLATE_HTML = "Based on the content of the web page or document, make a summary and answer relevant questions.\n" +
+    private static final String DEFAULT_SUMMARIZER_TEMPLATE_HTML = "Answer the user's questions based on the content of the web page or the content of the document.\n" +
             "Content: ```\n" +
-            "{new_lines}\n" +
+            "{new_lines}" +
             "```\n" +
-            "Content questions: ```\n" +
+            "\n" +
+            "Questions: ```\n" +
             "{query}\n" +
             "```\n" +
-            "- Identify the language used in the content and use the same language in the results!\n" +
-            "- Remove non-important content, such as ads, messages, chats, etc., before summarizing or answering!\n" +
-            "- The results is limited to {max_tokens} characters!";
+            "Follow these steps to answer your question\n" +
+            "1. Remove content that has no impact on the answer and is not important, such as ads, messages, chats, etc!\n" +
+            "2. Just output the answer and nothing else!\n" +
+            "3. Results are limited to {max_tokens} characters!\n" +
+            "4. Use 中文 or English to answer based on the language of the Questions!!\n" +
+            "\n" +
+            "Answer:";
 
     /**
      * 读取给到的文档内容，并根据相关的问题，进行回答

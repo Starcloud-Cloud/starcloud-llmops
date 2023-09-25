@@ -20,10 +20,7 @@ public class OpenAIConfig {
 
     private Long timeOut;
 
-    @Deprecated
-    private String proxyHost;
-
-    @Value("#{'${starcloud-langchain.model.llm.openai.proxyHost}'.split(',')}")
+//    @Value("#{'${starcloud-langchain.model.llm.openai.proxyHost}'.split(',')}")
     private List<String> proxyHosts;
 
     private int proxyPort;

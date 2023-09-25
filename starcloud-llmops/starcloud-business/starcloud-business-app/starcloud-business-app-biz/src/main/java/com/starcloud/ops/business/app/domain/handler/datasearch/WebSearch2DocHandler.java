@@ -21,6 +21,8 @@ import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
@@ -51,7 +53,9 @@ import java.util.Optional;
 @Component
 public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.Request, WebSearch2DocHandler.Response> {
 
-    private DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
+    private static DatasetSourceDataService datasetSourceDataService = SpringUtil.getBean(DatasetSourceDataService.class);
+
+    private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
     private String userName = "网页和文档分析";
 
@@ -149,7 +153,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
                 InteractiveInfo info = InteractiveInfo.buildUrlCard("分析链接内容并生成回答[" + query + "]...").setToolHandler(this).setInput(context.getRequest());
                 context.sendCallbackInteractiveStart(info);
 
-                String summary = this.processSummary(context.getRequest(), detailsInfoVO.getCleanContent());
+                String summary = this.processSummary(context, detailsInfoVO.getCleanContent());
                 if (StrUtil.isNotBlank(summary)) {
                     result.setContent(summary);
 
@@ -174,12 +178,12 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
      * <p>
      * 执行总结流程，不影响主流程
      */
-    protected String processSummary(Request request, String content) {
+    protected String processSummary(HandlerContext<Request> context, String content) {
 
         log.info("WebSearch2DocHandler processSummary start");
         String summary = null;
 
-        BaseLLMResult baseLLMResult = SummarizerMixin.summaryContentCall(content, request.getQuery(), 500);
+        BaseLLMResult baseLLMResult = SummarizerMixin.summaryContentCall(content, context.getRequest().getQuery(), 500);
 
         //失败不影响主流程
         if (baseLLMResult != null) {
@@ -204,6 +208,12 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
             sourceDataDO.setSummaryModel(llmModel);
             sourceDataDO.setSummaryTokens(llmUsage.getTotalTokens());
             sourceDataDO.setSummaryTotalPrice(totalPrice);
+
+            //先记录到权益上
+            //@todo 无法获取到messageId, 只能用个临时的标识处理
+            String outId = "web2doc_summary_" + context.getAppUid();
+            benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), llmUsage.getTotalTokens(), context.getUserId(), outId);
+
 
             log.info("WebSearch2DocHandler processSummary end: {}", JsonUtils.toJsonString(sourceDataDO));
         }

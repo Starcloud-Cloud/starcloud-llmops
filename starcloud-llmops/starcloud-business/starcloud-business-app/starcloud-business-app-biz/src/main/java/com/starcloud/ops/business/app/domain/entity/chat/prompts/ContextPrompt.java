@@ -168,14 +168,14 @@ public class ContextPrompt extends BasePromptConfig {
      * 1，搜索到的文档（通过 向量搜索出来的文档块内容）
      * 2，上下文内容（根据当前联网内容获取到的描述内容，LLM通过上下文自行选出的）
      */
-    public void sendDocsInteractive(List<MessageContentDocDTO> messageContentDocDTOS) {
+    public void sendContextInteractive(List<MessageContentDocDTO> messageContentDocDTOS) {
 
         if (CollectionUtil.isNotEmpty(messageContentDocDTOS)) {
 
             InteractiveInfo interactiveInfo = InteractiveInfo.buildMessageContent(messageContentDocDTOS);
 
             ChatRequestVO request = this.getChatRequestVO();
-            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive("docs", interactiveInfo);
+            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive("context", interactiveInfo);
         }
     }
 
@@ -190,7 +190,7 @@ public class ContextPrompt extends BasePromptConfig {
             List<MessageContentDocDTO> sortResult = this.loadMessageContentDoc();
 
             //发送到前端
-            this.sendDocsInteractive(sortResult);
+            this.sendContextInteractive(sortResult);
 
             return PromptUtil.parseDocContentLines(sortResult);
         });
@@ -231,13 +231,15 @@ public class ContextPrompt extends BasePromptConfig {
             MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
 
             //@todo 对于重复的文档内容，需要过滤掉
-            List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
+            List<MessageContentDocDTO> docsHistory = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
                 //id 为空说明 上游异常没保存下来，当时这里还是需要作文上下文处理的. 不支持工具到返回结果，因为工具的结果已经放在的message历史中给到LLM了
                 return StrUtil.isNotBlank(docDTO.getContent()) && !MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.equals(docDTO.getType());
                 //数据太多，只能先取前5条
             }).limit(3).collect(Collectors.toList());
 
-            log.info("ContextPrompt loadMessageContentDoc ContentDoc result:{}", JsonUtils.toJsonString(summaryDocs));
+            sortResult.addAll(docsHistory);
+
+            log.info("ContextPrompt loadMessageContentDoc ContentDoc result:{}", JsonUtils.toJsonString(docsHistory));
 
         } catch (Exception e) {
 
@@ -264,7 +266,7 @@ public class ContextPrompt extends BasePromptConfig {
             HandlerSkill handlerSkill = HandlerSkill.of("GoogleSearchHandler");
             handlerSkill.setMessageContentDocMemory(this.getMessageContentDocMemory());
 
-            //只增加到不保存 上下文
+            //只增加但不保存 上下文
             handlerSkill.setHistoryStrategy(true, false);
 
             SearchEngineHandler.Request request = new SearchEngineHandler.Request();
