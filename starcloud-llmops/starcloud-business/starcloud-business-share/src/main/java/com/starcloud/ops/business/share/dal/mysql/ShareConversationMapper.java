@@ -25,6 +25,12 @@ public interface ShareConversationMapper extends BaseMapperX<ShareConversationDO
         return selectList(wrapper);
     }
 
+    default void delete(String appUid) {
+        LambdaQueryWrapper<ShareConversationDO> wrapper = Wrappers.lambdaQuery(ShareConversationDO.class)
+                .eq(ShareConversationDO::getAppUid, appUid);
+        delete(wrapper);
+    }
+
     default void modify(ConversationShareReq req) {
         LambdaUpdateWrapper<ShareConversationDO> updateWrapper = Wrappers.lambdaUpdate(ShareConversationDO.class)
                 .eq(ShareConversationDO::getUid, req.getUid())

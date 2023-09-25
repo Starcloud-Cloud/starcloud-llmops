@@ -391,10 +391,6 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         Assert.notBlank(appId,"删除数据失败，应用 ID为空");
         List<DatasetsDO> datasetsDOS = datasetsService.getAllDatasetInfoByAppId(appId);
 
-        if (CollUtil.isEmpty(datasetsDOS)){
-            throw exception(DATASETS_APPID_NOT_EXISTS);
-        }
-
         log.info("准备删除知识库下的数据，当前知识库下的数据包含{}条",datasetsDOS.size());
         datasetsDOS.forEach(datasetsDO ->  deleteDatasetSourceData(datasetsDO.getUid()));
     }

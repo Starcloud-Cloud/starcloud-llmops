@@ -42,6 +42,14 @@ public interface ChatExpandConfigService {
     void delete(String uid);
 
     /**
+     * appUid
+     * 删除我的应用配置，渠道配置
+     *
+     * @param appUid
+     */
+    void deleteByAppUid(String appUid);
+
+    /**
      * 发布 copy配置
      * @param sourceConfigId
      * @param targetConfigId

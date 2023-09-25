@@ -35,10 +35,16 @@ public interface ChatExpandConfigMapper extends BaseMapperX<ChatExpandConfigDO> 
         return this.selectList(wrapper);
     }
 
+    default void deleteByConfigId(String appConfigId) {
+        LambdaQueryWrapper<ChatExpandConfigDO> wrapper = Wrappers.lambdaQuery(ChatExpandConfigDO.class)
+                .eq(ChatExpandConfigDO::getAppConfigId, appConfigId);
+        this.delete(wrapper);
+    }
+
     default int modify(ChatExpandConfigDO configDO) {
         LambdaUpdateWrapper<ChatExpandConfigDO> updateWrapper = Wrappers.lambdaUpdate(ChatExpandConfigDO.class)
                 .eq(ChatExpandConfigDO::getUid, configDO.getUid())
-                .eq(ChatExpandConfigDO::getType,configDO.getType())
+                .eq(ChatExpandConfigDO::getType, configDO.getType())
                 .set(configDO.getDisabled() != null, ChatExpandConfigDO::getDisabled, configDO.getDisabled())
                 .set(configDO.getConfig() != null, ChatExpandConfigDO::getConfig, configDO.getConfig());
         return this.update(null, updateWrapper);
