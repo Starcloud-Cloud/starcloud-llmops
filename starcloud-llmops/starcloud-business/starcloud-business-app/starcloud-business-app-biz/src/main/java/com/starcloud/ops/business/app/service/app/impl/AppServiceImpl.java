@@ -26,6 +26,7 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
@@ -56,6 +57,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private AppDeleteProducer appDeleteProducer;
 
     /**
      * 查询应用分类列表
@@ -197,6 +201,8 @@ public class AppServiceImpl implements AppService {
         appMapper.delete(uid);
         // 删除应用发布信息
         appPublishService.deleteByAppUid(uid);
+        // 删除其他资源
+        appDeleteProducer.send(uid);
     }
 
     /**

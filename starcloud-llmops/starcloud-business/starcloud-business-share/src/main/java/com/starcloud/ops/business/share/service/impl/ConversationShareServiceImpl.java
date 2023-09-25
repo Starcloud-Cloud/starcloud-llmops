@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.share.service.impl;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -142,6 +143,12 @@ public class ConversationShareServiceImpl implements ConversationShareService {
             throw exception(new ErrorCode(500, "uid 不能为空"));
         }
         shareConversationMapper.modify(req);
+    }
+
+    @Override
+    public void deleteShare(String appUid) {
+        Assert.notBlank(appUid,"删除数据失败，appUid为空");
+        shareConversationMapper.delete(appUid);
     }
 
     @Override

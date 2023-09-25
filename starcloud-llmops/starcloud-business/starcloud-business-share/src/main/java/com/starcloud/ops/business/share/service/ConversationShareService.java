@@ -25,6 +25,13 @@ public interface ConversationShareService {
     void modifyRecord(ConversationShareReq req);
 
     /**
+     * 删除分享记录
+     *
+     * @param appUid
+     */
+    void deleteShare(String appUid);
+
+    /**
      * 分享的会话记录
      *
      * @param shareKey
@@ -50,6 +57,7 @@ public interface ConversationShareService {
 
     /**
      * 风险记录详情
+     *
      * @param shareKey
      * @return
      */
