@@ -2,6 +2,7 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
@@ -42,6 +43,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.validation.annotation.Validated;
 
@@ -49,6 +51,8 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -357,6 +361,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
 
     @Override
+    @Transactional
     public void deleteDatasetSourceData(String uid) {
 
         // 校验存在
@@ -364,11 +369,12 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
         DatasetSourceDataDO dataDO = getSourceDataByUID(uid, null);
 
+        LocalDateTime now = LocalDateTimeUtil.now();
         if (CollUtil.contains(Arrays.asList(
                 DataSetSourceDataStatusEnum.CLEANING_ERROR.getStatus(),
                 DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(),
                 DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus(),
-                DataSetSourceDataStatusEnum.COMPLETED.getStatus()),dataDO.getStatus())) {
+                DataSetSourceDataStatusEnum.COMPLETED.getStatus()),dataDO.getStatus())|| (dataDO.getCreateTime().isBefore(now) && dataDO.getCreateTime().isBefore(now.plusHours(1)))){
 
             // 删除索引 和 删除分块数据
             documentSegmentsService.deleteSegment(String.valueOf(dataDO.getDatasetId()),String.valueOf(dataDO.getId()));
@@ -383,6 +389,21 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
 
     }
 
+    /** 删除知识库下所有的数据
+     * @param  datasetId   知识库  ID
+     */
+    @Override
+    @Transactional
+    public void deleteAllDataByDatasetId(Long datasetId) {
+        List<DatasetSourceDataDO> datasetSourceDataDOS = datasetSourceDataMapper.selectList(
+                Wrappers.lambdaQuery(DatasetSourceDataDO.class).eq(DatasetSourceDataDO::getDatasetId, datasetId));
+        if (CollUtil.isNotEmpty(datasetSourceDataDOS)) {
+            log.info("准备删除知识库下的数据，当前知识库下的数据包含{}条",datasetSourceDataDOS.size());
+            // 根据知识库 获取数据 ID
+            datasetSourceDataDOS.forEach(dataDO ->  deleteDatasetSourceData(dataDO.getUid()));
+        }
+    }
+
     /** 删除应用下所有的数据
      * @param appId  应用 ID
      */
@@ -391,8 +412,9 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
         Assert.notBlank(appId,"删除数据失败，应用 ID为空");
         List<DatasetsDO> datasetsDOS = datasetsService.getAllDatasetInfoByAppId(appId);
 
-        log.info("准备删除知识库下的数据，当前知识库下的数据包含{}条",datasetsDOS.size());
-        datasetsDOS.forEach(datasetsDO ->  deleteDatasetSourceData(datasetsDO.getUid()));
+        log.info("准备删除应用下的数据，当前知识库下的数据包含{}条",datasetsDOS.size());
+        // 根据知识库 获取数据 ID
+        datasetsDOS.forEach(datasetsDO ->  deleteAllDataByDatasetId(datasetsDO.getId()));
     }
 
     /**
