@@ -1,13 +1,12 @@
 package com.starcloud.ops.business.app.api.image.vo.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.time.LocalDateTime;
 
 /**
  * @author nacoyer
@@ -19,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "图像信息实体")
 public class GenerateImageResponse extends BaseImageResponse {
 
@@ -65,11 +65,5 @@ public class GenerateImageResponse extends BaseImageResponse {
      */
     @Schema(description = "图片的类型")
     private String stylePreset;
-
-    /**
-     * 生成的图片时间
-     */
-    @Schema(description = "生成的图片时间")
-    private LocalDateTime createTime;
 
 }

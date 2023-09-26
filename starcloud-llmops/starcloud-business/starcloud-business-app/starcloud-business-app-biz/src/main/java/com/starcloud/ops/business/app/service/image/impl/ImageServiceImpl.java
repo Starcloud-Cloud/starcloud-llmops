@@ -14,7 +14,6 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.image.vo.query.HistoryGenerateImagePageQuery;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
-import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
@@ -114,7 +113,6 @@ public class ImageServiceImpl implements ImageService {
                     }
                     GenerateImageResponse imageResponse = new GenerateImageResponse();
                     imageResponse.setPrompt(item.getMessage());
-                    imageResponse.setCreateTime(item.getCreateTime());
                     imageResponse.setImages(imageList);
                     GenerateImageRequest imageRequest = JSONUtil.toBean(item.getVariables(), GenerateImageRequest.class);
                     if (Objects.nonNull(imageRequest)) {

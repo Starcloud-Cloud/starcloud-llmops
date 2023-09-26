@@ -150,8 +150,8 @@ public class AppFactory {
             RecommendAppEnum imageApp = RecommendAppEnum.valueOf(appUid);
             ImageAppEntity imageAppEntity = new ImageAppEntity();
             imageAppEntity.setUid(appUid);
-            imageAppEntity.setName(imageApp.name());
-            imageAppEntity.setModel(AppModelEnum.IMAGE.name());
+            imageAppEntity.setName(imageApp.getLabel());
+            imageAppEntity.setModel(StringUtils.isBlank(request.getMode()) ? AppModelEnum.IMAGE.name() : request.getMode());
             imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.valueOf(request.getScene()).name()));
             imageAppEntity.setType(AppTypeEnum.MYSELF.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());

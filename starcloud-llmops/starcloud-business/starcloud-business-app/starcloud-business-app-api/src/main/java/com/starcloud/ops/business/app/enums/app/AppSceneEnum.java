@@ -126,7 +126,17 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 生成记录基础场景
      */
-    public static final List<AppSceneEnum> GENERATE_RECORD_BASE_SCENES = Arrays.asList(WEB_ADMIN, WEB_MARKET, WEB_IMAGE);
+    public static final List<AppSceneEnum> GENERATE_RECORD_BASE_SCENES = Arrays.asList(
+            WEB_ADMIN,
+            WEB_MARKET,
+            WEB_IMAGE,
+            IMAGE_UPSCALING,
+            IMAGE_REMOVE_BACKGROUND,
+            IMAGE_REPLACE_BACKGROUND,
+            IMAGE_REMOVE_TEXT,
+            IMAGE_SKETCH,
+            IMAGE_VARIANTS
+    );
 
     /**
      * 应用分析场景
