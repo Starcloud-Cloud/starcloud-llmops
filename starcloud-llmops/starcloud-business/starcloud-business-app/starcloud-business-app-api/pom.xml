@@ -24,11 +24,6 @@
             <artifactId>yudao-common</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-
         <!-- 参数校验 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

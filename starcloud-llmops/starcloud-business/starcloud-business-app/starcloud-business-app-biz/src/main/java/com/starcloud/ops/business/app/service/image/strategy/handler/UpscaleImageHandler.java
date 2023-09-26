@@ -52,7 +52,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      */
     @Override
     public void handleRequest(UpscaleImageRequest request) {
-        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
+        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求开始");
         if (StringUtils.isBlank(request.getEngine())) {
             request.setEngine(EngineEnum.ESRGAN_V1_X2PLUS.name());
         }
@@ -84,7 +84,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
 
         // 获取原始图像二进制数据
         byte[] imageBytes = ImageUploadUtils.getContent(request.getInitImage());
-        request.setInitImageBinary(imageBytes);
+
         try {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (Objects.isNull(image)) {
@@ -121,6 +121,8 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         }
 
         log.info("UpscaleImageHandler handleRequest: 处理放大图片请求结束：处理后数据：{}", JSON.toJSONString(request));
+
+        request.setInitImageBinary(imageBytes);
     }
 
     /**

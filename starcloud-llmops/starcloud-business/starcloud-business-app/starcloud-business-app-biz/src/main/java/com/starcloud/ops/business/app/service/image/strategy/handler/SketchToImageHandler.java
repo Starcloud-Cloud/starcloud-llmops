@@ -45,7 +45,7 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      */
     @Override
     public void handleRequest(SketchToImageRequest request) {
-        log.info("SketchToImageHandler handleRequest: 草图生成图片不需要处理：处理前数据：{}", JSONUtil.toJsonStr(request));
+        log.info("SketchToImageHandler handleRequest: 草图生成图片不需要处理");
     }
 
     /**
@@ -56,7 +56,7 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      */
     @Override
     public SketchToImageResponse handle(SketchToImageRequest request) {
-        log.info("SketchToImageHandler handle: 草图生成图片开始：{}", JSONUtil.toJsonStr(request));
+        log.info("SketchToImageHandler handle: 草图生成图片开始");
         // 上传草图
         byte[] imageBytes = ImageUtils.handlerBase64Image(request.getSketchImage()).getBytes(StandardCharsets.UTF_8);
         String uuid = IdUtil.fastSimpleUUID();
