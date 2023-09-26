@@ -77,6 +77,6 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, RemoveBackgroundRequest request, RemoveBackgroundResponse response) {
-        log.info("RemoveBackgroundHandler handleLogMessage: 默认不处理日志消息信息：");
+        messageRequest.setAiModel("clip-drop");
     }
 }

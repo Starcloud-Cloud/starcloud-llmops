@@ -77,6 +77,6 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, RemoveTextRequest request, RemoveTextResponse response) {
-        log.info("RemoveTextHandler handleLogMessage: 默认不处理日志消息信息：");
+        messageRequest.setAiModel("clip-drop");
     }
 }

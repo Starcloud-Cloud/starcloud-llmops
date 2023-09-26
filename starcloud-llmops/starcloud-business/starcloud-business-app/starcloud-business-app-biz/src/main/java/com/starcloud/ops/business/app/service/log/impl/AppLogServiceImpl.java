@@ -10,7 +10,6 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
@@ -142,9 +141,6 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     public Page<LogAppMessageRespVO> pageAppLogMessage(AppLogMessageQuery query) {
-        if (StringUtils.isBlank(query.getAppUid())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用UID[appUid]为必填项"));
-        }
         LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
         wrapper.eq(LogAppMessageDO::getAppUid, query.getAppUid());
         wrapper.eq(StringUtils.isNotBlank(query.getAppMode()), LogAppMessageDO::getAppMode, query.getAppMode());
@@ -185,8 +181,6 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     public List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(AppLogMessageStatisticsListUidReqVO query) {
-        // 应用 UID 不能为空
-        AppValidate.notBlank(query.getAppUid(), new ErrorCode(3000001, "应用分析时，应用UID[appUid]为必填项"));
         // 查询应用类型
         AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
         AppValidate.notNull(app, APP_NO_EXISTS_UID, query.getAppUid());
@@ -596,6 +590,12 @@ public class AppLogServiceImpl implements AppLogService {
      * @return ImageLogMessageRespVO
      */
     private ImageLogMessageRespVO transformImageLogMessage(LogAppMessageDO message, LogAppConversationDO conversation) {
+        // 处理响应结果
+        BaseImageResponse baseImageResponse = transformImageMessage(message);
+        if (Objects.isNull(baseImageResponse) || CollectionUtil.isEmpty(baseImageResponse.getImages())) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "图片生成消息不存在"));
+        }
+
         ImageLogMessageRespVO imageLogMessageResponse = new ImageLogMessageRespVO();
         imageLogMessageResponse.setUid(message.getUid());
         imageLogMessageResponse.setConversationUid(message.getAppConversationUid());
@@ -610,7 +610,7 @@ public class AppLogServiceImpl implements AppLogService {
         imageLogMessageResponse.setErrorMessage(message.getErrorMsg());
         imageLogMessageResponse.setAppExecutor(UserUtils.identify(message.getCreator(), message.getEndUser()));
         imageLogMessageResponse.setCreateTime(message.getCreateTime());
-        imageLogMessageResponse.setImageInfo(transformImageMessage(message));
+        imageLogMessageResponse.setImageInfo(baseImageResponse);
         return imageLogMessageResponse;
     }
 
@@ -620,7 +620,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @param message 消息
      * @return ImageMessageRespVO
      */
-    private GenerateImageResponse transformImageMessage(LogAppMessageDO message) {
+    private BaseImageResponse transformImageMessage(LogAppMessageDO message) {
         // 如果没有结果，直接返回 null
         if (StringUtils.isBlank(message.getAnswer())) {
             return null;
@@ -629,38 +629,40 @@ public class AppLogServiceImpl implements AppLogService {
         // 新的数据结构
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            BaseImageResponse imageResponse = objectMapper.readValue(message.getAnswer(), BaseImageResponse.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return objectMapper.readValue(message.getAnswer(), BaseImageResponse.class);
+        } catch (Exception exception) {
+            // 兼容老结构数据
+            try {
+                // 获取图片列表
+                TypeReference<List<ImageDTO>> typeReference = new TypeReference<List<ImageDTO>>() {
+                };
+                List<ImageDTO> imageList = CollectionUtil.emptyIfNull(JSONUtil.toBean(message.getAnswer(), typeReference, Boolean.TRUE)).stream()
+                        .filter(imageItem -> Objects.nonNull(imageItem) && StringUtils.isNotBlank(imageItem.getUrl()))
+                        .collect(Collectors.toList());
+                // 如果没有结果，返回 null
+                if (CollectionUtil.isEmpty(imageList)) {
+                    return null;
+                }
+                // 构建图片响应
+                GenerateImageResponse imageResponse = new GenerateImageResponse();
+                imageResponse.setPrompt(message.getMessage());
+                imageResponse.setCreateTime(message.getCreateTime());
+                imageResponse.setImages(imageList);
+                GenerateImageRequest imageRequest = JSONUtil.toBean(message.getVariables(), GenerateImageRequest.class, Boolean.TRUE);
+                if (Objects.nonNull(imageRequest)) {
+                    imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.FALSE));
+                    imageResponse.setEngine(imageRequest.getEngine());
+                    imageResponse.setWidth(imageRequest.getWidth());
+                    imageResponse.setHeight(imageRequest.getHeight());
+                    imageResponse.setSteps(imageRequest.getSteps());
+                    imageResponse.setStylePreset(imageRequest.getStylePreset());
+                }
+                return imageResponse;
+            } catch (Exception exception1) {
+                log.error("转换图片响应消息响应异常: {}", exception1.getMessage());
+                return null;
+            }
         }
-
-        // 获取图片列表
-        TypeReference<List<ImageDTO>> typeReference = new TypeReference<List<ImageDTO>>() {
-        };
-        List<ImageDTO> imageList = CollectionUtil.emptyIfNull(JSONUtil.toBean(message.getAnswer(), typeReference, Boolean.TRUE)).stream()
-                .filter(imageItem -> Objects.nonNull(imageItem) && StringUtils.isNotBlank(imageItem.getUrl()))
-                .collect(Collectors.toList());
-
-        // 如果没有结果，返回 null
-        if (CollectionUtil.isEmpty(imageList)) {
-            return null;
-        }
-
-        // 构建图片响应
-        GenerateImageResponse imageResponse = new GenerateImageResponse();
-        imageResponse.setPrompt(message.getMessage());
-        imageResponse.setCreateTime(message.getCreateTime());
-        imageResponse.setImages(imageList);
-        GenerateImageRequest imageRequest = JSONUtil.toBean(message.getAppConfig(), GenerateImageRequest.class);
-        if (imageRequest != null) {
-            imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.FALSE));
-            imageResponse.setEngine(imageRequest.getEngine());
-            imageResponse.setWidth(imageRequest.getWidth());
-            imageResponse.setHeight(imageRequest.getHeight());
-            imageResponse.setSteps(imageRequest.getSteps());
-        }
-
-        return imageResponse;
     }
 
     /**

@@ -89,8 +89,7 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, SketchToImageRequest request, SketchToImageResponse response) {
-        log.info("SketchToImageHandler handleLogMessage: 草图生成图片处理日志消息开始...");
         messageRequest.setMessage(request.getPrompt());
-        log.info("SketchToImageHandler handleLogMessage: 草图生成图片处理日志消息结束...");
+        messageRequest.setAiModel("clip-drop");
     }
 }

@@ -68,8 +68,8 @@ public class ImageController {
         return CommonResult.success(imageService.upload(image));
     }
 
-    @PostMapping("/text-to-image")
-    @Operation(summary = "文本生成图片", description = "文本生成图片")
+    @PostMapping("/generate")
+    @Operation(summary = "图片生成接口(文生图，图生图)", description = "图片生成接口(文生图，图生图)")
     @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<ImageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
         request.setAppUid(RecommendAppEnum.GENERATE_IMAGE.name());

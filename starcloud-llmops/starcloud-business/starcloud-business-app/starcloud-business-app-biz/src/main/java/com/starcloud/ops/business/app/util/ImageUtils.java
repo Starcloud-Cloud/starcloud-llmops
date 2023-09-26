@@ -289,7 +289,10 @@ public class ImageUtils {
             if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
                 return "";
             } else {
-                return negativePrompt.substring(AppConstants.DEFAULT_NEGATIVE_PROMPT.length() + 2);
+                String negative = negativePrompt.substring(AppConstants.DEFAULT_NEGATIVE_PROMPT.length()).trim();
+                if (StringUtils.startsWith(negative, ",") || StringUtils.startsWith(negative, "，") || StringUtils.startsWith(negative, ".") || StringUtils.startsWith(negative, "。")) {
+                    return negative.substring(1).trim();
+                }
             }
         }
         return negativePrompt;
