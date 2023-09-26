@@ -62,6 +62,12 @@ public class MobilePhoneServiceImpl implements CommunicationService {
     @Override
     public void sendCode(CodeSendReqVO reqVO) {
         checkAccount(reqVO.getAccount());
+        if (ADMIN_MEMBER_BIND.getScene().equals(reqVO.getScene())) {
+            AdminUserDO userByMobile = adminUserService.getUserByMobile(reqVO.getAccount());
+            if (userByMobile != null) {
+                throw exception(USER_MOBILE_EXISTS);
+            }
+        }
         smsCodeApi.sendSmsCode(SmsConvert.INSTANCE.smsVo2SendDTO(reqVO).setCreateIp(getClientIP()));
     }
 
