@@ -8,4 +8,6 @@ public interface DictTypeConstants {
     String WECHAT_MSG = "wechat_msg";
 
     String WX_REGISTER_MSG = "wx_register_msg";
+
+    String WECHAT_APP = "WECHAT_APP";
 }
