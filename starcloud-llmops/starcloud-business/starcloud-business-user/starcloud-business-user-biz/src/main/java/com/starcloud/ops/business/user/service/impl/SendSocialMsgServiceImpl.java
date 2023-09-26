@@ -1,11 +1,9 @@
 package com.starcloud.ops.business.user.service.impl;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
-import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpAutoReplyDO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
-import cn.iocoder.yudao.module.mp.enums.message.MpAutoReplyTypeEnum;
+import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyServiceImpl;
 import cn.iocoder.yudao.module.mp.service.message.MpMessageService;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
@@ -14,27 +12,28 @@ import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
+import com.starcloud.ops.business.user.api.SendUserMsgService;
 import com.starcloud.ops.business.user.dal.dataObject.InvitationRecordsDO;
 import com.starcloud.ops.business.user.service.InvitationRecordsService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
-import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_MSG;
-import static com.starcloud.ops.business.user.enums.DictTypeConstants.WX_REGISTER_MSG;
+import static com.starcloud.ops.business.user.enums.DictTypeConstants.*;
 
 
 @Service
 @Slf4j
-public class SendSocialMsgServiceImpl implements SendSocialMsgService {
+public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserMsgService {
 
     private final static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 8,
             60, TimeUnit.MICROSECONDS, new SynchronousQueue<>(), new ThreadFactory() {
@@ -61,15 +60,14 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService {
     private InvitationRecordsService invitationRecordsService;
 
     @Resource
-    private MpAutoReplyServiceImpl mpAutoReplyService;
-
-    @Resource
     private MpMessageService messageService;
 
 
     @Override
     public void sendInviteMsg(Long inviteUserid) {
-        List<SocialUserDO> socialUserList = socialUserService.getSocialUserList(inviteUserid, UserTypeEnum.ADMIN.getValue());
+        List<SocialUserDO> socialUserList = socialUserService.getSocialUserList(inviteUserid, UserTypeEnum.ADMIN.getValue())
+                .stream().filter(socialUserDO -> SocialTypeEnum.WECHAT_MP.getType().equals(socialUserDO.getType()))
+                .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(socialUserList)) {
             return;
         }
@@ -82,6 +80,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService {
         log.info("邀请记录超过3个，发送推广信息");
         SocialUserDO socialUserDO = socialUserList.get(0);
         DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_MSG, "invite_reply");
+        MpContextHolder.setAppId(dictDataService.parseDictData(WECHAT_APP, "app_id").getValue());
         MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
         String format = String.format(dictDataDO.getValue(), invitationRecords.size());
         messageSendReqVO.setContent(format);
@@ -118,4 +117,26 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService {
         });
     }
 
+    @Override
+    public void sendMsgToWx(Long userId, String content) {
+        Optional<SocialUserDO> socialUserOptional = socialUserService.getSocialUserList(userId, UserTypeEnum.ADMIN.getValue())
+                .stream().filter(socialUserDO -> SocialTypeEnum.WECHAT_MP.getType().equals(socialUserDO.getType()))
+                .findFirst();
+        if (!socialUserOptional.isPresent()) {
+            log.warn("用户:{},未绑定公共号", userId);
+            return;
+        }
+        SocialUserDO socialUserDO = socialUserOptional.get();
+        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
+        MpContextHolder.setAppId(dictDataDO.getValue());
+
+        MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
+        messageSendReqVO.setContent(content);
+        messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
+        try {
+            messageService.sendMessage(socialUserDO.getOpenid(), messageSendReqVO);
+        } catch (Exception e) {
+            log.warn("发送公共号消息失败, userId = {}, error = {}", userId, e.getMessage());
+        }
+    }
 }
