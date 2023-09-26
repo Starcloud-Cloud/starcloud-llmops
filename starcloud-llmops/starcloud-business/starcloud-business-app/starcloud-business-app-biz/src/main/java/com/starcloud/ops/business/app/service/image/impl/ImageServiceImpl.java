@@ -5,21 +5,23 @@ import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
-import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.image.vo.query.HistoryGenerateImagePageQuery;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageHandlerHolder;
@@ -59,9 +61,6 @@ public class ImageServiceImpl implements ImageService {
     private AppDictionaryService appDictionaryService;
 
     @Resource
-    private FileApi fileApi;
-
-    @Resource
     private ImageHandlerHolder imageHandlerHolder;
 
     /**
@@ -99,27 +98,38 @@ public class ImageServiceImpl implements ImageService {
             if (StringUtils.isBlank(item.getAnswer())) {
                 return null;
             }
-            List<ImageDTO> imageList = JSONUtil.toBean(item.getAnswer(), new TypeReference<List<ImageDTO>>() {
-            }, true);
-            // 排除掉空的和没有 url 的图片
-            imageList = imageList.stream().filter(Objects::nonNull).filter(imageItem -> StringUtils.isNotBlank(imageItem.getUrl())).collect(Collectors.toList());
-            // 如果没有结果，返回 null
-            if (CollectionUtil.isEmpty(imageList)) {
-                return null;
+            // 新的数据结构
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return (GenerateImageResponse) objectMapper.readValue(item.getAnswer(), BaseImageResponse.class);
+            } catch (Exception exception) {
+                try {
+                    List<ImageDTO> imageList = JSONUtil.toBean(item.getAnswer(), new TypeReference<List<ImageDTO>>() {
+                    }, true);
+                    // 排除掉空的和没有 url 的图片
+                    imageList = imageList.stream().filter(Objects::nonNull).filter(imageItem -> StringUtils.isNotBlank(imageItem.getUrl())).collect(Collectors.toList());
+                    // 如果没有结果，返回 null
+                    if (CollectionUtil.isEmpty(imageList)) {
+                        return null;
+                    }
+                    GenerateImageResponse imageResponse = new GenerateImageResponse();
+                    imageResponse.setPrompt(item.getMessage());
+                    imageResponse.setCreateTime(item.getCreateTime());
+                    imageResponse.setImages(imageList);
+                    GenerateImageRequest imageRequest = JSONUtil.toBean(item.getAppConfig(), GenerateImageRequest.class);
+                    if (imageRequest != null) {
+                        imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.FALSE));
+                        imageResponse.setEngine(imageRequest.getEngine());
+                        imageResponse.setWidth(imageRequest.getWidth());
+                        imageResponse.setHeight(imageRequest.getHeight());
+                        imageResponse.setSteps(imageRequest.getSteps());
+                    }
+                    return imageResponse;
+                } catch (Exception e) {
+                    log.error("historyGenerateImages error", e);
+                    return null;
+                }
             }
-            GenerateImageResponse imageResponse = new GenerateImageResponse();
-            imageResponse.setPrompt(item.getMessage());
-            imageResponse.setCreateTime(item.getCreateTime());
-            imageResponse.setImages(imageList);
-            GenerateImageRequest imageRequest = JSONUtil.toBean(item.getAppConfig(), GenerateImageRequest.class);
-            if (imageRequest != null) {
-                imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.FALSE));
-                imageResponse.setEngine(imageRequest.getEngine());
-                imageResponse.setWidth(imageRequest.getWidth());
-                imageResponse.setHeight(imageRequest.getHeight());
-                imageResponse.setSteps(imageRequest.getSteps());
-            }
-            return imageResponse;
         }).filter(Objects::nonNull).collect(Collectors.toList());
         return new PageResult<>(list, page.getTotal());
     }
@@ -168,6 +178,7 @@ public class ImageServiceImpl implements ImageService {
         LambdaQueryWrapper<LogAppMessageDO> messageWrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
         messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer, LogAppMessageDO::getAppConfig);
         messageWrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.IMAGE.name());
+        messageWrapper.eq(LogAppMessageDO::getFromScene, AppSceneEnum.WEB_IMAGE.name());
         messageWrapper.eq(LogAppMessageDO::getCreator, Long.toString(loginUserId));
         messageWrapper.eq(LogAppMessageDO::getStatus, LogStatusEnum.SUCCESS.name());
         messageWrapper.eq(LogAppMessageDO::getDeleted, Boolean.FALSE);
