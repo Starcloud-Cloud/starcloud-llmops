@@ -6,9 +6,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
+import java.io.File;
 
 /**
  * 只有 imageFile 的请求
@@ -32,6 +32,6 @@ public class ImageFileClipDropRequest extends ClipDropImageRequest {
     @Schema(description = "需要处理的图片")
     @NotNull(message = "需要处理的图片不能为空")
     @FormProperty("image_file")
-    private MultipartFile imageFile;
+    private File imageFile;
 
 }

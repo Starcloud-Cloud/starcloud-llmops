@@ -10,11 +10,14 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
+import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
@@ -35,15 +38,15 @@ import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.LogAppApi;
-import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
-import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -389,7 +392,7 @@ public class AppLogServiceImpl implements AppLogService {
         AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
 
         // 获取消息列表
-        Page<LogAppMessageDO> appMessagePage = logAppMessageService.listAppLogMessage(query);
+        Page<LogAppMessageDO> appMessagePage = logAppMessageService.pageAppLogMessage(query);
         List<LogAppMessageDO> appMessageList = appMessagePage.getRecords();
         // 校验日志消息是否存在
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
@@ -461,7 +464,7 @@ public class AppLogServiceImpl implements AppLogService {
         AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
 
         // 获取消息列表
-        Page<LogAppMessageDO> appMessagePage = logAppMessageService.listAppLogMessage(query);
+        Page<LogAppMessageDO> appMessagePage = logAppMessageService.pageAppLogMessage(query);
         List<LogAppMessageDO> appMessageList = appMessagePage.getRecords();
         // 校验日志消息是否存在
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
@@ -604,8 +607,8 @@ public class AppLogServiceImpl implements AppLogService {
         imageLogMessageResponse.setElapsed(message.getElapsed());
         imageLogMessageResponse.setStatus(message.getStatus());
         imageLogMessageResponse.setErrorCode(message.getErrorCode());
-        imageLogMessageResponse.setAppExecutor(UserUtils.identify(message.getCreator(), message.getEndUser()));
         imageLogMessageResponse.setErrorMessage(message.getErrorMsg());
+        imageLogMessageResponse.setAppExecutor(UserUtils.identify(message.getCreator(), message.getEndUser()));
         imageLogMessageResponse.setCreateTime(message.getCreateTime());
         imageLogMessageResponse.setImageInfo(transformImageMessage(message));
         return imageLogMessageResponse;
@@ -617,10 +620,18 @@ public class AppLogServiceImpl implements AppLogService {
      * @param message 消息
      * @return ImageMessageRespVO
      */
-    private ImageMessageRespVO transformImageMessage(LogAppMessageDO message) {
+    private GenerateImageResponse transformImageMessage(LogAppMessageDO message) {
         // 如果没有结果，直接返回 null
         if (StringUtils.isBlank(message.getAnswer())) {
             return null;
+        }
+
+        // 新的数据结构
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            BaseImageResponse imageResponse = objectMapper.readValue(message.getAnswer(), BaseImageResponse.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
 
         // 获取图片列表
@@ -636,11 +647,11 @@ public class AppLogServiceImpl implements AppLogService {
         }
 
         // 构建图片响应
-        ImageMessageRespVO imageResponse = new ImageMessageRespVO();
+        GenerateImageResponse imageResponse = new GenerateImageResponse();
         imageResponse.setPrompt(message.getMessage());
         imageResponse.setCreateTime(message.getCreateTime());
         imageResponse.setImages(imageList);
-        ImageRequest imageRequest = JSONUtil.toBean(message.getAppConfig(), ImageRequest.class);
+        GenerateImageRequest imageRequest = JSONUtil.toBean(message.getAppConfig(), GenerateImageRequest.class);
         if (imageRequest != null) {
             imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.FALSE));
             imageResponse.setEngine(imageRequest.getEngine());

@@ -57,7 +57,7 @@ public interface AppFavoriteConvert {
                 appFavoriteResponse.setWorkflowConfig(JSON.parseObject(favorite.getConfig(), WorkflowConfigRespVO.class));
             } else if (AppModelEnum.CHAT.name().equals(favorite.getModel())) {
                 appFavoriteResponse.setChatConfig(JSON.parseObject(favorite.getConfig(), ChatConfigRespVO.class));
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(favorite.getModel())) {
+            } else if (AppModelEnum.IMAGE.name().equals(favorite.getModel())) {
                 appFavoriteResponse.setImageConfig(JSON.parseObject(favorite.getConfig(), ImageConfigRespVO.class));
             }
         }

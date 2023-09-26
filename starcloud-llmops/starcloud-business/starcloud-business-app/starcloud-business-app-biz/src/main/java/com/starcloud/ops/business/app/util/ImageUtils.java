@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.util;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.image.ImageTaskConfigTypeEnum;
 import com.starcloud.ops.business.app.enums.image.ProductImageTypeEnum;
@@ -204,7 +204,7 @@ public class ImageUtils {
      * @param request 请求参数
      * @return token数量
      */
-    public static BigDecimal countAnswerCredits(ImageRequest request) {
+    public static BigDecimal countAnswerCredits(GenerateImageRequest request) {
         String engine = request.getEngine();
         Integer steps = request.getSteps();
         Integer width = request.getWidth();
@@ -282,17 +282,14 @@ public class ImageUtils {
             if (StringUtils.isBlank(negativePrompt)) {
                 return AppConstants.DEFAULT_NEGATIVE_PROMPT;
             } else {
-                if (StringUtils.endsWith(negativePrompt, ".")) {
-                    negativePrompt = negativePrompt.substring(0, negativePrompt.length() - 1);
-                }
-                return negativePrompt + ", " + AppConstants.DEFAULT_NEGATIVE_PROMPT;
+                return AppConstants.DEFAULT_NEGATIVE_PROMPT + ", " + negativePrompt;
             }
         }
-        if (StringUtils.endsWith(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
+        if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
             if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
                 return "";
             } else {
-                return negativePrompt.substring(0, negativePrompt.length() - AppConstants.DEFAULT_NEGATIVE_PROMPT.length() - 2) + ".";
+                return negativePrompt.substring(AppConstants.DEFAULT_NEGATIVE_PROMPT.length() + 2);
             }
         }
         return negativePrompt;
@@ -312,4 +309,5 @@ public class ImageUtils {
             return base64Image;
         }
     }
+
 }

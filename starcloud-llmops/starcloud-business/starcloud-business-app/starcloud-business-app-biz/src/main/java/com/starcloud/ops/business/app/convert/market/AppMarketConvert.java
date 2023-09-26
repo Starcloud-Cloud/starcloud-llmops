@@ -30,7 +30,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -99,7 +98,7 @@ public interface AppMarketConvert {
             if (Objects.nonNull(config)) {
                 appMarket.setConfig(JSONUtil.toJsonStr(config));
             }
-        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
+        } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
             ImageConfigEntity config = appMarketEntity.getImageConfig();
             if (Objects.nonNull(config)) {
                 appMarket.setConfig(JSONUtil.toJsonStr(config));
@@ -145,7 +144,7 @@ public interface AppMarketConvert {
                 appMarketEntity.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
                 appMarketEntity.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
+            } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
                 appMarketEntity.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -189,7 +188,7 @@ public interface AppMarketConvert {
                 appMarketEntity.setWorkflowConfig(JSONUtil.toBean(appMarket.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
                 appMarketEntity.setChatConfig(JSONUtil.toBean(appMarket.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
+            } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
                 appMarketEntity.setImageConfig(JSONUtil.toBean(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -238,7 +237,7 @@ public interface AppMarketConvert {
             if (Objects.nonNull(config)) {
                 appMarketResponse.setChatConfig(config);
             }
-        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
+        } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
             ImageConfigRespVO config = JSONUtil.toBean(appMarket.getConfig(), ImageConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setImageConfig(config);

@@ -1,0 +1,42 @@
+package com.starcloud.ops.business.app.api.image.vo.response;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import java.io.Serializable;
+import java.util.List;
+
+/**
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-09-25
+ */
+@Data
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@Schema(name = "BaseImageResponse", description = "图片响应基类")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "fromScene")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = GenerateImageResponse.class, name = "WEB_IMAGE"),
+        @JsonSubTypes.Type(value = RemoveBackgroundResponse.class, name = "IMAGE_REMOVE_BACKGROUND"),
+        @JsonSubTypes.Type(value = RemoveTextResponse.class, name = "IMAGE_REMOVE_TEXT"),
+        @JsonSubTypes.Type(value = SketchToImageResponse.class, name = "IMAGE_SKETCH"),
+        @JsonSubTypes.Type(value = UpscaleImageResponse.class, name = "IMAGE_UPSCALING"),
+})
+public class BaseImageResponse implements Serializable {
+
+    private static final long serialVersionUID = 3162145745607862874L;
+
+    /**
+     * 生成的图片列表
+     */
+    @Schema(description = "图片列表")
+    private List<ImageDTO> images;
+}

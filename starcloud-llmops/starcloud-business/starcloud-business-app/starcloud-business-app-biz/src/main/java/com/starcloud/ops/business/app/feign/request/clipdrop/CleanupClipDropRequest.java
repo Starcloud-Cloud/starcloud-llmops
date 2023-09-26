@@ -6,9 +6,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
+import java.io.File;
 
 /**
  * ClipDrop 图片放大请求
@@ -32,7 +32,7 @@ public class CleanupClipDropRequest extends ClipDropImageRequest {
     @Schema(description = "需要修复的图片")
     @NotNull(message = "需要修复的图片不能为空")
     @FormProperty("image_file")
-    private MultipartFile imageFile;
+    private File imageFile;
 
     /**
      * 需要放大的图片
@@ -40,5 +40,5 @@ public class CleanupClipDropRequest extends ClipDropImageRequest {
     @Schema(description = "需要修复的遮罩图片")
     @NotNull(message = "需要修复的遮罩图片不能为空")
     @FormProperty("mask_file")
-    private MultipartFile maskFile;
+    private File maskFile;
 }

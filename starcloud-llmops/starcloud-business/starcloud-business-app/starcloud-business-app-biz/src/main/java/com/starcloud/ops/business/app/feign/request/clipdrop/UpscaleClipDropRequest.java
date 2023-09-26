@@ -6,11 +6,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.io.File;
 
 /**
  * ClipDrop 图片放大请求
@@ -34,7 +34,7 @@ public class UpscaleClipDropRequest extends ClipDropImageRequest {
     @Schema(description = "需要放大的图片")
     @NotNull(message = "需要放大的图片不能为空")
     @FormProperty("image_file")
-    private MultipartFile imageFile;
+    private File imageFile;
 
     /**
      * 需要放大的宽度

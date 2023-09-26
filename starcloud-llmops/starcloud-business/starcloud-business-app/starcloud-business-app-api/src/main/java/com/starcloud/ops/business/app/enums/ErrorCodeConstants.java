@@ -94,7 +94,34 @@ public interface ErrorCodeConstants {
     /**
      * 生成图片失败，请重试或者联系管理员
      */
+    ErrorCode EXECUTE_IMAGE_FAIL = new ErrorCode(300300000, "{}");
+
     ErrorCode GENERATE_IMAGE_FAIL = new ErrorCode(300300000, "Generate image fail, please try again or contact the administrator !");
+
+    ErrorCode IMAGE_SCENE_IS_REQUIRED = new ErrorCode(300300001, "The image scene is required, please check and try again ! ");
+
+    ErrorCode IMAGE_SCENE_NOT_SUPPORTED = new ErrorCode(300300002, "The image scene is not supported, please check and try again ! ");
+
+    ErrorCode BUILD_IMAGE_FAILURE = new ErrorCode(300300003, "Build image fail, not support appUid = {} !");
+    /**
+     * 上传图片失败
+     */
+    ErrorCode UPLOAD_IMAGE_FAILURE = new ErrorCode(300310000, "{}");
+
+    /**
+     * 上传图片失败
+     */
+    ErrorCode GET_IMAGE_FAILURE = new ErrorCode(300310000, "{}");
+
+    /**
+     * 不支持的图片类型
+     */
+    ErrorCode UNSUPPORTED_IMAGE_TYPES = new ErrorCode(30031001, "{} is Unsupported image type, support types is {}");
+
+    /**
+     * 后缀名不存在
+     */
+    ErrorCode FILE_EXTENSION_FAILURE = new ErrorCode(300310003, "file extension parsing failure, unable to parse file!");
 
     /**
      * 图片 Prompt 为必须的
@@ -258,4 +285,5 @@ public interface ErrorCodeConstants {
      * 应用发布限制已存在
      */
     ErrorCode APP_PUBLISH_LIMIT_EXISTS = new ErrorCode(300900024, "应用发布限制已存在！");
+
 }

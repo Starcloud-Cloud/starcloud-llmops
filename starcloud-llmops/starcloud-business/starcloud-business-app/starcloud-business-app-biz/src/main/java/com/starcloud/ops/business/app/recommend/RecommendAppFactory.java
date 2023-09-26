@@ -3,7 +3,7 @@ package com.starcloud.ops.business.app.recommend;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.*;
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.RecommendAppConsts;
+import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
@@ -29,7 +29,7 @@ public class RecommendAppFactory {
      */
     public static AppRespVO defGenerateTextApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(RecommendAppConsts.GENERATE_TEXT);
+        app.setUid(RecommendAppEnum.GENERATE_TEXT.name());
         app.setName(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
         app.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_DESCRIPTION"));
         app.setModel(AppModelEnum.COMPLETION.name());
@@ -51,7 +51,7 @@ public class RecommendAppFactory {
      */
     public static AppRespVO defGenerateArticleApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(RecommendAppConsts.GENERATE_ARTICLE);
+        app.setUid(RecommendAppEnum.GENERATE_ARTICLE.name());
         app.setName(MessageUtil.getMessage("GENERATE_ARTICLE_APP_NAME"));
         app.setDescription(MessageUtil.getMessage("GENERATE_ARTICLE_APP_DESCRIPTION"));
         app.setModel(AppModelEnum.COMPLETION.name());
@@ -73,7 +73,7 @@ public class RecommendAppFactory {
      */
     public static AppRespVO defChatRobotApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(RecommendAppConsts.CHAT_ROBOT);
+        app.setUid(RecommendAppEnum.CHAT_ROBOT.name());
         app.setName("亚马逊AI助手");
         app.setDescription("作为一名亚马逊运营AI助手，我熟悉亚马逊运营中的各种基础技能，可以帮你做市场研究和分析、优化产品listing、优化广告文案、处理客户问题。");
         app.setModel(AppModelEnum.CHAT.name());
@@ -106,7 +106,7 @@ public class RecommendAppFactory {
 
     public static AppRespVO emptyChatRobotApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(RecommendAppConsts.CHAT_ROBOT);
+        app.setUid(RecommendAppEnum.CHAT_ROBOT.name());
 //        app.setName("亚马逊AI助手");
 //        app.setDescription("作为一名亚马逊运营AI助手，我熟悉亚马逊运营中的各种基础技能，可以帮你做市场研究和分析、优化产品listing、优化广告文案、处理客户问题。");
         app.setModel(AppModelEnum.CHAT.name());

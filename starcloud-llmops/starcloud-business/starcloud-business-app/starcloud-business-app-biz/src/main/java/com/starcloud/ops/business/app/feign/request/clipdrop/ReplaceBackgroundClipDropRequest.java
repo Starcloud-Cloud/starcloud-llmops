@@ -6,10 +6,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.io.File;
 
 /**
  * ClipDrop 替换背景请求
@@ -33,7 +33,7 @@ public class ReplaceBackgroundClipDropRequest extends ClipDropImageRequest {
     @Schema(description = "需要替换背景的图片")
     @NotNull(message = "需要替换背景的图片不能为空")
     @FormProperty("image_file")
-    private MultipartFile imageFile;
+    private File imageFile;
 
     /**
      * 生成背景描述提示词

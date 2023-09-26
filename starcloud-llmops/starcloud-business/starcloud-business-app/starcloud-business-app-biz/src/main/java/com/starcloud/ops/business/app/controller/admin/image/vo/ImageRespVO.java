@@ -1,13 +1,13 @@
-package com.starcloud.ops.business.app.api.image.vo.response;
+package com.starcloud.ops.business.app.controller.admin.image.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -24,14 +24,14 @@ public class ImageRespVO implements Serializable {
     private static final long serialVersionUID = -3225734608186743394L;
 
     /**
-     * 会话 ID
+     * 会话UID
      */
     @Schema(description = "会话 ID")
     private String conversationUid;
 
     /**
-     * 图片生成的记录
+     * 图片生成结果
      */
-    private List<ImageMessageRespVO> messages;
+    private BaseImageResponse response;
 
 }
