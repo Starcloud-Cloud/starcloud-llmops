@@ -174,11 +174,10 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, UpscaleImageRequest request, UpscaleImageResponse response) {
-        log.info("UpscaleImageHandler handleLogMessage: 处理放大图片日志消息处理开始：");
         if (StringUtils.isNotBlank(request.getPrompt())) {
             messageRequest.setMessage(request.getPrompt());
         }
-        log.info("UpscaleImageHandler handleLogMessage: 处理放大图片日志消息处理结束：");
+        messageRequest.setAiModel("stable-diffusion");
     }
 
     /**

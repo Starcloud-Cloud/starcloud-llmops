@@ -126,9 +126,8 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, GenerateImageRequest request, GenerateImageResponse response) {
-        log.info("GenerateImageHandler handleLogMessage: 处理生成图片日志消息处理开始...");
         messageRequest.setMessage(request.getPrompt());
-        log.info("GenerateImageHandler handleLogMessage: 处理生成图片日志消息处理结束...");
+        messageRequest.setAiModel("stable-diffusion");
     }
 
 
