@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import lombok.Data;
@@ -157,7 +158,8 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
             imageReqVO.setEndUser(String.valueOf(context.getEndUser()));
         }
         imageReqVO.setAppUid(RecommendAppEnum.GENERATE_IMAGE.name());
-        imageReqVO.setScene(context.getScene().name());
+        // context.getScene().name()
+        imageReqVO.setScene(AppSceneEnum.WEB_IMAGE.name());
         imageReqVO.setUserId(context.getUserId());
 
         imageReqVO.setImageRequest(imageRequest);
