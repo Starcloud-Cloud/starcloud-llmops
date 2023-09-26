@@ -101,7 +101,7 @@ public class ImageServiceImpl implements ImageService {
             // 新的数据结构
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
-                return (GenerateImageResponse) objectMapper.readValue(item.getAnswer(), BaseImageResponse.class);
+                return objectMapper.readValue(item.getAnswer(), GenerateImageResponse.class);
             } catch (Exception exception) {
                 try {
                     List<ImageDTO> imageList = JSONUtil.toBean(item.getAnswer(), new TypeReference<List<ImageDTO>>() {
@@ -177,7 +177,7 @@ public class ImageServiceImpl implements ImageService {
     private Page<LogAppMessageDO> pageHistoryGenerateImageMessage(HistoryGenerateImagePageQuery query) {
         Long loginUserId = WebFrameworkUtils.getLoginUserId();
         LambdaQueryWrapper<LogAppMessageDO> messageWrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer, LogAppMessageDO::getAppConfig);
+        messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer, LogAppMessageDO::getAppConfig, LogAppMessageDO::getVariables);
         messageWrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.IMAGE.name());
         messageWrapper.eq(LogAppMessageDO::getFromScene, AppSceneEnum.WEB_IMAGE.name());
         messageWrapper.eq(LogAppMessageDO::getCreator, Long.toString(loginUserId));
