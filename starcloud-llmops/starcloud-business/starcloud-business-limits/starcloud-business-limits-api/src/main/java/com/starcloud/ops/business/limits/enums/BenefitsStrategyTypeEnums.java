@@ -58,6 +58,11 @@ public enum BenefitsStrategyTypeEnums {
     GIFT("GIFT", "系统赠送", "System gift", "GI"),
 
     /**
+     * 体验包
+     */
+    EXPERIENCE("EXPERIENCE", "体验包", "Experience Package", "EX"),
+
+    /**
      * 公众号
      */
     WECHAT_OFFICIAL_ACCOUNTS("WECHAT_OFFICIAL_ACCOUNTS", "系统赠送-关注公众号", "System gift", "WA"),

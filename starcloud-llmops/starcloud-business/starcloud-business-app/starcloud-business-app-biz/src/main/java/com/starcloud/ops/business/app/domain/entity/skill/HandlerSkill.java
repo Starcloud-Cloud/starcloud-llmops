@@ -9,12 +9,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocMemory;
+import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Type;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * handler 技能包装类
@@ -28,6 +32,7 @@ public class HandlerSkill extends BaseSkillEntity {
     @JsonIgnore
     @JSONField(serialize = false)
     private BaseToolHandler handler;
+
 
     public HandlerSkill(BaseToolHandler baseHandler) {
         this.handler = baseHandler;
@@ -92,7 +97,6 @@ public class HandlerSkill extends BaseSkillEntity {
             log.info("FunTool HandlerSkill: {} {}", this.getHandler().getName(), input);
 
             //转换入参
-
             handlerContext.setRequest(input);
 
             //获取当前 应用下 配置的 技能交互信息
@@ -126,9 +130,9 @@ public class HandlerSkill extends BaseSkillEntity {
 
         //不会抛出异常
         HandlerResponse handlerResponse = this.handler.execute(context);
-        //放在这里是因为暂时只有 聊天技能调用 才做记录
-        this.handler.addRespHistory(context, handlerResponse);
 
+        //放在这里是因为暂时只有 聊天技能调用 才做记录
+        this.addRespHistory(context, handlerResponse);
 
         //@todo 这里可增加 扣权益记录
 
@@ -136,6 +140,45 @@ public class HandlerSkill extends BaseSkillEntity {
 
 
         return handlerResponse;
+    }
+
+
+    /**
+     * 技能执行后增加到上下文
+     * 1，因为现在执行技能必然会开启4.0, 而且执行到结果会正常保存在history中，不需要刻意在保存到上下文中，所以技能执行基本不需要在把结果保存到上下文中
+     *
+     * @param context
+     * @param handlerResponse
+     */
+    public void addRespHistory(HandlerContext context, HandlerResponse handlerResponse) {
+
+        if (handlerResponse.getSuccess() && this.getAddHistory()) {
+
+            List<MessageContentDocDTO> messageContentDocDTO = this.getHandler().convertContentDoc(context, handlerResponse);
+
+            List<MessageContentDocDTO> historys = Optional.ofNullable(messageContentDocDTO).orElse(new ArrayList<>()).stream().map(d -> {
+                //执行的 messageId拿不到
+                Map params = new HashMap();
+                params.put("tool", this.getName());
+                params.put("messageId", context.getMessageUid());
+
+                d.setExt(params);
+
+                d.setToolName(this.getName());
+
+                return d;
+            }).collect(Collectors.toList());
+
+
+            if (this.getAddHistory() && !this.getSaveHistory()) {
+                //增加工具使用结果历史
+                this.getMessageContentDocMemory().addHistory(historys);
+            } else if (this.getSaveHistory()) {
+                this.getMessageContentDocMemory().saveHistory(historys);
+            }
+
+        }
+
     }
 
 

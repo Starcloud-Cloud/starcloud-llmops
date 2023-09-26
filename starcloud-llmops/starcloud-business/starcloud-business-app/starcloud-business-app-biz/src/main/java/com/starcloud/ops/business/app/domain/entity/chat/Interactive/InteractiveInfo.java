@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.chat.Interactive;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -147,7 +148,11 @@ public class InteractiveInfo implements Serializable {
         interactiveInfo.setShowType("docs");
         interactiveInfo.setSuccess(true);
 
-        interactiveInfo.setData(Optional.ofNullable(messageContentDocDTOS).orElse(new ArrayList<>()).stream().map(content -> {
+        interactiveInfo.setData(Optional.ofNullable(messageContentDocDTOS).orElse(new ArrayList<>()).stream().filter(docDTO -> {
+            //不是工具的发送到前端，其实现在默认与网络资源相关的插件 返回结果都会包装为 Web类型
+            //return StrUtil.isBlank(docDTO.getToolName());
+            return true;
+        }).map(content -> {
 
             InteractiveDoc docInteractiveInfo = new InteractiveDoc();
 

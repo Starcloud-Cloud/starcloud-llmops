@@ -82,11 +82,14 @@ public class DataSetSourceDataIndexSendConsumer extends AbstractDataProcessor<Da
                 // 发送消息
                 dataIndexProducer.asyncSendMessage(message);
             }
-        } else  {
+        } else if (message.getRetryCount() >= 3 && Objects.equals(DataSetSourceDataStatusEnum.INDEX_RETRY.getStatus(), message.getStatus())){
             message.setStatus(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
             message.setErrCode(DataSetSourceDataStatusEnum.INDEX_ERROR.getStatus());
             message.setErrMsg(message.getErrMsg());
+            updateDataState(message);
             log.error("执行数据创建索引操作失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
+        }else {
+            log.info("创建索引完成，数据执行结束");
         }
     }
 }

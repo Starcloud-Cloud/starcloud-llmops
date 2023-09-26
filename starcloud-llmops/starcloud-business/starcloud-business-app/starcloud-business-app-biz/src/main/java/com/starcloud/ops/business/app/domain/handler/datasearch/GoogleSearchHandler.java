@@ -89,7 +89,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
      * 包装为文档结构
      */
     @Override
-    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<SearchEngineHandler.Request> context, HandlerResponse<SearchEngineHandler.Response> handlerResponse) {
+    public List<MessageContentDocDTO> convertContentDoc(HandlerContext<SearchEngineHandler.Request> context, HandlerResponse<SearchEngineHandler.Response> handlerResponse) {
 
         //解析返回的内容 生成 MessageContentDocDTO
 
@@ -107,7 +107,10 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
             messageContentDocDTO.setTitle(interactiveData.getTitle());
             messageContentDocDTO.setContent(interactiveData.getContent());
             messageContentDocDTO.setUrl(interactiveData.getUrl());
-            messageContentDocDTO.setTime(interactiveData.getTime());
+
+            if (StrUtil.isNotBlank(interactiveData.getTime())) {
+                messageContentDocDTO.setTime(interactiveData.getTime());
+            }
 
             return messageContentDocDTO;
 

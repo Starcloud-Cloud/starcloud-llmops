@@ -120,7 +120,7 @@ public class SearchEngineHandler extends BaseToolHandler<SearchEngineHandler.Req
      * 包装为文档结构
      */
     @Override
-    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
+    public List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
 
         //解析返回的内容 生成 MessageContentDocDTO
 

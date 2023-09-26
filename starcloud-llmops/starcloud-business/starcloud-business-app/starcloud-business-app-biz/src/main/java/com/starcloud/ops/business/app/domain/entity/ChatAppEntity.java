@@ -520,30 +520,11 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         //工具入参
         HandlerContext appContext = this.instanceHandlerContext(request);
 
-        //web search
-//        if (searchConfigEntity != null && Boolean.TRUE.equals(searchConfigEntity.getEnabled())) {
-//
-//            //爬取网页
-//            WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
-//            String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
-//            webSearch2Doc.setDescription(description);
-//            webSearch2Doc.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-//            HandlerSkill handlerSkill = new HandlerSkill(webSearch2Doc);
-//            loadTools.add(handlerSkill.createFunTool(appContext));
-//
-//            HandlerSkill searchEngine = HandlerSkill.of("SearchEngineHandler");
-//            searchEngine.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-//            loadTools.add(searchEngine.createFunTool(appContext));
-//
-//        }
-
         List<BaseTool> handlerFunTools = Optional.ofNullable(chatConfig.getHandlerSkills()).orElse(new ArrayList<>()).stream().filter(HandlerSkill::getEnabled).map(handlerSkill -> {
 
             if (handlerSkill.getHandler() != null) {
-                //设置 memory
-                BaseToolHandler baseToolHandler = handlerSkill.getHandler();
 
-                baseToolHandler.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+                handlerSkill.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
 
                 return handlerSkill.createFunTool(appContext);
             }
@@ -556,6 +537,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         List<BaseTool> apiFunTools = Optional.ofNullable(chatConfig.getApiSkills()).orElse(new ArrayList<>()).stream().filter(ApiSkill::getEnabled).map(skillEntity -> {
 
             //设置 memory
+            skillEntity.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
 
             return skillEntity.createFunTool(appContext);
         }).filter(Objects::nonNull).collect(Collectors.toList());
@@ -565,6 +547,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         List<BaseTool> appFunTools = Optional.ofNullable(chatConfig.getAppWorkflowSkills()).orElse(new ArrayList<>()).stream().filter(AppWorkflowSkill::getEnabled).map(skillEntity -> {
 
             //设置 memory
+            skillEntity.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
 
             return skillEntity.createFunTool(appContext);
         }).filter(Objects::nonNull).collect(Collectors.toList());

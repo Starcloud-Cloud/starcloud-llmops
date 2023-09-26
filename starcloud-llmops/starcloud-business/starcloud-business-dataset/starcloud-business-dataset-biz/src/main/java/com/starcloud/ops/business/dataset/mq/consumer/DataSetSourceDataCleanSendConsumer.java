@@ -21,6 +21,12 @@ import com.starcloud.ops.business.dataset.mq.producer.DatasetSourceDataSplitProd
 import com.starcloud.ops.business.dataset.service.datasethandlerules.DatasetDataHandleRulesService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.DataSourceInfoDTO;
+import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
+import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
@@ -28,7 +34,11 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -38,8 +48,6 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
     @Resource
     private FileApi fileApi;
 
-    @Resource
-    private DictDataService dictDataService;
 
     @Resource
     private DatasetSourceDataSplitProducer dataSplitProducer;
@@ -110,7 +118,6 @@ public class DataSetSourceDataCleanSendConsumer extends AbstractDataProcessor<Da
             message.setErrMsg(e.getMessage());
             log.info("清洗失败，错误原因是:({})", e.getMessage(), e);
         }
-
     }
 
 

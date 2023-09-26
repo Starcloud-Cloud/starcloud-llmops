@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.share.service.impl;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -145,6 +147,12 @@ public class ConversationShareServiceImpl implements ConversationShareService {
     }
 
     @Override
+    public void deleteShare(String appUid) {
+        Assert.notBlank(appUid,"删除数据失败，appUid为空");
+        shareConversationMapper.delete(appUid);
+    }
+
+    @Override
     public List<LogAppMessageRespVO> conversationDetail(String shareKey) {
         ShareConversationDO shareConversationDO = getShareDO(shareKey);
         LogAppMessageExportReqVO exportReqVO = new LogAppMessageExportReqVO();
@@ -152,6 +160,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
         exportReqVO.setAppConversationUid(shareConversationDO.getConversationUid());
         List<LogAppMessageDO> appMessageList = messageService.listAppLogMessage(exportReqVO);
         appMessageList = appMessageList.stream().filter(logAppMessageDO -> logAppMessageDO.getCreateTime().isBefore(shareConversationDO.getCreateTime())).collect(Collectors.toList());
+        Collections.reverse(appMessageList);
         return LogAppMessageConvert.INSTANCE.convertList(appMessageList);
     }
 
