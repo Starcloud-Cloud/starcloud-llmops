@@ -26,6 +26,6 @@ public class ImageLogMessageRespVO extends LogMessageDetailRespVO {
      * 图片信息
      */
     @Schema(description = "图片信息")
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "fromScene")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "fromScene")
     private BaseImageResponse imageInfo;
 }

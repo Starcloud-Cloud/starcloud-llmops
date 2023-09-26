@@ -42,7 +42,7 @@ public enum RecommendAppEnum implements IEnumable<Integer> {
     /**
      * 去除背景的唯一标识
      */
-    REMOVE_BACKGROUND_IMAGE(6, "图片去除背景", "Remove Background Image"),
+    REMOVE_BACKGROUND_IMAGE(6, "智能抠图", "Remove Background Image"),
 
     /**
      * 替换背景的唯一标识
@@ -52,7 +52,7 @@ public enum RecommendAppEnum implements IEnumable<Integer> {
     /**
      * 去除文字的唯一标识
      */
-    REMOVE_TEXT_IMAGE(8, "图片去除文字", "Remove Text Image"),
+    REMOVE_TEXT_IMAGE(8, "智能去文字", "Remove Text Image"),
 
     /**
      * 草图生成图片的唯一标识

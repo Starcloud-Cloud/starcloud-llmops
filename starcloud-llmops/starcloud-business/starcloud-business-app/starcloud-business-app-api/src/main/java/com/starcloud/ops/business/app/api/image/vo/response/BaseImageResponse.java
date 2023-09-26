@@ -22,7 +22,7 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Schema(name = "BaseImageResponse", description = "图片响应基类")
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "fromScene")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "fromScene")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = GenerateImageResponse.class, name = "WEB_IMAGE"),
         @JsonSubTypes.Type(value = RemoveBackgroundResponse.class, name = "IMAGE_REMOVE_BACKGROUND"),
@@ -33,6 +33,12 @@ import java.util.List;
 public class BaseImageResponse implements Serializable {
 
     private static final long serialVersionUID = 3162145745607862874L;
+
+    /**
+     * 场景
+     */
+    @Schema(description = "场景")
+    private String fromScene;
 
     /**
      * 生成的图片列表

@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -111,7 +110,6 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         response.setHeight(request.getHeight());
         response.setSteps(request.getSteps());
         response.setStylePreset(request.getStylePreset());
-        response.setCreateTime(LocalDateTime.now());
         response.setImages(ImageConvert.INSTANCE.convert(imageList));
         log.info("GenerateImageHandler handle: 处理生成图片请求结束：处理后结果：{}", JSONUtil.toJsonStr(response));
         return response;

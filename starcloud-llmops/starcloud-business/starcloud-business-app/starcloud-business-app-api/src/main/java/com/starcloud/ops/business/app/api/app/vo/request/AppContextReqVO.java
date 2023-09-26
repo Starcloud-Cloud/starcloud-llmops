@@ -23,6 +23,12 @@ public class AppContextReqVO implements Serializable {
     private String scene;
 
     /**
+     * 模式
+     */
+    @Schema(description = "模式")
+    private String mode;
+
+    /**
      * 应用 UID
      */
     @Schema(description = "应用ID")

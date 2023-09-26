@@ -413,7 +413,7 @@ public class AppLogServiceImpl implements AppLogService {
     public PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query) {
         LogAppConversationDO appConversation = logAppConversationService.getAppLogConversation(query.getConversationUid());
         AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
-        String images = StringUtils.EMPTY;
+        String images;
 
         if (AppSceneEnum.CHAT_MARKET.name().equals(query.getFromScene())) {
             AppMarketDO appMarketDO = appMarketMapper.get(appConversation.getAppUid(), Boolean.TRUE);
@@ -625,12 +625,12 @@ public class AppLogServiceImpl implements AppLogService {
         if (StringUtils.isBlank(message.getAnswer())) {
             return null;
         }
-
         // 新的数据结构
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(message.getAnswer(), BaseImageResponse.class);
         } catch (Exception exception) {
+            log.error("answer json parse error: {}", exception.getMessage());
             // 兼容老结构数据
             try {
                 // 获取图片列表
@@ -646,7 +646,6 @@ public class AppLogServiceImpl implements AppLogService {
                 // 构建图片响应
                 GenerateImageResponse imageResponse = new GenerateImageResponse();
                 imageResponse.setPrompt(message.getMessage());
-                imageResponse.setCreateTime(message.getCreateTime());
                 imageResponse.setImages(imageList);
                 GenerateImageRequest imageRequest = JSONUtil.toBean(message.getVariables(), GenerateImageRequest.class, Boolean.TRUE);
                 if (Objects.nonNull(imageRequest)) {
