@@ -1,7 +1,8 @@
 package com.starcloud.ops.business.app.api.log.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,5 +26,6 @@ public class ImageLogMessageRespVO extends LogMessageDetailRespVO {
      * 图片信息
      */
     @Schema(description = "图片信息")
-    private ImageMessageRespVO imageInfo;
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "fromScene")
+    private BaseImageResponse imageInfo;
 }

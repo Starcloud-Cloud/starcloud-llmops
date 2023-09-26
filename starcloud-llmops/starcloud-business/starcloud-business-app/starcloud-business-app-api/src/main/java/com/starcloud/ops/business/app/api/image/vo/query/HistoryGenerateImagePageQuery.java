@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.image.vo.request;
+package com.starcloud.ops.business.app.api.image.vo.query;
 
 import com.starcloud.ops.framework.common.api.dto.PageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -29,7 +29,7 @@ public enum AppModelEnum implements IEnumable<Integer> {
     /**
      * 基础图片生成模式
      */
-    BASE_GENERATE_IMAGE(3, "生成图片", "Generate Image"),
+    IMAGE(3, "生成图片", "Image"),
 
     ;
 

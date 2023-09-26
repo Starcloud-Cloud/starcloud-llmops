@@ -37,7 +37,6 @@ public class ImageDTO {
      * 图片媒体类型
      */
     @Schema(description = "图片媒体类型")
-    @JsonProperty(value = "media_type")
     private String mediaType;
 
     /**

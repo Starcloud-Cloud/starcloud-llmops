@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.service.image.clipdrop.impl;
 
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -13,8 +15,10 @@ import com.starcloud.ops.business.app.feign.request.clipdrop.TextToImageClipDrop
 import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
 import com.starcloud.ops.business.app.feign.response.ClipDropImage;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
+import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,6 +26,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -50,10 +56,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.upscale(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop upscale image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop upscale image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop upscale image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop upscale image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -70,10 +76,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.cleanup(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop cleanup image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop cleanup image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop cleanup image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop cleanup image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -90,10 +96,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.portraitDepthEstimation(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop portrait depth estimation image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop portrait depth estimation image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop portrait depth estimation image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop portrait depth estimation image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -110,10 +116,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.portraitSurfaceNormals(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop portrait surface normals image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop portrait surface normals image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop portrait surface normals image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop portrait surface normals image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -130,10 +136,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.reimagine(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop reimagine image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop reimagine image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop reimagine image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop reimagine image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -150,10 +156,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.removeBackground(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop remove background image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop remove background image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop remove background image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop remove background image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -170,10 +176,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.removeText(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop remove text image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop remove text image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop remove text background image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop remove text background image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -190,10 +196,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.replaceBackground(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop replace background image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop replace background image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop replace background background image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop replace background background image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -210,10 +216,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.sketchToImage(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop sketch to image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop sketch to image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop sketch to image background image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop sketch to image background image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -230,10 +236,10 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             ResponseEntity<byte[]> responseEntity = clipDropImageClient.textToImage(request);
             return transformResponse(responseEntity);
         } catch (FeignException exception) {
-            log.error("ClipDrop text to image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            log.error("ClipDrop text to image failure: ErrorCode: {}, ErrorMessage: {}", exception.status(), exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), buildExceptionMessage(exception)));
         } catch (Exception exception) {
-            log.error("ClipDrop text to image background image failure: ErrorMessage: {}", exception.getMessage(), exception);
+            log.error("ClipDrop text to image background image failure: ErrorMessage: {}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
         }
     }
@@ -255,12 +261,32 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
         String uuid = IdUtil.fastSimpleUUID();
         byte[] binary = responseEntity.getBody();
         String mediaType = contentType.toString();
-
+        String url = ImageUploadUtils.upload(uuid, mediaType, ImageUploadUtils.GENERATE, binary);
         ClipDropImage image = new ClipDropImage();
         image.setUuid(uuid);
         image.setBinary(binary);
+        image.setUrl(url);
         image.setMediaType(mediaType);
         return image;
+    }
+
+    /**
+     * 获取 错误信息
+     *
+     * @param exception 错误异常
+     * @return 错误信息
+     */
+    private String buildExceptionMessage(FeignException exception) {
+        String content = exception.contentUTF8();
+        if (StringUtils.isBlank(content)) {
+            return exception.getMessage();
+        }
+        Map<String, String> exceptionMap = JSONUtil.toBean(content, new TypeReference<Map<String, String>>() {
+        }, true);
+        if (Objects.nonNull(exceptionMap) && exceptionMap.containsKey("error") && StringUtils.isNotBlank(exceptionMap.get("error"))) {
+            return exceptionMap.get("error");
+        }
+        return exception.getMessage();
     }
 
 

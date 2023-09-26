@@ -4,11 +4,12 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.feign.VectorSearchClient;
-import com.starcloud.ops.business.app.feign.request.VectorSearchImageRequest;
-import com.starcloud.ops.business.app.feign.response.VectorSearchImage;
-import com.starcloud.ops.business.app.feign.response.VectorSearchResponse;
-import com.starcloud.ops.business.app.service.vsearch.VectorSearchService;
+import com.starcloud.ops.business.app.feign.VSearchClient;
+import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
+import com.starcloud.ops.business.app.feign.request.vsearch.VSearchUpscaleImageRequest;
+import com.starcloud.ops.business.app.feign.response.VSearchImage;
+import com.starcloud.ops.business.app.feign.response.VSearchResponse;
+import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,10 @@ import java.util.Objects;
  */
 @Slf4j
 @Service
-public class VectorSearchServiceImpl implements VectorSearchService {
+public class VSearchServiceImpl implements VSearchService {
 
     @Resource
-    private VectorSearchClient vectorSearchClient;
+    private VSearchClient vSearchClient;
 
     /**
      * 生成图片
@@ -36,9 +37,25 @@ public class VectorSearchServiceImpl implements VectorSearchService {
      * @return 图片列表
      */
     @Override
-    public List<VectorSearchImage> generateImage(VectorSearchImageRequest request) {
+    public List<VSearchImage> generateImage(VSearchImageRequest request) {
         // 生成图片
-        VectorSearchResponse<List<VectorSearchImage>> response = vectorSearchClient.generateImage(request);
+        VSearchResponse<List<VSearchImage>> response = vSearchClient.generateImage(request);
+        // 校验响应结果
+        validateImagesResponse(response);
+        // 返回结果
+        return response.getResult();
+    }
+
+    /**
+     * 图片放大
+     *
+     * @param request 请求参数
+     * @return 图片列表
+     */
+    @Override
+    public List<VSearchImage> upscaleImage(VSearchUpscaleImageRequest request) {
+        // 生成图片
+        VSearchResponse<List<VSearchImage>> response = vSearchClient.upscaleImage(request);
         // 校验响应结果
         validateImagesResponse(response);
         // 返回结果
@@ -50,7 +67,7 @@ public class VectorSearchServiceImpl implements VectorSearchService {
      *
      * @param response 响应结果
      */
-    private void validateImagesResponse(VectorSearchResponse<List<VectorSearchImage>> response) {
+    private void validateImagesResponse(VSearchResponse<List<VSearchImage>> response) {
         if (Objects.isNull(response)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_FAIL);
         }

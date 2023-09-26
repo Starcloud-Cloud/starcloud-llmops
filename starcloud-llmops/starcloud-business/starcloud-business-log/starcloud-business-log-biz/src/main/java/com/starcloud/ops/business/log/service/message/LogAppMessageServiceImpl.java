@@ -9,9 +9,9 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageUpdateReqVO;
@@ -134,24 +134,6 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     }
 
     /**
-     * 根据会话uid获取消息列表
-     *
-     * @param query 查询条件
-     * @return 消息列表
-     */
-    @Override
-    public Page<LogAppMessageDO> listAppLogMessage(AppLogMessagePageReqVO query) {
-        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        wrapper.eq(LogAppMessageDO::getAppConversationUid, query.getConversationUid());
-        wrapper.eq(StringUtils.isNotBlank(query.getAppMode()), LogAppMessageDO::getAppMode, query.getAppMode());
-        wrapper.eq(StringUtils.isNotBlank(query.getFromScene()), LogAppMessageDO::getFromScene, query.getFromScene());
-        wrapper.eq(StringUtils.isNotBlank(query.getStatus()), LogAppMessageDO::getStatus, query.getStatus());
-        wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
-        Page<LogAppMessageDO> page = new Page<>(query.getPageNo(), query.getPageSize());
-        return logAppMessageMapper.selectPage(page, wrapper);
-    }
-
-    /**
      * 获得应用执行日志结果列表, 用于 Excel 导出
      *
      * @param exportReqVO 查询条件
@@ -171,6 +153,24 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     @Override
     public PageResult<LogAppMessageDO> pageAppLogMessage(LogAppMessagePageReqVO pageReqVO) {
         return logAppMessageMapper.selectPage(pageReqVO);
+    }
+
+    /**
+     * 根据会话uid获取消息列表
+     *
+     * @param query 查询条件
+     * @return 消息列表
+     */
+    @Override
+    public Page<LogAppMessageDO> pageAppLogMessage(AppLogMessagePageReqVO query) {
+        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
+        wrapper.eq(LogAppMessageDO::getAppConversationUid, query.getConversationUid());
+        wrapper.eq(StringUtils.isNotBlank(query.getAppMode()), LogAppMessageDO::getAppMode, query.getAppMode());
+        wrapper.eq(StringUtils.isNotBlank(query.getFromScene()), LogAppMessageDO::getFromScene, query.getFromScene());
+        wrapper.eq(StringUtils.isNotBlank(query.getStatus()), LogAppMessageDO::getStatus, query.getStatus());
+        wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
+        Page<LogAppMessageDO> page = new Page<>(query.getPageNo(), query.getPageSize());
+        return logAppMessageMapper.selectPage(page, wrapper);
     }
 
     /**

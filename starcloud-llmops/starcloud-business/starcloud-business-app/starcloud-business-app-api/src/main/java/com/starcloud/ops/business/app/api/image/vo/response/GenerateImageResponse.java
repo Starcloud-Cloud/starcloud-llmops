@@ -1,16 +1,13 @@
 package com.starcloud.ops.business.app.api.image.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -18,11 +15,12 @@ import java.util.List;
  * @since 2023-07-14
  */
 @Data
+@ToString(callSuper = true)
 @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "图像信息实体")
-public class ImageMessageRespVO implements Serializable {
+public class GenerateImageResponse extends BaseImageResponse {
 
     private static final long serialVersionUID = -5639623586957890335L;
 
@@ -36,7 +34,6 @@ public class ImageMessageRespVO implements Serializable {
      * 反义词
      */
     @Schema(description = "反义词")
-    @JsonProperty(value = "negative_prompt")
     private String negativePrompt;
 
     /**
@@ -64,14 +61,15 @@ public class ImageMessageRespVO implements Serializable {
     private Integer steps;
 
     /**
+     * 图片的类型
+     */
+    @Schema(description = "图片的类型")
+    private String stylePreset;
+
+    /**
      * 生成的图片时间
      */
     @Schema(description = "生成的图片时间")
     private LocalDateTime createTime;
 
-    /**
-     * 生成的图片列表
-     */
-    @Schema(description = "图片列表")
-    private List<ImageDTO> images;
 }

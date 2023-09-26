@@ -4,29 +4,26 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.HistoryGenerateImagePageQuery;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.api.image.vo.query.HistoryGenerateImagePageQuery;
+import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
+import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.feign.VectorSearchClient;
-import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
-import com.starcloud.ops.business.app.feign.request.clipdrop.ReplaceBackgroundClipDropRequest;
-import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
-import com.starcloud.ops.business.app.feign.response.ClipDropImage;
+import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.service.image.ImageService;
-import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -48,12 +45,6 @@ public class ImageController {
     private ImageService imageService;
 
     @Resource
-    private ClipDropImageService clipDropImageService;
-
-    @Resource
-    private VectorSearchClient vectorSearchClient;
-
-    @Resource
     private AppLimitService appLimitService;
 
     @GetMapping("/meta")
@@ -66,46 +57,56 @@ public class ImageController {
     @GetMapping("/history")
     @Operation(summary = "查询历史图片列表", description = "查询历史图片列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<PageResult<ImageMessageRespVO>> historyGenerateImages(HistoryGenerateImagePageQuery query) {
+    public CommonResult<PageResult<GenerateImageResponse>> historyGenerateImages(HistoryGenerateImagePageQuery query) {
         return CommonResult.success(imageService.historyGenerateImages(query));
+    }
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "上传图片", description = "上传图片")
+    @ApiOperationSupport(order = 30, author = "nacoyer")
+    public CommonResult<UploadImageInfoDTO> upload(@RequestPart("image") MultipartFile image) {
+        return CommonResult.success(imageService.upload(image));
     }
 
     @PostMapping("/text-to-image")
     @Operation(summary = "文本生成图片", description = "文本生成图片")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<ImageMessageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
+    public CommonResult<ImageRespVO> textToImage(@Validated @RequestBody ImageReqVO request) {
+        request.setAppUid(RecommendAppEnum.GENERATE_IMAGE.name());
         // 执行限流
-        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_IMAGE.name() : request.getScene());
+        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
         appLimitService.appLimit(limitRequest);
-        return CommonResult.success(imageService.generateImage(request));
+        return CommonResult.success(imageService.execute(request));
     }
 
-    @PostMapping(value = "/upscale", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/upscale")
     @ApiOperationSupport(order = 40, author = "nacoyer")
-    public CommonResult<Object> upscale(@Validated UpscaleClipDropRequest request) {
-        ClipDropImage response = clipDropImageService.upscale(request);
-        return CommonResult.success(response);
+    public CommonResult<ImageRespVO> upscale(@Validated @RequestBody ImageReqVO request) {
+        request.setAppUid(RecommendAppEnum.UPSCALING_IMAGE.name());
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
+        appLimitService.appLimit(limitRequest);
+        return CommonResult.success(imageService.execute(request));
     }
 
-    @PostMapping(value = "/removeBackground", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/removeBackground")
     @ApiOperationSupport(order = 50, author = "nacoyer")
-    public CommonResult<Object> removeBackground(@Validated ImageFileClipDropRequest request) {
-        ClipDropImage response = clipDropImageService.removeBackground(request);
-        return CommonResult.success(response);
+    public CommonResult<ImageRespVO> removeBackground(@Validated @RequestBody ImageReqVO request) {
+        request.setAppUid(RecommendAppEnum.REMOVE_BACKGROUND_IMAGE.name());
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
+        appLimitService.appLimit(limitRequest);
+        return CommonResult.success(imageService.execute(request));
     }
 
-    @PostMapping(value = "/removeText", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/removeText")
     @ApiOperationSupport(order = 60, author = "nacoyer")
-    public CommonResult<Object> removeText(@Validated ImageFileClipDropRequest request) {
-        ClipDropImage response = clipDropImageService.removeText(request);
-        return CommonResult.success(response);
-    }
-
-    @PostMapping(value = "/replaceBackground", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ApiOperationSupport(order = 70, author = "nacoyer")
-    public CommonResult<Object> replaceBackground(@Validated ReplaceBackgroundClipDropRequest request) {
-        ClipDropImage response = clipDropImageService.replaceBackground(request);
-        return CommonResult.success(response);
+    public CommonResult<Object> removeText(@Validated @RequestBody ImageReqVO request) {
+        request.setAppUid(RecommendAppEnum.REMOVE_TEXT_IMAGE.name());
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
+        appLimitService.appLimit(limitRequest);
+        return CommonResult.success(imageService.execute(request));
     }
 
 }

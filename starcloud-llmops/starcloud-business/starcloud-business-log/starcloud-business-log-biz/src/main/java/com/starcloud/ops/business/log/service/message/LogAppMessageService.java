@@ -70,14 +70,6 @@ public interface LogAppMessageService {
     List<LogAppMessageDO> listAppLogMessage(Collection<Long> ids);
 
     /**
-     * 根据会话uid获取消息列表
-     *
-     * @param query 查询条件
-     * @return 消息列表
-     */
-    Page<LogAppMessageDO> listAppLogMessage(AppLogMessagePageReqVO query);
-
-    /**
      * 获得应用执行日志结果列表, 用于 Excel 导出
      *
      * @param exportReqVO 查询条件
@@ -92,6 +84,14 @@ public interface LogAppMessageService {
      * @return 应用执行日志结果分页
      */
     PageResult<LogAppMessageDO> pageAppLogMessage(LogAppMessagePageReqVO pageReqVO);
+
+    /**
+     * 根据会话uid获取消息列表
+     *
+     * @param query 查询条件
+     * @return 消息列表
+     */
+    Page<LogAppMessageDO> pageAppLogMessage(AppLogMessagePageReqVO query);
 
     /**
      * 排除系统总结场景
