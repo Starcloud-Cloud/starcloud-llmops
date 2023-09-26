@@ -116,13 +116,14 @@ public class ImageServiceImpl implements ImageService {
                     imageResponse.setPrompt(item.getMessage());
                     imageResponse.setCreateTime(item.getCreateTime());
                     imageResponse.setImages(imageList);
-                    GenerateImageRequest imageRequest = JSONUtil.toBean(item.getAppConfig(), GenerateImageRequest.class);
-                    if (imageRequest != null) {
+                    GenerateImageRequest imageRequest = JSONUtil.toBean(item.getVariables(), GenerateImageRequest.class);
+                    if (Objects.nonNull(imageRequest)) {
                         imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.FALSE));
                         imageResponse.setEngine(imageRequest.getEngine());
                         imageResponse.setWidth(imageRequest.getWidth());
                         imageResponse.setHeight(imageRequest.getHeight());
                         imageResponse.setSteps(imageRequest.getSteps());
+                        imageResponse.setStylePreset(imageRequest.getStylePreset());
                     }
                     return imageResponse;
                 } catch (Exception e) {
