@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.user.service.impl;
 
+import cn.hutool.extra.servlet.ServletUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.validation.ValidationUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
@@ -66,12 +68,20 @@ public class MobilePhoneServiceImpl implements CommunicationService {
     @Transactional(rollbackFor = Exception.class)
     public void validateCode(CodeValidateReqVO reqVO) {
         checkAccount(reqVO.getAccount());
-        smsCodeApi.useSmsCode(SmsConvert.INSTANCE.smsVo2UseDTO(reqVO, SmsSceneEnum.ADMIN_MEMBER_BIND.getScene()));
+        smsCodeApi.useSmsCode(SmsConvert.INSTANCE.smsVo2UseDTO(reqVO, SmsSceneEnum.ADMIN_MEMBER_BIND.getScene(),getClientIP()));
         // 更新手机号
         UserProfileUpdateReqVO userUpdateReqVO = new UserProfileUpdateReqVO();
         Long loginUserId = WebFrameworkUtils.getLoginUserId();
         userUpdateReqVO.setMobile(reqVO.getAccount());
         adminUserService.updateUserProfile(loginUserId, userUpdateReqVO);
+    }
+
+    public static String getClientIP() {
+        HttpServletRequest request = WebFrameworkUtils.getRequest();
+        if (request == null) {
+            return null;
+        }
+        return ServletUtil.getClientIP(request);
     }
 
     @Override
