@@ -197,7 +197,7 @@ public class StarUserServiceImpl implements StarUserService {
 
                 // 获取当天的邀请记录
                 List<InvitationRecordsDO> todayInvitations = invitationRecordsService.getTodayInvitations(inviteUserId);
-                if (todayInvitations.size() % 3 == 0) {
+                if (todayInvitations.size() % 2 == 0) {
                     log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
                     benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE_REPEAT.getName(), inviteUserId);
                     sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
