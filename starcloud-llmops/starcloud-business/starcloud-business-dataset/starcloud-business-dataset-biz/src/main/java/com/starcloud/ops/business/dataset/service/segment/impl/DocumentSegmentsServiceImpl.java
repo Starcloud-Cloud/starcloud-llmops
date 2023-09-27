@@ -392,7 +392,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
     @Override
     public MatchQueryVO matchQuery(MatchByDocIdRequest request) {
         if (CollectionUtils.isEmpty(request.getDocId())) {
-            return MatchQueryVO.builder().queryText(request.getText()).build();
+            return MatchQueryVO.builder().queryText(request.getText()).records(Collections.emptyList()).build();
         }
 
         for (Long docId : request.getDocId()) {
@@ -400,7 +400,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             if (datasetSourceDataDO.getEnabled()) {
                 break;
             }
-            return MatchQueryVO.builder().queryText(request.getText()).build();
+            return MatchQueryVO.builder().queryText(request.getText()).records(Collections.emptyList()).build();
         }
 
 
