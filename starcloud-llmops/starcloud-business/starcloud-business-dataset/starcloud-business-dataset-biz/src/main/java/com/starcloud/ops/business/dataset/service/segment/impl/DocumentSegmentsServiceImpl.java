@@ -11,12 +11,16 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.github.xiaoymin.knife4j.core.util.Assert;
 import com.knuddels.jtokkit.api.ModelType;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataBaseRespVO;
+import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailRespVO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetstorage.vo.DatasetStorageUpLoadRespVO;
 import com.starcloud.ops.business.dataset.convert.segment.DocumentSegmentConvert;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasets.DatasetsDO;
+import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
 import com.starcloud.ops.business.dataset.dal.dataobject.segment.DocumentSegmentDO;
 import com.starcloud.ops.business.dataset.dal.es.ElasticsearchRepository;
 import com.starcloud.ops.business.dataset.dal.mysql.segment.DocumentSegmentMapper;
+import com.starcloud.ops.business.dataset.enums.DataSourceDataModelEnum;
 import com.starcloud.ops.business.dataset.enums.DocumentSegmentEnum;
 import com.starcloud.ops.business.dataset.enums.EmbeddingTypeEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.RecordDTO;
@@ -25,6 +29,7 @@ import com.starcloud.ops.business.dataset.pojo.request.*;
 import com.starcloud.ops.business.dataset.pojo.response.MatchQueryVO;
 import com.starcloud.ops.business.dataset.pojo.response.SplitForecastResponse;
 import com.starcloud.ops.business.dataset.service.datasets.DatasetsService;
+import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.datasetstorage.DatasetStorageService;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.dataset.service.task.IndexThreadPoolExecutor;
@@ -102,6 +107,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
     @Autowired
     private UserBenefitsService userBenefitsService;
+
+    @Autowired
+    private DatasetSourceDataService datasetSourceDataService;
 
     @Autowired
     private SummaryTask summaryTask;
@@ -345,13 +353,20 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         List<String> datasetIds;
         try {
             // FIXME: 2023/9/12  这里的参数为 appId 即应用 ID
-            DatasetsDO datasetsDO = datasetsService.getDatasetInfoByAppId(Optional.ofNullable(request.getDatasetUid()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
+
+            DatasetsDO datasetsDO = datasetsService.getDatasetInfoByAppId(Optional.ofNullable(request.getAppId()).orElse(new ArrayList<>()).stream().findFirst().orElse(""));
             datasetIds = Collections.singletonList(datasetsDO.getId().toString());
         } catch (Exception e) {
-            log.error("matchQuery.getDatasets is fail: {}, {}", e.getMessage(), request.getDatasetUid());
+            log.error("matchQuery.getDatasets is fail: {}, {}", e.getMessage(), request.getAppId());
             return null;
-
         }
+        List<DatasetSourceDataDetailRespVO> dataList = datasetSourceDataService.getApplicationSourceDataList(Optional.ofNullable(request.getAppId()).orElse(new ArrayList<>()).stream().findFirst().orElse(""), DataSourceDataModelEnum.DOCUMENT.getStatus(), false);
+        if (dataList.stream().anyMatch(DatasetSourceDataBaseRespVO::getEnabled)) {
+            log.warn("没有可用文档");
+            return null;
+        }
+
+
 
         EmbeddingReqDTO reqDTO = new EmbeddingReqDTO();
         reqDTO.setType(EmbeddingTypeEnum.QUERY.name());
@@ -379,6 +394,15 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         if (CollectionUtils.isEmpty(request.getDocId())) {
             return MatchQueryVO.builder().queryText(request.getText()).build();
         }
+
+        for (Long docId : request.getDocId()) {
+            DatasetSourceDataDO datasetSourceDataDO = datasetSourceDataService.selectDataById(docId);
+            if (datasetSourceDataDO.getEnabled()) {
+                break;
+            }
+            return MatchQueryVO.builder().queryText(request.getText()).build();
+        }
+
 
         EmbeddingReqDTO reqDTO = new EmbeddingReqDTO();
         reqDTO.setType(EmbeddingTypeEnum.QUERY.name());
