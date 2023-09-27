@@ -59,6 +59,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,6 +108,10 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
     @Autowired
     private UserBenefitsService userBenefitsService;
+
+    @Autowired
+    @Lazy
+    private DatasetSourceDataService datasetSourceDataService;
 
     @Autowired
     private SummaryTask summaryTask;
@@ -357,6 +362,11 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.error("matchQuery.getDatasets is fail: {}, {}", e.getMessage(), request.getAppId());
             return null;
         }
+        List<DatasetSourceDataDetailRespVO> dataList = datasetSourceDataService.getApplicationSourceDataList(Optional.ofNullable(request.getAppId()).orElse(new ArrayList<>()).stream().findFirst().orElse(""), DataSourceDataModelEnum.DOCUMENT.getStatus(), false);
+        if (dataList.stream().anyMatch(DatasetSourceDataBaseRespVO::getEnabled)) {
+            log.warn("没有可用文档");
+            return null;
+        }
 
         EmbeddingReqDTO reqDTO = new EmbeddingReqDTO();
         reqDTO.setType(EmbeddingTypeEnum.QUERY.name());
@@ -385,6 +395,13 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             return MatchQueryVO.builder().queryText(request.getText()).build();
         }
 
+        for (Long docId : request.getDocId()) {
+            DatasetSourceDataDO datasetSourceDataDO = datasetSourceDataService.selectDataById(docId);
+            if (datasetSourceDataDO.getEnabled()) {
+                break;
+            }
+            return MatchQueryVO.builder().queryText(request.getText()).build();
+        }
 
 
         EmbeddingReqDTO reqDTO = new EmbeddingReqDTO();
