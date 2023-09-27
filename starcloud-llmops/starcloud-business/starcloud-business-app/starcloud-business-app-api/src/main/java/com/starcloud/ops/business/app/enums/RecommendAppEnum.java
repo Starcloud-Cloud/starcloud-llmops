@@ -57,7 +57,7 @@ public enum RecommendAppEnum implements IEnumable<Integer> {
     /**
      * 草图生成图片的唯一标识
      */
-    SKETCH_TO_IMAGE(9, "草图生成图片", "Sketch To Image"),
+    SKETCH_TO_IMAGE(9, "轮廓生图", "Sketch To Image"),
 
     /**
      * 图片变体的唯一标识
