@@ -128,7 +128,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             imageRespVO.setResponse(imageResponse);
             return imageRespVO;
         } catch (ServiceException exception) {
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", exception.getCode(), exception.getMessage());
+            log.error("处理图片失败，错误码：{}, 错误信息：{}", exception.getCode(), exception.getMessage());
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
@@ -142,7 +142,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             });
             throw exception;
         } catch (Exception exception) {
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()), exception.getMessage());
+            log.error("处理图片失败，错误码：{}, 错误信息：{}", Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()), exception.getMessage());
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
@@ -264,7 +264,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setAnswerTokens(0);
         messageRequest.setAnswerUnitPrice(new BigDecimal("0.0000"));
         messageRequest.setTotalPrice(new BigDecimal("0.0000"));
-        messageRequest.setCurrency("TIME");
+        messageRequest.setCurrency("USD");
         messageRequest.setFromScene(request.getScene());
         messageRequest.setMediumUid(request.getMediumUid());
         messageRequest.setEndUser(request.getEndUser());
