@@ -364,11 +364,12 @@ public class AppLimitServiceImpl implements AppLimitService {
         // 限流计数 Key
         String limitKey = context.getLimitKey();
         RLock lock = redissonClient.getLock(getLockKey(limitKey));
-        // 如果获取锁失败，直接抛出异常。
-        if (!lock.tryLock()) {
-            throw exceptionLimit("系统繁忙，请稍后再试！");
-        }
+
         try {
+            // 如果获取锁失败，直接抛出异常。
+            if (!lock.tryLock(10, 10, TimeUnit.SECONDS)) {
+                throw exceptionLimit("系统繁忙，请稍后再试！");
+            }
             // 获取时间单位
             ChronoUnit timeUnit = ChronoUnit.valueOf(config.getTimeUnit());
             // 将配置中的时间转换成毫秒
@@ -456,6 +457,9 @@ public class AppLimitServiceImpl implements AppLimitService {
             limitBucket.set(1);
             log.info("限流：初始化计时：计时信息为：Key：{}，Expire：{}", timeKey, timeout);
             log.info("限流：初始化计数：计数信息为：Key: {}, Value: {}", limitKey, 1);
+        } catch (InterruptedException exception) {
+            log.error("限流异常：{}", exception.getMessage());
+            throw exceptionLimit("系统繁忙，请稍后再试！");
         } catch (Exception exception) {
             log.error("限流异常：{}", exception.getMessage());
             throw exception;
