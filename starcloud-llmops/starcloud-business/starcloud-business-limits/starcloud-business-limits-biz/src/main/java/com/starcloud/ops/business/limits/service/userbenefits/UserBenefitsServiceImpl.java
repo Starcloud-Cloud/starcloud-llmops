@@ -8,6 +8,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
@@ -462,6 +463,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param userId       用户 ID
      */
     @Override
+    @DataPermission(enable = false)
     public void allowExpendBenefits(String benefitsType, Long userId) {
         log.info("[allowExpendBenefits][检测是否存在可扣除的权益：用户ID({})｜权益类型({})", userId, benefitsType);
 
@@ -545,6 +547,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @param userId           用户 ID
      */
     @Override
+    @DataPermission(enable = false)
     public void expendBenefits(String benefitsTypeCode, Long amount, Long userId, String outId) {
         log.info("[expendBenefits][权益执行扣减操作：用户ID({})｜权益类型({})|数量({})|外键ID({})", userId, benefitsTypeCode, amount, outId);
 

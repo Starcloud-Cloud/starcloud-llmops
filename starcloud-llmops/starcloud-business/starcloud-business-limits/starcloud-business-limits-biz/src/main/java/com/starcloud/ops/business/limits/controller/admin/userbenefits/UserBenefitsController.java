@@ -71,13 +71,14 @@ public class UserBenefitsController {
 
     @PostMapping("/expendBenefits")
     @Operation(summary = "权益扣减测试")
+    @Deprecated
     public CommonResult<Boolean> expendBenefits(String benefitsType, Long amount, Long userId, String outId) {
         userBenefitsService.expendBenefits(benefitsType, amount, userId, outId);
         return success(true);
     }
 
     @PostMapping("/expiredReminder")
-    @Operation(summary = "权益过期提醒测试")
+    @Operation(summary = "权益过期提醒")
     public CommonResult<ExpiredReminderVO> expiredReminder() {
         return success(userBenefitsService.getBenefitsExpired());
     }
