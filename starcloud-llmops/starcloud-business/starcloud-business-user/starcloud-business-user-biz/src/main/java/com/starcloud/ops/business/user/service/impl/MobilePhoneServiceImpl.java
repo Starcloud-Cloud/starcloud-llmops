@@ -3,6 +3,7 @@ package com.starcloud.ops.business.user.service.impl;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.validation.ValidationUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.sms.SmsCodeApi;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
@@ -60,6 +61,7 @@ public class MobilePhoneServiceImpl implements CommunicationService {
     }
 
     @Override
+    @DataPermission(enable = false)
     public void sendCode(CodeSendReqVO reqVO) {
         checkAccount(reqVO.getAccount());
         if (ADMIN_MEMBER_BIND.getScene().equals(reqVO.getScene())) {
