@@ -7,8 +7,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author df007df
@@ -29,7 +31,7 @@ public class BaseLLMResult<R> {
 
 
     public String getText() {
-        return StrUtil.isNotBlank(this.text) ? this.text : CollectionUtil.getLast(generations).getText();
+        return StrUtil.isNotBlank(this.text) ? this.text : Optional.ofNullable(generations).orElse(new ArrayList<>()).stream().sorted().findFirst().map(BaseGeneration::getText).orElse("");
     }
 
     public static <R> BaseLLMResult<R> data(String str) {

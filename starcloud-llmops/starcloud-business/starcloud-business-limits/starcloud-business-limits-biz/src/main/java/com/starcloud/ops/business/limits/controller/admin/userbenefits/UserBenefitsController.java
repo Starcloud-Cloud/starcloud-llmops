@@ -3,9 +3,10 @@ package com.starcloud.ops.business.limits.controller.admin.userbenefits;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.*;
-import com.starcloud.ops.business.limits.convert.userbenefits.UserBenefitsConvert;
-import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.ExpiredReminderVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPagInfoResultVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -19,7 +20,6 @@ import javax.annotation.Resource;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
-import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED;
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL;
 
 @Tag(name = "星河云海 - 用户权益")
@@ -71,13 +71,14 @@ public class UserBenefitsController {
 
     @PostMapping("/expendBenefits")
     @Operation(summary = "权益扣减测试")
+    @Deprecated
     public CommonResult<Boolean> expendBenefits(String benefitsType, Long amount, Long userId, String outId) {
         userBenefitsService.expendBenefits(benefitsType, amount, userId, outId);
         return success(true);
     }
 
     @PostMapping("/expiredReminder")
-    @Operation(summary = "权益过期提醒测试")
+    @Operation(summary = "权益过期提醒")
     public CommonResult<ExpiredReminderVO> expiredReminder() {
         return success(userBenefitsService.getBenefitsExpired());
     }
