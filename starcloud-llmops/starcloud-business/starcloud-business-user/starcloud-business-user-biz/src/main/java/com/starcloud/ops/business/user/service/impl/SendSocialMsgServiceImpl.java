@@ -85,6 +85,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         String format = String.format(dictDataDO.getValue(), invitationRecords.size());
         messageSendReqVO.setContent(format);
         messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
+        messageSendReqVO.setUserId(inviteUserid);
         messageService.sendMessage(socialUserDO.getOpenid(), messageSendReqVO);
     }
 
@@ -133,6 +134,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
         messageSendReqVO.setContent(content);
         messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
+        messageSendReqVO.setUserId(userId);
         try {
             messageService.sendMessage(socialUserDO.getOpenid(), messageSendReqVO);
         } catch (Exception e) {

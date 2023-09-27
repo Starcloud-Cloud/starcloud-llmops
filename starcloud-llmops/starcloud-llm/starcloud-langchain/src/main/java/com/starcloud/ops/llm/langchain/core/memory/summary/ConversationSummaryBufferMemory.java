@@ -79,10 +79,7 @@ public class ConversationSummaryBufferMemory extends SummarizerMixin {
 
             while (sum > this.maxTokenLimit) {
 
-                //一次取两个，保证一次对话内容
                 prunedMemory.add(this.getBuffer().remove(0));
-                prunedMemory.add(this.getBuffer().remove(0));
-
                 sum = this.getLlm().getNumTokensFromMessages(this.getBuffer());
             }
 

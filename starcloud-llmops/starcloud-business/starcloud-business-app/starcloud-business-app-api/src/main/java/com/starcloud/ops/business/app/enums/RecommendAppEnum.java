@@ -32,7 +32,7 @@ public enum RecommendAppEnum implements IEnumable<Integer> {
     /**
      * 默认生成图片步骤的唯一标识
      */
-    GENERATE_IMAGE(4, "生成图片", "Generate Image"),
+    GENERATE_IMAGE(4, "AI自由绘图", "Generate Image"),
 
     /**
      * 图片放大的唯一标识
