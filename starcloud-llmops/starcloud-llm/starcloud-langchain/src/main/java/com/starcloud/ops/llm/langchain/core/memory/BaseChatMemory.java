@@ -5,6 +5,7 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,5 +37,12 @@ public abstract class BaseChatMemory extends BaseMemory<BaseLLMResult> {
         getChatHistory().addUserMessage(String.valueOf(variable.getValue()));
         getChatHistory().addAiMessage(result.getText());
     }
+
+
+    public void saveContext(BaseVariable input, BaseVariable output) {
+
+        this.saveContext(Arrays.asList(input), BaseLLMResult.data(String.valueOf(output.getValue())));
+    }
+
 
 }
