@@ -75,6 +75,7 @@ public class MobilePhoneServiceImpl implements CommunicationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @DataPermission(enable = false)
     public void validateCode(CodeValidateReqVO reqVO) {
         checkAccount(reqVO.getAccount());
         if (ADMIN_MEMBER_BIND.getScene().equals(reqVO.getScene())) {
