@@ -3,9 +3,7 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
@@ -56,7 +54,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -483,7 +480,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
         if (dataDO.getEnabled()) {
-            documentSegmentsService.updateEnable(dataDO.getId(), false);
+            documentSegmentsService.updateEnable(dataDO.getId(), true);
             dataDO.setEnabled(false);
             datasetSourceDataMapper.updateById(dataDO);
         } else {
@@ -503,7 +500,7 @@ public class DatasetSourceDataServiceImpl implements DatasetSourceDataService {
             throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
         }
         if (!dataDO.getEnabled()) {
-            documentSegmentsService.updateEnable(dataDO.getId(), true);
+            documentSegmentsService.updateEnable(dataDO.getId(), false);
             dataDO.setEnabled(true);
             datasetSourceDataMapper.updateById(dataDO);
         } else {

@@ -45,8 +45,9 @@ public class MessageContentDocMemory {
     public void initHistory() {
         String appUid = this.messageMemory.getChatAppEntity().getUid();
         String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
-        log.info("MessageContentDocMemory init start, appUid:[{}] conversationUid[{}]", appUid, conversationUid);
-        this.loadHistory();
+        //log.info("MessageContentDocMemory init start, appUid:[{}] conversationUid[{}]", appUid, conversationUid);
+        //@todo 不需要初始化文档上下文了。因为不能依赖中间步骤中上传的会话文档（如技能执行，直接上传URL等情况），不然下一次对话会带上不相关的文档内容
+        //this.loadHistory();
     }
 
     public Boolean hasHistory() {

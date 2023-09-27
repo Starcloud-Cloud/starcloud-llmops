@@ -149,5 +149,21 @@ public interface UserBenefitsStrategyService {
     List<UserBenefitsStrategyDO> validateUserBenefitsStrategyExists(List<String> id , String strategyType);
 
 
+    /**
+     * 获得 支付套餐相关的权益策略
+     *
+     * @return 用户权益策略表
+     */
+    List<UserBenefitsStrategyDO>  getPayBenefitsStrategy();
+
+    /**
+     * 获得非支付套餐相关的权益策略
+     *
+     * @return 用户权益策略表
+     */
+    List<UserBenefitsStrategyDO>  getNoPayBenefitsStrategy();
+
+
+
 }
 

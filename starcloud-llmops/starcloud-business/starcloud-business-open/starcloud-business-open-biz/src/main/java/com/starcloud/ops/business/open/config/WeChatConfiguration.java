@@ -37,7 +37,8 @@ public class WeChatConfiguration {
 
     @Autowired
     private WeChatScanHandler scanHandler;
-//    @Bean("wxMpMessageRouter")
+
+    //    @Bean("wxMpMessageRouter")
     public WxMpMessageRouter wxMpMessageRouter() {
         WxMpMessageRouter router = new WxMpMessageRouter(wxMpService);
 
@@ -75,10 +76,11 @@ public class WeChatConfiguration {
                                              LocationHandler locationHandler,
                                              WeChatScanHandler scanHandler,
                                              WxTextMessageHandler wxTextMessageHandler,
+                                             WeChatSpecialHandler weChatSpecialHandler,
                                              MessageAutoReplyHandler messageAutoReplyHandler) {
         return new DefaultMpServiceFactory(redisTemplateWxRedisOps, wxMpProperties,
                 messageReceiveHandler, kfSessionHandler, storeCheckNotifyHandler, menuHandler,
-                nullHandler, subscribeHandler, unsubscribeHandler, locationHandler, scanHandler, messageAutoReplyHandler, wxTextMessageHandler);
+                nullHandler, subscribeHandler, unsubscribeHandler, locationHandler, scanHandler, messageAutoReplyHandler, wxTextMessageHandler, weChatSpecialHandler);
     }
 
 }

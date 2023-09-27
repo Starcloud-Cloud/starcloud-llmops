@@ -5,7 +5,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
@@ -306,7 +305,7 @@ public class ContextPrompt extends BasePromptConfig {
                 MatchByDataSetIdRequest matchQueryRequest = new MatchByDataSetIdRequest();
                 matchQueryRequest.setText(query);
                 matchQueryRequest.setK(2L);
-                matchQueryRequest.setDatasetUid(datasetUid);
+                matchQueryRequest.setAppId(datasetUid);
                 matchQueryRequest.setMinScore(0.72d);
                 matchQueryRequest.setUserId(chatRequestVO.getUserId());
                 MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchQueryRequest);

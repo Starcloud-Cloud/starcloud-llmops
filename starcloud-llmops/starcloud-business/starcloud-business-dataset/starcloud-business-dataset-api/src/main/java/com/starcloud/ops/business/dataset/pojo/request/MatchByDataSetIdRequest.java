@@ -11,6 +11,6 @@ import java.util.List;
 public class MatchByDataSetIdRequest extends BaseQueryRequest{
 
     @Schema(description = "数据集uid")
-    private List<String> datasetUid;
+    private List<String> appId;
 
 }

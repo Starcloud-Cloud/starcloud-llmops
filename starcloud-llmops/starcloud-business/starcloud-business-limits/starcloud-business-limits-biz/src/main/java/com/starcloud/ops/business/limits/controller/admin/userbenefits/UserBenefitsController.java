@@ -3,10 +3,7 @@ package com.starcloud.ops.business.limits.controller.admin.userbenefits;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPagInfoResultVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsRespVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.*;
 import com.starcloud.ops.business.limits.convert.userbenefits.UserBenefitsConvert;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
@@ -77,6 +74,12 @@ public class UserBenefitsController {
     public CommonResult<Boolean> expendBenefits(String benefitsType, Long amount, Long userId, String outId) {
         userBenefitsService.expendBenefits(benefitsType, amount, userId, outId);
         return success(true);
+    }
+
+    @PostMapping("/expiredReminder")
+    @Operation(summary = "权益过期提醒测试")
+    public CommonResult<ExpiredReminderVO> expiredReminder() {
+        return success(userBenefitsService.getBenefitsExpired());
     }
 
 

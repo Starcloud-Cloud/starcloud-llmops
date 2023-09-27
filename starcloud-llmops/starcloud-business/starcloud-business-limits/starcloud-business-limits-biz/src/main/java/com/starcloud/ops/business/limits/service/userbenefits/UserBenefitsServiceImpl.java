@@ -36,6 +36,7 @@ import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -889,14 +890,63 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     }
 
     /**
+     * 获取七天内即将过期的权益
+     */
+    @Override
+    public ExpiredReminderVO getBenefitsExpired() {
+        ExpiredReminderVO expiredReminderVO = new ExpiredReminderVO();
+
+        UserBenefits userLevel = new UserBenefits();
+        UserBenefits userBenefits = new UserBenefits();
+        // 获取用户 7 天内过期的所有权益
+        // 查询条件：当前用户下启用的权益，并且未过期
+        LocalDateTime now = LocalDateTime.now();
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
+                .eq(UserBenefitsDO::getUserId, getLoginUserId())
+                .eq(UserBenefitsDO::getEnabled, true)
+                .orderByDesc(UserBenefitsDO::getExpirationTime);
+
+        List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
+
+        // 根据数据类型 获取即将过的付款权益 PAY_PLUS_MONTH PAY_PLUS_YEAR  PAY_PRO_MONTH  PAY_PRO_YEAR
+        List<UserBenefitsStrategyDO> payBenefitsStrategy = userBenefitsStrategyService.getPayBenefitsStrategy();
+        List<Long> payBenefitsStrategyId = payBenefitsStrategy.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
+        List<UserBenefitsStrategyDO> noPayBenefitsStrategy = userBenefitsStrategyService.getNoPayBenefitsStrategy();
+        List<Long> noPayBenefitsStrategyId = noPayBenefitsStrategy.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
+
+        UserBenefitsDO userLevelDO = resultList.stream()
+                .filter(obj -> CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).max(Comparator.comparing(UserBenefitsDO::getExpirationTime)) // 使用findFirst来获取第一个匹配的元素
+                .orElse(null);// 如果没有匹配的元素，返回null
+
+        if (userLevelDO != null && LocalDateTimeUtil.isIn(userLevelDO.getExpirationTime(), now, now.plusDays(7))) {
+            userLevel.setName(userBenefitsStrategyService.getUserBenefitsStrategy(Long.valueOf(userLevelDO.getStrategyId())).getStrategyName());
+            userLevel.setExpirationTime(userLevelDO.getExpirationTime());
+        }
+        UserBenefitsDO userBenefitsDO = resultList.stream()
+                .filter(obj -> CollUtil.contains(noPayBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).max(Comparator.comparing(UserBenefitsDO::getExpirationTime)) // 使用findFirst来获取第一个匹配的元素
+                .orElse(null);// 如果没有匹配的元素，返回null
+
+
+        if (userBenefitsDO != null && LocalDateTimeUtil.isIn(userBenefitsDO.getExpirationTime(), now, now.plusDays(7))) {
+            userBenefits.setName(userBenefitsStrategyService.getUserBenefitsStrategy(Long.valueOf(userBenefitsDO.getStrategyId())).getStrategyName());
+            userBenefits.setExpirationTime(userBenefitsDO.getExpirationTime());
+        }
+        expiredReminderVO.setUserLevel(userLevel);
+        expiredReminderVO.setUserBenefits(userBenefits);
+
+        return expiredReminderVO;
+    }
+
+    /**
      * 根据用户 ID 获取用户信息
+     *
      * @param userId 用户 ID
      * @return UserBaseDTO
      */
     private UserBaseDTO getUserInfo(Long userId) {
-        Assert.notNull(userId,"用户信息为空，权益操作失败");
+        Assert.notNull(userId, "用户信息为空，权益操作失败");
         AdminUserDO user = adminUserService.getUser(userId);
-        if (user ==null){
+        if (user == null) {
             throw exception(USER_BENEFITS_OPERATION_FAIL_NO_USER);
         }
         return new UserBaseDTO().setUserId(userId).setTenantId(user.getTenantId());
