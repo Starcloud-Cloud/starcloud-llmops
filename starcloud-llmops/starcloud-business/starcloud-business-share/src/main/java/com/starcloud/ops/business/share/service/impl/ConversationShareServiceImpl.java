@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.share.service.impl;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -15,8 +16,8 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageExportReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -72,7 +74,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
 
     @Override
     public ConversationShareResp createShareLink(ConversationShareReq req) {
-        LogAppConversationDO appConversation = conversationService.getAppConversation(req.getConversationUid());
+        LogAppConversationDO appConversation = conversationService.getAppLogConversation(req.getConversationUid());
         if (appConversation == null) {
             throw exception(APP_CONVERSATION_NOT_EXISTS_UID, req.getConversationUid());
         }
@@ -111,8 +113,8 @@ public class ConversationShareServiceImpl implements ConversationShareService {
             } else if (AppSceneEnum.SHARE_IFRAME.name().equals(req.getScene())) {
                 AppRespVO appRespVO = appService.get(appUid);
                 inviteCode = EncryptionUtils.encrypt(Long.valueOf(appRespVO.getCreator())).toString();
-            }else {
-                throw exception(new ErrorCode(500,"错误的场景值"));
+            } else {
+                throw exception(new ErrorCode(500, "错误的场景值"));
             }
         } else {
             inviteCode = req.getInviteCode();
@@ -145,13 +147,20 @@ public class ConversationShareServiceImpl implements ConversationShareService {
     }
 
     @Override
+    public void deleteShare(String appUid) {
+        Assert.notBlank(appUid,"删除数据失败，appUid为空");
+        shareConversationMapper.delete(appUid);
+    }
+
+    @Override
     public List<LogAppMessageRespVO> conversationDetail(String shareKey) {
         ShareConversationDO shareConversationDO = getShareDO(shareKey);
         LogAppMessageExportReqVO exportReqVO = new LogAppMessageExportReqVO();
         exportReqVO.setAppUid(shareConversationDO.getAppUid());
         exportReqVO.setAppConversationUid(shareConversationDO.getConversationUid());
-        List<LogAppMessageDO> appMessageList = messageService.getAppMessageList(exportReqVO);
+        List<LogAppMessageDO> appMessageList = messageService.listAppLogMessage(exportReqVO);
         appMessageList = appMessageList.stream().filter(logAppMessageDO -> logAppMessageDO.getCreateTime().isBefore(shareConversationDO.getCreateTime())).collect(Collectors.toList());
+        Collections.reverse(appMessageList);
         return LogAppMessageConvert.INSTANCE.convertList(appMessageList);
     }
 
@@ -169,7 +178,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
             ChatAppEntity appEntity = AppFactory.factory(shareConversationDO.getMediumUid());
             return ChatAppConvert.INSTANCE.convert(appEntity);
         }
-        LogAppConversationDO appConversation = conversationService.getAppConversation(shareConversationDO.getConversationUid());
+        LogAppConversationDO appConversation = conversationService.getAppLogConversation(shareConversationDO.getConversationUid());
         if (appConversation == null) {
             throw exception(APP_CONVERSATION_NOT_EXISTS_UID, shareConversationDO.getConversationUid());
         }

@@ -5,12 +5,15 @@ import java.util.*;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 
-import com.starcloud.ops.business.log.api.conversation.vo.*;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationUpdateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppConversationRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.controller.admin.LogAppConversationExcelVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
-import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -43,11 +46,11 @@ public interface LogAppConversationConvert {
                     expression = "java( infoPO.getTotalElapsed().divide(new BigDecimal(1000)))")
 
     })
-    LogAppConversationInfoRespVO convertInfoPO(LogAppConversationInfoPO infoPO);
+    AppLogConversationInfoRespVO convertInfoPO(LogAppConversationInfoPO infoPO);
 
 
 
-    PageResult<LogAppConversationInfoRespVO> convertInfoPage(PageResult<LogAppConversationInfoPO> page);
+    PageResult<AppLogConversationInfoRespVO> convertInfoPage(PageResult<LogAppConversationInfoPO> page);
 
 
 

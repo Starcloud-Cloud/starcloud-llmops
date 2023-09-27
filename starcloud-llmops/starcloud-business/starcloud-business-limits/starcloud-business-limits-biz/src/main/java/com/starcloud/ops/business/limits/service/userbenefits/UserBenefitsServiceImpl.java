@@ -2,16 +2,20 @@ package com.starcloud.ops.business.limits.service.userbenefits;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.limits.api.benefits.dto.UserBaseDTO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.*;
 import com.starcloud.ops.business.limits.controller.admin.userbenefitsusagelog.vo.UserBenefitsUsageLogCreateReqVO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
@@ -65,6 +69,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     @Resource
     private PermissionService permissionService;
 
+    @Resource
+    private AdminUserService adminUserService;
 
     @Resource
     private UserBenefitsMapper userBenefitsMapper;
@@ -288,10 +294,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         userBenefitsDO.setUid(IdUtil.fastSimpleUUID());
         userBenefitsDO.setUserId(String.valueOf(userId));
         userBenefitsDO.setStrategyId(String.valueOf(benefitsStrategy.getId()));
-        userBenefitsDO.setAppCountUsed(benefitsStrategy.getAppCount());
-        userBenefitsDO.setDatasetCountUsed(benefitsStrategy.getDatasetCount());
-        userBenefitsDO.setImageCountUsed(benefitsStrategy.getImageCount());
-        userBenefitsDO.setTokenCountUsed(benefitsStrategy.getTokenCount());
+        userBenefitsDO.setAppRemaining(benefitsStrategy.getAppCount());
+        userBenefitsDO.setDatasetRemaining(benefitsStrategy.getDatasetCount());
+        userBenefitsDO.setImageRemaining(benefitsStrategy.getImageCount());
+        userBenefitsDO.setTokenRemaining(benefitsStrategy.getTokenCount());
 
         userBenefitsDO.setAppCountInit(benefitsStrategy.getAppCount());
         userBenefitsDO.setDatasetCountInit(benefitsStrategy.getDatasetCount());
@@ -379,10 +385,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         if (CollUtil.isNotEmpty(resultList)) {
 
             for (UserBenefitsDO userBenefits : resultList) {
-                totalAppCountUsed += userBenefits.getAppCountUsed();
-                totalDatasetCountUsed += userBenefits.getDatasetCountUsed();
-                totalImageCountUsed += userBenefits.getImageCountUsed();
-                totalTokenCountUsed += userBenefits.getTokenCountUsed();
+                totalAppCountUsed += userBenefits.getAppRemaining();
+                totalDatasetCountUsed += userBenefits.getDatasetRemaining();
+                totalImageCountUsed += userBenefits.getImageRemaining();
+                totalTokenCountUsed += userBenefits.getTokenRemaining();
 
                 totalAppCount += userBenefits.getAppCountInit();
                 totalDatasetCount += userBenefits.getDatasetCountInit();
@@ -401,11 +407,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserLevelEnums userLevelEnums;
         // 根据用户权限判断用户等级
         if (securityFrameworkService.hasRole("MOFAAI_PRO") && (CollUtil.isNotEmpty(monthBenefitsStrategyDOS) || CollUtil.isNotEmpty(yearBenefitsStrategyDOS))) {
-            userLevelEnums =UserLevelEnums.PRO;
+            userLevelEnums = UserLevelEnums.PRO;
         } else if (securityFrameworkService.hasRole("MOFAAI_PLUS")) {
-            userLevelEnums =UserLevelEnums.PLUS;
+            userLevelEnums = UserLevelEnums.PLUS;
         } else {
-            userLevelEnums =UserLevelEnums.FREE;
+            userLevelEnums = UserLevelEnums.FREE;
         }
         userBenefitsInfoResultVO.setUserLevel(userLevelEnums.getCode().toLowerCase());
 
@@ -456,8 +462,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      */
     @Override
     public void allowExpendBenefits(String benefitsType, Long userId) {
-
         log.info("[allowExpendBenefits][检测是否存在可扣除的权益：用户ID({})｜权益类型({})", userId, benefitsType);
+
+        UserBaseDTO userInfo = getUserInfo(userId);
+
         // 校验权益类型是否合法
         BenefitsTypeEnums benefitsTypeEnums = BenefitsTypeEnums.getByCode(benefitsType);
         if (benefitsTypeEnums == null) {
@@ -469,10 +477,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         // 查询条件：当前用户下启用且未过期且权益值大于0的数据
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
-        wrapper.eq(UserBenefitsDO::getUserId, userId);
         wrapper.eq(UserBenefitsDO::getEnabled, true);
         wrapper.le(UserBenefitsDO::getEffectiveTime, now);
         wrapper.ge(UserBenefitsDO::getExpirationTime, now);
+        wrapper.eq(UserBenefitsDO::getUserId, userInfo.getUserId());
+        wrapper.eq(UserBenefitsDO::getTenantId, userInfo.getTenantId());
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
         if (CollUtil.isEmpty(resultList)) {
@@ -495,16 +504,19 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         } else {
             switch (benefitsTypeEnums) {
                 case APP:
-                    wrapper.gt(UserBenefitsDO::getAppCountUsed, 0L);
+                    wrapper.gt(UserBenefitsDO::getAppRemaining, 0L);
                     break;
                 case DATASET:
-                    wrapper.gt(UserBenefitsDO::getDatasetCountUsed, 0L);
+                    wrapper.gt(UserBenefitsDO::getDatasetRemaining, 0L);
                     break;
                 case IMAGE:
-                    wrapper.gt(UserBenefitsDO::getImageCountUsed, 0L);
+                    wrapper.gt(UserBenefitsDO::getImageRemaining, 0L);
                     break;
                 case TOKEN:
-                    wrapper.gt(UserBenefitsDO::getTokenCountUsed, 0L);
+                    wrapper.gt(UserBenefitsDO::getTokenRemaining, 0L);
+                    break;
+                case COMPUTATIONAL_POWER:
+                    wrapper.gt(UserBenefitsDO::getComputationalPowerRemaining, 0L);
                     break;
             }
             // 查询数据
@@ -534,6 +546,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     @Override
     public void expendBenefits(String benefitsTypeCode, Long amount, Long userId, String outId) {
         log.info("[expendBenefits][权益执行扣减操作：用户ID({})｜权益类型({})|数量({})|外键ID({})", userId, benefitsTypeCode, amount, outId);
+
+        // 根据用户 ID 获取用户信息
+        UserBaseDTO userInfo = getUserInfo(userId);
+
         // 校验权益类型是否合法
         BenefitsTypeEnums benefitsType = BenefitsTypeEnums.getByCode(benefitsTypeCode);
         if (benefitsType == null) {
@@ -541,14 +557,14 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             throw exception(BENEFITS_TYPE_NOT_EXISTS);
         }
 
-
         LocalDateTime now = LocalDateTime.now();
         // 查询条件：当前用户下启用且未过期且权益值大于0的数据
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
-                .eq(UserBenefitsDO::getUserId, userId)
                 .eq(UserBenefitsDO::getEnabled, true)
                 .le(UserBenefitsDO::getEffectiveTime, now)
-                .ge(UserBenefitsDO::getExpirationTime, now);
+                .ge(UserBenefitsDO::getExpirationTime, now)
+                .eq(UserBenefitsDO::getUserId, userInfo.getUserId())
+                .eq(UserBenefitsDO::getTenantId, userInfo.getTenantId());
 
         List<UserBenefitsDO> userBenefitsDOS = userBenefitsMapper.selectList(wrapper);
 
@@ -570,24 +586,29 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             BiConsumer<UserBenefitsDO, Long> setter;
             switch (benefitsType) {
                 case APP:
-                    wrapper.gt(UserBenefitsDO::getAppCountUsed, 0L);
-                    getter = UserBenefitsDO::getAppCountUsed;
-                    setter = UserBenefitsDO::setAppCountUsed;
+                    wrapper.gt(UserBenefitsDO::getAppRemaining, 0L);
+                    getter = UserBenefitsDO::getAppRemaining;
+                    setter = UserBenefitsDO::setAppRemaining;
                     break;
                 case DATASET:
-                    wrapper.gt(UserBenefitsDO::getDatasetCountUsed, 0L);
-                    getter = UserBenefitsDO::getDatasetCountUsed;
-                    setter = UserBenefitsDO::setDatasetCountUsed;
+                    wrapper.gt(UserBenefitsDO::getDatasetRemaining, 0L);
+                    getter = UserBenefitsDO::getDatasetRemaining;
+                    setter = UserBenefitsDO::setDatasetRemaining;
                     break;
                 case IMAGE:
-                    wrapper.gt(UserBenefitsDO::getImageCountUsed, 0L);
-                    getter = UserBenefitsDO::getImageCountUsed;
-                    setter = UserBenefitsDO::setImageCountUsed;
+                    wrapper.gt(UserBenefitsDO::getImageRemaining, 0L);
+                    getter = UserBenefitsDO::getImageRemaining;
+                    setter = UserBenefitsDO::setImageRemaining;
                     break;
                 case TOKEN:
-                    wrapper.gt(UserBenefitsDO::getTokenCountUsed, 0L);
-                    getter = UserBenefitsDO::getTokenCountUsed;
-                    setter = UserBenefitsDO::setTokenCountUsed;
+                    wrapper.gt(UserBenefitsDO::getTokenRemaining, 0L);
+                    getter = UserBenefitsDO::getTokenRemaining;
+                    setter = UserBenefitsDO::setTokenRemaining;
+                    break;
+                case COMPUTATIONAL_POWER:
+                    wrapper.gt(UserBenefitsDO::getComputationalPowerRemaining, 0L);
+                    getter = UserBenefitsDO::getComputationalPowerRemaining;
+                    setter = UserBenefitsDO::setComputationalPowerRemaining;
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + benefitsType);
@@ -596,10 +617,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
             if (CollUtil.isEmpty(resultList)) {
                 log.error("[expendBenefits][权益扣减失败，用户所使用权益为 0：用户ID({})｜权益类型({})|扣除数量({})", userId, benefitsTypeCode, amount);
-                // throw exception(USER_BENEFITS_USELESS_INTEREST);
             }
             // 权益扣除
-            List<UserBenefitsDO> usedBenefitsDOS = updateBenefits(resultList, getter, setter, amount);
+            List<UserBenefitsDO> usedBenefitsDOS = deduct(resultList, getter, setter, amount);
 
             // 批量更新数据
             userBenefitsMapper.updateBatch(resultList, resultList.size());
@@ -617,22 +637,28 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         userBenefitsUsageLogCreateReqVO.setAction(BenefitsActionEnums.USED.getCode());
         userBenefitsUsageLogCreateReqVO.setAmount(amount);
         userBenefitsUsageLogCreateReqVO.setUsageTime(LocalDateTime.now());
+        userBenefitsUsageLogCreateReqVO.setCreator(String.valueOf(userInfo.getUserId()));
+        userBenefitsUsageLogCreateReqVO.setUpdater(String.valueOf(userInfo.getUserId()));
+        userBenefitsUsageLogCreateReqVO.setCreateTime(LocalDateTime.now());
+        userBenefitsUsageLogCreateReqVO.setTenantId(userInfo.getTenantId());
 
         if (StrUtil.isNotBlank(outId)) {
             userBenefitsUsageLogCreateReqVO.setOutId(outId);
         }
-        userBenefitsUsageLogCreateReqVO.setBenefitsIds(benefitsIds.toString());
+        userBenefitsUsageLogCreateReqVO.setBenefitsIds(benefitsIds.stream().map(Object::toString).collect(Collectors.joining(",")));
 
         userBenefitsUsageLogService.createUserBenefitsUsageLog(userBenefitsUsageLogCreateReqVO);
     }
 
     /**
+     * 权益扣除
+     *
      * @param resultList 结果 List
      * @param getter     getter
      * @param setter     setter
      * @param amount     增加或者扣减数
      */
-    private List<UserBenefitsDO> updateBenefits(List<UserBenefitsDO> resultList, Function<UserBenefitsDO, Long> getter, BiConsumer<UserBenefitsDO, Long> setter, Long amount) {
+    private List<UserBenefitsDO> deduct(List<UserBenefitsDO> resultList, Function<UserBenefitsDO, Long> getter, BiConsumer<UserBenefitsDO, Long> setter, Long amount) {
 
         long remainingAmount = amount;
 
@@ -816,23 +842,63 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     }
 
     /**
-     * 判断用户是否存在该类型权益
+     * 根据类型获取有效的权益总量
      *
-     * @param benefitsType 权益 type
-     * @param userId       用户 ID
-     * @return 编号
+     * @param benefitsType
+     * @param userId
      */
-    private Boolean exitBenefitsByType(String benefitsType, Long userId) {
-        try {
-            userBenefitsStrategyService.getMasterConfigStrategyByType(benefitsType);
-            return Boolean.TRUE;
-        } catch (Exception e) {
-            return Boolean.FALSE;
+    @Override
+    public UserBenefitsBaseResultVO getBenefitsByType(String benefitsType, Long userId) {
+
+        UserBenefitsBaseResultVO resultVO = new UserBenefitsBaseResultVO();
+        // 查询条件：当前用户下启用的权益，并且未过期
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
+                .eq(UserBenefitsDO::getUserId, userId)
+                .eq(UserBenefitsDO::getEnabled, true)
+                .le(UserBenefitsDO::getEffectiveTime, LocalDateTime.now())
+                .ge(UserBenefitsDO::getExpirationTime, LocalDateTime.now());
+
+        List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
+
+        if (CollUtil.isNotEmpty(resultList)) {
+            BenefitsTypeEnums benefitsTypeEnums = BenefitsTypeEnums.valueOf(benefitsType);
+            resultVO.setName(benefitsTypeEnums.getChineseName());
+            resultVO.setType(benefitsTypeEnums.getCode());
+            switch (benefitsTypeEnums) {
+                case TOKEN:
+                    resultVO.setRemaining(resultList.stream().mapToLong(UserBenefitsDO::getTokenRemaining).sum());
+                    resultVO.setTotalNum(resultList.stream().mapToLong(UserBenefitsDO::getTokenCountInit).sum());
+                    break;
+                case IMAGE:
+                    resultVO.setRemaining(resultList.stream().mapToLong(UserBenefitsDO::getImageRemaining).sum());
+                    resultVO.setTotalNum(resultList.stream().mapToLong(UserBenefitsDO::getImageRemaining).sum());
+                    break;
+                case COMPUTATIONAL_POWER:
+                    resultVO.setRemaining(resultList.stream().mapToLong(UserBenefitsDO::getComputationalPowerRemaining).sum());
+                    resultVO.setTotalNum(resultList.stream().mapToLong(UserBenefitsDO::getComputationalPowerInit).sum());
+                    break;
+                default:
+                    break;
+            }
+            return resultVO;
+
         }
+        resultVO.setRemaining(0L);
+        return resultVO;
+
     }
 
-    private LocalDateTime getNowGmtTime() {
-        long timestamp = System.currentTimeMillis();
-        return Instant.ofEpochMilli(timestamp).atZone(ZoneOffset.ofHours(8)).toLocalDateTime();
+    /**
+     * 根据用户 ID 获取用户信息
+     * @param userId 用户 ID
+     * @return UserBaseDTO
+     */
+    private UserBaseDTO getUserInfo(Long userId) {
+        Assert.notNull(userId,"用户信息为空，权益操作失败");
+        AdminUserDO user = adminUserService.getUser(userId);
+        if (user ==null){
+            throw exception(USER_BENEFITS_OPERATION_FAIL_NO_USER);
+        }
+        return new UserBaseDTO().setUserId(userId).setTenantId(user.getTenantId());
     }
 }

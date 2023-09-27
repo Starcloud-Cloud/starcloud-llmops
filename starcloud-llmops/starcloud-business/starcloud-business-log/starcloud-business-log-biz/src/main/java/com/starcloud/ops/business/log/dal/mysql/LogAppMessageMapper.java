@@ -3,10 +3,10 @@ package com.starcloud.ops.business.log.dal.mysql;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageExportReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import org.apache.ibatis.annotations.Mapper;
@@ -22,6 +22,12 @@ import java.util.List;
 @Mapper
 public interface LogAppMessageMapper extends BaseMapperX<LogAppMessageDO> {
 
+    /**
+     * 获得应用执行日志结果分页
+     *
+     * @param reqVO 查询条件
+     * @return 应用执行日志结果分页
+     */
     default PageResult<LogAppMessageDO> selectPage(LogAppMessagePageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<LogAppMessageDO>()
                 .eqIfPresent(LogAppMessageDO::getUid, reqVO.getUid())
@@ -49,6 +55,12 @@ public interface LogAppMessageMapper extends BaseMapperX<LogAppMessageDO> {
                 .orderByDesc(LogAppMessageDO::getId));
     }
 
+    /**
+     * 获得应用执行日志结果列表
+     *
+     * @param reqVO 查询条件
+     * @return 应用执行日志结果列表
+     */
     default List<LogAppMessageDO> selectList(LogAppMessageExportReqVO reqVO) {
         return selectList(new LambdaQueryWrapperX<LogAppMessageDO>()
                 .eqIfPresent(LogAppMessageDO::getUid, reqVO.getUid())
@@ -82,7 +94,7 @@ public interface LogAppMessageMapper extends BaseMapperX<LogAppMessageDO> {
      * @param query 查询条件
      * @return 应用执行日志消息统计列表
      */
-    List<LogAppMessageStatisticsListPO> listLogMessageStatistics(@Param("query") LogAppMessageStatisticsListReqVO query);
+    List<LogAppMessageStatisticsListPO> listLogAppMessageStatistics(@Param("query") AppLogMessageStatisticsListReqVO query);
 
     /**
      * 根据应用 UID 获取应用执行日志消息统计数据列表
@@ -90,5 +102,5 @@ public interface LogAppMessageMapper extends BaseMapperX<LogAppMessageDO> {
      * @param query 查询条件
      * @return 日志消息统计数据
      */
-    List<LogAppMessageStatisticsListPO> listLogMessageStatisticsByAppUid(@Param("query") LogAppMessageStatisticsListAppUidReqVO query);
+    List<LogAppMessageStatisticsListPO> listLogAppMessageStatisticsByAppUid(@Param("query") AppLogMessageStatisticsListUidReqVO query);
 }

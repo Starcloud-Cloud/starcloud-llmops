@@ -1,18 +1,15 @@
 package com.starcloud.ops.business.log.api;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.log.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
@@ -20,9 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @author admin
@@ -49,11 +43,11 @@ public class LogAppApiImpl implements LogAppApi {
     public LogAppConversationCreateReqVO createAppConversation(LogAppConversationCreateReqVO logAppConversationCreateReqVO) {
         if (StrUtil.isBlank(logAppConversationCreateReqVO.getUid())) {
             logAppConversationCreateReqVO.setUid(IdUtil.fastSimpleUUID());
-            logAppConversationService.createAppConversation(logAppConversationCreateReqVO);
+            logAppConversationService.createAppLogConversation(logAppConversationCreateReqVO);
         } else {
-            LogAppConversationDO logAppConversationDO = logAppConversationService.getAppConversation(logAppConversationCreateReqVO.getUid());
+            LogAppConversationDO logAppConversationDO = logAppConversationService.getAppLogConversation(logAppConversationCreateReqVO.getUid());
             if (logAppConversationDO == null) {
-                logAppConversationService.createAppConversation(logAppConversationCreateReqVO);
+                logAppConversationService.createAppLogConversation(logAppConversationCreateReqVO);
             }
         }
         return logAppConversationCreateReqVO;
@@ -67,17 +61,28 @@ public class LogAppApiImpl implements LogAppApi {
      */
     @Override
     public void updateAppConversationStatus(String uid, LogStatusEnum statusEnum) {
-        logAppConversationService.updateAppConversationStatus(uid, statusEnum.name());
+        logAppConversationService.updateAppLogConversationStatus(uid, statusEnum.name());
+    }
+
+    /**
+     * 更新应用会话状态
+     *
+     * @param request 应用会话状态更新请求
+     */
+    @Override
+    public void updateAppConversationStatus(LogAppConversationStatusReqVO request) {
+        logAppConversationService.updateAppLogConversationStatus(request);
     }
 
     /**
      * 创建日志应用消息
      *
-     * @param logAppMessageCreateReqVO 日志应用消息创建请求
+     * @param request 日志应用消息创建请求
      */
     @Override
-    public void createAppMessage(LogAppMessageCreateReqVO logAppMessageCreateReqVO) {
-        logAppMessageService.createAppMessage(logAppMessageCreateReqVO);
+    public String createAppMessage(LogAppMessageCreateReqVO request) {
+        logAppMessageService.createAppLogMessage(request);
+        return request.getUid();
     }
 
     /**
@@ -88,7 +93,7 @@ public class LogAppApiImpl implements LogAppApi {
      */
     @Override
     public LogAppMessageInfoRespVO getAppMessageResult(String appMessageUid) {
-        LogAppMessageDO logAppMessageDO = logAppMessageService.getAppMessage(appMessageUid);
+        LogAppMessageDO logAppMessageDO = logAppMessageService.getAppLogMessage(appMessageUid);
         Assert.notNull(logAppMessageDO, "appMessageResult is not found");
         return LogAppMessageConvert.INSTANCE.convertInfo(logAppMessageDO);
     }

@@ -2,52 +2,31 @@ package com.starcloud.ops.business.app.domain.handler.imggeneration;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.fasterxml.jackson.annotation.JsonValue;
-import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveData;
 import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
-import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.RecommendAppConsts;
-import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
+import com.starcloud.ops.business.app.enums.RecommendAppEnum;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.app.service.image.ImageService;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.DatasetSourceDataDetailsInfoVO;
-import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.UploadUrlReqVO;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
-import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
-import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
-import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
-import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
-import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
-import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
-import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
-import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
-import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
-import com.theokanning.openai.OpenAiHttpException;
-import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -170,7 +149,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
 
         Request request = context.getRequest();
 
-        ImageRequest imageRequest = new ImageRequest();
+        GenerateImageRequest imageRequest = new GenerateImageRequest();
         imageRequest.setPrompt(request.getPrompt());
         imageRequest.setStylePreset(request.getStylePreset());
         imageRequest.setSamples(1);
@@ -179,15 +158,17 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
         if (context.getEndUser() != null) {
             imageReqVO.setEndUser(String.valueOf(context.getEndUser()));
         }
-        imageReqVO.setAppUid(RecommendAppConsts.BASE_GENERATE_IMAGE);
-        imageReqVO.setScene(context.getScene().name());
+        imageReqVO.setAppUid(RecommendAppEnum.GENERATE_IMAGE.name());
+        // context.getScene().name()
+        imageReqVO.setScene(AppSceneEnum.WEB_IMAGE.name());
+        imageReqVO.setMode(AppModelEnum.CHAT.name());
         imageReqVO.setUserId(context.getUserId());
 
         imageReqVO.setImageRequest(imageRequest);
 
-        ImageMessageRespVO imageMessageRespVO = imageService.generateImage(imageReqVO);
+        ImageRespVO imageMessageRespVO = imageService.execute(imageReqVO);
 
-        return Optional.ofNullable(imageMessageRespVO.getImages()).orElse(new ArrayList<>());
+        return Optional.ofNullable(imageMessageRespVO.getResponse().getImages()).orElse(new ArrayList<>());
     }
 
     /**
@@ -195,7 +176,7 @@ public class ImageGenerationHandler extends BaseToolHandler<ImageGenerationHandl
      * 默认实现，工具类型返回
      */
     @Override
-    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
+    public List<MessageContentDocDTO> convertContentDoc(HandlerContext<Request> context, HandlerResponse<Response> handlerResponse) {
 
 //        StylePresetEnum
         return null;

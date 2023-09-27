@@ -83,23 +83,16 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
 
         List<SearchInfoDetail> result = new ArrayList<>();
 
-        try {
+        HttpResponse<JsonNode> response = Unirest.post("https://google.serper.dev/search")
+                .header("X-API-KEY", this.getApiKey())
+                .header("Content-Type", "application/json")
+                .body(input)
+                .asJson();
 
-            HttpResponse<JsonNode> response = Unirest.post("https://google.serper.dev/search")
-                    .header("X-API-KEY", this.getApiKey())
-                    .header("Content-Type", "application/json")
-                    .body(input)
-                    .asJson();
+        if (response.getBody() != null) {
 
-            if (response.getBody() != null) {
-
-                JSONObject body = response.getBody().getObject();
-                return this.processResponse(body);
-            }
-
-        } catch (Exception e) {
-
-            log.error("SerpAPITool is fail {}", e.getMessage(), e);
+            JSONObject body = response.getBody().getObject();
+            return this.processResponse(body);
         }
 
         return result;
@@ -109,23 +102,16 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
 
         List<SearchInfoDetail> result = new ArrayList<>();
 
-        try {
+        HttpResponse<JsonNode> response = Unirest.post("https://google.serper.dev/images")
+                .header("X-API-KEY", this.getApiKey())
+                .header("Content-Type", "application/json")
+                .body(input)
+                .asJson();
 
-            HttpResponse<JsonNode> response = Unirest.post("https://google.serper.dev/images")
-                    .header("X-API-KEY", this.getApiKey())
-                    .header("Content-Type", "application/json")
-                    .body(input)
-                    .asJson();
+        if (response.getBody() != null) {
 
-            if (response.getBody() != null) {
-
-                JSONObject body = response.getBody().getObject();
-                return this.processImagesResponse(body);
-            }
-
-        } catch (Exception e) {
-
-            log.error("SerpAPITool is fail {}", e.getMessage(), e);
+            JSONObject body = response.getBody().getObject();
+            return this.processImagesResponse(body);
         }
 
         return result;
@@ -136,23 +122,16 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
 
         List<SearchInfoDetail> result = new ArrayList<>();
 
-        try {
+        HttpResponse<JsonNode> response = Unirest.post("https://google.serper.dev/news")
+                .header("X-API-KEY", this.getApiKey())
+                .header("Content-Type", "application/json")
+                .body(input)
+                .asJson();
 
-            HttpResponse<JsonNode> response = Unirest.post("https://google.serper.dev/news")
-                    .header("X-API-KEY", this.getApiKey())
-                    .header("Content-Type", "application/json")
-                    .body(input)
-                    .asJson();
+        if (response.getBody() != null) {
 
-            if (response.getBody() != null) {
-
-                JSONObject body = response.getBody().getObject();
-                return this.processNewsResponse(body);
-            }
-
-        } catch (Exception e) {
-
-            log.error("SerpAPITool is fail {}", e.getMessage(), e);
+            JSONObject body = response.getBody().getObject();
+            return this.processNewsResponse(body);
         }
 
         return result;

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -36,6 +37,11 @@ public class DatasetSourceDataDO extends TenantBaseDO {
      * 名称
      */
     private String name;
+
+    /**
+     * 哈希值
+     */
+    private String hash;
 
     /**
      * 描述
@@ -85,7 +91,36 @@ public class DatasetSourceDataDO extends TenantBaseDO {
     /**
      * 总结状态
      */
-    private String summaryStatus;
+    private Integer summaryStatus;
+
+    /**
+     * 总结模型
+     */
+    private String summaryModel;
+
+    /**
+     * 总结消耗的 Token
+     */
+    private Long summaryTokens;
+
+    /**
+     * 总结总价
+     */
+    private BigDecimal summaryTotalPrice;
+
+    /**
+     * embedding 的 Token 消耗
+     */
+    private String embeddingTokens;
+    /**
+     * embedding 单价
+     */
+    private BigDecimal embeddingUnitPrice;
+
+    /**
+     * embedding总价
+     */
+    private BigDecimal embeddingTotalPrice;
 
 
     /**

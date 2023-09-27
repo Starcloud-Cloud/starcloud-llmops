@@ -164,18 +164,18 @@ public class ContextPrompt extends BasePromptConfig {
 
 
     /**
-     * 发送所有文档内容到前端，让前端转换为。实现"文档来源"功能
+     * 发送所有文档内容到前端，让前端转换为。实现"内容来源"功能
      * 1，搜索到的文档（通过 向量搜索出来的文档块内容）
      * 2，上下文内容（根据当前联网内容获取到的描述内容，LLM通过上下文自行选出的）
      */
-    public void sendDocsInteractive(List<MessageContentDocDTO> messageContentDocDTOS) {
+    public void sendContextInteractive(List<MessageContentDocDTO> messageContentDocDTOS) {
 
         if (CollectionUtil.isNotEmpty(messageContentDocDTOS)) {
 
             InteractiveInfo interactiveInfo = InteractiveInfo.buildMessageContent(messageContentDocDTOS);
 
             ChatRequestVO request = this.getChatRequestVO();
-            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive("docs", interactiveInfo);
+            SseResultUtil.builder().sseEmitter(request.getSseEmitter()).conversationUid(request.getConversationUid()).build().sendCallbackInteractive("context", interactiveInfo);
         }
     }
 
@@ -190,8 +190,7 @@ public class ContextPrompt extends BasePromptConfig {
             List<MessageContentDocDTO> sortResult = this.loadMessageContentDoc();
 
             //发送到前端
-            this.sendDocsInteractive(sortResult);
-
+            this.sendContextInteractive(sortResult);
 
             return PromptUtil.parseDocContentLines(sortResult);
         });
@@ -228,22 +227,19 @@ public class ContextPrompt extends BasePromptConfig {
 
             log.info("ContextPrompt loadMessageContentDoc dataSet result:{}", JsonUtils.toJsonString(searchResult));
 
-            this.getMessageContentDocMemory().reloadHistory();
             //直接查询当前上下文内容
-            MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().getHistory();
+            MessageContentDocHistory contentDocHistory = this.getMessageContentDocMemory().reloadHistory();
 
             //@todo 对于重复的文档内容，需要过滤掉
-            List<MessageContentDocDTO> summaryDocs = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
+            List<MessageContentDocDTO> docsHistory = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
                 //id 为空说明 上游异常没保存下来，当时这里还是需要作文上下文处理的. 不支持工具到返回结果，因为工具的结果已经放在的message历史中给到LLM了
                 return StrUtil.isNotBlank(docDTO.getContent()) && !MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.equals(docDTO.getType());
                 //数据太多，只能先取前5条
-            }).limit(4).collect(Collectors.toList());
+            }).limit(3).collect(Collectors.toList());
 
-            log.info("ContextPrompt loadMessageContentDoc ContentDoc result:{}", JsonUtils.toJsonString(summaryDocs));
+            sortResult.addAll(docsHistory);
 
-            if (CollectionUtil.isNotEmpty(summaryDocs)) {
-                sortResult.addAll(summaryDocs);
-            }
+            log.info("ContextPrompt loadMessageContentDoc ContentDoc result:{}", JsonUtils.toJsonString(docsHistory));
 
         } catch (Exception e) {
 
@@ -268,20 +264,18 @@ public class ContextPrompt extends BasePromptConfig {
         if (StrUtil.isNotBlank(query) && Boolean.FALSE.equals(this.googleSearchStatus)) {
 
             HandlerSkill handlerSkill = HandlerSkill.of("GoogleSearchHandler");
-            handlerSkill.getHandler().setMessageContentDocMemory(this.getMessageContentDocMemory());
+            handlerSkill.setMessageContentDocMemory(this.getMessageContentDocMemory());
+
+            //只增加但不保存 上下文
+            handlerSkill.setHistoryStrategy(true, false);
 
             SearchEngineHandler.Request request = new SearchEngineHandler.Request();
             request.setType("content");
             request.setQuery(query);
             this.handlerContext.setRequest(request);
 
-            //@todo 增加message日志
-
-            //已经发送sse 和 保存上下文了
+            //执行并增加结果到上下文
             HandlerResponse handlerResponse = handlerSkill.execute(this.handlerContext);
-
-
-            //@todo 增加message日志
 
             log.info("ContextPrompt googleSearch status: {}, {}: {}", handlerResponse.getSuccess(), query, JsonUtils.toJsonString(handlerResponse.getOutput()));
 
@@ -302,23 +296,32 @@ public class ContextPrompt extends BasePromptConfig {
 
         if (StrUtil.isNotBlank(query) && this.searchResult == null) {
 
-            //可接收其他数据集的传入
-            List<String> datasetUid = Optional.ofNullable(this.getDatesetEntities()).orElse(new ArrayList<>())
-                    .stream().filter(DatesetEntity::getEnabled).map(DatesetEntity::getDatasetUid).collect(Collectors.toList());
+            try {
 
-            //@todo 需要 block 对象
-            MatchByDataSetIdRequest matchQueryRequest = new MatchByDataSetIdRequest();
-            matchQueryRequest.setText(query);
-            matchQueryRequest.setK(2L);
-            matchQueryRequest.setDatasetUid(datasetUid);
-            matchQueryRequest.setMinScore(0.72d);
-            matchQueryRequest.setUserId(chatRequestVO.getUserId());
-            MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchQueryRequest);
+                //可接收其他数据集的传入
+                List<String> datasetUid = Optional.ofNullable(this.getDatesetEntities()).orElse(new ArrayList<>())
+                        .stream().filter(DatesetEntity::getEnabled).map(DatesetEntity::getDatasetUid).collect(Collectors.toList());
 
-            //过滤掉 分数低的 < 0.7  文档搜索相似度阈值
-            if (matchQueryVO != null && CollectionUtil.isNotEmpty(matchQueryVO.getRecords())) {
-                this.searchResult = matchQueryVO;
+                //@todo 需要 block 对象
+                MatchByDataSetIdRequest matchQueryRequest = new MatchByDataSetIdRequest();
+                matchQueryRequest.setText(query);
+                matchQueryRequest.setK(2L);
+                matchQueryRequest.setDatasetUid(datasetUid);
+                matchQueryRequest.setMinScore(0.72d);
+                matchQueryRequest.setUserId(chatRequestVO.getUserId());
+                MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchQueryRequest);
+
+                //过滤掉 分数低的 < 0.7  文档搜索相似度阈值
+                if (matchQueryVO != null && CollectionUtil.isNotEmpty(matchQueryVO.getRecords())) {
+                    this.searchResult = matchQueryVO;
+                }
+
+            } catch (Exception e) {
+                //如果搜索有问题，就当没有搜索结果
+                this.searchResult = MatchQueryVO.builder().records(new ArrayList<>()).build();
+                log.error("ContextPrompt searchDataset is error: {}", e.getMessage(), e);
             }
+
         }
 
         return this.searchResult;

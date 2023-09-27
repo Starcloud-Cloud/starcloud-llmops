@@ -62,7 +62,7 @@ public class DatasetSourceDataBaseRespVO {
     private String summary;
 
     @Schema(description = "总结状态")
-    private Boolean summaryStatus;
+    private Long summaryStatus;
 
     @Schema(description = "字符数")
     private Long wordCount;
@@ -84,7 +84,7 @@ public class DatasetSourceDataBaseRespVO {
     private String errorMessage;
 
     @Schema(description = " 启用状态")
-    private Boolean enable;
+    private Boolean enabled;
 
     @Schema(description = "创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)

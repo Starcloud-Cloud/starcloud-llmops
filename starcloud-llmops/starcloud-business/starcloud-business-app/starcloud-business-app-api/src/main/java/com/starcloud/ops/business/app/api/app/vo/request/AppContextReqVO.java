@@ -4,8 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -23,6 +21,12 @@ public class AppContextReqVO implements Serializable {
      */
     @Schema(description = "场景")
     private String scene;
+
+    /**
+     * 模式
+     */
+    @Schema(description = "模式")
+    private String mode;
 
     /**
      * 应用 UID

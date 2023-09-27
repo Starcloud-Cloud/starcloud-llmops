@@ -7,8 +7,8 @@ import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.enums.PromptTempletEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
@@ -63,7 +63,7 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
         reqVO.setPageSize(100);
         reqVO.setPageNo(1);
         reqVO.setAppConversationUid(conversationUid);
-        PageResult<LogAppMessageDO> pageResult = messageService.getAppMessagePage(reqVO);
+        PageResult<LogAppMessageDO> pageResult = messageService.pageAppLogMessage(reqVO);
         List<LogAppMessageDO> appMessageList = Optional.ofNullable(pageResult).map(PageResult::getList).orElse(new ArrayList<>());
 
         if (CollectionUtils.isEmpty(appMessageList)) {
@@ -178,7 +178,7 @@ public class ConversationTokenDbBufferMemory extends BaseChatMemory {
         messageCreateReqVO.setStatus("SUCCESS");
         messageCreateReqVO.setCreator(creator);
         messageCreateReqVO.setMsgType(LogMessageTypeEnum.SUMMARY.name());
-        messageService.createAppMessage(messageCreateReqVO);
+        messageService.createAppLogMessage(messageCreateReqVO);
         return openaiResult.getText();
     }
 }

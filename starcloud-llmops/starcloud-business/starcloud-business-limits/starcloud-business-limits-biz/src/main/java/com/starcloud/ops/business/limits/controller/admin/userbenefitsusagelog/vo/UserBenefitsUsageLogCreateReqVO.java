@@ -37,4 +37,21 @@ public class UserBenefitsUsageLogCreateReqVO {
     @Schema(description = "使用时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime usageTime;
+
+
+    @Schema(description = "创建人")
+    private String creator;
+
+    @Schema(description = "更新人")
+    private String updater;
+
+    @Schema(description = "多租户编号")
+    private Long tenantId;
+
+
+    @Schema(description = "创建时间")
+    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    private LocalDateTime createTime;
+
+
 }

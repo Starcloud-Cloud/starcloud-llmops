@@ -1,12 +1,10 @@
 package com.starcloud.ops.business.log.api;
 
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
-
-import java.util.List;
 
 /**
  * @author admin
@@ -32,11 +30,18 @@ public interface LogAppApi {
     void updateAppConversationStatus(String uid, LogStatusEnum statusEnum);
 
     /**
+     * 更新应用会话状态
+     *
+     * @param request 应用会话状态更新请求
+     */
+    void updateAppConversationStatus(LogAppConversationStatusReqVO request);
+
+    /**
      * 创建日志应用消息
      *
-     * @param logAppMessageCreateReqVO 日志应用消息创建请求
+     * @param request 日志应用消息创建请求
      */
-    void createAppMessage(LogAppMessageCreateReqVO logAppMessageCreateReqVO);
+    String createAppMessage(LogAppMessageCreateReqVO request);
 
     /**
      * 获取应用消息结果

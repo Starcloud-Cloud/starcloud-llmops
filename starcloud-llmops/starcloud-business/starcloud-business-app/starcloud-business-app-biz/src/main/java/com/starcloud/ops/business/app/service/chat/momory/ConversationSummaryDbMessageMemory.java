@@ -3,29 +3,22 @@ package com.starcloud.ops.business.app.service.chat.momory;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
-import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
@@ -57,11 +50,6 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
     private static LogAppMessageService messageService = SpringUtil.getBean(LogAppMessageService.class);
-
-    /**
-     * 最大需要总结的 tokens数量，当超过次值 需要总结了
-     */
-    private int summaryMaxTokens;
 
     private ChatRequestVO chatRequestVO;
 
@@ -104,7 +92,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         ChatOpenAI chatOpenAi = new ChatOpenAI();
         //16k 去总结
         chatOpenAi.setModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        chatOpenAi.setMaxTokens(500);
+        chatOpenAi.setMaxTokens(350);
         chatOpenAi.setTemperature(0d);
 
         this.setLlm(chatOpenAi);
@@ -150,7 +138,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             log.info("start summary history\nnewLines:\n{}\n\nexistingSummary:\n{}\n\n", newLines, existingSummary);
 
-            BaseLLMResult llmResult = this.predictNewSummary(restMessages, existingSummary);
+            ChatOpenAI chatOpenAI = (ChatOpenAI) this.getLlm();
+            BaseLLMResult llmResult = this.predictNewSummary(restMessages, existingSummary, chatOpenAI.getMaxTokens());
             Long end = System.currentTimeMillis();
 
             if (llmResult == null) {
@@ -161,6 +150,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             log.info("success summary history, {} ms", end - start);
             //简单拼接下内容
             //因为message太长了，只好取上一次的总结内容
+
             this.createSummaryMessage(llmResult, existingSummary);
             String summary = llmResult.getText();
             if (StrUtil.isNotBlank(summary)) {
@@ -502,6 +492,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
 
         messageCreateReqVO.setVariables(variables);
+        messageCreateReqVO.setAiModel(modelType.getName());
 
         messageCreateReqVO.setMessageTokens(Math.toIntExact(messageTokens));
         messageCreateReqVO.setMessageUnitPrice(messageUnitPrice);
@@ -602,20 +593,15 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         if (CollectionUtil.isEmpty(history.getMessages())) {
             return false;
         }
-        int messageTokens = this.calculateMaxTokens(history.getMessages());
+
+        String historyStr = BaseMessage.getBufferString(history.getMessages());
+
+        int messageTokens = SummarizerMixin.calculateTokens(historyStr);
         int maxTokens = this.getSummaryMaxTokens();
 
         log.info("checkNeedSummary: {} > {}", messageTokens, maxTokens);
 
         return messageTokens > maxTokens;
-    }
-
-
-    private int calculateMaxTokens(List<BaseMessage> messages) {
-        String historyStr = BaseMessage.getBufferString(messages);
-
-        //@todo 总结也不一定看模型，还要看成本，保证比较小的tokens下进行对话，所以比较的是计算后剩余可用的tokens
-        return  TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, historyStr);
     }
 
 

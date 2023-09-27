@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.util;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.image.ImageTaskConfigTypeEnum;
+import com.starcloud.ops.business.app.enums.image.ProductImageTypeEnum;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
 import com.starcloud.ops.business.app.enums.vsearch.GuidancePresetEnum;
 import com.starcloud.ops.business.app.enums.vsearch.ImageSizeEnum;
@@ -10,12 +12,13 @@ import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplesEnum;
 import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -108,6 +111,43 @@ public class ImageUtils {
     }
 
     /**
+     * 商品图模板
+     *
+     * @return 商品图模板
+     */
+    public static List<ImageMetaDTO> productTemplates() {
+        return Arrays.stream(ProductImageTypeEnum.values()).filter(item -> StringUtils.isNotBlank(item.getPrompt())).map(item -> {
+            ImageMetaDTO metadata = new ImageMetaDTO();
+            metadata.setValue(item.getCode());
+            metadata.setLabel(item.getLabel());
+            Locale locale = LocaleContextHolder.getLocale();
+            if (!Locale.CHINA.equals(locale)) {
+                metadata.setLabel(item.getLabelEn());
+            }
+            metadata.setImage(item.getImage());
+            return metadata;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 任务配置类型
+     *
+     * @return 任务配置类型
+     */
+    public static List<ImageMetaDTO> configTaskType() {
+        return Arrays.stream(ImageTaskConfigTypeEnum.values()).map(item -> {
+            ImageMetaDTO metadata = new ImageMetaDTO();
+            metadata.setValue(item.getCode());
+            metadata.setLabel(item.getLabel());
+            Locale locale = LocaleContextHolder.getLocale();
+            if (!Locale.CHINA.equals(locale)) {
+                metadata.setLabel(item.getLabelEn());
+            }
+            return metadata;
+        }).collect(Collectors.toList());
+    }
+
+    /**
      * 转换为 ImageMetaDTO
      *
      * @param code        枚举值
@@ -164,7 +204,7 @@ public class ImageUtils {
      * @param request 请求参数
      * @return token数量
      */
-    public static BigDecimal countAnswerCredits(ImageRequest request) {
+    public static BigDecimal countAnswerCredits(GenerateImageRequest request) {
         String engine = request.getEngine();
         Integer steps = request.getSteps();
         Integer width = request.getWidth();
@@ -242,17 +282,17 @@ public class ImageUtils {
             if (StringUtils.isBlank(negativePrompt)) {
                 return AppConstants.DEFAULT_NEGATIVE_PROMPT;
             } else {
-                if (StringUtils.endsWith(negativePrompt, ".")) {
-                    negativePrompt = negativePrompt.substring(0, negativePrompt.length() - 1);
-                }
-                return negativePrompt + ", " + AppConstants.DEFAULT_NEGATIVE_PROMPT;
+                return AppConstants.DEFAULT_NEGATIVE_PROMPT + ", " + negativePrompt;
             }
         }
-        if (StringUtils.endsWith(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
+        if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
             if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
                 return "";
             } else {
-                return negativePrompt.substring(0, negativePrompt.length() - AppConstants.DEFAULT_NEGATIVE_PROMPT.length() - 2) + ".";
+                String negative = negativePrompt.substring(AppConstants.DEFAULT_NEGATIVE_PROMPT.length()).trim();
+                if (StringUtils.startsWith(negative, ",") || StringUtils.startsWith(negative, "，") || StringUtils.startsWith(negative, ".") || StringUtils.startsWith(negative, "。")) {
+                    return negative.substring(1).trim();
+                }
             }
         }
         return negativePrompt;
@@ -260,6 +300,7 @@ public class ImageUtils {
 
     /**
      * 处理图片base64
+     *
      * @param base64Image base64
      * @return 处理后的base64
      */
@@ -271,4 +312,5 @@ public class ImageUtils {
             return base64Image;
         }
     }
+
 }

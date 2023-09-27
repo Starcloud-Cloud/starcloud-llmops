@@ -8,7 +8,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppConversationRespVO;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -1,19 +1,16 @@
 package com.starcloud.ops.business.app.domain.factory;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
-import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
@@ -22,27 +19,23 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
-import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
+import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
 import com.starcloud.ops.business.app.domain.repository.publish.AppPublishRepository;
-import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.enums.RecommendAppConsts;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * 获取应用工厂
@@ -153,20 +146,21 @@ public class AppFactory {
     public static ImageAppEntity factory(ImageReqVO request) {
         String appUid = request.getAppUid();
         AppValidate.notBlank(appUid, ErrorCodeConstants.APP_UID_IS_REQUIRED);
-        if (RecommendAppConsts.BASE_GENERATE_IMAGE.equals(appUid)) {
+        if (RecommendAppEnum.IMAGE_APP.contains(appUid)) {
+            RecommendAppEnum imageApp = RecommendAppEnum.valueOf(appUid);
             ImageAppEntity imageAppEntity = new ImageAppEntity();
             imageAppEntity.setUid(appUid);
-            imageAppEntity.setName("AI图片生成");
-            imageAppEntity.setModel(AppModelEnum.BASE_GENERATE_IMAGE.name());
-            imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.WEB_IMAGE.name()));
+            imageAppEntity.setName(imageApp.getLabel());
+            imageAppEntity.setModel(StringUtils.isBlank(request.getMode()) ? AppModelEnum.IMAGE.name() : request.getMode());
+            imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.valueOf(request.getScene()).name()));
             imageAppEntity.setType(AppTypeEnum.MYSELF.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());
-            imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
+            ImageConfigEntity imageConfigEntity = new ImageConfigEntity();
+            imageConfigEntity.setInfo(request.getImageRequest());
+            imageAppEntity.setImageConfig(imageConfigEntity);
             return imageAppEntity;
         }
-        ImageAppEntity imageAppEntity = factoryImageApp(appUid);
-        imageAppEntity.setImageConfig(ImageConvert.INSTANCE.convert(request.getImageRequest()));
-        return imageAppEntity;
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.BUILD_IMAGE_FAILURE, appUid);
     }
 
     /**

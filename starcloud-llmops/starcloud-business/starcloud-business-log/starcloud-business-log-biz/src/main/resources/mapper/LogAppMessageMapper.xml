@@ -49,7 +49,7 @@
     </sql>
 
     <!-- 生成记录日志统计 -->
-    <select id="listLogMessageStatistics"
+    <select id="listLogAppMessageStatistics"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
         SELECT
         <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
@@ -82,6 +82,10 @@
                 </when>
             </choose>
 
+            <if test="query.aiModel != null and query.aiModel != '' ">
+                AND ms.ai_model = #{query.aiModel}
+            </if>
+
             <if test="query.status != null and query.status != '' ">
                 AND ms.status = #{query.status}
             </if>
@@ -95,7 +99,7 @@
     </select>
 
     <!-- 根据应用 UID 日志统计 -->
-    <select id="listLogMessageStatisticsByAppUid"
+    <select id="listLogAppMessageStatisticsByAppUid"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
         SELECT
         <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
@@ -114,6 +118,10 @@
 
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND ms.from_scene = #{query.fromScene}
+            </if>
+
+            <if test="query.aiModel != null and query.aiModel != '' ">
+                AND ms.ai_model = #{query.aiModel}
             </if>
 
             <if test="query.status != null and query.status != '' ">

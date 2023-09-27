@@ -2,6 +2,7 @@ package com.starcloud.ops.business.dataset.util.dataset;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HtmlUtil;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataFormatEnum;
 import com.starcloud.ops.business.dataset.pojo.dto.CommonCleanRule;
 import com.starcloud.ops.business.dataset.pojo.dto.HTMLCleanRule;
@@ -92,7 +93,16 @@ public class TextCleanAndSplitUtils {
             // text = text.replaceAll("\\n+", "\n");
             // // text = text.replaceAll(" +", " ");
             // text = text.replaceAll("\\n\\s+", "\n");
-            text= Jsoup.clean(text, Safelist.none());
+
+            Document docText = Jsoup.parse(text);
+            // 输出设置格式化为关闭状态， 原样输出，保留：回车、 换行、 空格
+            docText.outputSettings().prettyPrint(false);
+
+            String removeTagText = HtmlUtil.cleanHtmlTag(docText.html());
+            // // 清除内容中的连续回车
+            text = removeTagText.replaceAll("\\n+", "\n");
+            // text = text.replaceAll(" +", " ");
+            text = removeTagText.replaceAll("\\n\\s+", "\n");
         }
 
         return text;
@@ -200,6 +210,7 @@ public class TextCleanAndSplitUtils {
         Pattern email = Pattern.compile("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)");
         return email.matcher(text).replaceAll(StringUtils.EMPTY);
     }
+
 
 
 }

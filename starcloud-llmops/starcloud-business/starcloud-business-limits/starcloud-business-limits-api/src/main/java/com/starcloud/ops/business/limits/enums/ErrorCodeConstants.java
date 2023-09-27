@@ -64,6 +64,10 @@ public interface ErrorCodeConstants {
     ErrorCode USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL = new ErrorCode(2008002008, "签到失败！今日已经签到。请明天再试。");
 
     ErrorCode USER_BENEFITS_NOT_ADEQUATE = new ErrorCode(2008002009, "当前用户token不足 userId = {}, 预估={}, 剩余={}");
+    ErrorCode USER_TOKEN_NOT_ADEQUATE = new ErrorCode(2008002010, "令牌不足，请充值");
+    ErrorCode USER_COMPUTATIONAL_POWER_NOT_ADEQUATE = new ErrorCode(2008002011, "魔力值不足，请充值");
+    ErrorCode USER_IMAGE_NOT_ADEQUATE = new ErrorCode(2008002012, "图片不足，请充值");
+    ErrorCode USER_BENEFITS_OPERATION_FAIL_NO_USER = new ErrorCode(2008002013, "权益操作失败，缺少用户信息");
 
 
     //======================================用户权益使用记录======================================

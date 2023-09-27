@@ -25,6 +25,7 @@
         <module>starcloud-business-log</module>
         <module>starcloud-business-share</module>
         <module>starcloud-business-open</module>
+        <module>starcloud-business-mq</module>
     </modules>
 
     <dependencyManagement>

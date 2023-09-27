@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -19,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -55,15 +57,20 @@ public abstract class BaseActionHandler<Q, R> {
             this.appContext = context;
             Q request = this.parseInput();
 
-            // 执行 Action
+            // 执行具体的 action
             ActionResponse actionResponse = this._execute(request);
 
             // 执行结果校验, 如果失败，抛出异常
             if (!actionResponse.getSuccess()) {
-                if (StringUtils.isBlank(actionResponse.getErrorMsg())) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, "Action 执行失败");
+                String errorCode = Optional.ofNullable(actionResponse.getErrorCode()).orElse(String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()));
+                Integer code;
+                try {
+                    code = Integer.parseInt(errorCode);
+                } catch (Exception e) {
+                    code = ErrorCodeConstants.APP_EXECUTE_FAIL.getCode();
                 }
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, actionResponse.getErrorMsg());
+                log.error("Action 执行失败：错误码: {}, 错误信息: {}", actionResponse.getErrorCode(), actionResponse.getErrorMsg());
+                throw ServiceExceptionUtil.exception(new ErrorCode(code, StringUtils.isNoneBlank(actionResponse.getErrorMsg()) ? actionResponse.getErrorMsg() : "Action 执行失败"));
             }
 
             // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况

@@ -10,6 +10,8 @@
         co.app_mode,
         co.from_scene,
         co.status,
+        co.error_code,
+        co.error_msg,
         co.creator,
         co.end_user,
         co.create_time,
@@ -24,7 +26,7 @@
     </sql>
 
     <!-- 分页查询会话列表 -->
-    <select id="pageLogConversation"
+    <select id="pageLogAppConversation"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO">
         SELECT
         <include refid="PAGE_LOG_CONVERSATION_COLUMNS_REF"/>
@@ -57,6 +59,10 @@
                 </when>
             </choose>
 
+            <if test="query.aiModel != null and query.aiModel != '' ">
+                AND msg.ai_model = #{query.aiModel}
+            </if>
+
             <if test="query.status != null and query.status != '' ">
                 AND co.status = #{query.status}
             </if>
@@ -72,7 +78,7 @@
     </select>
 
     <!-- 分页查询会话列表 -->
-    <select id="pageLogConversationByAppUid"
+    <select id="pageLogAppConversationByAppUid"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO">
         SELECT
         <include refid="PAGE_LOG_CONVERSATION_COLUMNS_REF"/>
@@ -94,6 +100,10 @@
 
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND co.from_scene = #{query.fromScene}
+            </if>
+
+            <if test="query.aiModel != null and query.aiModel != '' ">
+                AND msg.ai_model = #{query.aiModel}
             </if>
 
             <if test="query.status != null and query.status != '' ">

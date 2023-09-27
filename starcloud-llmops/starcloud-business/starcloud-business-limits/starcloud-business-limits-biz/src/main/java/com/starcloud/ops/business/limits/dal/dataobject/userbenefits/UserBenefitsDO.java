@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
+import org.apache.commons.math3.analysis.function.Power;
 
 import java.time.LocalDateTime;
 
@@ -46,19 +47,26 @@ public class UserBenefitsDO extends TenantBaseDO {
     /**
      * 可使用应用数
      */
-    private Long appCountUsed;
+    private Long appRemaining;
     /**
      * 可使用数据集数
      */
-    private Long datasetCountUsed;
+    private Long datasetRemaining;
     /**
      * 可使用图片数
      */
-    private Long imageCountUsed;
+    private Long imageRemaining;
     /**
      * 可使用令牌数
      */
-    private Long tokenCountUsed;
+    private Long tokenRemaining;
+
+    /**
+     * 剩余的算力值
+     */
+    private Long computationalPowerRemaining;
+
+
     /**
      * 赠送令牌数
      */
@@ -75,6 +83,10 @@ public class UserBenefitsDO extends TenantBaseDO {
      * 赠送应用数
      */
     private Long appCountInit;
+    /**
+     * 赠送的算力值
+     */
+    private Long computationalPowerInit;
 
     /**
      * 生效时间

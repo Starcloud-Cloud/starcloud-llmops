@@ -83,6 +83,16 @@ public class LogAppConversationInfoPO {
     private String status;
 
     /**
+     * 错误码
+     */
+    private String errorCode;
+
+    /**
+     * 错误信息
+     */
+    private String errorMsg;
+
+    /**
      * 创建人
      */
     private String creator;

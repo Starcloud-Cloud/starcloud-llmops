@@ -30,8 +30,8 @@ import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.LogAppApi;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -316,7 +316,7 @@ public class AppWorkflowService {
      */
     private void updateAppConversationLog(String uid, Boolean status) {
 
-        logAppApi.updateAppConversationStatus(uid, status ? LogStatusEnum.SUCCESS : LogStatusEnum.ERROR);
+        //logAppApi.updateAppConversationStatus(uid, status ? LogStatusEnum.SUCCESS : LogStatusEnum.ERROR);
 
     }
 

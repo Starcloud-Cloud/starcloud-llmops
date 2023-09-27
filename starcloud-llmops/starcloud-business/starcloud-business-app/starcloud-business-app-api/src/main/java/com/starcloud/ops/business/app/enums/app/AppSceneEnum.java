@@ -75,7 +75,38 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 员工广场
      */
-    CHAT_MARKET(12,"员工广场","Employee Square");
+    CHAT_MARKET(12, "员工广场", "Employee Square"),
+
+    /**
+     * 图片高清放大
+     */
+    IMAGE_UPSCALING(13, "图片高清放大", "Image Upscaling"),
+
+    /**
+     * 图片去除背景
+     */
+    IMAGE_REMOVE_BACKGROUND(14, "图片去背景", "Image Remove Background"),
+
+    /**
+     * 图片替换背景
+     */
+    IMAGE_REPLACE_BACKGROUND(15, "图片替换背景", "Image Replace Background"),
+
+    /**
+     * 图片去文字
+     */
+    IMAGE_REMOVE_TEXT(16, "图片去文字", "Image Remove Text"),
+
+    /**
+     * 草图生成图片
+     */
+    IMAGE_SKETCH(17, "草图生成图片", "Sketch To Image"),
+
+    /**
+     * 图片变体
+     */
+    IMAGE_VARIANTS(18, "图片变体", "Image Variants"),
+    ;
 
     /**
      * 应用类型Code
@@ -95,7 +126,17 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 生成记录基础场景
      */
-    public static final List<AppSceneEnum> GENERATE_RECORD_BASE_SCENES = Arrays.asList(WEB_ADMIN, WEB_MARKET, WEB_IMAGE);
+    public static final List<AppSceneEnum> GENERATE_RECORD_BASE_SCENES = Arrays.asList(
+            WEB_ADMIN,
+            WEB_MARKET,
+            WEB_IMAGE,
+            IMAGE_UPSCALING,
+            IMAGE_REMOVE_BACKGROUND,
+            IMAGE_REPLACE_BACKGROUND,
+            IMAGE_REMOVE_TEXT,
+            IMAGE_SKETCH,
+            IMAGE_VARIANTS
+    );
 
     /**
      * 应用分析场景
@@ -112,6 +153,18 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     public static final List<AppSceneEnum> CHAT_ANALYSIS_SCENES = Arrays.asList(WEB_ADMIN, WEB_MARKET, SHARE_WEB, SHARE_IFRAME, SHARE_JS, SHARE_API, WECOM_GROUP, MP, CHAT_TEST);
 
+    /**
+     * 图片支持的场景
+     */
+    public static final List<String> SUPPORT_IMAGE_SCENE = Arrays.asList(
+            WEB_IMAGE.name(),
+            IMAGE_UPSCALING.name(),
+            IMAGE_REMOVE_BACKGROUND.name(),
+            IMAGE_REPLACE_BACKGROUND.name(),
+            IMAGE_REMOVE_TEXT.name(),
+            IMAGE_SKETCH.name(),
+            IMAGE_VARIANTS.name()
+    );
 
     /**
      * 只获取当前登录用户态的 场景

@@ -7,10 +7,10 @@ import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.core.mybatis.query.MPJLambdaWrapperX;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
@@ -76,7 +76,7 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
      * @param reqVO 查询条件
      * @return 应用执行日志会话分页
      */
-    default PageResult<LogAppConversationInfoPO> selectPage(LogAppConversationInfoPageReqVO reqVO) {
+    default PageResult<LogAppConversationInfoPO> selectPage(AppLogConversationInfoPageReqVO reqVO) {
 
         MPJLambdaWrapperX<LogAppConversationDO> lambdaWrapperX = (MPJLambdaWrapperX<LogAppConversationDO>) new MPJLambdaWrapperX<LogAppConversationDO>()
 
@@ -117,7 +117,7 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
      * @param query 查询参数
      * @return 会话统计列表
      */
-    IPage<LogAppConversationInfoPO> pageLogConversation(IPage<LogAppConversationDO> page, @Param("query") LogAppConversationInfoPageReqVO query);
+    IPage<LogAppConversationInfoPO> pageLogAppConversation(IPage<LogAppConversationDO> page, @Param("query") AppLogConversationInfoPageReqVO query);
 
     /**
      * 根据应用 UID 分页查询应用执行日志会话数据 <br>
@@ -126,5 +126,5 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
      * @param query 查询参数
      * @return 应用执行日志会话数据
      */
-    IPage<LogAppConversationInfoPO> pageLogConversationByAppUid(Page<LogAppConversationDO> page, @Param("query") LogAppConversationInfoPageAppUidReqVO query);
+    IPage<LogAppConversationInfoPO> pageLogAppConversationByAppUid(Page<LogAppConversationDO> page, @Param("query") AppLogConversationInfoPageUidReqVO query);
 }

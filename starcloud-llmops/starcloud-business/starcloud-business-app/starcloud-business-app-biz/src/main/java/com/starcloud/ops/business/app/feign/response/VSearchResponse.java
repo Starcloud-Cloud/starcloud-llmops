@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.feign.response;
 
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -48,5 +49,49 @@ public class VSearchResponse<R> implements Serializable {
     @Schema(description = "响应结果")
     private R result;
 
+    /**
+     * 成功响应
+     *
+     * @param result 响应结果
+     * @return 成功响应
+     */
+    public static <R> VSearchResponse<R> success(R result) {
+        VSearchResponse<R> response = new VSearchResponse<>();
+        response.setSuccess(Boolean.FALSE);
+        response.setCode(200);
+        response.setMessage(null);
+        response.setResult(result);
+        return response;
+    }
 
+    /**
+     * 失败响应
+     *
+     * @param code    错误吗
+     * @param message 错误信息
+     * @return 响应
+     */
+    public static <R> VSearchResponse<R> failure(Integer code, String message) {
+        VSearchResponse<R> response = new VSearchResponse<>();
+        response.setSuccess(Boolean.FALSE);
+        response.setCode(code);
+        response.setMessage(message);
+        response.setResult(null);
+        return response;
+    }
+
+    /**
+     * 失败响应
+     *
+     * @param errorCode 错误吗
+     * @return 响应
+     */
+    public static <R> VSearchResponse<R> failure(ErrorCode errorCode) {
+        VSearchResponse<R> response = new VSearchResponse<>();
+        response.setSuccess(Boolean.FALSE);
+        response.setCode(errorCode.getCode());
+        response.setMessage(errorCode.getMsg());
+        response.setResult(null);
+        return response;
+    }
 }

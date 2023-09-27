@@ -53,8 +53,8 @@ public class BaseVariable {
         return BaseVariable.builder().type(VariableTypeEnum.BOOLEAN).field(field).build();
     }
 
-    public static BaseVariable newInt(String field) {
-        return BaseVariable.builder().type(VariableTypeEnum.INT).field(field).build();
+    public static BaseVariable newInt(String field, Integer value) {
+        return BaseVariable.builder().type(VariableTypeEnum.INT).field(field).value(value).build();
     }
 
     public static BaseVariable newArray(String field) {

@@ -7,13 +7,13 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.service.log.AppLogService;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -66,7 +66,7 @@ public class AppLogController {
     @Operation(summary = "获得应用执行统计列表")
     @ApiOperationSupport(order = 3, author = "nacoyer")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<List<LogAppMessageStatisticsListVO>> statistics(@Valid @RequestBody LogAppMessageStatisticsListReqVO query) {
+    public CommonResult<List<LogAppMessageStatisticsListVO>> statistics(@Valid @RequestBody AppLogMessageStatisticsListReqVO query) {
         return success(appLogService.listLogMessageStatistics(query));
 
     }
@@ -76,7 +76,7 @@ public class AppLogController {
     @Operation(summary = "根据应用 UID 获得应用执行统计列表")
     @ApiOperationSupport(order = 4, author = "nacoyer")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<List<LogAppMessageStatisticsListVO>> statisticsByAppUid(@Valid @RequestBody LogAppMessageStatisticsListAppUidReqVO query) {
+    public CommonResult<List<LogAppMessageStatisticsListVO>> statisticsByAppUid(@Valid @RequestBody AppLogMessageStatisticsListUidReqVO query) {
         return success(appLogService.listLogMessageStatisticsByAppUid(query));
 
     }
@@ -85,7 +85,7 @@ public class AppLogController {
     @Operation(summary = "获得应用执行日志信息分页")
     @ApiOperationSupport(order = 5, author = "nacoyer")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<PageResult<LogAppConversationInfoRespVO>> infoPage(@Valid @RequestBody LogAppConversationInfoPageReqVO query) {
+    public CommonResult<PageResult<AppLogConversationInfoRespVO>> infoPage(@Valid @RequestBody AppLogConversationInfoPageReqVO query) {
         return success(appLogService.pageLogConversation(query));
     }
 
@@ -94,14 +94,14 @@ public class AppLogController {
     @Operation(summary = "根据应用 UID 获得应用执行日志信息分页")
     @ApiOperationSupport(order = 6, author = "nacoyer")
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
-    public CommonResult<PageResult<LogAppConversationInfoRespVO>> infoPageByAppUid(@Valid @RequestBody LogAppConversationInfoPageAppUidReqVO query) {
+    public CommonResult<PageResult<AppLogConversationInfoRespVO>> infoPageByAppUid(@Valid @RequestBody AppLogConversationInfoPageUidReqVO query) {
         return success(appLogService.pageLogConversationByAppUid(query));
     }
 
     @PostMapping("/infoPageByMarketUid")
     @Operation(summary = "根据应用市场 UID 获得应用执行日志信息分页")
     @ApiOperationSupport(order = 7, author = "nacoyer")
-    public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@Valid @RequestBody LogAppConversationInfoPageAppUidReqVO query) {
+    public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@Valid @RequestBody AppLogConversationInfoPageUidReqVO query) {
         return success(appLogService.pageLogConversationByMarketUid(query));
     }
 

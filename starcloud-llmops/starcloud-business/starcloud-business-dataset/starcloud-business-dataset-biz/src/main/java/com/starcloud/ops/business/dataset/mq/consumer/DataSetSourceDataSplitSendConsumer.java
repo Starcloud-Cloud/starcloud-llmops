@@ -76,8 +76,8 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
             // 根据数据源 ID获取数据储存ID
             DatasetSourceDataDO sourceDataDO = datasetSourceDataService.selectDataById(message.getDataSourceId());
 
-            if (sourceDataDO ==null){
-                log.error("分割数据过程中，获取数据源失败，请检查数据信息，message 是({})",message);
+            if (sourceDataDO == null) {
+                log.error("分割数据过程中，获取数据源失败，请检查数据信息，message 是({})", message);
                 throw exception(DATASET_SOURCE_DATA_NOT_EXISTS);
             }
             // 根据储存ID 获取存储地址
@@ -94,8 +94,9 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
 
         } catch (Exception e) {
             // 设置数据源状态
-            message.setStatus(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus());
-            message.setErrMsg(DataSetSourceDataStatusEnum.SPLIT_ERROR.getName());
+            message.setStatus(DataSetSourceDataStatusEnum.SPLIT_RETRY.getStatus());
+            message.setErrCode(DataSetSourceDataStatusEnum.SPLIT_RETRY.getStatus());
+            message.setErrMsg(e.getMessage());
             log.error("[DataSetSourceDataCleanSendConsumer][数据分割失败：用户ID({})|租户 ID({})｜数据集 ID({})｜源数据 ID({})｜错误原因({})", getLoginUserId(), getTenantId(), message.getDatasetId(), message.getDataSourceId(), e.getMessage(), e);
         }
     }
@@ -107,38 +108,38 @@ public class DataSetSourceDataSplitSendConsumer extends AbstractDataProcessor<Da
     @Override
     protected void sendMessage(DatasetSourceSendMessage message) {
 
-        if (0 == dictDataService.getDictData("QueueSwitch", "sendMessage").getStatus()) {
 
+        if (Objects.equals(message.getStatus(), DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus())) {
+            // 如果执行成功 重置重试次数
+            message.setRetryCount(0);
+            if (message.getIndexSync()) {
+                log.info("同步执行数据索引操作，数据为{}", JSONObject.toJSONString(message));
+                dataIndexProducer.sendMessage(message);
 
-            if (Objects.equals(message.getStatus(), DataSetSourceDataStatusEnum.SPLIT_COMPLETED.getStatus())) {
-                // 如果执行成功 重置重试次数
-                message.setRetryCount(0);
-                if (message.getIndexSync()) {
-                    log.info("同步执行数据索引操作，数据为{}", JSONObject.toJSONString(message));
-                    dataIndexProducer.sendMessage(message);
-
-                } else {
-                    log.info("异步执行数据索引操作，数据为{}",JSONObject.toJSONString(message));
-                    dataIndexProducer.asyncSendMessage(message);
-                }
-            } else if (message.getRetryCount() <= 3 && Objects.equals(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(), message.getStatus())) {
-                int retryCount = message.getRetryCount();
-                message.setRetryCount(++retryCount);
-                log.warn("数据分块异常，开始重试，当前重试次数为{}",message.getRetryCount());
-                if (message.getSplitSync()) {
-                    log.info("同步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
-                    dataSplitProducer.sendMessage(message);
-                } else {
-                    log.info("异步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
-                    // 发送消息
-                    dataSplitProducer.asyncSendMessage(message);
-                }
             } else {
-                log.error("执行数据分块失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
+                log.info("异步执行数据索引操作，数据为{}", JSONObject.toJSONString(message));
+                dataIndexProducer.asyncSendMessage(message);
             }
-        }else {
-            log.warn("队列开关已关闭，数据为{}", JSONObject.toJSONString(message));
+        } else if (message.getRetryCount() < 3 && Objects.equals(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus(), message.getStatus())) {
+            int retryCount = message.getRetryCount();
+            message.setRetryCount(++retryCount);
+            log.warn("数据分块异常，开始重试，当前重试次数为{}", message.getRetryCount());
+            if (message.getSplitSync()) {
+                log.info("同步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
+                dataSplitProducer.sendMessage(message);
+            } else {
+                log.info("异步执行数据清洗操作，数据为{}", JSONObject.toJSONString(message));
+                // 发送消息
+                dataSplitProducer.asyncSendMessage(message);
+            }
+        } else {
+            message.setStatus(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus());
+            message.setErrCode(DataSetSourceDataStatusEnum.SPLIT_ERROR.getStatus());
+            message.setErrMsg(message.getErrMsg());
+            updateDataState(message);
+            log.error("执行数据分块失败，重试失败！！！数据为{}", JSONObject.toJSONString(message));
         }
+
     }
 
 

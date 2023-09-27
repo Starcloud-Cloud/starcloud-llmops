@@ -22,6 +22,9 @@ public class UserBenefitsBaseResultVO {
     @Schema(description = "使用量")
     private Long usedNum;
 
+    @Schema(description = "剩余量")
+    private Long remaining;
+
     @Schema(description = "权益百分比")
     private Integer percentage;
 }

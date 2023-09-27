@@ -110,7 +110,7 @@ public interface AppConvert {
             if (Objects.nonNull(config)) {
                 appDO.setConfig(JSONUtil.toJsonStr(config));
             }
-        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appEntity.getModel())) {
+        } else if (AppModelEnum.IMAGE.name().equals(appEntity.getModel())) {
             ImageConfigEntity config = appEntity.getImageConfig();
             if (Objects.nonNull(config)) {
                 appDO.setConfig(JSONUtil.toJsonStr(config));
@@ -144,7 +144,7 @@ public interface AppConvert {
                 appEntity = new ChatAppEntity();
             }
 
-        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
+        } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
 
             appEntity = new ImageAppEntity();
         }
@@ -181,7 +181,7 @@ public interface AppConvert {
                 appEntity.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigEntity.class));
                 appEntity.getChatConfig().init();
 
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
+            } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
                 appEntity.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -218,7 +218,7 @@ public interface AppConvert {
                 appEntity.setWorkflowConfig(JSONUtil.toBean(appMarket.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
                 appEntity.setChatConfig(JSONUtil.toBean(appMarket.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
+            } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
                 appEntity.setImageConfig(JSONUtil.toBean(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -307,7 +307,7 @@ public interface AppConvert {
                 appRespVO.setActionIcons(buildActionIcons(appRespVO.getWorkflowConfig()));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
                 appRespVO.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigRespVO.class));
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
+            } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
                 appRespVO.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigRespVO.class));
             }
         }
@@ -394,7 +394,7 @@ public interface AppConvert {
             if (Objects.nonNull(config)) {
                 appRespVO.setChatConfig(JSONUtil.toBean(JSONUtil.toJsonStr(appEntity.getChatConfig()), ChatConfigRespVO.class));
             }
-        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appEntity.getModel())) {
+        } else if (AppModelEnum.IMAGE.name().equals(appEntity.getModel())) {
             ImageConfigEntity config = appEntity.getImageConfig();
             if (Objects.nonNull(config)) {
                 appRespVO.setImageConfig(JSONUtil.toBean(JSONUtil.toJsonStr(appEntity.getImageConfig()), ImageConfigRespVO.class));
@@ -420,7 +420,7 @@ public interface AppConvert {
                 appReqVO.setWorkflowConfig(JSONUtil.toBean(appMarketDO.getConfig(), WorkflowConfigReqVO.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarketDO.getModel())) {
                 appReqVO.setChatConfig(JSONUtil.toBean(appMarketDO.getConfig(), ChatConfigReqVO.class));
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarketDO.getModel())) {
+            } else if (AppModelEnum.IMAGE.name().equals(appMarketDO.getModel())) {
                 appReqVO.setImageConfig(JSONUtil.toBean(appMarketDO.getConfig(), ImageConfigReqVO.class));
             }
         }

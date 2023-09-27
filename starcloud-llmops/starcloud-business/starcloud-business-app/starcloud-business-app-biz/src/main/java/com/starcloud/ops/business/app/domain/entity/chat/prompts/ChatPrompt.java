@@ -104,10 +104,13 @@ public class ChatPrompt extends BasePromptConfig {
         OpenaiCompletionParams completionParams = modelConfig.getCompletionParams();
 
         Optional<ModelTypeEnum> optionalModel = ModelTypeEnum.fromName(completionParams.getModel());
+
+        //避免GPT4这种模型，Maxtoken太多才进行总结
         ModelTypeEnum modelType = ModelTypeEnum.GPT_3_5_TURBO;
-        if (optionalModel.isPresent()) {
-            modelType = optionalModel.get();
-        }
+//        if (optionalModel.isPresent()) {
+//            modelType = optionalModel.get();
+//        }
+
         int maxTokens = modelType.getMaxContextLength();
         if (modelConfig.getMaxSummaryTokens() != null) {
             maxTokens = modelConfig.getMaxSummaryTokens();

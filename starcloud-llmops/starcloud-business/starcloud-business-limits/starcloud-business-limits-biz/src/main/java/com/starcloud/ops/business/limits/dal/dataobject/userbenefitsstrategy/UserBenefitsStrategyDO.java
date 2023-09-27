@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * 用户权益策略表
- DO
+ * DO
  *
  * @author AlanCusack
  */
@@ -73,6 +73,12 @@ public class UserBenefitsStrategyDO extends TenantBaseDO {
      * 令牌数
      */
     private Long tokenCount;
+
+    /**
+     * 算力值
+     */
+    private Long computationalPowerCount;
+
     /**
      * 有效时间单位范围（-1，不设限制）
      */

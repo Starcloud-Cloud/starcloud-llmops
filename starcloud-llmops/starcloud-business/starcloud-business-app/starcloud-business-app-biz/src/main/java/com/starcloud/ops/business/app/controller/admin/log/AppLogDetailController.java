@@ -6,7 +6,7 @@ import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.log.AppLogService;
-import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -55,7 +55,7 @@ public class AppLogDetailController {
     @Operation(summary = "获取图片生成执行日志详情")
     public CommonResult<ImageLogMessageRespVO> imageLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
         // 默认查询图片式模型的日志，即应用的执行记录
-        query.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
+        query.setAppMode(AppModelEnum.IMAGE.name());
         return CommonResult.success(appLogService.getLogImageMessageDetail(query));
     }
 
