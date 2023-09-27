@@ -7,8 +7,8 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.image.vo.query.HistoryGenerateImagePageQuery;
 import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
-import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
@@ -80,6 +80,7 @@ public class ImageController {
     }
 
     @PostMapping(value = "/upscale")
+    @Operation(summary = "图片放大接口", description = "图片放大接口")
     @ApiOperationSupport(order = 40, author = "nacoyer")
     public CommonResult<ImageRespVO> upscale(@Validated @RequestBody ImageReqVO request) {
         request.setAppUid(RecommendAppEnum.UPSCALING_IMAGE.name());
@@ -90,6 +91,7 @@ public class ImageController {
     }
 
     @PostMapping(value = "/removeBackground")
+    @Operation(summary = "图片去背景接口", description = "图片去背景接口")
     @ApiOperationSupport(order = 50, author = "nacoyer")
     public CommonResult<ImageRespVO> removeBackground(@Validated @RequestBody ImageReqVO request) {
         request.setAppUid(RecommendAppEnum.REMOVE_BACKGROUND_IMAGE.name());
@@ -100,9 +102,21 @@ public class ImageController {
     }
 
     @PostMapping(value = "/removeText")
+    @Operation(summary = "图片去字接口", description = "图片去字接口")
     @ApiOperationSupport(order = 60, author = "nacoyer")
-    public CommonResult<Object> removeText(@Validated @RequestBody ImageReqVO request) {
+    public CommonResult<ImageRespVO> removeText(@Validated @RequestBody ImageReqVO request) {
         request.setAppUid(RecommendAppEnum.REMOVE_TEXT_IMAGE.name());
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
+        appLimitService.appLimit(limitRequest);
+        return CommonResult.success(imageService.execute(request));
+    }
+
+    @PostMapping(value = "/sketchToImage")
+    @Operation(summary = "轮廓生图接口", description = "轮廓生图接口")
+    @ApiOperationSupport(order = 60, author = "nacoyer")
+    public CommonResult<ImageRespVO> sketchToImage(@Validated @RequestBody ImageReqVO request) {
+        request.setAppUid(RecommendAppEnum.SKETCH_TO_IMAGE.name());
         // 执行限流
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
         appLimitService.appLimit(limitRequest);

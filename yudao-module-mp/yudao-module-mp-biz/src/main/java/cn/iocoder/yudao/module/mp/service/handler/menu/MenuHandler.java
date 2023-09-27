@@ -2,6 +2,7 @@ package cn.iocoder.yudao.module.mp.service.handler.menu;
 
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.menu.MpMenuService;
+import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.session.WxSessionManager;
 import me.chanjar.weixin.mp.api.WxMpMenuService;
 import me.chanjar.weixin.mp.api.WxMpMessageHandler;
@@ -23,6 +24,7 @@ import static me.chanjar.weixin.common.api.WxConsts.MenuButtonType;
  * @author 芋道源码
  */
 @Component
+@Slf4j
 public class MenuHandler implements WxMpMessageHandler {
 
     @Resource
@@ -31,6 +33,7 @@ public class MenuHandler implements WxMpMessageHandler {
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context,
                                     WxMpService weixinService, WxSessionManager sessionManager) {
+        log.info("接收到微信菜单事件，内容：{}", wxMessage);
         return mpMenuService.reply(MpContextHolder.getAppId(), wxMessage.getEventKey(), wxMessage.getFromUser());
     }
 
