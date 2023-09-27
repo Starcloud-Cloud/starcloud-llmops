@@ -20,7 +20,7 @@ public class ExceptionUtil {
      * @return 异常堆栈信息
      */
     public static String stackTraceToString(Throwable throwable) {
-        return stackTraceToString(throwable, 500);
+        return stackTraceToString(throwable, 1500);
     }
 
     /**

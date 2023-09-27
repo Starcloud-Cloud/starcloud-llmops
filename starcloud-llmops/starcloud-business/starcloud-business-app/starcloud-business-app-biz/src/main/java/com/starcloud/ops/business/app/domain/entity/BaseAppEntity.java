@@ -26,6 +26,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -316,14 +317,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.error("应用执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             this.afterExecute(request, exception);
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), exception.getMessage());
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception));
             throw exception;
 
         } catch (Exception exception) {
             log.error("应用执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()), exception.getMessage());
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()), ExceptionUtil.stackTraceToString(exception));
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage());
         }
     }
@@ -362,26 +363,26 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                 } catch (ServiceException exception) {
                     log.error("应用异步任务执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
                     // 更新会话记录
-                    this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), exception.getMessage());
+                    this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception));
                     this.afterExecute(request, exception);
 
                 } catch (Exception exception) {
                     log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
                     // 更新会话记录
                     this.failureAppConversationLog(request.getConversationUid(), String.valueOf(1), exception.getMessage());
-                    this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
+                    this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, ExceptionUtil.stackTraceToString(exception)));
                 }
             });
 
         } catch (ServiceException exception) {
             log.error("应用异步执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), exception.getMessage());
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception));
             this.afterExecute(request, exception);
         } catch (Exception exception) {
             log.error("应用异步执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()), exception.getMessage());
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()), ExceptionUtil.stackTraceToString(exception));
             this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
         }
     }

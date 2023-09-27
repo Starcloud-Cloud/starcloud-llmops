@@ -280,8 +280,12 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
         // 如果异常，抛出异常
         if (Objects.nonNull(fire.getResultException())) {
-            log.info("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, fire.getResultException());
+            Throwable resultException = fire.getResultException();
+            log.info("应用工作流执行异常: 步骤 ID: {}, 错误信息: {}", appContext.getStepId(), resultException.getMessage());
+            if (resultException instanceof ServiceException) {
+                throw (ServiceException) resultException;
+            }
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode(), resultException.getMessage());
         }
 
         // 如果执行失败，抛出异常
