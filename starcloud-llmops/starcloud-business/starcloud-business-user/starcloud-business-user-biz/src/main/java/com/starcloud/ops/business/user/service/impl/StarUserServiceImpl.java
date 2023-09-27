@@ -30,10 +30,13 @@ import cn.iocoder.yudao.module.system.service.logger.LoginLogService;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.user.api.SendUserMsgService;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
+import com.starcloud.ops.business.user.dal.dataObject.InvitationRecordsDO;
 import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataObject.RegisterUserDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
@@ -62,6 +65,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -110,6 +114,10 @@ public class StarUserServiceImpl implements StarUserService {
     private AdminUserService userService;
     @Resource
     private LoginLogService loginLogService;
+
+    @Resource
+    private SendUserMsgService sendUserMsgService;
+
 
     @Autowired
     private RoleMapper roleMapper;
@@ -181,10 +189,22 @@ public class StarUserServiceImpl implements StarUserService {
             if (inviteUserId != null && inviteUserId > 0) {
 
                 // 增加邀请记录
-                invitationRecordsService.createInvitationRecords(inviteUserId,currentUserId);
+                invitationRecordsService.createInvitationRecords(inviteUserId, currentUserId);
+
                 // 邀请注册权益 邀请人
                 benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
                 sendSocialMsgService.sendInviteMsg(inviteUserId);
+
+                // 获取当天的邀请记录
+                List<InvitationRecordsDO> todayInvitations = invitationRecordsService.getTodayInvitations(inviteUserId);
+                if (todayInvitations.size() % 2 == 0) {
+                    log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
+                    benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE_REPEAT.getName(), inviteUserId);
+                    sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
+                            "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包，我们已经将这份珍贵的礼物送至您的账户中。" + "\n" +
+                                    "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位", todayInvitations.size()));
+                }
+
             } else {
                 // 普通注册权益
                 benefitsService.addUserBenefitsSign(currentUserId);
@@ -205,7 +225,7 @@ public class StarUserServiceImpl implements StarUserService {
         } catch (Exception e) {
             log.warn("解析邀请用户失败，currentUserId={},inviteCode={}", currentUserId, inviteCode, e);
         }
-        addBenefits(currentUserId,inviteUserid);
+        addBenefits(currentUserId, inviteUserid);
     }
 
     @Override

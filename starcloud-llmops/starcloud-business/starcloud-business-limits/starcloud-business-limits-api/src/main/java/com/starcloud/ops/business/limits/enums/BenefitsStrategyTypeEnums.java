@@ -84,6 +84,12 @@ public enum BenefitsStrategyTypeEnums {
     LITTLE_RED_BOOK("LITTLE_RED_BOOK", "系统赠送-关注官方小红书账号", "System gift", "RB"),
 
 
+    /**
+     * 多次邀请
+     */
+    USER_INVITE_REPEAT("USER_INVITE_REPEAT", "系统赠送-邀请达人礼包", "Invite", "IR"),
+
+
     ;
     /**
      * code

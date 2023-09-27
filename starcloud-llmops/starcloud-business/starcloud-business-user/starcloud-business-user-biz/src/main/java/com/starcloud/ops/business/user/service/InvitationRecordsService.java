@@ -47,4 +47,11 @@ public interface InvitationRecordsService {
     PageResult<InvitationRecordsDO> getInvitationRecordsPage(InvitationRecordsPageReqVO pageReqVO);
 
 
+    /**
+     * 获取当天邀请记录
+     * @param userId 用户ID
+     * @return  List<InvitationRecordsDO>
+     */
+    List<InvitationRecordsDO> getTodayInvitations(Long userId);
+
 }

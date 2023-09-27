@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +38,12 @@ import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.*;
 @Service
 @Validated
 public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyService {
+
+
+    private static final List<String> PAY_STRATEGY_TYPE = Arrays.asList(BenefitsStrategyTypeEnums.PAY_PLUS_MONTH.getName(),
+            BenefitsStrategyTypeEnums.PAY_PLUS_YEAR.getName(),
+            BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName(),
+            BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName());
 
     @Resource
     private UserBenefitsStrategyMapper userBenefitsStrategyMapper;
@@ -368,6 +375,33 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
         wrapper.eq(UserBenefitsStrategyDO::getStrategyType, strategyType);
         wrapper.in(UserBenefitsStrategyDO::getId, ids);
+
+        return userBenefitsStrategyMapper.selectList(wrapper);
+    }
+
+    /**
+     * 获得 支付套餐相关的权益策略
+     *
+     * @return 用户权益策略表
+     */
+    @Override
+    public List<UserBenefitsStrategyDO> getPayBenefitsStrategy() {
+        // 创建查询条件
+        LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
+        wrapper.in(UserBenefitsStrategyDO::getStrategyType, PAY_STRATEGY_TYPE);
+        return userBenefitsStrategyMapper.selectList(wrapper);
+    }
+
+    /**
+     * 获得非支付套餐相关的权益策略
+     *
+     * @return 用户权益策略表
+     */
+    @Override
+    public List<UserBenefitsStrategyDO> getNoPayBenefitsStrategy() {
+        // 创建查询条件
+        LambdaQueryWrapper<UserBenefitsStrategyDO> wrapper = Wrappers.lambdaQuery(UserBenefitsStrategyDO.class);
+        wrapper.notIn(UserBenefitsStrategyDO::getStrategyType, PAY_STRATEGY_TYPE);
 
         return userBenefitsStrategyMapper.selectList(wrapper);
     }

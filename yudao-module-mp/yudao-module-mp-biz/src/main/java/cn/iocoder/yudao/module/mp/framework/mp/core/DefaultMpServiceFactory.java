@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.mp.framework.mp.core;
 
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
+import cn.iocoder.yudao.module.mp.enums.click.WeChatClickTypeEnum;
 import cn.iocoder.yudao.module.mp.service.handler.menu.MenuHandler;
 import cn.iocoder.yudao.module.mp.service.handler.message.MessageReceiveHandler;
 import cn.iocoder.yudao.module.mp.service.handler.message.MessageAutoReplyHandler;
@@ -65,6 +66,7 @@ public class DefaultMpServiceFactory implements MpServiceFactory {
     private final WxMpMessageHandler scanHandler;
     private final MessageAutoReplyHandler messageAutoReplyHandler;
     private final WxMpMessageHandler wxTextMessageHandler;
+    private final WxMpMessageHandler WeChatSpecialHandler;
 
     @Override
     public void init(List<MpAccountDO> list) {
@@ -139,6 +141,13 @@ public class DefaultMpServiceFactory implements MpServiceFactory {
         router.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT)
                 .event(WxMpEventConstants.POI_CHECK_NOTIFY)
                 .handler(storeCheckNotifyHandler).end();
+
+        // 特殊菜单点击事件
+        router.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT)
+                        .event(WxConsts.MenuButtonType.CLICK).matcher(message -> {
+                            String eventKey = message.getEventKey();
+                            return WeChatClickTypeEnum.contains(eventKey);
+                }).handler(WeChatSpecialHandler).end();
 
         // 自定义菜单事件
         router.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT)

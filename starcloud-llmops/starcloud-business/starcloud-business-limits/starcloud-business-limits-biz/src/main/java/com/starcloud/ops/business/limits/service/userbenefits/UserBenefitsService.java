@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.limits.service.userbenefits;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsBaseResultVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsInfoResultVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPagInfoResultVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsPageReqVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.*;
 
 /**
  * 用户权益 Service 接口
@@ -112,6 +109,12 @@ public interface UserBenefitsService {
      * 根据类型获取有效的权益总量
      */
     UserBenefitsBaseResultVO getBenefitsByType(String benefitsType, Long userId);
+
+
+    /**
+     * 获取七天内即将过期的权益
+     */
+    ExpiredReminderVO getBenefitsExpired();
 
 
 }
