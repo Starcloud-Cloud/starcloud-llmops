@@ -106,7 +106,6 @@ public class ImageController {
     @ApiOperationSupport(order = 60, author = "nacoyer")
     public CommonResult<ImageRespVO> removeText(@Validated @RequestBody ImageReqVO request) {
         request.setAppUid(RecommendAppEnum.REMOVE_TEXT_IMAGE.name());
-        // 执行限流
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
         appLimitService.appLimit(limitRequest);
         return CommonResult.success(imageService.execute(request));
