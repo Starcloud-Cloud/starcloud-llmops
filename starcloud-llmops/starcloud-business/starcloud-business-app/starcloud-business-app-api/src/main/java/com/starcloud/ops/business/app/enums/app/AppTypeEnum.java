@@ -23,6 +23,8 @@ public enum AppTypeEnum implements IEnumable<Integer> {
      */
     INSTALLED(1, "下载应用：我已经下载的应用"),
 
+    DRAFT(2,"机器人草稿")
+
     ;
 
     /**
