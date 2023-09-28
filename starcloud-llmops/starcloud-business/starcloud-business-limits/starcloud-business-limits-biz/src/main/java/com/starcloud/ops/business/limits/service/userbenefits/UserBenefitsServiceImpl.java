@@ -922,8 +922,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 .orElse(null);// 如果没有匹配的元素，返回null
 
 
-        if (userLevelDO != null) {
-            userLevel.setName(userBenefitsStrategyService.getUserBenefitsStrategy(Long.valueOf(userLevelDO.getStrategyId())).getStrategyName());
+        if (userLevelDO != null && LocalDateTimeUtil.isIn(userLevelDO.getExpirationTime(), now, now.plusDays(7))) {
+            userLevel.setName(userBenefitsStrategyService.getUserBenefitsStrategy(Long.valueOf(userLevelDO.getStrategyId())).getStrategyType());
             userLevel.setExpirationTime(userLevelDO.getExpirationTime());
         }
         expiredReminderVO.setUserLevel(userLevel);
@@ -941,12 +941,12 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         expiredReminderVO.setTokenExpiredReminderVO(tokenExpiredReminderVO);
 
         UserBenefitsDO userBenefitsDO = resultList.stream()
-                .filter(obj -> CollUtil.contains(noPayBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).min(Comparator.comparing(UserBenefitsDO::getExpirationTime)) // 使用findFirst来获取第一个匹配的元素
+                .filter(obj -> CollUtil.contains(noPayBenefitsStrategyId, Long.valueOf(obj.getStrategyId())) && obj.getTokenRemaining() > 0).min(Comparator.comparing(UserBenefitsDO::getExpirationTime)) // 使用findFirst来获取第一个匹配的元素
                 .orElse(null);// 如果没有匹配的元素，返回null
 
         // 计算 Token 过期
-        if (userBenefitsDO != null) {
-            userBenefits.setName(userBenefitsStrategyService.getUserBenefitsStrategy(Long.valueOf(userBenefitsDO.getStrategyId())).getStrategyName());
+        if (userBenefitsDO != null && LocalDateTimeUtil.isIn(userBenefitsDO.getExpirationTime(), now, now.plusDays(7))) {
+            userBenefits.setName(userBenefitsStrategyService.getUserBenefitsStrategy(Long.valueOf(userBenefitsDO.getStrategyId())).getStrategyType());
             userBenefits.setExpirationTime(userBenefitsDO.getExpirationTime());
         }
 
