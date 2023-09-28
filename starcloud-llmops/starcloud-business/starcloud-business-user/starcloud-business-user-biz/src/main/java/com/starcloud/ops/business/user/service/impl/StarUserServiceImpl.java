@@ -198,11 +198,11 @@ public class StarUserServiceImpl implements StarUserService {
 
                 // 获取当天的邀请记录
                 List<InvitationRecordsDO> todayInvitations = invitationRecordsService.getTodayInvitations(inviteUserId);
-                if (todayInvitations.size() % 2 == 0&& CollUtil.isNotEmpty(todayInvitations)) {
+                if (todayInvitations.size() % 3 == 0 && CollUtil.isNotEmpty(todayInvitations)) {
                     log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
                     benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE_REPEAT.getName(), inviteUserId);
                     sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
-                            "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】"+"我们已经将这份珍贵的礼物送至您的账户中。" + "\n"+"\n" +
+                            "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
                                     "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
                 }
 

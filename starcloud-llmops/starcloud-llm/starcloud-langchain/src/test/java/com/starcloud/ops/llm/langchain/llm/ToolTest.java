@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.starcloud.ops.llm.langchain.SpringBootTests;
 import com.starcloud.ops.llm.langchain.config.SerpAPIToolConfig;
 import com.starcloud.ops.llm.langchain.core.tools.SerpAPITool;
+import com.starcloud.ops.llm.langchain.core.tools.base.ToolResponse;
 import com.starcloud.ops.llm.langchain.core.utils.JsonUtils;
 import kong.unirest.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,7 @@ public class ToolTest extends SpringBootTests {
 
         request.setQ("2023年8月 女足比赛总比分多少？");
 
-        String result = tool.run(request);
+        ToolResponse result = tool.run(request);
 
         log.info("jsonObject: {}", result);
     }

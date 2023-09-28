@@ -3,11 +3,13 @@ package com.starcloud.ops.llm.langchain.core.tools;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.http.HttpUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.llm.langchain.config.SerpAPIToolConfig;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
+import com.starcloud.ops.llm.langchain.core.tools.base.ToolResponse;
 import kong.unirest.HttpResponse;
 import kong.unirest.JacksonObjectMapper;
 import kong.unirest.JsonNode;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Data
-public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
+public class SerpAPITool extends BaseTool<SerpAPITool.Request> {
 
     public static String GL = "cn";
 
@@ -54,9 +56,9 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
     }
 
     @Override
-    protected String _run(SerpAPITool.Request input) {
+    protected ToolResponse _run(SerpAPITool.Request input) {
 
-        String result = "";
+        ToolResponse result = ToolResponse.buildObservation(null);
 
         try {
 
@@ -68,7 +70,7 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request, String> {
 
             if (response.getBody() != null) {
                 JSONObject body = response.getBody().getObject();
-                return this.processResponseStr(this.processResponse(body));
+                result = ToolResponse.buildObservation(this.processResponseStr(this.processResponse(body)));
             }
 
         } catch (Exception e) {

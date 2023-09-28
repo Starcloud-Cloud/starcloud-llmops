@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocMemory;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
+import com.starcloud.ops.llm.langchain.core.tools.base.ToolResponse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,7 +93,7 @@ public class HandlerSkill extends BaseSkillEntity {
         Type query = TypeUtil.getTypeArgument(this.getHandler().getClass());
         Class<?> cc = (Class<?>) query;
 
-        Function<Object, String> function = (input) -> {
+        Function<Object, ToolResponse> function = (input) -> {
 
             log.info("FunTool HandlerSkill: {} {}", this.getHandler().getName(), input);
 
@@ -111,11 +112,11 @@ public class HandlerSkill extends BaseSkillEntity {
 
             log.info("FunTool HandlerSkill: {} response:\n{}", this.getHandler().getName(), JSONUtil.toJsonPrettyStr(handlerResponse));
 
-            //这里只返回内容，要么返回为空。因为传到到LLM后只会判断返回值有无
-            return handlerResponse.toJsonOutput();
+            return ToolResponse.buildResponse(handlerResponse).setObservation(handlerResponse.getOutput());
+
         };
 
-        return createFunTool(handler.getName(), handler.getDescription(), cc, function);
+        return createSkillFunTool(handler.getName(), handler.getDescription(), cc, function);
     }
 
 
