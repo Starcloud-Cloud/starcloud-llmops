@@ -308,7 +308,10 @@ public class ContextPrompt extends BasePromptConfig {
                 matchQueryRequest.setAppId(datasetUid);
                 matchQueryRequest.setMinScore(0.72d);
                 matchQueryRequest.setUserId(chatRequestVO.getUserId());
+
                 MatchQueryVO matchQueryVO = documentSegmentsService.matchQuery(matchQueryRequest);
+
+                log.info("ContextPrompt searchDataset: {}, {}", JsonUtils.toJsonString(matchQueryRequest), JsonUtils.toJsonString(matchQueryVO));
 
                 //过滤掉 分数低的 < 0.7  文档搜索相似度阈值
                 if (matchQueryVO != null && CollectionUtil.isNotEmpty(matchQueryVO.getRecords())) {
