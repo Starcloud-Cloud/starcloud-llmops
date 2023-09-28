@@ -363,7 +363,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             return null;
         }
         List<DatasetSourceDataDetailRespVO> dataList = datasetSourceDataService.getApplicationSourceDataList(Optional.ofNullable(request.getAppId()).orElse(new ArrayList<>()).stream().findFirst().orElse(""), DataSourceDataModelEnum.DOCUMENT.getStatus(), false);
-        if (!dataList.stream().anyMatch(DatasetSourceDataBaseRespVO::getEnabled)) {
+        if (dataList.stream().noneMatch(DatasetSourceDataBaseRespVO::getEnabled)) {
             log.warn("没有可用文档");
             return null;
         }
