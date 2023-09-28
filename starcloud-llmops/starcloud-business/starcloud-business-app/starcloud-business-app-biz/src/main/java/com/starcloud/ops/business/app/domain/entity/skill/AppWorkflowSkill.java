@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
+import com.starcloud.ops.llm.langchain.core.tools.base.ToolResponse;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -157,7 +158,7 @@ public class AppWorkflowSkill extends BaseSkillEntity {
 
             JsonNode schemas = null;
 
-            Function<Object, String> function = (input) -> {
+            Function<Object, ToolResponse> function = (input) -> {
 
                 log.info("FunTool AppWorkflowSkill: {} {}", this.getName(), input);
 
@@ -169,10 +170,10 @@ public class AppWorkflowSkill extends BaseSkillEntity {
 
                 handlerContext.sendCallbackInteractiveEnd(InteractiveInfo.buildText("AI应用执行完成:(" + appName + ")"));
 
-                return String.valueOf(result);
+                return ToolResponse.buildObservation(String.valueOf(result));
             };
 
-            return new FunTool(appName, appDesc, schemas, function);
+            return createSkillFunTool(appName, appDesc, schemas, function);
 
         } catch (Exception e) {
 

@@ -20,15 +20,15 @@ public class TokenCalculator {
         return price;
     }
 
-    public static BigDecimal getTextPrice(Long tokens, ModelTypeEnum modelType, Boolean isOutput) {
+    public static BigDecimal getTextPrice(Long tokens, ModelTypeEnum modelType, Boolean isInput) {
         BigDecimal price = new BigDecimal(tokens).
                 divide(new BigDecimal(1000), 3, RoundingMode.HALF_UP)
-                .multiply(getUnitPrice(modelType, isOutput), MathContext.DECIMAL32);
+                .multiply(getUnitPrice(modelType, isInput), MathContext.DECIMAL32);
         return price;
     }
 
 
-    public static BigDecimal getUnitPrice(ModelTypeEnum modelType, Boolean isOutput) {
+    public static BigDecimal getUnitPrice(ModelTypeEnum modelType, Boolean isInput) {
         // todo  不同模型计算基数补充
         BigDecimal unitPrice;
         switch (modelType) {
@@ -37,19 +37,19 @@ public class TokenCalculator {
                 break;
             case GPT_3_5_TURBO:
             case TEXT_DAVINCI_003:
-                unitPrice = isOutput ? new BigDecimal(0.0015) : new BigDecimal(0.002);
+                unitPrice = isInput ? new BigDecimal(0.0015) : new BigDecimal(0.002);
                 break;
             case GPT_3_5_TURBO_16K:
-                unitPrice = isOutput ? new BigDecimal(0.003) : new BigDecimal(0.004);
+                unitPrice = isInput ? new BigDecimal(0.003) : new BigDecimal(0.004);
                 break;
             case GPT_4:
-                unitPrice = isOutput ? new BigDecimal(0.03) : new BigDecimal(0.06);
+                unitPrice = isInput ? new BigDecimal(0.03) : new BigDecimal(0.06);
                 break;
             case GPT_4_32K:
-                unitPrice = isOutput ? new BigDecimal(0.06) : new BigDecimal(0.12);
+                unitPrice = isInput ? new BigDecimal(0.06) : new BigDecimal(0.12);
                 break;
             case QWEN:
-                unitPrice = isOutput ? new BigDecimal(0.0016) : new BigDecimal(0.0016);
+                unitPrice = isInput ? new BigDecimal(0.0016) : new BigDecimal(0.0016);
                 break;
             default:
                 unitPrice = new BigDecimal(0);

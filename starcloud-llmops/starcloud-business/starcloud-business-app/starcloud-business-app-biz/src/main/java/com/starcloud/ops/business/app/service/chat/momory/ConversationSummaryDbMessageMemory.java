@@ -11,6 +11,7 @@ import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
@@ -20,6 +21,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentAction;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
@@ -249,7 +251,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             if (currentMessage instanceof FunctionMessage) {
                 FunctionMessage functionMessage = (FunctionMessage) currentMessage;
 
-                this.createFunctionCallMessage(functionMessage);
+                this.createFunctionCallMessage(chatGeneration, functionMessage);
 
                 //落盘成功后 加入到 memory
                 this.getChatHistory().addMessage(functionMessage);
@@ -354,7 +356,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     /**
      * 增加 函数调用 日志
      */
-    private void createFunctionCallMessage(FunctionMessage functionMessage) {
+    private void createFunctionCallMessage(ChatGeneration generation, FunctionMessage functionMessage) {
 
         ChatRequestVO request = this.getChatRequestVO();
         ChatConfigEntity chatConfig = this.getChatAppEntity().getChatConfig();
@@ -369,12 +371,35 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         Long elapsed = functionMessage.getElapsed();
         String variables = JsonUtils.toJsonString(functionMessage.getArguments());
 
+
         Long messageTokens = 0l;
         BigDecimal messageUnitPrice = BigDecimal.ZERO;
         Long answerTokens = 0l;
         BigDecimal answerUnitPrice = BigDecimal.ZERO;
         BigDecimal totalPrice = BigDecimal.ZERO;
 
+        //获取技能执行的LLM相关统计（WebSearch2Doc 已经有了）
+        if (generation.getGenerationInfo() != null && generation.getGenerationInfo() instanceof FunctionsAgentAction) {
+            FunctionsAgentAction functionsAgentAction = (FunctionsAgentAction) generation.getGenerationInfo();
+            if (functionsAgentAction.getToolResponse() != null && functionsAgentAction.getToolResponse() instanceof HandlerResponse) {
+                HandlerResponse handlerResponse = (HandlerResponse) functionsAgentAction.getToolResponse();
+
+                messageTokens = handlerResponse.getMessageTokens();
+                messageUnitPrice = handlerResponse.getMessageUnitPrice();
+
+                answerTokens = handlerResponse.getAnswerTokens();
+                answerUnitPrice = handlerResponse.getAnswerUnitPrice();
+
+                totalPrice = handlerResponse.getTotalPrice();
+            }
+        }
+
+
+        Long finalMessageTokens = messageTokens;
+        BigDecimal finalMessageUnitPrice = messageUnitPrice;
+        Long finalAnswerTokens = answerTokens;
+        BigDecimal finalAnswerUnitPrice = answerUnitPrice;
+        BigDecimal finalTotalPrice = totalPrice;
         LogAppMessageCreateReqVO logVo = this.getChatAppEntity().createAppMessage((reqVo) -> {
 
             LogAppMessageCreateReqVO messageCreateReqVO = (LogAppMessageCreateReqVO) reqVo;
@@ -388,16 +413,16 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             messageCreateReqVO.setAppStep("");
 
             messageCreateReqVO.setMessage(message);
-            messageCreateReqVO.setMessageTokens(Math.toIntExact(messageTokens));
-            messageCreateReqVO.setMessageUnitPrice(messageUnitPrice);
+            messageCreateReqVO.setMessageTokens(Math.toIntExact(finalMessageTokens));
+            messageCreateReqVO.setMessageUnitPrice(finalMessageUnitPrice);
 
             messageCreateReqVO.setAnswer(answer);
-            messageCreateReqVO.setAnswerTokens(Math.toIntExact(answerTokens));
-            messageCreateReqVO.setAnswerUnitPrice(answerUnitPrice);
+            messageCreateReqVO.setAnswerTokens(Math.toIntExact(finalAnswerTokens));
+            messageCreateReqVO.setAnswerUnitPrice(finalAnswerUnitPrice);
 
             messageCreateReqVO.setElapsed(elapsed);
 
-            messageCreateReqVO.setTotalPrice(totalPrice);
+            messageCreateReqVO.setTotalPrice(finalTotalPrice);
             messageCreateReqVO.setCurrency("USD");
 
 

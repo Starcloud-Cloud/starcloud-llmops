@@ -3,10 +3,11 @@ package com.starcloud.ops.llm.langchain.core.tools;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseRequestsTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
+import com.starcloud.ops.llm.langchain.core.tools.base.ToolResponse;
 import lombok.Data;
 
 @Data
-public class FailTool extends BaseTool<Object, String> implements BaseRequestsTool {
+public class FailTool extends BaseTool<Object> {
 
     private String name = "{fail_tool}";
 
@@ -17,8 +18,8 @@ public class FailTool extends BaseTool<Object, String> implements BaseRequestsTo
     }
 
     @Override
-    protected String _run(Object input) {
-        return this.name + " call failed with no return.";
+    protected ToolResponse _run(Object input) {
+        return ToolResponse.buildObservation(this.name + " call failed with no return.");
     }
 
 

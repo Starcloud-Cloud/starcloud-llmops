@@ -3,7 +3,9 @@ package com.starcloud.ops.business.app.domain.entity.skill;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
+import com.starcloud.ops.llm.langchain.core.tools.base.ToolResponse;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -104,17 +106,17 @@ public class ApiSkill extends BaseSkillEntity {
     @Override
     public FunTool createFunTool(HandlerContext handlerContext) {
 
-        Function<Object, String> function = (input) -> {
+        Function<Object, ToolResponse> function = (input) -> {
 
             log.info("FunTool ApiSkill: {} {}", this.getName(), input);
 
             SkillCustomConfig skillCustomConfig = this.getSkillSettingInfo(handlerContext.getAppUid(), this.getName());
 
 
-            return this._execute(input);
+            return ToolResponse.buildObservation(this._execute(input));
         };
 
-        return new FunTool(this.getName(), this.getDesc(), this.getInputSchemas(), function);
+        return createSkillFunTool(this.getName(), this.getDesc(), this.getInputSchemas(), function);
     }
 
 

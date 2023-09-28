@@ -18,4 +18,6 @@ public abstract class AgentAction {
     private String log;
 
     private Object observation;
+
+    private Object response;
 }
