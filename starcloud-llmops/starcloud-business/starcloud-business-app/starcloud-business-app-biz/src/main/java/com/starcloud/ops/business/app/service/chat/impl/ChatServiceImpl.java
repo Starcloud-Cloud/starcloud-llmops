@@ -174,7 +174,7 @@ public class ChatServiceImpl implements ChatService {
         BaseAppEntity appEntity;
         if (StringUtils.isBlank(uid)) {
             recommendApp = RecommendAppFactory.emptyChatRobotApp();
-            appEntity = AppConvert.INSTANCE.convertApp(recommendApp);
+            appEntity = AppConvert.INSTANCE.convertAppEntity(recommendApp);
         } else {
             appEntity = AppFactory.factroyMarket(uid);
         }

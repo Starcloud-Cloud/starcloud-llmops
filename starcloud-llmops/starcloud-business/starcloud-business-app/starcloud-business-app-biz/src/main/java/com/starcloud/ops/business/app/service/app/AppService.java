@@ -24,9 +24,17 @@ public interface AppService {
     /**
      * 查询应用分类列表
      *
+     * @param isRoot 是否只根节点数据
      * @return 应用分类列表
      */
-    List<AppCategoryVO> categories();
+    List<AppCategoryVO> categoryList(Boolean isRoot);
+
+    /**
+     * 查询应用分类树
+     *
+     * @return 应用分类列表
+     */
+    List<AppCategoryVO> categoryTree();
 
     /**
      * 查询应用语言列表

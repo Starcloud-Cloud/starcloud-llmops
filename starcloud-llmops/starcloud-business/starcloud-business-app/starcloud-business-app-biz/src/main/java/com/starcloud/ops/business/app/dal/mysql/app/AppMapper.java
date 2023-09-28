@@ -183,7 +183,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
                 AppDO::getModel,
                 AppDO::getSource,
                 AppDO::getTags,
-                AppDO::getCategories,
+                AppDO::getCategory,
                 AppDO::getScenes,
                 AppDO::getIcon,
                 AppDO::getDescription,

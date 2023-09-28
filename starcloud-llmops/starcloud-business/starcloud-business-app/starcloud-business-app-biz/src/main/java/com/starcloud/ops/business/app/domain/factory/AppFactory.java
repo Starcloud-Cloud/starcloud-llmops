@@ -112,7 +112,7 @@ public class AppFactory {
 
         if (AppSceneEnum.CHAT_MARKET.name().equalsIgnoreCase(chatRequest.getScene())) {
             AppMarketEntity appMarketEntity = AppFactory.factoryMarket(chatRequest.getAppUid());
-            appEntity = AppMarketConvert.INSTANCE.convert2(appMarketEntity);
+            appEntity = AppMarketConvert.INSTANCE.convertChat(appMarketEntity);
         } else if (AppSceneEnum.CHAT_TEST.name().equalsIgnoreCase(chatRequest.getScene())) {
             String appId = chatRequest.getAppUid();
             appEntity = factoryChatApp(chatRequest.getAppUid());
@@ -130,7 +130,7 @@ public class AppFactory {
 
     public static ChatAppEntity factroyMarket(String appUid) {
         AppMarketEntity appMarketEntity = AppFactory.factoryMarket(appUid);
-        return AppMarketConvert.INSTANCE.convert2(appMarketEntity);
+        return AppMarketConvert.INSTANCE.convertChat(appMarketEntity);
     }
 
     public static ChatAppEntity factory(String mediumUid) {

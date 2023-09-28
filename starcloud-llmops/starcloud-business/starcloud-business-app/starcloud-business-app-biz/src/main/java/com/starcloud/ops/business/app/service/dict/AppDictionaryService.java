@@ -18,10 +18,17 @@ public interface AppDictionaryService {
     /**
      * 查询应用分类列表
      *
+     * @param isRoot 是否只根节点数据
      * @return 应用分类列表
      */
-    List<AppCategoryVO> categories();
+    List<AppCategoryVO> categoryList(Boolean isRoot);
 
+    /**
+     * 查询应用分类树
+     *
+     * @return 应用分类树
+     */
+    List<AppCategoryVO> categoryTree();
 
     /**
      * 示例提示集合

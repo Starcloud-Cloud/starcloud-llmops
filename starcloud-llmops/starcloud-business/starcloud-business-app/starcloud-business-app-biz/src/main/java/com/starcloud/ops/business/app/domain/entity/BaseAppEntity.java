@@ -102,14 +102,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private String source;
 
     /**
+     * 应用类别
+     */
+    private String category;
+
+    /**
      * 应用标签，多个以逗号分割
      */
     private List<String> tags;
-
-    /**
-     * 应用类别，多个以逗号分割
-     */
-    private List<String> categories;
 
     /**
      * 应用场景，多个以逗号分割

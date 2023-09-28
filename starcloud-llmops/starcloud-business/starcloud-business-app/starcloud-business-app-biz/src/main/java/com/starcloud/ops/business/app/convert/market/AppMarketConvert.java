@@ -41,6 +41,7 @@ import java.util.Optional;
  * @version 1.0.0
  * @since 2023-06-05
  */
+@SuppressWarnings("all")
 @Mapper
 public interface AppMarketConvert {
 
@@ -57,7 +58,13 @@ public interface AppMarketConvert {
      */
     AppMarketEntity convert(AppMarketReqVO appMarketRequest);
 
-    ChatAppEntity convert2(AppMarketEntity appMarketEntity);
+    /**
+     * AppMarketEntity 转 ChatAppEntity
+     *
+     * @param appMarketEntity AppMarketEntity
+     * @return ChatAppEntity
+     */
+    ChatAppEntity convertChat(AppMarketEntity appMarketEntity);
 
     /**
      * AppMarketEntity 转 AppMarketDO
@@ -73,7 +80,7 @@ public interface AppMarketConvert {
         appMarket.setVersion(appMarketEntity.getVersion());
         appMarket.setLanguage(appMarketEntity.getLanguage());
         appMarket.setTags(AppUtils.join(appMarketEntity.getTags()));
-        appMarket.setCategories(AppUtils.join(appMarketEntity.getCategories()));
+        appMarket.setCategory(appMarketEntity.getCategory());
         appMarket.setScenes(AppUtils.joinScenes(appMarketEntity.getScenes()));
         appMarket.setImages(AppUtils.join(appMarketEntity.getImages()));
         appMarket.setIcon(appMarketEntity.getIcon());
@@ -125,8 +132,8 @@ public interface AppMarketConvert {
         appMarketEntity.setModel(app.getModel());
         appMarketEntity.setVersion(appPublish.getVersion());
         appMarketEntity.setLanguage(appPublish.getLanguage());
+        appMarketEntity.setCategory(app.getCategory());
         appMarketEntity.setTags(AppUtils.split(app.getTags()));
-        appMarketEntity.setCategories(AppUtils.split(app.getCategories()));
         appMarketEntity.setScenes(AppUtils.splitScenes(app.getScenes()));
         appMarketEntity.setImages(AppUtils.split(app.getImages()));
         appMarketEntity.setIcon(app.getIcon());
@@ -164,8 +171,8 @@ public interface AppMarketConvert {
         appMarketEntity.setModel(appMarket.getModel());
         appMarketEntity.setVersion(appMarket.getVersion());
         appMarketEntity.setLanguage(appMarket.getLanguage());
+        appMarketEntity.setCategory(appMarket.getCategory());
         appMarketEntity.setTags(AppUtils.split(appMarket.getTags()));
-        appMarketEntity.setCategories(AppUtils.split(appMarket.getCategories()));
         appMarketEntity.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
         appMarketEntity.setImages(AppUtils.split(appMarket.getImages()));
         appMarketEntity.setIcon(appMarket.getIcon());
@@ -203,15 +210,15 @@ public interface AppMarketConvert {
      * @param appMarket AppMarketDO
      * @return AppMarketRespVO
      */
-    default AppMarketRespVO convertResp(AppMarketDO appMarket) {
+    default AppMarketRespVO convertResponse(AppMarketDO appMarket) {
         AppMarketRespVO appMarketResponse = new AppMarketRespVO();
         appMarketResponse.setUid(appMarket.getUid());
         appMarketResponse.setName(appMarket.getName());
         appMarketResponse.setModel(appMarket.getModel());
         appMarketResponse.setVersion(appMarket.getVersion());
         appMarketResponse.setLanguage(appMarket.getLanguage());
+        appMarketResponse.setCategory(appMarket.getCategory());
         appMarketResponse.setTags(AppUtils.split(appMarket.getTags()));
-        appMarketResponse.setCategories(AppUtils.split(appMarket.getCategories()));
         appMarketResponse.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
         appMarketResponse.setImages(AppUtils.split(appMarket.getImages()));
         appMarketResponse.setIcon(appMarket.getIcon());

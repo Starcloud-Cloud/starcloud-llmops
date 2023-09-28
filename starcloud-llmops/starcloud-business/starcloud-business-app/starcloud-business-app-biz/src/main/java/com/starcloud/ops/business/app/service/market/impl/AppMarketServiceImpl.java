@@ -3,16 +3,20 @@ package com.starcloud.ops.business.app.service.market.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
+import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -30,17 +34,23 @@ import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
+import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -67,6 +77,9 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Resource
     private AppFavoriteMapper appFavoritesMapper;
 
+    @Resource
+    private AppDictionaryService appDictionaryService;
+
     /**
      * 分页查询应用市场列表
      *
@@ -79,18 +92,53 @@ public class AppMarketServiceImpl implements AppMarketService {
         Page<AppMarketDO> page = appMarketMapper.page(query);
         // 转换并且返回数据
         List<AppMarketRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppMarketConvert.INSTANCE::convertResp).collect(Collectors.toList());
+                .map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.toList());
         return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
     /**
-     * 获取优化提示应用列表
+     * 根据分类Code查询应用市场列表
+     *
+     * @param query 查询条件
+     * @return 分组列表
+     */
+    @Override
+    public List<AppMarketGroupCategoryRespVO> listGroupByCategory(AppMarketListGroupByCategoryQuery query) {
+        // todo 查询热门搜索的应用
+
+        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
+        LambdaQueryWrapper<AppMarketDO> queryMapper = appMarketMapper.queryMapper(Boolean.TRUE);
+        queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
+        queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
+        String local = LocaleContextHolder.getLocale().toString();
+        String language = LanguageEnum.ZH_CN.getCode().equals(local) ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
+
+        // 先按照语言排序，再按照使用量排序
+        queryMapper.last("ORDER BY CASE WHEN language = '" + language + "' THEN 0 ELSE 1 END, usage_count DESC, view_count Desc, create_time DESC");
+        List<AppMarketDO> appMarketList = appMarketMapper.selectList(queryMapper);
+        Map<String, List<AppMarketRespVO>> appMap = CollectionUtil.emptyIfNull(appMarketList).stream()
+                .map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.groupingBy(AppMarketRespVO::getCategory));
+
+        return CollectionUtil.emptyIfNull(categoryList).stream().map(item -> {
+            AppMarketGroupCategoryRespVO response = new AppMarketGroupCategoryRespVO();
+            response.setName(item.getName());
+            response.setCode(item.getCode());
+            response.setParentCode(item.getParentCode());
+            response.setAppList(appMap.getOrDefault(item.getCode(), Collections.emptyList()));
+            return response;
+        }).collect(Collectors.toList());
+
+    }
+
+    /**
+     * 获取应用列表
      *
      * @param query 查询条件
      * @return 应用列表
      */
     @Override
     public List<Option> listMarketAppOption(AppMarketListQuery query) {
+        query.setModel(AppModelEnum.COMPLETION.name());
         // 查询应用市场列表
         List<AppMarketDO> list = appMarketMapper.listMarketApp(query);
         // 转换并且返回数据
@@ -134,7 +182,7 @@ public class AppMarketServiceImpl implements AppMarketService {
 
         // 转换并且返回应用数据
         appMarketDO.setViewCount(viewCount);
-        AppMarketRespVO appMarketRespVO = AppMarketConvert.INSTANCE.convertResp(appMarketDO);
+        AppMarketRespVO appMarketRespVO = AppMarketConvert.INSTANCE.convertResponse(appMarketDO);
         appMarketRespVO.setInstallInfo(installedRespVO);
         return appMarketRespVO;
     }

@@ -448,7 +448,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
 
         if (!AppModelEnum.CHAT.name().equals(appPublish.getModel())) {
-            appMarketEntity.setImages(buildImages(appMarketEntity.getCategories()));
+            appMarketEntity.setImages(buildImages(appMarketEntity.getCategory()));
         }
         // marketUid 不为空，说明已经发布过，需要更新发布记录
         if (StringUtils.isNotBlank(appPublish.getMarketUid())) {
@@ -472,19 +472,19 @@ public class AppPublishServiceImpl implements AppPublishService {
     /**
      * 构建上传应用的图片
      *
-     * @param categories 分类
+     * @param category 分类
      * @return 图片列表
      */
-    private List<String> buildImages(List<String> categories) {
+    private List<String> buildImages(String category) {
 
-        if (CollectionUtil.isEmpty(categories)) {
+        if (StringUtils.isBlank(category)) {
             return Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE);
         }
 
-        List<AppCategoryVO> categoryList = appDictionaryService.categories();
+        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
         // 从 categoryList 中获取对应的图片
         List<String> images = CollectionUtil.emptyIfNull(categoryList).stream()
-                .filter(category -> categories.contains(category.getCode()))
+                .filter(item -> category.equals(item.getCode()))
                 .map(AppCategoryVO::getImage)
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)

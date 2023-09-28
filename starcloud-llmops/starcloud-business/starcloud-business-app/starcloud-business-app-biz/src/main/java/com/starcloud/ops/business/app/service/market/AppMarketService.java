@@ -2,10 +2,12 @@ package com.starcloud.ops.business.app.service.market;
 
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -29,6 +31,13 @@ public interface AppMarketService {
      * @return 应用市场列表
      */
     PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
+
+    /**
+     * 根据分类Code查询应用市场列表
+     *
+     * @return 分组列表
+     */
+    List<AppMarketGroupCategoryRespVO> listGroupByCategory(AppMarketListGroupByCategoryQuery query);
 
     /**
      * 获取优化提示应用列表

@@ -68,4 +68,9 @@ public interface AppConstants {
      * X_ACCEL_BUFFERING_VALUE
      */
     String X_ACCEL_BUFFERING_VALUE = "no";
+
+    /**
+     * ROOT
+     */
+    String ROOT = "ROOT";
 }

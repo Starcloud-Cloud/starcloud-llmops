@@ -64,12 +64,23 @@ public class AppServiceImpl implements AppService {
     /**
      * 查询应用分类列表
      *
+     * @param isRoot 是否只根节点数据
      * @return 应用分类列表
      */
     @Override
-    public List<AppCategoryVO> categories() {
+    public List<AppCategoryVO> categoryList(Boolean isRoot) {
+        return appDictionaryService.categoryList(isRoot);
+    }
+
+    /**
+     * 查询应用分类列表
+     *
+     * @return 应用分类列表
+     */
+    @Override
+    public List<AppCategoryVO> categoryTree() {
         // 查询应用分类字典数据
-        return appDictionaryService.categories();
+        return appDictionaryService.categoryTree();
     }
 
     /**
@@ -148,7 +159,7 @@ public class AppServiceImpl implements AppService {
     public AppRespVO getSimple(String uid) {
         AppDO app = appMapper.get(uid, Boolean.TRUE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return AppConvert.INSTANCE.convertResponse(app,  Boolean.FALSE);
+        return AppConvert.INSTANCE.convertResponse(app, Boolean.FALSE);
     }
 
     /**

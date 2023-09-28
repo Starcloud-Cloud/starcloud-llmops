@@ -63,11 +63,12 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
 
     /**
      * 查询员工广场
-     * @return
+     *
+     * @return 应用列表
      */
     default List<AppMarketDO> listChatMarketApp() {
         LambdaQueryWrapper<AppMarketDO> wrapper = queryMapper(true)
-                .eq(AppMarketDO::getModel,AppModelEnum.CHAT.name());
+                .eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
         return selectList(wrapper);
     }
 
@@ -170,7 +171,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getVersion,
                 AppMarketDO::getLanguage,
                 AppMarketDO::getTags,
-                AppMarketDO::getCategories,
+                AppMarketDO::getCategory,
                 AppMarketDO::getScenes,
                 AppMarketDO::getImages,
                 AppMarketDO::getFree,

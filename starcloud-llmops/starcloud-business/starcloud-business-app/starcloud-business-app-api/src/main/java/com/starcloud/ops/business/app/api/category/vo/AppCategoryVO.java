@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 应用类别 DTO 对象
@@ -29,6 +30,12 @@ public class AppCategoryVO implements Serializable {
      */
     @Schema(description = "类别编码")
     private String code;
+
+    /**
+     * 应用类别父编号
+     */
+    @Schema(description = "类别父编码")
+    private String parentCode;
 
     /**
      * 应用类别名称
@@ -59,5 +66,11 @@ public class AppCategoryVO implements Serializable {
      */
     @Schema(description = "类别描述")
     private String description;
+
+    /**
+     * 子类别
+     */
+    @Schema(description = "子类别")
+    private List<AppCategoryVO> children;
 
 }

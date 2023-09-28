@@ -36,7 +36,7 @@ public interface AppFavoriteConvert {
         appFavoriteResponse.setVersion(favorite.getVersion());
         appFavoriteResponse.setLanguage(favorite.getLanguage());
         appFavoriteResponse.setTags(AppUtils.split(favorite.getTags()));
-        appFavoriteResponse.setCategories(AppUtils.split(favorite.getCategories()));
+        appFavoriteResponse.setCategory(favorite.getCategory());
         appFavoriteResponse.setScenes(AppUtils.splitScenes(favorite.getScenes()));
         appFavoriteResponse.setImages(AppUtils.split(favorite.getImages()));
         appFavoriteResponse.setIcon(favorite.getIcon());
@@ -61,7 +61,7 @@ public interface AppFavoriteConvert {
                 appFavoriteResponse.setImageConfig(JSON.parseObject(favorite.getConfig(), ImageConfigRespVO.class));
             }
         }
-        
+
         return appFavoriteResponse;
     }
 

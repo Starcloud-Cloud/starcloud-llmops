@@ -1,14 +1,19 @@
 package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.*;
+import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.CommonQuestionRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.DescriptionRespVo;
+import com.starcloud.ops.business.app.api.app.vo.response.config.ModelConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.OpenaiCompletionRespVo;
+import com.starcloud.ops.business.app.api.app.vo.response.config.OpeningStatementRespVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.MessageUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,7 +41,7 @@ public class RecommendAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Text"));
-        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setCategory("SEO_WRITING");
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
@@ -58,7 +63,7 @@ public class RecommendAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Article"));
-        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setCategory("SEO_WRITING");
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
@@ -80,7 +85,7 @@ public class RecommendAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Chat"));
-        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setCategory("SEO_WRITING");
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList("https://download.hotsalecloud.com/avatar/f88670eed0534ccd9bd80df21b92bf2c.svg"));
         app.setIcon("seo");
@@ -113,7 +118,7 @@ public class RecommendAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Chat"));
-        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setCategory("SEO_WRITING");
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList("https://download.hotsalecloud.com/avatar/f88670eed0534ccd9bd80df21b92bf2c.svg"));
         app.setIcon("seo");
