@@ -16,4 +16,7 @@ public class ExpiredReminderVO {
 
     private UserBenefits userBenefits;
 
+
+    private UserTokenExpiredReminderVO tokenExpiredReminderVO;
+
 }
