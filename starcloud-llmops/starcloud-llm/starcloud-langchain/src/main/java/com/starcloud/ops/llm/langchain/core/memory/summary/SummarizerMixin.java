@@ -75,9 +75,9 @@ public abstract class SummarizerMixin extends BaseChatMemory {
             "```\n" +
             "Follow these steps to answer your question\n" +
             "1. Remove content that has no impact on the answer and is not important, such as ads, messages, chats, etc!\n" +
-            "2. Just output the answer and nothing else!\n" +
-            "3. Results are limited to {max_tokens} characters!\n" +
-            "4. Use 中文 or English to answer based on the language of the Questions!!\n" +
+            "2. Results are limited to {max_tokens} characters!\n" +
+            "3. Use 中文 or English to answer based on the language of the Questions!!\n" +
+            "4. Just output the answer and nothing else!\n" +
             "\n" +
             "Answer:";
 

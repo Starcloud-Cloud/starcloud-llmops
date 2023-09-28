@@ -28,6 +28,7 @@ import com.starcloud.ops.llm.langchain.core.tools.FailTool;
 import com.starcloud.ops.llm.langchain.core.tools.InvalidTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
+import com.starcloud.ops.llm.langchain.core.tools.base.ToolResponse;
 import com.starcloud.ops.llm.langchain.core.tools.exception.FailToolExecution;
 import com.starcloud.ops.llm.langchain.core.tools.exception.InvalidToolExecution;
 import com.starcloud.ops.llm.langchain.core.tools.exception.ToolContinuesExecution;
@@ -412,7 +413,7 @@ public class AgentExecutor extends Chain<AgentFinish> {
 
             String tool = funAgentAction.getTool();
             Object toolInput = funAgentAction.getToolInput();
-            Object observation = null;
+            ToolResponse toolResponse = null;
 
             /**
              * 执行函数调用，异常catch，保存下来.并且设置返回内容，好让LLM继续做判断
@@ -429,14 +430,15 @@ public class AgentExecutor extends Chain<AgentFinish> {
                     }
 
                     //@todo 捕获工具执行异常
-                    observation = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
+                    toolResponse = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
                     //为空，可能执行异常，告诉LLM 此次调用失败，无效
-                    if (ObjectUtil.isEmpty(observation)) {
+                    if (ObjectUtil.isEmpty(toolResponse.getObservation())) {
                         throw new FailToolExecution(tool, toolInput, -1, "");
                     }
 
                     funAgentAction.setStatus(true);
-                    funAgentAction.setObservation(observation);
+                    funAgentAction.setObservation(toolResponse.getObservation());
+                    funAgentAction.setToolResponse(toolResponse.getResponse());
 
                 } else {
 
@@ -477,64 +479,6 @@ public class AgentExecutor extends Chain<AgentFinish> {
         }
 
         return result;
-    }
-
-
-    private List<AgentAction> runTool(Map<String, BaseTool> toolMap, List<AgentAction> agentActions) {
-
-        List<AgentAction> result = new ArrayList<>();
-
-        //现在只有会一个元素
-        for (AgentAction agentAction : agentActions) {
-
-            long start = System.currentTimeMillis();
-            this.callbackManager.onAgentAction(this.getClass(), agentAction, this.getVerbose());
-
-            FunctionsAgentAction funAgentAction = (FunctionsAgentAction) agentAction;
-            String tool = funAgentAction.getTool();
-            Object toolInput = funAgentAction.getToolInput();
-            Object observation = null;
-
-            if (toolMap.containsKey(tool)) {
-
-                BaseTool baseTool = toolMap.get(tool);
-                Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
-
-                if (baseTool.getReturnDirect()) {
-                    toolRunKwargs.put("llm_prefix", "");
-                }
-
-
-                //@todo 捕获工具执行异常
-                observation = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
-                //为空，可能执行异常，告诉LLM 此次调用失败，无效
-                if (ObjectUtil.isEmpty(observation)) {
-                    funAgentAction.setStatus(false);
-                    observation = new FailTool(tool).setCallbackManager(this.callbackManager).run(toolInput);
-                } else {
-                    funAgentAction.setStatus(true);
-                }
-
-
-            } else {
-
-                Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
-                //LLM 返回了错误工具的情况
-                observation = new InvalidTool(tool).setCallbackManager(this.callbackManager).run(toolInput);
-            }
-
-            funAgentAction.setObservation(observation);
-            funAgentAction.setElapsed(System.currentTimeMillis() - start);
-
-            //增加 fun 调用日志
-            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(agentAction);
-            this.getMemory().saveContext(null, baseLLMResult);
-
-            result.add(agentAction);
-        }
-
-        return result;
-
     }
 
 

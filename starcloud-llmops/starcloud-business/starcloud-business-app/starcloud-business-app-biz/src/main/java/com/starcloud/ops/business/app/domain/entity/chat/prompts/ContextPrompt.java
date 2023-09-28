@@ -304,7 +304,7 @@ public class ContextPrompt extends BasePromptConfig {
                 //@todo 需要 block 对象
                 MatchByDataSetIdRequest matchQueryRequest = new MatchByDataSetIdRequest();
                 matchQueryRequest.setText(query);
-                matchQueryRequest.setK(2L);
+                matchQueryRequest.setK(3L);
                 matchQueryRequest.setAppId(datasetUid);
                 matchQueryRequest.setMinScore(0.72d);
                 matchQueryRequest.setUserId(chatRequestVO.getUserId());
