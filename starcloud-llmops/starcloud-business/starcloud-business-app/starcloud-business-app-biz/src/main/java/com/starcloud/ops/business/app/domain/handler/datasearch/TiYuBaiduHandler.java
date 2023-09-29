@@ -46,6 +46,9 @@ public class TiYuBaiduHandler extends BaseToolHandler<TiYuBaiduHandler.Request, 
 
     private String description = "A search engine. Useful for when you need to answer questions about current sports events. Input should be a search query.";
 
+    private String usage = "1.今天亚运会有什么比赛\n" +
+            "2.亚运会男足最近比分多少";
+
 
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
@@ -147,6 +150,8 @@ public class TiYuBaiduHandler extends BaseToolHandler<TiYuBaiduHandler.Request, 
 
     @Data
     public static class Request {
+
+        private Integer size = 4;
 
         @JsonProperty(required = true)
         @JsonPropertyDescription("Parameter defines the query you want to search for the sports event.")

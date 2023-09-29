@@ -112,9 +112,10 @@ public class ChatSkillServiceImpl implements ChatSkillService {
             add(ChatSkillVO.buildFromHandler(new WebSearch2DocHandler()));
             add(ChatSkillVO.buildFromHandler(new ImageGenerationHandler()));
 
-            add(ChatSkillVO.buildFromHandler(new NewsSearchHandler()));
             add(ChatSkillVO.buildFromHandler(new ImageSearchHandler()));
 
+            add(ChatSkillVO.buildFromHandler(new NewsSearchHandler()));
+            add(ChatSkillVO.buildFromHandler(new TiYuBaiduHandler()));
         }};
 
         return skillVOS;

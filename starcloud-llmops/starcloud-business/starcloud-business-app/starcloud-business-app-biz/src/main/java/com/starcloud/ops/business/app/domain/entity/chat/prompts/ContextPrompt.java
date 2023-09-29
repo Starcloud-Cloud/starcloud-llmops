@@ -280,7 +280,7 @@ public class ContextPrompt extends BasePromptConfig {
 
             log.info("ContextPrompt googleSearch status: {}, {}: {}", handlerResponse.getSuccess(), query, JsonUtils.toJsonString(handlerResponse.getOutput()));
 
-            this.tiyuSearch(query);
+            //this.tiyuSearch(query);
 
             this.googleSearchStatus = handlerResponse.getSuccess();
         }
@@ -305,6 +305,7 @@ public class ContextPrompt extends BasePromptConfig {
         handlerSkill.setHistoryStrategy(true, false);
 
         TiYuBaiduHandler.Request request = new TiYuBaiduHandler.Request();
+        request.setSize(4);
         request.setQuery(query);
         this.handlerContext.setRequest(request);
 
