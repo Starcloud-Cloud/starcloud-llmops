@@ -232,7 +232,7 @@ public class ContextPrompt extends BasePromptConfig {
 
             //@todo 对于重复的文档内容，需要过滤掉
             List<MessageContentDocDTO> docsHistory = Optional.ofNullable(contentDocHistory.getDocs()).orElse(new ArrayList<>()).stream().filter(docDTO -> {
-                //id 为空说明 上游异常没保存下来，当时这里还是需要作文上下文处理的. 不支持工具到返回结果，因为工具的结果已经放在的message历史中给到LLM了
+                //@todo 如果内容为空可能是只有标题的情况，主要是作为文档去显示提示意义不大
                 return StrUtil.isNotBlank(docDTO.getContent()) && !MessageContentDocDTO.MessageContentDocTypeEnum.TOOL.equals(docDTO.getType());
                 //数据太多，只能先取前5条
             }).limit(3).collect(Collectors.toList());
