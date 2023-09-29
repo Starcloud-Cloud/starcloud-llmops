@@ -97,6 +97,8 @@ public class TiYuBaiduHandler extends BaseToolHandler<TiYuBaiduHandler.Request, 
             dataList.add(interactiveData);
         });
 
+        //@todo 需要通过爬取再次获取网页的描述才行
+
 
         //String content = serpAPITool.processResponseStr(searchInfoDetails);
 
@@ -151,7 +153,7 @@ public class TiYuBaiduHandler extends BaseToolHandler<TiYuBaiduHandler.Request, 
     @Data
     public static class Request {
 
-        private Integer size = 4;
+        private Integer size = 6;
 
         @JsonProperty(required = true)
         @JsonPropertyDescription("Parameter defines the query you want to search for the sports event.")
