@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.datasearch.SearchEngineHandler;
+import com.starcloud.ops.business.app.domain.handler.datasearch.TiYuBaiduHandler;
 import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocHistory;
 import com.starcloud.ops.business.app.service.chat.momory.MessageContentDocMemory;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
@@ -269,6 +270,7 @@ public class ContextPrompt extends BasePromptConfig {
             handlerSkill.setHistoryStrategy(true, false);
 
             SearchEngineHandler.Request request = new SearchEngineHandler.Request();
+            request.setSize(2);
             request.setType("content");
             request.setQuery(query);
             this.handlerContext.setRequest(request);
@@ -278,10 +280,41 @@ public class ContextPrompt extends BasePromptConfig {
 
             log.info("ContextPrompt googleSearch status: {}, {}: {}", handlerResponse.getSuccess(), query, JsonUtils.toJsonString(handlerResponse.getOutput()));
 
+            //this.tiyuSearch(query);
+
             this.googleSearchStatus = handlerResponse.getSuccess();
         }
 
         return this.googleSearchStatus;
+    }
+
+
+    /**
+     * Google内容搜索
+     * 调用 handler
+     *
+     * @param query
+     * @return
+     */
+    protected Boolean tiyuSearch(String query) {
+
+        HandlerSkill handlerSkill = HandlerSkill.of("TiYuBaiduHandler");
+        handlerSkill.setMessageContentDocMemory(this.getMessageContentDocMemory());
+
+        //只增加但不保存 上下文
+        handlerSkill.setHistoryStrategy(true, false);
+
+        TiYuBaiduHandler.Request request = new TiYuBaiduHandler.Request();
+        request.setSize(4);
+        request.setQuery(query);
+        this.handlerContext.setRequest(request);
+
+        //执行并增加结果到上下文
+        HandlerResponse handlerResponse = handlerSkill.execute(this.handlerContext);
+
+        log.info("ContextPrompt tiyuSearch status: {}, {}: {}", handlerResponse.getSuccess(), query, JsonUtils.toJsonString(handlerResponse.getOutput()));
+
+        return handlerResponse.getSuccess();
     }
 
 

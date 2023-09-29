@@ -68,12 +68,10 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
         HandlerResponse<SearchEngineHandler.Response> handlerResponse = new HandlerResponse();
 
         handlerResponse.setSuccess(true);
-
         List<InteractiveData> dataList = processFilter(searchInfoDetails);
+        dataList = Optional.ofNullable(dataList).orElse(new ArrayList<>()).stream().limit(context.getRequest().getSize()).collect(Collectors.toList());
 
         handlerResponse.setOutput(new SearchEngineHandler.Response(dataList));
-
-
         handlerResponse.setExt(dataList);
 
         interactiveInfo.setData(dataList);
