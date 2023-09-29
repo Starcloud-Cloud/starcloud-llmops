@@ -116,20 +116,22 @@ public class ImageSearchHandler extends BaseToolHandler<SearchEngineHandler.Requ
 
         //解析返回的内容 生成 MessageContentDocDTO
 
-        List<InteractiveData> interactiveDataList = (List<InteractiveData>) handlerResponse.getExt();
+//        List<InteractiveData> interactiveDataList = (List<InteractiveData>) handlerResponse.getExt();
+//
+//        return Optional.ofNullable(interactiveDataList).orElse(new ArrayList<>()).stream().map((interactiveData) -> {
+//
+//            MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();
+//
+//            messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
+//            messageContentDocDTO.setTitle(interactiveData.getTitle());
+//            messageContentDocDTO.setContent(interactiveData.getImageUrl());
+//            messageContentDocDTO.setUrl(interactiveData.getUrl());
+//
+//            return messageContentDocDTO;
+//
+//        }).collect(Collectors.toList());
 
-        return Optional.ofNullable(interactiveDataList).orElse(new ArrayList<>()).stream().map((interactiveData) -> {
-
-            MessageContentDocDTO messageContentDocDTO = new MessageContentDocDTO();
-
-            messageContentDocDTO.setType(MessageContentDocDTO.MessageContentDocTypeEnum.WEB.name());
-            messageContentDocDTO.setTitle(interactiveData.getTitle());
-            messageContentDocDTO.setContent(interactiveData.getImageUrl());
-            messageContentDocDTO.setUrl(interactiveData.getUrl());
-
-            return messageContentDocDTO;
-
-        }).collect(Collectors.toList());
+        return new ArrayList<>();
     }
 
 

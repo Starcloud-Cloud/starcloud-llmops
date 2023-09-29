@@ -46,7 +46,7 @@ public abstract class BaseSkillEntity {
     /**
      * 是否把执行的结果增加到文档上下文
      */
-    private Boolean addHistory = false;
+    private Boolean addHistory = true;
 
     /**
      * 是否把执行的结果保存到文档上下文

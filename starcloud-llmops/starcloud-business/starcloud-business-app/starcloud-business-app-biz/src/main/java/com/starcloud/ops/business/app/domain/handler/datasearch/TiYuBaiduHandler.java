@@ -80,7 +80,7 @@ public class TiYuBaiduHandler extends BaseToolHandler<TiYuBaiduHandler.Request, 
 
         List<InteractiveData> dataList = new ArrayList<>();
 
-        result.getJSONObject("data").getJSONArray("data").toList(JSONObject.class).forEach(data -> {
+        result.getJSONObject("data").getJSONArray("data").toList(JSONObject.class).stream().limit(context.getRequest().getSize()).forEach(data -> {
 
             InteractiveData interactiveData = new InteractiveData();
 
