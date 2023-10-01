@@ -288,8 +288,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
      */
     private void _saveChatContext(List<BaseVariable> variables, BaseLLMResult result) {
 
-
-        BaseVariable variable = this.getPromptInputKey(variables);
+        BaseVariable variable = BaseVariable.findVariable(variables, INPUT_KEY);
         HumanMessage humanMessage = new HumanMessage(String.valueOf(variable.getValue()));
 
         ChatGeneration chatGeneration = (ChatGeneration) result.getGenerations().get(0);
