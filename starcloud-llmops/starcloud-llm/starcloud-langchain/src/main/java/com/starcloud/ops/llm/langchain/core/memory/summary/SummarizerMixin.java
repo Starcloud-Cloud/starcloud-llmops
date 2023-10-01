@@ -102,7 +102,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
         this.prompt = buildPromptTemplate();
     }
 
-    public SummarizerMixin(BaseLLM llm) {
+    public SummarizerMixin(BaseLanguageModel llm) {
         super();
         this.prompt = buildPromptTemplate();
 

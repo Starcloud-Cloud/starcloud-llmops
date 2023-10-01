@@ -1,6 +1,5 @@
 package com.starcloud.ops.llm.langchain.core.chain;
 
-import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForChainRun;
 import com.starcloud.ops.llm.langchain.core.chain.base.Chain;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
@@ -26,11 +25,18 @@ public class LLMChain<R> extends Chain<BaseLLMResult<R>> {
 
     private BasePromptTemplate promptTemplate;
 
+    private List<String> inputKeys = Arrays.asList("input");
+
     public LLMChain(BaseLanguageModel<R> llm, BasePromptTemplate promptTemplate) {
         this.setLlm(llm);
         this.setPromptTemplate(promptTemplate);
     }
 
+    public LLMChain(BaseLanguageModel<R> llm, BasePromptTemplate promptTemplate, String outputKey) {
+        this.setLlm(llm);
+        this.setPromptTemplate(promptTemplate);
+        this.setOutputKeys(Arrays.asList(outputKey));
+    }
 
     @Override
     protected BaseLLMResult<R> _call(List<BaseVariable> baseVariables) {
@@ -50,7 +56,7 @@ public class LLMChain<R> extends Chain<BaseLLMResult<R>> {
     @Override
     public String run(String text) {
 
-        return this.call(Arrays.asList(BaseVariable.newString(text))).getText();
+        return this.call(Arrays.asList(BaseVariable.newString(this.getInputKeys().get(0), text))).getText();
     }
 
 }

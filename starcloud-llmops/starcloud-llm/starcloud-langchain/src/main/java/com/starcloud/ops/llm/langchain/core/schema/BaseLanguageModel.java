@@ -32,11 +32,16 @@ public abstract class BaseLanguageModel<R> {
 
     public abstract void setVerbose(Boolean verbose);
 
+    public String predict(String text) {
+        return this.predict(text, null);
+    }
+
     public abstract String predict(String text, List<String> stops);
 
-    public abstract BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops);
+    public abstract BaseMessage predictMessages(List<BaseMessage> baseMessages);
 
-    public abstract BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, BaseCallbackManager callbackManager);
+    @Deprecated
+    public abstract BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops);
 
     public abstract BaseMessage predictMessages(List<BaseMessage> baseMessages, List<String> stops, List<FunctionDescription> functionDescriptions, BaseCallbackManager callbackManager);
 

@@ -22,7 +22,7 @@
     <modules>
         <module>starcloud-connection</module>
         <module>starcloud-business</module>
-        <module>starcloud-llm</module>
+        <!--        <module>starcloud-llm</module>-->
         <module>starcloud-framework</module>
         <module>starcloud-server</module>
         <module>starcloud-adapter-ruoyi-pro</module>
@@ -50,10 +50,11 @@
 
             </dependency>
 
+            <!--java-langchain-->
             <dependency>
-                <groupId>com.starcloud.ops</groupId>
-                <artifactId>starcloud-llm</artifactId>
-                <version>${starcloud.revision}</version>
+                <groupId>com.github.Starcloud-Cloud</groupId>
+                <artifactId>java-langchain</artifactId>
+                <version>master-1e4cdfd9de-1</version>
             </dependency>
 
             <dependency>
@@ -86,6 +87,7 @@
     </distributionManagement>
 
     <repositories>
+
         <repository>
             <id>seastar</id>
             <url>https://pkgs.dev.azure.com/duanfeisj/seastar/_packaging/seastar/maven/v1</url>
@@ -97,42 +99,55 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
+
+        <repository>
+            <id>jitpack</id>
+            <url>https://jitpack.io</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+
     </repositories>
 
 
     <build>
-<!--        <pluginManagement>-->
-            <plugins>
+        <!--        <pluginManagement>-->
+        <plugins>
 
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>flatten-maven-plugin</artifactId>
-                    <version>1.2.7</version>
-                    <configuration>
-                        <outputDirectory>${project.build.directory}</outputDirectory>
-                        <updatePomFile>true</updatePomFile>
-                        <flattenMode>resolveCiFriendliesOnly</flattenMode>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>flatten</id>
-                            <phase>process-resources</phase>
-                            <goals>
-                                <goal>flatten</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>flatten.clean</id>
-                            <phase>clean</phase>
-                            <goals>
-                                <goal>clean</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.2.7</version>
+                <configuration>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
 
-<!--        </pluginManagement>-->
+        <!--        </pluginManagement>-->
     </build>
 
 </project>
