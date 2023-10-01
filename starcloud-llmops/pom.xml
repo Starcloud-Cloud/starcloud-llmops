@@ -17,6 +17,7 @@
 
     <properties>
         <starcloud.revision>1.0.0-SNAPSHOT</starcloud.revision>
+        <java-langchain.version>master-ff0414ca8b-1</java-langchain.version>
     </properties>
 
     <modules>
@@ -54,7 +55,7 @@
             <dependency>
                 <groupId>com.github.Starcloud-Cloud</groupId>
                 <artifactId>java-langchain</artifactId>
-                <version>master-1e4cdfd9de-1</version>
+                <version>${java-langchain.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.slf4j</groupId>

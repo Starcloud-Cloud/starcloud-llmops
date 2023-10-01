@@ -171,9 +171,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
             log.error("summaryContent is error: {}", e.getMessage(), e);
             return null;
         }
-
     }
-
 
     public static int calculateTokens(String historyStr) {
 
