@@ -55,6 +55,12 @@
                 <groupId>com.github.Starcloud-Cloud</groupId>
                 <artifactId>java-langchain</artifactId>
                 <version>master-1e4cdfd9de-1</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-simple</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
