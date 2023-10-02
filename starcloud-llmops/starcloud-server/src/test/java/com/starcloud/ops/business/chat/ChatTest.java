@@ -119,12 +119,12 @@ public class ChatTest extends BaseDbUnitTest {
         ChatRequestVO chatRequest = new ChatRequestVO();
 
         //带数据集的
-        chatRequest.setAppUid("222108cc04cf4338be9f32453ceeb5b5");
+        chatRequest.setAppUid("2a9ffdde1f8c4f30b36a872aa8586cc1");
         chatRequest.setUserId(186L);
 
         chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
 
-        chatRequest.setQuery("你好11？");
+        chatRequest.setQuery("1+1=？");
 
 
         chatService.chat(chatRequest);
