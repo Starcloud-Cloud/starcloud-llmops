@@ -88,9 +88,7 @@ public class ContextPrompt extends BasePromptConfig {
             "- If you don't know, just say that you don't know!!!\n" +
             "- If you don't know when you are not sure, ask for clarification!!!\n" +
             "- Avoid mentioning that you obtained the information from the context.\n" +
-            "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the `{n}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n" +
-            "Please Note If you don't know, just say that you don't know!!!\n" +
-            "Please Note If you don't know when you are not sure, ask for clarification!!!\n\n";
+            "- If the content of the answer refers to the content of the block in [CONTEXT], you need to add the `{n}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n";
 
 
     private ChatRequestVO chatRequestVO;
@@ -140,14 +138,14 @@ public class ContextPrompt extends BasePromptConfig {
             this.searchResult = this.searchDataset(this.query);
         }
 
-        //文档查询不为空 就不联网查询了
-        if (this.searchResult == null && this.canSearchWeb()) {
-            this.googleSearchStatus = this.googleSearch(this.query);
-        }
-
         //文档搜索过并不为空
         if (this.searchResult != null && CollectionUtil.isNotEmpty(this.searchResult.getRecords())) {
             return true;
+        }
+
+        //文档查询不为空 就不联网查询了
+        if (this.canSearchWeb()) {
+            this.googleSearchStatus = this.googleSearch(this.query);
         }
 
         //网络搜索过并为true
@@ -289,7 +287,7 @@ public class ContextPrompt extends BasePromptConfig {
             return handlerResponse.getSuccess();
         }
 
-        return false;
+        return this.googleSearchStatus;
     }
 
 
@@ -355,11 +353,13 @@ public class ContextPrompt extends BasePromptConfig {
             } catch (Exception e) {
 
                 log.error("ContextPrompt searchDataset is error: {}", e.getMessage(), e);
+
+                //如果搜索有问题，就当没有搜索结果
+                return MatchQueryVO.builder().records(new ArrayList<>()).build();
             }
         }
 
-        //如果搜索有问题，就当没有搜索结果
-        return MatchQueryVO.builder().records(new ArrayList<>()).build();
+        return this.searchResult;
     }
 
     private List<MessageContentDocDTO> parseContent(MatchQueryVO matchQueryVO) {

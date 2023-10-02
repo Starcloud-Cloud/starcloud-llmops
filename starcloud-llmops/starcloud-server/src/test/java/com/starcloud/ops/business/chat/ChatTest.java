@@ -124,7 +124,7 @@ public class ChatTest extends BaseDbUnitTest {
 
         chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
 
-        chatRequest.setQuery("1+1=？");
+        chatRequest.setQuery("今天杭州天气怎么样？");
 
 
         chatService.chat(chatRequest);
