@@ -968,37 +968,40 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         // 获取所有过期权益
         LocalDateTime now = LocalDateTime.now();
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
-                .eq(UserBenefitsDO::getUserId, getLoginUserId())
                 .eq(UserBenefitsDO::getEnabled, true)
                 .le(UserBenefitsDO::getEffectiveTime, now)
-                .le(UserBenefitsDO::getExpirationTime, now)
-                .eq(UserBenefitsDO::getEnabled, 1);
+                .le(UserBenefitsDO::getExpirationTime, now);
+
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
 
-        List<Long> noPayBenefitsIds = resultList.stream()
-                .filter(obj -> !CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).map(UserBenefitsDO::getId).collect(Collectors.toList());
+        if (resultList.size() > 0) {
+            List<Long> noPayBenefitsIds = resultList.stream()
+                    .filter(obj -> !CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).map(UserBenefitsDO::getId).collect(Collectors.toList());
 
-        userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
-                .in(UserBenefitsDO::getId, noPayBenefitsIds)
-                .set(UserBenefitsDO::getEnabled, 0));
-
-
-        // 获取支付权益
-        List<UserBenefitsDO> payBenefitsS = resultList.stream()
-                .filter(obj -> CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).collect(Collectors.toList());
-
-        payBenefitsS.stream().forEach(obj -> {
-            if (getPayBenefitsByUserId(Long.valueOf(obj.getUserId())).size() == 0) {
-                // 设置用户角色
-                permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+            if (noPayBenefitsIds.size() > 0) {
+                userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
+                        .in(UserBenefitsDO::getId, noPayBenefitsIds)
+                        .set(UserBenefitsDO::getEnabled, 0));
             }
-            userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
-                    .eq(UserBenefitsDO::getId, obj.getId())
-                    .set(UserBenefitsDO::getEnabled, 0));
-        });
 
-        return null;
+            // 获取支付权益
+            List<UserBenefitsDO> payBenefitsS = resultList.stream()
+                    .filter(obj -> CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).collect(Collectors.toList());
+
+            payBenefitsS.stream().forEach(obj -> {
+                if (getPayBenefitsByUserId(Long.valueOf(obj.getUserId())).size() == 0) {
+                    // 设置用户角色
+                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+                }
+                userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
+                        .eq(UserBenefitsDO::getId, obj.getId())
+                        .set(UserBenefitsDO::getEnabled, 0));
+            });
+        }
+
+
+        return (long) resultList.size();
     }
 
     /**
