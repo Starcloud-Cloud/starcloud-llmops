@@ -40,7 +40,8 @@ import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.*;
 public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyService {
 
 
-    private static final List<String> PAY_STRATEGY_TYPE = Arrays.asList(BenefitsStrategyTypeEnums.PAY_PLUS_MONTH.getName(),
+    private static final List<String> PAY_STRATEGY_TYPE = Arrays.asList(
+            BenefitsStrategyTypeEnums.PAY_PLUS_MONTH.getName(),
             BenefitsStrategyTypeEnums.PAY_PLUS_YEAR.getName(),
             BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName(),
             BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName());

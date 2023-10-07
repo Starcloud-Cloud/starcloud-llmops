@@ -956,6 +956,52 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     }
 
     /**
+     * 权益过期处理-返回已处理的数据
+     */
+    @Override
+    public Long userBenefitsExpired() {
+        // 获取用户支付权益策略
+        List<UserBenefitsStrategyDO> payBenefitsStrategy = userBenefitsStrategyService.getPayBenefitsStrategy();
+        // 获取支付权益策略 ID
+        List<Long> payBenefitsStrategyId = payBenefitsStrategy.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
+
+        // 获取所有过期权益
+        LocalDateTime now = LocalDateTime.now();
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
+                .eq(UserBenefitsDO::getUserId, getLoginUserId())
+                .eq(UserBenefitsDO::getEnabled, true)
+                .le(UserBenefitsDO::getEffectiveTime, now)
+                .le(UserBenefitsDO::getExpirationTime, now)
+                .eq(UserBenefitsDO::getEnabled, 1);
+
+        List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
+
+        List<Long> noPayBenefitsIds = resultList.stream()
+                .filter(obj -> !CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).map(UserBenefitsDO::getId).collect(Collectors.toList());
+
+        userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
+                .in(UserBenefitsDO::getId, noPayBenefitsIds)
+                .set(UserBenefitsDO::getEnabled, 0));
+
+
+        // 获取支付权益
+        List<UserBenefitsDO> payBenefitsS = resultList.stream()
+                .filter(obj -> CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).collect(Collectors.toList());
+
+        payBenefitsS.stream().forEach(obj -> {
+            if (getPayBenefitsByUserId(Long.valueOf(obj.getUserId())).size() == 0) {
+                // 设置用户角色
+                permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+            }
+            userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
+                    .eq(UserBenefitsDO::getId, obj.getId())
+                    .set(UserBenefitsDO::getEnabled, 0));
+        });
+
+        return null;
+    }
+
+    /**
      * 根据用户 ID 获取用户信息
      *
      * @param userId 用户 ID
@@ -969,4 +1015,29 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         }
         return new UserBaseDTO().setUserId(userId).setTenantId(user.getTenantId());
     }
+
+    /**
+     * 根据用户ID 获取当前生效的支付权益
+     *
+     * @param userId
+     * @return
+     */
+    private List<UserBenefitsDO> getPayBenefitsByUserId(Long userId) {
+
+        // 获取用户支付权益策略
+        List<UserBenefitsStrategyDO> payBenefitsStrategy = userBenefitsStrategyService.getPayBenefitsStrategy();
+        // 获取支付权益策略 ID
+        List<Long> payBenefitsStrategyIds = payBenefitsStrategy.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
+
+        LocalDateTime now = LocalDateTime.now();
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
+                .eq(UserBenefitsDO::getUserId, userId)
+                .eq(UserBenefitsDO::getEnabled, true)
+                .in(UserBenefitsDO::getStrategyId, payBenefitsStrategyIds)
+                .le(UserBenefitsDO::getEffectiveTime, now)
+                .ge(UserBenefitsDO::getExpirationTime, now);
+        return userBenefitsMapper.selectList(wrapper);
+    }
+
+
 }
