@@ -6,7 +6,7 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.image.vo.query.HistoryGenerateImagePageQuery;
-import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
+import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
@@ -57,7 +57,7 @@ public class ImageController {
     @GetMapping("/history")
     @Operation(summary = "查询历史图片列表", description = "查询历史图片列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<PageResult<GenerateImageResponse>> history(HistoryGenerateImagePageQuery query) {
+    public CommonResult<PageResult<BaseImageResponse>> history(HistoryGenerateImagePageQuery query) {
         return CommonResult.success(imageService.history(query));
     }
 
