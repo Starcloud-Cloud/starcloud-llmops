@@ -42,6 +42,18 @@ public class AppMarketGroupCategoryRespVO implements Serializable {
     private String parentCode;
 
     /**
+     * 图标
+     */
+    @Schema(description = "图标")
+    private String icon;
+
+    /**
+     * 图片
+     */
+    @Schema(description = "图片")
+    private String image;
+
+    /**
      * 应用列表
      */
     @Schema(description = "应用列表")
