@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>starcloud-business-open-biz</artifactId>
+    <version>${starcloud.revision}</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -28,6 +29,12 @@
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-chat-biz</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-open-api</artifactId>
+            <version>${starcloud.revision}</version>
         </dependency>
 
         <dependency>

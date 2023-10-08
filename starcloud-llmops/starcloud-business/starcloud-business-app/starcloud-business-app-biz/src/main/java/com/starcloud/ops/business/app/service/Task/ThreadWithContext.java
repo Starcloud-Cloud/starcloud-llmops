@@ -47,6 +47,8 @@ public class ThreadWithContext {
             UserContextHolder.setUserId(userId);
             runFunction.run();
             UserContextHolder.clear();
+            TenantContextHolder.clear();
+            RequestContextHolder.resetRequestAttributes();
         });
     }
 

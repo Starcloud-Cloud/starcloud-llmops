@@ -181,4 +181,12 @@ public class DictDataServiceImpl implements DictDataService {
         return dictDataMapper.selectByDictTypeAndLabel(dictType, label);
     }
 
+    @Override
+    public List<DictDataDO> getDictDataList(String dictType) {
+        DictDataExportReqVO dataExportReqVO = new DictDataExportReqVO();
+        dataExportReqVO.setDictType(dictType);
+        dataExportReqVO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+        return getDictDataList(dataExportReqVO);
+    }
+
 }
