@@ -54,10 +54,10 @@ public class ImageController {
         return CommonResult.success(imageService.meta());
     }
 
-    @GetMapping("/history")
+    @PostMapping("/history")
     @Operation(summary = "查询历史图片列表", description = "查询历史图片列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<PageResult<BaseImageResponse>> history(HistoryGenerateImagePageQuery query) {
+    public CommonResult<PageResult<BaseImageResponse>> history(@RequestBody HistoryGenerateImagePageQuery query) {
         return CommonResult.success(imageService.history(query));
     }
 
