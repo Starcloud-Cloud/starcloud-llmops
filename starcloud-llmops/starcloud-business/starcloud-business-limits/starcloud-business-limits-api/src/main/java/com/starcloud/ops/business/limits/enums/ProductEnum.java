@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public enum ProductEnum {
 
-    AI_FREE("null", "魔法ai-免费版", 0, "免费版", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
+    AI_FREE("ai_free", "魔法ai-免费版", 0, "免费版", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.FREE, null, null),
     AI_PLUS_MONTH("plus_month", "魔法ai-高级版-月付", 9900, "高级版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.PLUS, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PLUS_MONTH),
