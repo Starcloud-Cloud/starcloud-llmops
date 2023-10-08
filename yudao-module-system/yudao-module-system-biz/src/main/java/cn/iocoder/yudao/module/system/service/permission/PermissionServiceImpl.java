@@ -298,6 +298,19 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
+    public void processRoleDeleted(Long userId, Long roleId) {
+        userRoleMapper.deleteUserRole(userId, roleId);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+
+            @Override
+            public void afterCommit() {
+                permissionProducer.sendUserRoleRefreshMessage();
+            }
+
+        });
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void processMenuDeleted(Long menuId) {
         roleMenuMapper.deleteListByMenuId(menuId);

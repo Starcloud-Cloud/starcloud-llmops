@@ -3,7 +3,6 @@ package com.starcloud.ops.business.open.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.open.controller.admin.vo.request.AddFriendReqVO;
-import com.starcloud.ops.business.open.controller.admin.vo.request.WecomCreateGroupReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.response.WecomGroupRespVO;
 import com.starcloud.ops.business.open.service.WecomGroupService;
 import io.swagger.v3.oas.annotations.Operation;

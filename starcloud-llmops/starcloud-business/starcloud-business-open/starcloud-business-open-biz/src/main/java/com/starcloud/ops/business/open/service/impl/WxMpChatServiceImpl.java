@@ -41,6 +41,7 @@ import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BE
 
 @Slf4j
 @Service
+@Deprecated
 public class WxMpChatServiceImpl implements WxMpChatService {
 
     @Resource

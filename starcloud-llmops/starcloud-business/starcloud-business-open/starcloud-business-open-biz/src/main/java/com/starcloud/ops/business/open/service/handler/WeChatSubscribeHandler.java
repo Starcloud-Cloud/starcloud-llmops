@@ -15,6 +15,7 @@ import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.starcloud.ops.business.open.service.WechatService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
@@ -25,7 +26,6 @@ import me.chanjar.weixin.mp.api.WxMpMessageHandler;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
-import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,6 @@ import javax.annotation.Resource;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -78,6 +77,9 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     @Resource
     private MpAutoReplyService mpAutoReplyService;
 
+    @Resource
+    private WechatService wechatService;
+
     @Value("${starcloud-llm.tenant.id:2}")
     private Long tenantId;
 
@@ -87,6 +89,11 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信关注事件，内容：{}", wxMessage);
         try {
+            // 托管公共号不注册用户
+            if (!wechatService.isInternalAccount(MpContextHolder.getAppId())) {
+               return null;
+            }
+
             // 上下文补充
             TenantContextHolder.setTenantId(tenantId);
             TenantContextHolder.setIgnore(false);
@@ -163,19 +170,6 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);
         }
         return null;
-    }
-
-    private Long existUserId(String openId) {
-        SocialUserDO socialUserDO = socialUserMapper.selectDeleteDO(openId, SocialTypeEnum.WECHAT_MP.getType());
-        if (socialUserDO == null) {
-            return null;
-        }
-
-        SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectDeleteDO(socialUserDO.getId(), UserTypeEnum.ADMIN.getValue());
-        if (socialUserBindDO == null) {
-            return null;
-        }
-        return socialUserBindDO.getUserId();
     }
 
     private String userName(String fromUser) {

@@ -1,0 +1,234 @@
+package com.starcloud.ops.business.open.service.impl;
+
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
+import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.module.mp.controller.admin.account.vo.MpAccountCreateReqVO;
+import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
+import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
+import cn.iocoder.yudao.module.mp.service.account.MpAccountService;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import cn.iocoder.yudao.module.system.service.social.SocialUserService;
+import com.starcloud.ops.business.app.api.channel.dto.WeChatAccountChannelConfigDTO;
+import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
+import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
+import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
+import com.starcloud.ops.business.app.exception.AppLimitException;
+import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
+import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
+import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
+import com.starcloud.ops.business.app.service.limit.AppLimitService;
+import com.starcloud.ops.business.open.api.dto.WeChatRequestDTO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.WeChatBindReqVO;
+import com.starcloud.ops.business.open.controller.admin.vo.response.WeChatBindRespVO;
+import com.starcloud.ops.business.open.service.WechatService;
+import com.starcloud.ops.business.user.api.SendUserMsgService;
+import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
+import com.starcloud.ops.business.user.util.EncryptionUtils;
+import com.starcloud.ops.framework.common.api.enums.StateEnum;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USELESS_INSUFFICIENT;
+import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_APP;
+
+
+@Slf4j
+@Service
+public class WechatServiceImpl implements WechatService {
+
+    @Resource
+    private AppPublishChannelService appPublishChannelService;
+
+    @Resource
+    private SocialUserService socialUserService;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Resource
+    private SendUserMsgService sendUserMsgService;
+
+    @Resource
+    private ThreadWithContext threadWithContext;
+
+    @Resource
+    private EndUserServiceImpl endUserService;
+
+    @Resource
+    private DictDataService dictDataService;
+
+    @Resource
+    private AppLimitService appLimitService;
+
+    @Resource
+    @Lazy
+    private MpAccountService mpAccountService;
+
+    @Override
+    public WeChatBindRespVO bindWxAccount(WeChatBindReqVO reqVO) {
+        // 校验是否已绑定公共号
+        validExist(reqVO.getWxAppId());
+        AppPublishChannelReqVO channelReqVO = new AppPublishChannelReqVO();
+        WeChatAccountChannelConfigDTO channelConfigDTO = new WeChatAccountChannelConfigDTO();
+        channelConfigDTO.setWxAppId(reqVO.getWxAppId());
+        channelConfigDTO.setName(reqVO.getName());
+        channelReqVO.setName(reqVO.getName());
+        channelReqVO.setStatus(StateEnum.ENABLE.getCode());
+        channelReqVO.setAppUid(reqVO.getAppUid());
+        channelReqVO.setPublishUid(reqVO.getPublishUid());
+        channelReqVO.setType(AppPublishChannelEnum.WX_MP.getCode());
+        channelReqVO.setConfig(channelConfigDTO);
+        channelReqVO.setMediumUid(reqVO.getWxAppId());
+        appPublishChannelService.create(channelReqVO);
+
+        List<DictDataDO> dictDataList = dictDataService.getDictDataList(WECHAT_APP);
+        Map<String, List<DictDataDO>> dictMap = dictDataList.stream().collect(Collectors.groupingBy(DictDataDO::getLabel));
+        DictDataDO callbackUrl = dictMap.get("callback_url").get(0);
+        List<String> whitelist = dictMap.get("white_list").stream().map(DictDataDO::getValue).collect(Collectors.toList());
+        WeChatBindRespVO weChatBindRespVO = new WeChatBindRespVO();
+        weChatBindRespVO.setUrl(callbackUrl.getValue() + reqVO.getWxAppId());
+        weChatBindRespVO.setToken(IdUtil.fastSimpleUUID());
+        weChatBindRespVO.setWhitelist(whitelist);
+        weChatBindRespVO.setEncryption(false);
+
+        MpAccountDO mpAccountDO = mpAccountService.getAccountFromCache(reqVO.getWxAppId());
+        if (mpAccountDO == null) {
+            MpAccountCreateReqVO mpAccountCreateReqVO = new MpAccountCreateReqVO();
+            mpAccountCreateReqVO.setAccount(reqVO.getAccount());
+            mpAccountCreateReqVO.setName(reqVO.getName());
+            mpAccountCreateReqVO.setToken(weChatBindRespVO.getToken());
+            mpAccountCreateReqVO.setAppId(reqVO.getWxAppId());
+            mpAccountCreateReqVO.setAppSecret(reqVO.getAppSecret());
+            mpAccountCreateReqVO.setAesKey(weChatBindRespVO.getEncodingAesKey());
+            Long account = mpAccountService.createAccount(mpAccountCreateReqVO);
+            weChatBindRespVO.setMpAccountId(account);
+        } else {
+            weChatBindRespVO.setMpAccountId(mpAccountDO.getId());
+            weChatBindRespVO.setToken(mpAccountDO.getToken());
+        }
+        return weChatBindRespVO;
+    }
+
+
+    @Override
+    public void asynReplyMsg(WeChatRequestDTO request) {
+        String wxAppId = MpContextHolder.getAppId();
+
+        AppPublishChannelRespVO channelRespVO = appPublishChannelService.getAllByMediumUid(wxAppId);
+        if (channelRespVO == null) {
+            sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), "此公众号未绑定机器人，请联系机器人管理员");
+            log.info("wechat end");
+            redisTemplate.delete(request.getFromUser() + "-ready");
+            return;
+        }
+
+        if (channelRespVO.getStatus() == null || channelRespVO.getStatus() != 0) {
+            sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), "此机器人已禁用，请联系机器人管理员启用");
+            log.info("wechat end");
+            redisTemplate.delete(request.getFromUser() + "-ready");
+            return;
+        }
+
+        ChatRequestVO chatRequestVO = preChatRequest(request.getFromUser(),wxAppId,request.getQuery());
+
+        // 限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(wxAppId, AppSceneEnum.MP.name(),
+                chatRequestVO.getUserId() == null ? chatRequestVO.getEndUser() : String.valueOf(chatRequestVO.getUserId()));
+        try {
+            appLimitService.channelLimit(limitRequest);
+        } catch (AppLimitException e) {
+            sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), e.getMessage());
+            log.info("wechat end");
+            redisTemplate.delete(request.getFromUser() + "-ready");
+            return;
+        }
+
+        // from_user + wx_appId  计算会话Uid
+        chatRequestVO.setConversationUid(EncryptionUtils.calculateMD5UID(wxAppId + request.getFromUser()));
+        chatRequestVO.setMediumUid(channelRespVO.getMediumUid());
+        threadWithContext.asyncExecute(() -> {
+            try {
+                ChatAppEntity<ChatRequestVO, JsonData> appEntity = AppFactory.factory(chatRequestVO);
+                JsonData execute = appEntity.execute(chatRequestVO);
+                // 回复消息
+                String msg = JSONUtil.parseObj(execute.getData()).getStr("text");
+                if (StringUtils.isBlank(msg)) {
+                    msg = JSONUtil.parseObj(execute.getData()).getJSONObject("returnValues").getStr("output");
+                }
+                if (StringUtils.isNotBlank(msg)) {
+                    sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), msg);
+                } else {
+                    sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), "机器人繁忙!");
+                }
+            } catch (ServiceException e) {
+                log.warn("execute error:", e);
+                if (USER_BENEFITS_USELESS_INSUFFICIENT.getCode().intValue() == e.getCode()) {
+                    sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), "令牌不足，请联系管理员");
+                } else {
+                    sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), e.getMessage());
+                }
+            } catch (Exception e) {
+                log.error("chat error", e);
+                sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), "AI 异常请稍后重试！");
+            } finally {
+                log.info("wechat end");
+                redisTemplate.delete(request.getFromUser() + "-ready");
+            }
+        });
+    }
+
+    @Override
+    public Boolean isInternalAccount(String wxAppId) {
+        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
+        return wxAppId.equals(dictDataDO.getValue());
+    }
+
+    private ChatRequestVO preChatRequest(String fromUser, String chatAppId, String query) {
+        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
+        String appId = MpContextHolder.getAppId();
+        ChatRequestVO chatRequestVO = new ChatRequestVO();
+        chatRequestVO.setAppUid(chatAppId);
+        chatRequestVO.setQuery(query);
+        chatRequestVO.setScene(AppSceneEnum.MP.name());
+
+        if (appId.equals(dictDataDO.getValue())) {
+            AdminUserDO userDO = socialUserService.getSocialUser(fromUser, SocialTypeEnum.WECHAT_MP.getType(), UserTypeEnum.ADMIN.getValue());
+            chatRequestVO.setUserId(userDO.getId());
+            UserContextHolder.setUserId(userDO.getId());
+        } else {
+            String endUserId = endUserService.weMpLogin(appId + "-" + fromUser);
+            chatRequestVO.setEndUser(endUserId);
+        }
+        return chatRequestVO;
+    }
+
+
+    private void validExist(String wxAppId) {
+        AppPublishChannelRespVO appPublishChannelRespVO = appPublishChannelService.getAllByMediumUid(wxAppId);
+        if (appPublishChannelRespVO != null) {
+            throw new ServiceException(new ErrorCode(500, "此公共号已绑定发布渠道"));
+        }
+    }
+}

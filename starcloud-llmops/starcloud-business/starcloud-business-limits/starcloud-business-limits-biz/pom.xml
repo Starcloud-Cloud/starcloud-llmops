@@ -24,6 +24,11 @@
             <artifactId>yudao-spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!--定时任务处理-->
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-spring-boot-starter-job</artifactId>
+        </dependency>
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-spring-boot-starter-security</artifactId>
