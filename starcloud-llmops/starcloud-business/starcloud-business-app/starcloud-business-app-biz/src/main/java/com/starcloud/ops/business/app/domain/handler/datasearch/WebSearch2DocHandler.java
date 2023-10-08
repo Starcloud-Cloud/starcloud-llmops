@@ -153,7 +153,7 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
                 InteractiveInfo info = InteractiveInfo.buildUrlCard("分析链接内容并生成回答[" + query + "]...").setToolHandler(this).setInput(context.getRequest());
                 context.sendCallbackInteractiveStart(info);
 
-                String summary = this.processSummary(context, detailsInfoVO.getCleanContent());
+                String summary = this.processSummary(context, detailsInfoVO.getCleanContent(), handlerResponse);
                 if (StrUtil.isNotBlank(summary)) {
                     result.setContent(summary);
 
@@ -174,11 +174,9 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
 
 
     /**
-     * @todo 临时方案，需要执行 流程, 不然没地方记录消耗
-     * <p>
-     * 执行总结流程，不影响主流程
+     * 执行总结流程，不影响主流程,同时更新总结的LLM消耗
      */
-    protected String processSummary(HandlerContext<Request> context, String content) {
+    protected String processSummary(HandlerContext<Request> context, String content, HandlerResponse<Response> handlerResponse) {
 
         log.info("WebSearch2DocHandler processSummary start");
         String summary = null;
@@ -194,30 +192,23 @@ public class WebSearch2DocHandler extends BaseToolHandler<WebSearch2DocHandler.R
             String llmModel = Optional.ofNullable(completionResults).orElse(new ArrayList<>()).stream().findFirst().map(ChatGeneration::getGenerationInfo).map(ChatCompletionResult::getModel).orElse("");
 
             ModelTypeEnum modelType = TokenCalculator.fromName(llmModel);
-            Long messageTokens = llmUsage.getPromptTokens();
-            Long answerTokens = llmUsage.getCompletionTokens();
+
+            handlerResponse.setMessageTokens(llmUsage.getPromptTokens());
+            handlerResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(modelType, true));
+
+            handlerResponse.setAnswerTokens(llmUsage.getCompletionTokens());
+            handlerResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(modelType, false));
+
+            handlerResponse.setTotalTokens(llmUsage.getTotalTokens());
             //总价
-            BigDecimal totalPrice = TokenCalculator.getTextPrice(messageTokens, modelType, true).add(TokenCalculator.getTextPrice(answerTokens, modelType, false));
+            BigDecimal totalPrice = TokenCalculator.getTextPrice(llmUsage.getPromptTokens(), modelType, true).add(TokenCalculator.getTextPrice(llmUsage.getCompletionTokens(), modelType, false));
+            handlerResponse.setTotalPrice(totalPrice);
 
+            log.info("WebSearch2DocHandler processSummary end, TotalTokens: {},  {}", JsonUtils.toJsonString(handlerResponse), summary);
 
-            //临时的
-            DatasetSourceDataDO sourceDataDO = new DatasetSourceDataDO();
-            //记录做统计用
-            sourceDataDO.setSummary(summary);
-            sourceDataDO.setSummaryStatus(1);
-            sourceDataDO.setSummaryModel(llmModel);
-            sourceDataDO.setSummaryTokens(llmUsage.getTotalTokens());
-            sourceDataDO.setSummaryTotalPrice(totalPrice);
-
-            //先记录到权益上
-            //@todo 无法获取到messageId, 只能用个临时的标识处理
-            String outId = "web2doc_summary_" + context.getAppUid();
-            benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), llmUsage.getTotalTokens(), context.getUserId(), outId);
-
-
-            log.info("WebSearch2DocHandler processSummary end: {}", JsonUtils.toJsonString(sourceDataDO));
         }
         //自动切换LLM进行总结了
+
 
         return summary;
     }

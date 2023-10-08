@@ -14,14 +14,14 @@ import java.util.function.Function;
  * @author df007df
  */
 @Data
-public class FunTool extends BaseTool<Object, Object> {
+public class FunTool extends BaseTool<Object> {
 
     /**
      * 自定义的 schema
      */
     private JsonNode jsonSchema;
 
-    private Function<Object, String> function;
+    private Function<Object, ToolResponse> function;
 
     private Class<?> inputCls;
 
@@ -36,8 +36,7 @@ public class FunTool extends BaseTool<Object, Object> {
      * @param jsonSchema
      * @param function
      */
-    //无Java DTO作为参数的，都是动态的入参。如API，workflow，gptPlugins
-    public FunTool(String name, String description, JsonNode jsonSchema, Function<Object, String> function) {
+    public FunTool(String name, String description, JsonNode jsonSchema, Function<Object, ToolResponse> function) {
         this.setFunction(function);
         this.setName(name);
         this.setDescription(description);
@@ -53,7 +52,7 @@ public class FunTool extends BaseTool<Object, Object> {
      * @param schemaCls
      * @param function
      */
-    public FunTool(String name, String description, Class<?> schemaCls, Function<Object, String> function) {
+    public FunTool(String name, String description, Class<?> schemaCls, Function<Object, ToolResponse> function) {
 
         this.setFunction(function);
         this.setName(name);
@@ -64,7 +63,7 @@ public class FunTool extends BaseTool<Object, Object> {
     }
 
     @Override
-    protected String _run(Object input) {
+    protected ToolResponse _run(Object input) {
 
         //@todo 转换入参 为 jsonSchema
         Class<?> cc = this.getInputCls();

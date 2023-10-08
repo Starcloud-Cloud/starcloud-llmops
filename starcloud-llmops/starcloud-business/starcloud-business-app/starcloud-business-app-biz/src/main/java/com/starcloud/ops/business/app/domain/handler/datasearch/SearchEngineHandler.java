@@ -183,6 +183,8 @@ public class SearchEngineHandler extends BaseToolHandler<SearchEngineHandler.Req
     @Data
     public static class Request {
 
+        private Integer size = 3;
+
         @JsonProperty(required = true)
         @JsonPropertyDescription("Parameter defines the query you want to search.")
         private String query;
