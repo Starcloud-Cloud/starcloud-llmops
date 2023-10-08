@@ -31,7 +31,7 @@ public interface ImageService {
      *
      * @return 图片列表
      */
-    PageResult<GenerateImageResponse> historyGenerateImages(HistoryGenerateImagePageQuery query);
+    PageResult<GenerateImageResponse> history(HistoryGenerateImagePageQuery query);
 
     /**
      * 上传图片，并且返回图片URL

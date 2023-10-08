@@ -97,7 +97,7 @@ public class AppServiceTest extends BaseDbUnitTest {
         log.info("准备发布应用数据");
         for (int i = 0; i < records.size(); i++) {
             AppDO app = records.get(i);
-            log.info("开始发布第 『{}』个应用, 名称：{}, UID: {}, 类别：{}", i + 1, app.getName(), app.getUid(), app.getCategories());
+            log.info("开始发布第 『{}』个应用, 名称：{}, UID: {}, 类别：{}", i + 1, app.getName(), app.getUid(), app.getCategory());
             when(dictDataService.getDictDataList()).thenReturn(DICT_LIST);
 
             AppPublishReqVO appPublishReqVO = new AppPublishReqVO();
