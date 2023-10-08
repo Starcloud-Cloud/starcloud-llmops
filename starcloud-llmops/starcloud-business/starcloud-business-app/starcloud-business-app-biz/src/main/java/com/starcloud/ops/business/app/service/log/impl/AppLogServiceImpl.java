@@ -74,9 +74,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_NO_EXISTS_UID;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MARKET_APP_NON_EXISTENT;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_NON_EXISTENT;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT;
 
 /**
  * @author nacoyer
@@ -183,7 +183,7 @@ public class AppLogServiceImpl implements AppLogService {
     public List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(AppLogMessageStatisticsListUidReqVO query) {
         // 查询应用类型
         AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
-        AppValidate.notNull(app, APP_NO_EXISTS_UID, query.getAppUid());
+        AppValidate.notNull(app, APP_NON_EXISTENT, query.getAppUid());
 
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
@@ -255,7 +255,7 @@ public class AppLogServiceImpl implements AppLogService {
             }
         }
         AppMarketDO appMarket = appMarketMapper.get(query.getMarketUid(), Boolean.TRUE);
-        AppValidate.notNull(appMarket, APP_MARKET_NO_EXISTS_UID, query.getMarketUid());
+        AppValidate.notNull(appMarket, MARKET_APP_NON_EXISTENT, query.getMarketUid());
 
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
@@ -303,7 +303,7 @@ public class AppLogServiceImpl implements AppLogService {
         AppValidate.notBlank(query.getAppUid(), new ErrorCode(3000001, "应用分析时，应用UID[appUid]为必填项"));
         // 查询应用类型
         AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
-        AppValidate.notNull(app, APP_NO_EXISTS_UID, query.getAppUid());
+        AppValidate.notNull(app, APP_NON_EXISTENT, query.getAppUid());
 
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
@@ -417,11 +417,11 @@ public class AppLogServiceImpl implements AppLogService {
 
         if (AppSceneEnum.CHAT_MARKET.name().equals(query.getFromScene())) {
             AppMarketDO appMarketDO = appMarketMapper.get(appConversation.getAppUid(), Boolean.TRUE);
-            AppValidate.notNull(appMarketDO, APP_NO_EXISTS_UID, appConversation.getAppUid());
+            AppValidate.notNull(appMarketDO, APP_NON_EXISTENT, appConversation.getAppUid());
             images = appMarketDO.getImages();
         } else {
             AppDO app = appMapper.get(appConversation.getAppUid(), Boolean.TRUE);
-            AppValidate.notNull(app, APP_NO_EXISTS_UID, appConversation.getAppUid());
+            AppValidate.notNull(app, APP_NON_EXISTENT, appConversation.getAppUid());
             images = app.getImages();
         }
 
@@ -492,7 +492,7 @@ public class AppLogServiceImpl implements AppLogService {
         // 查询发布信息并校验是否存在
         String appPublishUid = AppUtils.obtainUid(publishUid);
         AppPublishDO appPublish = appPublishMapper.get(appPublishUid, Boolean.TRUE);
-        AppValidate.notNull(appPublish, APP_PUBLISH_NOT_EXISTS_UID, appPublishUid);
+        AppValidate.notNull(appPublish, PUBLISH_APP_NON_EXISTENT, appPublishUid);
 
         // marketUid 为空，说明可能数据有问题，直接返回空数据
         String marketUid = appPublish.getMarketUid();
@@ -502,7 +502,7 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 查询应用市场信息并校验是否存在
         AppMarketDO appMarket = appMarketMapper.get(marketUid, Boolean.TRUE);
-        AppValidate.notNull(appMarket, APP_MARKET_NO_EXISTS_UID, marketUid);
+        AppValidate.notNull(appMarket, MARKET_APP_NON_EXISTENT, marketUid);
 
         return appMarket.getUid();
     }

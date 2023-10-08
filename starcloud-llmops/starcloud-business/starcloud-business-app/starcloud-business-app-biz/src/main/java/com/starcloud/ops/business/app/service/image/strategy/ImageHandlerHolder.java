@@ -43,14 +43,14 @@ public class ImageHandlerHolder implements ApplicationContextAware {
      * @return 发布渠道配置处理器
      */
     public BaseImageHandler getHandler(String scene) {
-        AppValidate.notBlank(scene, ErrorCodeConstants.IMAGE_SCENE_IS_REQUIRED);
+        AppValidate.notBlank(scene, ErrorCodeConstants.EXECUTE_SCENE_REQUIRED);
         if (!AppSceneEnum.SUPPORT_IMAGE_SCENE.contains(scene)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_SCENE_NOT_SUPPORTED);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_SCENE_UNSUPPORTED);
         }
         if (IMAGE_HANDLER_MAP.containsKey(scene)) {
             return IMAGE_HANDLER_MAP.get(scene);
         }
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_SCENE_NOT_SUPPORTED);
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_SCENE_UNSUPPORTED);
     }
 
     /**

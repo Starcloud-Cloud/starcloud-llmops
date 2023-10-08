@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
@@ -16,6 +15,7 @@ import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.extern.slf4j.Slf4j;
@@ -54,11 +54,11 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
     public void handleRequest(UpscaleImageRequest request) {
         log.info("UpscaleImageHandler handleRequest: 处理放大图片请求开始");
         if (StringUtils.isBlank(request.getEngine())) {
-            request.setEngine(EngineEnum.ESRGAN_V1_X2PLUS.name());
+            request.setEngine(EngineEnum.ESRGAN_V1_X2PLUS.getCode());
         }
         EngineEnum engineEnum = IEnumable.codeOf(request.getEngine(), EngineEnum.class);
-        if (Objects.isNull(engineEnum) || (!EngineEnum.ESRGAN_V1_X2PLUS.equals(engineEnum) && !EngineEnum.STABLE_DIFFUSION_X4_LATENT_UPSCALER.equals(engineEnum))) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "不支持的放大图片引擎");
+        if (Objects.isNull(engineEnum)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "不支持的放大图片引擎");
         }
         switch (engineEnum) {
             case ESRGAN_V1_X2PLUS:
@@ -79,7 +79,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
                 }
                 break;
             default:
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "不支持的放大图片引擎");
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "不支持的放大图片引擎");
         }
 
         // 获取原始图像二进制数据
@@ -88,7 +88,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         try {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (Objects.isNull(image)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "获取原始图像失败");
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "获取原始图像失败");
             }
             int width = image.getWidth();
             int height = image.getHeight();
@@ -97,7 +97,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
             request.setOriginalWidth(width);
             request.setOriginalHeight(height);
         } catch (IOException e) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "获取原始图像失败");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "获取原始图像失败");
         }
 
         // 高宽和放大倍数都为空，说明用户是使用默认放大倍数放大图片。2倍
@@ -117,7 +117,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
             request.setWidth(request.getWidth());
             request.setHeight(request.getHeight());
         } else {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "放大图片失败, 请检查参数, 宽高和放大倍数不能同时为空");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 请检查参数, 宽高和放大倍数不能同时为空");
         }
 
         log.info("UpscaleImageHandler handleRequest: 处理放大图片请求结束：处理后数据：{}", JSON.toJSONString(request));
@@ -144,9 +144,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         upscaleImageRequest.setSteps(request.getSteps());
         upscaleImageRequest.setSeed(request.getSeed());
         List<VSearchImage> vSearchImages = vSearchService.upscaleImage(upscaleImageRequest);
-        if (CollectionUtil.isEmpty(vSearchImages)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "放大图片失败");
-        }
+        AppValidate.notEmpty(vSearchImages, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
         UpscaleImageResponse response = new UpscaleImageResponse();
         response.setEngine(request.getEngine());
         response.setOriginalUrl(request.getInitImage());

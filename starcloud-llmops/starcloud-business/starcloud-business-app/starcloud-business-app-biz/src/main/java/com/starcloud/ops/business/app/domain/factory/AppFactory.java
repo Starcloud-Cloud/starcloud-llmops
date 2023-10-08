@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.domain.factory;
 
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
@@ -73,7 +72,7 @@ public class AppFactory {
 
         // 校验参数, appUid 和 mediumUid 不能同时为空
         if (StringUtils.isBlank(request.getAppUid()) && StringUtils.isBlank(request.getMediumUid())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(50000001, "appUid 和 mediumUid 不能同时为空"));
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_OR_MEDIUM_UID_NOT_NULL_AT_THE_SAME_TIME);
         }
 
         // AppUid 不为空的情况
@@ -97,7 +96,7 @@ public class AppFactory {
             return appEntity;
         }
 
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NON_EXISTENT);
     }
 
     /**
@@ -145,7 +144,7 @@ public class AppFactory {
      */
     public static ImageAppEntity factory(ImageReqVO request) {
         String appUid = request.getAppUid();
-        AppValidate.notBlank(appUid, ErrorCodeConstants.APP_UID_IS_REQUIRED);
+        AppValidate.notBlank(appUid, ErrorCodeConstants.APP_UID_REQUIRED);
         if (RecommendAppEnum.IMAGE_APP.contains(appUid)) {
             RecommendAppEnum imageApp = RecommendAppEnum.valueOf(appUid);
             ImageAppEntity imageAppEntity = new ImageAppEntity();
@@ -160,7 +159,7 @@ public class AppFactory {
             imageAppEntity.setImageConfig(imageConfigEntity);
             return imageAppEntity;
         }
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.BUILD_IMAGE_FAILURE, appUid);
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.BUILD_IMAGE_ENTITY_FAILURE, appUid);
     }
 
     /**

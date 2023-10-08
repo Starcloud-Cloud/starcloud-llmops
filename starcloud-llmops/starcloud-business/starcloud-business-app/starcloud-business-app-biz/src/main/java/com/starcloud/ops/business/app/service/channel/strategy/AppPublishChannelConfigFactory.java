@@ -46,14 +46,14 @@ public class AppPublishChannelConfigFactory implements ApplicationContextAware {
      * @return 发布渠道配置处理器
      */
     public AppPublishChannelConfigTemplate getHandler(Integer type) {
-        AppValidate.notNull(type, ErrorCodeConstants.APP_PUBLISH_CHANNEL_TYPE_NOT_NULL);
+        AppValidate.notNull(type, ErrorCodeConstants.CHANNEL_TYPE_REQUIRED);
         if (!IEnumable.containsOfCode(type, AppPublishChannelEnum.class)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_TYPE_NOT_SUPPORTED);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CHANNEL_TYPE_NOT_SUPPORTED);
         }
         if (HANDLER_MAP.containsKey(type)) {
             return HANDLER_MAP.get(type);
         }
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_TYPE_NOT_SUPPORTED);
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.CHANNEL_TYPE_NOT_SUPPORTED);
     }
 
     /**

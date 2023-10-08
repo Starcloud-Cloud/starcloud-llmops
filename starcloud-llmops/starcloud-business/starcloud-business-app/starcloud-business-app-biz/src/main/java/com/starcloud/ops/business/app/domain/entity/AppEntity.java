@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -104,7 +103,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
             // name 不能重复
             if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.APP_MARKET_FAIL.getCode(), "步骤名称不能重复"));
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE.getCode(), stepWrapper.getName());
             }
             stepWrapper.validate();
         }
@@ -285,13 +284,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             if (resultException instanceof ServiceException) {
                 throw (ServiceException) resultException;
             }
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode(), resultException.getMessage());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode(), resultException.getMessage());
         }
 
         // 如果执行失败，抛出异常
         if (!fire.isSuccess()) {
             log.info("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, fire.getResultDesc());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
         }
 
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
@@ -310,8 +309,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     public Consumer<RecallStory> recallStoryHook(AppContext appContext) {
         return (story) -> {
             log.info("应用执行回调开始...");
-            List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking)
-                    .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, "unknown result"));
+            List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking).orElseThrow(() -> exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT));
             for (NodeTracking nodeTracking : nodeTrackingList) {
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
                     this.createAppMessageLog(appContext, nodeTracking);
@@ -378,7 +376,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             if (taskExceptionOptional.isPresent()) {
                 Throwable throwable = taskExceptionOptional.get();
                 messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(throwable));
-                messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()));
+                messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
                 if (throwable instanceof KstryException) {
                     messageCreateRequest.setErrorCode(((KstryException) throwable).getErrorCode());
                 }
@@ -386,8 +384,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                     messageCreateRequest.setErrorCode(String.valueOf(((ServiceException) throwable).getCode()));
                 }
             } else {
-                messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()));
-                messageCreateRequest.setErrorMsg(ErrorCodeConstants.APP_EXECUTE_FAIL.getMsg());
+                messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
+                messageCreateRequest.setErrorMsg(ErrorCodeConstants.EXECUTE_APP_FAILURE.getMsg());
             }
         });
     }
@@ -419,7 +417,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setAnswerTokens(0);
             messageCreateRequest.setAnswerUnitPrice(new BigDecimal("0.02"));
             messageCreateRequest.setTotalPrice(new BigDecimal("0"));
-            messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()));
+            messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
             if (exception instanceof ServerException) {
                 messageCreateRequest.setErrorCode(String.valueOf(((ServerException) exception).getCode()));
             }

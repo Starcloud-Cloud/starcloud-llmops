@@ -62,12 +62,12 @@ public abstract class BaseActionHandler<Q, R> {
 
             // 执行结果校验, 如果失败，抛出异常
             if (!actionResponse.getSuccess()) {
-                String errorCode = Optional.ofNullable(actionResponse.getErrorCode()).orElse(String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()));
+                String errorCode = Optional.ofNullable(actionResponse.getErrorCode()).orElse(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
                 Integer code;
                 try {
                     code = Integer.parseInt(errorCode);
                 } catch (Exception e) {
-                    code = ErrorCodeConstants.APP_EXECUTE_FAIL.getCode();
+                    code = ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode();
                 }
                 log.error("Action 执行失败：错误码: {}, 错误信息: {}", actionResponse.getErrorCode(), actionResponse.getErrorMsg());
                 throw ServiceExceptionUtil.exception(new ErrorCode(code, StringUtils.isNoneBlank(actionResponse.getErrorMsg()) ? actionResponse.getErrorMsg() : "Action 执行失败"));

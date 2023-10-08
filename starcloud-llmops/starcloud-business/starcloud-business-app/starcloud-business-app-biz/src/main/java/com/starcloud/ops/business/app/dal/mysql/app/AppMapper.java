@@ -90,7 +90,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
     default AppDO modify(AppDO app) {
         // 判断应用是否存在, 不存在无法修改
         AppDO appDO = this.get(app.getUid(), Boolean.TRUE);
-        AppValidate.notNull(appDO, ErrorCodeConstants.APP_NO_EXISTS_UID, app.getUid());
+        AppValidate.notNull(appDO, ErrorCodeConstants.APP_NON_EXISTENT, app.getUid());
         // 名称修改了，需要校验名称是否重复
         if (!appDO.getName().equals(app.getName())) {
             AppValidate.isFalse(duplicateName(app.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, app.getName());
@@ -108,7 +108,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      */
     default void delete(String uid) {
         AppDO app = this.get(uid, Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
         this.deleteById(app.getId());
     }
 
