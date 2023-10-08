@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author nacoyer
@@ -49,17 +50,11 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         if (CollectionUtil.isEmpty(dictDataList)) {
             return Collections.emptyList();
         }
-        return dictDataList.stream()
-                .map(CategoryConvert.INSTANCE::convert)
-                .filter(Objects::nonNull)
-                .filter(category -> {
-                    if (isRoot) {
-                        return AppConstants.ROOT.equalsIgnoreCase(category.getParentCode());
-                    }
-                    return true;
-                })
-                .sorted(Comparator.comparingInt(AppCategoryVO::getSort))
-                .collect(Collectors.toList());
+        Stream<AppCategoryVO> stream = dictDataList.stream().map(CategoryConvert.INSTANCE::convert);
+        if (isRoot) {
+            stream = stream.filter(category -> AppConstants.ROOT.equalsIgnoreCase(category.getParentCode()));
+        }
+        return stream.sorted(Comparator.comparingInt(AppCategoryVO::getSort)).collect(Collectors.toList());
     }
 
     /**

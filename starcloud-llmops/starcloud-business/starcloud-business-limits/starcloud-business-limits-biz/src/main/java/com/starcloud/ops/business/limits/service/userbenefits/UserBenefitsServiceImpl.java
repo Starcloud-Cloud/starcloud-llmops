@@ -10,8 +10,10 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
+import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
+import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -33,7 +35,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -70,6 +75,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
     @Resource
     private PermissionService permissionService;
+
+    @Resource
+    private RoleService roleService;
+
 
     @Resource
     private AdminUserService adminUserService;
@@ -961,9 +970,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     @Override
     public Long userBenefitsExpired() {
         // 获取用户支付权益策略
-        List<UserBenefitsStrategyDO> payBenefitsStrategy = userBenefitsStrategyService.getPayBenefitsStrategy();
+        List<UserBenefitsStrategyDO> payBenefitsStrategyS = userBenefitsStrategyService.getPayBenefitsStrategy();
         // 获取支付权益策略 ID
-        List<Long> payBenefitsStrategyId = payBenefitsStrategy.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
+        List<Long> payBenefitsStrategyId = payBenefitsStrategyS.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
 
         // 获取所有过期权益
         LocalDateTime now = LocalDateTime.now();
@@ -975,31 +984,66 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
 
-        if (resultList.size() > 0) {
-            List<Long> noPayBenefitsIds = resultList.stream()
-                    .filter(obj -> !CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).map(UserBenefitsDO::getId).collect(Collectors.toList());
-
-            if (noPayBenefitsIds.size() > 0) {
-                userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
-                        .in(UserBenefitsDO::getId, noPayBenefitsIds)
-                        .set(UserBenefitsDO::getEnabled, 0));
-            }
-
-            // 获取支付权益
-            List<UserBenefitsDO> payBenefitsS = resultList.stream()
-                    .filter(obj -> CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).collect(Collectors.toList());
-
-            payBenefitsS.stream().forEach(obj -> {
-                if (getPayBenefitsByUserId(Long.valueOf(obj.getUserId())).size() == 0) {
-                    // 设置用户角色
-                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
-                }
-                userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
-                        .eq(UserBenefitsDO::getId, obj.getId())
-                        .set(UserBenefitsDO::getEnabled, 0));
-            });
+        if (resultList.isEmpty()) {
+            return 0L;
         }
 
+        // 更新普通权益
+        List<Long> noPayBenefitsIds = resultList.stream()
+                .filter(obj -> !CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).map(UserBenefitsDO::getId).collect(Collectors.toList());
+
+        if (noPayBenefitsIds.size() > 0) {
+            userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
+                    .in(UserBenefitsDO::getId, noPayBenefitsIds)
+                    .set(UserBenefitsDO::getEnabled, 0));
+        }
+
+        // 获取支付权益
+        List<UserBenefitsDO> payBenefitsS = resultList.stream()
+                .filter(obj -> CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).collect(Collectors.toList());
+
+        List<Long> plusConfigIds = payBenefitsStrategyS.stream()
+                .filter(obj -> obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_PLUS_MONTH.getName()) ||
+                        obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_PLUS_YEAR.getName()))
+                .map(UserBenefitsStrategyDO::getId)
+                .collect(Collectors.toList());
+
+        List<Long> proConfigIds = payBenefitsStrategyS.stream()
+                .filter(obj -> obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName()) ||
+                        obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName()))
+                .map(UserBenefitsStrategyDO::getId)
+                .collect(Collectors.toList());
+
+        for (UserBenefitsDO obj : resultList) {
+            List<UserBenefitsDO> payBenefitsByUserId = getPayBenefitsByUserId(Long.valueOf(obj.getUserId()));
+
+            List<UserBenefitsDO> plusBenefits = payBenefitsByUserId.stream()
+                    .filter(o -> plusConfigIds.contains(o.getStrategyId()))
+                    .collect(Collectors.toList());
+
+            if (plusBenefits.isEmpty()) {
+                log.info("用户【{}】权益过期，清除 PLUS角色", obj.getUserId());
+                RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PLUS.getRoleCode());
+                permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+                // 设置用户角色
+                permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+            }
+
+            List<UserBenefitsDO> proBenefits = payBenefitsByUserId.stream()
+                    .filter(o -> proConfigIds.contains(o.getStrategyId()))
+                    .collect(Collectors.toList());
+
+            if (proBenefits.isEmpty()) {
+                log.info("用户【{}】权益过期，清除 PRO角色", obj.getUserId());
+                RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PLUS.getRoleCode());
+                permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+                // 设置用户角色
+                permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+            }
+            userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
+                    .eq(UserBenefitsDO::getId, obj.getId())
+                    .set(UserBenefitsDO::getEnabled, 0));
+        }
 
         return (long) resultList.size();
     }
@@ -1041,6 +1085,5 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 .ge(UserBenefitsDO::getExpirationTime, now);
         return userBenefitsMapper.selectList(wrapper);
     }
-
 
 }

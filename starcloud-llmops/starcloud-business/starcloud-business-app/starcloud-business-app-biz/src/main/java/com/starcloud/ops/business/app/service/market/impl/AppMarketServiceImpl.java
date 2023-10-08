@@ -123,6 +123,8 @@ public class AppMarketServiceImpl implements AppMarketService {
             AppMarketGroupCategoryRespVO response = new AppMarketGroupCategoryRespVO();
             response.setName(item.getName());
             response.setCode(item.getCode());
+            response.setIcon(item.getIcon());
+            response.setImage(item.getImage());
             response.setParentCode(item.getParentCode());
             response.setAppList(appMap.getOrDefault(item.getCode(), Collections.emptyList()));
             return response;
