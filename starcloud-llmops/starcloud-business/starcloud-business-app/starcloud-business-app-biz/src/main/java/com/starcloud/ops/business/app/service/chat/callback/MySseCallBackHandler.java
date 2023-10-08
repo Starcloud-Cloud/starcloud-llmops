@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.beans.Transient;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -35,11 +36,30 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
         this.chatRequest = chatRequest;
     }
 
+    private Boolean canSend() {
+        if (this.getEmitter() == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @SneakyThrows
+    private void sendStreamResult(StreamResult streamResult) {
+
+        if (this.canSend()) {
+            try {
+                this.getEmitter().send(streamResult);
+            } catch (IOException e) {
+                //判断为See断开了，前端停止操作
+                log.error("See is error: {}", e.getMessage(), e);
+            }
+        }
+    }
 
     @Override
     @SneakyThrows
     public void onLLMNewToken(Object... objects) {
-        if (this.getEmitter() == null) {
+        if (Boolean.FALSE.equals(this.canSend())) {
             return;
         }
 
@@ -60,14 +80,14 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
                     .build();
         }
 
-        this.getEmitter().send(streamResult);
+        this.sendStreamResult(streamResult);
     }
 
 
     @Override
     @SneakyThrows
     public void onLLMError(String message) {
-        if (this.getEmitter() == null) {
+        if (Boolean.FALSE.equals(this.canSend())) {
             return;
         }
 
@@ -87,13 +107,13 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
                     .build();
         }
 
-        this.getEmitter().send(streamResult);
+        this.sendStreamResult(streamResult);
     }
 
     @Override
     @SneakyThrows
     public void onLLMError(String message, Throwable throwable) {
-        if (this.getEmitter() == null) {
+        if (Boolean.FALSE.equals(this.canSend())) {
             return;
         }
 
@@ -117,7 +137,7 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
 
         log.error("MySseCallBack onLLMError send: {}", JsonUtils.toJsonString(streamResult));
 
-        this.getEmitter().send(streamResult);
+        this.sendStreamResult(streamResult);
     }
 
 
@@ -132,7 +152,7 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
     public void onChainEnd(Object... objects) {
         log.info("onChainEnd: {}", objects[0].getClass().getSimpleName());
         //因为Agent执行是同步的，所以最后才有返回结果，需要手动See下
-        if (this.getEmitter() == null) {
+        if (Boolean.FALSE.equals(this.canSend())) {
             return;
         }
 
@@ -164,7 +184,7 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
 
                 log.info("MySseCallBack onChainEnd send: {}", JsonUtils.toJsonString(streamResult));
 
-                this.getEmitter().send(streamResult);
+                this.sendStreamResult(streamResult);
 
             }
         }
@@ -178,7 +198,7 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
         log.error("onChainError: {}", message, throwable);
 
         //因为Agent执行是同步的，所以最后才有返回结果，需要手动See下
-        if (this.getEmitter() == null) {
+        if (Boolean.FALSE.equals(this.canSend())) {
             return;
         }
 
@@ -197,7 +217,7 @@ public class MySseCallBackHandler extends StreamingSseCallBackHandler {
                     .build();
         }
 
-        this.getEmitter().send(streamResult);
+        this.sendStreamResult(streamResult);
 
     }
 
