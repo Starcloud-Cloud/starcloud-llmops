@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.RemoveBackgroundRequest;
@@ -12,13 +13,16 @@ import com.starcloud.ops.business.app.feign.response.ClipDropImage;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -73,6 +77,10 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, RemoveBackgroundRequest request, RemoveBackgroundResponse response) {
+        messageRequest.setAnswerUnitPrice(ImageUtils.CD_PRICE);
+        if (Objects.nonNull(response) && CollectionUtil.isNotEmpty(response.getImages())) {
+            messageRequest.setTotalPrice(new BigDecimal("1").multiply(ImageUtils.CD_PRICE));
+        }
         messageRequest.setAiModel("clip-drop");
     }
 }

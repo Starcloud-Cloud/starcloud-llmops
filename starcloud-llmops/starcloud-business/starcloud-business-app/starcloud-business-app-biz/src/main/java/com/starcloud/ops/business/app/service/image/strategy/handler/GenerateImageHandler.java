@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
@@ -121,6 +122,10 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, GenerateImageRequest request, GenerateImageResponse response) {
+        messageRequest.setAnswerUnitPrice(ImageUtils.SD_PRICE);
+        if (Objects.nonNull(response) && CollectionUtil.isNotEmpty(response.getImages())) {
+            messageRequest.setTotalPrice(ImageUtils.countAnswerCredits(request).multiply(ImageUtils.SD_PRICE));
+        }
         messageRequest.setMessage(request.getPrompt());
         messageRequest.setAiModel("stable-diffusion");
     }

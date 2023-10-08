@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
@@ -21,8 +22,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -86,6 +89,10 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, SketchToImageRequest request, SketchToImageResponse response) {
+        messageRequest.setAnswerUnitPrice(ImageUtils.CD_PRICE);
+        if (Objects.nonNull(response) && CollectionUtil.isNotEmpty(response.getImages())) {
+            messageRequest.setTotalPrice(new BigDecimal("1.6").multiply(ImageUtils.CD_PRICE));
+        }
         messageRequest.setMessage(request.getPrompt());
         messageRequest.setAiModel("clip-drop");
     }

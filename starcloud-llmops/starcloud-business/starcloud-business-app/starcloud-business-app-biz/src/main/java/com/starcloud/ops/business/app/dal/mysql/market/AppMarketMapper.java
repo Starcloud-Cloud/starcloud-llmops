@@ -43,6 +43,8 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
+        } else {
+            queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
         }
 
         String local = LocaleContextHolder.getLocale().toString();

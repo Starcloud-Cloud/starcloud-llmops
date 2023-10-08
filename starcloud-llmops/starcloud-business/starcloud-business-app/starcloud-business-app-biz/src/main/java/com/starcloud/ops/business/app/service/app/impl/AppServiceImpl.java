@@ -158,10 +158,8 @@ public class AppServiceImpl implements AppService {
     @Override
     public AppRespVO getSimple(String uid) {
         AppDO app = appMapper.get(uid, Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return AppConvert.INSTANCE.convertResponse(app, Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
-        return AppConvert.INSTANCE.convertResponse(app,  Boolean.FALSE);
+        return AppConvert.INSTANCE.convertResponse(app, Boolean.FALSE);
     }
 
     /**

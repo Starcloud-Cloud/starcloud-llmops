@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.image.vo.request.UpscaleImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.UpscaleImageResponse;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
@@ -120,7 +120,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 请检查参数, 宽高和放大倍数不能同时为空");
         }
 
-        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求结束：处理后数据：{}", JSON.toJSONString(request));
+        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求结束");
 
         request.setInitImageBinary(imageBytes);
     }
@@ -133,7 +133,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      */
     @Override
     public UpscaleImageResponse handle(UpscaleImageRequest request) {
-        log.info("UpscaleImageHandler handle: 处理放大图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
+        log.info("UpscaleImageHandler handle: 处理放大图片请求开始...");
         VSearchUpscaleImageRequest upscaleImageRequest = new VSearchUpscaleImageRequest();
         upscaleImageRequest.setEngine(request.getEngine());
         upscaleImageRequest.setPrompt(request.getPrompt());
@@ -172,6 +172,10 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, UpscaleImageRequest request, UpscaleImageResponse response) {
+        messageRequest.setAnswerUnitPrice(ImageUtils.SD_PRICE);
+        if (Objects.nonNull(response) && CollectionUtil.isNotEmpty(response.getImages())) {
+            messageRequest.setTotalPrice(ImageUtils.countAnswerCredits(request).multiply(ImageUtils.CD_PRICE));
+        }
         if (StringUtils.isNotBlank(request.getPrompt())) {
             messageRequest.setMessage(request.getPrompt());
         }
@@ -191,15 +195,23 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         BigDecimal multiply = widthDecimal.multiply(heightDecimal);
         if (isOut) {
             if (EngineEnum.ESRGAN_V1_X2PLUS.equals(engine)) {
-
-            } else {
-
+                if (multiply.compareTo(new BigDecimal("4194304")) > 0) {
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 图片大小不能超过 4194304 像素");
+                }
+            } else if (EngineEnum.STABLE_DIFFUSION_X4_LATENT_UPSCALER.equals(engine)) {
+                if (multiply.compareTo(new BigDecimal("6291456")) > 0) {
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 图片大小不能超过 6291456 像素");
+                }
             }
         } else {
             if (EngineEnum.ESRGAN_V1_X2PLUS.equals(engine)) {
-
-            } else {
-
+                if (multiply.compareTo(new BigDecimal("1048576")) > 0) {
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 图片大小不能超过 1048576 像素");
+                }
+            } else if (EngineEnum.STABLE_DIFFUSION_X4_LATENT_UPSCALER.equals(engine)) {
+                if (multiply.compareTo(new BigDecimal("393216")) > 0) {
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 图片大小不能超过 393216 像素");
+                }
             }
         }
     }
