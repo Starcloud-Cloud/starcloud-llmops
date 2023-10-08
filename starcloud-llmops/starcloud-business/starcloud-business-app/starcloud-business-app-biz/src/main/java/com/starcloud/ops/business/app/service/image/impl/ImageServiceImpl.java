@@ -88,7 +88,7 @@ public class ImageServiceImpl implements ImageService {
      * @return 图片列表
      */
     @Override
-    public PageResult<GenerateImageResponse> historyGenerateImages(HistoryGenerateImagePageQuery query) {
+    public PageResult<GenerateImageResponse> history(HistoryGenerateImagePageQuery query) {
         // 查询日志消息记录
         Page<LogAppMessageDO> page = pageHistoryGenerateImageMessage(query);
         List<LogAppMessageDO> records = page.getRecords();

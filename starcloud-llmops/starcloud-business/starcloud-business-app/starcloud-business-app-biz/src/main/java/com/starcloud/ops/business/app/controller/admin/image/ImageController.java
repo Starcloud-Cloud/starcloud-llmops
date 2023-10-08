@@ -57,8 +57,8 @@ public class ImageController {
     @GetMapping("/history")
     @Operation(summary = "查询历史图片列表", description = "查询历史图片列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<PageResult<GenerateImageResponse>> historyGenerateImages(HistoryGenerateImagePageQuery query) {
-        return CommonResult.success(imageService.historyGenerateImages(query));
+    public CommonResult<PageResult<GenerateImageResponse>> history(HistoryGenerateImagePageQuery query) {
+        return CommonResult.success(imageService.history(query));
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
