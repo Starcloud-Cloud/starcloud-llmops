@@ -147,8 +147,6 @@ public interface PermissionService {
      */
     DeptDataPermissionRespDTO getDeptDataPermission(Long userId);
 
-
-
     /**
      * 新增用户角色
      *
