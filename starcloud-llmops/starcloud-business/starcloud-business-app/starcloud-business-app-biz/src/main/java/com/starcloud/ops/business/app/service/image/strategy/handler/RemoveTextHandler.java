@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.RemoveTextRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.RemoveTextResponse;
@@ -13,14 +12,13 @@ import com.starcloud.ops.business.app.feign.response.ClipDropImage;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
-import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Collections;
-import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -57,9 +55,7 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
         ImageFileClipDropRequest imageFileClipDropRequest = new ImageFileClipDropRequest();
         imageFileClipDropRequest.setImageFile(ImageUploadUtils.getImageFile(request.getImageUrl()));
         ClipDropImage clipDropImage = clipDropImageService.removeText(imageFileClipDropRequest);
-        if (Objects.isNull(clipDropImage)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "去除文字失败");
-        }
+        AppValidate.notNull(clipDropImage, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
         ImageDTO image = ImageConvert.INSTANCE.convert(clipDropImage);
         RemoveTextResponse response = new RemoveTextResponse();
         response.setOriginalUrl(request.getImageUrl());

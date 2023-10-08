@@ -47,7 +47,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     @JsonIgnore
     @JSONField(serialize = false)
     public void validate() {
-        AppValidate.notEmpty(this.steps, ErrorCodeConstants.APP_EXECUTE_STEPS_CANT_BE_EMPTY);
+        AppValidate.notEmpty(this.steps, ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED);
     }
 
     /**
@@ -58,7 +58,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     public WorkflowStepWrapper getFirstStepWrapper() {
         return CollectionUtil.emptyIfNull(steps).stream()
                 .findFirst()
-                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_STEPS_CANT_BE_EMPTY));
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
     }
 
     /**
@@ -73,7 +73,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         return CollectionUtil.emptyIfNull(steps).stream()
                 .filter(item -> (item.getName().equals(stepId) || item.getField().equals(stepId)))
                 .findFirst()
-                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_STEPS_NOT_FOUND, stepId));
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEP_NON_EXISTENT, stepId));
     }
 
     /**

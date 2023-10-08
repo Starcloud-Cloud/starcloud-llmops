@@ -117,7 +117,7 @@ public interface AppMarketConvert {
         AppMarketEntity appMarketEntity = new AppMarketEntity();
         String appInfo = appPublish.getAppInfo();
         if (StringUtils.isBlank(appInfo)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_APP_INFO_NOT_FOUND);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PUBLISH_APP_INFO_NON_EXISTENT);
         }
         AppDO app = JSONUtil.toBean(appInfo, AppDO.class);
         appMarketEntity.setUid(appPublish.getMarketUid());

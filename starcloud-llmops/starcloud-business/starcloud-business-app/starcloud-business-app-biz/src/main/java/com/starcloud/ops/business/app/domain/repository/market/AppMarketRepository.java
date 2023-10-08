@@ -31,7 +31,7 @@ public class AppMarketRepository {
      */
     public AppMarketEntity get(String uid) {
         AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
-        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
         return AppMarketConvert.INSTANCE.convert(appMarketDO);
     }
 

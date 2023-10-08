@@ -111,7 +111,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     default AppMarketDO modify(AppMarketDO appMarket) {
         // 判断应用是否存在, 不存在无法修改
         AppMarketDO appMarketDO = this.get(appMarket.getUid(), Boolean.TRUE);
-        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, appMarket.getUid());
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, appMarket.getUid());
         // 名称修改了, 则需要校验名称是否重复
         if (!appMarket.getName().equals(appMarketDO.getName())) {
             AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, appMarket.getName());
@@ -129,7 +129,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
      */
     default void delete(String uid) {
         AppMarketDO appMarketDO = this.get(uid, Boolean.TRUE);
-        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
         this.deleteById(appMarketDO.getId());
     }
 

@@ -111,7 +111,7 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AppMarketRespVO get(String uid) {
-        AppValidate.notBlank(uid, ErrorCodeConstants.APP_MARKET_UID_REQUIRED);
+        AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
         // 查询应用市场信息
         AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
 
@@ -180,7 +180,7 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Transactional(rollbackFor = Exception.class)
     public void install(AppInstallReqVO request) {
         // 1. 基础校验
-        AppValidate.notBlank(request.getUid(), ErrorCodeConstants.APP_UID_IS_REQUIRED);
+        AppValidate.notBlank(request.getUid(), ErrorCodeConstants.APP_UID_REQUIRED);
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (loginUserId == null) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
@@ -188,11 +188,11 @@ public class AppMarketServiceImpl implements AppMarketService {
 
         // 2. 查询应用市场应用并且校验
         AppMarketDO appMarket = appMarketMapper.get(request.getUid(), Boolean.FALSE);
-        AppValidate.notNull(appMarket, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, request.getUid());
+        AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, request.getUid());
 
         // 3. 校验当前用户是否已经安装过该用户, 如果安装过，抛出异常
         InstalledRespVO installed = appMapper.verifyHasInstalled(request.getUid(), Long.toString(loginUserId));
-        AppValidate.isTrue(InstalledRespVO.isInstalled(installed), ErrorCodeConstants.APP_HAS_BEEN_INSTALLED);
+        AppValidate.isTrue(InstalledRespVO.isInstalled(installed), ErrorCodeConstants.MARKET_APP_INSTALLED);
 
         // 4. 说明没有安装过，需要安装
         AppEntity appEntity = AppConvert.INSTANCE.convert(appMarket);
@@ -216,10 +216,6 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void operate(AppOperateReqVO request) {
-        // 1. 基础校验
-        AppValidate.notBlank(request.getAppUid(), ErrorCodeConstants.APP_UID_IS_REQUIRED);
-        AppValidate.notBlank(request.getOperate(), ErrorCodeConstants.APP_OPERATE_IS_REQUIRED);
-
         // 2. 查询应用市场的应用, 如果不存在，抛出异常
         AppMarketDO appMarketDO = appMarketMapper.get(request.getAppUid(), Boolean.TRUE);
 
@@ -243,7 +239,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         } else if (AppOperateTypeEnum.USAGE.name().equals(operate)) {
             updateWrapper.set(AppMarketDO::getUsageCount, appMarketDO.getUsageCount() + 1);
         } else {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_OPERATE_NOT_SUPPORTED, request.getOperate());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.MARKET_OPERATE_NOT_SUPPORTED, request.getOperate());
         }
         appMarketMapper.update(appMarketDO, updateWrapper);
     }
@@ -272,7 +268,7 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Override
     public AppFavoriteRespVO getFavoriteApp(String userId, String uid) {
         AppValidate.notBlank(userId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
-        AppValidate.notBlank(uid, ErrorCodeConstants.APP_UID_IS_REQUIRED);
+        AppValidate.notBlank(uid, ErrorCodeConstants.APP_UID_REQUIRED);
         AppFavoritePO favoriteApp = appFavoritesMapper.getFavoriteApp(userId, uid);
         return AppFavoriteConvert.INSTANCE.convert(favoriteApp);
     }
@@ -289,7 +285,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 应用是否已经被收藏了
         AppFavoriteDO favoriteDO = appFavoritesMapper.selectOne(Wrappers.lambdaQuery(AppFavoriteDO.class)
                 .eq(AppFavoriteDO::getAppUid, uid).eq(AppFavoriteDO::getUser, userId));
-        AppValidate.isNull(favoriteDO, ErrorCodeConstants.APP_HAS_FAVORITE, uid);
+        AppValidate.isNull(favoriteDO, ErrorCodeConstants.FAVORITE_APP_BEAN, uid);
         // 查询应用市场的应用, 如果不存在，抛出异常
         AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
 
@@ -318,7 +314,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 应用是否已经被收藏了
         AppFavoriteDO favoriteDO = appFavoritesMapper.selectOne(Wrappers.lambdaQuery(AppFavoriteDO.class)
                 .eq(AppFavoriteDO::getAppUid, uid).eq(AppFavoriteDO::getUser, userId));
-        AppValidate.notNull(favoriteDO, ErrorCodeConstants.APP_FAVORITE_NOT_EXISTS, uid);
+        AppValidate.notNull(favoriteDO, ErrorCodeConstants.FAVORITE_APP_NON_EXISTENT, uid);
 
         // 删除收藏记录
         appFavoritesMapper.delete(Wrappers.lambdaQuery(AppFavoriteDO.class)
