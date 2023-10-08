@@ -47,7 +47,7 @@ public class AppController {
     @GetMapping("/categories")
     @Operation(summary = "查询应用类别列表", description = "查询应用类别列表")
     @ApiOperationSupport(order = 10, author = "nacoyer")
-    public CommonResult<List<AppCategoryVO>> categories(@RequestParam(value = "isRoot", required = false, defaultValue = "true") Boolean isRoot) {
+    public CommonResult<List<AppCategoryVO>> categories(@RequestParam(value = "isRoot", required = false, defaultValue = "false") Boolean isRoot) {
         return CommonResult.success(appService.categoryList(isRoot));
     }
 
