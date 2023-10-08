@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -102,14 +103,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private String source;
 
     /**
+     * 应用类别
+     */
+    private String category;
+
+    /**
      * 应用标签，多个以逗号分割
      */
     private List<String> tags;
-
-    /**
-     * 应用类别，多个以逗号分割
-     */
-    private List<String> categories;
 
     /**
      * 应用场景，多个以逗号分割
@@ -322,10 +323,10 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
         } catch (Exception exception) {
             log.error("应用执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
-            this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
+            this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()), ExceptionUtil.stackTraceToString(exception));
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage());
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception));
+            throw exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage());
         }
     }
 
@@ -370,7 +371,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
                     // 更新会话记录
                     this.failureAppConversationLog(request.getConversationUid(), String.valueOf(1), exception.getMessage());
-                    this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, ExceptionUtil.stackTraceToString(exception)));
+                    this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, ExceptionUtil.stackTraceToString(exception)));
                 }
             });
 
@@ -382,8 +383,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         } catch (Exception exception) {
             log.error("应用异步执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.APP_EXECUTE_FAIL.getCode()), ExceptionUtil.stackTraceToString(exception));
-            this.afterExecute(request, ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, exception.getMessage()));
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception));
+            this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
         }
     }
 
@@ -598,5 +599,26 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     public void setActionResponse(String stepId, ActionResponse response) {
         workflowConfig.setActionResponse(stepId, response);
+    }
+
+    /**
+     * 异常
+     *
+     * @param errorCode 错误码
+     * @return 异常
+     */
+    protected static ServiceException exception(ErrorCode errorCode) {
+        return ServiceExceptionUtil.exception(errorCode);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param params    参数
+     * @return 异常
+     */
+    protected static ServiceException exception(ErrorCode errorCode, Object... params) {
+        return ServiceExceptionUtil.exception(errorCode, params);
     }
 }

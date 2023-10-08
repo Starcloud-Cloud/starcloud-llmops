@@ -106,7 +106,7 @@ public interface AppPublishLimitMapper extends BaseMapper<AppPublishLimitDO> {
      */
     default int delete(String uid) {
         AppPublishLimitDO limit = get(uid);
-        AppValidate.notNull(limit, ErrorCodeConstants.APP_PUBLISH_LIMIT_NOT_EXISTS_UID);
+        AppValidate.notNull(limit, ErrorCodeConstants.LIMIT_NON_EXISTENT);
         return this.deleteById(limit.getId());
     }
 

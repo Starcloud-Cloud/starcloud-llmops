@@ -75,7 +75,7 @@ public class RecommendAppCache {
         if (appOptional.isPresent()) {
             return appOptional.get();
         }
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, code);
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NON_EXISTENT, code);
     }
 
     /**

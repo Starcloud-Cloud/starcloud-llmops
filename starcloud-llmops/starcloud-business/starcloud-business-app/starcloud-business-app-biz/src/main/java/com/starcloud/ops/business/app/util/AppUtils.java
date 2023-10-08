@@ -120,7 +120,7 @@ public class AppUtils {
     public static String obtainUid(String uid) {
         String[] split = uid.split("-");
         if (split.length != 2) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get installUid or publishUid");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.MARKET_GET_UID_FAILURE);
         }
         return split[0];
     }
@@ -134,7 +134,7 @@ public class AppUtils {
     public static Integer obtainVersion(String uid) {
         String[] split = uid.split("-");
         if (split.length != 2) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get version");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.MARKET_GET_VERSION_FAILURE);
         }
         return Integer.valueOf(split[1]);
     }

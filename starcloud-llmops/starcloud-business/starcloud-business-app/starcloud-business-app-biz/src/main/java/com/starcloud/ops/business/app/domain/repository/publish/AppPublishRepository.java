@@ -38,16 +38,16 @@ public class AppPublishRepository {
      */
     public AppEntity getAppEntityByMediumUid(String mediumUid) {
         AppPublishChannelDO appPublishChannelDO = appPublishChannelMapper.getByMediumUid(mediumUid);
-        AppValidate.notNull(appPublishChannelDO, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, mediumUid);
+        AppValidate.notNull(appPublishChannelDO, ErrorCodeConstants.CHANNEL_NON_EXISTENT, mediumUid);
         AppPublishDO appPublishDO = appPublishMapper.get(appPublishChannelDO.getPublishUid(), Boolean.FALSE);
-        AppValidate.notNull(appPublishDO, ErrorCodeConstants.APP_PUBLISH_APP_INFO_NOT_FOUND, appPublishChannelDO.getPublishUid());
+        AppValidate.notNull(appPublishDO, ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT, appPublishChannelDO.getPublishUid());
         if (StringUtils.isBlank(appPublishDO.getAppInfo())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NON_EXISTENT);
         }
 
         AppDO appDO = JSONUtil.toBean(appPublishDO.getAppInfo(), AppDO.class);
         if (Objects.isNull(appDO)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appDO.getUid());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NON_EXISTENT, appDO.getUid());
         }
 
         return (AppEntity) AppConvert.INSTANCE.convert(appDO, Boolean.FALSE);
@@ -61,17 +61,17 @@ public class AppPublishRepository {
      */
     public AppPublishDO getByPublishUid(String publishUid) {
         AppPublishDO appPublishDO = appPublishMapper.get(publishUid, Boolean.FALSE);
-        AppValidate.notNull(appPublishDO, ErrorCodeConstants.APP_PUBLISH_APP_INFO_NOT_FOUND, publishUid);
+        AppValidate.notNull(appPublishDO, ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT, publishUid);
         return appPublishDO;
     }
 
     public ChatAppEntity getChatEntityByMediumUid(String mediumUid) {
         AppPublishChannelDO appPublishChannelDO = appPublishChannelMapper.getByMediumUid(mediumUid);
-        AppValidate.notNull(appPublishChannelDO, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, mediumUid);
+        AppValidate.notNull(appPublishChannelDO, ErrorCodeConstants.CHANNEL_NON_EXISTENT, mediumUid);
         AppPublishDO appPublishDO = appPublishMapper.get(appPublishChannelDO.getPublishUid(), Boolean.FALSE);
-        AppValidate.notNull(appPublishDO, ErrorCodeConstants.APP_PUBLISH_APP_INFO_NOT_FOUND, appPublishChannelDO.getPublishUid());
+        AppValidate.notNull(appPublishDO, ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT, appPublishChannelDO.getPublishUid());
         if (StringUtils.isBlank(appPublishDO.getAppInfo())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NON_EXISTENT);
         }
         AppDO appDO = JSONUtil.toBean(appPublishDO.getAppInfo(), AppDO.class);
         BaseAppEntity entity = AppConvert.INSTANCE.convert(appDO, false);

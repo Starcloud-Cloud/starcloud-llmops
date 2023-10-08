@@ -268,7 +268,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     private void doChannelLimit(AppLimitRequest request) {
         AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(request.getMediumUid());
-        AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getMediumUid());
+        AppValidate.notNull(channel, ErrorCodeConstants.CHANNEL_NON_EXISTENT, request.getMediumUid());
         log.info("应用渠道发布限流: 应用UID: {}, 发布UID: {}，渠道UID: {}, 渠道名称: {}", channel.getAppUid(), channel.getPublishUid(), channel.getAppUid(), channel.getName());
         // 用户配置限流
         List<AppLimitConfigDTO> limitConfigList = this.defaultIfNullPublishLimitList(channel.getAppUid(), channel.getPublishUid(), channel.getUid());

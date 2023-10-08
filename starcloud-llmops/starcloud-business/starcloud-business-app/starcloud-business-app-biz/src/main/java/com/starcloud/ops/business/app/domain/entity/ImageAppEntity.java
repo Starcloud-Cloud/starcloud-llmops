@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
+import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
@@ -119,7 +120,6 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 // 直接用图片数量作为扣费数量
                 messageRequest.setAnswerTokens(imageResponse.getImages().size());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-                messageRequest.setTotalPrice(new BigDecimal(String.valueOf(imageResponse.getImages().size())));
                 request.getImageHandler().handleLogMessage(messageRequest, request.getImageRequest(), imageResponse);
             });
             // 返回结果
@@ -142,7 +142,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             });
             throw exception;
         } catch (Exception exception) {
-            log.error("处理图片失败，错误码：{}, 错误信息：{}", Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()), exception.getMessage());
+            log.error("处理图片失败，错误码：{}, 错误信息：{}", Integer.toString(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode()), exception.getMessage());
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
@@ -150,12 +150,12 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 buildAppMessageLog(messageRequest, request, userId);
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-                messageRequest.setErrorCode(Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()));
+                messageRequest.setErrorCode(Integer.toString(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode()));
                 messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
                 request.getImageHandler().handleLogMessage(messageRequest, request.getImageRequest(), null);
             });
 
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), exception.getMessage()));
         }
     }
 
@@ -262,7 +262,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setMessageTokens(0);
         messageRequest.setMessageUnitPrice(new BigDecimal("0.0000"));
         messageRequest.setAnswerTokens(0);
-        messageRequest.setAnswerUnitPrice(new BigDecimal("0.0000"));
+        messageRequest.setAnswerUnitPrice(ImageUtils.SD_PRICE);
         messageRequest.setTotalPrice(new BigDecimal("0.0000"));
         messageRequest.setCurrency("USD");
         messageRequest.setFromScene(request.getScene());

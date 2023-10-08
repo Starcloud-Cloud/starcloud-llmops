@@ -29,6 +29,18 @@ public class CategoryRemarkDTO implements Serializable {
     /**
      * 应用类别编号
      */
+    @Schema(description = "类别编号")
+    private String code;
+
+    /**
+     * 父类别编号
+     */
+    @Schema(description = "父类别编号")
+    private String parentCode;
+
+    /**
+     * 应用类别编号
+     */
     @Schema(description = "类别图标")
     private String icon;
 

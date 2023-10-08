@@ -68,24 +68,38 @@ public class VSearchServiceImpl implements VSearchService {
      * @param response 响应结果
      */
     private void validateImagesResponse(VSearchResponse<List<VSearchImage>> response) {
+        // 响应结果为空
         if (Objects.isNull(response)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_FAIL);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
         }
+
         // 如果成功，且有数据，则直接返回
         if (response.getSuccess() && CollectionUtil.isNotEmpty(response.getResult())) {
             return;
         }
-        // 失败，抛出异常
-        if (Objects.isNull(response.getCode()) && StringUtils.isNotBlank(response.getMessage())) {
+
+        // 如果成功，但是没有数据
+        if (response.getSuccess() && CollectionUtil.isEmpty(response.getResult())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
+        }
+
+        // 错误码和错误信息都不为空
+        if (Objects.nonNull(response.getCode()) && StringUtils.isNotBlank(response.getMessage())) {
             throw ServiceExceptionUtil.exception(new ErrorCode(response.getCode(), response.getMessage()));
         }
+
+        // 错误码为空，错误信息不为空
         if (Objects.isNull(response.getCode()) && StringUtils.isNotBlank(response.getMessage())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), response.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), response.getMessage()));
         }
+
+        // 错误码不为空，错误信息为空
         if (Objects.nonNull(response.getCode()) && StringUtils.isBlank(response.getMessage())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(response.getCode(), ErrorCodeConstants.GENERATE_IMAGE_FAIL.getMsg()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(response.getCode(), ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getMsg()));
         }
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_FAIL);
+
+        // 其余情况，抛出默认错误码
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE);
     }
 
 }

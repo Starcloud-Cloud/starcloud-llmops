@@ -20,6 +20,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,11 +43,35 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      * @return 应用分类列表
      */
     @Override
-    public List<AppCategoryVO> categories() {
+    public List<AppCategoryVO> categoryList(Boolean isRoot) {
         // 查询应用分类字典数据
         List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_CATEGORY_DICT_TYPE);
-        // 转换为应用分类列表
-        return dictDataList.stream().map(CategoryConvert.INSTANCE::convert).filter(Objects::nonNull).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return Collections.emptyList();
+        }
+        return dictDataList.stream()
+                .map(CategoryConvert.INSTANCE::convert)
+                .filter(Objects::nonNull)
+                .filter(category -> {
+                    if (isRoot) {
+                        return AppConstants.ROOT.equalsIgnoreCase(category.getParentCode());
+                    }
+                    return true;
+                })
+                .sorted(Comparator.comparingInt(AppCategoryVO::getSort))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 查询应用分类列表
+     *
+     * @return 应用分类列表
+     */
+    @Override
+    public List<AppCategoryVO> categoryTree() {
+        List<AppCategoryVO> categoryList = categoryList(Boolean.FALSE);
+        // 递归实现分类树
+        return categoryListToTree(categoryList, AppConstants.ROOT);
     }
 
     /**
@@ -166,6 +191,21 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      */
     private static List<AppLimitConfigDTO> defaultSystemLimitConfig() {
         return Arrays.stream(AppLimitConfigEnum.values()).map(AppLimitConfigEnum::getDefaultSystemConfig).collect(Collectors.toList());
+    }
+
+    /**
+     * 递归实现分类树
+     *
+     * @param categoryList 应用分类列表
+     * @param parentCode   根节点Code
+     * @return 应用分类列表
+     */
+    private static List<AppCategoryVO> categoryListToTree(List<AppCategoryVO> categoryList, String parentCode) {
+        // 利用 stream 进行递归，尽可能的效率高
+        return categoryList.stream()
+                .filter(category -> parentCode.equalsIgnoreCase(category.getParentCode()))
+                .peek(category -> category.setChildren(categoryListToTree(categoryList, category.getCode())))
+                .collect(Collectors.toList());
     }
 
 }

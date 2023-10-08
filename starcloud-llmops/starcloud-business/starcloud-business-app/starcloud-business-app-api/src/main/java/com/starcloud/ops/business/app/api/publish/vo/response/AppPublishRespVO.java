@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -68,7 +67,7 @@ public class AppPublishRespVO implements Serializable {
      * 应用类别
      */
     @Schema(description = "应用类别")
-    private List<String> categories;
+    private String category;
 
     /**
      * 应用语言

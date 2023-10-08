@@ -6,9 +6,11 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.MarketUidRequest;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -47,28 +49,35 @@ public class AppMarketController {
 
     @GetMapping("/page")
     @Operation(summary = "分页查询应用市场应用列表", description = "分页查询应用市场应用列表")
-    @ApiOperationSupport(order = 1, author = "nacoyer")
+    @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<PageResp<AppMarketRespVO>> page(@Validated AppMarketPageQuery query) {
         return CommonResult.success(appMarketService.page(query));
     }
 
+    @GetMapping("/listGroupByCategory")
+    @Operation(summary = "根据分类分组查询应用市场", description = "根据分类分组查询应用市场")
+    @ApiOperationSupport(order = 20, author = "nacoyer")
+    public CommonResult<List<AppMarketGroupCategoryRespVO>> listGroupByCategory(@Validated AppMarketListGroupByCategoryQuery query) {
+        return CommonResult.success(appMarketService.listGroupByCategory(query));
+    }
+
     @GetMapping("/listMarketAppOption")
     @Operation(summary = "获取应用列表选项", description = "获取应用列表选项")
-    @ApiOperationSupport(order = 5, author = "nacoyer")
+    @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<List<Option>> listMarketAppOption(AppMarketListQuery query) {
         return CommonResult.success(appMarketService.listMarketAppOption(query));
     }
 
     @GetMapping("/get/{uid}")
     @Operation(summary = "根据 UID 获得应用详情", description = "根据 UID 获取应用详情")
-    @ApiOperationSupport(order = 10, author = "nacoyer")
+    @ApiOperationSupport(order = 40, author = "nacoyer")
     public CommonResult<AppMarketRespVO> get(@PathVariable("uid") String uid) {
         return CommonResult.success(appMarketService.get(uid));
     }
 
     @PostMapping("/modify")
     @Operation(summary = "修改应用市场", description = "修改应用市场")
-    @ApiOperationSupport(order = 15, author = "nacoyer")
+    @ApiOperationSupport(order = 50, author = "nacoyer")
     public CommonResult<Boolean> get(@Validated @RequestBody AppMarketUpdateReqVO request) {
         appMarketService.modify(request);
         return CommonResult.success(Boolean.TRUE);
@@ -77,7 +86,7 @@ public class AppMarketController {
     @DeleteMapping("/delete/{uid}")
     @PreAuthorize("@ss.hasPermission('app:market:delete')")
     @Operation(summary = "删除应用市场模版", description = "根据 UID 删除应用市场应用")
-    @ApiOperationSupport(order = 20, author = "nacoyer")
+    @ApiOperationSupport(order = 60, author = "nacoyer")
     public CommonResult<Boolean> delete(@PathVariable("uid") String uid) {
         appMarketService.delete(uid);
         return CommonResult.success(Boolean.TRUE);
@@ -85,7 +94,7 @@ public class AppMarketController {
 
     @PostMapping("/install")
     @Operation(summary = "安装应用市场应用", description = "安装应用市场应用")
-    @ApiOperationSupport(order = 25, author = "nacoyer")
+    @ApiOperationSupport(order = 70, author = "nacoyer")
     public CommonResult<Boolean> install(@Validated @RequestBody AppInstallReqVO request) {
         appMarketService.install(request);
         return CommonResult.success(Boolean.TRUE);
@@ -93,7 +102,7 @@ public class AppMarketController {
 
     @PostMapping("/operate")
     @Operation(summary = "操作应用市场应用", description = "操作应用市场应用")
-    @ApiOperationSupport(order = 30, author = "nacoyer")
+    @ApiOperationSupport(order = 80, author = "nacoyer")
     public CommonResult<Boolean> operate(@Validated @RequestBody AppOperateReqVO request) {
         appMarketService.operate(request);
         return CommonResult.success(Boolean.TRUE);
@@ -101,7 +110,7 @@ public class AppMarketController {
 
     @GetMapping("/listFavorite")
     @Operation(summary = "获取当前用户的收藏应用列表", description = "获取当前用户的收藏应用列表")
-    @ApiOperationSupport(order = 35, author = "nacoyer")
+    @ApiOperationSupport(order = 90, author = "nacoyer")
     public CommonResult<List<AppFavoriteRespVO>> listFavorite() {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (loginUserId == null) {
@@ -112,7 +121,7 @@ public class AppMarketController {
 
     @GetMapping("/getFavorite/{uid}")
     @Operation(summary = "根据 UID 获取收藏应用详情", description = "根据 UID 获取收藏应用详情")
-    @ApiOperationSupport(order = 40, author = "nacoyer")
+    @ApiOperationSupport(order = 100, author = "nacoyer")
     public CommonResult<AppFavoriteRespVO> getFavorite(@PathVariable("uid") String uid) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (loginUserId == null) {
@@ -123,7 +132,7 @@ public class AppMarketController {
 
     @PostMapping("/favorite")
     @Operation(summary = "收藏应用", description = "收藏应用")
-    @ApiOperationSupport(order = 45, author = "nacoyer")
+    @ApiOperationSupport(order = 110, author = "nacoyer")
     public CommonResult<Boolean> favorite(@Validated @RequestBody MarketUidRequest request) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (loginUserId == null) {
@@ -135,7 +144,7 @@ public class AppMarketController {
 
     @PostMapping("/cancelFavorite")
     @Operation(summary = "取消收藏应用", description = "取消收藏应用")
-    @ApiOperationSupport(order = 50, author = "nacoyer")
+    @ApiOperationSupport(order = 120, author = "nacoyer")
     public CommonResult<Boolean> cancelFavorite(@Validated @RequestBody MarketUidRequest request) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (loginUserId == null) {

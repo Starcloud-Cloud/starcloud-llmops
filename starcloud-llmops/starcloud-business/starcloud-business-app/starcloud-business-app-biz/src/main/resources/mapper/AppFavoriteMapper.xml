@@ -22,7 +22,7 @@
                b.version,
                b.language,
                b.tags,
-               b.categories,
+               b.category,
                b.scenes,
                b.images,
                b.icon,

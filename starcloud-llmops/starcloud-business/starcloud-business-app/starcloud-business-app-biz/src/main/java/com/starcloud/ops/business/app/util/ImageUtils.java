@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.util;
 
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.UpscaleImageRequest;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.image.ImageTaskConfigTypeEnum;
 import com.starcloud.ops.business.app.enums.image.ProductImageTypeEnum;
@@ -30,6 +31,16 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("all")
 public class ImageUtils {
+
+    /**
+     * SD 价格
+     */
+    public static final BigDecimal SD_PRICE = new BigDecimal("0.01");
+
+    /**
+     * ClipDrop 价格
+     */
+    public static final BigDecimal CD_PRICE = new BigDecimal("0.026784");
 
     /**
      * 获取 engine
@@ -259,6 +270,22 @@ public class ImageUtils {
         // Other
         BigDecimal factorSecond = new BigDecimal("2.16e-8");
         return factorFirst.multiply(factorSecond).multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 计算回答图片消耗的 SD 点数
+     *
+     * @param request 请求参数
+     * @return token数量
+     */
+    public static BigDecimal countAnswerCredits(UpscaleImageRequest request) {
+        if (EngineEnum.ESRGAN_V1_X2PLUS.getCode().equals(request.getEngine())) {
+            return new BigDecimal("0.2");
+        }
+        Integer width = request.getWidth();
+        Integer height = request.getHeight();
+        BigDecimal multiply = new BigDecimal(width.toString()).multiply(new BigDecimal(height.toString()));
+        return multiply.compareTo(new BigDecimal("262144")) > 0 ? new BigDecimal("12") : new BigDecimal("8");
     }
 
     /**

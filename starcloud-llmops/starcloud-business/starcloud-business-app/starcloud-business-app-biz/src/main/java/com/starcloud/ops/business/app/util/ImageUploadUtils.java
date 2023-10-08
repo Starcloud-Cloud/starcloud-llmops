@@ -109,7 +109,7 @@ public class ImageUploadUtils {
 
         String failPath = UPLOAD_PATH_MAP.get(pathType) + imageName;
         if (StringUtils.isBlank(failPath)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, "上传路径不存在！");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_PATH_NON_EXISTENT);
         }
         // 上传图片并且返回图片URL
         return FILE_API.createFile(imageName, failPath, content);
@@ -135,7 +135,7 @@ public class ImageUploadUtils {
         String filename = uuid + "." + extension;
         String failPath = UPLOAD_PATH_MAP.get(pathType) + filename;
         if (StringUtils.isBlank(failPath)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, "上传路径不存在！");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_PATH_NON_EXISTENT);
         }
         // 上传图片并且返回图片URL
         return FILE_API.createFile(filename, failPath, content);
@@ -160,7 +160,7 @@ public class ImageUploadUtils {
             throw exception;
         } catch (IOException exception) {
             log.error("图片上传失败：{}", exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, "文件上传失败！文件读取失败！");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_IO_FAILURE);
         } catch (Exception exception) {
             log.error("图片上传失败：{}", exception.getMessage(), exception);
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, exception.getMessage());
@@ -179,7 +179,7 @@ public class ImageUploadUtils {
 
         // 图片名称校验
         if (StringUtils.isBlank(imageName)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, "图片名称不能为空");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_NAME_REQUIRED);
         }
 
         // 图片格式校验
@@ -190,7 +190,7 @@ public class ImageUploadUtils {
             // 获取图片的信息
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(content));
             if (Objects.isNull(bufferedImage)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, "图片信息不存在！");
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_INFO_FAILURE);
             }
 
             // 生成文件名称
@@ -198,7 +198,7 @@ public class ImageUploadUtils {
             String filename = uuid + "." + extension;
             String failPath = UPLOAD_PATH_MAP.get(pathType) + filename;
             if (StringUtils.isBlank(failPath)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, "上传路径不存在！");
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_PATH_NON_EXISTENT);
             }
             // 上传图片并且返回图片URL
             String url = FILE_API.createFile(filename, failPath, content);
@@ -216,7 +216,7 @@ public class ImageUploadUtils {
         } catch (ServiceException exception) {
             throw exception;
         } catch (IOException exception) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, "文件上传失败！文件读取失败！");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_IO_FAILURE);
         } catch (Exception exception) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, exception.getMessage());
         }
@@ -271,11 +271,11 @@ public class ImageUploadUtils {
         try {
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(getContent(imageUrl)));
             if (bufferedImage == null) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.GET_IMAGE_FAILURE, "图片格式不正确");
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_INFO_FAILURE);
             }
             return bufferedImage;
         } catch (IOException e) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.GET_IMAGE_FAILURE, "读取文件失败！");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_INFO_FAILURE);
         }
     }
 

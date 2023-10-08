@@ -66,16 +66,16 @@ public class AppDTO implements Serializable {
     private String source;
 
     /**
+     * 应用类别
+     */
+    @Schema(description = "应用类别")
+    private String category;
+
+    /**
      * 应用标签，多个以逗号分割
      */
     @Schema(description = "应用标签，多个以逗号分割")
     private List<String> tags;
-
-    /**
-     * 应用类别，多个以逗号分割
-     */
-    @Schema(description = "应用类别，多个以逗号分割")
-    private List<String> categories;
 
     /**
      * 应用场景，多个以逗号分割

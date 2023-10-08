@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.RemoveBackgroundRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.RemoveBackgroundResponse;
@@ -14,11 +14,13 @@ import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageServic
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -57,9 +59,7 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
         ImageFileClipDropRequest imageFileClipDropRequest = new ImageFileClipDropRequest();
         imageFileClipDropRequest.setImageFile(ImageUploadUtils.getImageFile(request.getImageUrl()));
         ClipDropImage clipDropImage = clipDropImageService.removeBackground(imageFileClipDropRequest);
-        if (Objects.isNull(clipDropImage)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "去除背景失败");
-        }
+        AppValidate.notNull(clipDropImage, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
         ImageDTO image = ImageConvert.INSTANCE.convert(clipDropImage);
         RemoveBackgroundResponse response = new RemoveBackgroundResponse();
         response.setOriginalUrl(request.getImageUrl());
@@ -77,6 +77,10 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, RemoveBackgroundRequest request, RemoveBackgroundResponse response) {
+        messageRequest.setAnswerUnitPrice(ImageUtils.CD_PRICE);
+        if (Objects.nonNull(response) && CollectionUtil.isNotEmpty(response.getImages())) {
+            messageRequest.setTotalPrice(new BigDecimal("1").multiply(ImageUtils.CD_PRICE));
+        }
         messageRequest.setAiModel("clip-drop");
     }
 }

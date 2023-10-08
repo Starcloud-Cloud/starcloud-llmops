@@ -50,7 +50,7 @@ public class ChatExpandConfigServiceImpl implements ChatExpandConfigService {
     public String create(ChatExpandConfigReqVO reqVO) {
         ChatAppEntity chatAppEntity = AppFactory.factoryChatApp(reqVO.getAppConfigId());
         if (chatAppEntity == null || chatAppEntity.getChatConfig() == null) {
-            throw exception(APP_NO_EXISTS_UID, reqVO.getAppConfigId());
+            throw exception(APP_NON_EXISTENT, reqVO.getAppConfigId());
         }
         chatAppEntity.getChatConfig().setAppConfigId(reqVO.getAppConfigId());
         chatAppEntity.update();

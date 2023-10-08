@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.convert.category;
 
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
-import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.category.dto.CategoryRemarkDTO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +32,6 @@ public interface CategoryConvert {
     default AppCategoryVO convert(DictDataDO dictData) {
         AppCategoryVO category = new AppCategoryVO();
         category.setCode(dictData.getValue());
-        // 如果 remark 未配置 label，则使用 label 作为 name
         category.setName(dictData.getLabel());
         category.setSort(dictData.getSort());
 
@@ -40,11 +39,13 @@ public interface CategoryConvert {
         if (StringUtils.isBlank(remark)) {
             return null;
         }
-        CategoryRemarkDTO categoryRemark = JSON.parseObject(remark, CategoryRemarkDTO.class);
+        CategoryRemarkDTO categoryRemark = JSONUtil.toBean(remark, CategoryRemarkDTO.class, Boolean.TRUE);
 
         if (Objects.isNull(categoryRemark)) {
             return null;
         }
+        category.setCode(categoryRemark.getCode());
+        category.setParentCode(categoryRemark.getParentCode());
         category.setImage(categoryRemark.getImage());
         category.setIcon(categoryRemark.getIcon());
 

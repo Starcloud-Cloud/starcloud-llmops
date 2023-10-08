@@ -132,7 +132,7 @@ public class AppPublishServiceImpl implements AppPublishService {
     public AppPublishRespVO get(String uid) {
         // 查询发布记录
         AppPublishDO appPublish = appPublishMapper.get(uid, Boolean.FALSE);
-        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, uid);
+        AppValidate.notNull(appPublish, ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT, uid);
         return AppPublishConverter.INSTANCE.convert(appPublish);
     }
 
@@ -154,7 +154,7 @@ public class AppPublishServiceImpl implements AppPublishService {
 
         // 查询应用信息
         AppDO app = appMapper.get(appUid, Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, appUid);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, appUid);
 
         // 基本信息复制
         List<AppPublishDO> publishList = appPublishMapper.listByAppUid(appUid);
@@ -251,7 +251,7 @@ public class AppPublishServiceImpl implements AppPublishService {
     public AppPublishRespVO create(AppPublishReqVO request) {
         // 查询并校验应用是否存在
         AppDO app = appMapper.get(request.getAppUid(), Boolean.FALSE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, request.getAppUid());
         // 组装应用发布记录数据
         AppPublishDO appPublish = AppPublishConverter.INSTANCE.convert(app);
 
@@ -312,15 +312,15 @@ public class AppPublishServiceImpl implements AppPublishService {
         // 校验审核状态
         if (!Objects.equals(request.getStatus(), AppPublishAuditEnum.APPROVED.getCode()) &&
                 !Objects.equals(request.getStatus(), AppPublishAuditEnum.REJECTED.getCode())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
         }
         // 查询应用，应用不存在，抛出异常
         AppDO app = appMapper.get(request.getAppUid(), Boolean.FALSE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, request.getAppUid());
 
         // 查询发布记录
         AppPublishDO appPublish = appPublishMapper.get(request.getUid(), Boolean.FALSE);
-        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, request.getUid());
+        AppValidate.notNull(appPublish, ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT, request.getUid());
 
         // 如果审核通过
         if (Objects.equals(request.getStatus(), AppPublishAuditEnum.APPROVED.getCode())) {
@@ -353,16 +353,16 @@ public class AppPublishServiceImpl implements AppPublishService {
         // 校验审核状态
         if (!Objects.equals(request.getStatus(), AppPublishAuditEnum.CANCELED.getCode()) &&
                 !Objects.equals(request.getStatus(), AppPublishAuditEnum.PENDING.getCode())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PUBLISH_AUDIT_NOT_SUPPORTED, request.getStatus());
         }
 
         // 查询发布记录，发布记录不存在，抛出异常
         AppPublishDO appPublishDO = appPublishMapper.get(request.getUid(), Boolean.TRUE);
-        AppValidate.notNull(appPublishDO, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, request.getUid());
+        AppValidate.notNull(appPublishDO, ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT, request.getUid());
 
         // 查询应用，应用不存在，抛出异常
         AppDO app = appMapper.get(request.getAppUid(), Boolean.FALSE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, request.getAppUid());
 
         // 说明已经最少审核通过一次了，应用市场已经存在了。
         if (StringUtils.isNotBlank(appPublishDO.getMarketUid())) {
@@ -384,7 +384,7 @@ public class AppPublishServiceImpl implements AppPublishService {
                     .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).findAny();
             if (pendingPublishOptional.isPresent()) {
                 AppPublishDO pendingPublish = pendingPublishOptional.get();
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_DUPLICATE, pendingPublish.getUid());
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PUBLISH_APP_REPEAT, pendingPublish.getUid());
             }
         }
 
@@ -400,7 +400,7 @@ public class AppPublishServiceImpl implements AppPublishService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         AppPublishDO appPublish = appPublishMapper.get(uid, Boolean.FALSE);
-        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_RECORD_NO_EXISTS_UID, uid);
+        AppValidate.notNull(appPublish, ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT, uid);
         appPublishMapper.deleteById(appPublish.getId());
         // 删除应用发布渠道记录
         appPublishChannelService.deleteByAppPublishUid(uid);
@@ -448,7 +448,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
 
         if (!AppModelEnum.CHAT.name().equals(appPublish.getModel())) {
-            appMarketEntity.setImages(buildImages(appMarketEntity.getCategories()));
+            appMarketEntity.setImages(buildImages(appMarketEntity.getCategory()));
         }
         // marketUid 不为空，说明已经发布过，需要更新发布记录
         if (StringUtils.isNotBlank(appPublish.getMarketUid())) {
@@ -472,19 +472,19 @@ public class AppPublishServiceImpl implements AppPublishService {
     /**
      * 构建上传应用的图片
      *
-     * @param categories 分类
+     * @param category 分类
      * @return 图片列表
      */
-    private List<String> buildImages(List<String> categories) {
+    private List<String> buildImages(String category) {
 
-        if (CollectionUtil.isEmpty(categories)) {
+        if (StringUtils.isBlank(category)) {
             return Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE);
         }
 
-        List<AppCategoryVO> categoryList = appDictionaryService.categories();
+        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
         // 从 categoryList 中获取对应的图片
         List<String> images = CollectionUtil.emptyIfNull(categoryList).stream()
-                .filter(category -> categories.contains(category.getCode()))
+                .filter(item -> category.equals(item.getCode()))
                 .map(AppCategoryVO::getImage)
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
