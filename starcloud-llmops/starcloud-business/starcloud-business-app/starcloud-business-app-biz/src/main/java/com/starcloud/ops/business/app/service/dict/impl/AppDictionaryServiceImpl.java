@@ -70,6 +70,17 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     }
 
     /**
+     * 热门搜索应用市场应用名称列表
+     *
+     * @return 热门搜索应用市场应用名称列表
+     */
+    @Override
+    public List<String> hotSearchMarketAppNameList() {
+        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_HOT_SEARCH_MARKET);
+        return CollectionUtil.emptyIfNull(dictDataList).stream().map(DictDataDO::getLabel).collect(Collectors.toList());
+    }
+
+    /**
      * 示例提示集合
      *
      * @return 示例提示集合
