@@ -141,11 +141,6 @@ public class AppMarketServiceImpl implements AppMarketService {
 
         // 转换数据
         for (AppCategoryVO category : categoryTreeList) {
-            // 忽略所有分类
-            if ("ALL".equals(category.getCode())) {
-                continue;
-            }
-
             // 获取当前分类下的应用列表
             List<AppMarketRespVO> marketList = appMap.getOrDefault(category.getCode(), Lists.newArrayList());
             CollectionUtil.emptyIfNull(category.getChildren()).stream().map(item -> appMap.getOrDefault(item.getCode(), Lists.newArrayList())).forEach(marketList::addAll);
@@ -153,7 +148,6 @@ public class AppMarketServiceImpl implements AppMarketService {
             if (marketList.isEmpty()) {
                 continue;
             }
-
             // 转换数据
             AppMarketGroupCategoryRespVO categoryResponse = new AppMarketGroupCategoryRespVO();
             categoryResponse.setName(category.getName());
