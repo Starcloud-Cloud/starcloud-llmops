@@ -31,6 +31,13 @@ public interface AppDictionaryService {
     List<AppCategoryVO> categoryTree();
 
     /**
+     * 热门搜索应用市场应用名称列表
+     *
+     * @return 热门搜索应用市场应用名称列表
+     */
+    List<String> hotSearchMarketAppNameList();
+
+    /**
      * 示例提示集合
      *
      * @return 示例提示集合

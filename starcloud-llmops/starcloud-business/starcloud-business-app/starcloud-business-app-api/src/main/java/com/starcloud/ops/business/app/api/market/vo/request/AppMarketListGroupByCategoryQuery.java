@@ -27,10 +27,10 @@ public class AppMarketListGroupByCategoryQuery implements Serializable {
     private static final long serialVersionUID = -862237836706122710L;
 
     /**
-     * 是否查询热门应用
+     * 是否热门应用
      */
     @Schema(description = "是否查询热门应用")
-    private Boolean isSearchHot;
+    private Boolean isHot;
 
 
 }

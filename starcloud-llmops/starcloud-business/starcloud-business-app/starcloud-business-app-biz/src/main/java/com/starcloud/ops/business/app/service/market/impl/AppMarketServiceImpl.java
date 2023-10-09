@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
@@ -41,14 +42,11 @@ import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
-import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,32 +102,70 @@ public class AppMarketServiceImpl implements AppMarketService {
      */
     @Override
     public List<AppMarketGroupCategoryRespVO> listGroupByCategory(AppMarketListGroupByCategoryQuery query) {
-        // todo 查询热门搜索的应用
+        List<AppMarketGroupCategoryRespVO> result = Lists.newArrayList();
 
-        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
-        LambdaQueryWrapper<AppMarketDO> queryMapper = appMarketMapper.queryMapper(Boolean.TRUE);
-        queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
-        queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
-        String local = LocaleContextHolder.getLocale().toString();
-        String language = LanguageEnum.ZH_CN.getCode().equals(local) ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
+        // 查询应用市场列表
+        AppMarketListQuery appMarketListQuery = new AppMarketListQuery();
+        appMarketListQuery.setModel(AppModelEnum.COMPLETION.name());
+        List<AppMarketDO> appMarketList = appMarketMapper.defaultListMarketApp(appMarketListQuery);
 
-        // 先按照语言排序，再按照使用量排序
-        queryMapper.last("ORDER BY CASE WHEN language = '" + language + "' THEN 0 ELSE 1 END, usage_count DESC, view_count Desc, create_time DESC");
-        List<AppMarketDO> appMarketList = appMarketMapper.selectList(queryMapper);
-        Map<String, List<AppMarketRespVO>> appMap = CollectionUtil.emptyIfNull(appMarketList).stream()
-                .map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.groupingBy(AppMarketRespVO::getCategory));
+        // 是否查询热门搜索的应用
+        if (query.getIsHot()) {
+            List<String> nameList = appDictionaryService.hotSearchMarketAppNameList();
+            if (CollectionUtil.isNotEmpty(nameList)) {
+                LambdaQueryWrapper<AppMarketDO> hotSearchListWrapper = appMarketMapper.queryMapper(Boolean.TRUE);
+                hotSearchListWrapper.in(AppMarketDO::getName, nameList);
+                List<AppMarketDO> hotSearchList = appMarketMapper.selectList(hotSearchListWrapper);
+                if (CollectionUtil.isNotEmpty(hotSearchList)) {
+                    AppMarketGroupCategoryRespVO hotSearchResponse = new AppMarketGroupCategoryRespVO();
+                    hotSearchResponse.setName("热门");
+                    hotSearchResponse.setCode("HOT");
+                    hotSearchResponse.setParentCode("ROOT");
+                    hotSearchResponse.setIcon("hot");
+                    hotSearchResponse.setAppList(hotSearchList.stream().map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.toList()));
+                    result.add(hotSearchResponse);
+                }
+            }
+        }
 
-        return CollectionUtil.emptyIfNull(categoryList).stream().map(item -> {
-            AppMarketGroupCategoryRespVO response = new AppMarketGroupCategoryRespVO();
-            response.setName(item.getName());
-            response.setCode(item.getCode());
-            response.setIcon(item.getIcon());
-            response.setImage(item.getImage());
-            response.setParentCode(item.getParentCode());
-            response.setAppList(appMap.getOrDefault(item.getCode(), Collections.emptyList()));
-            return response;
-        }).collect(Collectors.toList());
+        // 如果为空，直接返回
+        if (CollectionUtil.isEmpty(appMarketList)) {
+            return result;
+        }
 
+        // 按照类别分组
+        Map<String, List<AppMarketRespVO>> appMap = CollectionUtil.emptyIfNull(appMarketList).parallelStream().map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.groupingBy(AppMarketRespVO::getCategory));
+
+        // 目前是两层树，二级分类。
+        List<AppCategoryVO> categoryTreeList = appDictionaryService.categoryTree();
+
+        // 转换数据
+        for (AppCategoryVO category : categoryTreeList) {
+            // 忽略所有分类
+            if ("ALL".equals(category.getCode())) {
+                continue;
+            }
+
+            // 获取当前分类下的应用列表
+            List<AppMarketRespVO> marketList = appMap.getOrDefault(category.getCode(), Lists.newArrayList());
+            CollectionUtil.emptyIfNull(category.getChildren()).stream().map(item -> appMap.getOrDefault(item.getCode(), Lists.newArrayList())).forEach(marketList::addAll);
+            // 如果为空，忽略
+            if (marketList.isEmpty()) {
+                continue;
+            }
+
+            // 转换数据
+            AppMarketGroupCategoryRespVO categoryResponse = new AppMarketGroupCategoryRespVO();
+            categoryResponse.setName(category.getName());
+            categoryResponse.setCode(category.getCode());
+            categoryResponse.setParentCode(category.getParentCode());
+            categoryResponse.setIcon(category.getIcon());
+            categoryResponse.setImage(category.getImage());
+            categoryResponse.setAppList(marketList);
+            result.add(categoryResponse);
+        }
+
+        return result;
     }
 
     /**
