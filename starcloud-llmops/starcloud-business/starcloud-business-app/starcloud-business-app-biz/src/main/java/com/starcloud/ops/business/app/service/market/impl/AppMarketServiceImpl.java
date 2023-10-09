@@ -110,7 +110,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         List<AppMarketDO> appMarketList = appMarketMapper.defaultListMarketApp(appMarketListQuery);
 
         // 是否查询热门搜索的应用
-        if (query.getIsSearchHot()) {
+        if (query.getIsHot()) {
             List<String> nameList = appDictionaryService.hotSearchMarketAppNameList();
             if (CollectionUtil.isNotEmpty(nameList)) {
                 LambdaQueryWrapper<AppMarketDO> hotSearchListWrapper = appMarketMapper.queryMapper(Boolean.TRUE);
