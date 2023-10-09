@@ -191,20 +191,12 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         Long tenantId = TenantContextHolder.getTenantId();
         String creator = datasets.getCreator();
 
-        Integer reduce = segmentDOS.stream().map(DocumentSegmentDO::getWordCount).reduce(0, Integer::sum);
-        UserBenefitsInfoResultVO userBenefits = userBenefitsService.getUserBenefits(Long.valueOf(creator));
-        Optional<UserBenefitsBaseResultVO> baseResultVO = userBenefits.getBenefits().stream().filter(b -> BenefitsTypeEnums.TOKEN.getCode().equals(b.getType())).findFirst();
-        if (!baseResultVO.isPresent()) {
-            log.warn("{}  token 权益为空", creator);
-            throw exception(USER_BENEFITS_NOT_ADEQUATE, creator, reduce / 10 , 0);
-        } else {
-            Long totalNum = baseResultVO.get().getTotalNum();
-            // 每个字符预估 1.5个token ，   embedding价格按 1/15 计算
-            if (reduce / 10 > totalNum) {
-                log.warn("{}  token 权益为不足，size={}，tokens={}", creator, reduce, totalNum);
-                throw exception(USER_BENEFITS_NOT_ADEQUATE, creator, reduce / 10 , totalNum);
-            }
+        try {
+            userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), Long.valueOf(creator));
+        } catch (Exception e) {
+            throw exception(USER_BENEFITS_NOT_ADEQUATE, creator);
         }
+
         CountDownLatch countDownLatch = new CountDownLatch(segmentDOS.size());
         AtomicInteger atomicInteger = new AtomicInteger(0);
 
@@ -431,10 +423,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
             log.warn("获取缓存embedding失败", e);
         }
         try {
-            userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), Long.valueOf(reqDTO.getUserId()));
             EmbeddingDetail embeddingDetail = basicEmbedding.embedText(reqDTO.getContent());
-            userBenefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(),
-                    embeddingDetail.getTotalTokens() / 15, Long.valueOf(reqDTO.getUserId()), null);
             redisTemplate.boundValueOps(hash).set(JSONUtil.toJsonStr(embeddingDetail), 1, TimeUnit.DAYS);
             reqDTO.setTextHash(hash);
             reqDTO.setWordCount(reqDTO.getContent().length());

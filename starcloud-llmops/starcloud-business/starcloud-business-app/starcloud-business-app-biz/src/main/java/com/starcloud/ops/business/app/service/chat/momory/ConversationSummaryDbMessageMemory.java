@@ -325,7 +325,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         });
 
         //结构太深，无法把messageID 返回出去，所以在这里处理权益
-        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()), Long.valueOf(logVo.getCreator()), logVo.getUid());
+        Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
+        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(llmParams.getOrDefault("model", "").toString()), Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
     private void createChatFunctionMessage(String message, AIMessage aiMessage) {
@@ -348,7 +349,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
 
-        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()) * 3, Long.valueOf(logVo.getCreator()), logVo.getUid());
+        Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
+        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(llmParams.getOrDefault("model", "").toString()), Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
 
@@ -469,7 +471,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
 
-        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()) * 3, Long.valueOf(logVo.getCreator()), logVo.getUid());
+        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(llmParams.getOrDefault("model", "").toString()), Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
 
@@ -628,6 +630,11 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         return messageTokens > maxTokens;
     }
 
+
+    private Long computationalPower(String modelType) {
+        ModelTypeEnum modelTypeEnum = TokenCalculator.fromName(modelType);
+        return ModelTypeEnum.GPT_3_5_TURBO.equals(modelTypeEnum) ? 1L : 30L;
+    }
 
     /**
      * @param result

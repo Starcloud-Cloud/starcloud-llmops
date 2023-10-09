@@ -197,7 +197,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @JSONField(serialize = false)
     protected JsonData doExecute(ChatRequestVO request) {
 
-        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
+        this.allowExpendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), request.getUserId());
 
         return executeChat(request, request.getUserId());
     }
