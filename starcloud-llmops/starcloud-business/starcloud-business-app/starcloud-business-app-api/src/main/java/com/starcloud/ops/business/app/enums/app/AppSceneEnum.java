@@ -129,6 +129,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     public static final List<AppSceneEnum> GENERATE_RECORD_BASE_SCENES = Arrays.asList(
             WEB_ADMIN,
             WEB_MARKET,
+            CHAT_MARKET,
             WEB_IMAGE,
             IMAGE_UPSCALING,
             IMAGE_REMOVE_BACKGROUND,
