@@ -2,10 +2,8 @@ package com.starcloud.ops.business.open.controller.admin;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.open.controller.admin.vo.request.AddFriendReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.request.WeChatBindReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.response.WeChatBindRespVO;
-import com.starcloud.ops.business.open.controller.admin.vo.response.WecomGroupRespVO;
 import com.starcloud.ops.business.open.service.WechatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.List;
 
 @RequestMapping("/llm/wechat/bind")
 @RestController

@@ -24,7 +24,7 @@ public class WeChatBindReqVO {
 
     @Schema(description = "微信 开发者id")
     @NotBlank(message = "开发者id 不能为空")
-    private String wxAppId;
+    private String appId;
 
     @Schema(description = "微信 开发者密码")
     @NotBlank(message = "开发者密码 不能为空")

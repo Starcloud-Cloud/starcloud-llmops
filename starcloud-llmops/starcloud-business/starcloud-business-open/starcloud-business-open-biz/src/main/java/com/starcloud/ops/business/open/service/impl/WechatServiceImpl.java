@@ -89,10 +89,10 @@ public class WechatServiceImpl implements WechatService {
     @Override
     public WeChatBindRespVO bindWxAccount(WeChatBindReqVO reqVO) {
         // 校验是否已绑定公共号
-        validExist(reqVO.getWxAppId());
+        validExist(reqVO.getAppId());
         AppPublishChannelReqVO channelReqVO = new AppPublishChannelReqVO();
         WeChatAccountChannelConfigDTO channelConfigDTO = new WeChatAccountChannelConfigDTO();
-        channelConfigDTO.setWxAppId(reqVO.getWxAppId());
+        channelConfigDTO.setWxAppId(reqVO.getAppId());
         channelConfigDTO.setName(reqVO.getName());
         channelReqVO.setName(reqVO.getName());
         channelReqVO.setStatus(StateEnum.ENABLE.getCode());
@@ -100,7 +100,7 @@ public class WechatServiceImpl implements WechatService {
         channelReqVO.setPublishUid(reqVO.getPublishUid());
         channelReqVO.setType(AppPublishChannelEnum.WX_MP.getCode());
         channelReqVO.setConfig(channelConfigDTO);
-        channelReqVO.setMediumUid(reqVO.getWxAppId());
+        channelReqVO.setMediumUid(reqVO.getAppId());
         appPublishChannelService.create(channelReqVO);
 
         List<DictDataDO> dictDataList = dictDataService.getDictDataList(WECHAT_APP);
@@ -108,18 +108,18 @@ public class WechatServiceImpl implements WechatService {
         DictDataDO callbackUrl = dictMap.get("callback_url").get(0);
         List<String> whitelist = dictMap.get("white_list").stream().map(DictDataDO::getValue).collect(Collectors.toList());
         WeChatBindRespVO weChatBindRespVO = new WeChatBindRespVO();
-        weChatBindRespVO.setUrl(callbackUrl.getValue() + reqVO.getWxAppId());
+        weChatBindRespVO.setUrl(callbackUrl.getValue() + reqVO.getAppId());
         weChatBindRespVO.setToken(IdUtil.fastSimpleUUID());
         weChatBindRespVO.setWhitelist(whitelist);
         weChatBindRespVO.setEncryption(false);
 
-        MpAccountDO mpAccountDO = mpAccountService.getAccountFromCache(reqVO.getWxAppId());
+        MpAccountDO mpAccountDO = mpAccountService.getAccountFromCache(reqVO.getAppId());
         if (mpAccountDO == null) {
             MpAccountCreateReqVO mpAccountCreateReqVO = new MpAccountCreateReqVO();
             mpAccountCreateReqVO.setAccount(reqVO.getAccount());
             mpAccountCreateReqVO.setName(reqVO.getName());
             mpAccountCreateReqVO.setToken(weChatBindRespVO.getToken());
-            mpAccountCreateReqVO.setAppId(reqVO.getWxAppId());
+            mpAccountCreateReqVO.setAppId(reqVO.getAppId());
             mpAccountCreateReqVO.setAppSecret(reqVO.getAppSecret());
             mpAccountCreateReqVO.setAesKey(weChatBindRespVO.getEncodingAesKey());
             Long account = mpAccountService.createAccount(mpAccountCreateReqVO);
