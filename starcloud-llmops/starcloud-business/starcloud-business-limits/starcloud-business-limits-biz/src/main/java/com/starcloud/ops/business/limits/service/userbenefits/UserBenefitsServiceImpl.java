@@ -415,7 +415,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             userLevelEnums = UserLevelEnums.PRO;
         } else if (securityFrameworkService.hasRole(UserLevelEnums.PLUS.getRoleCode())) {
             userLevelEnums = UserLevelEnums.PLUS;
-        } else {
+        } else if (securityFrameworkService.hasRole(UserLevelEnums.BASIC.getRoleCode())){
+            userLevelEnums = UserLevelEnums.BASIC;
+        }else{
             userLevelEnums = UserLevelEnums.FREE;
         }
         userBenefitsInfoResultVO.setUserLevel(userLevelEnums.getCode().toLowerCase());
