@@ -15,6 +15,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
+import com.starcloud.ops.business.app.api.channel.dto.BaseChannelConfigDTO;
 import com.starcloud.ops.business.app.api.channel.dto.WeChatAccountChannelConfigDTO;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
@@ -43,11 +44,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USELESS_INSUFFICIENT;
@@ -87,21 +89,10 @@ public class WechatServiceImpl implements WechatService {
     private MpAccountService mpAccountService;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public WeChatBindRespVO bindWxAccount(WeChatBindReqVO reqVO) {
         // 校验是否已绑定公共号
         validExist(reqVO.getAppId());
-        AppPublishChannelReqVO channelReqVO = new AppPublishChannelReqVO();
-        WeChatAccountChannelConfigDTO channelConfigDTO = new WeChatAccountChannelConfigDTO();
-        channelConfigDTO.setWxAppId(reqVO.getAppId());
-        channelConfigDTO.setName(reqVO.getName());
-        channelReqVO.setName(reqVO.getName());
-        channelReqVO.setStatus(StateEnum.ENABLE.getCode());
-        channelReqVO.setAppUid(reqVO.getAppUid());
-        channelReqVO.setPublishUid(reqVO.getPublishUid());
-        channelReqVO.setType(AppPublishChannelEnum.WX_MP.getCode());
-        channelReqVO.setConfig(channelConfigDTO);
-        channelReqVO.setMediumUid(reqVO.getAppId());
-        appPublishChannelService.create(channelReqVO);
 
         List<DictDataDO> dictDataList = dictDataService.getDictDataList(WECHAT_APP);
         Map<String, List<DictDataDO>> dictMap = dictDataList.stream().collect(Collectors.groupingBy(DictDataDO::getLabel));
@@ -122,12 +113,30 @@ public class WechatServiceImpl implements WechatService {
             mpAccountCreateReqVO.setAppId(reqVO.getAppId());
             mpAccountCreateReqVO.setAppSecret(reqVO.getAppSecret());
             mpAccountCreateReqVO.setAesKey(weChatBindRespVO.getEncodingAesKey());
-            Long account = mpAccountService.createAccount(mpAccountCreateReqVO);
-            weChatBindRespVO.setMpAccountId(account);
+            Long accountId = mpAccountService.createAccount(mpAccountCreateReqVO);
+            weChatBindRespVO.setMpAccountId(accountId);
         } else {
             weChatBindRespVO.setMpAccountId(mpAccountDO.getId());
             weChatBindRespVO.setToken(mpAccountDO.getToken());
         }
+        AppPublishChannelReqVO channelReqVO = new AppPublishChannelReqVO();
+        WeChatAccountChannelConfigDTO channelConfigDTO = new WeChatAccountChannelConfigDTO();
+        channelConfigDTO.setWxAppId(reqVO.getAppId());
+        channelConfigDTO.setName(reqVO.getName());
+        channelConfigDTO.setAccount(reqVO.getAccount());
+        channelConfigDTO.setAppSecret(reqVO.getAppSecret());
+        channelConfigDTO.setToken(weChatBindRespVO.getToken());
+        channelConfigDTO.setAccountId(weChatBindRespVO.getMpAccountId());
+
+        channelReqVO.setName(reqVO.getName());
+        channelReqVO.setStatus(StateEnum.ENABLE.getCode());
+        channelReqVO.setAppUid(reqVO.getAppUid());
+        channelReqVO.setPublishUid(reqVO.getPublishUid());
+        channelReqVO.setType(AppPublishChannelEnum.WX_MP.getCode());
+        channelReqVO.setConfig(channelConfigDTO);
+        channelReqVO.setMediumUid(reqVO.getAppId());
+        appPublishChannelService.create(channelReqVO);
+
         return weChatBindRespVO;
     }
 
@@ -151,7 +160,7 @@ public class WechatServiceImpl implements WechatService {
             return;
         }
 
-        ChatRequestVO chatRequestVO = preChatRequest(request.getFromUser(),wxAppId,request.getQuery());
+        ChatRequestVO chatRequestVO = preChatRequest(request.getFromUser(), wxAppId, request.getQuery());
 
         // 限流
         AppLimitRequest limitRequest = AppLimitRequest.of(wxAppId, AppSceneEnum.MP.name(),
@@ -203,6 +212,24 @@ public class WechatServiceImpl implements WechatService {
     public Boolean isInternalAccount(String wxAppId) {
         DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
         return wxAppId.equals(dictDataDO.getValue());
+    }
+
+    @Override
+    public List<MpAccountDO> getAccount(String appUid) {
+        List<AppPublishChannelRespVO> channels = appPublishChannelService.getByAppUid(appUid);
+        if (CollectionUtils.isEmpty(channels)) {
+            return Collections.emptyList();
+        }
+        List<MpAccountDO> result = new ArrayList<>(channels.size());
+        for (AppPublishChannelRespVO channel : channels) {
+            BaseChannelConfigDTO config = channel.getConfig();
+            if (config instanceof WeChatAccountChannelConfigDTO) {
+                WeChatAccountChannelConfigDTO configDTO = (WeChatAccountChannelConfigDTO) config;
+                MpAccountDO accountFromCache = mpAccountService.getAccountFromCache(configDTO.getWxAppId());
+                result.add(accountFromCache);
+            }
+        }
+        return result;
     }
 
     private ChatRequestVO preChatRequest(String fromUser, String chatAppId, String query) {

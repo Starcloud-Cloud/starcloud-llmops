@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.open.service;
 
+import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
 import com.starcloud.ops.business.open.api.dto.WeChatRequestDTO;
 import com.starcloud.ops.business.open.controller.admin.vo.request.WeChatBindReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.response.WeChatBindRespVO;
+
+import java.util.List;
 
 public interface WechatService {
 
@@ -26,4 +29,11 @@ public interface WechatService {
      * @return
      */
     Boolean isInternalAccount(String wxAppId);
+
+    /**
+     * 绑定的帐号
+     * @param appUid
+     * @return
+     */
+    List<MpAccountDO> getAccount(String appUid);
 }
