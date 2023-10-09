@@ -1019,6 +1019,12 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 .map(UserBenefitsStrategyDO::getId)
                 .collect(Collectors.toList());
 
+        List<Long> basicConfigIds = payBenefitsStrategyS.stream()
+                .filter(obj -> obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_MONTH.getName()) ||
+                        obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_YEAR.getName()))
+                .map(UserBenefitsStrategyDO::getId)
+                .collect(Collectors.toList());
+
         for (UserBenefitsDO obj : resultList) {
             List<UserBenefitsDO> payBenefitsByUserId = getPayBenefitsByUserId(Long.valueOf(obj.getUserId()));
 
@@ -1027,7 +1033,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     .collect(Collectors.toList());
 
             if (plusBenefits.isEmpty()) {
-                log.info("用户【{}】权益过期，清除 PLUS角色", obj.getUserId());
+                log.info("用户【{}】权益高级版过期，清除 PLUS角色", obj.getUserId());
                 RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PLUS.getRoleCode());
                 permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
                 // 设置用户角色
@@ -1039,8 +1045,20 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     .collect(Collectors.toList());
 
             if (proBenefits.isEmpty()) {
-                log.info("用户【{}】权益过期，清除 PRO角色", obj.getUserId());
+                log.info("用户【{}】权益团队版过期，清除 PRO角色", obj.getUserId());
                 RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PRO.getRoleCode());
+                permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+                // 设置用户角色
+                permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+            }
+
+            List<UserBenefitsDO> basicBenefits = payBenefitsByUserId.stream()
+                    .filter(o -> basicConfigIds.contains(o.getStrategyId()))
+                    .collect(Collectors.toList());
+
+            if (basicBenefits.isEmpty()) {
+                log.info("用户【{}】权益基础版过期，清除 Basic角色", obj.getUserId());
+                RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.BASIC.getRoleCode());
                 permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
                 // 设置用户角色
                 permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
