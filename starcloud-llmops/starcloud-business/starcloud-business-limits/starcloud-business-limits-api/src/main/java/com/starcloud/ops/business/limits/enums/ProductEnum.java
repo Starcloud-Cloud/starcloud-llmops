@@ -20,14 +20,14 @@ public enum ProductEnum {
             UserLevelEnums.FREE, null, null),
 
     AI_BASIC_MONTH("basic_month", "魔法ai-基础版-月付", 5900, "基础版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PLUS, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_MONTH),
+            UserLevelEnums.BASIC, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_MONTH),
     AI_PLUS_MONTH("plus_month", "魔法ai-高级版-月付", 9900, "高级版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.PLUS, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PLUS_MONTH),
     AI_PRO_MONTH("pro_month", "魔法ai-团队版-月付", 49900, "团队版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.PRO, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PRO_MONTH),
 
     AI_BASIC_YEAR("basic_year", "魔法ai-基础版-月付", 59900, "基础版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PRO, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_YEAR),
+            UserLevelEnums.BASIC, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_YEAR),
     AI_PLUS_YEAR("plus_year", "魔法ai-高级版-年付", 99900, "高级版-年付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.PLUS, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_PLUS_YEAR),
     AI_PRO_YEAR("pro_year", "魔法ai-团队版-年付", 499900, "团队版-年付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
