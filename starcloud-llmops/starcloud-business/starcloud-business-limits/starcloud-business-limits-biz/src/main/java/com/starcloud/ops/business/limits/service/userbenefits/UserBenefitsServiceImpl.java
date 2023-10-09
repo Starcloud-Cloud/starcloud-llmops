@@ -735,8 +735,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     List<UserBenefitsListResultVO> userBenefitsListResultVOS = new ArrayList<>();
 
                     // 添加Token相关属性
-                    String tokenDisplayName = BenefitsTypeEnums.TOKEN.getDisplayName(LocaleContextHolder.getLocale());
-                    userBenefitsListResultVOS.add(new UserBenefitsListResultVO(tokenDisplayName, BenefitsTypeEnums.TOKEN.getCode(), userBenefitsDO.getTokenCountInit()));
+                    String tokenDisplayName = BenefitsTypeEnums.COMPUTATIONAL_POWER.getDisplayName(LocaleContextHolder.getLocale());
+                    userBenefitsListResultVOS.add(new UserBenefitsListResultVO(tokenDisplayName, BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), userBenefitsDO.getComputationalPowerInit()));
 
                     // 添加Image相关属性
                     String imageDisplayName = BenefitsTypeEnums.IMAGE.getDisplayName(LocaleContextHolder.getLocale());
