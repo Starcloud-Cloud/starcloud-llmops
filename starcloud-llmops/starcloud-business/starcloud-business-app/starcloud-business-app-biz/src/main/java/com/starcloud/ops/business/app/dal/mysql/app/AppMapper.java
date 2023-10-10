@@ -42,11 +42,12 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         // 构建查询条件
         LambdaQueryWrapper<AppDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.likeRight(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
+        wrapper.eq(StringUtils.isNotBlank(query.getCategory()), AppDO::getCategory, query.getCategory());
         wrapper.ne(AppDO::getSource, AppSourceEnum.WX_WP.name());
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             wrapper.eq(AppDO::getModel, AppModelEnum.CHAT.name());
         } else {
-            wrapper.ne(AppDO::getModel, AppModelEnum.CHAT.name());
+            wrapper.eq(AppDO::getModel, AppModelEnum.COMPLETION.name());
         }
         wrapper.orderByDesc(AppDO::getCreateTime);
         return this.selectPage(PageUtil.page(query), wrapper);
