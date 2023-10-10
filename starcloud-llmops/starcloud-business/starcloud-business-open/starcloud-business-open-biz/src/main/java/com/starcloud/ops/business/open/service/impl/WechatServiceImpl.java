@@ -232,6 +232,17 @@ public class WechatServiceImpl implements WechatService {
         return result;
     }
 
+    @Override
+    public void delete(String uid) {
+        AppPublishChannelRespVO publishChannelRespVO = appPublishChannelService.get(uid);
+        appPublishChannelService.delete(uid);
+        BaseChannelConfigDTO config = publishChannelRespVO.getConfig();
+        if (config instanceof WeChatAccountChannelConfigDTO) {
+            WeChatAccountChannelConfigDTO configDTO = (WeChatAccountChannelConfigDTO) config;
+            mpAccountService.deleteAccount(configDTO.getAccountId());
+        }
+    }
+
     private ChatRequestVO preChatRequest(String fromUser, String chatAppId, String query) {
         DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
         String appId = MpContextHolder.getAppId();

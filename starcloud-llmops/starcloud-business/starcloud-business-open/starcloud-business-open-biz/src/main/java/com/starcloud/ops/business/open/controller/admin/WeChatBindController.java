@@ -5,6 +5,8 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.mp.controller.admin.account.vo.MpAccountRespVO;
 import cn.iocoder.yudao.module.mp.convert.account.MpAccountConvert;
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
+import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.open.controller.admin.vo.request.WeChatBindReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.response.WeChatBindRespVO;
 import com.starcloud.ops.business.open.service.WechatService;
@@ -13,6 +15,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -42,6 +45,13 @@ public class WeChatBindController {
     public CommonResult<List<MpAccountRespVO>> getAccount(@PathVariable("appUid") String appUid) {
         List<MpAccountDO> wxAccount = wechatService.getAccount(appUid);
         return success(MpAccountConvert.INSTANCE.convertList(wxAccount));
+    }
+
+    @PostMapping("/delete/{uid}")
+    @Operation(summary = "删除绑定微信群", description = "删除绑定微信群")
+    public CommonResult<Boolean> delete(@PathVariable("uid") String uid) {
+        wechatService.delete(uid);
+        return CommonResult.success(true);
     }
 
 }

@@ -36,4 +36,11 @@ public interface WechatService {
      * @return
      */
     List<MpAccountDO> getAccount(String appUid);
+
+    /**
+     * 删除微信公共号
+     *
+     * @param uid
+     */
+    void delete(String uid);
 }
