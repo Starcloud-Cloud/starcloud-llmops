@@ -20,7 +20,7 @@ public interface AppConstants {
     String APP_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_APP_CATEGORY_TYPE";
 
     /**
-     * 应用市场应用字典类型
+     * 热门应用分类字典类型
      */
     String APP_HOT_SEARCH_MARKET = "STAR_CLOUD_LLM_APP_HOT_SEARCH_MARKET";
 
