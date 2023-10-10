@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -58,6 +59,8 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         appConversation.setCreator(request.getCreator());
         appConversation.setUpdater(request.getUpdater());
         appConversation.setTenantId(request.getTenantId());
+        appConversation.setCreateTime(LocalDateTime.now());
+        appConversation.setUpdateTime(LocalDateTime.now());
         appConversationMapper.insert(appConversation);
         // 返回
         return appConversation.getId();
@@ -71,6 +74,7 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     @Override
     public void updateAppLogConversation(LogAppConversationUpdateReqVO request) {
         LogAppConversationDO updateObj = LogAppConversationConvert.INSTANCE.convert(request);
+        updateObj.setUpdateTime(LocalDateTime.now());
         appConversationMapper.update(updateObj, Wrappers.lambdaQuery(LogAppConversationDO.class).eq(LogAppConversationDO::getUid, request.getUid()));
     }
 
@@ -82,7 +86,10 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
      */
     @Override
     public void updateAppLogConversationStatus(String uid, String status) {
-        appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class).eq(LogAppConversationDO::getUid, uid).set(LogAppConversationDO::getStatus, status));
+        appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class)
+                .eq(LogAppConversationDO::getUid, uid)
+                .set(LogAppConversationDO::getStatus, status)
+                .set(LogAppConversationDO::getUpdateTime, LocalDateTime.now()));
     }
 
     /**
@@ -96,7 +103,8 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
                 .eq(LogAppConversationDO::getUid, request.getUid())
                 .set(LogAppConversationDO::getStatus, request.getStatus())
                 .set(LogAppConversationDO::getErrorCode, request.getErrorCode())
-                .set(LogAppConversationDO::getErrorMsg, request.getErrorMsg()));
+                .set(LogAppConversationDO::getErrorMsg, request.getErrorMsg())
+                .set(LogAppConversationDO::getUpdateTime, LocalDateTime.now()));
     }
 
     /**

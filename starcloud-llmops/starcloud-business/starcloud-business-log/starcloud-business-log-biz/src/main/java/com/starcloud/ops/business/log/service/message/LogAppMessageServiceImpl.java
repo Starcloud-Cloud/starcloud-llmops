@@ -84,6 +84,7 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         validateAppMessageExists(request.getId());
         // 更新
         LogAppMessageDO updateObj = LogAppMessageConvert.INSTANCE.convert(request);
+        updateObj.setUpdateTime(LocalDateTime.now());
         logAppMessageMapper.updateById(updateObj);
     }
 

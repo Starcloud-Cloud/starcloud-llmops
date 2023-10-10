@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
@@ -34,6 +35,11 @@ public class UserUtils {
     public static final String SELF = "SELF";
 
     /**
+     * 管理员角色
+     */
+    public static final String ADMIN_ROLE = "MOFAAI_ADMIN";
+
+    /**
      * 部门权限
      */
     private static final PermissionApi PERMISSION_API = SpringUtil.getBean(PermissionApi.class);
@@ -42,6 +48,20 @@ public class UserUtils {
      * 用户服务
      */
     private static final AdminUserService ADMIN_USER_SERVICE = SpringUtil.getBean(AdminUserService.class);
+
+    /**
+     * 安全框架服务
+     */
+    private static final SecurityFrameworkService SECURITY_FRAMEWORK_SERVICE = SpringUtil.getBean(SecurityFrameworkService.class);
+
+    /**
+     * 判断是否是管理员
+     *
+     * @return
+     */
+    public static Boolean isAdmin() {
+        return SECURITY_FRAMEWORK_SERVICE.hasRole(ADMIN_ROLE);
+    }
 
     /**
      * 标识用户

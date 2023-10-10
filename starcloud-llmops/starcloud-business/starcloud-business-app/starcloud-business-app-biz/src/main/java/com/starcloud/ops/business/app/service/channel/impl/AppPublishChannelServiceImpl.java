@@ -19,6 +19,7 @@ import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.channel.AppPublishChannelMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
@@ -411,8 +412,8 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
      *
      * @return 配置信息唯一标识
      */
-    private String generateRandom(final int count) {
-        return RandomStringUtils.random(count, Boolean.TRUE, Boolean.TRUE);
+    private static String generateRandom(final int count) {
+        return RandomStringUtils.random(count, AppConstants.CHARS).trim();
     }
 
 }

@@ -123,8 +123,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected Long getRunUserId(AppExecuteReqVO req) {
-        return SecurityFrameworkUtils.getLoginUserId();
-//        return Long.valueOf(this.getCreator());
+        if (!AppSceneEnum.inLoginUserIdScene(AppSceneEnum.valueOf(req.getScene()))) {
+            return Long.valueOf(this.getCreator());
+        }
+
+        return super.getRunUserId(req);
     }
 
     /**

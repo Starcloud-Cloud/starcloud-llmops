@@ -210,6 +210,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         // 利用 stream 进行递归，尽可能的效率高
         return categoryList.stream()
                 .filter(category -> parentCode.equalsIgnoreCase(category.getParentCode()))
+                .filter(category -> !"ALL".equalsIgnoreCase(category.getCode()))
                 .peek(category -> category.setChildren(categoryListToTree(categoryList, category.getCode())))
                 .collect(Collectors.toList());
     }

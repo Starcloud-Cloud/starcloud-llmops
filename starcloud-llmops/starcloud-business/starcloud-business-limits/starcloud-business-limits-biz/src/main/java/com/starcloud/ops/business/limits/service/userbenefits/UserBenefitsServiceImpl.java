@@ -304,16 +304,20 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserBenefitsDO userBenefitsDO = new UserBenefitsDO();
         userBenefitsDO.setUid(IdUtil.fastSimpleUUID());
         userBenefitsDO.setUserId(String.valueOf(userId));
+
         userBenefitsDO.setStrategyId(String.valueOf(benefitsStrategy.getId()));
+
         userBenefitsDO.setAppRemaining(benefitsStrategy.getAppCount());
         userBenefitsDO.setDatasetRemaining(benefitsStrategy.getDatasetCount());
         userBenefitsDO.setImageRemaining(benefitsStrategy.getImageCount());
         userBenefitsDO.setTokenRemaining(benefitsStrategy.getTokenCount());
+        userBenefitsDO.setComputationalPowerRemaining(benefitsStrategy.getComputationalPowerCount());
 
         userBenefitsDO.setAppCountInit(benefitsStrategy.getAppCount());
         userBenefitsDO.setDatasetCountInit(benefitsStrategy.getDatasetCount());
         userBenefitsDO.setImageCountInit(benefitsStrategy.getImageCount());
         userBenefitsDO.setTokenCountInit(benefitsStrategy.getTokenCount());
+        userBenefitsDO.setComputationalPowerInit(benefitsStrategy.getComputationalPowerCount());
 
         userBenefitsDO.setCreator(String.valueOf(userId));
         userBenefitsDO.setUpdater(String.valueOf(userId));
@@ -382,14 +386,16 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         long totalImageCountUsed = 0;
         long totalTokenCountUsed = 0;
-        long totalAppCountUsed = 0;
         long totalDatasetCountUsed = 0;
+        long totalAppCountUsed = 0;
+        long totalComputationalPowerRemaining = 0;
 
 
         long totalImageCount = 0;
         long totalTokenCount = 0;
         long totalAppCount = 0;
         long totalDatasetCount = 0;
+        long totalComputationalPowerCount = 0;
 
         if (CollUtil.isNotEmpty(resultList)) {
 
@@ -398,11 +404,13 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 totalDatasetCountUsed += userBenefits.getDatasetRemaining();
                 totalImageCountUsed += userBenefits.getImageRemaining();
                 totalTokenCountUsed += userBenefits.getTokenRemaining();
+                totalComputationalPowerRemaining += userBenefits.getComputationalPowerRemaining();
 
                 totalAppCount += userBenefits.getAppCountInit();
                 totalDatasetCount += userBenefits.getDatasetCountInit();
                 totalImageCount += userBenefits.getImageCountInit();
                 totalTokenCount += userBenefits.getTokenCountInit();
+                totalComputationalPowerCount += userBenefits.getComputationalPowerInit();
             }
 
         }
@@ -428,7 +436,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         //  1.暂时取消应用和数据集显示
         //  2.显示顺序 令牌>图片>应用>数据集
 
-        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.TOKEN, totalTokenCountUsed, totalTokenCount));
+        // benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.TOKEN, totalTokenCountUsed, totalTokenCount));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.COMPUTATIONAL_POWER, totalComputationalPowerRemaining, totalComputationalPowerCount));
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.IMAGE, totalImageCountUsed, totalImageCount));
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.APP, 0, userLevelEnums.getApp()));
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.BOT, 0, userLevelEnums.getBot()));
@@ -735,8 +744,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     List<UserBenefitsListResultVO> userBenefitsListResultVOS = new ArrayList<>();
 
                     // 添加Token相关属性
-                    String tokenDisplayName = BenefitsTypeEnums.TOKEN.getDisplayName(LocaleContextHolder.getLocale());
-                    userBenefitsListResultVOS.add(new UserBenefitsListResultVO(tokenDisplayName, BenefitsTypeEnums.TOKEN.getCode(), userBenefitsDO.getTokenCountInit()));
+                    String tokenDisplayName = BenefitsTypeEnums.COMPUTATIONAL_POWER.getDisplayName(LocaleContextHolder.getLocale());
+                    userBenefitsListResultVOS.add(new UserBenefitsListResultVO(tokenDisplayName, BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), userBenefitsDO.getComputationalPowerInit()));
 
                     // 添加Image相关属性
                     String imageDisplayName = BenefitsTypeEnums.IMAGE.getDisplayName(LocaleContextHolder.getLocale());
@@ -1010,6 +1019,12 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 .map(UserBenefitsStrategyDO::getId)
                 .collect(Collectors.toList());
 
+        List<Long> basicConfigIds = payBenefitsStrategyS.stream()
+                .filter(obj -> obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_MONTH.getName()) ||
+                        obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_YEAR.getName()))
+                .map(UserBenefitsStrategyDO::getId)
+                .collect(Collectors.toList());
+
         for (UserBenefitsDO obj : resultList) {
             List<UserBenefitsDO> payBenefitsByUserId = getPayBenefitsByUserId(Long.valueOf(obj.getUserId()));
 
@@ -1018,7 +1033,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     .collect(Collectors.toList());
 
             if (plusBenefits.isEmpty()) {
-                log.info("用户【{}】权益过期，清除 PLUS角色", obj.getUserId());
+                log.info("用户【{}】权益高级版过期，清除 PLUS角色", obj.getUserId());
                 RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PLUS.getRoleCode());
                 permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
                 // 设置用户角色
@@ -1030,8 +1045,20 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     .collect(Collectors.toList());
 
             if (proBenefits.isEmpty()) {
-                log.info("用户【{}】权益过期，清除 PRO角色", obj.getUserId());
-                RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PLUS.getRoleCode());
+                log.info("用户【{}】权益团队版过期，清除 PRO角色", obj.getUserId());
+                RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PRO.getRoleCode());
+                permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+                // 设置用户角色
+                permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+            }
+
+            List<UserBenefitsDO> basicBenefits = payBenefitsByUserId.stream()
+                    .filter(o -> basicConfigIds.contains(o.getStrategyId()))
+                    .collect(Collectors.toList());
+
+            if (basicBenefits.isEmpty()) {
+                log.info("用户【{}】权益基础版过期，清除 Basic角色", obj.getUserId());
+                RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.BASIC.getRoleCode());
                 permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
                 // 设置用户角色
                 permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());

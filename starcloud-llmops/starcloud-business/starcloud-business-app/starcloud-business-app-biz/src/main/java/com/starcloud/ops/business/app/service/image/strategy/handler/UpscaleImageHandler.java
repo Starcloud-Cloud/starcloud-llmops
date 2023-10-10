@@ -52,7 +52,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      */
     @Override
     public void handleRequest(UpscaleImageRequest request) {
-        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求开始");
+        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求开始: 请求参数：{}", JSONUtil.toJsonStr(request));
         if (StringUtils.isBlank(request.getEngine())) {
             request.setEngine(EngineEnum.ESRGAN_V1_X2PLUS.getCode());
         }
@@ -107,10 +107,12 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         // 放大倍数不为空，说明用户是使用放大倍数放大图片
         if (Objects.nonNull(request.getMagnification())) {
             // 校验图片大小
-            validateImageSize(request.getOriginalWidth(), request.getOriginalHeight(), engineEnum, Boolean.TRUE);
             BigDecimal magnification = new BigDecimal(String.valueOf(request.getMagnification()));
-            request.setWidth(new BigDecimal(String.valueOf(request.getOriginalWidth())).multiply(magnification).intValue());
-            request.setHeight(new BigDecimal(String.valueOf(request.getOriginalHeight())).multiply(magnification).intValue());
+            int width = new BigDecimal(String.valueOf(request.getOriginalWidth())).multiply(magnification).intValue();
+            int height = new BigDecimal(String.valueOf(request.getOriginalHeight())).multiply(magnification).intValue();
+            validateImageSize(width, height, engineEnum, Boolean.TRUE);
+            request.setWidth(width);
+            request.setHeight(height);
         } else if (!Objects.isNull(request.getWidth()) && !Objects.isNull(request.getHeight())) {
             // 用户使用宽高放大图片
             validateImageSize(request.getWidth(), request.getHeight(), engineEnum, Boolean.TRUE);
@@ -120,9 +122,8 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 请检查参数, 宽高和放大倍数不能同时为空");
         }
 
-        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求结束");
+        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求结束: 请求参数 {}：", JSONUtil.toJsonStr(request));
 
-        request.setInitImageBinary(imageBytes);
     }
 
     /**
@@ -133,11 +134,13 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      */
     @Override
     public UpscaleImageResponse handle(UpscaleImageRequest request) {
-        log.info("UpscaleImageHandler handle: 处理放大图片请求开始...");
+        log.info("UpscaleImageHandler handle: 处理放大图片请求开始：请求参数：{}", JSONUtil.toJsonStr(request));
         VSearchUpscaleImageRequest upscaleImageRequest = new VSearchUpscaleImageRequest();
         upscaleImageRequest.setEngine(request.getEngine());
         upscaleImageRequest.setPrompt(request.getPrompt());
-        String image = Base64.getEncoder().encodeToString(request.getInitImageBinary());
+        // 获取原始图像二进制数据
+        byte[] imageBytes = ImageUploadUtils.getContent(request.getInitImage());
+        String image = Base64.getEncoder().encodeToString(imageBytes);
         upscaleImageRequest.setInitImage(ImageUtils.handlerBase64Image(image));
         upscaleImageRequest.setHeight(request.getHeight());
         upscaleImageRequest.setCfgScale(request.getCfgScale());
@@ -145,6 +148,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         upscaleImageRequest.setSeed(request.getSeed());
         List<VSearchImage> vSearchImages = vSearchService.upscaleImage(upscaleImageRequest);
         AppValidate.notEmpty(vSearchImages, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
+
         UpscaleImageResponse response = new UpscaleImageResponse();
         response.setEngine(request.getEngine());
         response.setOriginalUrl(request.getInitImage());
@@ -196,21 +200,21 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         if (isOut) {
             if (EngineEnum.ESRGAN_V1_X2PLUS.equals(engine)) {
                 if (multiply.compareTo(new BigDecimal("4194304")) > 0) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 图片大小不能超过 4194304 像素");
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片放大大小不能超过 4194304(2048 x 2048) 像素");
                 }
             } else if (EngineEnum.STABLE_DIFFUSION_X4_LATENT_UPSCALER.equals(engine)) {
                 if (multiply.compareTo(new BigDecimal("6291456")) > 0) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 图片大小不能超过 6291456 像素");
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片放大大小不能超过 6291456(512 x 768) 像素");
                 }
             }
         } else {
             if (EngineEnum.ESRGAN_V1_X2PLUS.equals(engine)) {
                 if (multiply.compareTo(new BigDecimal("1048576")) > 0) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 图片大小不能超过 1048576 像素");
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片放大大小不能超过 1048576(1024 x 1024) 像素");
                 }
             } else if (EngineEnum.STABLE_DIFFUSION_X4_LATENT_UPSCALER.equals(engine)) {
                 if (multiply.compareTo(new BigDecimal("393216")) > 0) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 图片大小不能超过 393216 像素");
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片放大大小不能超过 393216(2048 x 3072) 像素");
                 }
             }
         }
