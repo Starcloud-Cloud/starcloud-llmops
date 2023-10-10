@@ -51,6 +51,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_CATEGORY_NONSUPPORT_FIRST = new ErrorCode(300100151, "不支持的选择一级分类，请检查后重试（{}）！");
 
+    /**
+     * 应用类目不存在
+     */
+    ErrorCode APP_CATEGORY_NON_EXISTENT = new ErrorCode(300100152, "应用类目不存在，请检查后重试（{}）！");
+
     // ========== 应用市场错误码 300 200 xxx ==========
 
     /**
@@ -278,7 +283,32 @@ public interface ErrorCodeConstants {
     /**
      * 生成图片失败, feign 调用失败
      */
-    ErrorCode EXECUTE_IMAGE_FEIGN_FAILURE = new ErrorCode(310400400, "生成图片失败：{}");
+    ErrorCode EXECUTE_IMAGE_FEIGN_FAILURE = new ErrorCode(310400400, "生成图片失败：请求参数错误！");
+
+    /**
+     * 生成图片失败, feign 调用失败， 无 Api Key，无法进行访问
+     */
+    ErrorCode EXECUTE_IMAGE_FEIGN_401_FAILURE = new ErrorCode(310400401, "生成图片失败：缺少api密钥，无法进行访问。请联系管理员！");
+
+    /**
+     * 生成图片失败, feign 调用失败， 余额不足！请购买点数！
+     */
+    ErrorCode EXECUTE_IMAGE_FEIGN_402_FAILURE = new ErrorCode(310400402, "生成图片失败：您的帐户没有剩余积分，您可以在您的帐户页面购买更多积分！请联系管理员！");
+
+    /**
+     * 生成图片失败, feign 调用失败， 无效或已撤销的api密钥！
+     */
+    ErrorCode EXECUTE_IMAGE_FEIGN_403_FAILURE = new ErrorCode(310400403, "生成图片失败：无效或已撤销的api密钥。请联系管理员！");
+
+    /**
+     * 生成图片失败, feign 调用失败， 当前请求过多！
+     */
+    ErrorCode EXECUTE_IMAGE_FEIGN_429_FAILURE = new ErrorCode(310400429, "生成图片失败：当前请求过多！。请稍后重试或联系管理员！");
+
+    /**
+     * 生成图片失败, feign 调用失败， 余额不足！请购买点数！
+     */
+    ErrorCode EXECUTE_IMAGE_FEIGN_500_FAILURE = new ErrorCode(310400450, "生成图片失败：系统异常！。请稍后重试或联系管理员！");
 
     /**
      * 创建图片实体失败
@@ -368,5 +398,6 @@ public interface ErrorCodeConstants {
     ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400010, "{} 实际的配置类型是 {}");
 
     ErrorCode CHAT_CONFIG_IS_REPEAT = new ErrorCode(300400011, "{}已经存在 , {}");
+
 
 }

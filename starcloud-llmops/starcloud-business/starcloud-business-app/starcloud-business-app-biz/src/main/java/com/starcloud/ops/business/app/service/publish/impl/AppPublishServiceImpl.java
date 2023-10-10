@@ -26,7 +26,6 @@ import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -478,7 +476,7 @@ public class AppPublishServiceImpl implements AppPublishService {
     private List<String> buildImages(String category) {
 
         if (StringUtils.isBlank(category)) {
-            return Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NON_EXISTENT);
         }
 
         List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
@@ -493,7 +491,7 @@ public class AppPublishServiceImpl implements AppPublishService {
             return images;
         }
 
-        return Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE);
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, category);
     }
 
     /**
