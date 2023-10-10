@@ -74,8 +74,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MARKET_APP_NON_EXISTENT;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_NON_EXISTENT;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MARKET_APP_NON_EXISTENT;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT;
 
 /**
@@ -187,30 +187,30 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.APP_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.APP_ANALYSIS_SCENES_NAME));
+            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isAppAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
             }
         }
 
         // 应用模型为 CHAT 时，说明为聊天场景下的应用分析
         if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME));
+            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isChatAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不支持！"));
             }
         }
 
         // 执行场景不为空的情况
         if (StringUtils.isNotBlank(query.getFromScene())) {
-            // 如果执行场景不是 WEB_MARKET，则不需要查询应用市场执行信息。如果是 WEB_MARKET，则需要查询应用市场执行信息。
-            if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene())) {
-                query.setMarketUid(null);
-            } else {
+            // 如果是应用市场支持的场景，则需要查询应用市场执行信息。
+            if (AppSceneEnum.isMarketScene(AppSceneEnum.valueOf(query.getFromScene()))) {
                 String marketUid = getMarketUidByApp(app);
                 // 未获取到应用市场 UID，则直接返回空数据。不需要再走数据库查询
                 if (StringUtils.isBlank(marketUid)) {
                     return Collections.emptyList();
                 }
                 query.setMarketUid(marketUid);
+            } else {
+                query.setMarketUid(null);
             }
         } else {
             // 执行场景为空的情况，需要查询应用市场执行信息。
@@ -307,30 +307,31 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.APP_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.APP_ANALYSIS_SCENES_NAME));
+            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isAppAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
             }
         }
 
         // 应用模型为 CHAT 时，说明为聊天场景下的应用分析
         if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME));
+            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isChatAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不支持！"));
             }
         }
 
         // 执行场景不为空的情况
         if (StringUtils.isNotBlank(query.getFromScene())) {
-            // 如果执行场景不是 WEB_MARKET，则不需要查询应用市场执行信息。如果是 WEB_MARKET，则需要查询应用市场执行信息。
-            if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene())) {
-                query.setMarketUid(null);
-            } else {
+            // 如果是应用市场支持的场景，则需要查询应用市场执行信息。
+            if (AppSceneEnum.isMarketScene(AppSceneEnum.valueOf(query.getFromScene()))) {
                 String marketUid = getMarketUidByApp(app);
                 // 未获取到应用市场 UID，则直接返回空数据。不需要再走数据库查询
                 if (StringUtils.isBlank(marketUid)) {
                     return new PageResult<>(Collections.emptyList(), 0L);
                 }
                 query.setMarketUid(marketUid);
+            } else {
+                // 如果执行场景不是应用市场的场景，则不需要查询应用市场执行信息。
+                query.setMarketUid(null);
             }
         } else {
             // 执行场景为空的情况，需要查询应用市场执行信息。
@@ -593,7 +594,7 @@ public class AppLogServiceImpl implements AppLogService {
         // 处理响应结果
         BaseImageResponse baseImageResponse = transformImageMessage(message);
         if (Objects.isNull(baseImageResponse) || CollectionUtil.isEmpty(baseImageResponse.getImages())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "图片生成消息不存在"));
+            throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "生成失败，图片信息为空！无法查看详情！"));
         }
 
         ImageLogMessageRespVO imageLogMessageResponse = new ImageLogMessageRespVO();
