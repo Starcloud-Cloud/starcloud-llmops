@@ -142,17 +142,50 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 应用分析场景
      */
-    public static final List<AppSceneEnum> APP_ANALYSIS_SCENES = Arrays.asList(WEB_ADMIN, WEB_MARKET, SHARE_WEB, SHARE_IFRAME, SHARE_JS, SHARE_API, OPTIMIZE_PROMPT);
+    public static final List<AppSceneEnum> APP_ANALYSIS_SCENES = Arrays.asList(
+            WEB_ADMIN,
+            WEB_MARKET,
+            SHARE_WEB,
+            SHARE_IFRAME,
+            SHARE_JS,
+            SHARE_API,
+            OPTIMIZE_PROMPT
+    );
 
     /**
-     * 应用分析场景名称
+     * 是否是应用分析场景
+     *
+     * @param scene 场景
+     * @return 是否是应用分析场景
      */
-    public static final List<String> APP_ANALYSIS_SCENES_NAME = APP_ANALYSIS_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
+    public static Boolean isAppAnalysisScene(AppSceneEnum scene) {
+        return APP_ANALYSIS_SCENES.contains(scene);
+    }
 
     /**
      * 聊天分析场景
      */
-    public static final List<AppSceneEnum> CHAT_ANALYSIS_SCENES = Arrays.asList(WEB_ADMIN, WEB_MARKET, SHARE_WEB, SHARE_IFRAME, SHARE_JS, SHARE_API, WECOM_GROUP, MP, CHAT_TEST);
+    public static final List<AppSceneEnum> CHAT_ANALYSIS_SCENES = Arrays.asList(
+            WEB_ADMIN,
+            CHAT_MARKET,
+            SHARE_WEB,
+            SHARE_IFRAME,
+            SHARE_JS,
+            SHARE_API,
+            WECOM_GROUP,
+            MP,
+            CHAT_TEST
+    );
+
+    /**
+     * 是否是聊天分析场景
+     *
+     * @param scene 场景
+     * @return 是否是聊天分析场景
+     */
+    public static Boolean isChatAnalysisScene(AppSceneEnum scene) {
+        return CHAT_ANALYSIS_SCENES.contains(scene);
+    }
 
     /**
      * 图片支持的场景
@@ -168,25 +201,51 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     );
 
     /**
+     * 应用市场场景
+     */
+    public static final List<AppSceneEnum> MARKET_SCENES = Arrays.asList(
+            WEB_MARKET,
+            OPTIMIZE_PROMPT,
+            CHAT_MARKET
+    );
+
+    /**
+     * 是否是应用市场场景
+     *
+     * @param scene 场景
+     * @return 是否是应用市场场景
+     */
+    public static Boolean isMarketScene(AppSceneEnum scene) {
+        return MARKET_SCENES.contains(scene);
+    }
+
+    /**
+     * 登录用户态的场景
+     */
+    public static final List<AppSceneEnum> LOGIN_USER_SCENE = Arrays.asList(
+            WEB_ADMIN,
+            WEB_MARKET,
+            CHAT_MARKET,
+            CHAT_TEST,
+            OPTIMIZE_PROMPT,
+            WEB_IMAGE,
+            IMAGE_UPSCALING,
+            IMAGE_REMOVE_BACKGROUND,
+            IMAGE_REPLACE_BACKGROUND,
+            IMAGE_REMOVE_TEXT,
+            IMAGE_SKETCH,
+            IMAGE_VARIANTS
+
+    );
+
+    /**
      * 只获取当前登录用户态的 场景
      *
      * @return 场景列表
      */
     public static Boolean inLoginUserIdScene(AppSceneEnum sceneEnum) {
-
-        List<AppSceneEnum> loginUserScene = Arrays.asList(
-                AppSceneEnum.WEB_ADMIN,
-                AppSceneEnum.WEB_MARKET,
-                AppSceneEnum.CHAT_TEST
-        );
-
-        return loginUserScene.contains(sceneEnum);
+        return LOGIN_USER_SCENE.contains(sceneEnum);
     }
-
-    /**
-     * 聊天分析场景名称
-     */
-    public static final List<String> CHAT_ANALYSIS_SCENES_NAME = CHAT_ANALYSIS_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
 
     /**
      * 构造函数

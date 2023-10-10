@@ -78,4 +78,9 @@ public interface AppConstants {
      * ROOT
      */
     String ROOT = "ROOT";
+
+    /**
+     * 生成字符串的范围
+     */
+    String CHARS = "ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 }
