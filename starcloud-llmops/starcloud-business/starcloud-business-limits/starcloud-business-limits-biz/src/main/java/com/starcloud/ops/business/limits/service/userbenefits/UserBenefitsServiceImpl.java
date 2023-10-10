@@ -33,7 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -382,8 +385,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         long totalAppCount = 0;
         long totalDatasetCount = 0;
 
-        List<UserBenefitsStrategyDO> monthBenefitsStrategyDOS = null;
-        List<UserBenefitsStrategyDO> yearBenefitsStrategyDOS = null;
         if (CollUtil.isNotEmpty(resultList)) {
 
             for (UserBenefitsDO userBenefits : resultList) {
@@ -398,19 +399,15 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 totalTokenCount += userBenefits.getTokenCountInit();
             }
 
-            List<String> strategyIds = resultList.stream().map(userBenefitsDO -> String.valueOf(userBenefitsDO.getId())).collect(Collectors.toList());
 
-            monthBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName());
-            yearBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName());
         }
-
 
         userBenefitsInfoResultVO.setQueryTime(now);
         UserLevelEnums userLevelEnums;
         // 根据用户权限判断用户等级
-        if (securityFrameworkService.hasRole("MOFAAI_PRO") && (CollUtil.isNotEmpty(monthBenefitsStrategyDOS) || CollUtil.isNotEmpty(yearBenefitsStrategyDOS))) {
+        if (securityFrameworkService.hasRole(UserLevelEnums.PRO.getRoleCode())) {
             userLevelEnums = UserLevelEnums.PRO;
-        } else if (securityFrameworkService.hasRole("MOFAAI_PLUS")) {
+        } else if (securityFrameworkService.hasRole(UserLevelEnums.PLUS.getRoleCode())) {
             userLevelEnums = UserLevelEnums.PLUS;
         } else {
             userLevelEnums = UserLevelEnums.FREE;
