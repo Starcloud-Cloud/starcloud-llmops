@@ -47,7 +47,7 @@ public class WeChatSpecialHandler implements WxMpMessageHandler {
         if (WeChatClickTypeEnum.SPECIAL_SIGN_IN.getCode().equalsIgnoreCase(wxMessage.getEventKey())) {
             // 签到
             Boolean success = userBenefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName(), userDO.getId());
-            String msg = success ? "签到新增权益成功" : "签到新增权益失败";
+            String msg = success ? "签到新增权益成功" : "今日已签到";
             return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
         }
 
