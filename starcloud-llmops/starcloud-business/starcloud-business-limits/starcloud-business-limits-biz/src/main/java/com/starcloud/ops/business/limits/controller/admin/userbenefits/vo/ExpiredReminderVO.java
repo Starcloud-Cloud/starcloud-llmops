@@ -12,7 +12,7 @@ public class ExpiredReminderVO {
 
 
 
-    private UserBenefits userLevel;
+    private UserLevelVO userLevel;
 
     private UserBenefits userBenefits;
 

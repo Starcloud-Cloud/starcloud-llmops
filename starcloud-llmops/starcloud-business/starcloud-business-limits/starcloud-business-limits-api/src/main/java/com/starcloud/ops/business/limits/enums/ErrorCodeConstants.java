@@ -65,7 +65,7 @@ public interface ErrorCodeConstants {
 
     ErrorCode USER_BENEFITS_NOT_ADEQUATE = new ErrorCode(2008002009, "当前用户token不足 userId = {}");
     ErrorCode USER_TOKEN_NOT_ADEQUATE = new ErrorCode(2008002010, "令牌不足，请充值");
-    ErrorCode USER_COMPUTATIONAL_POWER_NOT_ADEQUATE = new ErrorCode(2008002011, "魔力值不足，请充值");
+    ErrorCode USER_COMPUTATIONAL_POWER_NOT_ADEQUATE = new ErrorCode(2008002011, "魔法豆不足，请充值");
     ErrorCode USER_IMAGE_NOT_ADEQUATE = new ErrorCode(2008002012, "图片不足，请充值");
     ErrorCode USER_BENEFITS_OPERATION_FAIL_NO_USER = new ErrorCode(2008002013, "权益操作失败，缺少用户信息");
 
