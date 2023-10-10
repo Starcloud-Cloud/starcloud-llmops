@@ -913,7 +913,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     public ExpiredReminderVO getBenefitsExpired() {
         ExpiredReminderVO expiredReminderVO = new ExpiredReminderVO();
 
-        UserBenefits userLevel = new UserBenefits();
+        UserLevelVO userLevel = new UserLevelVO();
         UserBenefits userBenefits = new UserBenefits();
         UserTokenExpiredReminderVO tokenExpiredReminderVO = new UserTokenExpiredReminderVO();
         // 获取用户 7 天内过期的所有权益
@@ -937,6 +937,17 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
 
         if (userLevelDO != null && LocalDateTimeUtil.isIn(userLevelDO.getExpirationTime(), now, now.plusDays(7))) {
+            // 根据用户权限判断用户等级
+            if (securityFrameworkService.hasRole(UserLevelEnums.PRO.getRoleCode())) {
+                userLevel.setUserLevel(UserLevelEnums.PRO.getCode());
+            } else if (securityFrameworkService.hasRole(UserLevelEnums.PLUS.getRoleCode())) {
+                userLevel.setUserLevel(UserLevelEnums.PLUS.getCode());
+            } else if (securityFrameworkService.hasRole(UserLevelEnums.BASIC.getRoleCode())){
+                userLevel.setUserLevel(UserLevelEnums.BASIC.getCode());
+            }else{
+                userLevel.setUserLevel(UserLevelEnums.FREE.getCode());
+            }
+
             userLevel.setName(userBenefitsStrategyService.getUserBenefitsStrategy(Long.valueOf(userLevelDO.getStrategyId())).getStrategyType());
             userLevel.setExpirationTime(userLevelDO.getExpirationTime());
         }
@@ -947,11 +958,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         List<UserBenefitsStrategyDO> noPayBenefitsStrategy = userBenefitsStrategyService.getNoPayBenefitsStrategy();
         List<Long> noPayBenefitsStrategyId = noPayBenefitsStrategy.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
 
-        long sum = resultList.stream().mapToLong(UserBenefitsDO::getTokenRemaining).sum();
+        long sum = resultList.stream().mapToLong(UserBenefitsDO::getComputationalPowerRemaining).sum();
 
-        tokenExpiredReminderVO.setName("令牌不足提醒");
-        tokenExpiredReminderVO.setIsReminder(sum > 3000 ? false : true);
-        tokenExpiredReminderVO.setExpiredNum(sum > 3000 ? 0 : sum);
+        tokenExpiredReminderVO.setName(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode());
+        tokenExpiredReminderVO.setIsReminder(sum > 20 ? false : true);
+        tokenExpiredReminderVO.setExpiredNum(sum > 20 ? 0 : sum);
         expiredReminderVO.setTokenExpiredReminderVO(tokenExpiredReminderVO);
 
         UserBenefitsDO userBenefitsDO = resultList.stream()
