@@ -63,10 +63,10 @@ public class RecommendAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Article"));
-        app.setCategory("SEO_WRITING");
+        app.setCategory("SEO_WRITING_SEOA");
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
-        app.setIcon("SEO_WRITING_SEOA");
+        app.setIcon("seo");
         app.setWorkflowConfig(RecommendConfigFactory.defGenerateArticleConfig());
         return app;
     }

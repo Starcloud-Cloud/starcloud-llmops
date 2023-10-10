@@ -41,6 +41,15 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_STEP_NAME_DUPLICATE = new ErrorCode(300100140, "应用步骤名称重复，请检查后重试（{}）！");
 
+    /**
+     * 不支持的应用分类
+     */
+    ErrorCode APP_CATEGORY_NONSUPPORT = new ErrorCode(300100150, "不支持的应用分类，请检查后重试（{}）！");
+
+    /**
+     * 不支持的选择一级分类
+     */
+    ErrorCode APP_CATEGORY_NONSUPPORT_FIRST = new ErrorCode(300100151, "不支持的选择一级分类，请检查后重试（{}）！");
 
     // ========== 应用市场错误码 300 200 xxx ==========
 
@@ -322,7 +331,7 @@ public interface ErrorCodeConstants {
      * 文件类型不是图片
      */
     ErrorCode FILE_TYPE_NOT_IMAGES = new ErrorCode(300500009, "The file type is not a picture");
-    
+
     /**
      * 聊天应用自动编排异常
      */
@@ -359,6 +368,5 @@ public interface ErrorCodeConstants {
     ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400010, "{} 实际的配置类型是 {}");
 
     ErrorCode CHAT_CONFIG_IS_REPEAT = new ErrorCode(300400011, "{}已经存在 , {}");
-
 
 }
