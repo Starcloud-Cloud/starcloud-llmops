@@ -235,6 +235,9 @@ public class WechatServiceImpl implements WechatService {
     @Override
     public void delete(String uid) {
         AppPublishChannelRespVO publishChannelRespVO = appPublishChannelService.get(uid);
+        if (publishChannelRespVO == null) {
+            return;
+        }
         appPublishChannelService.delete(uid);
         BaseChannelConfigDTO config = publishChannelRespVO.getConfig();
         if (config instanceof WeChatAccountChannelConfigDTO) {
