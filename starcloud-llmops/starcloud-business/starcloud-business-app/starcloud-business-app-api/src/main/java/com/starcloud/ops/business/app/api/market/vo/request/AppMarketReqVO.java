@@ -52,16 +52,16 @@ public class AppMarketReqVO implements Serializable {
     private String language;
 
     /**
+     * 应用类别
+     */
+    @Schema(description = "应用类别", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String category;
+
+    /**
      * 应用标签
      */
     @Schema(description = "应用标签")
     private List<String> tags;
-
-    /**
-     * 应用类别
-     */
-    @Schema(description = "应用类别", requiredMode = Schema.RequiredMode.REQUIRED)
-    private List<String> categories;
 
     /**
      * 应用场景

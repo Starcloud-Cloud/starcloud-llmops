@@ -73,8 +73,8 @@ public class AppDO extends TenantBaseDO {
     /**
      * 应用类别，多个以逗号分割
      */
-    @TableField("categories")
-    private String categories;
+    @TableField("category")
+    private String category;
 
     /**
      * 应用场景，多个以逗号分割

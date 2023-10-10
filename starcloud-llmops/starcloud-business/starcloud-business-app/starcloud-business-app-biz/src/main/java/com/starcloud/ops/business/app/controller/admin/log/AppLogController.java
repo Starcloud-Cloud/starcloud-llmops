@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.controller.admin.log;
 
-
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
@@ -68,7 +67,6 @@ public class AppLogController {
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<List<LogAppMessageStatisticsListVO>> statistics(@Valid @RequestBody AppLogMessageStatisticsListReqVO query) {
         return success(appLogService.listLogMessageStatistics(query));
-
     }
 
     @PostMapping("/statisticsByAppUid")
@@ -78,7 +76,6 @@ public class AppLogController {
     @PreAuthorize("@ss.hasPermission('log:app-conversation:query')")
     public CommonResult<List<LogAppMessageStatisticsListVO>> statisticsByAppUid(@Valid @RequestBody AppLogMessageStatisticsListUidReqVO query) {
         return success(appLogService.listLogMessageStatisticsByAppUid(query));
-
     }
 
     @PostMapping("/infoPage")

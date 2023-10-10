@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -16,6 +17,7 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
@@ -37,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 应用管理服务实现类
@@ -64,12 +67,23 @@ public class AppServiceImpl implements AppService {
     /**
      * 查询应用分类列表
      *
+     * @param isRoot 是否只根节点数据
      * @return 应用分类列表
      */
     @Override
-    public List<AppCategoryVO> categories() {
+    public List<AppCategoryVO> categoryList(Boolean isRoot) {
+        return appDictionaryService.categoryList(isRoot);
+    }
+
+    /**
+     * 查询应用分类列表
+     *
+     * @return 应用分类列表
+     */
+    @Override
+    public List<AppCategoryVO> categoryTree() {
         // 查询应用分类字典数据
-        return appDictionaryService.categories();
+        return appDictionaryService.categoryTree();
     }
 
     /**
@@ -134,7 +148,7 @@ public class AppServiceImpl implements AppService {
     @Override
     public AppRespVO get(String uid) {
         AppDO app = appMapper.get(uid, Boolean.FALSE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
         return AppConvert.INSTANCE.convertResponse(app);
     }
 
@@ -147,8 +161,8 @@ public class AppServiceImpl implements AppService {
     @Override
     public AppRespVO getSimple(String uid) {
         AppDO app = appMapper.get(uid, Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return AppConvert.INSTANCE.convertResponse(app,  Boolean.FALSE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
+        return AppConvert.INSTANCE.convertResponse(app, Boolean.FALSE);
     }
 
     /**
@@ -158,6 +172,18 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO create(AppReqVO request) {
+        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
+        Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
+        if (!categoryOptional.isPresent()) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
+        }
+        AppCategoryVO category = categoryOptional.get();
+        if (AppConstants.ROOT.equals(category.getParentCode())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
+        }
+        request.setIcon(category.getIcon());
+        request.setImages(Collections.singletonList(category.getImage()));
+
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.insert();
         return AppConvert.INSTANCE.convertResponse(appEntity);
@@ -170,6 +196,17 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO copy(AppReqVO request) {
+        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
+        Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
+        if (!categoryOptional.isPresent()) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
+        }
+        AppCategoryVO category = categoryOptional.get();
+        if (AppConstants.ROOT.equals(category.getParentCode())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
+        }
+        request.setIcon(category.getIcon());
+        request.setImages(Collections.singletonList(category.getImage()));
         request.setName(request.getName() + " - Copy");
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.insert();
@@ -183,6 +220,17 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO modify(AppUpdateReqVO request) {
+        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
+        Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
+        if (!categoryOptional.isPresent()) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
+        }
+        AppCategoryVO category = categoryOptional.get();
+        if (AppConstants.ROOT.equals(category.getParentCode())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
+        }
+        request.setIcon(category.getIcon());
+        request.setImages(Collections.singletonList(category.getImage()));
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
         appEntity.update();

@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.app.api.image.vo.request;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -46,13 +44,6 @@ public class UpscaleImageRequest extends BaseImageRequest {
      */
     @Schema(description = "初始化图像")
     private String initImage;
-
-    /**
-     * 初始化图像二进制
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private byte[] initImageBinary;
 
     /**
      * 放大倍数

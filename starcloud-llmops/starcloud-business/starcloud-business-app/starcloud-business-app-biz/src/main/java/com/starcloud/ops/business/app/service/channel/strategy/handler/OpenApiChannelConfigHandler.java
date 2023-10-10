@@ -32,11 +32,11 @@ public class OpenApiChannelConfigHandler extends AppPublishChannelConfigTemplate
         if (Objects.nonNull(config)) {
             // 校验 slug
             if (StringUtils.isBlank(config.getApiKey())) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_CONFIG_API_KEY_IS_REQUIRED);
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.CHANNEL_CONFIG_API_KEY_REQUIRED);
             }
             // 校验 configUid 和 slug 是否一致
             if (!generateApiKey(configUid).equals(config.getApiKey())) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PUBLISH_CHANNEL_UNKNOWN_ERROR);
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.CHANNEL_MEDIUM_UID_NE_SLUG);
             }
         }
     }

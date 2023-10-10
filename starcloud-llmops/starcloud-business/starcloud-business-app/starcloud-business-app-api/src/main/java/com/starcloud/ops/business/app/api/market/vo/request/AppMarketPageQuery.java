@@ -32,27 +32,27 @@ public class AppMarketPageQuery extends PageQuery {
     private String name;
 
     /**
+     * 应用类型
+     */
+    @Schema(description = "应用类型")
+    private String model;
+
+    /**
+     * 应用类别
+     */
+    @Schema(description = "应用类别")
+    private String category;
+
+    /**
      * 应用标签
      */
     @Schema(description = "应用标签")
     private List<String> tags;
 
     /**
-     * 应用分类
-     */
-    @Schema(description = "应用分类")
-    private List<String> categories;
-
-    /**
      * 应用场景
      */
     @Schema(description = "应用场景")
     private List<String> scenes;
-
-    /**
-     * 应用类型
-     */
-    @Schema(description = "应用类型")
-    private String model;
 
 }

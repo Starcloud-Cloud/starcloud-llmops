@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.image.vo.query.HistoryGenerateImagePageQuery;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
@@ -88,15 +89,25 @@ public class ImageServiceImpl implements ImageService {
      * @return 图片列表
      */
     @Override
-    public PageResult<GenerateImageResponse> historyGenerateImages(HistoryGenerateImagePageQuery query) {
+    public PageResult<BaseImageResponse> history(HistoryGenerateImagePageQuery query) {
         // 查询日志消息记录
-        Page<LogAppMessageDO> page = pageHistoryGenerateImageMessage(query);
+        Long loginUserId = WebFrameworkUtils.getLoginUserId();
+        LambdaQueryWrapper<LogAppMessageDO> messageWrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
+        messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer, LogAppMessageDO::getVariables);
+        messageWrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.IMAGE.name());
+        messageWrapper.eq(LogAppMessageDO::getFromScene, query.getScene());
+        messageWrapper.eq(LogAppMessageDO::getCreator, Long.toString(loginUserId));
+        if (AppSceneEnum.WEB_IMAGE.name().equals(query.getScene())) {
+            messageWrapper.eq(LogAppMessageDO::getStatus, LogStatusEnum.SUCCESS.name());
+        }
+        messageWrapper.orderByDesc(LogAppMessageDO::getCreateTime);
+        Page<LogAppMessageDO> page = logAppMessageMapper.selectPage(PageUtil.page(query), messageWrapper);
         List<LogAppMessageDO> records = page.getRecords();
         if (CollectionUtil.isEmpty(records)) {
             return new PageResult<>(Collections.emptyList(), page.getTotal());
         }
         // 处理图片消息数据
-        List<GenerateImageResponse> list = records.stream().map(ImageServiceImpl::buildHistoryResponse).filter(Objects::nonNull).collect(Collectors.toList());
+        List<BaseImageResponse> list = records.stream().map(ImageServiceImpl::buildHistoryResponse).filter(Objects::nonNull).collect(Collectors.toList());
         return new PageResult<>(list, page.getTotal());
     }
 
@@ -135,30 +146,12 @@ public class ImageServiceImpl implements ImageService {
     }
 
     /**
-     * 查询历史图片列表
-     *
-     * @return 图片列表
-     */
-    private Page<LogAppMessageDO> pageHistoryGenerateImageMessage(HistoryGenerateImagePageQuery query) {
-        Long loginUserId = WebFrameworkUtils.getLoginUserId();
-        LambdaQueryWrapper<LogAppMessageDO> messageWrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer, LogAppMessageDO::getAppConfig, LogAppMessageDO::getVariables);
-        messageWrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.IMAGE.name());
-        messageWrapper.eq(LogAppMessageDO::getFromScene, AppSceneEnum.WEB_IMAGE.name());
-        messageWrapper.eq(LogAppMessageDO::getCreator, Long.toString(loginUserId));
-        messageWrapper.eq(LogAppMessageDO::getStatus, LogStatusEnum.SUCCESS.name());
-        messageWrapper.eq(LogAppMessageDO::getDeleted, Boolean.FALSE);
-        messageWrapper.orderByDesc(LogAppMessageDO::getCreateTime);
-        return logAppMessageMapper.selectPage(PageUtil.page(query), messageWrapper);
-    }
-
-    /**
      * 构建历史图片响应
      *
      * @param message 日志消息
      * @return 历史图片响应
      */
-    private static GenerateImageResponse buildHistoryResponse(LogAppMessageDO message) {
+    private static BaseImageResponse buildHistoryResponse(LogAppMessageDO message) {
         // 如果没有结果，返回 null
         if (StringUtils.isBlank(message.getAnswer())) {
             return null;
@@ -166,7 +159,7 @@ public class ImageServiceImpl implements ImageService {
         // 新的数据结构
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(message.getAnswer(), GenerateImageResponse.class);
+            return objectMapper.readValue(message.getAnswer(), BaseImageResponse.class);
         } catch (Exception exception) {
             log.error("新结构数据序列化失败：尝试使用旧结构序列化图片日志消息数据：{}", exception.getMessage());
             try {

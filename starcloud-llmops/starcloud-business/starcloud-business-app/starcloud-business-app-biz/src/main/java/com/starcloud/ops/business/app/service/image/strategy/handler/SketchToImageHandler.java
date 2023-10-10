@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.SketchToImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.SketchToImageResponse;
@@ -15,12 +15,14 @@ import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageServic
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Objects;
@@ -68,9 +70,7 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
 
         // 调用草图生成图片接口
         ClipDropImage clipDropImage = clipDropImageService.sketchToImage(sketchToImageClipDropRequest);
-        if (Objects.isNull(clipDropImage)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "草图生成图片失败");
-        }
+        AppValidate.notNull(clipDropImage, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
         SketchToImageResponse response = new SketchToImageResponse();
         response.setOriginalUrl(url);
         response.setPrompt(request.getPrompt());
@@ -89,6 +89,10 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, SketchToImageRequest request, SketchToImageResponse response) {
+        messageRequest.setAnswerUnitPrice(ImageUtils.CD_PRICE);
+        if (Objects.nonNull(response) && CollectionUtil.isNotEmpty(response.getImages())) {
+            messageRequest.setTotalPrice(new BigDecimal("1.6").multiply(ImageUtils.CD_PRICE));
+        }
         messageRequest.setMessage(request.getPrompt());
         messageRequest.setAiModel("clip-drop");
     }

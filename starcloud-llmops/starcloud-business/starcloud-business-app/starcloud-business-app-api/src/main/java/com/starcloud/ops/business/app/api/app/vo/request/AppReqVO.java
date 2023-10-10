@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.List;
 
@@ -65,17 +64,17 @@ public class AppReqVO implements Serializable {
     private String source;
 
     /**
+     * 应用类别
+     */
+    @Schema(description = "应用类别", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "应用类别是必填的！")
+    private String category;
+
+    /**
      * 应用标签
      */
     @Schema(description = "应用标签")
     private List<String> tags;
-
-    /**
-     * 应用类别
-     */
-    @Schema(description = "应用类别", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotEmpty(message = "应用类别不能为空")
-    private List<String> categories;
 
     /**
      * 应用场景

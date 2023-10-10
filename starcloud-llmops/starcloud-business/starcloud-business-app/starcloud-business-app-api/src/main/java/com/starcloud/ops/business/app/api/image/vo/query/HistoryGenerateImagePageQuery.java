@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -20,5 +22,12 @@ import lombok.ToString;
 public class HistoryGenerateImagePageQuery extends PageQuery {
 
     private static final long serialVersionUID = -7294418406714001254L;
+
+    /**
+     * 执行场景
+     */
+    @Schema(description = "图片场景")
+    @NotBlank(message = "图片场景不能为空")
+    private String scene;
 
 }

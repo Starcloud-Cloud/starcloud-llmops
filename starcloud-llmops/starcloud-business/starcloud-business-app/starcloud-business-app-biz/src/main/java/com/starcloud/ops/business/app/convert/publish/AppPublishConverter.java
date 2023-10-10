@@ -38,7 +38,7 @@ public interface AppPublishConverter {
         appPublishDO.setName(appDO.getName());
         appPublishDO.setModel(appDO.getModel());
         appPublishDO.setVersion(AppConstants.DEFAULT_VERSION);
-        appPublishDO.setCategories(appDO.getCategories());
+        appPublishDO.setCategory(appDO.getCategory());
         appPublishDO.setAppInfo(JSONUtil.toJsonStr(appDO));
         appPublishDO.setDescription(appDO.getDescription());
         appPublishDO.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
@@ -61,7 +61,7 @@ public interface AppPublishConverter {
         appPublishResponse.setName(appPublish.getName());
         appPublishResponse.setModel(appPublish.getModel());
         appPublishResponse.setVersion(appPublish.getVersion());
-        appPublishResponse.setCategories(AppUtils.split(appPublish.getCategories()));
+        appPublishResponse.setCategory(appPublish.getCategory());
         appPublishResponse.setLanguage(appPublish.getLanguage());
         appPublishResponse.setSubmitterUser(UserUtils.getUsername(String.valueOf(appPublish.getUserId())));
         String appInfo = appPublish.getAppInfo();

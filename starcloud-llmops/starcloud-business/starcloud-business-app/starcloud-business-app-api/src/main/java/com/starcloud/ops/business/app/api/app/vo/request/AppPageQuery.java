@@ -42,18 +42,18 @@ public class AppPageQuery extends PageQuery {
      */
     @Schema(description = "应用类型")
     private String type;
-    
+
+    /**
+     * 应用类别
+     */
+    @Schema(description = "应用类别")
+    private String category;
+
     /**
      * 应用标签
      */
     @Schema(description = "应用标签")
     private List<String> tags;
-
-    /**
-     * 应用分类
-     */
-    @Schema(description = "应用分类")
-    private List<String> categories;
 
     /**
      * 应用场景

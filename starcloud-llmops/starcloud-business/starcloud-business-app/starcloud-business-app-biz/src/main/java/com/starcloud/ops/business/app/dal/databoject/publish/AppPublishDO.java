@@ -79,8 +79,8 @@ public class AppPublishDO extends TenantBaseDO {
     /**
      * 应用类别
      */
-    @TableField("categories")
-    private String categories;
+    @TableField("category")
+    private String category;
 
     /**
      * 语言

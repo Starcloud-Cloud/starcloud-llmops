@@ -56,7 +56,7 @@ public class AppFavoritePO implements Serializable {
     /**
      * 应用类别，多个以逗号分割
      */
-    private String categories;
+    private String category;
 
     /**
      * 应用场景，多个以逗号分割

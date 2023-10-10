@@ -129,11 +129,11 @@ public class AppContext {
     @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapper(String stepId) {
         // 校验 stepId 是否存在
-        AppValidate.notBlank(stepId, ErrorCodeConstants.APP_EXECUTE_STEP_ID_IS_REQUIRED);
+        AppValidate.notBlank(stepId, ErrorCodeConstants.EXECUTE_APP_STEP_ID_REQUIRED);
         // 获取应用配置信息
         WorkflowConfigEntity config = Optional.ofNullable(this.app)
                 .map(AppEntity::getWorkflowConfig)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_APP_CONFIG_IS_NULL));
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED));
         return config.getStepWrapper(stepId);
     }
 

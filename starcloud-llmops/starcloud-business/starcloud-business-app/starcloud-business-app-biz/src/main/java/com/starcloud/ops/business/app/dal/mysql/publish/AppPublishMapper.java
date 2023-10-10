@@ -131,7 +131,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
                 AppPublishDO::getName,
                 AppPublishDO::getModel,
                 AppPublishDO::getVersion,
-                AppPublishDO::getCategories,
+                AppPublishDO::getCategory,
                 AppPublishDO::getLanguage,
                 AppPublishDO::getAudit,
                 AppPublishDO::getCreator,

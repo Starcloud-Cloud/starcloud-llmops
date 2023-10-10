@@ -62,18 +62,17 @@ public class AppMarketRespVO implements Serializable {
     private String language;
 
     /**
+     * 应用类别
+     */
+    @Schema(description = "应用类别")
+    private String category;
+
+    /**
      * 应用标签，多个以逗号分割
      */
     @Schema(description = "应用标签，多个以逗号分割")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> tags;
-
-    /**
-     * 应用类别，多个以逗号分割
-     */
-    @Schema(description = "应用类别，多个以逗号分割")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<String> categories;
 
     /**
      * 应用场景，多个以逗号分割

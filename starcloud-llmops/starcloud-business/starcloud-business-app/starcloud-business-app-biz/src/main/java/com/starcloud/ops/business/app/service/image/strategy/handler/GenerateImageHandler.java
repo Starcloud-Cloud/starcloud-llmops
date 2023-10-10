@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
@@ -16,6 +15,7 @@ import com.starcloud.ops.business.app.feign.response.VSearchImage;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUtils;
+import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -99,9 +99,7 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         log.info("GenerateImageHandler handle: 处理生成图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
         VSearchImageRequest vSearchImageRequest = VSearchConvert.INSTANCE.convert(request);
         List<VSearchImage> imageList = vSearchService.generateImage(vSearchImageRequest);
-        if (CollectionUtil.isEmpty(imageList)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAIL, "生成图片失败");
-        }
+        AppValidate.notEmpty(imageList, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
         GenerateImageResponse response = new GenerateImageResponse();
         response.setPrompt(request.getPrompt());
         response.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.FALSE));
@@ -124,6 +122,10 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
      */
     @Override
     public void handleLogMessage(LogAppMessageCreateReqVO messageRequest, GenerateImageRequest request, GenerateImageResponse response) {
+        messageRequest.setAnswerUnitPrice(ImageUtils.SD_PRICE);
+        if (Objects.nonNull(response) && CollectionUtil.isNotEmpty(response.getImages())) {
+            messageRequest.setTotalPrice(ImageUtils.countAnswerCredits(request).multiply(ImageUtils.SD_PRICE));
+        }
         messageRequest.setMessage(request.getPrompt());
         messageRequest.setAiModel("stable-diffusion");
     }

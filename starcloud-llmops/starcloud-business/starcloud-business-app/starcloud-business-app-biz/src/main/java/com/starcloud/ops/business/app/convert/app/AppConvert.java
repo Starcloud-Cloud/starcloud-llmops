@@ -87,8 +87,8 @@ public interface AppConvert {
         appDO.setModel(appEntity.getModel());
         appDO.setType(appEntity.getType());
         appDO.setSource(appEntity.getSource());
+        appDO.setCategory(appEntity.getCategory());
         appDO.setTags(AppUtils.join(appEntity.getTags()));
-        appDO.setCategories(AppUtils.join(appEntity.getCategories()));
         appDO.setScenes(AppUtils.joinScenes(appEntity.getScenes()));
         appDO.setImages(AppUtils.join(appEntity.getImages()));
         appDO.setIcon(appEntity.getIcon());
@@ -154,8 +154,8 @@ public interface AppConvert {
         appEntity.setModel(app.getModel());
         appEntity.setType(app.getType());
         appEntity.setSource(app.getSource());
+        appEntity.setCategory(app.getCategory());
         appEntity.setTags(AppUtils.split(app.getTags()));
-        appEntity.setCategories(AppUtils.split(app.getCategories()));
         appEntity.setScenes(AppUtils.splitScenes(app.getScenes()));
         appEntity.setImages(AppUtils.split(app.getImages()));
         appEntity.setIcon(app.getIcon());
@@ -200,8 +200,8 @@ public interface AppConvert {
         appEntity.setModel(appMarket.getModel());
         appEntity.setType(AppTypeEnum.INSTALLED.name());
         appEntity.setSource(AppSourceEnum.WEB.name());
+        appEntity.setCategory(appMarket.getCategory());
         appEntity.setTags(AppUtils.split(appMarket.getTags()));
-        appEntity.setCategories(AppUtils.split(appMarket.getCategories()));
         appEntity.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
         appEntity.setImages(AppUtils.split(appMarket.getImages()));
         appEntity.setIcon(appMarket.getIcon());
@@ -225,7 +225,7 @@ public interface AppConvert {
         return appEntity;
     }
 
-    default AppEntity convertApp(AppRespVO respVO) {
+    default AppEntity convertAppEntity(AppRespVO respVO) {
         AppEntity appEntity = new AppEntity();
 
         appEntity.setUid(respVO.getUid());
@@ -233,8 +233,8 @@ public interface AppConvert {
         appEntity.setModel(respVO.getModel());
         appEntity.setType(respVO.getType());
         appEntity.setSource(respVO.getSource());
+        appEntity.setCategory(respVO.getCategory());
         appEntity.setTags(respVO.getTags());
-        appEntity.setCategories(respVO.getCategories());
         appEntity.setScenes(respVO.getScenes());
         appEntity.setImages(respVO.getImages());
         appEntity.setIcon(respVO.getIcon());
@@ -282,8 +282,8 @@ public interface AppConvert {
         appRespVO.setModel(app.getModel());
         appRespVO.setType(app.getType());
         appRespVO.setSource(app.getSource());
+        appRespVO.setCategory(app.getCategory());
         appRespVO.setTags(AppUtils.split(app.getTags()));
-        appRespVO.setCategories(AppUtils.split(app.getCategories()));
         appRespVO.setScenes(AppUtils.splitScenes(app.getScenes()));
         appRespVO.setImages(AppUtils.split(app.getImages()));
         appRespVO.setIcon(app.getIcon());
@@ -366,8 +366,8 @@ public interface AppConvert {
         appRespVO.setModel(appEntity.getModel());
         appRespVO.setType(appEntity.getType());
         appRespVO.setSource(appEntity.getSource());
+        appRespVO.setCategory(appEntity.getCategory());
         appRespVO.setTags(appEntity.getTags());
-        appRespVO.setCategories(appEntity.getCategories());
         appRespVO.setScenes(appEntity.getScenes());
         appRespVO.setImages(appEntity.getImages());
         appRespVO.setIcon(appEntity.getIcon());
@@ -408,8 +408,8 @@ public interface AppConvert {
         AppReqVO appReqVO = new AppReqVO();
         appReqVO.setName(appMarketDO.getName());
         appReqVO.setModel(appMarketDO.getModel());
+        appReqVO.setCategory(appMarketDO.getCategory());
         appReqVO.setTags(AppUtils.split(appMarketDO.getTags()));
-        appReqVO.setCategories(AppUtils.split(appMarketDO.getCategories()));
         appReqVO.setScenes(AppUtils.splitScenes(appMarketDO.getScenes()));
         appReqVO.setImages(AppUtils.split(appMarketDO.getImages()));
         appReqVO.setIcon(appMarketDO.getIcon());
