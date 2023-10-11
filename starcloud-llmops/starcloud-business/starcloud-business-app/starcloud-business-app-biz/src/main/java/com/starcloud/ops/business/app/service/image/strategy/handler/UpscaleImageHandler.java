@@ -92,8 +92,6 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
             }
             int width = image.getWidth();
             int height = image.getHeight();
-            // 校验图片大小
-            validateImageSize(width, height, engineEnum, Boolean.FALSE);
             request.setOriginalWidth(width);
             request.setOriginalHeight(height);
         } catch (IOException e) {
@@ -110,12 +108,10 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
             BigDecimal magnification = new BigDecimal(String.valueOf(request.getMagnification()));
             int width = new BigDecimal(String.valueOf(request.getOriginalWidth())).multiply(magnification).intValue();
             int height = new BigDecimal(String.valueOf(request.getOriginalHeight())).multiply(magnification).intValue();
-            validateImageSize(width, height, engineEnum, Boolean.TRUE);
             request.setWidth(width);
             request.setHeight(height);
         } else if (!Objects.isNull(request.getWidth()) && !Objects.isNull(request.getHeight())) {
             // 用户使用宽高放大图片
-            validateImageSize(request.getWidth(), request.getHeight(), engineEnum, Boolean.TRUE);
             request.setWidth(request.getWidth());
             request.setHeight(request.getHeight());
         } else {
@@ -135,6 +131,8 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
     @Override
     public UpscaleImageResponse handle(UpscaleImageRequest request) {
         log.info("UpscaleImageHandler handle: 处理放大图片请求开始：请求参数：{}", JSONUtil.toJsonStr(request));
+        validateImageSize(request.getOriginalWidth(), request.getOriginalHeight(), IEnumable.codeOf(request.getEngine(), EngineEnum.class), Boolean.FALSE);
+        validateImageSize(request.getWidth(), request.getHeight(), IEnumable.codeOf(request.getEngine(), EngineEnum.class), Boolean.TRUE);
         VSearchUpscaleImageRequest upscaleImageRequest = new VSearchUpscaleImageRequest();
         upscaleImageRequest.setEngine(request.getEngine());
         upscaleImageRequest.setPrompt(request.getPrompt());
