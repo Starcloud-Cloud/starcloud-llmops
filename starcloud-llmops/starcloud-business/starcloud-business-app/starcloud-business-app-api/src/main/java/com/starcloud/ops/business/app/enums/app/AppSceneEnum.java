@@ -30,7 +30,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * 图片应用场景入口
      */
-    WEB_IMAGE(3, "AI作图", "AI Draw"),
+    WEB_IMAGE(3, "AI自由绘图", "AI Draw"),
 
     /**
      * 分享页面场景入口
