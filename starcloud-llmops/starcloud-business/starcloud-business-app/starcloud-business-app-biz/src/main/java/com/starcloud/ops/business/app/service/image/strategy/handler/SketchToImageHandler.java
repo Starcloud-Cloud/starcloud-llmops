@@ -47,7 +47,7 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      */
     @Override
     public void handleRequest(SketchToImageRequest request) {
-        log.info("SketchToImageHandler handleRequest: 草图生成图片不需要处理");
+        log.info("草图生成图片：请求参数：{}", JSONUtil.toJsonStr(request));
     }
 
     /**
@@ -57,8 +57,8 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      * @return 图片响应
      */
     @Override
-    public SketchToImageResponse handle(SketchToImageRequest request) {
-        log.info("SketchToImageHandler handle: 草图生成图片开始");
+    public SketchToImageResponse handleImage(SketchToImageRequest request) {
+        log.info("草图生成图片开始...");
         // 上传草图
         byte[] imageBytes = ImageUtils.handlerBase64Image(request.getSketchImage()).getBytes(StandardCharsets.UTF_8);
         String uuid = IdUtil.fastSimpleUUID();
@@ -71,12 +71,15 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
         // 调用草图生成图片接口
         ClipDropImage clipDropImage = clipDropImageService.sketchToImage(sketchToImageClipDropRequest);
         AppValidate.notNull(clipDropImage, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
+
+        // 构建响应
         SketchToImageResponse response = new SketchToImageResponse();
         response.setOriginalUrl(url);
         response.setPrompt(request.getPrompt());
         ImageDTO image = ImageConvert.INSTANCE.convert(clipDropImage);
         response.setImages(Collections.singletonList(image));
-        log.info("SketchToImageHandler handle: 草图生成图片结束：{}", JSONUtil.toJsonStr(response));
+
+        log.info("草图生成图片结束：{}", JSONUtil.toJsonStr(response));
         return response;
     }
 

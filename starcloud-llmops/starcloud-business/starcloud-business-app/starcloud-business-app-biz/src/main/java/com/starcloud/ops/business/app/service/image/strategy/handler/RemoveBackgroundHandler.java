@@ -44,7 +44,7 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
      */
     @Override
     public void handleRequest(RemoveBackgroundRequest request) {
-        log.info("RemoveBackgroundHandler handleRequest: 默认不做处理：{}", JSONUtil.toJsonStr(request));
+        log.info("去除图片背景【智能抠图】：请求参数：{}", JSONUtil.toJsonStr(request));
     }
 
     /**
@@ -54,17 +54,22 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
      * @return 图片响应
      */
     @Override
-    public RemoveBackgroundResponse handle(RemoveBackgroundRequest request) {
-        log.info("RemoveBackgroundHandler handle: 处理去除背景图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
+    public RemoveBackgroundResponse handleImage(RemoveBackgroundRequest request) {
+        log.info("去除图片背景【智能抠图】开始...");
+        // 处理请求参数
         ImageFileClipDropRequest imageFileClipDropRequest = new ImageFileClipDropRequest();
         imageFileClipDropRequest.setImageFile(ImageUploadUtils.getImageFile(request.getImageUrl()));
+
+        // 处理图片
         ClipDropImage clipDropImage = clipDropImageService.removeBackground(imageFileClipDropRequest);
         AppValidate.notNull(clipDropImage, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
+
+        // 处理响应结果
         ImageDTO image = ImageConvert.INSTANCE.convert(clipDropImage);
         RemoveBackgroundResponse response = new RemoveBackgroundResponse();
         response.setOriginalUrl(request.getImageUrl());
         response.setImages(Collections.singletonList(image));
-        log.info("RemoveBackgroundHandler handle: 处理去除背景图片请求结束：处理后结果：{}", JSONUtil.toJsonStr(response));
+        log.info("去除图片背景【智能抠图】结束：响应结果：{}", JSONUtil.toJsonStr(response));
         return response;
     }
 

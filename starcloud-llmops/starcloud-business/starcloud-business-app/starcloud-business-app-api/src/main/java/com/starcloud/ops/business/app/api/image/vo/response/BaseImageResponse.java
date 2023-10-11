@@ -29,6 +29,7 @@ import java.util.List;
         @JsonSubTypes.Type(value = RemoveTextResponse.class, name = "IMAGE_REMOVE_TEXT"),
         @JsonSubTypes.Type(value = SketchToImageResponse.class, name = "IMAGE_SKETCH"),
         @JsonSubTypes.Type(value = UpscaleImageResponse.class, name = "IMAGE_UPSCALING"),
+        @JsonSubTypes.Type(value = VariantsImageResponse.class, name = "IMAGE_VARIANTS"),
 })
 public class BaseImageResponse implements Serializable {
 

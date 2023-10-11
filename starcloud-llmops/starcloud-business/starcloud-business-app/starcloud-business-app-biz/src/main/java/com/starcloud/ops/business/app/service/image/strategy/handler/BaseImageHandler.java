@@ -28,7 +28,7 @@ public abstract class BaseImageHandler<Request extends BaseImageRequest, Respons
      * @param request 图片请求
      * @return 图片响应
      */
-    public abstract Response handle(Request request);
+    public abstract Response handleImage(Request request);
 
     /**
      * 处理日志消息
@@ -38,4 +38,15 @@ public abstract class BaseImageHandler<Request extends BaseImageRequest, Respons
      * @param response       响应
      */
     public abstract void handleLogMessage(LogAppMessageCreateReqVO messageRequest, Request request, Response response);
+
+    /**
+     * 处理图片
+     *
+     * @param request 图片请求
+     * @return 图片响应
+     */
+    public Response handle(Request request) {
+        handleRequest(request);
+        return this.handleImage(request);
+    }
 }

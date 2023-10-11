@@ -137,8 +137,6 @@ public class ImageServiceImpl implements ImageService {
         // 获取图片处理器
         BaseImageHandler handler = imageHandlerHolder.getHandler(request.getScene());
         request.setImageHandler(handler);
-        // 初始化请求
-        handler.handleRequest(request.getImageRequest());
         // 构建 ImageAppEntity
         ImageAppEntity factory = AppFactory.factory(request);
         // 生成图片
