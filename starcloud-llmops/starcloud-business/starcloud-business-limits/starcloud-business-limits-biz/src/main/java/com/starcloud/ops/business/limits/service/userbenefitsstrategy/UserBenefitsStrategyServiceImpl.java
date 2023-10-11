@@ -41,6 +41,8 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
 
 
     private static final List<String> PAY_STRATEGY_TYPE = Arrays.asList(
+            BenefitsStrategyTypeEnums.PAY_BASIC_MONTH.getName(),
+            BenefitsStrategyTypeEnums.PAY_BASIC_YEAR.getName(),
             BenefitsStrategyTypeEnums.PAY_PLUS_MONTH.getName(),
             BenefitsStrategyTypeEnums.PAY_PLUS_YEAR.getName(),
             BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName(),
