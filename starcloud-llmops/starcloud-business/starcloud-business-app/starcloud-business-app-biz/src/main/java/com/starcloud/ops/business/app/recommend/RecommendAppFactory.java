@@ -41,7 +41,7 @@ public class RecommendAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Text"));
-        app.setCategory("SEO_WRITING_SEOMD");
+        app.setCategory(null);
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
@@ -63,7 +63,7 @@ public class RecommendAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Article"));
-        app.setCategory("SEO_WRITING_SEOA");
+        app.setCategory(null);
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
@@ -85,7 +85,7 @@ public class RecommendAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Chat"));
-        app.setCategory("SEO_WRITING");
+        app.setCategory("SEO_WRITING_OTHER");
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList("https://download.hotsalecloud.com/avatar/f88670eed0534ccd9bd80df21b92bf2c.svg"));
         app.setIcon("seo");
@@ -118,7 +118,7 @@ public class RecommendAppFactory {
         app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Chat"));
-        app.setCategory("SEO_WRITING");
+        app.setCategory("SEO_WRITING_OTHER");
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList("https://download.hotsalecloud.com/avatar/f88670eed0534ccd9bd80df21b92bf2c.svg"));
         app.setIcon("seo");

@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.app.impl;
 
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
@@ -172,18 +173,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO create(AppReqVO request) {
-        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
-        Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
-        if (!categoryOptional.isPresent()) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
-        }
-        AppCategoryVO category = categoryOptional.get();
-        if (AppConstants.ROOT.equals(category.getParentCode())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
-        }
-        request.setIcon(category.getIcon());
-        request.setImages(Collections.singletonList(category.getImage()));
-
+        handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.insert();
         return AppConvert.INSTANCE.convertResponse(appEntity);
@@ -196,17 +186,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO copy(AppReqVO request) {
-        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
-        Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
-        if (!categoryOptional.isPresent()) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
-        }
-        AppCategoryVO category = categoryOptional.get();
-        if (AppConstants.ROOT.equals(category.getParentCode())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
-        }
-        request.setIcon(category.getIcon());
-        request.setImages(Collections.singletonList(category.getImage()));
+        handlerAndValidateRequest(request);
         request.setName(request.getName() + " - Copy");
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.insert();
@@ -220,17 +200,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO modify(AppUpdateReqVO request) {
-        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
-        Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
-        if (!categoryOptional.isPresent()) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
-        }
-        AppCategoryVO category = categoryOptional.get();
-        if (AppConstants.ROOT.equals(category.getParentCode())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
-        }
-        request.setIcon(category.getIcon());
-        request.setImages(Collections.singletonList(category.getImage()));
+        handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
         appEntity.update();
@@ -288,5 +258,27 @@ public class AppServiceImpl implements AppService {
                 request.getSseEmitter().completeWithError(exception);
             }
         }
+    }
+
+    /**
+     * 处理校验请求
+     *
+     * @param request 请求信息
+     */
+    private void handlerAndValidateRequest(AppReqVO request) {
+        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
+        Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
+        if (!categoryOptional.isPresent()) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
+        }
+        AppCategoryVO category = categoryOptional.get();
+        if (AppConstants.ROOT.equals(category.getParentCode())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
+        }
+        if (StringUtils.isBlank(request.getIcon())) {
+            request.setIcon(category.getIcon());
+        }
+        // 图片默认为分类图片
+        request.setImages(Collections.singletonList(category.getImage()));
     }
 }
