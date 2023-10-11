@@ -52,13 +52,13 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      */
     @Override
     public void handleRequest(UpscaleImageRequest request) {
-        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求开始: 请求参数：{}", JSONUtil.toJsonStr(request));
+        log.info("放大/高清图片：请求参数处理开始：请求参数：{}", JSONUtil.toJsonStr(request));
         if (StringUtils.isBlank(request.getEngine())) {
             request.setEngine(EngineEnum.ESRGAN_V1_X2PLUS.getCode());
         }
         EngineEnum engineEnum = IEnumable.codeOf(request.getEngine(), EngineEnum.class);
         if (Objects.isNull(engineEnum)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "不支持的放大图片引擎");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "不支持的放大/高清图片引擎");
         }
         switch (engineEnum) {
             case ESRGAN_V1_X2PLUS:
@@ -79,7 +79,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
                 }
                 break;
             default:
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "不支持的放大图片引擎");
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "不支持的放大/高清图片引擎");
         }
 
         // 获取原始图像二进制数据
@@ -92,7 +92,6 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
             }
             int width = image.getWidth();
             int height = image.getHeight();
-            // 校验图片大小
             validateImageSize(width, height, engineEnum, Boolean.FALSE);
             request.setOriginalWidth(width);
             request.setOriginalHeight(height);
@@ -119,10 +118,10 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
             request.setWidth(request.getWidth());
             request.setHeight(request.getHeight());
         } else {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大图片失败, 请检查参数, 宽高和放大倍数不能同时为空");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "放大/高清图片失败, 请检查参数, 宽高和放大倍数不能同时为空");
         }
 
-        log.info("UpscaleImageHandler handleRequest: 处理放大图片请求结束: 请求参数 {}：", JSONUtil.toJsonStr(request));
+        log.info("放大/高清图片：请求参数处理结束：请求参数：{}", JSONUtil.toJsonStr(request));
 
     }
 
@@ -133,8 +132,9 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      * @return 图片响应
      */
     @Override
-    public UpscaleImageResponse handle(UpscaleImageRequest request) {
-        log.info("UpscaleImageHandler handle: 处理放大图片请求开始：请求参数：{}", JSONUtil.toJsonStr(request));
+    public UpscaleImageResponse handleImage(UpscaleImageRequest request) {
+        log.info("放大/高清图片开始...");
+        // 处理请求参数
         VSearchUpscaleImageRequest upscaleImageRequest = new VSearchUpscaleImageRequest();
         upscaleImageRequest.setEngine(request.getEngine());
         upscaleImageRequest.setPrompt(request.getPrompt());
@@ -146,9 +146,12 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         upscaleImageRequest.setCfgScale(request.getCfgScale());
         upscaleImageRequest.setSteps(request.getSteps());
         upscaleImageRequest.setSeed(request.getSeed());
+
+        // 调用放大图片接口
         List<VSearchImage> vSearchImages = vSearchService.upscaleImage(upscaleImageRequest);
         AppValidate.notEmpty(vSearchImages, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
 
+        // 处理响应结果
         UpscaleImageResponse response = new UpscaleImageResponse();
         response.setEngine(request.getEngine());
         response.setOriginalUrl(request.getInitImage());
@@ -163,7 +166,8 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
             response.setSteps(request.getSteps());
             response.setSeed(request.getSeed());
         }
-        log.info("UpscaleImageHandler handle: 处理放大图片请求结束：处理后结果：{}", JSONUtil.toJsonStr(response));
+
+        log.info("放大/高清图片结束：响应结果：{}", JSONUtil.toJsonStr(response));
         return response;
     }
 
@@ -200,21 +204,21 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         if (isOut) {
             if (EngineEnum.ESRGAN_V1_X2PLUS.equals(engine)) {
                 if (multiply.compareTo(new BigDecimal("4194304")) > 0) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片放大大小不能超过 4194304(2048 x 2048) 像素");
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片大小不能超过 4194304(2048 x 2048)像素");
                 }
             } else if (EngineEnum.STABLE_DIFFUSION_X4_LATENT_UPSCALER.equals(engine)) {
                 if (multiply.compareTo(new BigDecimal("6291456")) > 0) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片放大大小不能超过 6291456(512 x 768) 像素");
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片大小不能超过 6291456(2048 x 3072)像素");
                 }
             }
         } else {
             if (EngineEnum.ESRGAN_V1_X2PLUS.equals(engine)) {
                 if (multiply.compareTo(new BigDecimal("1048576")) > 0) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片放大大小不能超过 1048576(1024 x 1024) 像素");
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片大小不能超过 1048576(1024 x 1024)像素");
                 }
             } else if (EngineEnum.STABLE_DIFFUSION_X4_LATENT_UPSCALER.equals(engine)) {
                 if (multiply.compareTo(new BigDecimal("393216")) > 0) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片放大大小不能超过 393216(2048 x 3072) 像素");
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片大小不能超过 393216(512 x 768)像素");
                 }
             }
         }

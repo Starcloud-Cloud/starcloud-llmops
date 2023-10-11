@@ -126,7 +126,11 @@ public interface AppMarketConvert {
         if (StringUtils.isBlank(appInfo)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.PUBLISH_APP_INFO_NON_EXISTENT);
         }
+
         AppDO app = JSONUtil.toBean(appInfo, AppDO.class);
+        if (StringUtils.isBlank(app.getCategory())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NON_EXISTENT);
+        }
         appMarketEntity.setUid(appPublish.getMarketUid());
         appMarketEntity.setName(app.getName());
         appMarketEntity.setModel(app.getModel());

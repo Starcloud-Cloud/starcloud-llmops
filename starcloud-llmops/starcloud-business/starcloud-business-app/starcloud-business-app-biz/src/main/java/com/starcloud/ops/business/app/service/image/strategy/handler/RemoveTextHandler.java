@@ -44,7 +44,7 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
      */
     @Override
     public void handleRequest(RemoveTextRequest request) {
-        log.info("RemoveTextHandler handleRequest: 默认不做处理：{}", JSONUtil.toJsonStr(request));
+        log.info("去除图片文字：请求参数：{}", JSONUtil.toJsonStr(request));
     }
 
     /**
@@ -54,17 +54,23 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
      * @return 图片响应
      */
     @Override
-    public RemoveTextResponse handle(RemoveTextRequest request) {
-        log.info("RemoveTextHandler handle: 处理去除文字图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
+    public RemoveTextResponse handleImage(RemoveTextRequest request) {
+        log.info("去除图片文字开始：处理前数据：{}", JSONUtil.toJsonStr(request));
+        // 处理请求参数
         ImageFileClipDropRequest imageFileClipDropRequest = new ImageFileClipDropRequest();
         imageFileClipDropRequest.setImageFile(ImageUploadUtils.getImageFile(request.getImageUrl()));
+
+        // 处理图片
         ClipDropImage clipDropImage = clipDropImageService.removeText(imageFileClipDropRequest);
         AppValidate.notNull(clipDropImage, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
+
+        // 处理响应参数
         ImageDTO image = ImageConvert.INSTANCE.convert(clipDropImage);
         RemoveTextResponse response = new RemoveTextResponse();
         response.setOriginalUrl(request.getImageUrl());
         response.setImages(Collections.singletonList(image));
-        log.info("RemoveTextHandler handle: 处理去除文字图片请求结束：处理后结果：{}", JSONUtil.toJsonStr(response));
+
+        log.info("去除图片文字结束：响应结果：{}", JSONUtil.toJsonStr(response));
         return response;
     }
 

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.util;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.request.UpscaleImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.VariantsImageRequest;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.image.ImageTaskConfigTypeEnum;
 import com.starcloud.ops.business.app.enums.image.ProductImageTypeEnum;
@@ -215,11 +216,7 @@ public class ImageUtils {
      * @param request 请求参数
      * @return token数量
      */
-    public static BigDecimal countAnswerCredits(GenerateImageRequest request) {
-        String engine = request.getEngine();
-        Integer steps = request.getSteps();
-        Integer width = request.getWidth();
-        Integer height = request.getHeight();
+    public static BigDecimal countAnswerCredits(String engine, Integer steps, Integer width, Integer height) {
         if (steps == null) {
             steps = 50;
         }
@@ -270,6 +267,34 @@ public class ImageUtils {
         // Other
         BigDecimal factorSecond = new BigDecimal("2.16e-8");
         return factorFirst.multiply(factorSecond).multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 计算回答图片消耗的 SD 点数
+     *
+     * @param request 请求参数
+     * @return token数量
+     */
+    public static BigDecimal countAnswerCredits(VariantsImageRequest request) {
+        String engine = request.getEngine();
+        Integer steps = request.getSteps();
+        Integer width = request.getWidth();
+        Integer height = request.getHeight();
+        return countAnswerCredits(engine, steps, width, height);
+    }
+
+    /**
+     * 计算回答图片消耗的 SD 点数
+     *
+     * @param request 请求参数
+     * @return token数量
+     */
+    public static BigDecimal countAnswerCredits(GenerateImageRequest request) {
+        String engine = request.getEngine();
+        Integer steps = request.getSteps();
+        Integer width = request.getWidth();
+        Integer height = request.getHeight();
+        return countAnswerCredits(engine, steps, width, height);
     }
 
     /**
