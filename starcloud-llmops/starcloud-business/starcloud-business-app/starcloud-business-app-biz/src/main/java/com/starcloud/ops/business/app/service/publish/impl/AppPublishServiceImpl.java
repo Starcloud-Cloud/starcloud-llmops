@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
-import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
@@ -31,7 +30,6 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
-import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -69,9 +67,6 @@ public class AppPublishServiceImpl implements AppPublishService {
 
     @Resource
     private AppPublishChannelService appPublishChannelService;
-
-    @Resource
-    private AppDictionaryService appDictionaryService;
 
     @Resource
     private AppPublishLimitService appPublishLimitService;
@@ -445,9 +440,6 @@ public class AppPublishServiceImpl implements AppPublishService {
             chatExpandConfigService.copyConfig(appPublish.getUid(), marketUid);
         }
 
-        if (!AppModelEnum.CHAT.name().equals(appPublish.getModel())) {
-            appMarketEntity.setImages(buildImages(appMarketEntity.getCategory()));
-        }
         // marketUid 不为空，说明已经发布过，需要更新发布记录
         if (StringUtils.isNotBlank(appPublish.getMarketUid())) {
             AppMarketDO appMarket = appMarketMapper.get(appPublish.getMarketUid(), Boolean.TRUE);
@@ -462,36 +454,9 @@ public class AppPublishServiceImpl implements AppPublishService {
                 return appMarketEntity;
             }
         }
-        // 如果应用市场不存在该应用，说明是第一次发布，需要新增应用市场记录
+        // 如果应用市场不存在该应用，说明是第一次发布/或者已经删除，需要新增应用市场记录
         appMarketEntity.insert();
         return appMarketEntity;
-    }
-
-    /**
-     * 构建上传应用的图片
-     *
-     * @param category 分类
-     * @return 图片列表
-     */
-    private List<String> buildImages(String category) {
-
-        if (StringUtils.isBlank(category)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NON_EXISTENT);
-        }
-
-        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
-        // 从 categoryList 中获取对应的图片
-        List<String> images = CollectionUtil.emptyIfNull(categoryList).stream()
-                .filter(item -> category.equals(item.getCode()))
-                .map(AppCategoryVO::getImage)
-                .filter(StringUtils::isNotBlank)
-                .map(String::trim)
-                .collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(images)) {
-            return images;
-        }
-
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, category);
     }
 
     /**
