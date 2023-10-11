@@ -127,6 +127,8 @@ public class WechatServiceImpl implements WechatService {
         channelConfigDTO.setAppSecret(reqVO.getAppSecret());
         channelConfigDTO.setToken(weChatBindRespVO.getToken());
         channelConfigDTO.setAccountId(weChatBindRespVO.getMpAccountId());
+        channelConfigDTO.setUrl(weChatBindRespVO.getUrl());
+        channelConfigDTO.setWhitelist(weChatBindRespVO.getWhitelist());
 
         channelReqVO.setName(reqVO.getName());
         channelReqVO.setStatus(StateEnum.ENABLE.getCode());

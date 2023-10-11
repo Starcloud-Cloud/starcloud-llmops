@@ -8,6 +8,7 @@ import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -36,4 +37,10 @@ public class WeChatAccountChannelConfigDTO extends BaseChannelConfigDTO {
 
     @Schema(description = "公共号数据库Id")
     private Long accountId;
+
+    @Schema(description = "回调地址")
+    private String url;
+
+    @Schema(description = "白名单")
+    private List<String> whitelist;
 }
