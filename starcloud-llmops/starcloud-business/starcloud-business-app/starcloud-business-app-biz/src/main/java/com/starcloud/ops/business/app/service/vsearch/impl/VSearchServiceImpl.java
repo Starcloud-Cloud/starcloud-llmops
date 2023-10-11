@@ -35,12 +35,12 @@ public class VSearchServiceImpl implements VSearchService {
     /**
      * 图片尺寸正则表达式
      */
-    private static final Pattern PX_REGEX = Pattern.compile("\\d+x\\d+");
+    private static final Pattern PX_REGEX = Pattern.compile("\\d+(?:\\.\\d+)?\\d*x\\d+(?:\\.\\d+)?\\d*");
 
     /**
      * 图尺寸比较正则表达式
      */
-    private static final Pattern BIG_REGEX = Pattern.compile("\\d+>\\d+");
+    private static final Pattern BIG_REGEX = Pattern.compile("\\d+(?:\\.\\d+)?\\d*>\\d+(?:\\.\\d+)?\\d*");
 
     /**
      * 生成图片
@@ -139,8 +139,24 @@ public class VSearchServiceImpl implements VSearchService {
                 message = "图片尺寸过大，图片尺寸不能超过1024x1024。";
             }
         }
+        // 原始图片尺寸过大
+        if (StringUtils.contains(message, "Input image size is too large")) {
+            Matcher matcher = BIG_REGEX.matcher(message);
+            if (matcher.find()) {
+                message = "原始图片尺寸过大(" + matcher.group() + ")。";
+            } else {
+                message = "原始图片尺寸过大。";
+            }
+        }
+        if (StringUtils.contains(message, "Requested image size is too large")) {
+            Matcher matcher = BIG_REGEX.matcher(message);
+            if (matcher.find()) {
+                message = "请求图片尺寸过大(" + matcher.group() + ")。";
+            } else {
+                message = "请求图片尺寸过大。";
+            }
+        }
         return message;
     }
-
 
 }
