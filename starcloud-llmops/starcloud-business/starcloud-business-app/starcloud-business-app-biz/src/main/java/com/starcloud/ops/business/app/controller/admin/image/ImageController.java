@@ -122,4 +122,15 @@ public class ImageController {
         return CommonResult.success(imageService.execute(request));
     }
 
+    @PostMapping(value = "/variants")
+    @Operation(summary = "图片裂变", description = "图片裂变")
+    @ApiOperationSupport(order = 70, author = "nacoyer")
+    public CommonResult<ImageRespVO> variants(@Validated @RequestBody ImageReqVO request) {
+        request.setAppUid(RecommendAppEnum.VARIANTS_IMAGE.name());
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
+        appLimitService.appLimit(limitRequest);
+        return CommonResult.success(imageService.execute(request));
+    }
+
 }
