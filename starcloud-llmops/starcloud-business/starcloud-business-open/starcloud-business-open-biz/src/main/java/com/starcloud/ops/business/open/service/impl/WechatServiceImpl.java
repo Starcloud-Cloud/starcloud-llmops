@@ -89,7 +89,6 @@ public class WechatServiceImpl implements WechatService {
     private MpAccountService mpAccountService;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public WeChatBindRespVO bindWxAccount(WeChatBindReqVO reqVO) {
         // 校验是否已绑定公共号
         validExist(reqVO.getAppId());
