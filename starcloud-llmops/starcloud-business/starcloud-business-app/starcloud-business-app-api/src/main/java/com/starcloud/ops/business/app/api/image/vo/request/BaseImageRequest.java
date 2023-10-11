@@ -29,6 +29,7 @@ import java.io.Serializable;
         @JsonSubTypes.Type(value = RemoveTextRequest.class, name = "IMAGE_REMOVE_TEXT"),
         @JsonSubTypes.Type(value = SketchToImageRequest.class, name = "IMAGE_SKETCH"),
         @JsonSubTypes.Type(value = UpscaleImageRequest.class, name = "IMAGE_UPSCALING"),
+        @JsonSubTypes.Type(value = VariantsImageRequest.class, name = "IMAGE_VARIANTS"),
 })
 public class BaseImageRequest implements Serializable {
 

@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author nacoyer
@@ -29,6 +31,16 @@ public class VSearchServiceImpl implements VSearchService {
 
     @Resource
     private VSearchClient vSearchClient;
+
+    /**
+     * 图片尺寸正则表达式
+     */
+    private static final Pattern PX_REGEX = Pattern.compile("\\d+(?:\\.\\d+)?\\d*x\\d+(?:\\.\\d+)?\\d*");
+
+    /**
+     * 图尺寸比较正则表达式
+     */
+    private static final Pattern BIG_REGEX = Pattern.compile("\\d+(?:\\.\\d+)?\\d*>\\d+(?:\\.\\d+)?\\d*");
 
     /**
      * 生成图片
@@ -85,7 +97,7 @@ public class VSearchServiceImpl implements VSearchService {
 
         // 错误码和错误信息都不为空
         if (Objects.nonNull(response.getCode()) && StringUtils.isNotBlank(response.getMessage())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(response.getCode(), response.getMessage()));
+            throw ServiceExceptionUtil.exception(new ErrorCode(response.getCode(), getFailureMessage(response.getMessage())));
         }
 
         // 错误码为空，错误信息不为空
@@ -100,6 +112,51 @@ public class VSearchServiceImpl implements VSearchService {
 
         // 其余情况，抛出默认错误码
         throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE);
+    }
+
+    /**
+     * 获取失败的消息
+     *
+     * @param message 原始消息
+     * @return 失败的消息
+     */
+    private static String getFailureMessage(String message) {
+        // 如果是图片尺寸不是64的倍数
+        if (StringUtils.contains(message, "image dimensions must be multiples of 64")) {
+            Matcher matcher = PX_REGEX.matcher(message);
+            if (matcher.find()) {
+                message = "图片尺寸必须是64的倍数(" + matcher.group() + ")。";
+            } else {
+                message = "图片尺寸必须是64的倍数。";
+            }
+        }
+        // 图片过大
+        if (StringUtils.contains(message, "image too large")) {
+            Matcher matcher = BIG_REGEX.matcher(message);
+            if (matcher.find()) {
+                message = "图片尺寸过大(" + matcher.group() + ")，图片尺寸不能超过1024x1024。";
+            } else {
+                message = "图片尺寸过大，图片尺寸不能超过1024x1024。";
+            }
+        }
+        // 原始图片尺寸过大
+        if (StringUtils.contains(message, "Input image size is too large")) {
+            Matcher matcher = BIG_REGEX.matcher(message);
+            if (matcher.find()) {
+                message = "原始图片尺寸过大(" + matcher.group() + ")。";
+            } else {
+                message = "原始图片尺寸过大。";
+            }
+        }
+        if (StringUtils.contains(message, "Requested image size is too large")) {
+            Matcher matcher = BIG_REGEX.matcher(message);
+            if (matcher.find()) {
+                message = "请求图片尺寸过大(" + matcher.group() + ")。";
+            } else {
+                message = "请求图片尺寸过大。";
+            }
+        }
+        return message;
     }
 
 }
