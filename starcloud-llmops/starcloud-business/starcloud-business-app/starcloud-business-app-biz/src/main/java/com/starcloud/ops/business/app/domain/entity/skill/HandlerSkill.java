@@ -112,7 +112,10 @@ public class HandlerSkill extends BaseSkillEntity {
 
             log.info("FunTool HandlerSkill: {} response:\n{}", this.getHandler().getName(), JSONUtil.toJsonPrettyStr(handlerResponse));
 
-            return ToolResponse.buildResponse(handlerResponse).setObservation(handlerResponse.getOutput());
+            ToolResponse toolResponse =ToolResponse.buildResponse(handlerResponse);
+            toolResponse.setObservation(handlerResponse.getOutput());
+
+            return toolResponse;
 
         };
 

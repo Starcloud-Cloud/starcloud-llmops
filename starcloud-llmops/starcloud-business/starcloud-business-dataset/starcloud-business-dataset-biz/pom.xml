@@ -47,20 +47,23 @@
             </exclusions>
         </dependency>
 
+
         <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-langchain</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>poi</artifactId>
-                    <groupId>org.apache.poi</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>poi-ooxml</artifactId>
-                    <groupId>org.apache.poi</groupId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.github.Starcloud-Cloud</groupId>
+            <artifactId>java-langchain</artifactId>
+
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>poi</artifactId>-->
+<!--                    <groupId>org.apache.poi</groupId>-->
+<!--                </exclusion>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>poi-ooxml</artifactId>-->
+<!--                    <groupId>org.apache.poi</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
         </dependency>
+
 
         <dependency>
             <groupId>com.starcloud.ops</groupId>

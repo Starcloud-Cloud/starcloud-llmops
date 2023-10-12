@@ -101,6 +101,14 @@ public interface PermissionService {
     void processRoleDeleted(Long roleId);
 
     /**
+     * 删除用户绑定的角色
+     *
+     * @param userId
+     * @param roleId
+     */
+    void processRoleDeleted(Long userId, Long roleId);
+
+    /**
      * 处理菜单删除时，删除关联授权数据
      *
      * @param menuId 菜单编号
@@ -138,8 +146,6 @@ public interface PermissionService {
      * @return 部门数据权限
      */
     DeptDataPermissionRespDTO getDeptDataPermission(Long userId);
-
-
 
     /**
      * 新增用户角色

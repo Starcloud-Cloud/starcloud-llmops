@@ -65,6 +65,13 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
     }
 
 
+    /**
+     * 自定义 BasePromptTemplate
+     * @param llm
+     * @param tools
+     * @param basePromptTemplate
+     * @return
+     */
     public static OpenAIFunctionsAgent fromLLMAndTools(BaseChatModel llm, List<BaseTool> tools, BasePromptTemplate basePromptTemplate) {
 
         Assert.isInstanceOf(ChatOpenAI.class, llm, "Only supported with ChatOpenAI models.");
@@ -91,10 +98,8 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
 
         List<BaseVariable> selectedInputs = Optional.ofNullable(variables).orElse(new ArrayList<>()).stream().filter(baseVariable -> !baseVariable.getField().equals(TEMP_VARIABLE_SCRATCHPAD)).collect(Collectors.toList());
 
-        String historyStr = BaseMessage.getBufferString(chatMessages);
-
         //字符串 agent调用历史
-        selectedInputs.add(BaseVariable.newObject(TEMP_VARIABLE_SCRATCHPAD, historyStr));
+        selectedInputs.add(BaseVariable.newObject(TEMP_VARIABLE_SCRATCHPAD, chatMessages));
 
         PromptValue promptValue = this.promptTemplate.formatPrompt(selectedInputs);
         List<BaseMessage> messages = promptValue.toMessage();
@@ -131,7 +136,7 @@ public class OpenAIFunctionsAgent extends BaseSingleActionAgent {
         promptTemplates.addAll(extraPromptMessages);
 
         promptTemplates.add(HumanMessagePromptTemplate.fromTemplate("{input}"));
-        promptTemplates.add(new MessagesPlaceholder("agent_scratchpad"));
+        promptTemplates.add(new MessagesPlaceholder(TEMP_VARIABLE_SCRATCHPAD));
 
         return ChatPromptTemplate.fromMessages(promptTemplates);
     }

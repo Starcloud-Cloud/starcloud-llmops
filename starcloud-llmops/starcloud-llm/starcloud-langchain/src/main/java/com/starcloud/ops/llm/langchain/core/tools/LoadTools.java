@@ -17,7 +17,7 @@ import java.util.Optional;
 public class LoadTools {
 
 
-    private final static List<Class<? extends BaseTool>> LLM_TOOLS = Arrays.asList(RequestsGetTool.class);
+    private final static List<Class<? extends BaseTool>> LLM_TOOLS = Arrays.asList(RequestsGetTool.class, CalculatorTool.class);
 
     private final static List<Class<? extends BaseTool>> EXTRA_LLM_TOOLS = Arrays.asList(RequestsGetTool.class);
 
@@ -66,7 +66,7 @@ public class LoadTools {
         return tools;
     }
 
-    public static List<? extends BaseTool> loadToolsInstance(List<? extends BaseTool> tools, BaseLanguageModel llm) {
+    public static List<BaseTool> loadToolsInstance(List<BaseTool> tools, BaseLanguageModel llm) {
 
         List<BaseCallbackHandler> callbacks = new ArrayList<>();
 

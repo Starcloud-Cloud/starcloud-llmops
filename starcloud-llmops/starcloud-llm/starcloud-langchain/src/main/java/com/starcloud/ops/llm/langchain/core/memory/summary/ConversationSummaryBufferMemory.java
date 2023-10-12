@@ -5,6 +5,7 @@ import com.starcloud.ops.llm.langchain.core.model.chat.base.message.BaseChatMess
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLM;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
+import com.starcloud.ops.llm.langchain.core.schema.BaseLanguageModel;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.utils.MessageConvert;
 import lombok.Data;
@@ -27,7 +28,7 @@ public class ConversationSummaryBufferMemory extends SummarizerMixin {
 
     private Integer maxTokenLimit = 2000;
 
-    public ConversationSummaryBufferMemory(BaseLLM llm, Integer maxTokenLimit) {
+    public ConversationSummaryBufferMemory(BaseLanguageModel llm, Integer maxTokenLimit) {
         super(llm);
         this.maxTokenLimit = maxTokenLimit;
     }

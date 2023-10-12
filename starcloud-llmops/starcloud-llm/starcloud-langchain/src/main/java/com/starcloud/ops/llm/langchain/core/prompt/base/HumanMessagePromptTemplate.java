@@ -1,7 +1,5 @@
 package com.starcloud.ops.llm.langchain.core.prompt.base;
 
-import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
-import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseStringMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
@@ -17,7 +15,7 @@ public class HumanMessagePromptTemplate extends BaseStringMessagePromptTemplate 
         super(promptTemplate);
     }
 
-    public static BaseMessagePromptTemplate fromTemplate(String... params) {
+    public static HumanMessagePromptTemplate fromTemplate(String... params) {
 
         StringPromptTemplate promptTemplate = PromptTemplate.fromTemplate(params);
         return new HumanMessagePromptTemplate(promptTemplate);

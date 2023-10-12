@@ -1,14 +1,17 @@
 package com.starcloud.ops.business.chat;
 
+import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -29,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
@@ -63,12 +67,29 @@ public class ChatTest extends BaseDbUnitTest {
     @MockBean
     private RedissonClient redissonClient;
 
+    @MockBean
+    private RedisMQTemplate redisMQTemplate;
+
+    @MockBean
+    private AdminUserService adminUserService;
+
+    @MockBean
+    private StringRedisTemplate stringRedisTemplate;
 
     @BeforeEach
     public void before() {
 
         Mockito.mockStatic(WebFrameworkUtils.class);
         Mockito.when(WebFrameworkUtils.getLoginUserId()).thenReturn(1L);
+
+        Mockito.mockStatic(AdminUserService.class);
+
+        AdminUserDO adminUserDO = new AdminUserDO();
+
+        adminUserDO.setId(186L);
+        adminUserDO.setTenantId(2L);
+
+        Mockito.when(adminUserService.getUser(186L)).thenReturn(adminUserDO);
     }
 
     @Test
@@ -98,12 +119,12 @@ public class ChatTest extends BaseDbUnitTest {
         ChatRequestVO chatRequest = new ChatRequestVO();
 
         //带数据集的
-        chatRequest.setAppUid("8df9343b57464dab8974b2704c6a18e4");
-        chatRequest.setUserId(188L);
+        chatRequest.setAppUid("2a9ffdde1f8c4f30b36a872aa8586cc1");
+        chatRequest.setUserId(186L);
 
         chatRequest.setScene(AppSceneEnum.CHAT_TEST.name());
 
-        chatRequest.setQuery("你好11？");
+        chatRequest.setQuery("今天杭州天气怎么样？");
 
 
         chatService.chat(chatRequest);

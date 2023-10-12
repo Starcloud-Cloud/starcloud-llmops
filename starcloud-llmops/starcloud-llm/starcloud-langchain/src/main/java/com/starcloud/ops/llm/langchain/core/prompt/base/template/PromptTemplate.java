@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
 @Data
 public class PromptTemplate extends StringPromptTemplate {
 
-    private String template;
+    private List<BaseVariable> inputVariables;
 
-    private String templateFormat = "f-string";
+    private String template;
 
     /**
      * 动态生成模版

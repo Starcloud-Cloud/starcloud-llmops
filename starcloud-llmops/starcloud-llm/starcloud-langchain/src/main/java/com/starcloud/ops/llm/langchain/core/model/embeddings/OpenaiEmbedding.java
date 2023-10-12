@@ -11,6 +11,7 @@ import com.theokanning.openai.embedding.EmbeddingResult;
 import com.theokanning.openai.service.OpenAiService;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -34,9 +35,12 @@ public class OpenaiEmbedding implements BasicEmbedding {
 
     private static final String MODEL = "text-embedding-ada-002";
 
+    @Autowired
+    private OpenAIConfig openAIConfig;
+
     @Override
     public List<List<Float>> embedTexts(List<String> texts) {
-        OpenAiService service =  buildClient();
+        OpenAiService service = new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(60L));
         EmbeddingRequest request = EmbeddingRequest.builder()
                 .input(texts)
                 .model(MODEL).build();
@@ -52,7 +56,7 @@ public class OpenaiEmbedding implements BasicEmbedding {
 
     @Override
     public EmbeddingDetail embedText(String text) {
-        OpenAiService service = buildClient();
+        OpenAiService service = new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(60L));
         EmbeddingRequest request = EmbeddingRequest.builder()
                 .input(Arrays.asList(text))
                 .model(MODEL).build();
@@ -64,37 +68,5 @@ public class OpenaiEmbedding implements BasicEmbedding {
                 .totalTokens(embeddingResult.getUsage().getTotalTokens()).build();
     }
 
-    private OpenAiService buildClient() {
-        OpenAIConfig openAIConfig = SpringUtil.getBean(OpenAIConfig.class);
-        if (openAIConfig == null || CollectionUtils.isEmpty(openAIConfig.getProxyHosts())) {
-            return new OpenAiService(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()));
-        }
-        ObjectMapper mapper = defaultObjectMapper();
-
-
-
-        OkHttpClient client = defaultClient(openAIConfig.getApiKey(), Duration.ofSeconds(openAIConfig.getTimeOut()))
-                .newBuilder()
-                .proxySelector(new ProxySelector() {
-                    @Override
-                    public List<Proxy> select(URI uri) {
-                        List<Proxy> result = Optional.ofNullable(openAIConfig.getProxyHosts()).orElse(new ArrayList<>()).stream().map(host -> {
-                            return new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host, openAIConfig.getProxyPort()));
-                        }).collect(Collectors.toList());
-                        return result;
-                    }
-
-                    @Override
-                    public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-                        log.error("proxy is fail: {} ", ioe.getMessage(), ioe);
-                    }
-                })
-                .build();
-
-        Retrofit retrofit = defaultRetrofit(client, mapper);
-        OpenAiApi api = retrofit.create(OpenAiApi.class);
-
-        return new OpenAiService(api, client.dispatcher().executorService());
-    }
 }
 

@@ -8,7 +8,9 @@ import org.checkerframework.checker.units.qual.C;
 @AllArgsConstructor
 public enum UserLevelEnums {
 
-    FREE("FREE", "普通用户", "MOFAAI_FREE",2,2,1,2,0),
+    FREE("FREE", "普通用户", "MOFAAI_FREE",1,1,1,1,0),
+
+    BASIC("BASIC", "BASIC用户", "MOFAAI_BASIC",5,5,1,5,1),
 
     PLUS("PLUS", "PLUS用户", "MOFAAI_PLUS",20,20,10,20,3),
 

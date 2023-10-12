@@ -34,23 +34,6 @@ public enum BenefitsStrategyTypeEnums {
      */
     USER_ATTENDANCE("USER_ATTENDANCE", "签到", "Check In", "AT"),
 
-    //====================================支付套餐=======================================================================
-    /**
-     * PLUS套餐
-     */
-    PAY_PLUS_MONTH("PAY_PLUS_MONTH", "高级版-月付", "PLUS Package", "PL"),
-    /**
-     * PLUS套餐
-     */
-    PAY_PLUS_YEAR("PAY_PLUS_YEAR", "高级版-年付", "PLUS Package", "PL"),
-    /**
-     * PRO套餐
-     */
-    PAY_PRO_MONTH("PAY_PRO_MONTH", "团队版-月付", "PRO Package", "PR"),
-    /**
-     * PRO套餐
-     */
-    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR"),
 
     /**
      * 自定义套餐
@@ -88,6 +71,34 @@ public enum BenefitsStrategyTypeEnums {
      * 多次邀请
      */
     USER_INVITE_REPEAT("USER_INVITE_REPEAT", "系统赠送-邀请达人礼包", "Invite", "IR"),
+
+    //====================================支付套餐=======================================================================
+
+    /**
+     * BASIC套餐
+     */
+    PAY_BASIC_MONTH("PAY_BASIC_MONTH", "基础版-月付", "PLUS Package", "PB"),
+    /**
+     * BASIC套餐
+     */
+    PAY_BASIC_YEAR("PAY_BASIC_YEAR", "基础版-年付", "PLUS Package", "PB"),
+    /**
+     * PLUS套餐
+     */
+    PAY_PLUS_MONTH("PAY_PLUS_MONTH", "高级版-月付", "PLUS Package", "PL"),
+    /**
+     * PLUS套餐
+     */
+    PAY_PLUS_YEAR("PAY_PLUS_YEAR", "高级版-年付", "PLUS Package", "PL"),
+    /**
+     * PRO套餐
+     */
+    PAY_PRO_MONTH("PAY_PRO_MONTH", "团队版-月付", "PRO Package", "PR"),
+    /**
+     * PRO套餐
+     */
+    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR"),
+
 
 
     ;

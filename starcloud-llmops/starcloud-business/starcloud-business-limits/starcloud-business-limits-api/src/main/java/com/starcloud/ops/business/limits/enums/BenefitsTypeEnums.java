@@ -38,9 +38,9 @@ public enum BenefitsTypeEnums {
 
 
     /**
-     * 令牌
+     * 魔法豆
      */
-    COMPUTATIONAL_POWER("COMPUTATIONAL_POWER", "魔力值","computational_power"),
+    COMPUTATIONAL_POWER("COMPUTATIONAL_POWER", "魔法豆","computational_power"),
 
     /**
      * 机器人

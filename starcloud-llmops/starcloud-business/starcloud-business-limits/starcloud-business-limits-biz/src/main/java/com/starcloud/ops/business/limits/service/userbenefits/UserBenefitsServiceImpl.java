@@ -10,8 +10,10 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
+import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
+import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -73,6 +75,10 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
     @Resource
     private PermissionService permissionService;
+
+    @Resource
+    private RoleService roleService;
+
 
     @Resource
     private AdminUserService adminUserService;
@@ -298,16 +304,20 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserBenefitsDO userBenefitsDO = new UserBenefitsDO();
         userBenefitsDO.setUid(IdUtil.fastSimpleUUID());
         userBenefitsDO.setUserId(String.valueOf(userId));
+
         userBenefitsDO.setStrategyId(String.valueOf(benefitsStrategy.getId()));
+
         userBenefitsDO.setAppRemaining(benefitsStrategy.getAppCount());
         userBenefitsDO.setDatasetRemaining(benefitsStrategy.getDatasetCount());
         userBenefitsDO.setImageRemaining(benefitsStrategy.getImageCount());
         userBenefitsDO.setTokenRemaining(benefitsStrategy.getTokenCount());
+        userBenefitsDO.setComputationalPowerRemaining(benefitsStrategy.getComputationalPowerCount());
 
         userBenefitsDO.setAppCountInit(benefitsStrategy.getAppCount());
         userBenefitsDO.setDatasetCountInit(benefitsStrategy.getDatasetCount());
         userBenefitsDO.setImageCountInit(benefitsStrategy.getImageCount());
         userBenefitsDO.setTokenCountInit(benefitsStrategy.getTokenCount());
+        userBenefitsDO.setComputationalPowerInit(benefitsStrategy.getComputationalPowerCount());
 
         userBenefitsDO.setCreator(String.valueOf(userId));
         userBenefitsDO.setUpdater(String.valueOf(userId));
@@ -376,14 +386,16 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         long totalImageCountUsed = 0;
         long totalTokenCountUsed = 0;
-        long totalAppCountUsed = 0;
         long totalDatasetCountUsed = 0;
+        long totalAppCountUsed = 0;
+        long totalComputationalPowerRemaining = 0;
 
 
         long totalImageCount = 0;
         long totalTokenCount = 0;
         long totalAppCount = 0;
         long totalDatasetCount = 0;
+        long totalComputationalPowerCount = 0;
 
         if (CollUtil.isNotEmpty(resultList)) {
 
@@ -392,15 +404,17 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 totalDatasetCountUsed += userBenefits.getDatasetRemaining();
                 totalImageCountUsed += userBenefits.getImageRemaining();
                 totalTokenCountUsed += userBenefits.getTokenRemaining();
+                totalComputationalPowerRemaining += userBenefits.getComputationalPowerRemaining();
 
                 totalAppCount += userBenefits.getAppCountInit();
                 totalDatasetCount += userBenefits.getDatasetCountInit();
                 totalImageCount += userBenefits.getImageCountInit();
                 totalTokenCount += userBenefits.getTokenCountInit();
+                totalComputationalPowerCount += userBenefits.getComputationalPowerInit();
             }
 
-
         }
+
 
         userBenefitsInfoResultVO.setQueryTime(now);
         UserLevelEnums userLevelEnums;
@@ -409,6 +423,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             userLevelEnums = UserLevelEnums.PRO;
         } else if (securityFrameworkService.hasRole(UserLevelEnums.PLUS.getRoleCode())) {
             userLevelEnums = UserLevelEnums.PLUS;
+        } else if (securityFrameworkService.hasRole(UserLevelEnums.BASIC.getRoleCode())) {
+            userLevelEnums = UserLevelEnums.BASIC;
         } else {
             userLevelEnums = UserLevelEnums.FREE;
         }
@@ -420,7 +436,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         //  1.暂时取消应用和数据集显示
         //  2.显示顺序 令牌>图片>应用>数据集
 
-        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.TOKEN, totalTokenCountUsed, totalTokenCount));
+        // benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.TOKEN, totalTokenCountUsed, totalTokenCount));
+        benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.COMPUTATIONAL_POWER, totalComputationalPowerRemaining, totalComputationalPowerCount));
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.IMAGE, totalImageCountUsed, totalImageCount));
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.APP, 0, userLevelEnums.getApp()));
         benefitsList.add(createUserBenefitsBaseResultVO(BenefitsTypeEnums.BOT, 0, userLevelEnums.getBot()));
@@ -491,41 +508,30 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         }
 
-        // 获取
-        List<String> strategyIds = resultList.stream().map(UserBenefitsDO::getStrategyId).collect(Collectors.toList());
 
-        // 根据用户权限判断用户等级
-        List<UserBenefitsStrategyDO> monthBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName());
-        List<UserBenefitsStrategyDO> yearBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName());
-        // 根据用户权限判断用户等级
-        if (securityFrameworkService.hasRole("MOFAAI_PRO") && (CollUtil.isNotEmpty(monthBenefitsStrategyDOS) || CollUtil.isNotEmpty(yearBenefitsStrategyDOS))) {
-            log.info("[allowExpendBenefits][当前用户为团队版套餐，可以直接扣除：用户ID({})｜权益类型({})", userId, benefitsType);
-
-        } else {
-            switch (benefitsTypeEnums) {
-                case APP:
-                    wrapper.gt(UserBenefitsDO::getAppRemaining, 0L);
-                    break;
-                case DATASET:
-                    wrapper.gt(UserBenefitsDO::getDatasetRemaining, 0L);
-                    break;
-                case IMAGE:
-                    wrapper.gt(UserBenefitsDO::getImageRemaining, 0L);
-                    break;
-                case TOKEN:
-                    wrapper.gt(UserBenefitsDO::getTokenRemaining, 0L);
-                    break;
-                case COMPUTATIONAL_POWER:
-                    wrapper.gt(UserBenefitsDO::getComputationalPowerRemaining, 0L);
-                    break;
-            }
-            // 查询数据
-            List<UserBenefitsDO> userBenefitsDOList = userBenefitsMapper.selectList(wrapper);
-            if (CollUtil.isEmpty(userBenefitsDOList)) {
-                log.error("[allowExpendBenefits][不存在可扣除的权益，用户所使用权益为 0：用户ID({})｜权益类型({})", userId, benefitsType);
-                String displayName = benefitsTypeEnums.getDisplayName(LocaleContextHolder.getLocale());
-                throw exception(USER_BENEFITS_USELESS_INSUFFICIENT, displayName);
-            }
+        switch (benefitsTypeEnums) {
+            case APP:
+                wrapper.gt(UserBenefitsDO::getAppRemaining, 0L);
+                break;
+            case DATASET:
+                wrapper.gt(UserBenefitsDO::getDatasetRemaining, 0L);
+                break;
+            case IMAGE:
+                wrapper.gt(UserBenefitsDO::getImageRemaining, 0L);
+                break;
+            case TOKEN:
+                wrapper.gt(UserBenefitsDO::getTokenRemaining, 0L);
+                break;
+            case COMPUTATIONAL_POWER:
+                wrapper.gt(UserBenefitsDO::getComputationalPowerRemaining, 0L);
+                break;
+        }
+        // 查询数据
+        List<UserBenefitsDO> userBenefitsDOList = userBenefitsMapper.selectList(wrapper);
+        if (CollUtil.isEmpty(userBenefitsDOList)) {
+            log.error("[allowExpendBenefits][不存在可扣除的权益，用户所使用权益为 0：用户ID({})｜权益类型({})", userId, benefitsType);
+            String displayName = benefitsTypeEnums.getDisplayName(LocaleContextHolder.getLocale());
+            throw exception(USER_BENEFITS_USELESS_INSUFFICIENT, displayName);
         }
 
 
@@ -569,66 +575,53 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         List<UserBenefitsDO> userBenefitsDOS = userBenefitsMapper.selectList(wrapper);
 
-        List<String> strategyIds = userBenefitsDOS.stream().map(UserBenefitsDO::getStrategyId).collect(Collectors.toList());
-
         List<Long> benefitsIds;
-        List<UserBenefitsStrategyDO> monthBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName());
-        List<UserBenefitsStrategyDO> yearBenefitsStrategyDOS = userBenefitsStrategyService.validateUserBenefitsStrategyExists(strategyIds, BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName());
-        // 根据用户权限判断用户等级
-        if (securityFrameworkService.hasRole("MOFAAI_PRO") && (CollUtil.isNotEmpty(monthBenefitsStrategyDOS) || CollUtil.isNotEmpty(yearBenefitsStrategyDOS))) {
-            log.info("[expendBenefits][当前用户为团队版套餐，不用扣除直接扣除，直接记录使用：用户ID({})｜权益类型({})", userId, benefitsType);
-            if (CollUtil.isNotEmpty(monthBenefitsStrategyDOS)) {
-                benefitsIds = monthBenefitsStrategyDOS.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
-            } else {
-                benefitsIds = yearBenefitsStrategyDOS.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
-            }
-        } else {
-            Function<UserBenefitsDO, Long> getter;
-            BiConsumer<UserBenefitsDO, Long> setter;
-            switch (benefitsType) {
-                case APP:
-                    wrapper.gt(UserBenefitsDO::getAppRemaining, 0L);
-                    getter = UserBenefitsDO::getAppRemaining;
-                    setter = UserBenefitsDO::setAppRemaining;
-                    break;
-                case DATASET:
-                    wrapper.gt(UserBenefitsDO::getDatasetRemaining, 0L);
-                    getter = UserBenefitsDO::getDatasetRemaining;
-                    setter = UserBenefitsDO::setDatasetRemaining;
-                    break;
-                case IMAGE:
-                    wrapper.gt(UserBenefitsDO::getImageRemaining, 0L);
-                    getter = UserBenefitsDO::getImageRemaining;
-                    setter = UserBenefitsDO::setImageRemaining;
-                    break;
-                case TOKEN:
-                    wrapper.gt(UserBenefitsDO::getTokenRemaining, 0L);
-                    getter = UserBenefitsDO::getTokenRemaining;
-                    setter = UserBenefitsDO::setTokenRemaining;
-                    break;
-                case COMPUTATIONAL_POWER:
-                    wrapper.gt(UserBenefitsDO::getComputationalPowerRemaining, 0L);
-                    getter = UserBenefitsDO::getComputationalPowerRemaining;
-                    setter = UserBenefitsDO::setComputationalPowerRemaining;
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + benefitsType);
-            }
-            // 查询数据
-            List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
-            if (CollUtil.isEmpty(resultList)) {
-                log.error("[expendBenefits][权益扣减失败，用户所使用权益为 0：用户ID({})｜权益类型({})|扣除数量({})", userId, benefitsTypeCode, amount);
-            }
-            // 权益扣除
-            List<UserBenefitsDO> usedBenefitsDOS = deduct(resultList, getter, setter, amount);
 
-            // 批量更新数据
-            userBenefitsMapper.updateBatch(resultList, resultList.size());
-
-            benefitsIds = usedBenefitsDOS.stream()
-                    .map(UserBenefitsDO::getId)
-                    .collect(Collectors.toList());
+        Function<UserBenefitsDO, Long> getter;
+        BiConsumer<UserBenefitsDO, Long> setter;
+        switch (benefitsType) {
+            case APP:
+                wrapper.gt(UserBenefitsDO::getAppRemaining, 0L);
+                getter = UserBenefitsDO::getAppRemaining;
+                setter = UserBenefitsDO::setAppRemaining;
+                break;
+            case DATASET:
+                wrapper.gt(UserBenefitsDO::getDatasetRemaining, 0L);
+                getter = UserBenefitsDO::getDatasetRemaining;
+                setter = UserBenefitsDO::setDatasetRemaining;
+                break;
+            case IMAGE:
+                wrapper.gt(UserBenefitsDO::getImageRemaining, 0L);
+                getter = UserBenefitsDO::getImageRemaining;
+                setter = UserBenefitsDO::setImageRemaining;
+                break;
+            case TOKEN:
+                wrapper.gt(UserBenefitsDO::getTokenRemaining, 0L);
+                getter = UserBenefitsDO::getTokenRemaining;
+                setter = UserBenefitsDO::setTokenRemaining;
+                break;
+            case COMPUTATIONAL_POWER:
+                wrapper.gt(UserBenefitsDO::getComputationalPowerRemaining, 0L);
+                getter = UserBenefitsDO::getComputationalPowerRemaining;
+                setter = UserBenefitsDO::setComputationalPowerRemaining;
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + benefitsType);
         }
+        // 查询数据
+        List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
+        if (CollUtil.isEmpty(resultList)) {
+            log.error("[expendBenefits][权益扣减失败，用户所使用权益为 0：用户ID({})｜权益类型({})|扣除数量({})", userId, benefitsTypeCode, amount);
+        }
+        // 权益扣除
+        List<UserBenefitsDO> usedBenefitsDOS = deduct(resultList, getter, setter, amount);
+
+        // 批量更新数据
+        userBenefitsMapper.updateBatch(resultList, resultList.size());
+
+        benefitsIds = usedBenefitsDOS.stream()
+                .map(UserBenefitsDO::getId)
+                .collect(Collectors.toList());
 
 
         UserBenefitsUsageLogCreateReqVO userBenefitsUsageLogCreateReqVO = new UserBenefitsUsageLogCreateReqVO();
@@ -727,8 +720,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     List<UserBenefitsListResultVO> userBenefitsListResultVOS = new ArrayList<>();
 
                     // 添加Token相关属性
-                    String tokenDisplayName = BenefitsTypeEnums.TOKEN.getDisplayName(LocaleContextHolder.getLocale());
-                    userBenefitsListResultVOS.add(new UserBenefitsListResultVO(tokenDisplayName, BenefitsTypeEnums.TOKEN.getCode(), userBenefitsDO.getTokenCountInit()));
+                    String tokenDisplayName = BenefitsTypeEnums.COMPUTATIONAL_POWER.getDisplayName(LocaleContextHolder.getLocale());
+                    userBenefitsListResultVOS.add(new UserBenefitsListResultVO(tokenDisplayName, BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), userBenefitsDO.getComputationalPowerInit()));
 
                     // 添加Image相关属性
                     String imageDisplayName = BenefitsTypeEnums.IMAGE.getDisplayName(LocaleContextHolder.getLocale());
@@ -896,7 +889,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     public ExpiredReminderVO getBenefitsExpired() {
         ExpiredReminderVO expiredReminderVO = new ExpiredReminderVO();
 
-        UserBenefits userLevel = new UserBenefits();
+        UserLevelVO userLevel = new UserLevelVO();
         UserBenefits userBenefits = new UserBenefits();
         UserTokenExpiredReminderVO tokenExpiredReminderVO = new UserTokenExpiredReminderVO();
         // 获取用户 7 天内过期的所有权益
@@ -920,6 +913,17 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
 
         if (userLevelDO != null && LocalDateTimeUtil.isIn(userLevelDO.getExpirationTime(), now, now.plusDays(7))) {
+            // 根据用户权限判断用户等级
+            if (securityFrameworkService.hasRole(UserLevelEnums.PRO.getRoleCode())) {
+                userLevel.setUserLevel(UserLevelEnums.PRO.getCode());
+            } else if (securityFrameworkService.hasRole(UserLevelEnums.PLUS.getRoleCode())) {
+                userLevel.setUserLevel(UserLevelEnums.PLUS.getCode());
+            } else if (securityFrameworkService.hasRole(UserLevelEnums.BASIC.getRoleCode())) {
+                userLevel.setUserLevel(UserLevelEnums.BASIC.getCode());
+            } else {
+                userLevel.setUserLevel(UserLevelEnums.FREE.getCode());
+            }
+
             userLevel.setName(userBenefitsStrategyService.getUserBenefitsStrategy(Long.valueOf(userLevelDO.getStrategyId())).getStrategyType());
             userLevel.setExpirationTime(userLevelDO.getExpirationTime());
         }
@@ -930,11 +934,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         List<UserBenefitsStrategyDO> noPayBenefitsStrategy = userBenefitsStrategyService.getNoPayBenefitsStrategy();
         List<Long> noPayBenefitsStrategyId = noPayBenefitsStrategy.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
 
-        long sum = resultList.stream().mapToLong(UserBenefitsDO::getTokenRemaining).sum();
+        long sum = resultList.stream().mapToLong(UserBenefitsDO::getComputationalPowerRemaining).sum();
 
-        tokenExpiredReminderVO.setName("令牌不足提醒");
-        tokenExpiredReminderVO.setIsReminder(sum > 3000 ? false : true);
-        tokenExpiredReminderVO.setExpiredNum(sum > 3000 ? 0 : sum);
+        tokenExpiredReminderVO.setName(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode());
+        tokenExpiredReminderVO.setIsReminder(sum > 20 ? false : true);
+        tokenExpiredReminderVO.setExpiredNum(sum > 20 ? 0 : sum);
         expiredReminderVO.setTokenExpiredReminderVO(tokenExpiredReminderVO);
 
         UserBenefitsDO userBenefitsDO = resultList.stream()
@@ -953,6 +957,123 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     }
 
     /**
+     * 权益过期处理-返回已处理的数据
+     */
+    @Override
+    public Long userBenefitsExpired() {
+        log.info("开始执行权益过期任务");
+        // 获取用户支付权益策略
+        List<UserBenefitsStrategyDO> payBenefitsStrategyS = userBenefitsStrategyService.getPayBenefitsStrategy();
+        // 获取支付权益策略 ID
+        List<Long> payBenefitsStrategyId = payBenefitsStrategyS.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
+
+        // 获取所有过期权益
+        LocalDateTime now = LocalDateTime.now();
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
+                .eq(UserBenefitsDO::getEnabled, true)
+                .le(UserBenefitsDO::getEffectiveTime, now)
+                .le(UserBenefitsDO::getExpirationTime, now);
+
+
+        List<UserBenefitsDO> resultList = userBenefitsMapper.selectList(wrapper);
+
+        if (resultList.isEmpty()) {
+            log.info("当前时间段没有获取到已经过期的权益数据，停止执行权益过期任务");
+            return 0L;
+        }
+
+        // 更新普通权益
+        List<Long> noPayBenefitsIds = resultList.stream()
+                .filter(obj -> !CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).map(UserBenefitsDO::getId).collect(Collectors.toList());
+
+        if (noPayBenefitsIds.size() > 0) {
+            log.info("获取到{}条已经过期的普通权益数据，更新权益状态，过期的权益 ID 为{}",noPayBenefitsIds.size(),noPayBenefitsIds);
+            userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
+                    .in(UserBenefitsDO::getId, noPayBenefitsIds)
+                    .set(UserBenefitsDO::getEnabled, 0));
+        }
+
+
+        // 获取支付权益
+        List<UserBenefitsDO> payBenefitsS = resultList.stream()
+                .filter(obj -> CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).collect(Collectors.toList());
+
+        if (!payBenefitsS.isEmpty()) {
+
+            log.info("当前时间段获取到已经过期的【支付权益】数据{}，执行权益过期任务与更新角色任务",payBenefitsS);
+            List<Long> basicConfigIds = payBenefitsStrategyS.stream()
+                    .filter(obj -> obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_MONTH.getName()) ||
+                            obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_YEAR.getName()))
+                    .map(UserBenefitsStrategyDO::getId)
+                    .collect(Collectors.toList());
+
+            List<Long> plusConfigIds = payBenefitsStrategyS.stream()
+                    .filter(obj -> obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_PLUS_MONTH.getName()) ||
+                            obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_PLUS_YEAR.getName()))
+                    .map(UserBenefitsStrategyDO::getId)
+                    .collect(Collectors.toList());
+
+            List<Long> proConfigIds = payBenefitsStrategyS.stream()
+                    .filter(obj -> obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_PRO_MONTH.getName()) ||
+                            obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_PRO_YEAR.getName()))
+                    .map(UserBenefitsStrategyDO::getId)
+                    .collect(Collectors.toList());
+
+
+            for (UserBenefitsDO obj : resultList) {
+                List<UserBenefitsDO> payBenefitsByUserId = getPayBenefitsByUserId(Long.valueOf(obj.getUserId()));
+
+                List<UserBenefitsDO> plusBenefits = payBenefitsByUserId.stream()
+                        .filter(o -> plusConfigIds.contains(o.getStrategyId()))
+                        .collect(Collectors.toList());
+
+                if (plusBenefits.isEmpty()) {
+                    log.info("用户【{}】权益高级版过期，清除 PLUS角色", obj.getUserId());
+                    RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PLUS.getRoleCode());
+                    permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+                    // 设置用户角色
+                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+                }
+
+                List<UserBenefitsDO> proBenefits = payBenefitsByUserId.stream()
+                        .filter(o -> proConfigIds.contains(o.getStrategyId()))
+                        .collect(Collectors.toList());
+
+                if (proBenefits.isEmpty()) {
+                    log.info("用户【{}】权益团队版过期，清除 PRO角色", obj.getUserId());
+                    RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PRO.getRoleCode());
+                    permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+                    // 设置用户角色
+                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+                }
+
+                List<UserBenefitsDO> basicBenefits = payBenefitsByUserId.stream()
+                        .filter(o -> basicConfigIds.contains(o.getStrategyId()))
+                        .collect(Collectors.toList());
+
+                if (basicBenefits.isEmpty()) {
+                    log.info("用户【{}】权益基础版过期，清除 Basic角色", obj.getUserId());
+                    RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.BASIC.getRoleCode());
+                    permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+                    // 设置用户角色
+                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+                }
+
+                userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
+                        .eq(UserBenefitsDO::getId, obj.getId())
+                        .set(UserBenefitsDO::getEnabled, 0));
+            }
+
+        }else {
+            log.info("当前时间段没有获取到已经过期的【支付权益】数据，停止执行权益过期任务");
+        }
+
+
+
+        return (long) resultList.size();
+    }
+
+    /**
      * 根据用户 ID 获取用户信息
      *
      * @param userId 用户 ID
@@ -966,4 +1087,28 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         }
         return new UserBaseDTO().setUserId(userId).setTenantId(user.getTenantId());
     }
+
+    /**
+     * 根据用户ID 获取当前生效的支付权益
+     *
+     * @param userId
+     * @return
+     */
+    private List<UserBenefitsDO> getPayBenefitsByUserId(Long userId) {
+
+        // 获取用户支付权益策略
+        List<UserBenefitsStrategyDO> payBenefitsStrategy = userBenefitsStrategyService.getPayBenefitsStrategy();
+        // 获取支付权益策略 ID
+        List<Long> payBenefitsStrategyIds = payBenefitsStrategy.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
+
+        LocalDateTime now = LocalDateTime.now();
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
+                .eq(UserBenefitsDO::getUserId, userId)
+                .eq(UserBenefitsDO::getEnabled, true)
+                .in(UserBenefitsDO::getStrategyId, payBenefitsStrategyIds)
+                .le(UserBenefitsDO::getEffectiveTime, now)
+                .ge(UserBenefitsDO::getExpirationTime, now);
+        return userBenefitsMapper.selectList(wrapper);
+    }
+
 }

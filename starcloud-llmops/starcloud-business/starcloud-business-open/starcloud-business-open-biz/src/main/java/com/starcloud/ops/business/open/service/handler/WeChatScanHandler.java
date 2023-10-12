@@ -4,6 +4,7 @@ import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.open.service.WechatService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.session.WxSessionManager;
@@ -35,10 +36,15 @@ public class WeChatScanHandler implements WxMpMessageHandler {
     @Resource
     private DictDataService dictDataService;
 
+    @Resource
+    private WechatService wechatService;
 
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信扫描事件，内容：{}", wxMessage);
+        if (!wechatService.isInternalAccount(MpContextHolder.getAppId())) {
+            return null;
+        }
         WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
         mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);

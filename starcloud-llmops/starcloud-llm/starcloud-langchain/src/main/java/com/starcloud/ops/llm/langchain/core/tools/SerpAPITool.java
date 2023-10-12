@@ -56,7 +56,7 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request> {
     }
 
     @Override
-    protected ToolResponse _run(SerpAPITool.Request input) {
+    protected ToolResponse _run(Request input) {
 
         ToolResponse result = ToolResponse.buildObservation(null);
 
@@ -81,7 +81,7 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request> {
         return result;
     }
 
-    public List<SearchInfoDetail> runGetInfo(SerpAPITool.Request input) {
+    public List<SearchInfoDetail> runGetInfo(Request input) {
 
         List<SearchInfoDetail> result = new ArrayList<>();
 
@@ -100,7 +100,7 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request> {
         return result;
     }
 
-    public List<SearchInfoDetail> runGetImages(SerpAPITool.Request input) {
+    public List<SearchInfoDetail> runGetImages(Request input) {
 
         List<SearchInfoDetail> result = new ArrayList<>();
 
@@ -120,7 +120,7 @@ public class SerpAPITool extends BaseTool<SerpAPITool.Request> {
     }
 
 
-    public List<SearchInfoDetail> runGetNews(SerpAPITool.Request input) {
+    public List<SearchInfoDetail> runGetNews(Request input) {
 
         List<SearchInfoDetail> result = new ArrayList<>();
 

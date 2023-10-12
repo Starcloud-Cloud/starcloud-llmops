@@ -1,11 +1,12 @@
 package com.starcloud.ops.business.user.service.impl;
 
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
-import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyServiceImpl;
 import cn.iocoder.yudao.module.mp.service.message.MpMessageService;
+import cn.iocoder.yudao.module.mp.service.user.MpUserService;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.user.enums.DictTypeConstants.*;
 
 
@@ -61,6 +63,9 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
 
     @Resource
     private MpMessageService messageService;
+
+    @Resource
+    private MpUserService mpUserService;
 
 
     @Override
@@ -116,6 +121,19 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
             reqVO.setMediaId(dictDataDO.getValue());
             messageService.sendKefuMessage(reqVO);
         });
+    }
+
+    @Override
+    public void sendWxMsg(String appId, String openId, String content) {
+        MpUserDO user = mpUserService.getUser(appId, openId);
+        if (user == null) {
+            throw exception(new ErrorCode(300005001, "未找到指定的用户,请重新关注此公共号或者重新扫描公共号二维码"));
+        }
+        MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
+        messageSendReqVO.setUserId(user.getId());
+        messageSendReqVO.setContent(content);
+        messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
+        messageService.sendKefuMessage(messageSendReqVO);
     }
 
     @Override

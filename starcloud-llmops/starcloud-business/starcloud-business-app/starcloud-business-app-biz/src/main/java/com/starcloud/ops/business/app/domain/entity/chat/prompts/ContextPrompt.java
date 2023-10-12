@@ -88,9 +88,7 @@ public class ContextPrompt extends BasePromptConfig {
             "- If you don't know, just say that you don't know!!!\n" +
             "- If you don't know when you are not sure, ask for clarification!!!\n" +
             "- Avoid mentioning that you obtained the information from the context.\n" +
-            "- If the content of the answer refers to the content of the block in CONTEXT, you need to add the `{n}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n" +
-            "Please Note If you don't know, just say that you don't know!!!\n" +
-            "Please Note If you don't know when you are not sure, ask for clarification!!!\n\n";
+            "- If the content of the answer refers to the content of the block in [CONTEXT], you need to add the `{n}` of the referenced block at the end of the relevant sentence, like this `{1}` with braces.\n";
 
 
     private ChatRequestVO chatRequestVO;
@@ -109,7 +107,7 @@ public class ContextPrompt extends BasePromptConfig {
     /**
      * Google搜索标记
      */
-    private boolean googleSearchStatus;
+    private Boolean googleSearchStatus;
 
 
     /**
@@ -140,15 +138,21 @@ public class ContextPrompt extends BasePromptConfig {
             this.searchResult = this.searchDataset(this.query);
         }
 
+        //文档搜索过并不为空
+        if (this.searchResult != null && CollectionUtil.isNotEmpty(this.searchResult.getRecords())) {
+            return true;
+        }
+
         //文档查询不为空 就不联网查询了
-        if (this.searchResult == null && this.canSearchWeb()) {
+        if (this.canSearchWeb()) {
             this.googleSearchStatus = this.googleSearch(this.query);
         }
 
-        //直接搜索 或 上下文文档
-        if (this.googleSearchStatus || this.searchResult != null) {
+        //网络搜索过并为true
+        if (Boolean.TRUE.equals(this.googleSearchStatus)) {
             return true;
         }
+
 
         return false;
     }
@@ -261,7 +265,7 @@ public class ContextPrompt extends BasePromptConfig {
      */
     protected Boolean googleSearch(String query) {
 
-        if (StrUtil.isNotBlank(query) && Boolean.FALSE.equals(this.googleSearchStatus)) {
+        if (StrUtil.isNotBlank(query) && this.googleSearchStatus == null) {
 
             HandlerSkill handlerSkill = HandlerSkill.of("GoogleSearchHandler");
             handlerSkill.setMessageContentDocMemory(this.getMessageContentDocMemory());
@@ -280,9 +284,7 @@ public class ContextPrompt extends BasePromptConfig {
 
             log.info("ContextPrompt googleSearch status: {}, {}: {}", handlerResponse.getSuccess(), query, JsonUtils.toJsonString(handlerResponse.getOutput()));
 
-            //this.tiyuSearch(query);
-
-            this.googleSearchStatus = handlerResponse.getSuccess();
+            return handlerResponse.getSuccess();
         }
 
         return this.googleSearchStatus;
@@ -346,17 +348,15 @@ public class ContextPrompt extends BasePromptConfig {
 
                 log.info("ContextPrompt searchDataset: {}, {}", JsonUtils.toJsonString(matchQueryRequest), JsonUtils.toJsonString(matchQueryVO));
 
-                //过滤掉 分数低的 < 0.7  文档搜索相似度阈值
-                if (matchQueryVO != null && CollectionUtil.isNotEmpty(matchQueryVO.getRecords())) {
-                    this.searchResult = matchQueryVO;
-                }
+                return matchQueryVO;
 
             } catch (Exception e) {
-                //如果搜索有问题，就当没有搜索结果
-                this.searchResult = MatchQueryVO.builder().records(new ArrayList<>()).build();
-                log.error("ContextPrompt searchDataset is error: {}", e.getMessage(), e);
-            }
 
+                log.error("ContextPrompt searchDataset is error: {}", e.getMessage(), e);
+
+                //如果搜索有问题，就当没有搜索结果
+                return MatchQueryVO.builder().records(new ArrayList<>()).build();
+            }
         }
 
         return this.searchResult;

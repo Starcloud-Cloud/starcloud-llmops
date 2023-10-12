@@ -20,7 +20,6 @@ public class OpenAIConfig {
 
     private Long timeOut;
 
-//    @Value("#{'${starcloud-langchain.model.llm.openai.proxyHost}'.split(',')}")
     private List<String> proxyHosts;
 
     private int proxyPort;
@@ -28,15 +27,4 @@ public class OpenAIConfig {
     private Boolean azure;
 
     private String azureKey;
-
-//
-//
-//    public void setApiKey(String apiKey) {
-//        OpenAIConfig.apiKey = apiKey;
-//    }
-//
-//    public void setTimeOut(Long timeOut) {
-//        OpenAIConfig.timeOut = timeOut;
-//    }
-
 }

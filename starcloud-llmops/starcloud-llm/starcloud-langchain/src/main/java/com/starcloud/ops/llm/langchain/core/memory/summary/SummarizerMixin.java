@@ -102,7 +102,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
         this.prompt = buildPromptTemplate();
     }
 
-    public SummarizerMixin(BaseLLM llm) {
+    public SummarizerMixin(BaseLanguageModel llm) {
         super();
         this.prompt = buildPromptTemplate();
 
@@ -171,9 +171,7 @@ public abstract class SummarizerMixin extends BaseChatMemory {
             log.error("summaryContent is error: {}", e.getMessage(), e);
             return null;
         }
-
     }
-
 
     public static int calculateTokens(String historyStr) {
 
