@@ -19,7 +19,7 @@ import javax.validation.constraints.NotBlank;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Schema(name = "HistoryGenerateImagePageQuery", description = "历史生成图片分页查询参数")
-public class HistoryGenerateImagePageQuery extends PageQuery {
+public class HistoryImageRecordsQuery extends PageQuery {
 
     private static final long serialVersionUID = -7294418406714001254L;
 

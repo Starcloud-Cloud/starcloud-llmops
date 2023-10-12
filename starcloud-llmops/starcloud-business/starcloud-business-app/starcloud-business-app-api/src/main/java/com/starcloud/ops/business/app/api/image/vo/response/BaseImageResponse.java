@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,4 +47,11 @@ public class BaseImageResponse implements Serializable {
      */
     @Schema(description = "图片列表")
     private List<ImageDTO> images;
+
+    public static BaseImageResponse ofEmpty(String fromScene) {
+        BaseImageResponse response = new BaseImageResponse();
+        response.setFromScene(fromScene);
+        response.setImages(Collections.emptyList());
+        return response;
+    }
 }

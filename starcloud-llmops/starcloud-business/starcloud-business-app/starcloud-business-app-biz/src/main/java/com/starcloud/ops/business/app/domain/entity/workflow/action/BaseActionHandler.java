@@ -76,7 +76,7 @@ public abstract class BaseActionHandler<Q, R> {
             // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
             if (this.getBenefitsType() != null && actionResponse.getTotalTokens() > 0) {
                 //权益记录
-                userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), actionResponse.getTotalTokens(), context.getUserId(), context.getConversationUid());
+                userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), 1L, context.getUserId(), context.getConversationUid());
             }
             log.info("Action 执行成功...");
             return actionResponse;
@@ -118,7 +118,7 @@ public abstract class BaseActionHandler<Q, R> {
      * @return 权益类型
      */
     protected BenefitsTypeEnums getBenefitsType() {
-        return BenefitsTypeEnums.TOKEN;
+        return BenefitsTypeEnums.COMPUTATIONAL_POWER;
     }
 
     protected String getAppUid() {

@@ -165,10 +165,12 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     @Override
     public Page<LogAppMessageDO> pageAppLogMessage(AppLogMessagePageReqVO query) {
         LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        wrapper.eq(LogAppMessageDO::getAppConversationUid, query.getConversationUid());
+        wrapper.eq(StringUtils.isNotBlank(query.getConversationUid()), LogAppMessageDO::getAppConversationUid, query.getConversationUid());
         wrapper.eq(StringUtils.isNotBlank(query.getAppMode()), LogAppMessageDO::getAppMode, query.getAppMode());
         wrapper.eq(StringUtils.isNotBlank(query.getFromScene()), LogAppMessageDO::getFromScene, query.getFromScene());
+        wrapper.eq(StringUtils.isNotBlank(query.getAiModel()), LogAppMessageDO::getAiModel, query.getAiModel());
         wrapper.eq(StringUtils.isNotBlank(query.getStatus()), LogAppMessageDO::getStatus, query.getStatus());
+        wrapper.eq(StringUtils.isNotBlank(query.getCreator()), LogAppMessageDO::getCreator, query.getCreator());
         wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
         Page<LogAppMessageDO> page = new Page<>(query.getPageNo(), query.getPageSize());
         return logAppMessageMapper.selectPage(page, wrapper);
