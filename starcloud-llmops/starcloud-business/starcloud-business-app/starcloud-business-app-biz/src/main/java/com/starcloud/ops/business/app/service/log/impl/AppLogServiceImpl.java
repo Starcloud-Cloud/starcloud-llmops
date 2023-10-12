@@ -725,8 +725,7 @@ public class AppLogServiceImpl implements AppLogService {
     private List<Option> getSceneOptions(String type) {
         // 生成记录
         if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
-            String permission = UserUtils.getDeptDataPermission();
-            if (UserUtils.ALL.equals(permission)) {
+            if (UserUtils.isAdmin()) {
                 return AppSceneEnum.getOptions();
             } else {
                 return AppSceneEnum.getOptions(AppSceneEnum.GENERATE_RECORD_BASE_SCENES);
@@ -749,8 +748,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用模型列表
      */
     private List<String> getFromSceneList() {
-        String permission = UserUtils.getDeptDataPermission();
-        if (!UserUtils.ALL.equals(permission)) {
+        if (!UserUtils.isAdmin()) {
             return AppSceneEnum.GENERATE_RECORD_BASE_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
         }
         return null;
