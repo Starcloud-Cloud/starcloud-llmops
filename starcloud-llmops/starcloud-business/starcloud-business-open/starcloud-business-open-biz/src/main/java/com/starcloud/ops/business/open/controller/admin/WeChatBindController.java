@@ -54,4 +54,11 @@ public class WeChatBindController {
         return CommonResult.success(true);
     }
 
+    @PostMapping("/modify/{uid}")
+    @Operation(summary = "修改绑定的微信群", description = "修改绑定的微信群")
+    public CommonResult<Boolean> modify(@PathVariable("uid") String uid, @RequestBody @Valid WeChatBindReqVO reqVO) {
+        wechatService.modify(uid, reqVO);
+        return CommonResult.success(true);
+    }
+
 }

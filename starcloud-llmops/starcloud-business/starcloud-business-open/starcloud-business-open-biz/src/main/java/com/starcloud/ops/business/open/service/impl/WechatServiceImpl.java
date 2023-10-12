@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.module.mp.controller.admin.account.vo.MpAccountCreateReqVO;
+import cn.iocoder.yudao.module.mp.controller.admin.account.vo.MpAccountUpdateReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.account.MpAccountService;
@@ -52,6 +53,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USELESS_INSUFFICIENT;
 import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_APP;
 
@@ -245,6 +247,12 @@ public class WechatServiceImpl implements WechatService {
             WeChatAccountChannelConfigDTO configDTO = (WeChatAccountChannelConfigDTO) config;
             mpAccountService.deleteAccount(configDTO.getAccountId());
         }
+    }
+
+    @Override
+    public void modify(String uid, WeChatBindReqVO reqVO) {
+        delete(uid);
+        bindWxAccount(reqVO);
     }
 
     private ChatRequestVO preChatRequest(String fromUser, String chatAppId, String query) {

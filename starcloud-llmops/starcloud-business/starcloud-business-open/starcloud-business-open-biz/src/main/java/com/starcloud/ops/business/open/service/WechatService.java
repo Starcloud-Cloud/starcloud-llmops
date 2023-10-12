@@ -43,4 +43,11 @@ public interface WechatService {
      * @param uid
      */
     void delete(String uid);
+
+    /**
+     * 修改绑定的公众号
+     * @param uid
+     * @param reqVO
+     */
+    void modify(String uid, WeChatBindReqVO reqVO);
 }
