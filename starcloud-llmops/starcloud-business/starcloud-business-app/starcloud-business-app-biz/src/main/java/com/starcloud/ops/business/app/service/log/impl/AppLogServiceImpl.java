@@ -394,8 +394,8 @@ public class AppLogServiceImpl implements AppLogService {
         );
         wrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.IMAGE.name());
         wrapper.in(CollectionUtil.isNotEmpty(query.getScenes()), LogAppMessageDO::getFromScene, query.getScenes());
-        wrapper.eq(LogAppMessageDO::getCreator, String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         wrapper.eq(StringUtils.isNotBlank(query.getStatus()), LogAppMessageDO::getStatus, query.getStatus());
+        wrapper.eq(LogAppMessageDO::getCreator, String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
 
         Page<LogAppMessageDO> page = logAppMessageMapper.selectPage(PageUtil.page(query), wrapper);
         List<LogAppMessageDO> records = page.getRecords();
