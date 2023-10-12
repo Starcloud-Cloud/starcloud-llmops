@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
+import com.starcloud.ops.business.app.api.image.vo.query.HistoryImageRecordsQuery;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
@@ -371,15 +373,40 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用执行日志消息数据
      */
     @Override
-    public PageResult<ImageLogMessageRespVO> pageImageAppLogMessage(AppLogMessagePageReqVO query) {
-        query.setAppMode(AppModelEnum.IMAGE.name());
-        Page<LogAppMessageDO> page = logAppMessageService.pageAppLogMessage(query);
+    public PageResult<ImageLogMessageRespVO> pageHistoryImageRecords(HistoryImageRecordsQuery query) {
+
+        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
+        wrapper.select(
+                LogAppMessageDO::getUid,
+                LogAppMessageDO::getAppConversationUid,
+                LogAppMessageDO::getAppUid,
+                LogAppMessageDO::getAppMode,
+                LogAppMessageDO::getFromScene,
+                LogAppMessageDO::getCreateTime,
+                LogAppMessageDO::getCreator,
+                LogAppMessageDO::getVariables,
+                LogAppMessageDO::getAnswer,
+                LogAppMessageDO::getStatus,
+                LogAppMessageDO::getMessage,
+                LogAppMessageDO::getErrorCode,
+                LogAppMessageDO::getErrorMsg,
+                LogAppMessageDO::getElapsed
+        );
+        wrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.IMAGE.name());
+        wrapper.in(CollectionUtil.isNotEmpty(query.getScenes()), LogAppMessageDO::getFromScene, query.getScenes());
+        wrapper.eq(LogAppMessageDO::getCreator, String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        wrapper.eq(StringUtils.isNotBlank(query.getStatus()), LogAppMessageDO::getStatus, query.getStatus());
+
+        Page<LogAppMessageDO> page = logAppMessageMapper.selectPage(PageUtil.page(query), wrapper);
         List<LogAppMessageDO> records = page.getRecords();
         if (CollectionUtil.isEmpty(records)) {
             return new PageResult<>(Collections.emptyList(), page.getTotal());
         }
         List<ImageLogMessageRespVO> list = records.stream()
-                .map(record -> transformImageLogMessage(record, Optional.ofNullable(RecommendAppEnum.of(record.getAppUid())).map(RecommendAppEnum::getLabel).orElse("")))
+                .map(record -> {
+                    String appName = Optional.ofNullable(RecommendAppEnum.of(record.getAppUid())).map(RecommendAppEnum::getLabel).orElse("");
+                    return transformImageLogMessage(record, appName);
+                })
                 .collect(Collectors.toList());
         return new PageResult<>(list, page.getTotal());
     }

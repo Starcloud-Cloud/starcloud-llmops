@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -28,7 +29,7 @@ public class HistoryImageRecordsQuery extends PageQuery {
      */
     @Schema(description = "图片场景")
     @NotBlank(message = "图片场景不能为空")
-    private String scene;
+    private List<String> scenes;
 
     /**
      * 执行状态

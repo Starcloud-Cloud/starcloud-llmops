@@ -1,17 +1,11 @@
 package com.starcloud.ops.business.app.service.image.impl;
 
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
-import com.starcloud.ops.business.app.api.image.vo.query.HistoryImageRecordsQuery;
-import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageHandlerHolder;
@@ -19,10 +13,7 @@ import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHa
 import com.starcloud.ops.business.app.service.log.impl.AppLogServiceImpl;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
-import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -40,9 +31,6 @@ import java.util.Map;
 @Slf4j
 @Service
 public class ImageServiceImpl implements ImageService {
-
-    @Resource
-    private AppLogServiceImpl appLogService;
 
     @Resource
     private AppDictionaryService appDictionaryService;
@@ -67,29 +55,6 @@ public class ImageServiceImpl implements ImageService {
         meta.put("stylePreset", ImageUtils.stylePresetList());
         meta.put("examplePrompt", appDictionaryService.examplePrompt());
         return meta;
-    }
-
-    /**
-     * 查询历史图片列表
-     *
-     * @return 图片列表
-     */
-    @Override
-    public PageResult<ImageLogMessageRespVO> historyImageRecords(HistoryImageRecordsQuery query) {
-        // 查询日志消息记录
-        Long loginUserId = WebFrameworkUtils.getLoginUserId();
-        AppLogMessagePageReqVO messageQuery = new AppLogMessagePageReqVO();
-        messageQuery.setAppMode(AppModelEnum.IMAGE.name());
-        messageQuery.setFromScene(query.getScene());
-        messageQuery.setCreator(String.valueOf(loginUserId));
-        if (AppSceneEnum.WEB_IMAGE.name().equals(query.getScene())) {
-            messageQuery.setStatus(LogStatusEnum.SUCCESS.name());
-        } else {
-            if (StringUtils.isNotEmpty(query.getStatus())) {
-                messageQuery.setStatus(query.getStatus());
-            }
-        }
-        return appLogService.pageImageAppLogMessage(messageQuery);
     }
 
     /**
