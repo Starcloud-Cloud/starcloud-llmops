@@ -30,4 +30,10 @@ public class HistoryImageRecordsQuery extends PageQuery {
     @NotBlank(message = "图片场景不能为空")
     private String scene;
 
+    /**
+     * 执行状态
+     */
+    @Schema(description = "执行状态")
+    private String status;
+
 }
