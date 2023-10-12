@@ -22,6 +22,7 @@ import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -83,6 +84,10 @@ public class ImageServiceImpl implements ImageService {
         messageQuery.setCreator(String.valueOf(loginUserId));
         if (AppSceneEnum.WEB_IMAGE.name().equals(query.getScene())) {
             messageQuery.setStatus(LogStatusEnum.SUCCESS.name());
+        } else {
+            if (StringUtils.isNotEmpty(query.getStatus())) {
+                messageQuery.setStatus(query.getStatus());
+            }
         }
         return appLogService.pageImageAppLogMessage(messageQuery);
     }
