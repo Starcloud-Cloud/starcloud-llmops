@@ -5,7 +5,6 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -144,7 +143,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         AppContext appContext;
         try {
             // 权益检测
-            this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
+            this.allowExpendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), request.getUserId());
             // 构建应用上下文
             appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
             appContext.setUserId(request.getUserId());

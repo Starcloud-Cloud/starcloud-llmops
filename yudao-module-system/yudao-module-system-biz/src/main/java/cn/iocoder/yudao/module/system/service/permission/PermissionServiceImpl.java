@@ -305,7 +305,8 @@ public class PermissionServiceImpl implements PermissionService {
 
             @Override
             public void afterCommit() {
-                initLocalCache();
+                permissionProducer.sendRoleMenuRefreshMessage();
+                permissionProducer.sendUserRoleRefreshMessage();
             }
 
         });

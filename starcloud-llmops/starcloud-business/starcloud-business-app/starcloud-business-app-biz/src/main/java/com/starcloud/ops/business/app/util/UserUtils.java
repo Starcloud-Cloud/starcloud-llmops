@@ -79,6 +79,16 @@ public class UserUtils {
     }
 
     /**
+     * 游客标识
+     *
+     * @param endUser 游客
+     * @return 游客标识
+     */
+    public static String visitorIdentify(String endUser) {
+        return "游客(" + endUser + ")";
+    }
+
+    /**
      * 获取用户名称
      *
      * @param userId 用户id

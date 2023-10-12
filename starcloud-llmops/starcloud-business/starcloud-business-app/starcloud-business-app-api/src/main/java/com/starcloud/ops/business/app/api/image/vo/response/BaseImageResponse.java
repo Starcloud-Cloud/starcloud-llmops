@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,6 +30,7 @@ import java.util.List;
         @JsonSubTypes.Type(value = RemoveTextResponse.class, name = "IMAGE_REMOVE_TEXT"),
         @JsonSubTypes.Type(value = SketchToImageResponse.class, name = "IMAGE_SKETCH"),
         @JsonSubTypes.Type(value = UpscaleImageResponse.class, name = "IMAGE_UPSCALING"),
+        @JsonSubTypes.Type(value = VariantsImageResponse.class, name = "IMAGE_VARIANTS"),
 })
 public class BaseImageResponse implements Serializable {
 
@@ -45,4 +47,11 @@ public class BaseImageResponse implements Serializable {
      */
     @Schema(description = "图片列表")
     private List<ImageDTO> images;
+
+    public static BaseImageResponse ofEmpty(String fromScene) {
+        BaseImageResponse response = new BaseImageResponse();
+        response.setFromScene(fromScene);
+        response.setImages(Collections.emptyList());
+        return response;
+    }
 }

@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.app.service.image;
 
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
-import com.starcloud.ops.business.app.api.image.vo.query.HistoryGenerateImagePageQuery;
-import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,13 +22,6 @@ public interface ImageService {
      * @return 图片元数据
      */
     Map<String, List<ImageMetaDTO>> meta();
-
-    /**
-     * 查询历史图片列表
-     *
-     * @return 图片列表
-     */
-    PageResult<BaseImageResponse> history(HistoryGenerateImagePageQuery query);
 
     /**
      * 上传图片，并且返回图片URL

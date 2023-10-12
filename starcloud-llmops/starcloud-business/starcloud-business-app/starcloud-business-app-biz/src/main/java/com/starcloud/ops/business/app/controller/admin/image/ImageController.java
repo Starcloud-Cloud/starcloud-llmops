@@ -1,12 +1,9 @@
 package com.starcloud.ops.business.app.controller.admin.image;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
-import com.starcloud.ops.business.app.api.image.vo.query.HistoryGenerateImagePageQuery;
-import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
@@ -52,13 +49,6 @@ public class ImageController {
     @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<Map<String, List<ImageMetaDTO>>> meta() {
         return CommonResult.success(imageService.meta());
-    }
-
-    @PostMapping("/history")
-    @Operation(summary = "查询历史图片列表", description = "查询历史图片列表")
-    @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<PageResult<BaseImageResponse>> history(@RequestBody HistoryGenerateImagePageQuery query) {
-        return CommonResult.success(imageService.history(query));
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -116,6 +106,17 @@ public class ImageController {
     @ApiOperationSupport(order = 60, author = "nacoyer")
     public CommonResult<ImageRespVO> sketchToImage(@Validated @RequestBody ImageReqVO request) {
         request.setAppUid(RecommendAppEnum.SKETCH_TO_IMAGE.name());
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
+        appLimitService.appLimit(limitRequest);
+        return CommonResult.success(imageService.execute(request));
+    }
+
+    @PostMapping(value = "/variants")
+    @Operation(summary = "图片裂变", description = "图片裂变")
+    @ApiOperationSupport(order = 70, author = "nacoyer")
+    public CommonResult<ImageRespVO> variants(@Validated @RequestBody ImageReqVO request) {
+        request.setAppUid(RecommendAppEnum.VARIANTS_IMAGE.name());
         // 执行限流
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
         appLimitService.appLimit(limitRequest);

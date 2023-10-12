@@ -43,8 +43,21 @@ public class AppLogMessagePageReqVO extends PageParam {
     private String fromScene;
 
     /**
+     * AI模型
+     */
+    @Schema(description = "AI模型")
+    private String aiModel;
+
+    /**
      * 应用状态
      */
     @Schema(description = "应用状态")
     private String status;
+
+    /**
+     * 创建人
+     */
+    @Schema(description = "创建人")
+    private String creator;
+
 }
