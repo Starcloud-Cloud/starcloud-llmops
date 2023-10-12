@@ -2,10 +2,10 @@ package com.starcloud.ops.business.app.service.log;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.image.vo.query.HistoryImageRecordsQuery;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
-import com.starcloud.ops.business.app.api.log.vo.response.LogMessageDetailRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
@@ -102,7 +102,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 应用执行日志消息数据
      */
-    PageResult<ImageLogMessageRespVO> pageImageAppLogMessage(AppLogMessagePageReqVO query);
+    PageResult<ImageLogMessageRespVO> pageHistoryImageRecords(HistoryImageRecordsQuery query);
 
     /**
      * 获取文本生成消息详情

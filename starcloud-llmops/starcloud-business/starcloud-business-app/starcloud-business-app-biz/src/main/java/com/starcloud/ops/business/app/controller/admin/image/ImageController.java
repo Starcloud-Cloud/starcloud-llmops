@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
+import com.starcloud.ops.business.app.service.log.impl.AppLogServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
@@ -42,6 +43,9 @@ import java.util.Map;
 public class ImageController {
 
     @Resource
+    private AppLogServiceImpl appLogService;
+
+    @Resource
     private ImageService imageService;
 
     @Resource
@@ -58,7 +62,7 @@ public class ImageController {
     @Operation(summary = "查询历史图片列表", description = "查询历史图片列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
     public CommonResult<PageResult<ImageLogMessageRespVO>> historyImageRecords(@RequestBody HistoryImageRecordsQuery query) {
-        return CommonResult.success(imageService.historyImageRecords(query));
+        return CommonResult.success(appLogService.pageHistoryImageRecords(query));
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
