@@ -103,4 +103,19 @@ public enum RecommendAppEnum implements IEnumable<Integer> {
         this.label = label;
         this.labelEn = labelEn;
     }
+
+    /**
+     * 根据code获取枚举
+     *
+     * @param name code
+     * @return 枚举
+     */
+    public static RecommendAppEnum of(String name) {
+        for (RecommendAppEnum value : values()) {
+            if (value.name().equals(name)) {
+                return value;
+            }
+        }
+        return null;
+    }
 }

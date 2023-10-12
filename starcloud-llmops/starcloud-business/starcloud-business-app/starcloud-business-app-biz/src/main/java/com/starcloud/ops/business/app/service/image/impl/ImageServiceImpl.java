@@ -1,21 +1,11 @@
 package com.starcloud.ops.business.app.service.image.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.TypeReference;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
-import com.starcloud.ops.business.app.api.image.vo.query.HistoryGenerateImagePageQuery;
-import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
-import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
-import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
+import com.starcloud.ops.business.app.api.image.vo.query.HistoryImageRecordsQuery;
+import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
@@ -26,25 +16,20 @@ import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageHandlerHolder;
 import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHandler;
+import com.starcloud.ops.business.app.service.log.impl.AppLogServiceImpl;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.app.util.PageUtil;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -56,7 +41,7 @@ import java.util.stream.Collectors;
 public class ImageServiceImpl implements ImageService {
 
     @Resource
-    private LogAppMessageMapper logAppMessageMapper;
+    private AppLogServiceImpl appLogService;
 
     @Resource
     private AppDictionaryService appDictionaryService;
@@ -89,26 +74,17 @@ public class ImageServiceImpl implements ImageService {
      * @return 图片列表
      */
     @Override
-    public PageResult<BaseImageResponse> history(HistoryGenerateImagePageQuery query) {
+    public PageResult<ImageLogMessageRespVO> historyImageRecords(HistoryImageRecordsQuery query) {
         // 查询日志消息记录
         Long loginUserId = WebFrameworkUtils.getLoginUserId();
-        LambdaQueryWrapper<LogAppMessageDO> messageWrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        messageWrapper.select(LogAppMessageDO::getUid, LogAppMessageDO::getCreateTime, LogAppMessageDO::getMessage, LogAppMessageDO::getAnswer, LogAppMessageDO::getVariables);
-        messageWrapper.eq(LogAppMessageDO::getAppMode, AppModelEnum.IMAGE.name());
-        messageWrapper.eq(LogAppMessageDO::getFromScene, query.getScene());
-        messageWrapper.eq(LogAppMessageDO::getCreator, Long.toString(loginUserId));
+        AppLogMessagePageReqVO messageQuery = new AppLogMessagePageReqVO();
+        messageQuery.setAppMode(AppModelEnum.IMAGE.name());
+        messageQuery.setFromScene(query.getScene());
+        messageQuery.setCreator(String.valueOf(loginUserId));
         if (AppSceneEnum.WEB_IMAGE.name().equals(query.getScene())) {
-            messageWrapper.eq(LogAppMessageDO::getStatus, LogStatusEnum.SUCCESS.name());
+            messageQuery.setStatus(LogStatusEnum.SUCCESS.name());
         }
-        messageWrapper.orderByDesc(LogAppMessageDO::getCreateTime);
-        Page<LogAppMessageDO> page = logAppMessageMapper.selectPage(PageUtil.page(query), messageWrapper);
-        List<LogAppMessageDO> records = page.getRecords();
-        if (CollectionUtil.isEmpty(records)) {
-            return new PageResult<>(Collections.emptyList(), page.getTotal());
-        }
-        // 处理图片消息数据
-        List<BaseImageResponse> list = records.stream().map(ImageServiceImpl::buildHistoryResponse).filter(Objects::nonNull).collect(Collectors.toList());
-        return new PageResult<>(list, page.getTotal());
+        return appLogService.pageImageAppLogMessage(messageQuery);
     }
 
     /**
@@ -141,52 +117,6 @@ public class ImageServiceImpl implements ImageService {
         ImageAppEntity factory = AppFactory.factory(request);
         // 生成图片
         return factory.execute(request);
-    }
-
-    /**
-     * 构建历史图片响应
-     *
-     * @param message 日志消息
-     * @return 历史图片响应
-     */
-    private static BaseImageResponse buildHistoryResponse(LogAppMessageDO message) {
-        // 如果没有结果，返回 null
-        if (StringUtils.isBlank(message.getAnswer())) {
-            return null;
-        }
-        // 新的数据结构
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(message.getAnswer(), BaseImageResponse.class);
-        } catch (Exception exception) {
-            log.error("新结构数据序列化失败：尝试使用旧结构序列化图片日志消息数据：{}", exception.getMessage());
-            try {
-                List<ImageDTO> imageList = JSONUtil.toBean(message.getAnswer(), new TypeReference<List<ImageDTO>>() {
-                }, true);
-                // 排除掉空的和没有 url 的图片
-                imageList = imageList.stream().filter(Objects::nonNull).filter(imageItem -> StringUtils.isNotBlank(imageItem.getUrl())).collect(Collectors.toList());
-                // 如果没有结果，返回 null
-                if (CollectionUtil.isEmpty(imageList)) {
-                    return null;
-                }
-                GenerateImageResponse imageResponse = new GenerateImageResponse();
-                imageResponse.setPrompt(message.getMessage());
-                imageResponse.setImages(imageList);
-                GenerateImageRequest imageRequest = JSONUtil.toBean(message.getVariables(), GenerateImageRequest.class);
-                if (Objects.nonNull(imageRequest)) {
-                    imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.FALSE));
-                    imageResponse.setEngine(imageRequest.getEngine());
-                    imageResponse.setWidth(imageRequest.getWidth());
-                    imageResponse.setHeight(imageRequest.getHeight());
-                    imageResponse.setSteps(imageRequest.getSteps());
-                    imageResponse.setStylePreset(imageRequest.getStylePreset());
-                }
-                return imageResponse;
-            } catch (Exception exception1) {
-                log.error("序列化图片日志消息响应失败: {}", exception1.getMessage());
-                return null;
-            }
-        }
     }
 
 }

@@ -77,7 +77,12 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     @Override
     public List<String> hotSearchMarketAppNameList() {
         List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_HOT_SEARCH_MARKET);
-        return CollectionUtil.emptyIfNull(dictDataList).stream().map(DictDataDO::getLabel).collect(Collectors.toList());
+        return CollectionUtil.emptyIfNull(dictDataList).stream()
+                .sorted(Comparator.comparingInt(DictDataDO::getSort))
+                .map(DictDataDO::getLabel)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     /**
