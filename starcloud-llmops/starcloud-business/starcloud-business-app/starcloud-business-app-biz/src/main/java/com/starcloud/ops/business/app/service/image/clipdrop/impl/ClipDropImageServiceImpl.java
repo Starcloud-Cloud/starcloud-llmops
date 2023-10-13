@@ -312,7 +312,7 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
         if (Objects.nonNull(exceptionMap) && exceptionMap.containsKey("error") && StringUtils.isNotBlank(exceptionMap.get("error"))) {
             String message = exceptionMap.get("error");
             if (StringUtils.contains(message, "image format webp is not supported")) {
-                return "图片格式(webp)不支持，支持的图片格式有：jpg、png";
+                return "图片格式(webp)不支持，支持的图片格式有：png、jpg、jpeg";
             }
             return exceptionMap.get("error");
         }
