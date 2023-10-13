@@ -2,6 +2,7 @@ package com.starcloud.ops.business.open.service;
 
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
 import com.starcloud.ops.business.open.api.dto.WeChatRequestDTO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.WechatWebChannelReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.request.WeChatBindReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.response.WeChatBindRespVO;
 
@@ -50,4 +51,10 @@ public interface WechatService {
      * @param reqVO
      */
     void modify(String uid, WeChatBindReqVO reqVO);
+
+    /**
+     * 公共号自动回复/菜单
+     * @param req
+     */
+    void createWebChannel(WechatWebChannelReqVO req);
 }
