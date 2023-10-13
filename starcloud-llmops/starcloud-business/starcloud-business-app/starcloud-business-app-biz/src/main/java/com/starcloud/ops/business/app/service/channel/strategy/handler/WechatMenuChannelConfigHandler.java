@@ -28,9 +28,6 @@ public class WechatMenuChannelConfigHandler extends AppPublishChannelConfigTempl
 
     @Override
     public WeChatMenuChannelConfigDTO deserializeConfig(String config) {
-        if (StringUtils.isBlank(config)) {
-            return new WeChatMenuChannelConfigDTO();
-        }
-        return JSONUtil.toBean(config, WeChatMenuChannelConfigDTO.class);
+        return new WeChatMenuChannelConfigDTO();
     }
 }

@@ -28,9 +28,6 @@ public class WechatReplyChannelConfigHandler extends AppPublishChannelConfigTemp
 
     @Override
     public WeChatReplyChannelConfigDTO deserializeConfig(String config) {
-        if (StringUtils.isBlank(config)) {
-            return new WeChatReplyChannelConfigDTO();
-        }
-        return JSONUtil.toBean(config, WeChatReplyChannelConfigDTO.class);
+        return new WeChatReplyChannelConfigDTO();
     }
 }
