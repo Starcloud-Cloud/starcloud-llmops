@@ -9,8 +9,9 @@
         COUNT(CASE WHEN ms.status != "SUCCESS" THEN 1 END) AS errorCount,
         COUNT(CASE WHEN fb.rating = "LIKE" THEN 1 END) AS feedbackLikeCount,
         COUNT(DISTINCT ms.creator) AS userCount,
-        SUM(ms.elapsed) AS elapsedTotal,
-        AVG(ms.elapsed) AS elapsedAvg,
+        SUM(ms.elapsed) AS elapsedTotal, # 总耗时
+        AVG(ms.elapsed) AS elapsedAvg, # 平均耗时
+        # SUN(CASE WHEN ms.app_mode != "IMAGE" THEN ms.message_tokens END) AS messageTokens,
         SUM(ms.message_tokens) AS messageTokens,
         SUM(ms.answer_tokens) AS answerTokens,
         SUM(ms.message_tokens + ms.answer_tokens) AS tokens,
