@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.api.channel.dto.WeChatReplyChannelConfigDT
 import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigType;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -27,6 +28,9 @@ public class WechatReplyChannelConfigHandler extends AppPublishChannelConfigTemp
 
     @Override
     public WeChatReplyChannelConfigDTO deserializeConfig(String config) {
+        if (StringUtils.isBlank(config)) {
+            return new WeChatReplyChannelConfigDTO();
+        }
         return JSONUtil.toBean(config, WeChatReplyChannelConfigDTO.class);
     }
 }
