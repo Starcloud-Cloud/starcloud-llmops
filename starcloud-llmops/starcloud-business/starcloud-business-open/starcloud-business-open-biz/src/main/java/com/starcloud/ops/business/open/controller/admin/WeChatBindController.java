@@ -57,7 +57,7 @@ public class WeChatBindController {
         return CommonResult.success(true);
     }
 
-    @PostMapping("/create")
+    @PostMapping("/createUrl")
     @Operation(summary = "公共号自动回复/菜单", description = "公共号自动回复/菜单")
     public CommonResult<Boolean> createWebChannel(@Valid @RequestBody WechatWebChannelReqVO req) {
         wechatService.createWebChannel(req);
