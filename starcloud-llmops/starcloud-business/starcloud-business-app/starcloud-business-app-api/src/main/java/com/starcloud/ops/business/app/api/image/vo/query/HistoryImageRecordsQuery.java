@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
@@ -28,7 +28,7 @@ public class HistoryImageRecordsQuery extends PageQuery {
      * 执行场景
      */
     @Schema(description = "图片场景")
-    @NotBlank(message = "图片场景不能为空")
+    @NotEmpty(message = "执行类型不能为空")
     private List<String> scenes;
 
     /**

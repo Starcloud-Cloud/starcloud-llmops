@@ -104,6 +104,11 @@ public class AppMarketController {
     @Operation(summary = "操作应用市场应用", description = "操作应用市场应用")
     @ApiOperationSupport(order = 80, author = "nacoyer")
     public CommonResult<Boolean> operate(@Validated @RequestBody AppOperateReqVO request) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        if (loginUserId == null) {
+            return CommonResult.error(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+        }
+        request.setUserId(Long.toString(loginUserId));
         appMarketService.operate(request);
         return CommonResult.success(Boolean.TRUE);
     }
