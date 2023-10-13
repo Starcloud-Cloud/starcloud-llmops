@@ -375,6 +375,11 @@ public class AppLogServiceImpl implements AppLogService {
     @Override
     public PageResult<ImageLogMessageRespVO> pageHistoryImageRecords(HistoryImageRecordsQuery query) {
 
+        // 不传入场景时，返回空数据
+        if (CollectionUtil.isEmpty(query.getScenes())) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+
         LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
         wrapper.select(
                 LogAppMessageDO::getUid,
