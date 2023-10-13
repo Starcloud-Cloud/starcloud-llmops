@@ -48,6 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -118,12 +119,18 @@ public class AppMarketServiceImpl implements AppMarketService {
                 hotSearchListWrapper.in(AppMarketDO::getName, nameList);
                 List<AppMarketDO> hotSearchList = appMarketMapper.selectList(hotSearchListWrapper);
                 if (CollectionUtil.isNotEmpty(hotSearchList)) {
+                    List<AppMarketRespVO> collect = nameList.stream()
+                            .map(name -> hotSearchList.stream().filter(item -> name.equals(item.getName())).findFirst().orElse(null))
+                            .filter(Objects::nonNull)
+                            .map(AppMarketConvert.INSTANCE::convertResponse)
+                            .collect(Collectors.toList());
+                    Collections.reverse(collect);
                     AppMarketGroupCategoryRespVO hotSearchResponse = new AppMarketGroupCategoryRespVO();
                     hotSearchResponse.setName("热门");
                     hotSearchResponse.setCode("HOT");
                     hotSearchResponse.setParentCode("ROOT");
                     hotSearchResponse.setIcon("hot");
-                    hotSearchResponse.setAppList(hotSearchList.stream().map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.toList()));
+                    hotSearchResponse.setAppList(collect);
                     result.add(hotSearchResponse);
                 }
             }
@@ -303,6 +310,13 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppMarketDO appMarketDO = appMarketMapper.get(request.getAppUid(), Boolean.TRUE);
 
         request.setVersion(appMarketDO.getVersion());
+        if (StringUtils.isBlank(request.getUserId())) {
+            Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+            if (loginUserId == null) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+            }
+            request.setUserId(Long.toString(loginUserId));
+        }
         // 转换数据
         AppOperateDO operateDO = AppOperateConvert.INSTANCE.convert(request);
         // 插入操作记录

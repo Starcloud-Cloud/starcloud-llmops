@@ -7,7 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -19,7 +20,7 @@ import javax.validation.constraints.NotBlank;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Schema(name = "HistoryGenerateImagePageQuery", description = "历史生成图片分页查询参数")
-public class HistoryGenerateImagePageQuery extends PageQuery {
+public class HistoryImageRecordsQuery extends PageQuery {
 
     private static final long serialVersionUID = -7294418406714001254L;
 
@@ -27,7 +28,13 @@ public class HistoryGenerateImagePageQuery extends PageQuery {
      * 执行场景
      */
     @Schema(description = "图片场景")
-    @NotBlank(message = "图片场景不能为空")
-    private String scene;
+    @NotEmpty(message = "执行类型不能为空")
+    private List<String> scenes;
+
+    /**
+     * 执行状态
+     */
+    @Schema(description = "执行状态")
+    private String status;
 
 }
