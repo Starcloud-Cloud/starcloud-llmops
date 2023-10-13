@@ -8,7 +8,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -45,5 +44,11 @@ public class AppOperateReqVO implements Serializable {
     @NotBlank(message = "操作类型不能为空")
     @InEnum(value = AppOperateTypeEnum.class, message = "操作类型[{value}]必须在: [LIKE, VIEW] 范围内！")
     private String operate;
+
+    /**
+     * 用户ID
+     */
+    @Schema(description = "用户ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String userId;
 
 }

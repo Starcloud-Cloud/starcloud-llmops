@@ -310,6 +310,13 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppMarketDO appMarketDO = appMarketMapper.get(request.getAppUid(), Boolean.TRUE);
 
         request.setVersion(appMarketDO.getVersion());
+        if (StringUtils.isBlank(request.getUserId())) {
+            Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+            if (loginUserId == null) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+            }
+            request.setUserId(Long.toString(loginUserId));
+        }
         // 转换数据
         AppOperateDO operateDO = AppOperateConvert.INSTANCE.convert(request);
         // 插入操作记录
