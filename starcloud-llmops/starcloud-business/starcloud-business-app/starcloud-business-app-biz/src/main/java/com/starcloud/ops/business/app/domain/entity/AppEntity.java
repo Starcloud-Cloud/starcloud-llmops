@@ -40,6 +40,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -333,6 +334,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
         this.createAppMessage((messageCreateRequest) -> {
+
             messageCreateRequest.setCreator(String.valueOf(appContext.getUserId()));
             messageCreateRequest.setEndUser(appContext.getEndUser());
             messageCreateRequest.setAppConversationUid(appContext.getConversationUid());
@@ -343,8 +345,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setFromScene(appContext.getScene().name());
             messageCreateRequest.setMediumUid(appContext.getMediumUid());
             messageCreateRequest.setCurrency("USD");
+
+            // 获取所有变量
             Map<String, Object> variables = appContext.getContextVariablesValues();
-            messageCreateRequest.setAiModel(String.valueOf(Optional.ofNullable(variables.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName())));
+            String aiModel = String.valueOf(Optional.ofNullable(variables.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+            messageCreateRequest.setAiModel(aiModel);
 
             // actionResponse 不为空说明已经执行成功
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
@@ -365,16 +370,20 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 return;
             }
 
+            ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
+            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
+            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+
             // 说明执行失败
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
             messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
             messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
             messageCreateRequest.setMessage(String.valueOf(Optional.ofNullable(variables.get("PROMPT")).orElse("")));
             messageCreateRequest.setMessageTokens(0);
-            messageCreateRequest.setMessageUnitPrice(new BigDecimal("0.02"));
+            messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
             messageCreateRequest.setAnswer("");
             messageCreateRequest.setAnswerTokens(0);
-            messageCreateRequest.setAnswerUnitPrice(new BigDecimal("0.02"));
+            messageCreateRequest.setAnswerUnitPrice(answerUnitPrice);
             messageCreateRequest.setTotalPrice(new BigDecimal("0"));
             Optional<Throwable> taskExceptionOptional = Optional.ofNullable(nodeTracking.getTaskException());
             if (taskExceptionOptional.isPresent()) {
@@ -404,32 +413,37 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     private void createAppMessageLog(AppExecuteReqVO request, Exception exception) {
         this.createAppMessage((messageCreateRequest) -> {
+            // 构建应用上下文
+            AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
+            Map<String, Object> variablesValues = appContext.getContextVariablesValues();
+            String aiModel = String.valueOf(Optional.ofNullable(variablesValues.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+            ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
+            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
+            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+
             messageCreateRequest.setCreator(String.valueOf(request.getUserId()));
             messageCreateRequest.setEndUser(request.getEndUser());
             messageCreateRequest.setAppConversationUid(request.getConversationUid());
             messageCreateRequest.setAppStep(request.getStepId());
             messageCreateRequest.setElapsed(100L);
             messageCreateRequest.setFromScene(request.getScene());
+            messageCreateRequest.setAiModel(aiModel);
             messageCreateRequest.setMediumUid(request.getMediumUid());
             messageCreateRequest.setCurrency("USD");
             messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
             messageCreateRequest.setMessage("");
             messageCreateRequest.setMessageTokens(0);
-            messageCreateRequest.setMessageUnitPrice(new BigDecimal("0.02"));
+            messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
             messageCreateRequest.setAnswer("");
             messageCreateRequest.setAnswerTokens(0);
-            messageCreateRequest.setAnswerUnitPrice(new BigDecimal("0.02"));
+            messageCreateRequest.setAnswerUnitPrice(answerUnitPrice);
             messageCreateRequest.setTotalPrice(new BigDecimal("0"));
             messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
             if (exception instanceof ServerException) {
                 messageCreateRequest.setErrorCode(String.valueOf(((ServerException) exception).getCode()));
             }
             messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
-            // 构建应用上下文
-            AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
-            Map<String, Object> variablesValues = appContext.getContextVariablesValues();
-            messageCreateRequest.setAiModel(String.valueOf(Optional.ofNullable(variablesValues.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName())));
 
         });
     }

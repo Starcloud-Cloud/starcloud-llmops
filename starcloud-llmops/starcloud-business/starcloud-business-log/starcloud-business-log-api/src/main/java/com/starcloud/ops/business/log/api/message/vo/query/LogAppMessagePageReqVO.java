@@ -61,7 +61,7 @@ public class LogAppMessagePageReqVO extends PageParam {
     /**
      * app 场景
      */
-    @Schema(description = "执行状态，error：失败，success：成功")
+    @Schema(description = "执行状态，ERROR：失败，SUCCESS：成功")
     private String status;
 
     /**

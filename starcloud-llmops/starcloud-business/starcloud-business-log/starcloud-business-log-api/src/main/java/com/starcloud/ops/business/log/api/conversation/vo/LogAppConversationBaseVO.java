@@ -1,12 +1,14 @@
 package com.starcloud.ops.business.log.api.conversation.vo;
 
+import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -26,43 +28,57 @@ public class LogAppConversationBaseVO implements Serializable {
     /**
      * 会话 UID
      */
-    @Schema(description = "会话uid")
-    @NotNull(message = "会话uid不能为空")
+    @Schema(description = "会话UID")
+    @NotBlank(message = "会话【uid】是必填项！")
     private String uid;
 
     /**
-     * app uid
+     * 应用唯一标识
      */
-    @Schema(description = "app uid")
-    @NotNull(message = "app uid不能为空")
+    @Schema(description = "应用唯一标识")
+    @NotBlank(message = "应用唯一标识【appUid】是必填项！")
     private String appUid;
 
     /**
-     * app name
+     * 应用名称
      */
-    @Schema(description = "app name")
-    @NotNull(message = "app name不能为空")
+    @Schema(description = "应用名称")
+    @NotBlank(message = "应用名称【appName】是必填项！")
     private String appName;
 
     /**
-     * app 模式
+     * 应用模式
      */
-    @Schema(description = "app 模式")
-    @NotNull(message = "app 模式不能为空")
+    @Schema(description = "应用模式")
+    @NotBlank(message = "应用模式【appMode】是必填项！")
     private String appMode;
 
     /**
-     * app 配置
+     * 执行场景
      */
-    @Schema(description = "app 配置")
-    @NotNull(message = "app 配置不能为空")
-    private String appConfig;
+    @Schema(description = "执行场景")
+    @NotBlank(message = "执行场景【fromScene】是必填项！")
+    private String fromScene;
 
     /**
-     * 执行状态，error：失败，success：成功
+     * Ai模型
      */
-    @Schema(description = "执行状态，error：失败，success：成功")
-    @NotNull(message = "执行状态，error：失败，success：成功不能为空")
+    @Schema(description = "Ai模型")
+    private String aiModel;
+
+    /**
+     * 应用配置
+     */
+    @Schema(description = "应用配置")
+    @NotBlank(message = "应用配置【appConfig】是必填项！")
+    private String appConfig = "{}";
+
+    /**
+     * 会话状态，error：失败，success：成功
+     */
+    @Schema(description = "会话状态，ERROR：失败，SUCCESS：成功")
+    @InEnum(value = LogStatusEnum.class, field = InEnum.EnumField.NAME, message = "会话状态[{value}], 不在合法范围内, 有效值：{values}")
+    @NotBlank(message = "会话状态【status】是必填项！")
     private String status;
 
     /**
@@ -76,13 +92,6 @@ public class LogAppConversationBaseVO implements Serializable {
      */
     @Schema(description = "执行错误信息")
     private String errorMsg;
-
-    /**
-     * 执行场景
-     */
-    @Schema(description = "执行场景")
-    @NotNull(message = "执行场景不能为空")
-    private String fromScene;
 
     /**
      * 终端用户ID

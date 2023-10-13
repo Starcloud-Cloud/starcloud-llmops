@@ -84,6 +84,12 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     private Integer tokens;
 
     /**
+     * 消耗积分
+     */
+    @Schema(description = "消耗积分")
+    private Integer costPoints;
+
+    /**
      * 生成时间
      */
     @Schema(description = "生成时间")

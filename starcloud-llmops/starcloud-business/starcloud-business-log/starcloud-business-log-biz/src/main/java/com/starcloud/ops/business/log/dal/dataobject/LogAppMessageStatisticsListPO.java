@@ -92,6 +92,11 @@ public class LogAppMessageStatisticsListPO {
     private Integer tokens;
 
     /**
+     * 消耗积分
+     */
+    private Integer costPoints;
+
+    /**
      * 创建时间
      */
     private String createDate;

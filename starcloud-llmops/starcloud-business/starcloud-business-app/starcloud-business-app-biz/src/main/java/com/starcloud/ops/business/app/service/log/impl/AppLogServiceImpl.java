@@ -401,6 +401,7 @@ public class AppLogServiceImpl implements AppLogService {
         wrapper.in(CollectionUtil.isNotEmpty(query.getScenes()), LogAppMessageDO::getFromScene, query.getScenes());
         wrapper.eq(StringUtils.isNotBlank(query.getStatus()), LogAppMessageDO::getStatus, query.getStatus());
         wrapper.eq(LogAppMessageDO::getCreator, String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
 
         Page<LogAppMessageDO> page = logAppMessageMapper.selectPage(PageUtil.page(query), wrapper);
         List<LogAppMessageDO> records = page.getRecords();
