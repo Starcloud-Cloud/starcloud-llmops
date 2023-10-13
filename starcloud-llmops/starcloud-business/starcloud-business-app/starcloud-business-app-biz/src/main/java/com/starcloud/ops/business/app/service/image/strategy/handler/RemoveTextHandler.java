@@ -2,6 +2,8 @@ package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.RemoveTextRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.RemoveTextResponse;
@@ -45,6 +47,11 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
     @Override
     public void handleRequest(RemoveTextRequest request) {
         log.info("去除图片文字：请求参数：{}", JSONUtil.toJsonStr(request));
+        String imageUrl = request.getImageUrl();
+        String extension = ImageUploadUtils.getExtension(imageUrl);
+        if (!"jpg".equals(extension) && !"jpeg".equals(extension) && !"png".equals(extension)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FEIGN_FAILURE.getCode(), "不支持的图片格式(仅支持jpg、jpeg、png)"));
+        }
     }
 
     /**
