@@ -5,17 +5,13 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.mp.controller.admin.account.vo.MpAccountRespVO;
 import cn.iocoder.yudao.module.mp.convert.account.MpAccountConvert;
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.open.controller.admin.vo.request.WechatWebChannelReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.request.WeChatBindReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.response.WeChatBindRespVO;
 import com.starcloud.ops.business.open.service.WechatService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -58,6 +54,13 @@ public class WeChatBindController {
     @Operation(summary = "修改绑定的微信群", description = "修改绑定的微信群")
     public CommonResult<Boolean> modify(@PathVariable("uid") String uid, @RequestBody @Valid WeChatBindReqVO reqVO) {
         wechatService.modify(uid, reqVO);
+        return CommonResult.success(true);
+    }
+
+    @PostMapping("/createUrl")
+    @Operation(summary = "公共号自动回复/菜单", description = "公共号自动回复/菜单")
+    public CommonResult<Boolean> createWebChannel(@Valid @RequestBody WechatWebChannelReqVO req) {
+        wechatService.createWebChannel(req);
         return CommonResult.success(true);
     }
 
