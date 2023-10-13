@@ -7,7 +7,6 @@ import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.module.mp.controller.admin.account.vo.MpAccountCreateReqVO;
-import cn.iocoder.yudao.module.mp.controller.admin.account.vo.MpAccountUpdateReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.account.MpAccountService;
@@ -32,6 +31,7 @@ import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.open.api.dto.WeChatRequestDTO;
+import com.starcloud.ops.business.open.controller.admin.vo.request.WechatWebChannelReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.request.WeChatBindReqVO;
 import com.starcloud.ops.business.open.controller.admin.vo.response.WeChatBindRespVO;
 import com.starcloud.ops.business.open.service.WechatService;
@@ -253,6 +253,33 @@ public class WechatServiceImpl implements WechatService {
     public void modify(String uid, WeChatBindReqVO reqVO) {
         delete(uid);
         bindWxAccount(reqVO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createWebChannel(WechatWebChannelReqVO req) {
+        Map<Integer, List<AppPublishChannelRespVO>> channelMap = appPublishChannelService.mapByAppPublishUidGroupByType(req.getPublishUid());
+        List<AppPublishChannelRespVO> replyChannel = channelMap.get(AppPublishChannelEnum.WX_MP_REPLY.getCode());
+        List<AppPublishChannelRespVO> menuChannel = channelMap.get(AppPublishChannelEnum.WX_MP_MENU.getCode());
+        if (CollectionUtils.isEmpty(replyChannel)) {
+            AppPublishChannelReqVO createReq = new AppPublishChannelReqVO();
+            createReq.setName(req.getName() + AppPublishChannelEnum.WX_MP_REPLY.getLabel());
+            createReq.setType(AppPublishChannelEnum.WX_MP_REPLY.getCode());
+            createReq.setAppUid(req.getAppUid());
+            createReq.setPublishUid(req.getPublishUid());
+            createReq.setStatus(StateEnum.ENABLE.getCode());
+            appPublishChannelService.create(createReq);
+        }
+
+        if (CollectionUtils.isEmpty(menuChannel)) {
+            AppPublishChannelReqVO createReq = new AppPublishChannelReqVO();
+            createReq.setName(req.getName() + AppPublishChannelEnum.WX_MP_MENU.getLabel());
+            createReq.setType(AppPublishChannelEnum.WX_MP_MENU.getCode());
+            createReq.setAppUid(req.getAppUid());
+            createReq.setPublishUid(req.getPublishUid());
+            createReq.setStatus(StateEnum.ENABLE.getCode());
+            appPublishChannelService.create(createReq);
+        }
     }
 
     private ChatRequestVO preChatRequest(String fromUser, String chatAppId, String query) {
