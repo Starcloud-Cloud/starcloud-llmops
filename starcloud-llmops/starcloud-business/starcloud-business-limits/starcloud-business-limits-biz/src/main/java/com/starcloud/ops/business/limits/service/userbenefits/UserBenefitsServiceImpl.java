@@ -937,8 +937,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         long sum = resultList.stream().mapToLong(UserBenefitsDO::getComputationalPowerRemaining).sum();
 
         tokenExpiredReminderVO.setName(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode());
-        tokenExpiredReminderVO.setIsReminder(sum > 20 ? false : true);
-        tokenExpiredReminderVO.setExpiredNum(sum > 20 ? 0 : sum);
+        tokenExpiredReminderVO.setIsReminder(sum > 10 ? false : true);
+        tokenExpiredReminderVO.setExpiredNum(sum > 10 ? 0 : sum);
         expiredReminderVO.setTokenExpiredReminderVO(tokenExpiredReminderVO);
 
         UserBenefitsDO userBenefitsDO = resultList.stream()
