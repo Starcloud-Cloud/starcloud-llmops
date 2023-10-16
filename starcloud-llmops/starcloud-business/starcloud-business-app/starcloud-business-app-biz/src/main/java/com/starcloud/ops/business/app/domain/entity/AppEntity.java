@@ -48,6 +48,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -335,10 +336,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
         this.createAppMessage((messageCreateRequest) -> {
 
-            messageCreateRequest.setCreator(String.valueOf(appContext.getUserId()));
-            messageCreateRequest.setEndUser(appContext.getEndUser());
             messageCreateRequest.setAppConversationUid(appContext.getConversationUid());
             messageCreateRequest.setAppStep(appContext.getStepId());
+            messageCreateRequest.setEndUser(appContext.getEndUser());
+            messageCreateRequest.setCreator(String.valueOf(appContext.getUserId()));
+            messageCreateRequest.setUpdater(String.valueOf(appContext.getUserId()));
             messageCreateRequest.setCreateTime(nodeTracking.getStartTime());
             messageCreateRequest.setUpdateTime(nodeTracking.getStartTime());
             messageCreateRequest.setElapsed(nodeTracking.getSpendTime());
@@ -367,6 +369,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 messageCreateRequest.setAnswerTokens(actionResponse.getAnswerTokens().intValue());
                 messageCreateRequest.setAnswerUnitPrice(actionResponse.getAnswerUnitPrice());
                 messageCreateRequest.setTotalPrice(actionResponse.getTotalPrice());
+                messageCreateRequest.setCostPoints(actionResponse.getCostPoints());
                 return;
             }
 
@@ -385,6 +388,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setAnswerTokens(0);
             messageCreateRequest.setAnswerUnitPrice(answerUnitPrice);
             messageCreateRequest.setTotalPrice(new BigDecimal("0"));
+            messageCreateRequest.setCostPoints(0);
             Optional<Throwable> taskExceptionOptional = Optional.ofNullable(nodeTracking.getTaskException());
             if (taskExceptionOptional.isPresent()) {
                 Throwable throwable = taskExceptionOptional.get();
@@ -421,8 +425,6 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
             BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
 
-            messageCreateRequest.setCreator(String.valueOf(request.getUserId()));
-            messageCreateRequest.setEndUser(request.getEndUser());
             messageCreateRequest.setAppConversationUid(request.getConversationUid());
             messageCreateRequest.setAppStep(request.getStepId());
             messageCreateRequest.setElapsed(100L);
@@ -431,8 +433,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setMediumUid(request.getMediumUid());
             messageCreateRequest.setCurrency("USD");
             messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
+            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variablesValues));
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setMessage("");
+            messageCreateRequest.setMessage(String.valueOf(Optional.ofNullable(variablesValues.get("PROMPT")).orElse("")));
             messageCreateRequest.setMessageTokens(0);
             messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
             messageCreateRequest.setAnswer("");
@@ -440,6 +443,12 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setAnswerUnitPrice(answerUnitPrice);
             messageCreateRequest.setTotalPrice(new BigDecimal("0"));
             messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
+            messageCreateRequest.setCreator(String.valueOf(request.getUserId()));
+            messageCreateRequest.setUpdater(String.valueOf(request.getUserId()));
+            messageCreateRequest.setCreateTime(LocalDateTime.now());
+            messageCreateRequest.setUpdateTime(LocalDateTime.now());
+            messageCreateRequest.setEndUser(request.getEndUser());
+            messageCreateRequest.setCostPoints(0);
             if (exception instanceof ServerException) {
                 messageCreateRequest.setErrorCode(String.valueOf(((ServerException) exception).getCode()));
             }

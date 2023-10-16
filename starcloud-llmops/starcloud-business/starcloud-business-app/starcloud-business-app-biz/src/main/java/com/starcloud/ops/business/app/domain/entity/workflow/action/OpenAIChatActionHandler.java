@@ -14,11 +14,13 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Open AI Chat 步骤实体
@@ -39,6 +41,22 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         return super.execute(context, scopeDataOperator);
     }
 
+    /**
+     * 获取当前handler消耗的权益点数
+     *
+     * @param request
+     * @return 权益点数
+     */
+    @Override
+    protected Integer getCostPoints(Request request) {
+        Map<String, Object> params = request.getStepParams();
+        String aiModel = String.valueOf(Optional.ofNullable(params.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        if (ModelTypeEnum.GPT_4.getName().equals(aiModel)) {
+            return 30;
+        }
+        return 1;
+    }
+
     @Override
     protected ActionResponse _execute(Request request) {
 
@@ -52,13 +70,15 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
 
-        String prompt = (String) params.getOrDefault("PROMPT", "hi, what you name?");
+        String model = String.valueOf(params.getOrDefault("MODEL", ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
         Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7"));
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
         handlerRequest.setStream(true);
+        handlerRequest.setModel(model);
         handlerRequest.setPrompt(prompt);
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
@@ -71,10 +91,10 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
 
         HandlerResponse<String> handlerResponse = openAIChatHandler.execute(handlerContext);
         log.info("OpenAI ChatGPT Action 执行结束...");
-        return convert(handlerResponse);
+        return convert(handlerResponse, request);
     }
 
-    private ActionResponse convert(HandlerResponse handlerResponse) {
+    private ActionResponse convert(HandlerResponse handlerResponse, Request request) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(handlerResponse.getSuccess());
         actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
@@ -91,6 +111,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
+        actionResponse.setCostPoints(this.getCostPoints(request));
         return actionResponse;
     }
 

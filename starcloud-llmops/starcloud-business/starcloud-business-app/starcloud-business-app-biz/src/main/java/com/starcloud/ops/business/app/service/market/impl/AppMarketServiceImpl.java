@@ -48,7 +48,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -124,7 +123,6 @@ public class AppMarketServiceImpl implements AppMarketService {
                             .filter(Objects::nonNull)
                             .map(AppMarketConvert.INSTANCE::convertResponse)
                             .collect(Collectors.toList());
-                    Collections.reverse(collect);
                     AppMarketGroupCategoryRespVO hotSearchResponse = new AppMarketGroupCategoryRespVO();
                     hotSearchResponse.setName("热门");
                     hotSearchResponse.setCode("HOT");

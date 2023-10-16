@@ -40,8 +40,8 @@ public class RecommendVariableItemFactory {
         variableItem.setGroup(AppVariableGroupEnum.MODEL.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);
-        variableItem.addOption("3.5", ModelTypeEnum.GPT_3_5_TURBO.getName());
-        variableItem.addOption("4.0", ModelTypeEnum.GPT_4.getName());
+        variableItem.addOption("默认模型3.5", ModelTypeEnum.GPT_3_5_TURBO.getName());
+        variableItem.addOption("默认模型4.0", ModelTypeEnum.GPT_4.getName());
 
         return variableItem;
     }

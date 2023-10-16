@@ -43,11 +43,6 @@ public class LogAppConversationInfoPO {
     private String fromScene;
 
     /**
-     * AI 模型
-     */
-    private String aiModel;
-
-    /**
      * 总消耗token数
      */
     private Integer totalMessageTokens = 0;

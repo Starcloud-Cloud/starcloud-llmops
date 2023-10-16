@@ -74,6 +74,18 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
     }
 
     /**
+     * 获取图片处理的积分
+     *
+     * @param request  请求
+     * @param response 响应
+     * @return 积分
+     */
+    @Override
+    public Integer getCostPoints(RemoveBackgroundRequest request, RemoveBackgroundResponse response) {
+        return 2;
+    }
+
+    /**
      * 处理日志消息
      *
      * @param messageRequest 日志信息

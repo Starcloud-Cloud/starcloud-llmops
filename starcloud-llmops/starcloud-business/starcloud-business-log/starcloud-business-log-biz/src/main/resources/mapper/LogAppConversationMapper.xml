@@ -9,7 +9,6 @@
         co.app_name,
         co.app_mode,
         co.from_scene,
-        co.ai_model,
         co.status,
         co.error_code,
         co.error_msg,

@@ -61,12 +61,6 @@ public class LogAppConversationBaseVO implements Serializable {
     private String fromScene;
 
     /**
-     * Ai模型
-     */
-    @Schema(description = "Ai模型")
-    private String aiModel;
-
-    /**
      * 应用配置
      */
     @Schema(description = "应用配置")

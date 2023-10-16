@@ -31,6 +31,15 @@ public abstract class BaseImageHandler<Request extends BaseImageRequest, Respons
     public abstract Response handleImage(Request request);
 
     /**
+     * 获取图片处理的积分
+     *
+     * @param request  请求
+     * @param response 响应
+     * @return 积分
+     */
+    public abstract Integer getCostPoints(Request request, Response response);
+
+    /**
      * 处理日志消息
      *
      * @param messageRequest 日志信息

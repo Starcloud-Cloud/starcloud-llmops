@@ -248,6 +248,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_APP_RESULT_NON_EXISTENT = new ErrorCode(31010510, "生成信息不存在，请稍后重试或者联系管理员（{}）！");
 
+    /**
+     * 执行结果不存在
+     */
+    ErrorCode EXECUTE_APP_GET_COST_FAILURE = new ErrorCode(31010510, "应用执行获取扣除魔力值数值异常！");
+
 
     // ========== 应用市场执行错误码 310 200 xxx ==========
 
@@ -269,6 +274,11 @@ public interface ErrorCodeConstants {
      * 图片应用执行错误码
      */
     ErrorCode EXECUTE_IMAGE_FAILURE = new ErrorCode(310400000, "图片应用执行失败，请稍后重试或者联系管理员（{}）！");
+
+    /**
+     * 图片应用执行失败，未找到对应的图片处理器！
+     */
+    ErrorCode EXECUTE_IMAGE_HANDLER_NOT_FOUND = new ErrorCode(310400001, "图片应用执行失败，未找到对应的图片处理器！");
 
     /**
      * 生成图片失败，请重试或者联系管理员

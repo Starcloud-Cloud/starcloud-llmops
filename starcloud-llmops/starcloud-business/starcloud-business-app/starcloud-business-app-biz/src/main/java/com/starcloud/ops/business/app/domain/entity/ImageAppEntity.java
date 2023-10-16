@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -15,6 +16,7 @@ import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHandler;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
@@ -32,7 +34,9 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -101,26 +105,44 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     protected ImageRespVO doExecute(ImageReqVO request) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start(request.getAppUid() + " Task");
-        Long userId = request.getUserId();
+        // 图片处理器
+        BaseImageHandler imageHandler = request.getImageHandler();
+        if (Objects.isNull(imageHandler)) {
+            LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
+                buildAppMessageLog(messageRequest, request);
+                messageRequest.setStatus(LogStatusEnum.ERROR.name());
+                if (stopWatch.isRunning()) {
+                    stopWatch.stop();
+                }
+                messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
+                messageRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND.getCode()));
+                messageRequest.setErrorMsg(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND.getMsg());
+            });
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND);
+        }
         try {
             // 检测权益
-            this.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);
+            this.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), request.getUserId());
+
             // 调用图片生成服务
-            BaseImageResponse imageResponse = request.getImageHandler().handle(request.getImageRequest());
+            BaseImageResponse imageResponse = imageHandler.handle(request.getImageRequest());
+            if (Objects.isNull(imageResponse) || CollectionUtil.isEmpty(imageResponse.getImages())) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
+            }
             imageResponse.setFromScene(request.getScene());
             // 扣除权益
-            benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) imageResponse.getImages().size(), userId, request.getConversationUid());
+            Integer costPoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
+            benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) costPoints, request.getUserId(), request.getConversationUid());
             stopWatch.stop();
 
             // 记录消息日志
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
-                buildAppMessageLog(messageRequest, request, userId);
+                buildAppMessageLog(messageRequest, request);
                 messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
                 messageRequest.setAnswer(JSONUtil.toJsonStr(imageResponse));
-                // 直接用图片数量作为扣费数量
-                messageRequest.setAnswerTokens(imageResponse.getImages().size());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-                request.getImageHandler().handleLogMessage(messageRequest, request.getImageRequest(), imageResponse);
+                messageRequest.setCostPoints(costPoints);
+                imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), imageResponse);
             });
             // 返回结果
             ImageRespVO imageRespVO = new ImageRespVO();
@@ -133,12 +155,12 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 stopWatch.stop();
             }
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
-                buildAppMessageLog(messageRequest, request, userId);
+                buildAppMessageLog(messageRequest, request);
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
                 messageRequest.setErrorCode(Integer.toString(exception.getCode()));
                 messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
-                request.getImageHandler().handleLogMessage(messageRequest, request.getImageRequest(), null);
+                imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), null);
             });
             throw exception;
         } catch (Exception exception) {
@@ -147,12 +169,12 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 stopWatch.stop();
             }
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
-                buildAppMessageLog(messageRequest, request, userId);
+                buildAppMessageLog(messageRequest, request);
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
                 messageRequest.setErrorCode(Integer.toString(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode()));
                 messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
-                request.getImageHandler().handleLogMessage(messageRequest, request.getImageRequest(), null);
+                imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), null);
             });
 
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), exception.getMessage()));
@@ -246,17 +268,18 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
      *
      * @param request      请求参数
      * @param conversation 会话记录
-     * @param userId       用户id
      * @return 消息记录
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void buildAppMessageLog(LogAppMessageCreateReqVO messageRequest, ImageReqVO request, Long userId) {
+    private void buildAppMessageLog(LogAppMessageCreateReqVO messageRequest, ImageReqVO request) {
         messageRequest.setAppConversationUid(request.getConversationUid());
         messageRequest.setAppUid(this.getUid());
         messageRequest.setAppMode(StringUtils.isBlank(request.getMode()) ? AppModelEnum.IMAGE.name() : request.getMode());
-        messageRequest.setAppConfig(JSONUtil.toJsonStr(this));
         messageRequest.setAppStep(request.getScene());
+        messageRequest.setFromScene(request.getScene());
+        messageRequest.setAiModel("");
+        messageRequest.setAppConfig(JSONUtil.toJsonStr(this));
         messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setMessage("");
         messageRequest.setMessageTokens(0);
@@ -265,8 +288,14 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setAnswerUnitPrice(ImageUtils.SD_PRICE);
         messageRequest.setTotalPrice(new BigDecimal("0.0000"));
         messageRequest.setCurrency("USD");
-        messageRequest.setFromScene(request.getScene());
+        messageRequest.setCostPoints(0);
+        messageRequest.setElapsed(0L);
+        messageRequest.setStatus(LogStatusEnum.ERROR.name());
         messageRequest.setMediumUid(request.getMediumUid());
         messageRequest.setEndUser(request.getEndUser());
+        messageRequest.setCreator(String.valueOf(request.getUserId()));
+        messageRequest.setUpdater(String.valueOf(request.getUserId()));
+        messageRequest.setCreateTime(LocalDateTime.now());
+        messageRequest.setUpdateTime(LocalDateTime.now());
     }
 }

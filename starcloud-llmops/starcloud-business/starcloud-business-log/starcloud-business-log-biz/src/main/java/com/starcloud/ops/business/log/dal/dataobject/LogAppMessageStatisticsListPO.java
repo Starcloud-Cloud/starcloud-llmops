@@ -17,31 +17,6 @@ import java.math.BigDecimal;
 public class LogAppMessageStatisticsListPO {
 
     /**
-     * 应用 ID
-     */
-    private String appUid;
-
-    /**
-     * 应用名称
-     */
-    private String appName;
-
-    /**
-     * 应用模型
-     */
-    private String appMode;
-
-    /**
-     * 应用场景
-     */
-    private String fromScene;
-
-    /**
-     * AI 模型
-     */
-    private String aiModel;
-
-    /**
      * 消息数
      */
     private Integer messageCount;
@@ -57,44 +32,29 @@ public class LogAppMessageStatisticsListPO {
     private Integer errorCount;
 
     /**
-     * 用户数
-     */
-    private Integer userCount;
-
-    /**
      * 用户满意数
      */
     private Integer feedbackLikeCount;
 
     /**
-     * 总耗时
+     * 完成/聊天平均耗时
      */
-    private BigDecimal elapsedTotal;
+    private BigDecimal completionAvgElapsed;
 
     /**
-     * 平均耗时
+     * 图片平均耗时
      */
-    private BigDecimal elapsedAvg;
+    private BigDecimal imageAvgElapsed;
 
     /**
-     * 请求消耗 token
+     * 完成/聊天总花费积分
      */
-    private Integer messageTokens;
+    private Integer completionCostPoints;
 
     /**
-     * 回答消耗 token
+     * 图片总花费积分
      */
-    private Integer answerTokens;
-
-    /**
-     * 总消耗 token
-     */
-    private Integer tokens;
-
-    /**
-     * 消耗积分
-     */
-    private Integer costPoints;
+    private Integer imageCostPoints;
 
     /**
      * 创建时间

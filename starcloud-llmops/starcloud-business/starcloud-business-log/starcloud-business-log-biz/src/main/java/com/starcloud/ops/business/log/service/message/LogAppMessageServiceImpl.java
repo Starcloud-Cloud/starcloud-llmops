@@ -293,7 +293,7 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
                     .filter(statistics -> formatDate.equals(statistics.getCreateDate())).findFirst();
             // 存在就添加，不存在就创建
             if (logMessageStatisticsOptional.isPresent()) {
-                fillStatisticsList.add(logMessageStatisticsOptional.get());
+                fillStatisticsList.add(handlerAppMessageStatistics(logMessageStatisticsOptional.get()));
             } else {
                 fillStatisticsList.add(fillLogAppMessageStatistics(formatDate));
             }
@@ -324,6 +324,18 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         return statisticsListStream;
     }
 
+    private static LogAppMessageStatisticsListPO handlerAppMessageStatistics(LogAppMessageStatisticsListPO statistics) {
+        statistics.setMessageCount(Optional.ofNullable(statistics.getMessageCount()).orElse(0));
+        statistics.setSuccessCount(Optional.ofNullable(statistics.getSuccessCount()).orElse(0));
+        statistics.setErrorCount(Optional.ofNullable(statistics.getErrorCount()).orElse(0));
+        statistics.setFeedbackLikeCount(Optional.ofNullable(statistics.getFeedbackLikeCount()).orElse(0));
+        statistics.setCompletionAvgElapsed(Optional.ofNullable(statistics.getCompletionAvgElapsed()).orElse(new BigDecimal("0")));
+        statistics.setImageAvgElapsed(Optional.ofNullable(statistics.getImageAvgElapsed()).orElse(new BigDecimal("0")));
+        statistics.setCompletionCostPoints(Optional.ofNullable(statistics.getCompletionCostPoints()).orElse(0));
+        statistics.setImageCostPoints(Optional.ofNullable(statistics.getImageCostPoints()).orElse(0));
+        return statistics;
+    }
+
     /**
      * 填充一条数据
      *
@@ -336,12 +348,11 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         fillStatistics.setMessageCount(0);
         fillStatistics.setSuccessCount(0);
         fillStatistics.setErrorCount(0);
-        fillStatistics.setUserCount(0);
-        fillStatistics.setElapsedTotal(new BigDecimal("0"));
-        fillStatistics.setElapsedAvg(new BigDecimal("0"));
-        fillStatistics.setMessageTokens(0);
-        fillStatistics.setAnswerTokens(0);
-        fillStatistics.setTokens(0);
+        fillStatistics.setFeedbackLikeCount(0);
+        fillStatistics.setCompletionAvgElapsed(new BigDecimal("0"));
+        fillStatistics.setImageAvgElapsed(new BigDecimal("0"));
+        fillStatistics.setCompletionCostPoints(0);
+        fillStatistics.setImageCostPoints(0);
         fillStatistics.setCreateDate(date);
         return fillStatistics;
     }
