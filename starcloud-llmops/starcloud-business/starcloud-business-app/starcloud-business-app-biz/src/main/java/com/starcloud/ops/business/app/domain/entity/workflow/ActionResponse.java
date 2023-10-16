@@ -56,7 +56,6 @@ public class ActionResponse {
     private String answer;
 
 
-
     private JsonData output;
 
     /**
@@ -88,6 +87,11 @@ public class ActionResponse {
      * 总价格
      */
     private BigDecimal totalPrice = BigDecimal.ZERO;
+
+    /**
+     * 花费魔法豆
+     */
+    private Integer costPoints = 0;
 
     /**
      * step 执行的参数

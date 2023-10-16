@@ -42,46 +42,34 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     private Integer errorCount;
 
     /**
-     * 用户总数
-     */
-    @Schema(description = "用户总数")
-    private Integer userCount;
-
-    /**
      * 用户满意数
      */
     @Schema(description = "用户满意数")
     private Integer feedbackLikeCount;
 
     /**
-     * 总耗时
+     * 完成/聊天平均耗时
      */
-    @Schema(description = "总耗时")
-    private BigDecimal elapsedTotal;
+    @Schema(description = "完成/聊天平均耗时")
+    private BigDecimal completionAvgElapsed;
 
     /**
-     * 平均耗时
+     * 图片平均耗时
      */
-    @Schema(description = "平均耗时")
-    private BigDecimal elapsedAvg;
+    @Schema(description = "图片平均耗时")
+    private BigDecimal imageAvgElapsed;
 
     /**
-     * 请求tokens总数
+     * 完成/聊天总花费积分
      */
-    @Schema(description = "请求tokens总数")
-    private Integer messageTokens;
+    @Schema(description = "消耗积分")
+    private Integer completionCostPoints;
 
     /**
-     * 回答tokens总数
+     * 图片总花费积分
      */
-    @Schema(description = "回答tokens总数")
-    private Integer answerTokens;
-
-    /**
-     * tokens总数
-     */
-    @Schema(description = "tokens总数")
-    private Integer tokens;
+    @Schema(description = "图片总花费积分")
+    private Integer imageCostPoints;
 
     /**
      * 生成时间

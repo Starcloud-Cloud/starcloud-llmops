@@ -48,17 +48,11 @@ public interface LogAppConversationConvert {
     })
     AppLogConversationInfoRespVO convertInfoPO(LogAppConversationInfoPO infoPO);
 
-
-
     PageResult<AppLogConversationInfoRespVO> convertInfoPage(PageResult<LogAppConversationInfoPO> page);
 
-
-
     @Mappings({
-            @Mapping(target = "elapsedTotal",
-                    expression = "java( statisticsListPO.getElapsedTotal().divide(new BigDecimal(1000)))"),
-            @Mapping(target = "elapsedAvg",
-                    expression = "java( statisticsListPO.getElapsedAvg().divide(new BigDecimal(1000)))")
+            @Mapping(target = "completionAvgElapsed", expression = "java( statisticsListPO.getCompletionAvgElapsed().divide(new BigDecimal(1000)))"),
+            @Mapping(target = "imageAvgElapsed", expression = "java( statisticsListPO.getImageAvgElapsed().divide(new BigDecimal(1000)))")
     })
     LogAppMessageStatisticsListVO convertStatistics(LogAppMessageStatisticsListPO statisticsListPO);
 

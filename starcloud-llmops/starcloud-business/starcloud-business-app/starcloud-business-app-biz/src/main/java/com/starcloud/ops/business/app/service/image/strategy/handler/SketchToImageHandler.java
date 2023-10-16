@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -60,9 +61,9 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
     public SketchToImageResponse handleImage(SketchToImageRequest request) {
         log.info("草图生成图片开始...");
         // 上传草图
-        byte[] imageBytes = ImageUtils.handlerBase64Image(request.getSketchImage()).getBytes(StandardCharsets.UTF_8);
+        byte[] imageBytes = Base64.getDecoder().decode(ImageUtils.handlerBase64Image(request.getSketchImage()));
         String uuid = IdUtil.fastSimpleUUID();
-        String url = ImageUploadUtils.upload(uuid, MediaType.IMAGE_PNG_VALUE, ImageUploadUtils.GENERATE, imageBytes);
+        String url = ImageUploadUtils.upload(uuid, MediaType.IMAGE_PNG_VALUE, ImageUploadUtils.UPLOAD, imageBytes);
 
         SketchToImageClipDropRequest sketchToImageClipDropRequest = new SketchToImageClipDropRequest();
         sketchToImageClipDropRequest.setPrompt(request.getPrompt());
@@ -81,6 +82,18 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
 
         log.info("草图生成图片结束：{}", JSONUtil.toJsonStr(response));
         return response;
+    }
+
+    /**
+     * 获取图片处理的积分
+     *
+     * @param request  请求
+     * @param response 响应
+     * @return 积分
+     */
+    @Override
+    public Integer getCostPoints(SketchToImageRequest request, SketchToImageResponse response) {
+        return 2;
     }
 
     /**

@@ -106,7 +106,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
 
         // 处理响应
         VariantsImageResponse response = new VariantsImageResponse();
-        response.setOriginalUrl(request.getInitImage());
+        response.setOriginalUrl(initImage);
         response.setPrompt(request.getPrompt());
         response.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.FALSE));
         response.setEngine(request.getEngine());
@@ -118,6 +118,18 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
 
         log.info("VariantsImageHandler handle: 裂变图片请求结束... 响应结果：{}", JSONUtil.toJsonStr(response));
         return response;
+    }
+
+    /**
+     * 获取图片处理的积分
+     *
+     * @param request  请求
+     * @param response 响应
+     * @return 积分
+     */
+    @Override
+    public Integer getCostPoints(VariantsImageRequest request, VariantsImageResponse response) {
+        return 4;
     }
 
     /**

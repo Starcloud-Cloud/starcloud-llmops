@@ -97,9 +97,15 @@ public class AppLogConversationInfoRespVO implements Serializable {
     private BigDecimal totalPrice;
 
     /**
-     * 执行状态，error：失败，success：成功
+     * 消耗积分
      */
-    @Schema(description = "执行状态，error：失败，success：成功")
+    @Schema(description = "消耗积分")
+    private Integer costPoints;
+
+    /**
+     * 执行状态，ERROR：失败，SUCCESS：成功
+     */
+    @Schema(description = "执行状态，ERROR：失败，SUCCESS：成功")
     private String status;
 
     /**

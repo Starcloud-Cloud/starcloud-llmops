@@ -576,6 +576,7 @@ public class AppLogServiceImpl implements AppLogService {
         List<Long> userIdList = list.stream()
                 .map(AppLogConversationInfoRespVO::getCreator)
                 .filter(StringUtils::isNotBlank)
+                .filter(item -> !"null".equals(item))
                 .map(Long::parseLong)
                 .distinct()
                 .collect(Collectors.toList());

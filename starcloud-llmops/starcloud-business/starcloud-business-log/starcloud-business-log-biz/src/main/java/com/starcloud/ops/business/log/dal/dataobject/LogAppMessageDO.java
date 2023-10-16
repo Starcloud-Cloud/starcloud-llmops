@@ -148,13 +148,18 @@ public class LogAppMessageDO extends TenantBaseDO {
     private BigDecimal totalPrice;
 
     /**
-     * 执行耗时
-     */
-    private Long elapsed;
-
-    /**
      * 价格单位
      */
     private String currency;
+
+    /**
+     * 消耗积分
+     */
+    private Integer costPoints;
+
+    /**
+     * 执行耗时
+     */
+    private Long elapsed;
 
 }
