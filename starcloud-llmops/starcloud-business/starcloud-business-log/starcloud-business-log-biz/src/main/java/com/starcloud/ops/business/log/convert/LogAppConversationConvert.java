@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.log.convert;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -17,6 +18,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsList
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -42,22 +44,24 @@ public interface LogAppConversationConvert {
     List<LogAppConversationExcelVO> convertList02(List<LogAppConversationDO> list);
 
     @Mappings({
-            @Mapping(target = "totalElapsed",
-                    expression = "java( infoPO.getTotalElapsed().divide(new BigDecimal(1000)))")
-
+            @Mapping(target = "totalElapsed", qualifiedByName = "divide"),
     })
-    AppLogConversationInfoRespVO convertInfoPO(LogAppConversationInfoPO infoPO);
+    AppLogConversationInfoRespVO convertInfoPO(LogAppConversationInfoPO info);
 
     PageResult<AppLogConversationInfoRespVO> convertInfoPage(PageResult<LogAppConversationInfoPO> page);
 
     @Mappings({
-            @Mapping(target = "completionAvgElapsed", expression = "java( statisticsListPO.getCompletionAvgElapsed().divide(new BigDecimal(1000)))"),
-            @Mapping(target = "imageAvgElapsed", expression = "java( statisticsListPO.getImageAvgElapsed().divide(new BigDecimal(1000)))")
+            @Mapping(target = "completionAvgElapsed", qualifiedByName = "divide"),
+            @Mapping(target = "imageAvgElapsed", qualifiedByName = "divide")
     })
-    LogAppMessageStatisticsListVO convertStatistics(LogAppMessageStatisticsListPO statisticsListPO);
+    LogAppMessageStatisticsListVO convertStatistics(LogAppMessageStatisticsListPO statisticsList);
 
 
     List<LogAppMessageStatisticsListVO> convertStatisticsList(List<LogAppMessageStatisticsListPO> page);
 
+    @Named("divide")
+    default BigDecimal divideElapsed(BigDecimal value) {
+        return Optional.ofNullable(value).map(item -> item.divide(new BigDecimal("1000"), 4, RoundingMode.HALF_UP)).orElse(null);
+    }
 
 }
