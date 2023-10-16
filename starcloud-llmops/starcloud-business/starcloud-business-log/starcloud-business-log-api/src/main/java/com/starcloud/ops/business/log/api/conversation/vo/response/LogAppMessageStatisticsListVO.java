@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.log.api.conversation.vo.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 @NoArgsConstructor
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "LogAppMessageStatisticsListVO", description = "应用消息统计列表响应 VO")
 public class LogAppMessageStatisticsListVO implements Serializable {
 

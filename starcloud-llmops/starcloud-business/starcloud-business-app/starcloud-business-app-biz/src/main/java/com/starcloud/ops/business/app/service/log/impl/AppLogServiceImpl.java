@@ -189,6 +189,14 @@ public class AppLogServiceImpl implements AppLogService {
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
+        pageResult = pageResult.stream().peek(item -> {
+            // 非管理员不能查看，平均耗时
+            if (!UserUtils.isAdmin()) {
+                item.setCompletionAvgElapsed(null);
+                item.setImageAvgElapsed(null);
+                item.setFeedbackLikeCount(null);
+            }
+        }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
 
@@ -589,6 +597,14 @@ public class AppLogServiceImpl implements AppLogService {
                         item.setAppExecutor(UserUtils.visitorIdentify(item.getEndUser()));
                     } else {
                         item.setAppExecutor(userNicknameMap.get(Long.parseLong(item.getCreator())));
+                    }
+                    // 非管理员，不展示消耗tokens
+                    if (!UserUtils.isAdmin()) {
+                        item.setTokens(null);
+                        item.setTotalPrice(null);
+                        item.setTotalAnswerTokens(null);
+                        item.setTotalMessageTokens(null);
+                        item.setCreator(null);
                     }
                 })
                 .collect(Collectors.toList());
