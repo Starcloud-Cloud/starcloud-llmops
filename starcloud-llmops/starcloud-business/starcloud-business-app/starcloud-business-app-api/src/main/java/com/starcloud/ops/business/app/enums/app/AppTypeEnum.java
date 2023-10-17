@@ -11,32 +11,29 @@ import lombok.Getter;
  * @since 2023-05-18
  */
 @SuppressWarnings("unused")
+@Getter
 public enum AppTypeEnum implements IEnumable<Integer> {
 
     /**
-     * 我的应用：我创建的应用
+     * 系统应用
      */
-    MYSELF(0, "我的应用：我创建的应用"),
+    SYSTEM(0, "系统应用"),
 
     /**
-     * 下载安装的应用：我已经下载安装的应用
+     * 普通应用
      */
-    INSTALLED(1, "下载应用：我已经下载的应用"),
-
-//    DRAFT(2,"机器人草稿")
+    COMMON(1, "普通应用"),
 
     ;
 
     /**
      * 应用类型Code
      */
-    @Getter
     private final Integer code;
 
     /**
      * 应用类型说明
      */
-    @Getter
     private final String label;
 
     /**

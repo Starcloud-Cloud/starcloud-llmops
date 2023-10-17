@@ -191,7 +191,7 @@ public class AppLogServiceImpl implements AppLogService {
         List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
         pageResult = pageResult.stream().peek(item -> {
             // 非管理员不能查看，平均耗时
-            if (!UserUtils.isAdmin()) {
+            if (UserUtils.isNotAdmin()) {
                 item.setCompletionAvgElapsed(null);
                 item.setImageAvgElapsed(null);
                 item.setFeedbackLikeCount(null);
@@ -599,7 +599,7 @@ public class AppLogServiceImpl implements AppLogService {
                         item.setAppExecutor(userNicknameMap.get(Long.parseLong(item.getCreator())));
                     }
                     // 非管理员，不展示消耗tokens
-                    if (!UserUtils.isAdmin()) {
+                    if (UserUtils.isNotAdmin()) {
                         item.setTokens(null);
                         item.setTotalPrice(null);
                         item.setTotalAnswerTokens(null);
@@ -798,7 +798,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用模型列表
      */
     private List<String> getFromSceneList() {
-        if (!UserUtils.isAdmin()) {
+        if (UserUtils.isNotAdmin()) {
             return AppSceneEnum.GENERATE_RECORD_BASE_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
         }
         return null;

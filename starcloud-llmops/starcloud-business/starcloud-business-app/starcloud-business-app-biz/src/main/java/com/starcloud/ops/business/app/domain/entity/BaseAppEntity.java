@@ -103,6 +103,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private String source;
 
     /**
+     * 应用排序，越小越靠前
+     */
+    private Long sort;
+
+    /**
      * 应用类别
      */
     private String category;

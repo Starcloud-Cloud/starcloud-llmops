@@ -7,9 +7,11 @@
         SELECT id,
         uid,
         name,
+        type,
         model,
         version,
         language,
+        sort,
         tags,
         category,
         scenes,
@@ -58,6 +60,7 @@
             </if>
             AND deleted = 0
         </where>
+        ORDER BY sort ASC, create_time DESC
     </select>
 
     <!-- 根据应用名称查询 COMPLETION 模式的应用数量 -->
