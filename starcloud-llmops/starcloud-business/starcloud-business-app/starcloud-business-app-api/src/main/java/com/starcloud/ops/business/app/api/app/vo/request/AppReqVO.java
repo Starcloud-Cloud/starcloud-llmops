@@ -51,7 +51,6 @@ public class AppReqVO implements Serializable {
      * 应用类型
      */
     @Schema(description = "应用类型", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "应用类型不能为空")
     @InEnum(value = AppTypeEnum.class, message = "应用类型[{value}]必须是: {values}")
     private String type;
 
@@ -62,6 +61,12 @@ public class AppReqVO implements Serializable {
     @NotBlank(message = "应用来源不能为空")
     @InEnum(value = AppSourceEnum.class, message = "应用来源[{value}]必须是: {values}")
     private String source;
+
+    /**
+     * 应用排序，越小越靠前
+     */
+    @Schema(description = "应用排序")
+    private Long sort;
 
     /**
      * 应用类别

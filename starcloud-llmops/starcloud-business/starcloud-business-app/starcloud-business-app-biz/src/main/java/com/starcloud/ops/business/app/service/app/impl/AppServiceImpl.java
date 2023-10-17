@@ -28,6 +28,7 @@ import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -231,7 +232,7 @@ public class AppServiceImpl implements AppService {
         LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class)
                 .eq(AppDO::getSource, AppSourceEnum.WX_WP.name())
                 .eq(AppDO::getModel, AppModelEnum.CHAT.name())
-                .eq(AppDO::getType, AppTypeEnum.MYSELF.name())
+                .eq(AppDO::getType, AppTypeEnum.COMMON.name())
                 .eq(AppDO::getCreator, userId)
                 .orderByDesc(AppDO::getUpdateTime)
                 .last("limit 1");
@@ -280,5 +281,15 @@ public class AppServiceImpl implements AppService {
         }
         // 图片默认为分类图片
         request.setImages(Collections.singletonList(category.getImage()));
+
+        // 未指定应用类型，默认为普通应用
+        if (StringUtils.isBlank(request.getType())) {
+            request.setType(AppTypeEnum.COMMON.name());
+        }
+
+        // 非普通应用，只有管理员可以创建
+        if (!AppTypeEnum.COMMON.name().equals(request.getType()) && UserUtils.isNotAdmin()) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT, request.getType());
+        }
     }
 }

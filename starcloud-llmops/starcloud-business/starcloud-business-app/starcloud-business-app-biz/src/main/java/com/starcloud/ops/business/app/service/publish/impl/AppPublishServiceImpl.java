@@ -83,9 +83,7 @@ public class AppPublishServiceImpl implements AppPublishService {
     @Override
     public PageResp<AppPublishRespVO> page(AppPublishPageReqVO query) {
         Page<AppPublishDO> page = appPublishMapper.page(query);
-        List<AppPublishRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppPublishConverter.INSTANCE::convert).collect(Collectors.toList());
-        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+        return AppPublishConverter.INSTANCE.convert(page);
     }
 
     /**
@@ -97,10 +95,7 @@ public class AppPublishServiceImpl implements AppPublishService {
     @Override
     public PageResp<AppPublishRespVO> pageAdmin(AppPublishPageReqVO query) {
         Page<AppPublishDO> page = appPublishMapper.page(query);
-        List<AppPublishRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppPublishConverter.INSTANCE::convert)
-                .collect(Collectors.toList());
-        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+        return AppPublishConverter.INSTANCE.convert(page);
     }
 
     /**

@@ -152,7 +152,7 @@ public class AppFactory {
             imageAppEntity.setName(imageApp.getLabel());
             imageAppEntity.setModel(StringUtils.isBlank(request.getMode()) ? AppModelEnum.IMAGE.name() : request.getMode());
             imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.valueOf(request.getScene()).name()));
-            imageAppEntity.setType(AppTypeEnum.MYSELF.name());
+            imageAppEntity.setType(AppTypeEnum.SYSTEM.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());
             ImageConfigEntity imageConfigEntity = new ImageConfigEntity();
             imageConfigEntity.setInfo(request.getImageRequest());
