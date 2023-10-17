@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
+import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
@@ -40,9 +41,7 @@ public class RecommendVariableItemFactory {
         variableItem.setGroup(AppVariableGroupEnum.MODEL.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);
-        variableItem.addOption("默认模型3.5", ModelTypeEnum.GPT_3_5_TURBO.getName());
-        variableItem.addOption("默认模型4.0", ModelTypeEnum.GPT_4.getName());
-
+        variableItem.setOptions(AppUtils.aiModelList());
         return variableItem;
     }
 
