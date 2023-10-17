@@ -153,6 +153,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             appContext.setConversationUid(request.getConversationUid());
             appContext.setSseEmitter(request.getSseEmitter());
             appContext.setMediumUid(request.getMediumUid());
+            appContext.setAiModel(Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
             if (StringUtils.isNotBlank(request.getStepId())) {
                 appContext.setStepId(request.getStepId());
             } else {
@@ -347,11 +348,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setFromScene(appContext.getScene().name());
             messageCreateRequest.setMediumUid(appContext.getMediumUid());
             messageCreateRequest.setCurrency("USD");
-
-            // 获取所有变量
-            Map<String, Object> variables = appContext.getContextVariablesValues();
-            String aiModel = String.valueOf(Optional.ofNullable(variables.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
-            messageCreateRequest.setAiModel(aiModel);
+            messageCreateRequest.setAiModel(appContext.getAiModel());
 
             // actionResponse 不为空说明已经执行成功
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
@@ -373,15 +370,17 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 return;
             }
 
-            ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
+            // 说明执行失败
+            ModelTypeEnum modelType = TokenCalculator.fromName(appContext.getAiModel());
             BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
             BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
 
-            // 说明执行失败
+            // 获取所有变量
+            Map<String, Object> variables = appContext.getContextVariablesValues();
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
             messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
             messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
-            messageCreateRequest.setMessage(String.valueOf(Optional.ofNullable(variables.get("PROMPT")).orElse("")));
+            messageCreateRequest.setMessage(String.valueOf(variables.getOrDefault("PROMPT", "")));
             messageCreateRequest.setMessageTokens(0);
             messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
             messageCreateRequest.setAnswer("");
@@ -419,8 +418,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         this.createAppMessage((messageCreateRequest) -> {
             // 构建应用上下文
             AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
+
             Map<String, Object> variablesValues = appContext.getContextVariablesValues();
-            String aiModel = String.valueOf(Optional.ofNullable(variablesValues.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+            String aiModel = Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
             ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
             BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
             BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
@@ -435,7 +435,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
             messageCreateRequest.setVariables(JSONUtil.toJsonStr(variablesValues));
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setMessage(String.valueOf(Optional.ofNullable(variablesValues.get("PROMPT")).orElse("")));
+            messageCreateRequest.setMessage(String.valueOf(variablesValues.getOrDefault("PROMPT", "")));
             messageCreateRequest.setMessageTokens(0);
             messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
             messageCreateRequest.setAnswer("");
