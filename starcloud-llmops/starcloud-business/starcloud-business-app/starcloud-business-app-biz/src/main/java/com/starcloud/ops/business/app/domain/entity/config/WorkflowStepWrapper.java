@@ -125,13 +125,4 @@ public class WorkflowStepWrapper {
         }
     }
 
-    /**
-     * 设置模型变量
-     *
-     * @param key   变量名
-     * @param value 变量值
-     */
-    public void setModelVariable(String key, Object value) {
-        this.flowStep.setModelVariable(key, value);
-    }
 }

@@ -9,7 +9,9 @@ import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
@@ -35,6 +37,10 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         // 构建查询条件
         LambdaQueryWrapper<AppDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.likeRight(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
+        // 非管理员用户智能查看普通应用
+        if (UserUtils.isNotAdmin()) {
+            wrapper.eq(AppDO::getType, AppTypeEnum.COMMON.name());
+        }
         wrapper.eq(StringUtils.isNotBlank(query.getCategory()), AppDO::getCategory, query.getCategory());
         wrapper.ne(AppDO::getSource, AppSourceEnum.WX_WP.name());
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {

@@ -9,7 +9,9 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
@@ -38,7 +40,9 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
         queryMapper.likeRight(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
         queryMapper.eq(StringUtils.isNotBlank(query.getCategory()), AppMarketDO::getCategory, query.getCategory());
-
+        if (UserUtils.isNotAdmin()) {
+            queryMapper.eq(AppMarketDO::getType, AppTypeEnum.COMMON.name());
+        }
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
         } else {
@@ -59,7 +63,9 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
         queryMapper.likeRight(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
         queryMapper.eq(StringUtils.isNotBlank(query.getCategory()), AppMarketDO::getCategory, query.getCategory());
-
+        if (UserUtils.isNotAdmin()) {
+            queryMapper.eq(AppMarketDO::getType, AppTypeEnum.COMMON.name());
+        }
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
         } else {

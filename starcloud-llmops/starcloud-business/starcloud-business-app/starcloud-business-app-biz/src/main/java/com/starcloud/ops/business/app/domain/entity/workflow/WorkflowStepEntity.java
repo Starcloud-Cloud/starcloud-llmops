@@ -1,16 +1,12 @@
 package com.starcloud.ops.business.app.domain.entity.workflow;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 工作流步骤实体
@@ -60,21 +56,4 @@ public class WorkflowStepEntity extends ActionEntity {
      */
     private Boolean isCanEditStep;
 
-    /**
-     * 设置模型变量
-     *
-     * @param key   key
-     * @param value value
-     */
-    public void setModelVariable(String key, Object value) {
-        List<VariableItemEntity> variables = Optional.ofNullable(this.variable).map(VariableEntity::getVariables).orElse(new ArrayList<>());
-        if (CollectionUtil.isEmpty(variables)) {
-            return;
-        }
-        for (VariableItemEntity variableItem : variables) {
-            if (variableItem.getField().equalsIgnoreCase(key)) {
-                variableItem.setValue(value);
-            }
-        }
-    }
 }

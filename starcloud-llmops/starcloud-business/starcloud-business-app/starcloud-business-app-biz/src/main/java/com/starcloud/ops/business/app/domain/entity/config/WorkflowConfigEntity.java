@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.domain.entity.config;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -112,20 +111,4 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         }
     }
 
-    /**
-     * 设置模型变量
-     *
-     * @param key   变量名
-     * @param value 变量值
-     */
-    public void setModelVariable(String stepId, String key, Object value) {
-        if (StringUtils.isBlank(stepId)) {
-            stepId = this.getFirstStepWrapper().getName();
-        }
-        for (WorkflowStepWrapper step : this.steps) {
-            if (step.getName().equals(stepId) || step.getField().equals(stepId)) {
-                step.setModelVariable(key, value);
-            }
-        }
-    }
 }

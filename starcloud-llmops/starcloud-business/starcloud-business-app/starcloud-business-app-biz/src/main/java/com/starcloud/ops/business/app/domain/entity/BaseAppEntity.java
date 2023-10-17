@@ -607,19 +607,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     }
 
     /**
-     * 设置模型变量
-     *
-     * @param stepId 步骤ID
-     * @param key    变量名
-     * @param value  变量值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void setModelVariable(String stepId, String key, Object value) {
-        workflowConfig.setModelVariable(stepId, key, value);
-    }
-
-    /**
      * 异常
      *
      * @param errorCode 错误码
