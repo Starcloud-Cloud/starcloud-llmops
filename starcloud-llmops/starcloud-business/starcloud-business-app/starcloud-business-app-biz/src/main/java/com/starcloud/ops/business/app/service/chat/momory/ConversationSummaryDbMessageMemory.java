@@ -411,7 +411,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             messageCreateReqVO.setAppConfig(JsonUtils.toJsonString(chatConfig));
 
             messageCreateReqVO.setVariables(variables);
-            messageCreateReqVO.setAppStep("");
+            messageCreateReqVO.setAppStep(AppModelEnum.CHAT.name());
 
             messageCreateReqVO.setMessage(message);
             messageCreateReqVO.setMessageTokens(Math.toIntExact(finalMessageTokens));
@@ -496,7 +496,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
         messageCreateReqVO.setFromScene(scene);
         messageCreateReqVO.setAppConfig(JsonUtils.toJsonString(chatConfig));
-        messageCreateReqVO.setAppStep("");
+        messageCreateReqVO.setAppStep(AppModelEnum.CHAT.name());
         messageCreateReqVO.setCreator(userId);
         messageCreateReqVO.setEndUser(endUser);
 
