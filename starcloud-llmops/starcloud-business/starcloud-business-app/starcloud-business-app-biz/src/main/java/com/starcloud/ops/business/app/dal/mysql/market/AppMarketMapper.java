@@ -9,16 +9,15 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * <p>
@@ -32,11 +31,6 @@ import java.util.Locale;
 public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
 
     /**
-     * 排序语句
-     */
-    String ORDER_BY = "ORDER BY CASE WHEN language = '%s' THEN 0 ELSE 1 END, usage_count DESC, view_count Desc, create_time DESC";
-
-    /**
      * 分页查询应用市场列表
      *
      * @param query 查询条件
@@ -46,17 +40,16 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
         queryMapper.likeRight(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
         queryMapper.eq(StringUtils.isNotBlank(query.getCategory()), AppMarketDO::getCategory, query.getCategory());
-
+        if (UserUtils.isNotAdmin()) {
+            queryMapper.eq(AppMarketDO::getType, AppTypeEnum.COMMON.name());
+        }
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
         } else {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
         }
-
-        // 先按照语言排序，再按照使用量排序
-        String language = Locale.CHINA.equals(LocaleContextHolder.getLocale()) ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
-        queryMapper.last(String.format(ORDER_BY, language));
-
+        queryMapper.orderByAsc(AppMarketDO::getSort);
+        queryMapper.orderByDesc(AppMarketDO::getUpdateTime);
         return this.selectPage(PageUtil.page(query), queryMapper);
     }
 
@@ -70,16 +63,17 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
         queryMapper.likeRight(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
         queryMapper.eq(StringUtils.isNotBlank(query.getCategory()), AppMarketDO::getCategory, query.getCategory());
-
+        if (UserUtils.isNotAdmin()) {
+            queryMapper.eq(AppMarketDO::getType, AppTypeEnum.COMMON.name());
+        }
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
         } else {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
         }
 
-        // 先按照语言排序，再按照使用量排序
-        String language = Locale.CHINA.equals(LocaleContextHolder.getLocale()) ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
-        queryMapper.last(String.format(ORDER_BY, language));
+        queryMapper.orderByAsc(AppMarketDO::getSort);
+        queryMapper.orderByDesc(AppMarketDO::getUpdateTime);
         return this.selectList(queryMapper);
     }
 
@@ -197,9 +191,11 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getId,
                 AppMarketDO::getUid,
                 AppMarketDO::getName,
+                AppMarketDO::getType,
                 AppMarketDO::getModel,
                 AppMarketDO::getVersion,
                 AppMarketDO::getLanguage,
+                AppMarketDO::getSort,
                 AppMarketDO::getTags,
                 AppMarketDO::getCategory,
                 AppMarketDO::getScenes,

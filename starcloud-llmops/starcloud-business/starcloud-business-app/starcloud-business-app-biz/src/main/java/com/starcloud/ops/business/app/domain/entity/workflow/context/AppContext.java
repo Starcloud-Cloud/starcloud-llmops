@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -57,6 +58,12 @@ public class AppContext {
      */
     @NotNull(message = "执行场景不能为空")
     private AppSceneEnum scene;
+
+    /**
+     * AI模型
+     */
+    @Schema(description = "AI模型")
+    private String aiModel;
 
     /**
      * 当前执行的步骤

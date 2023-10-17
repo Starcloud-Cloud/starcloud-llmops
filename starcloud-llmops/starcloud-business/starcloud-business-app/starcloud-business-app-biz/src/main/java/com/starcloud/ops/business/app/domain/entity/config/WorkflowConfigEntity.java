@@ -110,4 +110,5 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
             step.setActionResponse(stepId, response);
         }
     }
+
 }

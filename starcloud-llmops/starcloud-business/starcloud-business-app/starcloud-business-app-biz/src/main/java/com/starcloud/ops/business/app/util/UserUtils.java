@@ -64,6 +64,15 @@ public class UserUtils {
     }
 
     /**
+     * 判断是否是不是管理员
+     *
+     * @return
+     */
+    public static Boolean isNotAdmin() {
+        return !isAdmin();
+    }
+
+    /**
      * 标识用户
      *
      * @param userId  用户id

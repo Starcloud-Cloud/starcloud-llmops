@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -102,6 +103,8 @@ public abstract class BaseActionHandler<Q, R> {
     @SuppressWarnings("all")
     protected Q parseInput() {
         Map<String, Object> stepParams = this.appContext.getContextVariablesValues();
+        // 将 MODEL 传入到 stepParams 中
+        stepParams.put("MODEL", Optional.ofNullable(this.appContext).map(AppContext::getAiModel).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         //只拿新参数
 
         //用新参数 覆盖老结构的参数

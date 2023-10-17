@@ -41,6 +41,12 @@ public class AppMarketDTO implements Serializable {
     private String name;
 
     /**
+     * 应用类型：SYSTEM：系统应用，MARKET：市场应用
+     */
+    @Schema(description = "应用类型：SYSTEM：系统应用，MARKET：市场应用")
+    private String type;
+
+    /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @Schema(description = "应用模型：CHAT：聊天式应用，COMPLETION：生成式应用")
@@ -57,6 +63,12 @@ public class AppMarketDTO implements Serializable {
      */
     @Schema(description = "应用语言")
     private String language;
+
+    /**
+     * 应用排序，越小越靠前
+     */
+    @Schema(description = "应用排序，越小越靠前")
+    private Long sort;
 
     /**
      * 应用类别

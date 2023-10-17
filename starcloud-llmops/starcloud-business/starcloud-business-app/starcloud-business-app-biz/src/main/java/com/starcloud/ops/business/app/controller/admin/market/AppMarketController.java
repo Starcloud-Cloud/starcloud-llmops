@@ -5,7 +5,6 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.MarketUidRequest;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
@@ -89,14 +88,6 @@ public class AppMarketController {
     @ApiOperationSupport(order = 60, author = "nacoyer")
     public CommonResult<Boolean> delete(@PathVariable("uid") String uid) {
         appMarketService.delete(uid);
-        return CommonResult.success(Boolean.TRUE);
-    }
-
-    @PostMapping("/install")
-    @Operation(summary = "安装应用市场应用", description = "安装应用市场应用")
-    @ApiOperationSupport(order = 70, author = "nacoyer")
-    public CommonResult<Boolean> install(@Validated @RequestBody AppInstallReqVO request) {
-        appMarketService.install(request);
         return CommonResult.success(Boolean.TRUE);
     }
 

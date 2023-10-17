@@ -56,6 +56,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_CATEGORY_NON_EXISTENT = new ErrorCode(300100152, "应用类目不存在，请检查后重试（{}）！");
 
+    /**
+     * 不支持的应用类型
+     */
+    ErrorCode APP_TYPE_NONSUPPORT = new ErrorCode(300100153, "不支持的应用类型，请检查后重试（{}）！");
+
     // ========== 应用市场错误码 300 200 xxx ==========
 
     /**
