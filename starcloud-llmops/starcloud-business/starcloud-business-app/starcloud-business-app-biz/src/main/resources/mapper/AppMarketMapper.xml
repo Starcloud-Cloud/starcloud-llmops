@@ -37,6 +37,10 @@
                 AND name LIKE CONCAT(#{query.name}, '%')
             </if>
 
+            <if test="query.type != null and query.type != '' ">
+                AND type = #{query.type}
+            </if>
+
             <if test="query.model != null and query.model != '' ">
                 AND model = #{query.model}
             </if>

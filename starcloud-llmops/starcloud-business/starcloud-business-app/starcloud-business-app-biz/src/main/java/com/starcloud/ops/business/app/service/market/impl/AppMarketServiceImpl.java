@@ -31,6 +31,7 @@ import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -171,6 +172,7 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Override
     public List<Option> listMarketAppOption(AppMarketListQuery query) {
         query.setModel(AppModelEnum.COMPLETION.name());
+        query.setType(AppTypeEnum.SYSTEM.name());
         // 查询应用市场列表
         List<AppMarketDO> list = appMarketMapper.listMarketApp(query);
         // 转换并且返回数据
