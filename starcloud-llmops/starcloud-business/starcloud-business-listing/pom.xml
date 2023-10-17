@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>com.starcloud.ops</groupId>
+        <artifactId>starcloud-business</artifactId>
+        <version>${starcloud.revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>starcloud-business-listing-api</module>
+        <module>starcloud-business-listing-biz</module>
+    </modules>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>starcloud-business-listing</artifactId>
+    <version>${starcloud.revision}</version>
+
+
+    <dependencyManagement>
+
+        <dependencies>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-listing-api</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-listing-biz</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
+
+</project>
