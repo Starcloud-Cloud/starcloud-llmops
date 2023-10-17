@@ -28,6 +28,7 @@ import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
@@ -40,7 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -67,6 +70,23 @@ public class AppServiceImpl implements AppService {
     private AppDeleteProducer appDeleteProducer;
 
     /**
+     * 查询应用语言列表
+     *
+     * @return 应用语言列表
+     */
+    @Override
+    public Map<String, List<Option>> metadata() {
+        Map<String, List<Option>> metadata = new HashMap<>();
+        // 语言列表
+        metadata.put("language", LanguageEnum.languageList());
+        // AI 模型
+        metadata.put("aiModel", AppUtils.aiModelList());
+        // 应用类型
+        metadata.put("type", AppTypeEnum.options());
+        return metadata;
+    }
+
+    /**
      * 查询应用分类列表
      *
      * @param isRoot 是否只根节点数据
@@ -86,16 +106,6 @@ public class AppServiceImpl implements AppService {
     public List<AppCategoryVO> categoryTree() {
         // 查询应用分类字典数据
         return appDictionaryService.categoryTree();
-    }
-
-    /**
-     * 查询应用语言列表
-     *
-     * @return 应用语言列表
-     */
-    @Override
-    public List<Option> languages() {
-        return LanguageEnum.languageList();
     }
 
     /**
