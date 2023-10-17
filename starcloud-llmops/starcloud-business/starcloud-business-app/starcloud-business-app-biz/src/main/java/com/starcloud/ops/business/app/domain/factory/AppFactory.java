@@ -29,6 +29,8 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
@@ -81,10 +83,18 @@ public class AppFactory {
             // 应用市场场景
             if (AppSceneEnum.WEB_MARKET.name().equals(request.getScene()) || AppSceneEnum.OPTIMIZE_PROMPT.name().equals(request.getScene())) {
                 AppMarketEntity market = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(appId) : AppFactory.factoryMarket(appId, request.getAppReqVO());
+                if (StringUtils.isNotBlank(request.getAiModel())) {
+                    ModelTypeEnum modelTypeEnum = TokenCalculator.fromName(request.getAiModel());
+                    market.setModelVariable(request.getStepId(), "MODEL", modelTypeEnum.getName());
+                }
                 return market;
                 // 应用创作中心
             } else if (AppSceneEnum.WEB_ADMIN.name().equals(request.getScene())) {
                 AppEntity appEntity = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(appId) : AppFactory.factoryApp(appId, request.getAppReqVO());
+                if (StringUtils.isNotBlank(request.getAiModel())) {
+                    ModelTypeEnum modelTypeEnum = TokenCalculator.fromName(request.getAiModel());
+                    appEntity.setModelVariable(request.getStepId(), "MODEL", modelTypeEnum.getName());
+                }
                 return appEntity;
             }
         }
@@ -93,6 +103,10 @@ public class AppFactory {
         if (StringUtils.isNotBlank(request.getMediumUid())) {
             String mediumId = request.getMediumUid();
             AppEntity appEntity = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryShareApp(mediumId) : AppFactory.factoryShareApp(mediumId, request.getAppReqVO());
+            if (StringUtils.isNotBlank(request.getAiModel())) {
+                ModelTypeEnum modelTypeEnum = TokenCalculator.fromName(request.getAiModel());
+                appEntity.setModelVariable(request.getStepId(), "MODEL", modelTypeEnum.getName());
+            }
             return appEntity;
         }
 
