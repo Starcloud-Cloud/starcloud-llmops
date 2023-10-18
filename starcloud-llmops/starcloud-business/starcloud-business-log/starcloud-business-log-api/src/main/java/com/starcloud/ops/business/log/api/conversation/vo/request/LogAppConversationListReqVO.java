@@ -1,29 +1,19 @@
-package com.starcloud.ops.business.log.api.conversation.vo.query;
+package com.starcloud.ops.business.log.api.conversation.vo.request;
 
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
- * 应用执行日志会话分页
- *
  * @author nacoyer
- * @version 1.0.0
- * @since 2023-06-25
  */
+@Schema(description = "管理后台 - 应用执行日志会话集合，参数和 LogAppConversationPageReqVO 是一致的")
 @Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@Schema(name = "LogAppConversationPageReqVO", description = "管理后台 - 应用执行日志会话分页 Request VO")
-public class LogAppConversationPageReqVO extends PageParam {
+public class LogAppConversationListReqVO implements Serializable {
 
-    private static final long serialVersionUID = -4439458722495490535L;
+    private static final long serialVersionUID = 1493039303691726663L;
 
     /**
      * 会话 uid
@@ -59,7 +49,7 @@ public class LogAppConversationPageReqVO extends PageParam {
      * 执行场景
      */
     @Schema(description = "执行场景")
-    private List<String> scenes;
+    private List<String> fromSceneList;
 
     /**
      * 执行状态
@@ -72,5 +62,4 @@ public class LogAppConversationPageReqVO extends PageParam {
      */
     @Schema(description = "创建人")
     private String creator;
-
 }
