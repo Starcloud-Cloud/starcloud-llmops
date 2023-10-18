@@ -5,11 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDateTime;
-
-import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
 /**
  * @author nacoyer
@@ -47,16 +42,16 @@ public class LogAppMessagePageReqVO extends PageParam {
     private String appMode;
 
     /**
-     * app 配置
+     * 执行场景
      */
-    @Schema(description = "app 配置")
-    private String appConfig;
+    @Schema(description = "执行场景")
+    private String fromScene;
 
     /**
-     * app 场景
+     * 开始时间
      */
-    @Schema(description = "执行的 app step")
-    private String appStep;
+    @Schema(description = "AI 模型")
+    private String aiModel;
 
     /**
      * app 场景
@@ -65,94 +60,9 @@ public class LogAppMessagePageReqVO extends PageParam {
     private String status;
 
     /**
-     * 错误码
+     * 创建人
      */
-    @Schema(description = "错误码")
-    private String errorCode;
-
-    /**
-     * 错误信息
-     */
-    @Schema(description = "错误信息")
-    private String errorMsg;
-
-    /**
-     * app 配置
-     */
-    @Schema(description = "app 配置")
-    private String variables;
-
-    /**
-     * 请求内容
-     */
-    @Schema(description = "请求内容")
-    private String message;
-
-    /**
-     * 消耗token数
-     */
-    @Schema(description = "消耗token数")
-    private Integer messageTokens;
-
-    /**
-     * 消耗token单位价格
-     */
-    @Schema(description = "消耗token单位价格")
-    private Long messageUnitPrice;
-
-    /**
-     * 返回内容
-     */
-    @Schema(description = "返回内容")
-    private String answer;
-
-    /**
-     * 消耗token数
-     */
-    @Schema(description = "消耗token数")
-    private Integer answerTokens;
-
-    /**
-     * 消耗token单位价格
-     */
-    @Schema(description = "消耗token单位价格")
-    private Long answerUnitPrice;
-
-    /**
-     * 执行耗时
-     */
-    @Schema(description = "执行耗时")
-    private Long elapsed;
-
-    /**
-     * 总消耗价格
-     */
-    @Schema(description = "总消耗价格")
-    private Long totalPrice;
-
-    /**
-     * 价格单位
-     */
-    @Schema(description = "价格单位")
-    private String currency;
-
-    /**
-     * 执行场景
-     */
-    @Schema(description = "执行场景")
-    private String fromScene;
-
-    /**
-     * 用户ID
-     */
-    @Schema(description = "临时用户ID")
-    private String endUser;
-
-    /**
-     * 创建时间
-     */
-    @Schema(description = "创建时间")
-    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
-    private LocalDateTime[] createTime;
+    @Schema(description = "创建人")
+    private String creator;
 
 }
