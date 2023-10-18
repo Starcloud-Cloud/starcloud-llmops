@@ -5,22 +5,17 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
-import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppInstallStatusEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * 应用表 Mapper 接口
@@ -42,6 +37,10 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         // 构建查询条件
         LambdaQueryWrapper<AppDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.likeRight(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
+        // 非管理员用户智能查看普通应用
+        if (UserUtils.isNotAdmin()) {
+            wrapper.eq(AppDO::getType, AppTypeEnum.COMMON.name());
+        }
         wrapper.eq(StringUtils.isNotBlank(query.getCategory()), AppDO::getCategory, query.getCategory());
         wrapper.ne(AppDO::getSource, AppSourceEnum.WX_WP.name());
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
@@ -49,7 +48,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         } else {
             wrapper.eq(AppDO::getModel, AppModelEnum.COMPLETION.name());
         }
-        wrapper.orderByDesc(AppDO::getCreateTime);
+        wrapper.last("ORDER BY sort IS NULL, sort ASC, update_time DESC");
         return this.selectPage(PageUtil.page(query), wrapper);
     }
 
@@ -131,40 +130,6 @@ public interface AppMapper extends BaseMapperX<AppDO> {
     Long countCompletionAppByName(@Param("name") String name);
 
     /**
-     * 查询应用是否已经安装
-     *
-     * @param marketUid 应用市场应用 Uid
-     * @param userId    用户 id
-     * @return 安装状态
-     */
-    default InstalledRespVO verifyHasInstalled(String marketUid, String userId) {
-        /*
-            1. 当前用户，
-            2. 未删除，
-            3. 已经发布的应用
-            4. 已经安装的应用
-
-         */
-        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class);
-        wrapper.select(AppDO::getUid, AppDO::getInstallUid, AppDO::getPublishUid);
-        wrapper.eq(AppDO::getCreator, userId);
-        wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
-        wrapper.and(and -> and
-                .likeRight(AppDO::getPublishUid, marketUid)
-                .or()
-                .likeRight(AppDO::getInstallUid, marketUid).eq(AppDO::getType, AppTypeEnum.INSTALLED.name())
-        );
-
-        AppDO appDO = this.selectOne(wrapper);
-        if (Objects.isNull(appDO)) {
-            return InstalledRespVO.of(AppInstallStatusEnum.UNINSTALLED.name(), null, null);
-        }
-        String uidVersion = Optional.ofNullable(appDO.getInstallUid()).orElse(appDO.getPublishUid());
-
-        return InstalledRespVO.of(AppInstallStatusEnum.INSTALLED.name(), AppUtils.obtainVersion(uidVersion), null);
-    }
-
-    /**
      * 获取查询条件
      *
      * @param isSimple 是否简单查询
@@ -183,6 +148,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
                 AppDO::getType,
                 AppDO::getModel,
                 AppDO::getSource,
+                AppDO::getSort,
                 AppDO::getTags,
                 AppDO::getCategory,
                 AppDO::getScenes,

@@ -8,10 +8,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
@@ -20,7 +18,6 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
-import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.favorite.AppFavoriteConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.operate.AppOperateConvert;
@@ -28,14 +25,13 @@ import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.databoject.operate.AppOperateDO;
-import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.favorite.AppFavoriteMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -48,7 +44,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,9 +59,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class AppMarketServiceImpl implements AppMarketService {
-
-    @Resource
-    private AppMapper appMapper;
 
     @Resource
     private AppMarketMapper appMarketMapper;
@@ -124,7 +116,6 @@ public class AppMarketServiceImpl implements AppMarketService {
                             .filter(Objects::nonNull)
                             .map(AppMarketConvert.INSTANCE::convertResponse)
                             .collect(Collectors.toList());
-                    Collections.reverse(collect);
                     AppMarketGroupCategoryRespVO hotSearchResponse = new AppMarketGroupCategoryRespVO();
                     hotSearchResponse.setName("热门");
                     hotSearchResponse.setCode("HOT");
@@ -181,6 +172,7 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Override
     public List<Option> listMarketAppOption(AppMarketListQuery query) {
         query.setModel(AppModelEnum.COMPLETION.name());
+        query.setType(AppTypeEnum.SYSTEM.name());
         // 查询应用市场列表
         List<AppMarketDO> list = appMarketMapper.listMarketApp(query);
         // 转换并且返回数据
@@ -211,9 +203,6 @@ public class AppMarketServiceImpl implements AppMarketService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
         }
 
-        // 获取当前用户是否安装了该应用的信息
-        InstalledRespVO installedRespVO = appMapper.verifyHasInstalled(appMarketDO.getUid(), Long.toString(loginUserId));
-
         // 操作表中插入一条查看记录, 并且增加查看量
         appOperateMapper.create(appMarketDO.getUid(), appMarketDO.getVersion(), AppOperateTypeEnum.VIEW.name(), Long.toString(loginUserId));
         Integer viewCount = appMarketDO.getViewCount() + 1;
@@ -224,9 +213,7 @@ public class AppMarketServiceImpl implements AppMarketService {
 
         // 转换并且返回应用数据
         appMarketDO.setViewCount(viewCount);
-        AppMarketRespVO appMarketRespVO = AppMarketConvert.INSTANCE.convertResponse(appMarketDO);
-        appMarketRespVO.setInstallInfo(installedRespVO);
-        return appMarketRespVO;
+        return AppMarketConvert.INSTANCE.convertResponse(appMarketDO);
     }
 
     /**
@@ -259,43 +246,6 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Override
     public void delete(String uid) {
         appMarketMapper.delete(uid);
-    }
-
-    /**
-     * 安装安装应用
-     *
-     * @param request 安装请求
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void install(AppInstallReqVO request) {
-        // 1. 基础校验
-        AppValidate.notBlank(request.getUid(), ErrorCodeConstants.APP_UID_REQUIRED);
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        if (loginUserId == null) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
-        }
-
-        // 2. 查询应用市场应用并且校验
-        AppMarketDO appMarket = appMarketMapper.get(request.getUid(), Boolean.FALSE);
-        AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, request.getUid());
-
-        // 3. 校验当前用户是否已经安装过该用户, 如果安装过，抛出异常
-        InstalledRespVO installed = appMapper.verifyHasInstalled(request.getUid(), Long.toString(loginUserId));
-        AppValidate.isTrue(InstalledRespVO.isInstalled(installed), ErrorCodeConstants.MARKET_APP_INSTALLED);
-
-        // 4. 说明没有安装过，需要安装
-        AppEntity appEntity = AppConvert.INSTANCE.convert(appMarket);
-        appEntity.insert();
-
-        // 5. 操作表中插入一条数据
-        appOperateMapper.create(appMarket.getUid(), appMarket.getVersion(), AppOperateTypeEnum.INSTALLED.name(), Long.toString(loginUserId));
-
-        // 6. 更新应用的安装量
-        AppMarketDO updateAppMarketDO = new AppMarketDO();
-        updateAppMarketDO.setId(appMarket.getId());
-        updateAppMarketDO.setInstallCount(appMarket.getInstallCount() + 1);
-        appMarketMapper.updateById(updateAppMarketDO);
     }
 
     /**

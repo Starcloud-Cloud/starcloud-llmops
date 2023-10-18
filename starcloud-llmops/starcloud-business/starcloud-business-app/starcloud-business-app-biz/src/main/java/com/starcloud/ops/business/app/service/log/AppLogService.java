@@ -2,17 +2,17 @@ package com.starcloud.ops.business.app.service.log;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.starcloud.ops.business.app.api.image.vo.query.HistoryImageRecordsQuery;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
-import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -102,7 +102,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return 应用执行日志消息数据
      */
-    PageResult<ImageLogMessageRespVO> pageHistoryImageRecords(HistoryImageRecordsQuery query);
+    PageResult<ImageLogMessageRespVO> pageImageRecord(LogAppConversationPageReqVO query);
 
     /**
      * 获取文本生成消息详情
@@ -110,7 +110,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return AppLogMessageRespVO
      */
-    AppLogMessageRespVO getLogAppMessageDetail(AppLogMessagePageReqVO query);
+    AppLogMessageRespVO getLogAppMessageDetail(LogAppMessagePageReqVO query);
 
     /**
      * 获取聊天详情
@@ -118,7 +118,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return AppLogMessageRespVO
      */
-    PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query);
+    PageResult<AppLogMessageRespVO> getChatMessageDetail(LogAppMessagePageReqVO query);
 
     /**
      * 获取图片生成消息详情
@@ -126,7 +126,7 @@ public interface AppLogService {
      * @param query 查询条件
      * @return ImageRespVO
      */
-    ImageLogMessageRespVO getLogImageMessageDetail(AppLogMessagePageReqVO query);
+    ImageLogMessageRespVO getLogImageMessageDetail(LogAppMessagePageReqVO query);
 
 
 }

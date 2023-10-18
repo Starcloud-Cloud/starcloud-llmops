@@ -1,13 +1,13 @@
 package com.starcloud.ops.business.log.service.message;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
+import com.google.common.collect.Maps;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageUpdateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
@@ -15,6 +15,8 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsList
 import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 应用执行日志结果 Service 接口
@@ -72,26 +74,40 @@ public interface LogAppMessageService {
     /**
      * 获得应用执行日志结果列表, 用于 Excel 导出
      *
-     * @param exportReqVO 查询条件
+     * @param query 查询条件
      * @return 应用执行日志结果列表
      */
-    List<LogAppMessageDO> listAppLogMessage(LogAppMessageExportReqVO exportReqVO);
+    List<LogAppMessageDO> listAppLogMessage(LogAppMessageListReqVO query);
+
+    /**
+     * 获得应用执行日志结果列表, 根据 appConversationUid
+     *
+     * @param appConversationUidList appConversationUid 列表
+     * @return 应用执行日志结果列表
+     */
+    List<LogAppMessageDO> listAppLogMessageByAppConversationUidList(Collection<String> appConversationUidList);
+
+    /**
+     * 获得应用执行日志结果 Map, 按照 appConversationUid 分组
+     *
+     * @param appConversationUidList appConversationUid 列表
+     * @return 应用执行日志结果 Map
+     */
+    default Map<String, List<LogAppMessageDO>> mapAppLogMessageAppConversationUid(Collection<String> appConversationUidList) {
+        List<LogAppMessageDO> list = listAppLogMessageByAppConversationUidList(appConversationUidList);
+        if (CollectionUtil.isEmpty(list)) {
+            return Maps.newHashMap();
+        }
+        return list.stream().collect(Collectors.groupingBy(LogAppMessageDO::getAppConversationUid));
+    }
 
     /**
      * 获得应用执行日志结果分页
      *
-     * @param pageReqVO 分页查询
+     * @param query 分页查询
      * @return 应用执行日志结果分页
      */
-    PageResult<LogAppMessageDO> pageAppLogMessage(LogAppMessagePageReqVO pageReqVO);
-
-    /**
-     * 根据会话uid获取消息列表
-     *
-     * @param query 查询条件
-     * @return 消息列表
-     */
-    Page<LogAppMessageDO> pageAppLogMessage(AppLogMessagePageReqVO query);
+    PageResult<LogAppMessageDO> pageAppLogMessage(LogAppMessagePageReqVO query);
 
     /**
      * 排除系统总结场景

@@ -5,7 +5,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversati
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationExportReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationListReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -77,6 +77,15 @@ public interface LogAppConversationService {
     LogAppConversationDO getAppLogConversation(String uid);
 
     /**
+     * 获取用户最新会话
+     *
+     * @param appUid  应用uid
+     * @param creator 用户uid
+     * @return 应用执行日志会话
+     */
+    LogAppConversationDO getUserRecentlyConversation(String appUid, String creator, String scene);
+
+    /**
      * 获得应用执行日志会话列表
      *
      * @param ids 编号
@@ -85,29 +94,20 @@ public interface LogAppConversationService {
     List<LogAppConversationDO> listAppLogConversation(Collection<Long> ids);
 
     /**
-     * 获得应用执行日志会话列表, 用于 Excel 导出
+     * 获得应用执行日志会话列表
      *
-     * @param exportReqVO 查询条件
+     * @param query 查询条件
      * @return 应用执行日志会话列表
      */
-    List<LogAppConversationDO> listAppLogConversation(LogAppConversationExportReqVO exportReqVO);
+    List<LogAppConversationDO> listAppLogConversation(LogAppConversationListReqVO query);
 
     /**
      * 获得应用执行日志会话分页
      *
-     * @param pageReqVO 分页查询
+     * @param query 分页查询
      * @return 应用执行日志会话分页
      */
-    PageResult<LogAppConversationDO> pageAppLogConversation(LogAppConversationPageReqVO pageReqVO);
-
-    /**
-     * 获取用户最新会话
-     *
-     * @param appUid  应用uid
-     * @param creator 用户uid
-     * @return 应用执行日志会话
-     */
-    LogAppConversationDO getUserRecentlyConversation(String appUid, String creator, String scene);
+    PageResult<LogAppConversationDO> pageAppLogConversation(LogAppConversationPageReqVO query);
 
     /**
      * 根据 应用 UID 分页查询应用执行日志会话数据 <br>
@@ -127,12 +127,5 @@ public interface LogAppConversationService {
      */
     PageResult<LogAppConversationInfoPO> pageLogAppConversation(AppLogConversationInfoPageReqVO query);
 
-    /**
-     * 获取最新的会话
-     *
-     * @param appUid 应用编号
-     * @return 应用执行日志会话
-     */
-    LogAppConversationDO getRecentlyConversation(String appUid);
 
 }

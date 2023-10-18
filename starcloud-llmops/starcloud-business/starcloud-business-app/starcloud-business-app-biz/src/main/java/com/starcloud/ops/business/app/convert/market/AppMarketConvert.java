@@ -76,9 +76,11 @@ public interface AppMarketConvert {
         AppMarketDO appMarket = new AppMarketDO();
         appMarket.setUid(appMarketEntity.getUid());
         appMarket.setName(appMarketEntity.getName());
+        appMarket.setType(appMarketEntity.getType());
         appMarket.setModel(appMarketEntity.getModel());
         appMarket.setVersion(appMarketEntity.getVersion());
         appMarket.setLanguage(appMarketEntity.getLanguage());
+        appMarket.setSort(appMarketEntity.getSort());
         appMarket.setTags(AppUtils.join(appMarketEntity.getTags()));
         appMarket.setCategory(appMarketEntity.getCategory());
         appMarket.setScenes(AppUtils.joinScenes(appMarketEntity.getScenes()));
@@ -134,9 +136,11 @@ public interface AppMarketConvert {
         appMarketEntity.setUid(appPublish.getMarketUid());
         appMarketEntity.setName(app.getName());
         appMarketEntity.setModel(app.getModel());
+        appMarketEntity.setType(appPublish.getType());
         appMarketEntity.setVersion(appPublish.getVersion());
         appMarketEntity.setLanguage(appPublish.getLanguage());
-        appMarketEntity.setCategory(app.getCategory());
+        appMarketEntity.setSort(appPublish.getSort());
+        appMarketEntity.setCategory(appPublish.getCategory());
         appMarketEntity.setTags(AppUtils.split(app.getTags()));
         appMarketEntity.setScenes(AppUtils.splitScenes(app.getScenes()));
         appMarketEntity.setImages(AppUtils.split(app.getImages()));
@@ -172,9 +176,11 @@ public interface AppMarketConvert {
         AppMarketEntity appMarketEntity = new AppMarketEntity();
         appMarketEntity.setUid(appMarket.getUid());
         appMarketEntity.setName(appMarket.getName());
+        appMarketEntity.setType(appMarket.getType());
         appMarketEntity.setModel(appMarket.getModel());
         appMarketEntity.setVersion(appMarket.getVersion());
         appMarketEntity.setLanguage(appMarket.getLanguage());
+        appMarketEntity.setSort(appMarket.getSort());
         appMarketEntity.setCategory(appMarket.getCategory());
         appMarketEntity.setTags(AppUtils.split(appMarket.getTags()));
         appMarketEntity.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
@@ -218,9 +224,11 @@ public interface AppMarketConvert {
         AppMarketRespVO appMarketResponse = new AppMarketRespVO();
         appMarketResponse.setUid(appMarket.getUid());
         appMarketResponse.setName(appMarket.getName());
+        appMarketResponse.setType(appMarket.getType());
         appMarketResponse.setModel(appMarket.getModel());
         appMarketResponse.setVersion(appMarket.getVersion());
         appMarketResponse.setLanguage(appMarket.getLanguage());
+        appMarketResponse.setSort(appMarket.getSort());
         appMarketResponse.setCategory(appMarket.getCategory());
         appMarketResponse.setTags(AppUtils.split(appMarket.getTags()));
         appMarketResponse.setScenes(AppUtils.splitScenes(appMarket.getScenes()));

@@ -61,11 +61,11 @@ public class LogAppConversationDO extends TenantBaseDO {
      * 执行场景
      */
     private String fromScene;
-
+    
     /**
-     * 终端用户 ID (游客)
+     * 应用配置
      */
-    private String endUser;
+    private String appConfig;
 
     /**
      * 执行状态 ERROR 失败，SUCCESS 成功
@@ -83,8 +83,8 @@ public class LogAppConversationDO extends TenantBaseDO {
     private String errorMsg;
 
     /**
-     * 应用配置
+     * 终端用户 ID (游客)
      */
-    private String appConfig;
+    private String endUser;
 
 }

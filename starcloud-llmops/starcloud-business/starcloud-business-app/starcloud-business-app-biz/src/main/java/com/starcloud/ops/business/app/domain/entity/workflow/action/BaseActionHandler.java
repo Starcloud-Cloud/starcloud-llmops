@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,7 @@ public abstract class BaseActionHandler<Q, R> {
     /**
      * 执行步骤
      */
+    @SuppressWarnings("all")
     protected abstract ActionResponse _execute(Q request);
 
     /**
@@ -75,8 +77,11 @@ public abstract class BaseActionHandler<Q, R> {
 
             // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
             if (this.getBenefitsType() != null && actionResponse.getTotalTokens() > 0) {
-                //权益记录
-                userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), 1L, context.getUserId(), context.getConversationUid());
+                // 权益类型
+                BenefitsTypeEnums benefitsType = this.getBenefitsType();
+                // 权益点数
+                Integer costPoints = this.getCostPoints(request);
+                userBenefitsService.expendBenefits(benefitsType.getCode(), (long) costPoints, context.getUserId(), context.getConversationUid());
             }
             log.info("Action 执行成功...");
             return actionResponse;
@@ -90,26 +95,31 @@ public abstract class BaseActionHandler<Q, R> {
         }
     }
 
+    /**
+     * 解析输入参数
+     *
+     * @return 输入参数
+     */
+    @SuppressWarnings("all")
     protected Q parseInput() {
-
         Map<String, Object> stepParams = this.appContext.getContextVariablesValues();
-
+        // 将 MODEL 传入到 stepParams 中
+        stepParams.put("MODEL", Optional.ofNullable(this.appContext).map(AppContext::getAiModel).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         //只拿新参数
 
         //用新参数 覆盖老结构的参数
         this.getAppContext().getJsonData();
-
         //优化方案：老结构数据全部废除，实体初始化好配置的参数，前端只传必要的参数
         //还是 传入的参数 覆盖 保存的参数
-
         Type query = TypeUtil.getTypeArgument(this.getClass());
         Class<Q> inputCls = (Class<Q>) query;
+        return BeanUtil.toBean(new HashMap<String, Object>() {
+            private static final long serialVersionUID = -5958990436311575905L;
 
-        Q request = BeanUtil.toBean(new HashMap<String, Object>() {{
-            put("stepParams", stepParams);
-        }}, inputCls);
-
-        return request;
+            {
+                put("stepParams", stepParams);
+            }
+        }, inputCls);
     }
 
     /**
@@ -121,6 +131,18 @@ public abstract class BaseActionHandler<Q, R> {
         return BenefitsTypeEnums.COMPUTATIONAL_POWER;
     }
 
+    /**
+     * 获取当前handler消耗的权益点数
+     *
+     * @return 权益点数
+     */
+    protected abstract Integer getCostPoints(Q request);
+
+    /**
+     * 获取应用的uid
+     *
+     * @return 应用的uid
+     */
     protected String getAppUid() {
         return this.getAppContext().getApp().getUid();
     }

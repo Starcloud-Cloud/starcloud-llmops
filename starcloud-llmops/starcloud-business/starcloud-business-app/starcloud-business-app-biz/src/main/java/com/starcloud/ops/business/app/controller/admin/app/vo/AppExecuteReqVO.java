@@ -37,6 +37,12 @@ public class AppExecuteReqVO extends AppContextReqVO {
     private String stepId;
 
     /**
+     * 应用执行AI模型
+     */
+    @Schema(description = "应用执行AI模型")
+    private String aiModel;
+
+    /**
      * 应用参数
      */
     @Schema(description = "应用参数")

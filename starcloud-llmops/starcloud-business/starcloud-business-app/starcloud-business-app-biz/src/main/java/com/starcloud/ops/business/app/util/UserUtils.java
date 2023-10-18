@@ -40,6 +40,11 @@ public class UserUtils {
     public static final String ADMIN_ROLE = "MOFAAI_ADMIN";
 
     /**
+     * 后台运营角色
+     */
+    public static final String OPERATE_ROLE = "MOFAAI_OPERATE";
+
+    /**
      * 部门权限
      */
     private static final PermissionApi PERMISSION_API = SpringUtil.getBean(PermissionApi.class);
@@ -61,6 +66,15 @@ public class UserUtils {
      */
     public static Boolean isAdmin() {
         return SECURITY_FRAMEWORK_SERVICE.hasRole(ADMIN_ROLE);
+    }
+
+    /**
+     * 判断是否是不是管理员
+     *
+     * @return
+     */
+    public static Boolean isNotAdmin() {
+        return !isAdmin();
     }
 
     /**

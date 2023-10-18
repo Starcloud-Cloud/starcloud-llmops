@@ -2,24 +2,17 @@ package com.starcloud.ops.business.log.service.message;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageUpdateReqVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
-import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import org.jetbrains.annotations.NotNull;
@@ -137,79 +130,45 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     /**
      * 获得应用执行日志结果列表, 用于 Excel 导出
      *
-     * @param exportReqVO 查询条件
+     * @param query 查询条件
      * @return 应用执行日志结果列表
      */
     @Override
-    public List<LogAppMessageDO> listAppLogMessage(LogAppMessageExportReqVO exportReqVO) {
-        return logAppMessageMapper.selectList(exportReqVO);
+    public List<LogAppMessageDO> listAppLogMessage(LogAppMessageListReqVO query) {
+        return logAppMessageMapper.selectList(query);
+    }
+
+    /**
+     * 获得应用执行日志结果列表, 根据 appConversationUid
+     *
+     * @param appConversationUidList appConversationUid 列表
+     * @return 应用执行日志结果列表
+     */
+    @Override
+    public List<LogAppMessageDO> listAppLogMessageByAppConversationUidList(Collection<String> appConversationUidList) {
+        return logAppMessageMapper.listAppLogMessageByAppConversationUidList(appConversationUidList);
     }
 
     /**
      * 获得应用执行日志结果分页
      *
-     * @param pageReqVO 分页查询
+     * @param query 分页查询
      * @return 应用执行日志结果分页
      */
     @Override
-    public PageResult<LogAppMessageDO> pageAppLogMessage(LogAppMessagePageReqVO pageReqVO) {
-        return logAppMessageMapper.selectPage(pageReqVO);
-    }
-
-    /**
-     * 根据会话uid获取消息列表
-     *
-     * @param query 查询条件
-     * @return 消息列表
-     */
-    @Override
-    public Page<LogAppMessageDO> pageAppLogMessage(AppLogMessagePageReqVO query) {
-        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        wrapper.eq(StringUtils.isNotBlank(query.getConversationUid()), LogAppMessageDO::getAppConversationUid, query.getConversationUid());
-        wrapper.eq(StringUtils.isNotBlank(query.getAppMode()), LogAppMessageDO::getAppMode, query.getAppMode());
-        wrapper.eq(StringUtils.isNotBlank(query.getFromScene()), LogAppMessageDO::getFromScene, query.getFromScene());
-        wrapper.eq(StringUtils.isNotBlank(query.getAiModel()), LogAppMessageDO::getAiModel, query.getAiModel());
-        wrapper.eq(StringUtils.isNotBlank(query.getStatus()), LogAppMessageDO::getStatus, query.getStatus());
-        wrapper.eq(StringUtils.isNotBlank(query.getCreator()), LogAppMessageDO::getCreator, query.getCreator());
-        wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
-        Page<LogAppMessageDO> page = new Page<>(query.getPageNo(), query.getPageSize());
-        return logAppMessageMapper.selectPage(page, wrapper);
+    public PageResult<LogAppMessageDO> pageAppLogMessage(LogAppMessagePageReqVO query) {
+        return logAppMessageMapper.selectPage(query);
     }
 
     /**
      * 排除系统总结场景
      *
-     * @param reqVO 分页查询
+     * @param query 分页查询
      * @return 应用执行日志结果分页
      */
     @Override
-    public PageResult<LogAppMessageDO> userMessagePage(LogAppMessagePageReqVO reqVO) {
-        return logAppMessageMapper.selectPage(reqVO, new LambdaQueryWrapperX<LogAppMessageDO>()
-                .eqIfPresent(LogAppMessageDO::getUid, reqVO.getUid())
-                .eqIfPresent(LogAppMessageDO::getAppConversationUid, reqVO.getAppConversationUid())
-                .eqIfPresent(LogAppMessageDO::getAppUid, reqVO.getAppUid())
-                .eqIfPresent(LogAppMessageDO::getAppMode, reqVO.getAppMode())
-                .eqIfPresent(LogAppMessageDO::getAppConfig, reqVO.getAppConfig())
-                .eqIfPresent(LogAppMessageDO::getAppStep, reqVO.getAppStep())
-                .eqIfPresent(LogAppMessageDO::getStatus, reqVO.getStatus())
-                .eqIfPresent(LogAppMessageDO::getErrorCode, reqVO.getErrorCode())
-                .eqIfPresent(LogAppMessageDO::getErrorMsg, reqVO.getErrorMsg())
-                .eqIfPresent(LogAppMessageDO::getVariables, reqVO.getVariables())
-                .eqIfPresent(LogAppMessageDO::getMessage, reqVO.getMessage())
-                .eqIfPresent(LogAppMessageDO::getMessageTokens, reqVO.getMessageTokens())
-                .eqIfPresent(LogAppMessageDO::getMessageUnitPrice, reqVO.getMessageUnitPrice())
-                .eqIfPresent(LogAppMessageDO::getAnswer, reqVO.getAnswer())
-                .eqIfPresent(LogAppMessageDO::getAnswerTokens, reqVO.getAnswerTokens())
-                .eqIfPresent(LogAppMessageDO::getAnswerUnitPrice, reqVO.getAnswerUnitPrice())
-                .eqIfPresent(LogAppMessageDO::getElapsed, reqVO.getElapsed())
-                .eqIfPresent(LogAppMessageDO::getTotalPrice, reqVO.getTotalPrice())
-                .eqIfPresent(LogAppMessageDO::getCurrency, reqVO.getCurrency())
-                .eqIfPresent(LogAppMessageDO::getFromScene, reqVO.getFromScene())
-                .eqIfPresent(LogAppMessageDO::getEndUser, reqVO.getEndUser())
-                .betweenIfPresent(LogAppMessageDO::getCreateTime, reqVO.getCreateTime())
-                .ne(LogAppMessageDO::getFromScene, "SYSTEM_SUMMARY")
-                .ne(LogAppMessageDO::getMsgType, LogMessageTypeEnum.SUMMARY.name())
-                .orderByDesc(LogAppMessageDO::getId));
+    public PageResult<LogAppMessageDO> userMessagePage(LogAppMessagePageReqVO query) {
+        return logAppMessageMapper.pageUserMessage(query);
     }
 
     /**
@@ -293,7 +252,7 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
                     .filter(statistics -> formatDate.equals(statistics.getCreateDate())).findFirst();
             // 存在就添加，不存在就创建
             if (logMessageStatisticsOptional.isPresent()) {
-                fillStatisticsList.add(logMessageStatisticsOptional.get());
+                fillStatisticsList.add(handlerAppMessageStatistics(logMessageStatisticsOptional.get()));
             } else {
                 fillStatisticsList.add(fillLogAppMessageStatistics(formatDate));
             }
@@ -324,6 +283,18 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         return statisticsListStream;
     }
 
+    private static LogAppMessageStatisticsListPO handlerAppMessageStatistics(LogAppMessageStatisticsListPO statistics) {
+        statistics.setMessageCount(Optional.ofNullable(statistics.getMessageCount()).orElse(0));
+        statistics.setSuccessCount(Optional.ofNullable(statistics.getSuccessCount()).orElse(0));
+        statistics.setErrorCount(Optional.ofNullable(statistics.getErrorCount()).orElse(0));
+        statistics.setFeedbackLikeCount(Optional.ofNullable(statistics.getFeedbackLikeCount()).orElse(0));
+        statistics.setCompletionAvgElapsed(Optional.ofNullable(statistics.getCompletionAvgElapsed()).orElse(new BigDecimal("0")));
+        statistics.setImageAvgElapsed(Optional.ofNullable(statistics.getImageAvgElapsed()).orElse(new BigDecimal("0")));
+        statistics.setCompletionCostPoints(Optional.ofNullable(statistics.getCompletionCostPoints()).orElse(0));
+        statistics.setImageCostPoints(Optional.ofNullable(statistics.getImageCostPoints()).orElse(0));
+        return statistics;
+    }
+
     /**
      * 填充一条数据
      *
@@ -336,12 +307,11 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         fillStatistics.setMessageCount(0);
         fillStatistics.setSuccessCount(0);
         fillStatistics.setErrorCount(0);
-        fillStatistics.setUserCount(0);
-        fillStatistics.setElapsedTotal(new BigDecimal("0"));
-        fillStatistics.setElapsedAvg(new BigDecimal("0"));
-        fillStatistics.setMessageTokens(0);
-        fillStatistics.setAnswerTokens(0);
-        fillStatistics.setTokens(0);
+        fillStatistics.setFeedbackLikeCount(0);
+        fillStatistics.setCompletionAvgElapsed(new BigDecimal("0"));
+        fillStatistics.setImageAvgElapsed(new BigDecimal("0"));
+        fillStatistics.setCompletionCostPoints(0);
+        fillStatistics.setImageCostPoints(0);
         fillStatistics.setCreateDate(date);
         return fillStatistics;
     }

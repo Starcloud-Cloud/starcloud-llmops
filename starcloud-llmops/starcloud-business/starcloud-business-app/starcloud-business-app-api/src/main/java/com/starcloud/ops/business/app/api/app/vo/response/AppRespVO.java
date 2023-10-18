@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.api.app.vo.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -21,7 +20,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用返回 VO 对象")
 public class AppRespVO implements Serializable {
 
@@ -56,6 +54,12 @@ public class AppRespVO implements Serializable {
      */
     @Schema(description = "应用来源类型：表示应用的是从那个平台创建，或者下载的。")
     private String source;
+
+    /**
+     * 应用排序，越小越靠前
+     */
+    @Schema(description = "应用排序")
+    private Long sort;
 
     /**
      * 应用类别

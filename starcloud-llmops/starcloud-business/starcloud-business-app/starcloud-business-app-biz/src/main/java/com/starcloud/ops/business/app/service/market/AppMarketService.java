@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.market;
 
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
@@ -75,13 +74,6 @@ public interface AppMarketService {
      * @param uid 应用 uid
      */
     void delete(String uid);
-
-    /**
-     * 安装应用
-     *
-     * @param request 安装请求
-     */
-    void install(AppInstallReqVO request);
 
     /**
      * 应用操作
