@@ -384,13 +384,13 @@ public class AppLogServiceImpl implements AppLogService {
         }
 
         query.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
-        PageResult<LogAppConversationDO> logAppConversationPageResult = logAppConversationService.pageAppLogConversation(query);
-        if (CollectionUtil.isEmpty(logAppConversationPageResult.getList())) {
+        PageResult<LogAppConversationDO> page = logAppConversationService.pageAppLogConversation(query);
+        if (CollectionUtil.isEmpty(page.getList())) {
             return new PageResult<>(Collections.emptyList(), 0L);
         }
 
         // 获取会话 UID 列表
-        List<String> conversationUidList = logAppConversationPageResult.getList().stream().map(LogAppConversationDO::getUid).collect(Collectors.toList());
+        List<String> conversationUidList = page.getList().stream().map(LogAppConversationDO::getUid).collect(Collectors.toList());
         Map<String, List<LogAppMessageDO>> messgaeMap = logAppMessageService.mapAppLogMessageAppConversationUid(conversationUidList);
         List<ImageLogMessageRespVO> collect = messgaeMap.values().stream()
                 .filter(CollectionUtil::isNotEmpty)
@@ -400,7 +400,7 @@ public class AppLogServiceImpl implements AppLogService {
                     String appName = Optional.ofNullable(RecommendAppEnum.of(item.getAppUid())).map(RecommendAppEnum::getLabel).orElse("");
                     return transformImageLogMessage(item, appName);
                 }).collect(Collectors.toList());
-        return new PageResult<>(collect, logAppConversationPageResult.getTotal());
+        return new PageResult<>(collect, page.getTotal());
     }
 
     /**
