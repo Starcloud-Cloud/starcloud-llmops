@@ -64,7 +64,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -294,24 +293,18 @@ public class AppLogServiceImpl implements AppLogService {
         if (CollectionUtil.isEmpty(conversationUidList)) {
             return new PageResult<>(Collections.emptyList(), 0L);
         }
-        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        wrapper.in(LogAppMessageDO::getAppConversationUid, conversationUidList);
-        wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
-
-        List<LogAppMessageDO> messageList = logAppMessageMapper.selectList(wrapper);
-        if (CollectionUtil.isEmpty(messageList)) {
+        Map<String, List<LogAppMessageDO>> messgaeMap = logAppMessageService.mapAppLogMessageAppConversationUid(conversationUidList);
+        if (CollectionUtil.isEmpty(messgaeMap)) {
             return new PageResult<>(Collections.emptyList(), 0L);
         }
-
-        Map<String, List<LogAppMessageDO>> listMap = messageList.stream().collect(Collectors.groupingBy(LogAppMessageDO::getAppConversationUid));
-        List<AppLogMessageRespVO> list = new ArrayList<>();
-
-        listMap.forEach((key, value) -> {
-            if (CollectionUtil.isNotEmpty(value)) {
-                list.add(transformAppLogMessage(value.get(0), appMarket.getName()));
-            }
-        });
-        return new PageResult<>(list, pageResult.getTotal());
+        List<AppLogMessageRespVO> collect = messgaeMap.values().stream()
+                .filter(CollectionUtil::isNotEmpty)
+                .map(list -> list.get(0))
+                .filter(Objects::nonNull)
+                .map(item -> transformAppLogMessage(item, appMarket.getName()))
+                .sorted((o1, o2) -> o2.getCreateTime().compareTo(o1.getCreateTime()))
+                .collect(Collectors.toList());
+        return new PageResult<>(collect, pageResult.getTotal());
     }
 
     /**
@@ -390,16 +383,21 @@ public class AppLogServiceImpl implements AppLogService {
         }
 
         // 获取会话 UID 列表
-        List<String> conversationUidList = page.getList().stream().map(LogAppConversationDO::getUid).collect(Collectors.toList());
+        List<String> conversationUidList = page.getList().stream().map(LogAppConversationDO::getUid).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(conversationUidList)) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
         Map<String, List<LogAppMessageDO>> messgaeMap = logAppMessageService.mapAppLogMessageAppConversationUid(conversationUidList);
+        if (CollectionUtil.isEmpty(messgaeMap)) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
         List<ImageLogMessageRespVO> collect = messgaeMap.values().stream()
                 .filter(CollectionUtil::isNotEmpty)
                 .map(list -> list.get(0))
                 .filter(Objects::nonNull)
-                .map(item -> {
-                    String appName = Optional.ofNullable(RecommendAppEnum.of(item.getAppUid())).map(RecommendAppEnum::getLabel).orElse("");
-                    return transformImageLogMessage(item, appName);
-                }).collect(Collectors.toList());
+                .map(item -> transformImageLogMessage(item, Optional.ofNullable(RecommendAppEnum.of(item.getAppUid())).map(RecommendAppEnum::getLabel).orElse("")))
+                .sorted((o1, o2) -> o2.getCreateTime().compareTo(o1.getCreateTime()))
+                .collect(Collectors.toList());
         return new PageResult<>(collect, page.getTotal());
     }
 
