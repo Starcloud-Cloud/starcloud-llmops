@@ -48,8 +48,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         } else {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
         }
-        queryMapper.orderByAsc(AppMarketDO::getSort);
-        queryMapper.orderByDesc(AppMarketDO::getUpdateTime);
+        queryMapper.last("ORDER BY sort IS NULL, sort ASC, update_time DESC");
         return this.selectPage(PageUtil.page(query), queryMapper);
     }
 
@@ -71,9 +70,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         } else {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
         }
-
-        queryMapper.orderByAsc(AppMarketDO::getSort);
-        queryMapper.orderByDesc(AppMarketDO::getUpdateTime);
+        queryMapper.last("ORDER BY sort IS NULL, sort ASC, update_time DESC");
         return this.selectList(queryMapper);
     }
 

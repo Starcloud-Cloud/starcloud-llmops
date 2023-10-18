@@ -40,6 +40,11 @@ public class UserUtils {
     public static final String ADMIN_ROLE = "MOFAAI_ADMIN";
 
     /**
+     * 后台运营角色
+     */
+    public static final String OPERATE_ROLE = "MOFAAI_OPERATE";
+
+    /**
      * 部门权限
      */
     private static final PermissionApi PERMISSION_API = SpringUtil.getBean(PermissionApi.class);

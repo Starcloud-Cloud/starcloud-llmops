@@ -48,8 +48,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         } else {
             wrapper.eq(AppDO::getModel, AppModelEnum.COMPLETION.name());
         }
-        wrapper.orderByAsc(AppDO::getSort);
-        wrapper.orderByDesc(AppDO::getUpdateTime);
+        wrapper.last("ORDER BY sort IS NULL, sort ASC, update_time DESC");
         return this.selectPage(PageUtil.page(query), wrapper);
     }
 
