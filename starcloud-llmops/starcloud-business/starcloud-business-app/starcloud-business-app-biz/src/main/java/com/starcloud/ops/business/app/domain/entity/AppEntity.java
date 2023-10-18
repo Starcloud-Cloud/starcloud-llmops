@@ -161,11 +161,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             }
             log.info("应用工作流执行: 应用参数：\n{}", JSONUtil.parse(appContext.getContextVariablesValues()).toStringPretty());
         } catch (ServerException exception) {
-            log.info("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
+            log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
             this.createAppMessageLog(request, exception);
             throw exception;
         } catch (Exception exception) {
-            log.info("应用工作流执行异常(exception): 错误信息: {}", exception.getMessage());
+            log.error("应用工作流执行异常(exception): 错误信息: {}", exception.getMessage());
             this.createAppMessageLog(request, exception);
             throw exception;
         }
@@ -287,7 +287,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         // 如果异常，抛出异常
         if (Objects.nonNull(fire.getResultException())) {
             Throwable resultException = fire.getResultException();
-            log.info("应用工作流执行异常: 步骤 ID: {}, 错误信息: {}", appContext.getStepId(), resultException.getMessage());
+            log.error("应用工作流执行异常: 步骤 ID: {}, 错误信息: {}", appContext.getStepId(), resultException.getMessage());
             if (resultException instanceof ServiceException) {
                 throw (ServiceException) resultException;
             }
@@ -296,7 +296,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
         // 如果执行失败，抛出异常
         if (!fire.isSuccess()) {
-            log.info("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
+            log.error("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
         }
 
