@@ -258,7 +258,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         appFavoritesMapper.deleteByMarketUid(uid);
         String appUid = appPublishMapper.selectAppUidByMarketUid(uid);
         if (StringUtils.isNotBlank(appUid)) {
-            appMapper.updatePublishUidAfterDeleteMarket(uid);
+            appMapper.updatePublishUidAfterDeleteMarket(appUid);
         }
         appPublishMapper.updateAfterDeleteMarket(uid);
     }

@@ -105,13 +105,13 @@ public interface AppMapper extends BaseMapperX<AppDO> {
     /**
      * 更新应用信息在删除应用市场时候
      *
-     * @param marketUid 应用市场 uid
+     * @param appUid 应用市场 uid
      */
-    default void updatePublishUidAfterDeleteMarket(String marketUid) {
+    default void updatePublishUidAfterDeleteMarket(String appUid) {
         LambdaUpdateWrapper<AppDO> wrapper = Wrappers.lambdaUpdate();
         wrapper.set(AppDO::getPublishUid, null);
         wrapper.set(AppDO::getLastPublish, null);
-        wrapper.likeRight(AppDO::getPublishUid, marketUid);
+        wrapper.likeRight(AppDO::getUid, appUid);
         this.update(null, wrapper);
     }
 

@@ -117,7 +117,7 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
      * @return 应用发布记录
      */
     default String selectAppUidByMarketUid(String marketUid) {
-        LambdaQueryWrapper<AppPublishDO> wrapper = Wrappers.lambdaQuery(AppPublishDO.class);
+        LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.eq(AppPublishDO::getMarketUid, marketUid);
         AppPublishDO appPublish = this.selectOne(wrapper);
         if (appPublish == null) {
