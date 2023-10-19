@@ -204,6 +204,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
         // 查询应用市场信息
         AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
 
         // 获取当前用户是否安装了该应用的信息
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
