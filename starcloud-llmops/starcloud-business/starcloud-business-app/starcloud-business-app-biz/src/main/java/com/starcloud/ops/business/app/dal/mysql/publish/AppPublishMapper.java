@@ -111,6 +111,22 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
     }
 
     /**
+     * 根据应用 UID 查询应用发布记录
+     *
+     * @param marketUid 应用市场 UID
+     * @return 应用发布记录
+     */
+    default String selectAppUidByMarketUid(String marketUid) {
+        LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(Boolean.TRUE);
+        wrapper.eq(AppPublishDO::getMarketUid, marketUid);
+        AppPublishDO appPublish = this.selectOne(wrapper);
+        if (appPublish == null) {
+            return null;
+        }
+        return appPublish.getAppUid();
+    }
+
+    /**
      * 删除应用市场记录后，更新应用发布记录
      *
      * @param marketUid 应用市场 UID
