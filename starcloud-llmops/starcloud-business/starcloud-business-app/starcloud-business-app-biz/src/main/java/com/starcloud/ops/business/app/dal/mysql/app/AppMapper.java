@@ -112,6 +112,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         wrapper.set(AppDO::getPublishUid, null);
         wrapper.set(AppDO::getLastPublish, null);
         wrapper.likeRight(AppDO::getPublishUid, marketUid);
+        this.update(null, wrapper);
     }
 
     /**
