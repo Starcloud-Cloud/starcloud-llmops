@@ -313,12 +313,19 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         LogAppMessageStatisticsListPO fillStatistics = new LogAppMessageStatisticsListPO();
         fillStatistics.setMessageCount(0);
         fillStatistics.setSuccessCount(0);
+        fillStatistics.setCompletionSuccessCount(0);
+        fillStatistics.setImageSuccessCount(0);
         fillStatistics.setErrorCount(0);
+        fillStatistics.setCompletionErrorCount(0);
+        fillStatistics.setImageErrorCount(0);
         fillStatistics.setFeedbackLikeCount(0);
         fillStatistics.setCompletionAvgElapsed(new BigDecimal("0"));
         fillStatistics.setImageAvgElapsed(new BigDecimal("0"));
         fillStatistics.setCompletionCostPoints(0);
         fillStatistics.setImageCostPoints(0);
+        fillStatistics.setCompletionTokens(0);
+        fillStatistics.setChatTokens(0);
+        fillStatistics.setTokens(0);
         fillStatistics.setCreateDate(date);
         return fillStatistics;
     }
