@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -157,6 +158,11 @@ public class AppMarketServiceImpl implements AppMarketService {
             if (marketList.isEmpty()) {
                 continue;
             }
+
+            marketList = marketList.stream()
+                    .sorted(Comparator.comparing(AppMarketRespVO::getSort, Comparator.nullsLast(Long::compareTo))
+                            .thenComparing(AppMarketRespVO::getUpdateTime)
+                    ).collect(Collectors.toList());
             // 转换数据
             AppMarketGroupCategoryRespVO categoryResponse = new AppMarketGroupCategoryRespVO();
             categoryResponse.setName(category.getName());
