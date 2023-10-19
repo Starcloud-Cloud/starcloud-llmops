@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
@@ -183,12 +184,16 @@ public class AppLogServiceImpl implements AppLogService {
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
+        Boolean isAdmin = UserUtils.isAdmin();
         pageResult = pageResult.stream().peek(item -> {
             // 非管理员不能查看，平均耗时
-            if (UserUtils.isNotAdmin()) {
+            if (!isAdmin) {
                 item.setCompletionAvgElapsed(null);
                 item.setImageAvgElapsed(null);
                 item.setFeedbackLikeCount(null);
+                item.setTokens(null);
+                item.setCompletionTokens(null);
+                item.setChatTokens(null);
             }
         }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
@@ -565,8 +570,13 @@ public class AppLogServiceImpl implements AppLogService {
                 .distinct()
                 .collect(Collectors.toList());
         Map<Long, String> userNicknameMap = UserUtils.getUserNicknameMapByIds(userIdList);
-
+        Map<Long, List<String>> userRoleCodeMap = Maps.newHashMap();
+        Boolean isAdmin = UserUtils.isAdmin();
+        if (isAdmin) {
+            userRoleCodeMap = UserUtils.mapUserRoleCode(userIdList);
+        }
         // 获取应用执行人
+        Map<Long, List<String>> finalUserRoleCodeMap = userRoleCodeMap;
         List<AppLogConversationInfoRespVO> collect = list.stream()
                 .peek(item -> {
                     if (StringUtils.isNotBlank(item.getEndUser())) {
@@ -574,8 +584,11 @@ public class AppLogServiceImpl implements AppLogService {
                     } else {
                         item.setAppExecutor(userNicknameMap.get(Long.parseLong(item.getCreator())));
                     }
+                    if (isAdmin) {
+                        item.setUserLevels(finalUserRoleCodeMap.get(Long.parseLong(item.getCreator())));
+                    }
                     // 非管理员，不展示消耗tokens
-                    if (UserUtils.isNotAdmin()) {
+                    if (!isAdmin) {
                         item.setTokens(null);
                         item.setTotalPrice(null);
                         item.setTotalAnswerTokens(null);

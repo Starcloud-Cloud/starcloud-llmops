@@ -113,7 +113,7 @@ public class RecommendAppFactory {
         app.setModel(AppModelEnum.CHAT.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Chat"));
-        app.setCategory("SEO_WRITING_OTHER");
+        app.setCategory(null);
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList("https://download.hotsalecloud.com/avatar/f88670eed0534ccd9bd80df21b92bf2c.svg"));
         app.setIcon("seo");

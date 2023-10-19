@@ -229,8 +229,8 @@ public class ImageUtils {
         BigDecimal stepsDecimal = new BigDecimal(steps.toString());
         BigDecimal multiplier = new BigDecimal("100");
 
-        // SDXL 0.9
-        if (EngineEnum.STABLE_DIFFUSION_XL_1024_V0_9.getCode().equals(engine)) {
+        // SDXL 0.9 || SDXL 1.0
+        if (EngineEnum.STABLE_DIFFUSION_XL_1024_V0_9.getCode().equals(engine) || EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode().equals(engine)) {
             BigDecimal factor;
             if (steps == 30) {
                 factor = new BigDecimal("0.016");

@@ -10,6 +10,7 @@ import lombok.ToString;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -139,6 +140,12 @@ public class AppLogConversationInfoRespVO implements Serializable {
      */
     @Schema(description = "应用执行者（游客，用户，或者具体的用户）")
     private String appExecutor;
+
+    /**
+     * 用户等级
+     */
+    @Schema(description = "用户等级")
+    private List<String> userLevels;
 
     /**
      * 创建时间

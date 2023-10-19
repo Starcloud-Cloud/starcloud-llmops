@@ -2,15 +2,17 @@ package cn.iocoder.yudao.module.system.service.permission;
 
 import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.MenuDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * 权限 Service 接口
- *
+ * <p>
  * 提供用户-角色、角色-菜单、角色-部门的关联权限处理
  *
  * @author 芋道源码
@@ -24,11 +26,11 @@ public interface PermissionService {
 
     /**
      * 获得角色们拥有的菜单列表，从缓存中获取
-     *
+     * <p>
      * 任一参数为空时，则返回为空
      *
-     * @param roleIds 角色编号数组
-     * @param menuTypes 菜单类型数组
+     * @param roleIds       角色编号数组
+     * @param menuTypes     菜单类型数组
      * @param menusStatuses 菜单状态数组
      * @return 菜单列表
      */
@@ -38,7 +40,7 @@ public interface PermissionService {
     /**
      * 获得用户拥有的角色编号集合，从缓存中获取
      *
-     * @param userId 用户编号
+     * @param userId       用户编号
      * @param roleStatuses 角色状态集合. 允许为空，为空时不过滤
      * @return 角色编号集合
      */
@@ -63,7 +65,7 @@ public interface PermissionService {
     /**
      * 设置角色菜单
      *
-     * @param roleId 角色编号
+     * @param roleId  角色编号
      * @param menuIds 菜单编号集合
      */
     void assignRoleMenu(Long roleId, Set<Long> menuIds);
@@ -77,9 +79,17 @@ public interface PermissionService {
     Set<Long> getUserRoleIdListByUserId(Long userId);
 
     /**
+     * 获得用户拥有的角色集合
+     *
+     * @param userIds 用户编号集合
+     * @return 角色集合
+     */
+    Map<Long, List<String>> mapRoleCodeListByUserIds(Collection<Long> userIds);
+
+    /**
      * 设置用户角色
      *
-     * @param userId 角色编号
+     * @param userId  角色编号
      * @param roleIds 角色编号集合
      */
     void assignUserRole(Long userId, Set<Long> roleIds);
@@ -87,8 +97,8 @@ public interface PermissionService {
     /**
      * 设置角色的数据权限
      *
-     * @param roleId 角色编号
-     * @param dataScope 数据范围
+     * @param roleId           角色编号
+     * @param dataScope        数据范围
      * @param dataScopeDeptIds 部门编号数组
      */
     void assignRoleDataScope(Long roleId, Integer dataScope, Set<Long> dataScopeDeptIds);
@@ -125,7 +135,7 @@ public interface PermissionService {
     /**
      * 判断是否有权限，任一一个即可
      *
-     * @param userId 用户编号
+     * @param userId      用户编号
      * @param permissions 权限
      * @return 是否
      */
@@ -149,7 +159,6 @@ public interface PermissionService {
 
     /**
      * 新增用户角色
-     *
      */
     void addUserRole(Long userId, String role);
 

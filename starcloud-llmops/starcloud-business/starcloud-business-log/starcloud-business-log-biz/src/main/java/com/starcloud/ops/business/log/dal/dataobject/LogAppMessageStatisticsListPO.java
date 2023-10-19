@@ -57,6 +57,21 @@ public class LogAppMessageStatisticsListPO {
     private Integer imageCostPoints;
 
     /**
+     * 应用执行消耗总tokens
+     */
+    private Integer completionTokens;
+
+    /**
+     * 聊天执行消耗总tokens
+     */
+    private Integer chatTokens;
+
+    /**
+     * 生成/聊天执行消耗总tokens
+     */
+    private Integer tokens;
+
+    /**
      * 创建时间
      */
     private String createDate;

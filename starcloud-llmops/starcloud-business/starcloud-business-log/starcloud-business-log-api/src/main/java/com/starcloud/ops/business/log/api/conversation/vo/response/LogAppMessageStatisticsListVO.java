@@ -74,6 +74,24 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     private Integer imageCostPoints;
 
     /**
+     * 应用执行消耗总tokens
+     */
+    @Schema(description = "应用执行消耗总tokens")
+    private Integer completionTokens;
+
+    /**
+     * 聊天执行消耗总tokens
+     */
+    @Schema(description = "聊天执行消耗总tokens")
+    private Integer chatTokens;
+
+    /**
+     * 生成/聊天执行消耗总tokens
+     */
+    @Schema(description = "生成/聊天执行消耗总tokens")
+    private Integer tokens;
+
+    /**
      * 生成时间
      */
     @Schema(description = "生成时间")
