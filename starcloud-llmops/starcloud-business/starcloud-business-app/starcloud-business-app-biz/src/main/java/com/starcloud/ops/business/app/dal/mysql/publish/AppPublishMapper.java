@@ -121,9 +121,8 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         wrapper.set(AppPublishDO::getMarketUid, null);
         // 模版市场删除后，将审核状态置为未发布
         wrapper.set(AppPublishDO::getAudit, AppPublishAuditEnum.UN_PUBLISH.getCode());
-
         wrapper.eq(AppPublishDO::getMarketUid, marketUid);
-
+        this.update(null, wrapper);
     }
 
     /**
