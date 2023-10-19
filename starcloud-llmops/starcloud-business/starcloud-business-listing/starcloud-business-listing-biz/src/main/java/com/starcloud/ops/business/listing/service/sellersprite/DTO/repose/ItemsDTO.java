@@ -1,31 +1,13 @@
-package com.starcloud.ops.business.listing.dal.dataobject;
+package com.starcloud.ops.business.listing.service.sellersprite.DTO.repose;
 
-import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.List;
 
-@TableName("listing_keyword_meta_data")
+@NoArgsConstructor
 @Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-public class KeywordMetadataDO extends TenantBaseDO {
-
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * 标签
-     */
-    private String tag;
-
+public class ItemsDTO {
     /**
      * 关键词
      */
@@ -138,6 +120,17 @@ public class KeywordMetadataDO extends TenantBaseDO {
     private List<String> badges;
 
 
+    private BaseDTO rankPosition;
+    private BaseDTO adPosition;
+    /**
+     * 数据更新时间
+     */
+    private Long updatedTime;
+
+
+    private Object stats;
+
+
     /**
      * 预估 价格分布 判断哪个价格区间可能还有机会(价格差异化)，以及哪个价格区间竞争最为激烈
      */
@@ -151,19 +144,20 @@ public class KeywordMetadataDO extends TenantBaseDO {
      */
     private Double avgRating;
 
-    /**
-     * 数据更新时间
-     */
-    private Long updatedTime;
 
+    private Object trafficKeywordTypes;
+    private Object conversionKeywordTypes;
 
-    private BaseDTO rankPosition;
-    private BaseDTO adPosition;
-    private Object stats;
+    private Object ac;
 
+    private Object maxRankTime;
+    private Object naturalRatio;
+    private Object recommendRatio;
+    private Object adRatio;
     /**
      * 分类
      */
     private DepartmentsDTO departments;
+
 
 }

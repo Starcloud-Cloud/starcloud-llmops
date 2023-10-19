@@ -10,7 +10,7 @@ import java.util.List;
  */
 @NoArgsConstructor
 @Data
-public class GetPrepareDTO {
+public class PrepareRequestDTO {
 
     private String month;
     private Integer market;
