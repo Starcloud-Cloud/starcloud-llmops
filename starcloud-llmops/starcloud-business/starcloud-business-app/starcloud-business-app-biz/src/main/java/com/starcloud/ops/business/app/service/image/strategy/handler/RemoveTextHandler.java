@@ -90,7 +90,7 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
      */
     @Override
     public Integer getCostPoints(RemoveTextRequest request, RemoveTextResponse response) {
-        return 2;
+        return 6;
     }
 
     /**

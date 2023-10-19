@@ -131,7 +131,7 @@ public class GenerateImageRequest extends BaseImageRequest {
     /**
      * This parameter is just an alternate way to set step_schedule_start, which is done via the calculation 1 - image_strength. For example, passing in an Image Strength of 35% (0.35) would result in a step_schedule_start of 0.65.
      */
-    @Schema(description = "这个参数只是设置step_schedule_start的另一种方法，它是通过计算1 - image_strength来完成的。例如，传入35%的Image Strength(0.35)将导致step_schedule_start为0.65。")
+    @Schema(description = "这个参数只是设置step_schedule_start的另一种方法")
     @Min(value = 0, message = "imageStrength 需要大于等于 0")
     @Max(value = 1, message = "imageStrength 需要小于等于 1")
     private Double imageStrength;
