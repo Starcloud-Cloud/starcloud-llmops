@@ -42,7 +42,7 @@ public class UserUtils {
     /**
      * 后台运营角色
      */
-    public static final String OPERATE_ROLE = "MOFAAI_OPERATE";
+    public static final String OPERATE_ROLE = "MOFAAI_DEV";
 
     /**
      * 部门权限
@@ -65,7 +65,7 @@ public class UserUtils {
      * @return
      */
     public static Boolean isAdmin() {
-        return SECURITY_FRAMEWORK_SERVICE.hasRole(ADMIN_ROLE);
+        return SECURITY_FRAMEWORK_SERVICE.hasAnyRoles(ADMIN_ROLE, OPERATE_ROLE);
     }
 
     /**
