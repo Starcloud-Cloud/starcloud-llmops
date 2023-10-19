@@ -163,6 +163,7 @@ public class AppMarketServiceImpl implements AppMarketService {
                     .sorted(Comparator.comparing(AppMarketRespVO::getSort, Comparator.nullsLast(Long::compareTo))
                             .thenComparing(AppMarketRespVO::getUpdateTime)
                     ).collect(Collectors.toList());
+            
             // 转换数据
             AppMarketGroupCategoryRespVO categoryResponse = new AppMarketGroupCategoryRespVO();
             categoryResponse.setName(category.getName());
