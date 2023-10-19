@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Objects;
@@ -93,7 +92,7 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      */
     @Override
     public Integer getCostPoints(SketchToImageRequest request, SketchToImageResponse response) {
-        return 2;
+        return 6;
     }
 
     /**

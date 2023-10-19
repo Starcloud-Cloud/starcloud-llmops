@@ -115,7 +115,7 @@ public interface AppPublishConverter {
         }
 
         // 获取用户昵称
-         List<Long> userIds = records.stream().map(AppPublishDO::getUserId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        List<Long> userIds = records.stream().map(AppPublishDO::getUserId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
         Map<Long, String> userMaps = UserUtils.getUserNicknameMapByIds(userIds);
 
         // 转换
@@ -137,6 +137,7 @@ public interface AppPublishConverter {
         AppPublishLatestRespVO latestResponse = new AppPublishLatestRespVO();
         latestResponse.setUid(appPublish.getUid());
         latestResponse.setAppUid(appPublish.getAppUid());
+        latestResponse.setMarketUid(appPublish.getMarketUid());
         latestResponse.setName(appPublish.getName());
         latestResponse.setType(appPublish.getType());
         latestResponse.setModel(appPublish.getModel());

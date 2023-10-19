@@ -25,9 +25,11 @@ import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.databoject.operate.AppOperateDO;
+import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.favorite.AppFavoriteMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
+import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -61,6 +63,9 @@ import java.util.stream.Collectors;
 public class AppMarketServiceImpl implements AppMarketService {
 
     @Resource
+    private AppMapper appMapper;
+
+    @Resource
     private AppMarketMapper appMarketMapper;
 
     @Resource
@@ -68,6 +73,9 @@ public class AppMarketServiceImpl implements AppMarketService {
 
     @Resource
     private AppFavoriteMapper appFavoritesMapper;
+
+    @Resource
+    private AppPublishMapper appPublishMapper;
 
     @Resource
     private AppDictionaryService appDictionaryService;
@@ -196,6 +204,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
         // 查询应用市场信息
         AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
 
         // 获取当前用户是否安装了该应用的信息
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
@@ -244,8 +253,15 @@ public class AppMarketServiceImpl implements AppMarketService {
      * @param uid 应用 uid
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         appMarketMapper.delete(uid);
+        appFavoritesMapper.deleteByMarketUid(uid);
+        String appUid = appPublishMapper.selectAppUidByMarketUid(uid);
+        if (StringUtils.isNotBlank(appUid)) {
+            appMapper.updatePublishUidAfterDeleteMarket(appUid);
+        }
+        appPublishMapper.updateAfterDeleteMarket(uid);
     }
 
     /**

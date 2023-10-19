@@ -111,6 +111,37 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
     }
 
     /**
+     * 根据应用 UID 查询应用发布记录
+     *
+     * @param marketUid 应用市场 UID
+     * @return 应用发布记录
+     */
+    default String selectAppUidByMarketUid(String marketUid) {
+        LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(Boolean.TRUE);
+        wrapper.eq(AppPublishDO::getMarketUid, marketUid);
+        AppPublishDO appPublish = this.selectOne(wrapper);
+        if (appPublish == null) {
+            return null;
+        }
+        return appPublish.getAppUid();
+    }
+
+    /**
+     * 删除应用市场记录后，更新应用发布记录
+     *
+     * @param marketUid 应用市场 UID
+     */
+    default void updateAfterDeleteMarket(String marketUid) {
+        LambdaUpdateWrapper<AppPublishDO> wrapper = Wrappers.lambdaUpdate(AppPublishDO.class);
+        // 模版市场删除后，将模版市场 UID 置空
+        wrapper.set(AppPublishDO::getMarketUid, null);
+        // 模版市场删除后，将审核状态置为未发布
+        wrapper.set(AppPublishDO::getAudit, AppPublishAuditEnum.UN_PUBLISH.getCode());
+        wrapper.eq(AppPublishDO::getMarketUid, marketUid);
+        this.update(null, wrapper);
+    }
+
+    /**
      * 查询条件
      *
      * @param isSimple 是否简单查询
@@ -142,6 +173,5 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
         );
         return wrapper;
     }
-
 
 }

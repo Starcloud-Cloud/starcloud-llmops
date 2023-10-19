@@ -50,12 +50,12 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         log.info("处理生成图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
         // 生成图片的引擎
         if (StringUtils.isBlank(request.getEngine())) {
-            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_BETA_V2_2_2.getCode());
+            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode());
         }
         // 初始化图片
         if (StringUtils.isNotBlank(request.getInitImage())) {
             if (Objects.isNull(request.getImageStrength())) {
-                request.setImageStrength(0.35);
+                request.setImageStrength(0.65);
             }
         }
         // 反义词

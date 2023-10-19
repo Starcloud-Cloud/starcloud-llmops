@@ -254,7 +254,6 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
 
         appPublish.setUserId(SecurityFrameworkUtils.getLoginUserId());
-        // appPublish.setLanguage(request.getLanguage());
         // 查询该应用 UID 的发布记录
         List<AppPublishDO> appPublishRecords = appPublishMapper.listByAppUid(request.getAppUid());
         // 如果该应用 UID 有发布记录，说明不是第一次发布。

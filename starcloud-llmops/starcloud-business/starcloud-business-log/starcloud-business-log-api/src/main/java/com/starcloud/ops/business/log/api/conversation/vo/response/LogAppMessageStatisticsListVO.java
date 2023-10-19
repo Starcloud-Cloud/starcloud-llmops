@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.log.api.conversation.vo.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,7 +18,6 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 @NoArgsConstructor
 @ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "LogAppMessageStatisticsListVO", description = "应用消息统计列表响应 VO")
 public class LogAppMessageStatisticsListVO implements Serializable {
 
@@ -38,10 +36,34 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     private Integer successCount;
 
     /**
+     * 生成/聊天成功数
+     */
+    @Schema(description = "生成/聊天成功数")
+    private Integer completionSuccessCount;
+
+    /**
+     * 图片成功数
+     */
+    @Schema(description = "图片成功数")
+    private Integer imageSuccessCount;
+
+    /**
      * 消息失败总数
      */
     @Schema(description = "消息失败总数")
     private Integer errorCount;
+
+    /**
+     * 生成/聊天失败数
+     */
+    @Schema(description = "生成/聊天失败数")
+    private Integer completionErrorCount;
+
+    /**
+     * 图片失败数
+     */
+    @Schema(description = "图片失败数")
+    private Integer imageErrorCount;
 
     /**
      * 用户满意数
@@ -50,7 +72,7 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     private Integer feedbackLikeCount;
 
     /**
-     * 完成/聊天平均耗时
+     * 生成/聊天平均耗时
      */
     @Schema(description = "完成/聊天平均耗时")
     private BigDecimal completionAvgElapsed;
@@ -62,7 +84,7 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     private BigDecimal imageAvgElapsed;
 
     /**
-     * 完成/聊天总花费积分
+     * 生成/聊天总花费积分
      */
     @Schema(description = "消耗积分")
     private Integer completionCostPoints;
@@ -72,6 +94,24 @@ public class LogAppMessageStatisticsListVO implements Serializable {
      */
     @Schema(description = "图片总花费积分")
     private Integer imageCostPoints;
+
+    /**
+     * 应用执行消耗总tokens
+     */
+    @Schema(description = "应用执行消耗总tokens")
+    private Integer completionTokens;
+
+    /**
+     * 聊天执行消耗总tokens
+     */
+    @Schema(description = "聊天执行消耗总tokens")
+    private Integer chatTokens;
+
+    /**
+     * 生成/聊天执行消耗总tokens
+     */
+    @Schema(description = "生成/聊天执行消耗总tokens")
+    private Integer tokens;
 
     /**
      * 生成时间

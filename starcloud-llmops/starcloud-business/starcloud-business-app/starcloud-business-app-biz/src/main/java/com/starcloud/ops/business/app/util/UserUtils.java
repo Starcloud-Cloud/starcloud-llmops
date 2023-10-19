@@ -150,6 +150,19 @@ public class UserUtils {
     }
 
     /**
+     * 根据用户 ID 集合，获得用户角色集合
+     *
+     * @param userIds 用户 ID 集合
+     * @return 角色集合
+     */
+    public static Map<Long, List<String>> mapUserRoleCode(List<Long> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        return PERMISSION_API.mapRoleCodeListByUserIds(userIds);
+    }
+
+    /**
      * 获取部门数据权限
      *
      * @return 部门数据权限

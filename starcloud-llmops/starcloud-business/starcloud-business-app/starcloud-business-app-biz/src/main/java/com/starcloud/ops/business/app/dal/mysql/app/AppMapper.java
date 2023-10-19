@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.dal.mysql.app;
 
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
@@ -99,6 +100,19 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         app.setId(appDO.getId());
         this.updateById(app);
         return app;
+    }
+
+    /**
+     * 更新应用信息在删除应用市场时候
+     *
+     * @param appUid 应用市场 uid
+     */
+    default void updatePublishUidAfterDeleteMarket(String appUid) {
+        LambdaUpdateWrapper<AppDO> wrapper = Wrappers.lambdaUpdate();
+        wrapper.set(AppDO::getPublishUid, null);
+        wrapper.set(AppDO::getLastPublish, null);
+        wrapper.likeRight(AppDO::getUid, appUid);
+        this.update(null, wrapper);
     }
 
     /**

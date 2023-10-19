@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
@@ -63,6 +64,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -183,12 +185,16 @@ public class AppLogServiceImpl implements AppLogService {
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
+        Boolean isAdmin = UserUtils.isAdmin();
         pageResult = pageResult.stream().peek(item -> {
             // 非管理员不能查看，平均耗时
-            if (UserUtils.isNotAdmin()) {
-                item.setCompletionAvgElapsed(null);
-                item.setImageAvgElapsed(null);
-                item.setFeedbackLikeCount(null);
+            if (!isAdmin) {
+                item.setCompletionAvgElapsed(new BigDecimal("0"));
+                item.setImageAvgElapsed(new BigDecimal("0"));
+                item.setFeedbackLikeCount(0);
+                item.setTokens(0);
+                item.setCompletionTokens(0);
+                item.setChatTokens(0);
             }
         }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
@@ -207,10 +213,14 @@ public class AppLogServiceImpl implements AppLogService {
         // 查询应用类型
         AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
         AppValidate.notNull(app, APP_NON_EXISTENT, query.getAppUid());
-
+        Boolean isAdmin = UserUtils.isAdmin();
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isAppAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+            List<AppSceneEnum> appAnalysisScenes = AppSceneEnum.APP_ANALYSIS_SCENES;
+            if (isAdmin) {
+                appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
+            }
+            if (StringUtils.isNotBlank(query.getFromScene()) && !appAnalysisScenes.contains(AppSceneEnum.valueOf(query.getFromScene()))) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
             }
         }
@@ -243,6 +253,17 @@ public class AppLogServiceImpl implements AppLogService {
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
+        pageResult = pageResult.stream().peek(item -> {
+            // 非管理员不能查看，平均耗时
+            if (!isAdmin) {
+                item.setCompletionAvgElapsed(new BigDecimal("0"));
+                item.setImageAvgElapsed(new BigDecimal("0"));
+                item.setFeedbackLikeCount(0);
+                item.setTokens(0);
+                item.setCompletionTokens(0);
+                item.setChatTokens(0);
+            }
+        }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
 
@@ -325,7 +346,12 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isAppAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+            List<AppSceneEnum> appAnalysisScenes = AppSceneEnum.APP_ANALYSIS_SCENES;
+            Boolean isAdmin = UserUtils.isAdmin();
+            if (isAdmin) {
+                appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
+            }
+            if (StringUtils.isNotBlank(query.getFromScene()) && !appAnalysisScenes.contains(AppSceneEnum.valueOf(query.getFromScene()))) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
             }
         }
@@ -565,8 +591,13 @@ public class AppLogServiceImpl implements AppLogService {
                 .distinct()
                 .collect(Collectors.toList());
         Map<Long, String> userNicknameMap = UserUtils.getUserNicknameMapByIds(userIdList);
-
+        Map<Long, List<String>> userRoleCodeMap = Maps.newHashMap();
+        Boolean isAdmin = UserUtils.isAdmin();
+        if (isAdmin) {
+            userRoleCodeMap = UserUtils.mapUserRoleCode(userIdList);
+        }
         // 获取应用执行人
+        Map<Long, List<String>> finalUserRoleCodeMap = userRoleCodeMap;
         List<AppLogConversationInfoRespVO> collect = list.stream()
                 .peek(item -> {
                     if (StringUtils.isNotBlank(item.getEndUser())) {
@@ -574,8 +605,11 @@ public class AppLogServiceImpl implements AppLogService {
                     } else {
                         item.setAppExecutor(userNicknameMap.get(Long.parseLong(item.getCreator())));
                     }
+                    if (isAdmin) {
+                        item.setUserLevels(finalUserRoleCodeMap.get(Long.parseLong(item.getCreator())));
+                    }
                     // 非管理员，不展示消耗tokens
-                    if (UserUtils.isNotAdmin()) {
+                    if (!isAdmin) {
                         item.setTokens(null);
                         item.setTotalPrice(null);
                         item.setTotalAnswerTokens(null);
@@ -723,14 +757,20 @@ public class AppLogServiceImpl implements AppLogService {
         // 生成记录
         if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
             if (UserUtils.isAdmin()) {
-                return AppSceneEnum.getOptions();
+                return AppSceneEnum.getOptions(AppSceneEnum.ADMIN_SCENES);
             } else {
                 return AppSceneEnum.getOptions(AppSceneEnum.GENERATE_RECORD_BASE_SCENES);
             }
         }
         // 应用分析
         if (LogQueryTypeEnum.APP_ANALYSIS.name().equals(type)) {
-            return AppSceneEnum.getOptions(AppSceneEnum.APP_ANALYSIS_SCENES);
+            List<Option> options = AppSceneEnum.getOptions(AppSceneEnum.APP_ANALYSIS_SCENES);
+            if (UserUtils.isAdmin()) {
+                AppSceneEnum optimize = AppSceneEnum.OPTIMIZE_PROMPT;
+                options.add(Option.of(optimize.name(), optimize.getLabel(), optimize.getLabelEn()));
+                return options;
+            }
+            return options;
         }
         // 聊天分析
         if (LogQueryTypeEnum.CHAT_ANALYSIS.name().equals(type)) {

@@ -16,12 +16,30 @@
     <sql id="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF">
         COUNT(ms.id) AS messageCount,
         COUNT(CASE WHEN ms.status = "SUCCESS" THEN 1 END) AS successCount,
+        COUNT(CASE WHEN ms.status = "SUCCESS" AND ms.app_mode != "IMAGE" THEN 1 END) AS completionSuccessCount,
+        COUNT(CASE WHEN ms.status = "SUCCESS" AND ms.app_mode = "IMAGE" THEN 1 END) AS imageSuccessCount,
+
         COUNT(CASE WHEN ms.status != "SUCCESS" THEN 1 END) AS errorCount,
+        COUNT(CASE WHEN ms.status != "SUCCESS" AND ms.app_mode != "IMAGE" THEN 1 END) AS completionErrorCount,
+        COUNT(CASE WHEN ms.status != "SUCCESS" AND ms.app_mode = "IMAGE" THEN 1 END) AS imageErrorCount,
+
         COUNT(CASE WHEN fb.rating = "LIKE" THEN 1 END) AS feedbackLikeCount,
         AVG(CASE WHEN ms.app_mode != "IMAGE" THEN ms.elapsed END) AS completionAvgElapsed,
         AVG(CASE WHEN ms.app_mode = "IMAGE" THEN ms.elapsed END) AS imageAvgElapsed,
         SUM(CASE WHEN ms.app_mode != "IMAGE" THEN ms.cost_points END) AS completionCostPoints,
         SUM(CASE WHEN ms.app_mode = "IMAGE" THEN ms.cost_points END) AS imageCostPoints,
+        SUM(
+        (CASE WHEN ms.app_mode = "COMPLETION" THEN ms.message_tokens END) +
+        (CASE WHEN ms.app_mode = "COMPLETION" THEN ms.answer_tokens END)
+        ) AS completionTokens,
+        SUM(
+        (CASE WHEN ms.app_mode = "CHAT" THEN ms.message_tokens END) +
+        (CASE WHEN ms.app_mode = "CHAT" THEN ms.answer_tokens END)
+        ) AS chatTokens,
+        SUM(
+        (CASE WHEN ms.app_mode = "CHAT" THEN ms.message_tokens END) +
+        (CASE WHEN ms.app_mode = "CHAT" THEN ms.answer_tokens END)
+        ) AS tokens,
         <choose>
             <when test="query.unit == 'HOURS'">
                 DATE_FORMAT(ms.create_time, '%Y-%m-%d %h') as create_date

@@ -82,7 +82,7 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
      */
     @Override
     public Integer getCostPoints(RemoveBackgroundRequest request, RemoveBackgroundResponse response) {
-        return 2;
+        return 6;
     }
 
     /**
