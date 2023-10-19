@@ -27,9 +27,29 @@ public class LogAppMessageStatisticsListPO {
     private Integer successCount;
 
     /**
+     * 生成/聊天成功数
+     */
+    private Integer completionSuccessCount;
+
+    /**
+     * 图片成功数
+     */
+    private Integer imageSuccessCount;
+
+    /**
      * 失败数
      */
     private Integer errorCount;
+
+    /**
+     * 生成/聊天失败数
+     */
+    private Integer completionErrorCount;
+
+    /**
+     * 图片失败数
+     */
+    private Integer imageErrorCount;
 
     /**
      * 用户满意数
@@ -37,7 +57,7 @@ public class LogAppMessageStatisticsListPO {
     private Integer feedbackLikeCount;
 
     /**
-     * 完成/聊天平均耗时
+     * 生成/聊天平均耗时
      */
     private BigDecimal completionAvgElapsed;
 
@@ -47,7 +67,7 @@ public class LogAppMessageStatisticsListPO {
     private BigDecimal imageAvgElapsed;
 
     /**
-     * 完成/聊天总花费积分
+     * 生成/聊天总花费积分
      */
     private Integer completionCostPoints;
 

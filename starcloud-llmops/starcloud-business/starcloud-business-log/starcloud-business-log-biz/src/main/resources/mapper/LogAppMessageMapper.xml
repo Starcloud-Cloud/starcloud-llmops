@@ -16,7 +16,13 @@
     <sql id="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF">
         COUNT(ms.id) AS messageCount,
         COUNT(CASE WHEN ms.status = "SUCCESS" THEN 1 END) AS successCount,
+        COUNT(CASE WHEN ms.status = "SUCCESS" AND ms.app_mode != "IMAGE" THEN 1 END) AS completionSuccessCount,
+        COUNT(CASE WHEN ms.status = "SUCCESS" AND ms.app_mode = "IMAGE" THEN 1 END) AS imageSuccessCount,
+
         COUNT(CASE WHEN ms.status != "SUCCESS" THEN 1 END) AS errorCount,
+        COUNT(CASE WHEN ms.status != "SUCCESS" AND ms.app_mode != "IMAGE" THEN 1 END) AS completionErrorCount,
+        COUNT(CASE WHEN ms.status != "SUCCESS" AND ms.app_mode = "IMAGE" THEN 1 END) AS imageErrorCount,
+
         COUNT(CASE WHEN fb.rating = "LIKE" THEN 1 END) AS feedbackLikeCount,
         AVG(CASE WHEN ms.app_mode != "IMAGE" THEN ms.elapsed END) AS completionAvgElapsed,
         AVG(CASE WHEN ms.app_mode = "IMAGE" THEN ms.elapsed END) AS imageAvgElapsed,

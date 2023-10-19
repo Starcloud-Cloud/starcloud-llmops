@@ -254,31 +254,34 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
 
         appPublish.setUserId(SecurityFrameworkUtils.getLoginUserId());
-        // appPublish.setLanguage(request.getLanguage());
+
         // 查询该应用 UID 的发布记录
         List<AppPublishDO> appPublishRecords = appPublishMapper.listByAppUid(request.getAppUid());
-        // 如果该应用 UID 有发布记录，说明不是第一次发布。
-        if (CollectionUtil.isNotEmpty(appPublishRecords)) {
-            // 获取最新发布记录
-            AppPublishDO lastAppPublish = appPublishRecords.get(0);
-            // 版本号递增
-            appPublish.setVersion(AppUtils.nextVersion(lastAppPublish.getVersion()));
-            // 如果历史中有已经审核通过的记录，则将历史记录中的 marketUid 赋值给当前发布记录
-            Optional<AppPublishDO> approvedPublish = appPublishRecords.stream()
-                    .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()))
-                    .filter(item -> StringUtils.isNotBlank(item.getMarketUid()))
-                    .findFirst();
-            approvedPublish.ifPresent(appPublishDO -> appPublish.setMarketUid(appPublishDO.getMarketUid()));
 
-            // 如果最新发布应用处于审核中，将最新发布状态改为已取消, 基本上只会存在一条审核中的发布记录，但是为了防止意外，将所有的审核中的发布记录都取消
-            List<AppPublishDO> pendingPublishList = appPublishRecords.stream()
-                    .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).collect(Collectors.toList());
-            if (CollectionUtil.isNotEmpty(pendingPublishList)) {
-                for (AppPublishDO appPublishDO : pendingPublishList) {
-                    appPublishMapper.audit(appPublishDO.getUid(), AppPublishAuditEnum.CANCELED.getCode(), null);
-                }
+        // 查询历史中是否有已经审核通过且应用市场 UID 不为空的记录
+        Optional<AppPublishDO> approvedOptional = CollectionUtil.emptyIfNull(appPublishRecords).stream()
+                .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.APPROVED.getCode()))
+                .filter(item -> StringUtils.isNotBlank(item.getMarketUid()))
+                .findFirst();
+
+        // 此时说明应用市场已经发布过。
+        if (approvedOptional.isPresent()) {
+            AppPublishDO approvedPublish = approvedOptional.get();
+            // 版本号递增
+            appPublish.setVersion(AppUtils.nextVersion(approvedPublish.getVersion()));
+            // 应用市场 UID 赋值
+            appPublish.setMarketUid(approvedPublish.getMarketUid());
+        }
+
+        // 如果最新发布应用处于审核中，将最新发布状态改为已取消, 基本上只会存在一条审核中的发布记录，但是为了防止意外，将所有的审核中的发布记录都取消
+        List<AppPublishDO> pendingPublishList = CollectionUtil.emptyIfNull(appPublishRecords).stream()
+                .filter(item -> Objects.equals(item.getAudit(), AppPublishAuditEnum.PENDING.getCode())).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(pendingPublishList)) {
+            for (AppPublishDO appPublishDO : pendingPublishList) {
+                appPublishMapper.audit(appPublishDO.getUid(), AppPublishAuditEnum.CANCELED.getCode(), null);
             }
         }
+
         // 更新渠道表中的发布 UID
         appPublishChannelService.updatePublishUidByAppUid(request.getAppUid(), appPublish.getUid());
         // 更新限流表中的发布 UID
