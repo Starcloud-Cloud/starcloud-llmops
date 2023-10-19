@@ -64,6 +64,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -188,12 +189,12 @@ public class AppLogServiceImpl implements AppLogService {
         pageResult = pageResult.stream().peek(item -> {
             // 非管理员不能查看，平均耗时
             if (!isAdmin) {
-                item.setCompletionAvgElapsed(null);
-                item.setImageAvgElapsed(null);
-                item.setFeedbackLikeCount(null);
-                item.setTokens(null);
-                item.setCompletionTokens(null);
-                item.setChatTokens(null);
+                item.setCompletionAvgElapsed(new BigDecimal("0"));
+                item.setImageAvgElapsed(new BigDecimal("0"));
+                item.setFeedbackLikeCount(0);
+                item.setTokens(0);
+                item.setCompletionTokens(0);
+                item.setChatTokens(0);
             }
         }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
@@ -212,10 +213,14 @@ public class AppLogServiceImpl implements AppLogService {
         // 查询应用类型
         AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
         AppValidate.notNull(app, APP_NON_EXISTENT, query.getAppUid());
-
+        Boolean isAdmin = UserUtils.isAdmin();
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isAppAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+            List<AppSceneEnum> appAnalysisScenes = AppSceneEnum.APP_ANALYSIS_SCENES;
+            if (isAdmin) {
+                appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
+            }
+            if (StringUtils.isNotBlank(query.getFromScene()) && !appAnalysisScenes.contains(AppSceneEnum.valueOf(query.getFromScene()))) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
             }
         }
@@ -248,6 +253,17 @@ public class AppLogServiceImpl implements AppLogService {
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
+        pageResult = pageResult.stream().peek(item -> {
+            // 非管理员不能查看，平均耗时
+            if (!isAdmin) {
+                item.setCompletionAvgElapsed(new BigDecimal("0"));
+                item.setImageAvgElapsed(new BigDecimal("0"));
+                item.setFeedbackLikeCount(0);
+                item.setTokens(0);
+                item.setCompletionTokens(0);
+                item.setChatTokens(0);
+            }
+        }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
 
@@ -330,7 +346,12 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isAppAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+            List<AppSceneEnum> appAnalysisScenes = AppSceneEnum.APP_ANALYSIS_SCENES;
+            Boolean isAdmin = UserUtils.isAdmin();
+            if (isAdmin) {
+                appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
+            }
+            if (StringUtils.isNotBlank(query.getFromScene()) && !appAnalysisScenes.contains(AppSceneEnum.valueOf(query.getFromScene()))) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
             }
         }
@@ -736,14 +757,20 @@ public class AppLogServiceImpl implements AppLogService {
         // 生成记录
         if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
             if (UserUtils.isAdmin()) {
-                return AppSceneEnum.getOptions();
+                return AppSceneEnum.getOptions(AppSceneEnum.ADMIN_SCENES);
             } else {
                 return AppSceneEnum.getOptions(AppSceneEnum.GENERATE_RECORD_BASE_SCENES);
             }
         }
         // 应用分析
         if (LogQueryTypeEnum.APP_ANALYSIS.name().equals(type)) {
-            return AppSceneEnum.getOptions(AppSceneEnum.APP_ANALYSIS_SCENES);
+            List<Option> options = AppSceneEnum.getOptions(AppSceneEnum.APP_ANALYSIS_SCENES);
+            if (UserUtils.isAdmin()) {
+                AppSceneEnum optimize = AppSceneEnum.OPTIMIZE_PROMPT;
+                options.add(Option.of(optimize.name(), optimize.getLabel(), optimize.getLabelEn()));
+                return options;
+            }
+            return options;
         }
         // 聊天分析
         if (LogQueryTypeEnum.CHAT_ANALYSIS.name().equals(type)) {

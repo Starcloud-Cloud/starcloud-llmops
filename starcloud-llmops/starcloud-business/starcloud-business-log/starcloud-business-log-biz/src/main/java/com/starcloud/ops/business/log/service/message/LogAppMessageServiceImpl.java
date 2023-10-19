@@ -286,12 +286,19 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
     private static LogAppMessageStatisticsListPO handlerAppMessageStatistics(LogAppMessageStatisticsListPO statistics) {
         statistics.setMessageCount(Optional.ofNullable(statistics.getMessageCount()).orElse(0));
         statistics.setSuccessCount(Optional.ofNullable(statistics.getSuccessCount()).orElse(0));
+        statistics.setCompletionSuccessCount(Optional.ofNullable(statistics.getCompletionSuccessCount()).orElse(0));
+        statistics.setImageSuccessCount(Optional.ofNullable(statistics.getImageSuccessCount()).orElse(0));
         statistics.setErrorCount(Optional.ofNullable(statistics.getErrorCount()).orElse(0));
+        statistics.setCompletionErrorCount(Optional.ofNullable(statistics.getCompletionErrorCount()).orElse(0));
+        statistics.setImageErrorCount(Optional.ofNullable(statistics.getImageErrorCount()).orElse(0));
         statistics.setFeedbackLikeCount(Optional.ofNullable(statistics.getFeedbackLikeCount()).orElse(0));
         statistics.setCompletionAvgElapsed(Optional.ofNullable(statistics.getCompletionAvgElapsed()).orElse(new BigDecimal("0")));
         statistics.setImageAvgElapsed(Optional.ofNullable(statistics.getImageAvgElapsed()).orElse(new BigDecimal("0")));
         statistics.setCompletionCostPoints(Optional.ofNullable(statistics.getCompletionCostPoints()).orElse(0));
         statistics.setImageCostPoints(Optional.ofNullable(statistics.getImageCostPoints()).orElse(0));
+        statistics.setCompletionTokens(Optional.ofNullable(statistics.getCompletionTokens()).orElse(0));
+        statistics.setChatTokens(Optional.ofNullable(statistics.getChatTokens()).orElse(0));
+        statistics.setTokens(Optional.ofNullable(statistics.getTokens()).orElse(0));
         return statistics;
     }
 

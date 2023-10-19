@@ -60,6 +60,7 @@ public interface AppPublishService {
 
     /**
      * 根据应用 UID 查询最新的应用发布记录
+     *
      * @param marketUid
      * @return
      */
