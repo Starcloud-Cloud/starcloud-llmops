@@ -46,6 +46,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -157,6 +159,12 @@ public class AppMarketServiceImpl implements AppMarketService {
             if (marketList.isEmpty()) {
                 continue;
             }
+
+            marketList = marketList.stream()
+                    .sorted(Comparator.comparing(AppMarketRespVO::getSort, Comparator.nullsLast(Long::compareTo))
+                            .thenComparing(AppMarketRespVO::getUpdateTime, Comparator.nullsLast(LocalDateTime::compareTo))
+                    ).collect(Collectors.toList());
+
             // 转换数据
             AppMarketGroupCategoryRespVO categoryResponse = new AppMarketGroupCategoryRespVO();
             categoryResponse.setName(category.getName());
@@ -204,6 +212,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
         // 查询应用市场信息
         AppMarketDO appMarketDO = appMarketMapper.get(uid, Boolean.FALSE);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
 
         // 获取当前用户是否安装了该应用的信息
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();

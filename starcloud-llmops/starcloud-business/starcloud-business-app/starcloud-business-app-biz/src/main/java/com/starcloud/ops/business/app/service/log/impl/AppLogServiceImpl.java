@@ -66,6 +66,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -216,7 +217,7 @@ public class AppLogServiceImpl implements AppLogService {
         Boolean isAdmin = UserUtils.isAdmin();
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            List<AppSceneEnum> appAnalysisScenes = AppSceneEnum.APP_ANALYSIS_SCENES;
+            List<AppSceneEnum> appAnalysisScenes = new ArrayList<>(AppSceneEnum.APP_ANALYSIS_SCENES);
             if (isAdmin) {
                 appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
             }
@@ -346,7 +347,7 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            List<AppSceneEnum> appAnalysisScenes = AppSceneEnum.APP_ANALYSIS_SCENES;
+            List<AppSceneEnum> appAnalysisScenes = new ArrayList<>(AppSceneEnum.APP_ANALYSIS_SCENES);
             Boolean isAdmin = UserUtils.isAdmin();
             if (isAdmin) {
                 appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
