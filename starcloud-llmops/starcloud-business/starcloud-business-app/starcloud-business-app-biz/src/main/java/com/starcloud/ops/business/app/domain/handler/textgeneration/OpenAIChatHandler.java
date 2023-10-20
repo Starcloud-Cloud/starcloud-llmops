@@ -14,14 +14,21 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
+import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
+import com.starcloud.ops.llm.langchain.core.memory.template.ChatMemoryPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatQwen;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
@@ -33,6 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -58,6 +67,11 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
     @Override
     protected HandlerResponse<String> _execute(HandlerContext<OpenAIChatHandler.Request> context) {
 
+        return this._executeGpt(context);
+    }
+
+    private HandlerResponse<String> _executeGpt(HandlerContext<OpenAIChatHandler.Request> context) {
+
         Request request = context.getRequest();
         String prompt = request.getPrompt();
         //prompt = "hi, what you name?";
@@ -75,26 +89,40 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
         try {
 
-            ChatOpenAI chatOpenAI = new ChatOpenAI();
+            BaseLLMUsage baseLLMUsage;
+            String msg;
 
-            chatOpenAI.setModel(request.getModel());
-            chatOpenAI.setStream(request.getStream());
-            chatOpenAI.setMaxTokens(request.getMaxTokens());
-            chatOpenAI.setTemperature(request.getTemperature());
+            if (ModelTypeEnum.QWEN.equals(modelType) || ModelTypeEnum.GPT_3_5_TURBO.equals(modelType)) {
 
-            chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
+                BaseLLMResult<GenerationResult> result = this._executeQwen(request);
 
-            //数据集支持
+                baseLLMUsage = result.getUsage();
+                msg = result.getText();
 
-            List<List<BaseMessage>> chatMessages = Collections.singletonList(
-                    Collections.singletonList(new HumanMessage(prompt))
-            );
+            } else {
 
-            ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
+                ChatOpenAI chatOpenAI = new ChatOpenAI();
 
-            BaseLLMUsage baseLLMUsage = chatResult.getUsage();
-            String msg = chatResult.getText();
+                chatOpenAI.setModel(request.getModel());
+                chatOpenAI.setStream(request.getStream());
+                chatOpenAI.setMaxTokens(request.getMaxTokens());
+                chatOpenAI.setTemperature(request.getTemperature());
 
+                chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
+
+                //数据集支持
+
+                List<List<BaseMessage>> chatMessages = Collections.singletonList(
+                        Collections.singletonList(new HumanMessage(prompt))
+                );
+
+                ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
+
+                baseLLMUsage = chatResult.getUsage();
+                msg = chatResult.getText();
+            }
+
+            //组装参数
             appStepResponse.setAnswer(msg);
             appStepResponse.setSuccess(true);
 
@@ -124,21 +152,38 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         return appStepResponse;
     }
 
+
     @JsonIgnore
     @JSONField(serialize = false)
-    private LLMChain<GenerationResult> buildQwenLlm(Request request,
-                                                    SseEmitter emitter) {
+    private BaseLLMResult<GenerationResult> _executeQwen(Request request) {
+
+        String prompt = request.getPrompt();
+
         ChatQwen chatQwen = new ChatQwen();
 
         chatQwen.setTopP(request.getTemperature());
         chatQwen.setStream(false);
-
         chatQwen.addCallbackHandler(this.getStreamingSseCallBackHandler());
-        //LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);
 
-        return null;
+        ChatPromptTemplate chatPromptTemplate = buildChatPromptTemplate(prompt);
+
+        LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);
+
+        BaseLLMResult<GenerationResult> result = llmChain.call(new ArrayList<>());
+
+        return result;
     }
 
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public ChatPromptTemplate buildChatPromptTemplate(String prompt) {
+
+        PromptTemplate promptTmp = new PromptTemplate(prompt);
+        SystemMessagePromptTemplate systemMessagePromptTemplate = new SystemMessagePromptTemplate(promptTmp);
+
+        return ChatMemoryPromptTemplate.fromMessages(Arrays.asList(systemMessagePromptTemplate));
+    }
 
 
     @Data
