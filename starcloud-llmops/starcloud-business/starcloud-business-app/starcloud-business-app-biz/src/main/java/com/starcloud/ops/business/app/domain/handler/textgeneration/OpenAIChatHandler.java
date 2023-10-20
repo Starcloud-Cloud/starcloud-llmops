@@ -99,6 +99,8 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
                 baseLLMUsage = result.getUsage();
                 msg = result.getText();
 
+                log.info("qwen run: {}, {}", baseLLMUsage, msg);
+
             } else {
 
                 ChatOpenAI chatOpenAI = new ChatOpenAI();
