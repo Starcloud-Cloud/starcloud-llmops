@@ -16,6 +16,11 @@ import java.util.List;
 public class QueryKeywordMetadataPageReqVO extends PageParam {
 
     /**
+     * 站点
+     */
+    private String marketName;
+
+    /**
      * 包含的关键词
      */
     private List<String> includeKeywords;
@@ -170,7 +175,6 @@ public class QueryKeywordMetadataPageReqVO extends PageParam {
      * 最大值
      */
     private Integer maxWordCount;
-
 
 
     /**
