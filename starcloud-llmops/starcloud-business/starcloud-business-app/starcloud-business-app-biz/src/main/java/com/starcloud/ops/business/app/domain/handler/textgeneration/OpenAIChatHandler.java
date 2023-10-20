@@ -3,16 +3,25 @@ package com.starcloud.ops.business.app.domain.handler.textgeneration;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.alibaba.dashscope.aigc.generation.GenerationResult;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.knuddels.jtokkit.api.ModelType;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
+import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
+import com.starcloud.ops.llm.langchain.core.model.chat.ChatQwen;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
+import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
@@ -21,6 +30,7 @@ import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -113,6 +123,22 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
         return appStepResponse;
     }
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private LLMChain<GenerationResult> buildQwenLlm(Request request,
+                                                    SseEmitter emitter) {
+        ChatQwen chatQwen = new ChatQwen();
+
+        chatQwen.setTopP(request.getTemperature());
+        chatQwen.setStream(false);
+
+        chatQwen.addCallbackHandler(this.getStreamingSseCallBackHandler());
+        //LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);
+
+        return null;
+    }
+
 
 
     @Data
