@@ -7,9 +7,9 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationListReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationListReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
@@ -77,26 +77,13 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     /**
      * 更新应用执行日志会话状态
      *
-     * @param uid    编号
-     * @param status 状态
-     */
-    @Override
-    public void updateAppLogConversationStatus(String uid, String status) {
-        appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class)
-                .eq(LogAppConversationDO::getUid, uid)
-                .set(LogAppConversationDO::getStatus, status)
-                .set(LogAppConversationDO::getUpdateTime, LocalDateTime.now()));
-    }
-
-    /**
-     * 更新应用执行日志会话状态
-     *
      * @param request 更新信息
      */
     @Override
     public void updateAppLogConversationStatus(LogAppConversationStatusReqVO request) {
         appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class)
                 .eq(LogAppConversationDO::getUid, request.getUid())
+                .set(LogAppConversationDO::getAiModel, request.getAiModel())
                 .set(LogAppConversationDO::getStatus, request.getStatus())
                 .set(LogAppConversationDO::getErrorCode, request.getErrorCode())
                 .set(LogAppConversationDO::getErrorMsg, request.getErrorMsg())

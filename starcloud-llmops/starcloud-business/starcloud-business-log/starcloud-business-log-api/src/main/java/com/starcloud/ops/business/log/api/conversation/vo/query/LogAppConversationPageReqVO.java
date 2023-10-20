@@ -56,6 +56,12 @@ public class LogAppConversationPageReqVO extends PageParam {
     private String fromScene;
 
     /**
+     * 使用的 ai 模型
+     */
+    @Schema(description = "使用的 ai 模型")
+    private String aiModel;
+
+    /**
      * 执行场景
      */
     @Schema(description = "执行场景")

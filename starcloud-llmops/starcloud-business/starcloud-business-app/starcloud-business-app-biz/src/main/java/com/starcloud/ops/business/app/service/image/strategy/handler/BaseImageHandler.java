@@ -16,6 +16,13 @@ import org.springframework.stereotype.Component;
 public abstract class BaseImageHandler<Request extends BaseImageRequest, Response extends BaseImageResponse> {
 
     /**
+     * 获取图片处理引擎
+     *
+     * @param request 请求
+     */
+    public abstract String obtainEngine(Request request);
+
+    /**
      * 构建图片配置信息配置
      *
      * @param request 请求

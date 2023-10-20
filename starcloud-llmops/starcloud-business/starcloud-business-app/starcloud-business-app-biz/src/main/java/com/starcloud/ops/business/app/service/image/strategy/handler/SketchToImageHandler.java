@@ -37,8 +37,23 @@ import java.util.Objects;
 @ImageScene(AppSceneEnum.IMAGE_SKETCH)
 public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest, SketchToImageResponse> {
 
+    /**
+     * 图片处理引擎
+     */
+    private static final String ENGINE = "clip-drop-sketch-to-image";
+
     @Resource
     private ClipDropImageService clipDropImageService;
+
+    /**
+     * 获取图片处理引擎
+     *
+     * @param request 请求
+     */
+    @Override
+    public String obtainEngine(SketchToImageRequest request) {
+        return ENGINE;
+    }
 
     /**
      * 构建图片配置信息配置
@@ -109,6 +124,5 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
             messageRequest.setTotalPrice(new BigDecimal("1.6").multiply(ImageUtils.CD_PRICE));
         }
         messageRequest.setMessage(request.getPrompt());
-        messageRequest.setAiModel("clip-drop");
     }
 }

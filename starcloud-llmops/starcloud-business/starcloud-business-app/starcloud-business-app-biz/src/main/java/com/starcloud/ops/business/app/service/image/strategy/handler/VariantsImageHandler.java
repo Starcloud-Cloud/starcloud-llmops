@@ -43,6 +43,20 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
     private VSearchService vSearchService;
 
     /**
+     * 获取图片处理引擎
+     *
+     * @param request 请求
+     */
+    @Override
+    public String obtainEngine(VariantsImageRequest request) {
+        // 生成图片的引擎
+        if (StringUtils.isBlank(request.getEngine())) {
+            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode());
+        }
+        return request.getEngine();
+    }
+
+    /**
      * 构建图片配置信息配置
      *
      * @param request 请求
@@ -50,10 +64,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
     @Override
     public void handleRequest(VariantsImageRequest request) {
         log.info("VariantsImageHandler handleRequest: 处理裂变图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
-        // 生成图片的引擎
-        if (StringUtils.isBlank(request.getEngine())) {
-            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode());
-        }
+
         // 初始化图片
         if (Objects.isNull(request.getImageStrength())) {
             request.setImageStrength(0.65);

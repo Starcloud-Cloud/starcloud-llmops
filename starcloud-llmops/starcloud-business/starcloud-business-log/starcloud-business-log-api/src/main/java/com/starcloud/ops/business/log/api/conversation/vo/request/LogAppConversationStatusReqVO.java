@@ -34,6 +34,12 @@ public class LogAppConversationStatusReqVO implements java.io.Serializable {
     private String uid;
 
     /**
+     * AI 模型
+     */
+    @Schema(description = "AI模型")
+    private String aiModel;
+
+    /**
      * 会话状态
      */
     @Schema(description = "会话状态")

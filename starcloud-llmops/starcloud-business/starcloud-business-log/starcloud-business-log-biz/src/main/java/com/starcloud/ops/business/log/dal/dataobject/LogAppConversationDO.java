@@ -61,6 +61,11 @@ public class LogAppConversationDO extends TenantBaseDO {
      * 执行场景
      */
     private String fromScene;
+
+    /**
+     * 使用的 ai 模型
+     */
+    private String aiModel;
     
     /**
      * 应用配置

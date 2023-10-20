@@ -41,6 +41,20 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
     private VSearchService vSearchService;
 
     /**
+     * 获取图片处理引擎
+     *
+     * @param request 请求
+     */
+    @Override
+    public String obtainEngine(GenerateImageRequest request) {
+        // 生成图片的引擎
+        if (StringUtils.isBlank(request.getEngine())) {
+            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode());
+        }
+        return request.getEngine();
+    }
+
+    /**
      * 构建图片请求信息
      *
      * @param request 请求
@@ -48,10 +62,7 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
     @Override
     public void handleRequest(GenerateImageRequest request) {
         log.info("处理生成图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
-        // 生成图片的引擎
-        if (StringUtils.isBlank(request.getEngine())) {
-            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode());
-        }
+
         // 初始化图片
         if (StringUtils.isNotBlank(request.getInitImage())) {
             if (Objects.isNull(request.getImageStrength())) {
@@ -138,8 +149,6 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
             messageRequest.setTotalPrice(ImageUtils.countAnswerCredits(request).multiply(ImageUtils.SD_PRICE));
         }
         messageRequest.setMessage(request.getPrompt());
-        messageRequest.setAiModel("stable-diffusion");
     }
-
 
 }

@@ -233,6 +233,16 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     }
 
     /**
+     * 模版方法：获取应用的 AI 模型类型
+     *
+     * @param request 请求参数
+     */
+    @Override
+    protected String obtainLlmAiModelType(ImageReqVO request) {
+        return request.getImageHandler().obtainEngine(request.getImageRequest());
+    }
+
+    /**
      * 历史记录初始化
      */
     @Override
@@ -277,7 +287,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setAppMode(StringUtils.isBlank(request.getMode()) ? AppModelEnum.IMAGE.name() : request.getMode());
         messageRequest.setAppStep(request.getScene());
         messageRequest.setFromScene(request.getScene());
-        messageRequest.setAiModel("");
+        messageRequest.setAiModel(this.obtainLlmAiModelType(request));
         messageRequest.setAppConfig(JSONUtil.toJsonStr(this));
         messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
         messageRequest.setMessage("");

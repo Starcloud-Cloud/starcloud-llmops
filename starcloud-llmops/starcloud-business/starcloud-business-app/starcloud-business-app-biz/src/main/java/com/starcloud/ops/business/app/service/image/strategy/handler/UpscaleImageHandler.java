@@ -46,13 +46,12 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
     private VSearchService vSearchService;
 
     /**
-     * 构建图片配置信息配置
+     * 获取图片处理引擎
      *
      * @param request 请求
      */
     @Override
-    public void handleRequest(UpscaleImageRequest request) {
-        log.info("放大/高清图片：请求参数处理开始：请求参数：{}", JSONUtil.toJsonStr(request));
+    public String obtainEngine(UpscaleImageRequest request) {
         if (StringUtils.isBlank(request.getEngine())) {
             request.setEngine(EngineEnum.ESRGAN_V1_X2PLUS.getCode());
         }
@@ -60,6 +59,18 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         if (Objects.isNull(engineEnum)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "不支持的放大/高清图片引擎");
         }
+        return request.getEngine();
+    }
+
+    /**
+     * 构建图片配置信息配置
+     *
+     * @param request 请求
+     */
+    @Override
+    public void handleRequest(UpscaleImageRequest request) {
+        log.info("放大/高清图片：请求参数处理开始：请求参数：{}", JSONUtil.toJsonStr(request));
+        EngineEnum engineEnum = IEnumable.codeOf(request.getEngine(), EngineEnum.class);
         switch (engineEnum) {
             case ESRGAN_V1_X2PLUS:
                 request.setPrompt(null);
