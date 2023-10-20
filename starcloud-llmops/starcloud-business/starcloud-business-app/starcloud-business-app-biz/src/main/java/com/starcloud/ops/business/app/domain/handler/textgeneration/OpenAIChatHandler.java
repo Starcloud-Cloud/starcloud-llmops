@@ -179,7 +179,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
         LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);
 
-        BaseVariable humanInput = BaseVariable.newString("input", prompt);
+        BaseVariable humanInput = BaseVariable.newString("input", "");
 
         BaseLLMResult<GenerationResult> result = llmChain.call(Arrays.asList(humanInput));
 
@@ -194,7 +194,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         PromptTemplate promptTmp = new PromptTemplate(prompt);
         SystemMessagePromptTemplate systemMessagePromptTemplate = new SystemMessagePromptTemplate(promptTmp);
 
-        return ChatMemoryPromptTemplate.fromMessages(new ArrayList<>());
+        return ChatMemoryPromptTemplate.fromMessages(Arrays.asList(systemMessagePromptTemplate));
     }
 
 
