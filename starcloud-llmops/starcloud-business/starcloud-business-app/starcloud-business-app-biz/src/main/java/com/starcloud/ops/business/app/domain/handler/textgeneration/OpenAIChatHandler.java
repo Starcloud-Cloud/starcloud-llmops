@@ -6,19 +6,13 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.dashscope.aigc.generation.GenerationResult;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.knuddels.jtokkit.api.ModelType;
-import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
-import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
-import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
-import com.starcloud.ops.llm.langchain.core.memory.template.ChatMemoryPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatQwen;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
@@ -26,7 +20,6 @@ import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
-import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
@@ -38,11 +31,9 @@ import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -85,12 +76,6 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
         ModelTypeEnum modelType = TokenCalculator.fromName(request.getModel());
 
-
-        //零时切换
-        if (ModelTypeEnum.GPT_3_5_TURBO.equals(modelType)) {
-            modelType = ModelTypeEnum.QWEN;
-        }
-
         appStepResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(modelType, true));
         appStepResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(modelType, false));
 
@@ -101,18 +86,13 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             String msg;
 
             if (ModelTypeEnum.QWEN.equals(modelType)) {
-
                 BaseLLMResult<GenerationResult> result = this._executeQwen(request);
-
                 baseLLMUsage = result.getUsage();
                 msg = result.getText();
-
-                log.info("qwen run: {}, {}", baseLLMUsage, msg);
 
             } else {
 
                 ChatOpenAI chatOpenAI = new ChatOpenAI();
-
                 chatOpenAI.setModel(request.getModel());
                 chatOpenAI.setStream(request.getStream());
                 chatOpenAI.setMaxTokens(request.getMaxTokens());
@@ -166,23 +146,21 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
     @JsonIgnore
     @JSONField(serialize = false)
     private BaseLLMResult<GenerationResult> _executeQwen(Request request) {
-
+        log.info("通义千问执行开始: {}", JSONUtil.toJsonStr(request));
         String prompt = request.getPrompt();
 
         ChatQwen chatQwen = new ChatQwen();
-
         chatQwen.setTopP(request.getTemperature());
         chatQwen.setStream(false);
         chatQwen.addCallbackHandler(this.getStreamingSseCallBackHandler());
 
-        ChatPromptTemplate chatPromptTemplate = buildChatPromptTemplate(prompt);
-
-        LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);
+        LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, buildChatPromptTemplate(prompt));
+        llmChain.setMemory(null);
 
         BaseVariable humanInput = BaseVariable.newString("input", "");
+        BaseLLMResult<GenerationResult> result = llmChain.call(Collections.singletonList(humanInput));
 
-        BaseLLMResult<GenerationResult> result = llmChain.call(Arrays.asList(humanInput));
-
+        log.info("通义千问执行结果: {}", JSONUtil.toJsonStr(result));
         return result;
     }
 
@@ -190,11 +168,9 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
     @JsonIgnore
     @JSONField(serialize = false)
     public ChatPromptTemplate buildChatPromptTemplate(String prompt) {
-
-        PromptTemplate promptTmp = new PromptTemplate(prompt);
-        SystemMessagePromptTemplate systemMessagePromptTemplate = new SystemMessagePromptTemplate(promptTmp);
-
-        return ChatMemoryPromptTemplate.fromMessages(Arrays.asList(systemMessagePromptTemplate));
+        StringPromptTemplate stringPromptTemplate = new PromptTemplate(prompt, new ArrayList<>());
+        HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(stringPromptTemplate);
+        return ChatPromptTemplate.fromMessages(Collections.singletonList(humanMessagePromptTemplate));
     }
 
 
