@@ -29,6 +29,7 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
@@ -178,7 +179,9 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
         LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);
 
-        BaseLLMResult<GenerationResult> result = llmChain.call(new ArrayList<>());
+        BaseVariable humanInput = BaseVariable.newString("input", prompt);
+
+        BaseLLMResult<GenerationResult> result = llmChain.call(Arrays.asList(humanInput));
 
         return result;
     }
@@ -191,7 +194,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         PromptTemplate promptTmp = new PromptTemplate(prompt);
         SystemMessagePromptTemplate systemMessagePromptTemplate = new SystemMessagePromptTemplate(promptTmp);
 
-        return ChatMemoryPromptTemplate.fromMessages(Arrays.asList(systemMessagePromptTemplate));
+        return ChatMemoryPromptTemplate.fromMessages(new ArrayList<>());
     }
 
 
