@@ -23,7 +23,7 @@ public enum SellerSpriteMarketEnum {
 
     ;
 
-    private int code;
+    private Integer code;
 
     private String name;
 

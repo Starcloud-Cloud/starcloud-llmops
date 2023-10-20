@@ -54,16 +54,6 @@ public class KeywordMetadataRespVO {
      */
     private Double calculatedWeeklySearches;
 
-    /**
-     * 相关 ASIN
-     */
-    private List<RelationVariationsItemsDTO> relationVariationsItems;
-
-    /**
-     * 月搜索趋势 环比变化 应该是前端计算
-     */
-    private List<SearchesTrendDTO> searchesTrend;
-
     private List<SearchesTrendDTO> trends;
 
     /**
@@ -177,6 +167,7 @@ public class KeywordMetadataRespVO {
      * '每周搜索量'
      */
     private Long searchWeeklyRank;
+
     /**
      * 数据更新时间
      */

@@ -13,6 +13,7 @@ public enum KeywordMetadataStatusEnum {
     ON_RETRY(2, "数据同步失败，正在重试"),
 
     ERROR(5, "数据获取失败"),
+    NO_DATA(6, "未获取到关键词数据"),
 
     SUCCESS(10, "数据获取成功")
 
