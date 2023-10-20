@@ -4,7 +4,6 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -105,7 +104,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
             // name 不能重复
             if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE.getCode(), stepWrapper.getName());
+                throw exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE, stepWrapper.getName());
             }
             stepWrapper.validate();
         }
@@ -153,7 +152,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             appContext.setConversationUid(request.getConversationUid());
             appContext.setSseEmitter(request.getSseEmitter());
             appContext.setMediumUid(request.getMediumUid());
-            appContext.setAiModel(Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+            appContext.setAiModel(this.getLlmAiModel(request));
             if (StringUtils.isNotBlank(request.getStepId())) {
                 appContext.setStepId(request.getStepId());
             } else {
@@ -291,13 +290,17 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             if (resultException instanceof ServiceException) {
                 throw (ServiceException) resultException;
             }
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode(), resultException.getMessage());
+            // Kstry 可能会包装 ServiceException，所以尝试从 cause 中获取
+            if (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ServiceException) {
+                throw (ServiceException) resultException.getCause();
+            }
+            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, resultException.getMessage());
         }
 
         // 如果执行失败，抛出异常
         if (!fire.isSuccess()) {
             log.error("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
+            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
         }
 
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
@@ -420,7 +423,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
 
             Map<String, Object> variablesValues = appContext.getContextVariablesValues();
-            String aiModel = Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+            String aiModel = this.getLlmAiModel(request);
             ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
             BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
             BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
@@ -455,6 +458,16 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
 
         });
+    }
+
+    /**
+     * 获取大模型的AI模型
+     *
+     * @param request 请求参数
+     * @return AI模型
+     */
+    private String getLlmAiModel(AppExecuteReqVO request) {
+        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
     }
 
     /**

@@ -5,7 +5,6 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -118,7 +117,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 messageRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND.getCode()));
                 messageRequest.setErrorMsg(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND.getMsg());
             });
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND);
+            throw exception(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND);
         }
         try {
             // 检测权益
@@ -127,7 +126,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             // 调用图片生成服务
             BaseImageResponse imageResponse = imageHandler.handle(request.getImageRequest());
             if (Objects.isNull(imageResponse) || CollectionUtil.isEmpty(imageResponse.getImages())) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
+                throw exception(ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
             }
             imageResponse.setFromScene(request.getScene());
             // 扣除权益
@@ -177,7 +176,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), null);
             });
 
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), exception.getMessage()));
+            throw exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), exception.getMessage()));
         }
     }
 

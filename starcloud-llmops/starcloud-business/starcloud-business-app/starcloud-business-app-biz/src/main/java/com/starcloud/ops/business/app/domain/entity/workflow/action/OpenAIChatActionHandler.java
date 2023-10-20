@@ -1,11 +1,14 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.hutool.json.JSONUtil;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeSta;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
@@ -44,10 +47,12 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     /**
      * 获取当前handler消耗的权益点数
      *
-     * @param request
+     * @param request 请求参数
      * @return 权益点数
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected Integer getCostPoints(Request request) {
         Map<String, Object> params = request.getStepParams();
         String aiModel = String.valueOf(Optional.ofNullable(params.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
@@ -57,12 +62,21 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         return 1;
     }
 
+    /**
+     * 执行OpenApi生成的步骤
+     *
+     * @param request 请求参数
+     * @return 执行结果
+     */
     @Override
-    protected ActionResponse _execute(Request request) {
+    @SuppressWarnings("all")
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected ActionResponse doExecute(Request request) {
 
-        log.info("OpenAI ChatGPT Action 执行开始...");
+        log.info("OpenAI ChatGPT Action 执行开始: 请求参数：\n{}", JSONUtil.parse(request).toStringPretty());
         StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
-        OpenAIChatHandler openAIChatHandler = new OpenAIChatHandler(callBackHandler);
+        OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
 
         //获取前端传的完整字段（老结构）
         Map<String, Object> params = request.getStepParams();
@@ -82,18 +96,29 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         handlerRequest.setPrompt(prompt);
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
-
+        // 数据集支持
         if (request.getEnabledDateset()) {
             handlerRequest.setDocsUid(request.getDatesetList());
         }
-
+        // 构建请求
         HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, endUser, this.getAppContext().getScene(), handlerRequest);
-
-        HandlerResponse<String> handlerResponse = openAIChatHandler.execute(handlerContext);
-        log.info("OpenAI ChatGPT Action 执行结束...");
-        return convert(handlerResponse, request);
+        // 执行步骤
+        HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
+        ActionResponse response = convert(handlerResponse, request);
+        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
+        return response;
     }
 
+    /**
+     * 转换响应结果
+     *
+     * @param handlerResponse 响应结果
+     * @param request         请求参数
+     * @return 转换后的响应结果
+     */
+    @SuppressWarnings("all")
+    @JsonIgnore
+    @JSONField(serialize = false)
     private ActionResponse convert(HandlerResponse handlerResponse, Request request) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(handlerResponse.getSuccess());
@@ -111,11 +136,14 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
-        actionResponse.setCostPoints(this.getCostPoints(request));
+        // 权益点数, 成功正常扣除, 失败不扣除
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? this.getCostPoints(request) : 0);
         return actionResponse;
     }
 
-
+    /**
+     * 请求实体
+     */
     @Data
     public static class Request {
 
@@ -141,7 +169,9 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
 
     }
 
-
+    /**
+     * 响应实体
+     */
     @Data
     public static class Response {
 
