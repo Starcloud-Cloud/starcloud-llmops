@@ -62,7 +62,7 @@ public class AppController {
     @GetMapping("/metadata")
     @Operation(summary = "查询元数据", description = "查询元数据")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<Map<String, List<Option>>> languages() {
+    public CommonResult<Map<String, List<Option>>> metadata() {
         return CommonResult.success(appService.metadata());
     }
 
