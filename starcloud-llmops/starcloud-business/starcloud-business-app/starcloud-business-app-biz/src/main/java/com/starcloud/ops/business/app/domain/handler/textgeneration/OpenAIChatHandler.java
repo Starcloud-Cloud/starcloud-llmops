@@ -83,6 +83,13 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         appStepResponse.setMessage(prompt);
 
         ModelTypeEnum modelType = TokenCalculator.fromName(request.getModel());
+
+
+        //零时切换
+        if (ModelTypeEnum.GPT_3_5_TURBO.equals(modelType)) {
+            modelType = ModelTypeEnum.QWEN;
+        }
+
         appStepResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(modelType, true));
         appStepResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(modelType, false));
 
@@ -92,7 +99,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             BaseLLMUsage baseLLMUsage;
             String msg;
 
-            if (ModelTypeEnum.QWEN.equals(modelType) || ModelTypeEnum.GPT_3_5_TURBO.equals(modelType)) {
+            if (ModelTypeEnum.QWEN.equals(modelType)) {
 
                 BaseLLMResult<GenerationResult> result = this._executeQwen(request);
 
