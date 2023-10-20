@@ -3,9 +3,11 @@ package com.starcloud.ops.business.listing.dal.mysql;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
 import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

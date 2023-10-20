@@ -35,6 +35,10 @@
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-spring-boot-starter-job</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-common</artifactId>
+        </dependency>
 
     </dependencies>
 

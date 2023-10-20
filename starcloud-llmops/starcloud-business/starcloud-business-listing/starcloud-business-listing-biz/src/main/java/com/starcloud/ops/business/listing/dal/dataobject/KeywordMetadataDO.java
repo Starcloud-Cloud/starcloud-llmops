@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-@TableName("llm_keyword_meta_data")
+@TableName("llm_keyword_metadata")
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)

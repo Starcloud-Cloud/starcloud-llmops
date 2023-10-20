@@ -3,9 +3,11 @@ package com.starcloud.ops.business.listing.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
+import com.starcloud.ops.business.listing.convert.KeywordMetadataConvert;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywrodMetadataMapper;
 import com.starcloud.ops.business.listing.enums.KeywordMetadataStatusEnum;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
+
 public class KeywordMetadataServiceImpl implements KeywordMetadataService {
 
 
@@ -47,10 +50,10 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
      * @return
      */
     @Override
+    @TenantIgnore
     public PageResult<KeywordMetadataRespVO> queryMetaData(QueryKeywordMetadataPageReqVO pageReqVO) {
-         keywrodMetadataMapper.selectPage(pageReqVO);
 
-        return null;
+        return KeywordMetadataConvert.INSTANCE.convertPage(keywrodMetadataMapper.selectPage(pageReqVO));
     }
 
     /**
@@ -61,6 +64,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
      * @return
      */
     @Override
+    @TenantIgnore
     public Boolean addMetaData(List<String> keywordList, String marketName) {
         // 站点数据转换
         SellerSpriteMarketEnum sellerSpriteMarketEnum = SellerSpriteMarketEnum.valueOf(marketName);
@@ -112,6 +116,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
      * @param marketId
      */
     @Async
+    @TenantIgnore
     public ListenableFuture<Boolean> executeAsyncRequestData(List<String> keywords,Integer marketId) {
                 // 初始化不存在数据
         List<KeywordMetadataDO> keywordMetadataDOInitList = keywords.stream()
