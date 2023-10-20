@@ -236,6 +236,11 @@ public class AppUtils {
         option40.setLabel(Locale.CHINA.equals(locale) ? "默认模型4.0" : "Default Model 4.0");
         option40.setValue(ModelTypeEnum.GPT_4.getName());
         options.add(option40);
+
+        Option optionQwen = new Option();
+        optionQwen.setLabel(Locale.CHINA.equals(locale) ? "通义千问" : "QWEN");
+        optionQwen.setValue(ModelTypeEnum.QWEN.getName());
+        options.add(optionQwen);
         return options;
     }
 }
