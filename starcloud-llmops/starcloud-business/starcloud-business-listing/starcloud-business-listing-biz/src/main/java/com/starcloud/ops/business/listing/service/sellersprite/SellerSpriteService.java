@@ -4,8 +4,9 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.Extend
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareRepose;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
-import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.KeywordMinerRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
+
+import java.util.List;
 
 /**
  * 卖家精灵接口
@@ -18,9 +19,19 @@ public interface SellerSpriteService {
     void getDateList();
 
     /**
-     * 关键词挖掘- 根据关键词获取数据
+     * 关键词挖掘- 根据【单个】关键词获取数据
+     * @param keyword
+     * @param market
      */
-    KeywordMinerReposeDTO keywordMiner(KeywordMinerRequestDTO keywordMinerRequestDTO);
+    KeywordMinerReposeDTO keywordMiner(String keyword, Integer market);
+
+    /**
+     * 关键词挖掘- 根据【批量】关键词获取数据
+     * @param keywordS
+     * @param market
+     * @return
+     */
+    KeywordMinerReposeDTO BatchKeywordMiner(List<String> keywordS,Integer market);
 
     /**
      * 关键词反查

@@ -1,8 +1,7 @@
 package com.starcloud.ops.business.listing.service.sellersprite;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
@@ -12,6 +11,8 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Exten
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.KeywordMinerRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 卖家精灵实现类
@@ -23,6 +24,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * 卖家精灵 API 地址
      */
     private final static String SELLER_SPRITE_ADDRESS = "https://www.sellersprite.com/v3/api/";
+
+    /**
+     * 关键词挖掘
+     */
+    private final static String SELLER_SPRITE_KEYWORD_MINER = "keyword-miner";
 
     /**
      * 根据 ASIN 获取变体
@@ -46,9 +52,42 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * 关键词挖掘- 根据关键词获取数据
      */
     @Override
-    public KeywordMinerReposeDTO keywordMiner(KeywordMinerRequestDTO keywordMinerRequestDTO) {
+    public KeywordMinerReposeDTO keywordMiner(String keyword, Integer market) {
+
+        KeywordMinerRequestDTO keywordMinerRequestDTO = new KeywordMinerRequestDTO();
+        keywordMinerRequestDTO.setKeyword(keyword);
+        keywordMinerRequestDTO.setMarket(market);
+        keywordMinerRequestDTO.setPageNum(1);
+        keywordMinerRequestDTO.setPageSize(50);
+        keywordMinerRequestDTO.setHistoryDate(null);
+        keywordMinerRequestDTO.setOrderBy(21);
+        keywordMinerRequestDTO.setDesc(true);
+        keywordMinerRequestDTO.setFilterRootWord(0);
+        keywordMinerRequestDTO.setMatchType(0);
+        keywordMinerRequestDTO.setAmazonChoice(false);
+        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_KEYWORD_MINER, JSONUtil.toJsonStr(keywordMinerRequestDTO), "");
+
 
         return null;
+    }
+
+    @Override
+    public KeywordMinerReposeDTO BatchKeywordMiner(List<String> keywordS, Integer market) {
+        KeywordMinerRequestDTO keywordMinerRequestDTO = new KeywordMinerRequestDTO();
+        keywordMinerRequestDTO.setKeywordList(keywordS);
+        keywordMinerRequestDTO.setMarket(market);
+        keywordMinerRequestDTO.setPageNum(1);
+        keywordMinerRequestDTO.setPageSize(50);
+        keywordMinerRequestDTO.setHistoryDate(null);
+        keywordMinerRequestDTO.setOrderBy(null);
+        keywordMinerRequestDTO.setDesc(true);
+        keywordMinerRequestDTO.setFilterRootWord(0);
+        keywordMinerRequestDTO.setMatchType(0);
+        keywordMinerRequestDTO.setAmazonChoice(false);
+        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_KEYWORD_MINER, JSONUtil.toJsonStr(keywordMinerRequestDTO), "");
+        Assert.notBlank(reposeResult,"卖家精灵关键词批量挖掘失败");
+        return JSONUtil.toBean(reposeResult, KeywordMinerReposeDTO.class);
+
     }
 
     /**
@@ -143,7 +182,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     }
 
     public static void main(String[] args) {
-        String requestData ="{\n" +
+        String requestData = "{\n" +
                 "  \"queryVariations\": false,\n" +
                 "  \"asinList\": [\n" +
                 "    \"B098T9ZFB5\",\n" +

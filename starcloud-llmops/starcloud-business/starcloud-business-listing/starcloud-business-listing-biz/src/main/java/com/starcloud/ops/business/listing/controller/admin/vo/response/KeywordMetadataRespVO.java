@@ -1,32 +1,49 @@
-package com.starcloud.ops.business.listing.service.sellersprite.DTO.repose;
+package com.starcloud.ops.business.listing.controller.admin.vo.response;
 
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@NoArgsConstructor
 @Data
-public class ItemsDTO {
+@Schema(description = "关键词原数据明细")
+public class KeywordMetadataRespVO {
 
+    private Long id;
+
+    @Schema(description = "站点")
     private String market;
+
+    @Schema(description = "站点 ID")
     private Long marketId;
+
+    /**
+     * 数据网址
+     */
+    @Schema(description = "站点 ID")
     private String website;
+
     /**
      * 关键词
      */
+    @Schema(description = "站点 ID")
     private String keywords;
+
     /**
      * 关键词-中文
      */
+    @Schema(description = "关键词-中文")
     private String keywordCn;
     /**
      * 关键词-日文
      */
+    @Schema(description = "关键词-日文")
     private String keywordJp;
     /**
      * 前 10 产品信息
      */
+    @Schema(description = "前 10 产品信息")
     private List<GkDatasDTO> gkDatas;
     /**
      * 流量占比
@@ -46,6 +63,7 @@ public class ItemsDTO {
      * 月搜索趋势 环比变化 应该是前端计算
      */
     private List<SearchesTrendDTO> searchesTrend;
+
     private List<SearchesTrendDTO> trends;
 
     /**
@@ -78,6 +96,9 @@ public class ItemsDTO {
      * 标题密度
      */
     private Long titleDensityExact;
+    /**
+     * 标题密度
+     */
     private Long titleDensity;
     /**
      * 商品数
@@ -91,25 +112,20 @@ public class ItemsDTO {
     /**
      * 广告竞品数
      */
+    private Long ad_products;
     private Long latest1daysAds;
     private Long latest7daysAds;
     private Long latest30daysAds;
-    private Long adProducts;
-
 
     /**
      * 点击集中度
      */
     private Double monopolyClickRate;
-    private List<MonopolyAsinDtosDTO> monopolyAsinDtos;
     /**
      * 具体的点击和转化数据
      */
-    private List<ClickTop3sDTO> clickTop3s;
-    private List<ClickTop3sDTO> araClickTop3;
+    private List<MonopolyAsinDtosDTO>  monopolyAsinDtos;
 
-    private Double top3ClickingRate;
-    private Double top3ConversionRate;
     /**
      * PPC 竞价
      */
@@ -129,18 +145,6 @@ public class ItemsDTO {
      */
     private List<String> badges;
 
-
-    private BaseDTO rankPosition;
-    private BaseDTO adPosition;
-    /**
-     * 数据更新时间
-     */
-    private Long updatedTime;
-
-
-    private Object stats;
-
-
     /**
      * 预估 价格分布 判断哪个价格区间可能还有机会(价格差异化)，以及哪个价格区间竞争最为激烈
      */
@@ -153,32 +157,28 @@ public class ItemsDTO {
      * 评分值分布：说明该市场的成熟度，如果4.5以上的商品数很多，说明该市场很成熟，通过商品差异性建立竞争壁垒难度较大；如果3.5分商品很多，可能存在改进空间
      */
     private Double avgRating;
-
-
-    private Object trafficKeywordTypes;
-    private Object conversionKeywordTypes;
-
-    private Object ac;
-
-    private Object maxRankTime;
-    private Object naturalRatio;
-    private Object recommendRatio;
-    private Object adRatio;
     /**
      * 分类
      */
     private DepartmentsDTO departments;
-
-    private Double cvsShareRate;
-    private Integer wordCount;
-
+    /**
+     * 数据时间
+     */
     private String month;
-    private String supplement;
-    private Object relevancy;
-    private Object absoluteRelevancy;
+    /**
+     * '关键词单词数'
+     */
+    private Integer wordCount;
+    /**
+     * '可以在亚马逊搜索'
+     */
     private Boolean amazonChoice;
-    private Long searchRank;
+    /**
+     * '每周搜索量'
+     */
     private Long searchWeeklyRank;
-
-
+    /**
+     * 数据更新时间
+     */
+    private Long updatedTime;
 }

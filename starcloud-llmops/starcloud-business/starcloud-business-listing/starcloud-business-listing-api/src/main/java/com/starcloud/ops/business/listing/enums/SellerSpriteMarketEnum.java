@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.listing.enums;
 
+import cn.hutool.core.util.ArrayUtil;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 
 /**
@@ -9,7 +9,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum SellerSpriteMarkEnum {
+public enum SellerSpriteMarketEnum {
     US(1, "美国站"),
     JP(6, "日本站"),
     UK(3, "英国站"),
@@ -26,5 +26,11 @@ public enum SellerSpriteMarkEnum {
     private int code;
 
     private String name;
+
+
+    public static SellerSpriteMarketEnum getByCode(Integer code) {
+        return ArrayUtil.firstMatch(o -> o.getCode() == code, values());
+    }
+
 
 }
