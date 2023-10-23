@@ -5,6 +5,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareRepose;
@@ -137,11 +138,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * 根据 ASIN 获取 Listing
      */
     @Override
-    public void getListingByAsin() {
+    public SellerSpriteListingVO getListingByAsin(String asin, Integer market) {
 
-//        String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, JSONUtil.toJsonStr(keywordMinerRequestDTO), COOKIE);
+        String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, String.format("asin=%s&marketPlace=%s",asin,market ), COOKIE);
 
-
+        return JSONUtil.toBean(reposeResult, SellerSpriteListingVO.class);
     }
 
     /**
@@ -202,34 +203,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     }
 
     public static void main(String[] args) {
-        String requestData = "{\n" +
-                "  \"queryVariations\": false,\n" +
-                "  \"asinList\": [\n" +
-                "    \"B098T9ZFB5\",\n" +
-                "    \"B09JW5FNVX\",\n" +
-                "    \"B0B71DH45N\",\n" +
-                "    \"B07MHHM31K\",\n" +
-                "    \"B08RYQR1CJ\"\n" +
-                "  ],\n" +
-                "  \"originAsinList\": [\n" +
-                "    \"B098T9ZFB5\",\n" +
-                "    \"B09JW5FNVX\",\n" +
-                "    \"B0B71DH45N\",\n" +
-                "    \"B07MHHM31K\",\n" +
-                "    \"B08RYQR1CJ\"\n" +
-                "  ],\n" +
-                "  \"market\": 1,\n" +
-                "  \"page\": 1,\n" +
-                "  \"month\": \"\",\n" +
-                "  \"size\": 1,\n" +
-                "  \"orderColumn\": 12,\n" +
-                "  \"desc\": true,\n" +
-                "  \"exactly\": false,\n" +
-                "  \"ac\": false,\n" +
-                "  \"filterDeletedKeywords\": false\n" +
-                "}";
-        String s = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_ASIN, requestData, "");
+        String asin = "B0949DWJCV";
+        Integer marketPlace = 1;
+        String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, String.format("asin=%s&marketPlace=%s",asin,marketPlace ), COOKIE);
 
-        System.out.println(s);
+        System.out.println(reposeResult);
     }
+
 }

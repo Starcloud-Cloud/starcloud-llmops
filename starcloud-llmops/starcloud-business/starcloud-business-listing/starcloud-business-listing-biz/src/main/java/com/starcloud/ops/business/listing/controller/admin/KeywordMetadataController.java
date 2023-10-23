@@ -3,10 +3,7 @@ package com.starcloud.ops.business.listing.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.listing.controller.admin.vo.request.DictCreateReqVO;
-import com.starcloud.ops.business.listing.controller.admin.vo.request.DictModifyReqVO;
-import com.starcloud.ops.business.listing.controller.admin.vo.request.DictPageReqVO;
-import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.*;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataBasicRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
@@ -50,5 +47,14 @@ public class KeywordMetadataController {
         pageReqVO.setMarketName("US");
         return CommonResult.success(keywordMetadataService.queryMetaData(pageReqVO));
     }
+
+    @GetMapping("/Listing")
+    @Operation(summary = "分页查询关键词列表", description = "分页查询关键词列表")
+    public CommonResult<SellerSpriteListingVO> Listing(@RequestParam("asin") String asin, @RequestParam("marketName") String marketName) {
+        return CommonResult.success(keywordMetadataService.getListingByAsin(asin,marketName));
+    }
+
+
+
 
 }

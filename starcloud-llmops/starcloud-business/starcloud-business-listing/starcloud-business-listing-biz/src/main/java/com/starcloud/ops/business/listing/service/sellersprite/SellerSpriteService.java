@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.listing.service.sellersprite;
 
+import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareRepose;
@@ -51,7 +52,7 @@ public interface SellerSpriteService {
     /**
      * 根据 ASIN 获取 Listing
      */
-    void getListingByAsin();
+    SellerSpriteListingVO getListingByAsin(String asin, Integer market);
 
     /**
      * 品牌检测

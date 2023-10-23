@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataBasicRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
 import com.starcloud.ops.business.listing.convert.KeywordMetadataConvert;
@@ -29,6 +30,8 @@ import org.springframework.util.concurrent.ListenableFuture;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +39,6 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-
 public class KeywordMetadataServiceImpl implements KeywordMetadataService {
 
 
@@ -86,11 +88,13 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         // 获取不在列表的数据
         List<String> notInKeywords;
         if (CollUtil.isNotEmpty(keywordMetadataDOS)) {
+
+            List<String> inKeywords = keywordMetadataDOS.stream().map(KeywordMetadataDO::getKeyword).collect(Collectors.toList());
             // 获取不在列表的数据
-            notInKeywords = keywordMetadataDOS.stream()
-                    .map(KeywordMetadataDO::getKeyword)
-                    .filter(keyword -> !keywordList.contains(keyword))
+            notInKeywords = keywordList.stream()
+                    .filter(keyword -> !inKeywords.contains(keyword))
                     .collect(Collectors.toList());
+
         } else {
             notInKeywords = keywordList;
         }
@@ -98,19 +102,23 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         List<List<String>> splitNotInKeywords = CollUtil.split(notInKeywords, 20);
         // 等待所有任务完成
         List<Boolean> results = new ArrayList<>();
-
+        List<ListenableFuture<Boolean>> futures = new ArrayList<>();
         for (List<String> splitNotInKeyword : splitNotInKeywords) {
-
             ListenableFuture<Boolean> booleanListenableFuture = this.executeAsyncRequestData(splitNotInKeyword, sellerSpriteMarketEnum.getCode());
+            futures.add(booleanListenableFuture);
+        }
+
+        for (ListenableFuture<Boolean> future : futures) {
             try {
-                Boolean aBoolean = booleanListenableFuture.get();
-                results.add(aBoolean);
-            } catch (Exception e) {
+                results.add(future.get());
+            } catch (InterruptedException | ExecutionException e) {
+                // 处理异常
+                e.printStackTrace();
                 results.add(false);
             }
         }
 
-        return results.contains(false);
+        return !results.contains(false);
     }
 
     /**
@@ -123,7 +131,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     @Override
     @TenantIgnore
     public List<KeywordMetadataBasicRespVO> getKeywordsBasic(List<String> keywordList, String marketName) {
-        Assert.isFalse(CollUtil.isEmpty(keywordList),"关键词列表不能为空");
+        Assert.isFalse(CollUtil.isEmpty(keywordList), "关键词列表不能为空");
         SellerSpriteMarketEnum marketInfo = getMarketInfo(marketName);
         List<KeywordMetadataDO> keywordMetadataDOS = keywrodMetadataMapper.selectList(Wrappers.lambdaQuery(KeywordMetadataDO.class)
                 .eq(KeywordMetadataDO::getMarketId, marketInfo.getCode())
@@ -137,6 +145,20 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
                 ));
         List<KeywordMetadataRespVO> keywordMetadataRespVOS = KeywordMetadataConvert.INSTANCE.convertList(keywordMetadataDOS);
         return BeanUtil.copyToList(keywordMetadataRespVOS, KeywordMetadataBasicRespVO.class);
+    }
+
+    /**
+     * 新增原数据 -根据关键词和站点关键词
+     *
+     * @param asin       关键词
+     * @param marketName
+     * @return
+     */
+    @Override
+    public SellerSpriteListingVO getListingByAsin(String asin, String marketName) {
+        Assert.notBlank(asin, "ASIN 不可以为空");
+        SellerSpriteMarketEnum marketInfo = getMarketInfo(marketName);
+        return sellerSpriteService.getListingByAsin(asin, marketInfo.getCode());
     }
 
     /**
@@ -188,7 +210,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
                     convertDO.setUpdater(keywordMetadataDO.getUpdater());
                     convertDO.setUpdateTime(keywordMetadataDO.getUpdateTime());
                     convertDO.setDeleted(keywordMetadataDO.getDeleted());
-                    BeanUtil.copyProperties(convertDO,keywordMetadataDO);
+                    BeanUtil.copyProperties(convertDO, keywordMetadataDO);
                     // 匹配成功，设置状态为成功
                     keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.SUCCESS.getCode());
 
@@ -211,17 +233,16 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     }
 
 
-    private SellerSpriteMarketEnum getMarketInfo(String marketName){
-        Assert.notBlank(marketName,"卖家精灵站点数据不可以为空，数据请求失败");
+    private SellerSpriteMarketEnum getMarketInfo(String marketName) {
+        Assert.notBlank(marketName, "卖家精灵站点数据不可以为空，数据请求失败");
         try {
             return SellerSpriteMarketEnum.valueOf(marketName);
-        }catch (Exception e){
-            throw new RuntimeException("卖家精灵站点数据不存在，数据请求失败",e);
+        } catch (Exception e) {
+            throw new RuntimeException("卖家精灵站点数据不存在，数据请求失败", e);
         }
 
     }
     // 站点数据转换
-
 
 
     // 将一个列表拆分为多个子列表，每个子列表包含指定数量的元素
