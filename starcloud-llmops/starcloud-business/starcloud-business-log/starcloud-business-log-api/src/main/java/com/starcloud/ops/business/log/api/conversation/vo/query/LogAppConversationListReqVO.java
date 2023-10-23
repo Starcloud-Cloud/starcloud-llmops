@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.log.api.conversation.vo.request;
+package com.starcloud.ops.business.log.api.conversation.vo.query;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -44,6 +44,12 @@ public class LogAppConversationListReqVO implements Serializable {
      */
     @Schema(description = "执行场景")
     private String fromScene;
+
+    /**
+     * 使用的 ai 模型
+     */
+    @Schema(description = "使用的 ai 模型")
+    private String aiModel;
 
     /**
      * 执行场景

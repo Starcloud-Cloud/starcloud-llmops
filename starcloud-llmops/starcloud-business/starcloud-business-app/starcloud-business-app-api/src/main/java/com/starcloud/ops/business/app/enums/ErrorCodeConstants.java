@@ -16,6 +16,10 @@ public interface ErrorCodeConstants {
      */
     ErrorCode USER_MAY_NOT_LOGIN = new ErrorCode(300000401, "用户未登录，请先登录您的账号！");
 
+    /**
+     * Prompt 是必须的
+     */
+    ErrorCode PROMPT_IS_REQUIRED = new ErrorCode(300000402, "Prompt是必须的，请检查后重试！");
 
     // ========== 基本增删改查错误码 ==========
 
@@ -413,6 +417,7 @@ public interface ErrorCodeConstants {
     ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400010, "{} 实际的配置类型是 {}");
 
     ErrorCode CHAT_CONFIG_IS_REPEAT = new ErrorCode(300400011, "{}已经存在 , {}");
+
 
 
 }

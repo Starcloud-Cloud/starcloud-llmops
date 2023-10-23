@@ -58,6 +58,12 @@ public class AppLogConversationInfoRespVO implements Serializable {
     private String fromScene;
 
     /**
+     * 使用的 ai 模型
+     */
+    @Schema(description = "使用的 ai 模型")
+    private String aiModel;
+
+    /**
      * 请求总消耗token数
      */
     @Schema(description = "请求总消耗token数")

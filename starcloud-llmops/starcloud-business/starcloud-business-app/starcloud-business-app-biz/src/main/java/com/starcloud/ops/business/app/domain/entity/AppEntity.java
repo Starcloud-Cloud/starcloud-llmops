@@ -152,7 +152,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             appContext.setConversationUid(request.getConversationUid());
             appContext.setSseEmitter(request.getSseEmitter());
             appContext.setMediumUid(request.getMediumUid());
-            appContext.setAiModel(this.getLlmAiModel(request));
+            appContext.setAiModel(this.obtainLlmAiModelType(request));
             if (StringUtils.isNotBlank(request.getStepId())) {
                 appContext.setStepId(request.getStepId());
             } else {
@@ -230,6 +230,16 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     }
 
     /**
+     * 模版方法：获取应用的 AI 模型类型
+     *
+     * @param request 请求参数
+     */
+    @Override
+    protected String obtainLlmAiModelType(AppExecuteReqVO request) {
+        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+    }
+
+    /**
      * 模版方法：历史记录初始化
      *
      * @param request            请求参数
@@ -290,7 +300,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             if (resultException instanceof ServiceException) {
                 throw (ServiceException) resultException;
             }
-            // Kstry 可能会包装 ServiceException，所以尝试从 cause 中获取
+            // 工作流框架可能会包装 ServiceException，所以尝试从 cause 中获取
             if (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ServiceException) {
                 throw (ServiceException) resultException.getCause();
             }
@@ -423,7 +433,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
 
             Map<String, Object> variablesValues = appContext.getContextVariablesValues();
-            String aiModel = this.getLlmAiModel(request);
+            String aiModel = this.obtainLlmAiModelType(request);
             ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
             BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
             BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
@@ -458,16 +468,6 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
 
         });
-    }
-
-    /**
-     * 获取大模型的AI模型
-     *
-     * @param request 请求参数
-     * @return AI模型
-     */
-    private String getLlmAiModel(AppExecuteReqVO request) {
-        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
     }
 
     /**
