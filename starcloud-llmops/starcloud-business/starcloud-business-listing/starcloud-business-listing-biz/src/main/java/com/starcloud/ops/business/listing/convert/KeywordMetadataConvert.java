@@ -30,6 +30,7 @@ public interface KeywordMetadataConvert {
     PageResult<KeywordMetadataRespVO> convertPage(PageResult<KeywordMetadataDO> page);
 
 
+
     @Mappings({@Mapping(target = "gkDatas",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertGkDatasDTO(bean.getGkDatas()))"),
             @Mapping(target = "departments",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertDepartmentsDTO(bean.getDepartments()))"),
             @Mapping(target = "trends",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertSearchesTrendDTO(bean.getTrends()))"),

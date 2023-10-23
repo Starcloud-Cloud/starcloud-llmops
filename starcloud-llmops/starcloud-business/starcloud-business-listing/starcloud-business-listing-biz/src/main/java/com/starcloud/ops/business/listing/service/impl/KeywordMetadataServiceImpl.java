@@ -2,11 +2,14 @@ package com.starcloud.ops.business.listing.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataBasicRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
 import com.starcloud.ops.business.listing.convert.KeywordMetadataConvert;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
@@ -68,7 +71,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     @TenantIgnore
     public Boolean addMetaData(List<String> keywordList, String marketName) {
         // 站点数据转换
-        SellerSpriteMarketEnum sellerSpriteMarketEnum = SellerSpriteMarketEnum.valueOf(marketName);
+        SellerSpriteMarketEnum sellerSpriteMarketEnum = getMarketInfo(marketName);
 
         List<KeywordMetadataDO> keywordMetadataDOS = keywrodMetadataMapper.selectList(Wrappers.lambdaQuery(KeywordMetadataDO.class)
                 .eq(KeywordMetadataDO::getMarketId, sellerSpriteMarketEnum.getCode())
@@ -108,6 +111,32 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         }
 
         return results.contains(false);
+    }
+
+    /**
+     * 新增原数据 -根据关键词和站点关键词
+     *
+     * @param keywordList 关键词
+     * @param marketName
+     * @return
+     */
+    @Override
+    @TenantIgnore
+    public List<KeywordMetadataBasicRespVO> getKeywordsBasic(List<String> keywordList, String marketName) {
+        Assert.isFalse(CollUtil.isEmpty(keywordList),"关键词列表不能为空");
+        SellerSpriteMarketEnum marketInfo = getMarketInfo(marketName);
+        List<KeywordMetadataDO> keywordMetadataDOS = keywrodMetadataMapper.selectList(Wrappers.lambdaQuery(KeywordMetadataDO.class)
+                .eq(KeywordMetadataDO::getMarketId, marketInfo.getCode())
+                .in(KeywordMetadataDO::getKeyword, keywordList)
+                .select(KeywordMetadataDO::getId,
+                        KeywordMetadataDO::getMarketId,
+                        KeywordMetadataDO::getKeyword,
+                        KeywordMetadataDO::getSearches,
+                        KeywordMetadataDO::getPurchases,
+                        KeywordMetadataDO::getPurchaseRate
+                ));
+        List<KeywordMetadataRespVO> keywordMetadataRespVOS = KeywordMetadataConvert.INSTANCE.convertList(keywordMetadataDOS);
+        return BeanUtil.copyToList(keywordMetadataRespVOS, KeywordMetadataBasicRespVO.class);
     }
 
     /**
@@ -182,6 +211,19 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     }
 
 
+    private SellerSpriteMarketEnum getMarketInfo(String marketName){
+        Assert.notBlank(marketName,"卖家精灵站点数据不可以为空，数据请求失败");
+        try {
+            return SellerSpriteMarketEnum.valueOf(marketName);
+        }catch (Exception e){
+            throw new RuntimeException("卖家精灵站点数据不存在，数据请求失败",e);
+        }
+
+    }
+    // 站点数据转换
+
+
+
     // 将一个列表拆分为多个子列表，每个子列表包含指定数量的元素
     private static <T> List<List<T>> splitList(List<T> list, int batchSize) {
 
@@ -192,12 +234,4 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         }
         return subLists;
     }
-
-
-    public static void main(String[] args) {
-        String jsonString = "[GkDatasDTO(station=COM, asin=B0C6VQBSX6, asinImage=null, bigAsinImage=null, asinPrice=null, asinReviews=null, asinRating=null, asinBrand=null, asinTitle=, keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null), GkDatasDTO(station=COM, asin=B08P1D991N, asinImage=null, bigAsinImage=null, asinPrice=null, asinReviews=null, asinRating=null, asinBrand=null, asinTitle=, keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null), GkDatasDTO(station=COM, asin=B0912MRSDK, asinImage=null, bigAsinImage=null, asinPrice=null, asinReviews=null, asinRating=null, asinBrand=null, asinTitle=, keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null), GkDatasDTO(station=COM, asin=B09Q5T4RTX, asinImage=null, bigAsinImage=null, asinPrice=null, asinReviews=null, asinRating=null, asinBrand=null, asinTitle=, keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null), GkDatasDTO(station=COM, asin=B0C6VR3FCL, asinImage=null, bigAsinImage=null, asinPrice=null, asinReviews=null, asinRating=null, asinBrand=null, asinTitle=, keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null), GkDatasDTO(station=COM, asin=B09Q1J6JHG, asinImage=https://m.media-amazon.com/images/I/41JIXk4iFTL._AC_SR200,200_.jpg, bigAsinImage=null, asinPrice=94.94, asinReviews=240, asinRating=3.8, asinBrand=null, asinTitle=Moto G Pure | 2021 | 2-Day battery | Unlocked | Made for US by Motorola | 3/32GB | 13MP Camera | Deep Indigo (Renewed), keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null), GkDatasDTO(station=COM, asin=B07P6SWG7T, asinImage=https://m.media-amazon.com/images/I/31z+Ovy1i+L._AC_SR200,200_.jpg, bigAsinImage=null, asinPrice=134, asinReviews=13418, asinRating=4.3, asinBrand=null, asinTitle=Samsung Galaxy S10e, 128GB, Prism Black - GSM Carriers (Renewed), keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null), GkDatasDTO(station=COM, asin=B09353YZR8, asinImage=https://m.media-amazon.com/images/I/41vNnn1VeYS._AC_SR200,200_.jpg, bigAsinImage=null, asinPrice=199.98, asinReviews=4535, asinRating=4.2, asinBrand=null, asinTitle=Samsung Galaxy S20 FE (5G) 256GB 6.5\" Display Unlocked - Cloud Navy (Renewed), keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null), GkDatasDTO(station=COM, asin=B09ZQGFH52, asinImage=null, bigAsinImage=null, asinPrice=null, asinReviews=null, asinRating=null, asinBrand=null, asinTitle=, keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null), GkDatasDTO(station=COM, asin=B0BCG4JXWB, asinImage=null, bigAsinImage=null, asinPrice=null, asinReviews=null, asinRating=null, asinBrand=null, asinTitle=, keyword=null, categoryId=null, maxPage=null, asinUrl=null, rank=null, rankPage=null, rankPagesize=null, rankIndex=null, position=null, products=null, sku=null, maxRankPage=null, ad=null, amazonChoice=null, badges=null)]";
-
-    }
-
-
 }

@@ -2,6 +2,7 @@ package com.starcloud.ops.business.listing.service;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataBasicRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
 
 import java.util.List;
@@ -28,5 +29,16 @@ public interface KeywordMetadataService {
      * @return
      */
     Boolean addMetaData(List<String> keywordList, String marketName);
+
+
+
+    /**
+     * 新增原数据 -根据关键词和站点关键词
+     *
+     * @param keywordList 关键词
+     * @param marketName
+     * @return
+     */
+    List<KeywordMetadataBasicRespVO> getKeywordsBasic(List<String> keywordList, String marketName);
 
 }

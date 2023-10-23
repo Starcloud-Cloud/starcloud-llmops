@@ -8,6 +8,7 @@ import com.starcloud.ops.business.listing.controller.admin.vo.request.DictModify
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictPageReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataBasicRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
 import com.starcloud.ops.business.listing.service.DictService;
 import com.starcloud.ops.business.listing.service.KeywordMetadataService;
@@ -34,6 +35,14 @@ public class KeywordMetadataController {
     public CommonResult<Boolean> create(@RequestParam() List<String> keywords,String marketName) {
         return CommonResult.success(keywordMetadataService.addMetaData(keywords,marketName));
     }
+
+
+    @GetMapping("/basic")
+    @Operation(summary = "新增关键词", description = "新增关键词")
+    public CommonResult<List<KeywordMetadataBasicRespVO>> getKeywordsBasic(@RequestParam() List<String> keywords, String marketName) {
+        return CommonResult.success(keywordMetadataService.getKeywordsBasic(keywords,marketName));
+    }
+
 
     @GetMapping("/page")
     @Operation(summary = "分页查询关键词列表", description = "分页查询关键词列表")

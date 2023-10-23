@@ -46,6 +46,14 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     private final static String SELLER_SPRITE_EXTEND_ASIN = "traffic/extend/asin";
 
     /**
+     * 通过 ASIN 获取 Listing
+     * <p>
+     * https://www.sellersprite.com/v3/api/listing-builder/get-listing-by-asin?asin=B0949DWJCV&marketPlace=1
+     */
+    private final static String GET_LISTING_BY_ASIN = "listing-builder/get-listing-by-asin";
+
+
+    /**
      * 获取可查询时间
      */
     @Override
@@ -131,6 +139,9 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     @Override
     public void getListingByAsin() {
 
+//        String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, JSONUtil.toJsonStr(keywordMinerRequestDTO), COOKIE);
+
+
     }
 
     /**
@@ -181,6 +192,8 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             JSONObject entries = JSONUtil.parseObj(result);
             if (!result.isEmpty() || entries.getBool("success", false)) {
                 return JSONUtil.toJsonStr(entries.getObj("data"));
+            } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
+                log.error("卖家精灵登录失效");
             }
             return null;
         } catch (Exception e) {
