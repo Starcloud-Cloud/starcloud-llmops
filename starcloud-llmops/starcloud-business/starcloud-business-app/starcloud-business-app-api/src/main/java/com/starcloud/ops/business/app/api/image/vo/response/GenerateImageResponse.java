@@ -31,12 +31,6 @@ public class GenerateImageResponse extends BaseImageResponse {
     private String prompt;
 
     /**
-     * 原始图片的 URL
-     */
-    @Schema(description = "原始图片的 URL")
-    private String originalUrl;
-
-    /**
      * 反义词
      */
     @Schema(description = "反义词")
