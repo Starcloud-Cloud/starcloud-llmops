@@ -17,10 +17,12 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -295,6 +297,103 @@ public class ImageUploadUtils {
     }
 
     /**
+     * 处理图片为 64 的倍数
+     *
+     * @param image 图片
+     * @return 处理后的图片
+     */
+    public static BufferedImage graphicsImage64x(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        // 宽度和高度都是64的倍数，直接返回
+        if (width % 64 == 0 && height % 64 == 0) {
+            return image;
+        }
+
+        int newWidth = roundToMultipleOf64(width);
+        int newHeight = roundToMultipleOf64(height);
+        BufferedImage newImage = new BufferedImage(newWidth, newHeight, image.getType());
+        newImage.getGraphics().drawImage(image, 0, 0, newWidth, newHeight, null);
+        return newImage;
+    }
+
+    /**
+     * 处理图片为 64 的倍数
+     *
+     * @param url 图片地址
+     * @return 处理后的图片
+     */
+    public static byte[] graphicsImage64xToByteArray(String url) {
+        BufferedImage bufferedImage = getBufferedImage(url);
+        BufferedImage newImage = graphicsImage64x(bufferedImage);
+
+        // 获取图片的字节数组
+        byte[] bytes = bufferedImageToByteArray(newImage, getExtension(url));
+        log.info("原图转为64倍数成功：width: {}, height: {}", newImage.getWidth(), newImage.getHeight());
+        // String uploadUrl = upload(IdUtil.fastSimpleUUID(), getMediaTypeByExtension(getExtension(url)), UPLOAD, bytes);
+        // log.info("处理后的图片上传成功：图片信息: {}", JSONUtil.toJsonStr(uploadUrl));
+        return bytes;
+    }
+
+    /**
+     * bufferedImage 转 byte[]
+     *
+     * @param image      图片
+     * @param formatName 格式
+     * @return 字节数组
+     */
+    public static byte[] bufferedImageToByteArray(BufferedImage image, String formatName) {
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ImageIO.write(image, formatName, byteArrayOutputStream);
+            return byteArrayOutputStream.toByteArray();
+        } catch (Exception e) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_INFO_FAILURE);
+        }
+    }
+
+    /**
+     * 处理图片并且转换为 base64
+     *
+     * @param url 图片地址
+     * @return 处理后的图片
+     */
+    public static String handleImageToBase64(String url) {
+        BufferedImage bufferedImage = getBufferedImage(url);
+        if (bufferedImage.getHeight() * bufferedImage.getWidth() > 1048576) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片大小不能超过 1048576(1024 x 1024)像素");
+        }
+        BufferedImage newImage = graphicsImage64x(bufferedImage);
+        // 获取图片的字节数组
+        byte[] bytes = bufferedImageToByteArray(newImage, getExtension(url));
+        log.info("原图转为64倍数成功：width: {}, height: {}", newImage.getWidth(), newImage.getHeight());
+        // String uploadUrl = upload(IdUtil.fastSimpleUUID(), getMediaTypeByExtension(getExtension(url)), UPLOAD, bytes);
+        // log.info("处理后的图片上传成功：图片信息: {}", JSONUtil.toJsonStr(uploadUrl));
+        String base64 = Base64.getEncoder().encodeToString(bytes);
+        return ImageUtils.handlerBase64Image(base64);
+    }
+
+    /**
+     * 处理图片为 64 的倍数
+     *
+     * @param value 宽度或高度
+     * @return 64 的倍数
+     */
+    private static int roundToMultipleOf64(int value) {
+        int remainder = value % 64;
+        if (remainder == 0) {
+            return value; // 宽度或高度已经是64的倍数
+        } else {
+            int addValue = value + 64 - remainder;
+            if (addValue > 1024) {
+                return value - remainder; // 调整为上一个64的倍数
+            }
+            return addValue; // 调整为下一个64的倍数
+        }
+    }
+
+    /**
      * 根据 mediaType 获取后缀
      *
      * @param mediaType
@@ -334,4 +433,5 @@ public class ImageUploadUtils {
         }
         throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, extension, SUPPORTED_MEDIA_TYPE_LIST);
     }
+
 }

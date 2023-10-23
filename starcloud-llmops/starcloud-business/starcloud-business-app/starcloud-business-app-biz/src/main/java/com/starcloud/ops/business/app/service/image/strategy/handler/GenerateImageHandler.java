@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
+import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
@@ -110,6 +111,10 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
     public GenerateImageResponse handleImage(GenerateImageRequest request) {
         log.info("生成图片开始...");
         VSearchImageRequest vSearchImageRequest = VSearchConvert.INSTANCE.convert(request);
+
+        String initImage = request.getInitImage();
+        request.setInitImage(ImageUploadUtils.handleImageToBase64(initImage));
+
         List<VSearchImage> imageList = vSearchService.generateImage(vSearchImageRequest);
         AppValidate.notEmpty(imageList, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
         GenerateImageResponse response = new GenerateImageResponse();

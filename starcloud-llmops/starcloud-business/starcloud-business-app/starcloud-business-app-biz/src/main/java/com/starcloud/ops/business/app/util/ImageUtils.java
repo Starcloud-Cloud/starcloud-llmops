@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
 
+import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
@@ -306,13 +307,7 @@ public class ImageUtils {
      * @return token数量
      */
     public static BigDecimal countAnswerCredits(UpscaleImageRequest request) {
-        if (EngineEnum.ESRGAN_V1_X2PLUS.getCode().equals(request.getEngine())) {
-            return new BigDecimal("0.2");
-        }
-        Integer width = request.getWidth();
-        Integer height = request.getHeight();
-        BigDecimal multiply = new BigDecimal(width.toString()).multiply(new BigDecimal(height.toString()));
-        return multiply.compareTo(new BigDecimal("262144")) > 0 ? new BigDecimal("12") : new BigDecimal("8");
+        return new BigDecimal("0.2");
     }
 
     /**

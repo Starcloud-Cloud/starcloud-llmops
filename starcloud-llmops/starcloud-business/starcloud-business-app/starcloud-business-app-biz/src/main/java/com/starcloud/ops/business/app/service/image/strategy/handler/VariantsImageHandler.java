@@ -107,9 +107,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
         log.info("VariantsImageHandler handle: 裂变图片请求开始...");
         // 处理初始化图片
         String initImage = request.getInitImage();
-        byte[] imageBytes = ImageUploadUtils.getContent(initImage);
-        String image = Base64.getEncoder().encodeToString(imageBytes);
-        request.setInitImage(image);
+        request.setInitImage(ImageUploadUtils.handleImageToBase64(initImage));
 
         // 调用 VSearch 接口
         VSearchImageRequest vSearchImageRequest = VSearchConvert.INSTANCE.convert(request);
