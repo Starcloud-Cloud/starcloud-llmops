@@ -11,19 +11,22 @@
     </parent>
 
     <artifactId>starcloud-business-listing-biz</artifactId>
+    <version>${starcloud.revision}</version>
 
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 
     <dependencies>
-    <!-- Web 相关 -->
-    <dependency>
-        <groupId>cn.iocoder.boot</groupId>
-        <artifactId>yudao-spring-boot-starter-web</artifactId>
-    </dependency>
+
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-listing-api</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

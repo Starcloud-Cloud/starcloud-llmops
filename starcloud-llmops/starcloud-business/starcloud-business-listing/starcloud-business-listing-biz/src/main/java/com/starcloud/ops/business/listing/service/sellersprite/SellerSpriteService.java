@@ -1,6 +1,13 @@
 package com.starcloud.ops.business.listing.service.sellersprite;
 
-import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.GetPrepareDTO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareRepose;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
+
+import java.util.List;
 
 /**
  * 卖家精灵接口
@@ -8,14 +15,24 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.GetPr
 public interface SellerSpriteService {
 
     /**
-     *  获取可查询时间
+     * 获取可查询时间
      */
     void getDateList();
 
     /**
-     * 关键词挖掘- 根据关键词获取数据
+     * 关键词挖掘- 根据【单个】关键词获取数据
+     * @param keyword
+     * @param market
      */
-    void keywordMiner();
+    KeywordMinerReposeDTO keywordMiner(String keyword, Integer market);
+
+    /**
+     * 关键词挖掘- 根据【批量】关键词获取数据
+     * @param keywordS
+     * @param market
+     * @return
+     */
+    KeywordMinerReposeDTO BatchKeywordMiner(List<String> keywordS,Integer market);
 
     /**
      * 关键词反查
@@ -25,23 +42,22 @@ public interface SellerSpriteService {
     /**
      * 根据 ASIN 获取变种
      */
-    void extendPrepare(GetPrepareDTO getPrepareDTO);
+    PrepareRepose extendPrepare(PrepareRequestDTO prepareRequestDTO);
 
     /**
      * 根据 ASIN 拓展流量词
      */
-    void extendAsin();
+    ExtendAsinReposeDTO extendAsin(ExtendAsinRequestDTO extendAsinRequestDTO);
 
     /**
      * 根据 ASIN 获取 Listing
      */
-    void getListingByAsin();
+    SellerSpriteListingVO getListingByAsin(String asin, Integer market);
 
     /**
-     *  品牌检测
+     * 品牌检测
      */
     void checkBrand();
-
 
 
 }
