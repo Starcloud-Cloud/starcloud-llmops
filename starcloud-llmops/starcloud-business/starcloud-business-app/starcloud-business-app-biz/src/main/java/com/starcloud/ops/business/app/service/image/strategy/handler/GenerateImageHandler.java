@@ -69,6 +69,8 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
                 request.setImageStrength(0.65);
             }
         }
+        // 提示词
+        request.setPrompt(ImageUtils.handlePrompt(request.getPrompt(), Boolean.TRUE));
         // 反义词
         request.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.TRUE));
         // 图片的宽度
@@ -111,7 +113,7 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         List<VSearchImage> imageList = vSearchService.generateImage(vSearchImageRequest);
         AppValidate.notEmpty(imageList, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
         GenerateImageResponse response = new GenerateImageResponse();
-        response.setPrompt(request.getPrompt());
+        response.setPrompt(ImageUtils.handlePrompt(request.getPrompt(), Boolean.FALSE));
         response.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.FALSE));
         response.setEngine(request.getEngine());
         response.setWidth(request.getWidth());

@@ -69,6 +69,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
         if (Objects.isNull(request.getImageStrength())) {
             request.setImageStrength(0.65);
         }
+        request.setPrompt(ImageUtils.handlePrompt(request.getPrompt(), Boolean.TRUE));
         // 反义词
         request.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.TRUE));
         // 图片的宽度
@@ -118,7 +119,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
         // 处理响应
         VariantsImageResponse response = new VariantsImageResponse();
         response.setOriginalUrl(initImage);
-        response.setPrompt(request.getPrompt());
+        response.setPrompt(ImageUtils.handlePrompt(request.getPrompt(), Boolean.FALSE));
         response.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.FALSE));
         response.setEngine(request.getEngine());
         response.setWidth(request.getWidth());

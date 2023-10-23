@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.request.UpscaleImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.request.VariantsImageRequest;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.image.ImageTaskConfigTypeEnum;
 import com.starcloud.ops.business.app.enums.image.ProductImageTypeEnum;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
@@ -332,22 +334,53 @@ public class ImageUtils {
     public static String handleNegativePrompt(String negativePrompt, boolean isJoin) {
         if (isJoin) {
             if (StringUtils.isBlank(negativePrompt)) {
-                return AppConstants.DEFAULT_NEGATIVE_PROMPT;
+                return AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT;
             } else {
-                return AppConstants.DEFAULT_NEGATIVE_PROMPT + ", " + negativePrompt;
+                if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT)) {
+                    return negativePrompt;
+                }
+                return AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT + ", " + negativePrompt;
             }
         }
-        if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
-            if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
+        if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT)) {
+            if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT)) {
                 return "";
             } else {
-                String negative = negativePrompt.substring(AppConstants.DEFAULT_NEGATIVE_PROMPT.length()).trim();
+                String negative = negativePrompt.substring(AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT.length()).trim();
                 if (StringUtils.startsWith(negative, ",") || StringUtils.startsWith(negative, "，") || StringUtils.startsWith(negative, ".") || StringUtils.startsWith(negative, "。")) {
                     return negative.substring(1).trim();
                 }
             }
         }
         return negativePrompt;
+    }
+
+    /**
+     * 处理 Prompt
+     *
+     * @param prompt Prompt
+     * @param isJoin 是否拼接
+     * @return 处理后的 Prompt
+     */
+    public static String handlePrompt(String prompt, boolean isJoin) {
+        if (isJoin) {
+            if (StringUtils.isBlank(prompt)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PROMPT_IS_REQUIRED);
+            } else {
+                if (StringUtils.startsWith(prompt, AppConstants.DEFAULT_IMAGE_PROMPT)) {
+                    return prompt;
+                }
+                return AppConstants.DEFAULT_IMAGE_PROMPT + prompt;
+            }
+        }
+        if (StringUtils.startsWith(prompt, AppConstants.DEFAULT_IMAGE_PROMPT)) {
+            if (StringUtils.equals(prompt, AppConstants.DEFAULT_IMAGE_PROMPT)) {
+                return "";
+            } else {
+                return prompt.substring(AppConstants.DEFAULT_IMAGE_PROMPT.length()).trim();
+            }
+        }
+        return prompt;
     }
 
     /**
