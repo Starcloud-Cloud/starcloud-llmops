@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import org.apache.ibatis.annotations.Mapper;
@@ -41,6 +41,7 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
                 .eqIfPresent(LogAppConversationDO::getStatus, query.getStatus())
                 .eqIfPresent(LogAppConversationDO::getFromScene, query.getFromScene())
                 .inIfPresent(LogAppConversationDO::getFromScene, query.getFromSceneList())
+                .eqIfPresent(LogAppConversationDO::getAiModel, query.getAiModel())
                 .eqIfPresent(LogAppConversationDO::getCreator, query.getCreator())
                 .orderByDesc(LogAppConversationDO::getId));
     }
@@ -59,6 +60,7 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
                 .eqIfPresent(LogAppConversationDO::getAppMode, query.getAppMode())
                 .eqIfPresent(LogAppConversationDO::getFromScene, query.getFromScene())
                 .inIfPresent(LogAppConversationDO::getFromScene, query.getScenes())
+                .eqIfPresent(LogAppConversationDO::getAiModel, query.getAiModel())
                 .eqIfPresent(LogAppConversationDO::getStatus, query.getStatus())
                 .eqIfPresent(LogAppConversationDO::getCreator, query.getCreator())
                 .orderByDesc(LogAppConversationDO::getId));

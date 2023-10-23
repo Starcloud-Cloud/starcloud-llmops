@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.request.UpscaleImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.request.VariantsImageRequest;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.image.ImageTaskConfigTypeEnum;
 import com.starcloud.ops.business.app.enums.image.ProductImageTypeEnum;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
@@ -16,6 +18,7 @@ import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
 
+import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
@@ -304,13 +307,7 @@ public class ImageUtils {
      * @return token数量
      */
     public static BigDecimal countAnswerCredits(UpscaleImageRequest request) {
-        if (EngineEnum.ESRGAN_V1_X2PLUS.getCode().equals(request.getEngine())) {
-            return new BigDecimal("0.2");
-        }
-        Integer width = request.getWidth();
-        Integer height = request.getHeight();
-        BigDecimal multiply = new BigDecimal(width.toString()).multiply(new BigDecimal(height.toString()));
-        return multiply.compareTo(new BigDecimal("262144")) > 0 ? new BigDecimal("12") : new BigDecimal("8");
+        return new BigDecimal("0.2");
     }
 
     /**
@@ -332,22 +329,53 @@ public class ImageUtils {
     public static String handleNegativePrompt(String negativePrompt, boolean isJoin) {
         if (isJoin) {
             if (StringUtils.isBlank(negativePrompt)) {
-                return AppConstants.DEFAULT_NEGATIVE_PROMPT;
+                return AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT;
             } else {
-                return AppConstants.DEFAULT_NEGATIVE_PROMPT + ", " + negativePrompt;
+                if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT)) {
+                    return negativePrompt;
+                }
+                return AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT + ", " + negativePrompt;
             }
         }
-        if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
-            if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
+        if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT)) {
+            if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT)) {
                 return "";
             } else {
-                String negative = negativePrompt.substring(AppConstants.DEFAULT_NEGATIVE_PROMPT.length()).trim();
+                String negative = negativePrompt.substring(AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT.length()).trim();
                 if (StringUtils.startsWith(negative, ",") || StringUtils.startsWith(negative, "，") || StringUtils.startsWith(negative, ".") || StringUtils.startsWith(negative, "。")) {
                     return negative.substring(1).trim();
                 }
             }
         }
         return negativePrompt;
+    }
+
+    /**
+     * 处理 Prompt
+     *
+     * @param prompt Prompt
+     * @param isJoin 是否拼接
+     * @return 处理后的 Prompt
+     */
+    public static String handlePrompt(String prompt, boolean isJoin) {
+        if (isJoin) {
+            if (StringUtils.isBlank(prompt)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PROMPT_IS_REQUIRED);
+            } else {
+                if (StringUtils.startsWith(prompt, AppConstants.DEFAULT_IMAGE_PROMPT)) {
+                    return prompt;
+                }
+                return AppConstants.DEFAULT_IMAGE_PROMPT + prompt;
+            }
+        }
+        if (StringUtils.startsWith(prompt, AppConstants.DEFAULT_IMAGE_PROMPT)) {
+            if (StringUtils.equals(prompt, AppConstants.DEFAULT_IMAGE_PROMPT)) {
+                return "";
+            } else {
+                return prompt.substring(AppConstants.DEFAULT_IMAGE_PROMPT.length()).trim();
+            }
+        }
+        return prompt;
     }
 
     /**

@@ -43,6 +43,20 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
     private VSearchService vSearchService;
 
     /**
+     * 获取图片处理引擎
+     *
+     * @param request 请求
+     */
+    @Override
+    public String obtainEngine(VariantsImageRequest request) {
+        // 生成图片的引擎
+        if (StringUtils.isBlank(request.getEngine())) {
+            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode());
+        }
+        return request.getEngine();
+    }
+
+    /**
      * 构建图片配置信息配置
      *
      * @param request 请求
@@ -50,14 +64,12 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
     @Override
     public void handleRequest(VariantsImageRequest request) {
         log.info("VariantsImageHandler handleRequest: 处理裂变图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
-        // 生成图片的引擎
-        if (StringUtils.isBlank(request.getEngine())) {
-            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode());
-        }
+
         // 初始化图片
         if (Objects.isNull(request.getImageStrength())) {
             request.setImageStrength(0.65);
         }
+        request.setPrompt(ImageUtils.handlePrompt(request.getPrompt(), Boolean.TRUE));
         // 反义词
         request.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.TRUE));
         // 图片的宽度
@@ -78,7 +90,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
         }
         // 图片的 steps
         if (Objects.isNull(request.getSteps())) {
-            request.setSteps(50);
+            request.setSteps(30);
         }
 
         log.info("VariantsImageHandler handleRequest: 处理裂变图片请求结束：处理后数据：{}", JSONUtil.toJsonStr(request));
@@ -95,9 +107,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
         log.info("VariantsImageHandler handle: 裂变图片请求开始...");
         // 处理初始化图片
         String initImage = request.getInitImage();
-        byte[] imageBytes = ImageUploadUtils.getContent(initImage);
-        String image = Base64.getEncoder().encodeToString(imageBytes);
-        request.setInitImage(image);
+        request.setInitImage(ImageUploadUtils.handleImageToBase64(initImage));
 
         // 调用 VSearch 接口
         VSearchImageRequest vSearchImageRequest = VSearchConvert.INSTANCE.convert(request);
@@ -107,7 +117,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
         // 处理响应
         VariantsImageResponse response = new VariantsImageResponse();
         response.setOriginalUrl(initImage);
-        response.setPrompt(request.getPrompt());
+        response.setPrompt(ImageUtils.handlePrompt(request.getPrompt(), Boolean.FALSE));
         response.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.FALSE));
         response.setEngine(request.getEngine());
         response.setWidth(request.getWidth());

@@ -5,7 +5,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversati
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationListReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -37,14 +37,6 @@ public interface LogAppConversationService {
      * @param request 更新信息
      */
     void updateAppLogConversation(@Valid LogAppConversationUpdateReqVO request);
-
-    /**
-     * 更新应用执行日志会话状态
-     *
-     * @param uid    编号
-     * @param status 状态
-     */
-    void updateAppLogConversationStatus(@NotEmpty(message = "会话 Uid 不能为空") String uid, @NotEmpty(message = "会话状态不能为空") String status);
 
     /**
      * 更新应用执行日志会话状态

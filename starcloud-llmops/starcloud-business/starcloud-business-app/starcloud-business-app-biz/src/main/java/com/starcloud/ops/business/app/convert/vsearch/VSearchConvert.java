@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +49,7 @@ public interface VSearchConvert {
 
         // 初始化图片
         if (StringUtils.isNotBlank(request.getInitImage())) {
-            vSearchImageRequest.setInitImage(ImageUtils.handlerBase64Image(request.getInitImage()));
+            vSearchImageRequest.setInitImage(request.getInitImage());
             if (request.getImageStrength() != null) {
                 vSearchImageRequest.setStartSchedule(request.getImageStrength());
             } else {

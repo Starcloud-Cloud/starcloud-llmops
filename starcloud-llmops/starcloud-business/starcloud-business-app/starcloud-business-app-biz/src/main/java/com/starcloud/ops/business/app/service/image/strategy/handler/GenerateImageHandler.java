@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.response.VSearchImage;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
+import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
@@ -41,6 +42,20 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
     private VSearchService vSearchService;
 
     /**
+     * 获取图片处理引擎
+     *
+     * @param request 请求
+     */
+    @Override
+    public String obtainEngine(GenerateImageRequest request) {
+        // 生成图片的引擎
+        if (StringUtils.isBlank(request.getEngine())) {
+            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode());
+        }
+        return request.getEngine();
+    }
+
+    /**
      * 构建图片请求信息
      *
      * @param request 请求
@@ -48,16 +63,15 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
     @Override
     public void handleRequest(GenerateImageRequest request) {
         log.info("处理生成图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
-        // 生成图片的引擎
-        if (StringUtils.isBlank(request.getEngine())) {
-            request.setEngine(EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode());
-        }
+
         // 初始化图片
         if (StringUtils.isNotBlank(request.getInitImage())) {
             if (Objects.isNull(request.getImageStrength())) {
                 request.setImageStrength(0.65);
             }
         }
+        // 提示词
+        request.setPrompt(ImageUtils.handlePrompt(request.getPrompt(), Boolean.TRUE));
         // 反义词
         request.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.TRUE));
         // 图片的宽度
@@ -78,7 +92,7 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         }
         // 图片的 steps
         if (Objects.isNull(request.getSteps())) {
-            request.setSteps(50);
+            request.setSteps(30);
         }
         // 图片的 samples
         if (Objects.isNull(request.getSamples())) {
@@ -97,10 +111,14 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
     public GenerateImageResponse handleImage(GenerateImageRequest request) {
         log.info("生成图片开始...");
         VSearchImageRequest vSearchImageRequest = VSearchConvert.INSTANCE.convert(request);
+        if(StringUtils.isNotBlank(request.getInitImage())) {
+            request.setInitImage(ImageUploadUtils.handleImageToBase64(request.getInitImage()));
+        }
+
         List<VSearchImage> imageList = vSearchService.generateImage(vSearchImageRequest);
         AppValidate.notEmpty(imageList, ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
         GenerateImageResponse response = new GenerateImageResponse();
-        response.setPrompt(request.getPrompt());
+        response.setPrompt(ImageUtils.handlePrompt(request.getPrompt(), Boolean.FALSE));
         response.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getNegativePrompt(), Boolean.FALSE));
         response.setEngine(request.getEngine());
         response.setWidth(request.getWidth());
@@ -108,6 +126,9 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         response.setSteps(request.getSteps());
         response.setStylePreset(request.getStylePreset());
         response.setImages(ImageConvert.INSTANCE.convert(imageList));
+        if (StringUtils.isNotBlank(request.getInitImage())) {
+            response.setOriginalUrl(request.getInitImage());
+        }
         log.info("生成图片结束：响应结果：{}", JSONUtil.toJsonStr(response));
         return response;
     }
@@ -138,8 +159,6 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
             messageRequest.setTotalPrice(ImageUtils.countAnswerCredits(request).multiply(ImageUtils.SD_PRICE));
         }
         messageRequest.setMessage(request.getPrompt());
-        messageRequest.setAiModel("stable-diffusion");
     }
-
 
 }

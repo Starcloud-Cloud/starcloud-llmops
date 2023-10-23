@@ -9,6 +9,7 @@
         co.app_name,
         co.app_mode,
         co.from_scene,
+        co.ai_model,
         co.status,
         co.error_code,
         co.error_msg,
@@ -61,7 +62,7 @@
             </choose>
 
             <if test="query.aiModel != null and query.aiModel != '' ">
-                AND msg.ai_model = #{query.aiModel}
+                AND co.ai_model = #{query.aiModel}
             </if>
 
             <if test="query.status != null and query.status != '' ">
@@ -104,7 +105,7 @@
             </if>
 
             <if test="query.aiModel != null and query.aiModel != '' ">
-                AND msg.ai_model = #{query.aiModel}
+                AND co.ai_model = #{query.aiModel}
             </if>
 
             <if test="query.status != null and query.status != '' ">

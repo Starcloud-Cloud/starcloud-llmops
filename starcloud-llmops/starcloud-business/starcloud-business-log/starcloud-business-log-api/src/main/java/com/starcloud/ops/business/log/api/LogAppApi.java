@@ -4,7 +4,6 @@ import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversa
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.enums.LogStatusEnum;
 
 /**
  * @author admin
@@ -20,14 +19,6 @@ public interface LogAppApi {
      * @return 应用会话创建响应
      */
     LogAppConversationCreateReqVO createAppConversation(LogAppConversationCreateReqVO logAppConversationCreateReqVO);
-
-    /**
-     * 更新应用会话状态
-     *
-     * @param uid        应用会话唯一标识
-     * @param statusEnum 应用会话状态
-     */
-    void updateAppConversationStatus(String uid, LogStatusEnum statusEnum);
 
     /**
      * 更新应用会话状态
