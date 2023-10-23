@@ -191,6 +191,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
             if (items.isEmpty()) {
                 keywordMetadataDOInitList.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode()));
                 keywrodMetadataMapper.updateBatch(keywordMetadataDOInitList, keywordMetadataDOInitList.size());
+                log.warn("当前关键词【{}】未获取到关键词详细数据", keywords);
                 return AsyncResult.forValue(true);
             }
 
@@ -215,6 +216,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
                     keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.SUCCESS.getCode());
 
                 } else {
+                    log.warn("当前关键词【{}】未获取到关键词详细数据", keywordMetadataDO.getKeyword());
                     // 没有匹配，设置状态为失败
                     keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode());
                 }
@@ -224,6 +226,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
 
             return AsyncResult.forValue(true);
         } catch (Exception e) {
+            log.error("卖家精灵关键词【{}】获取失败，失败原因是:{}", keywords, e.getMessage(), e);
             keywordMetadataDOInitList.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.ERROR.getCode()));
             keywrodMetadataMapper.updateBatch(keywordMetadataDOInitList, keywordMetadataDOInitList.size());
             return AsyncResult.forValue(false);
