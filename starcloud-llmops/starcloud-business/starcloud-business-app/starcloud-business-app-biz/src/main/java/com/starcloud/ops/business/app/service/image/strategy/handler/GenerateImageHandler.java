@@ -111,8 +111,8 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
     public GenerateImageResponse handleImage(GenerateImageRequest request) {
         log.info("生成图片开始...");
         VSearchImageRequest vSearchImageRequest = VSearchConvert.INSTANCE.convert(request);
-        if (StringUtils.isNotBlank(request.getInitImage())) {
-            request.setInitImage(ImageUploadUtils.handleImageToBase64(request.getInitImage()));
+        if(StringUtils.isNotBlank(request.getInitImage())) {
+            vSearchImageRequest.setInitImage(ImageUploadUtils.handleImageToBase64(request.getInitImage()));
         }
 
         List<VSearchImage> imageList = vSearchService.generateImage(vSearchImageRequest);
