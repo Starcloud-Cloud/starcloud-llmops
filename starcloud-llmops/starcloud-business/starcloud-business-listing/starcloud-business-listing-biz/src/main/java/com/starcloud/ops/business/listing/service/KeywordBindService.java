@@ -24,8 +24,20 @@ public interface KeywordBindService {
     List<KeywordMetaDataDTO> getMetaData(List<String> keys, String endpoint);
 
 
+    /**
+     * 草稿新增关键词
+     *
+     * @param keys
+     * @param draftId
+     */
     void addDraftKeyword(List<String> keys, Long draftId);
 
+    /**
+     * 词库新增关键词
+     *
+     * @param keys
+     * @param dictId
+     */
     void addDictKeyword(List<String> keys, Long dictId);
 
 
