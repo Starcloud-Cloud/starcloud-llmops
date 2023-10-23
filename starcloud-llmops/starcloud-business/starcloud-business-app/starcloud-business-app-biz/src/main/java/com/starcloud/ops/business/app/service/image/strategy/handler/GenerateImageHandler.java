@@ -92,7 +92,7 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         }
         // 图片的 steps
         if (Objects.isNull(request.getSteps())) {
-            request.setSteps(50);
+            request.setSteps(30);
         }
         // 图片的 samples
         if (Objects.isNull(request.getSamples())) {

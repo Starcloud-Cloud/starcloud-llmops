@@ -66,4 +66,5 @@ public class GenerateImageResponse extends BaseImageResponse {
     @Schema(description = "图片的类型")
     private String stylePreset;
 
+
 }

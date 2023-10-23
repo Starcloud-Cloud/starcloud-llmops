@@ -35,7 +35,7 @@ public class VariantsImageResponse extends BaseImageResponse {
      */
     @Schema(description = "请求的 Engine ")
     private String engine;
-    
+
     /**
      * 请求的 Prompt
      */
