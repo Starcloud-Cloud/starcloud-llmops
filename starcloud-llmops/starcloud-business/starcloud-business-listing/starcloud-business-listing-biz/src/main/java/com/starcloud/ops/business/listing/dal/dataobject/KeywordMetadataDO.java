@@ -33,7 +33,7 @@ public class KeywordMetadataDO  extends BaseDO {
     /**
      * 关键词
      */
-    private String keywords;
+    private String keyword;
 
     /**
      * 关键词-中文

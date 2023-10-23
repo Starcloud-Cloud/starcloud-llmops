@@ -28,7 +28,7 @@ public class KeywordMetadataRespVO {
      * 关键词
      */
     @Schema(description = "站点 ID")
-    private String keywords;
+    private String keyword;
 
     /**
      * 关键词-中文

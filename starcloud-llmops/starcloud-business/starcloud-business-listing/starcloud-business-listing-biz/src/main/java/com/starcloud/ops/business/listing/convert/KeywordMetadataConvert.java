@@ -30,20 +30,44 @@ public interface KeywordMetadataConvert {
     PageResult<KeywordMetadataRespVO> convertPage(PageResult<KeywordMetadataDO> page);
 
 
+    @Mappings({@Mapping(target = "gkDatas",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertGkDatasDTO(bean.getGkDatas()))"),
+            @Mapping(target = "departments",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertDepartmentsDTO(bean.getDepartments()))"),
+            @Mapping(target = "trends",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertSearchesTrendDTO(bean.getTrends()))"),
+            @Mapping(target = "monopolyAsinDtos",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertMonopolyAsinDtosDTO(bean.getMonopolyAsinDtos()))")})
+    KeywordMetadataDO convert(ItemsDTO bean);
+
 
     static List<GkDatasDTO> convertGkDatasDTO(String data) {
         return JSONUtil.toList(data, GkDatasDTO.class);
+    }
+    static String convertGkDatasDTO(List<GkDatasDTO> data) {
+        return JSONUtil.toJsonStr(data);
     }
 
     static DepartmentsDTO convertDepartmentsDTO(String data) {
         return JSONUtil.toBean(data, DepartmentsDTO.class);
     }
+    static String convertDepartmentsDTO(DepartmentsDTO data) {
+        return JSONUtil.toJsonStr(data);
+    }
     static List<SearchesTrendDTO> convertSearchesTrendDTO(String data) {
         return JSONUtil.toList(data, SearchesTrendDTO.class);
+    }
+
+    static String convertSearchesTrendDTO(List<SearchesTrendDTO> data) {
+        return JSONUtil.toJsonStr(data);
     }
     static List<MonopolyAsinDtosDTO> convertMonopolyAsinDtosDTO(String data) {
         return JSONUtil.toList(data, MonopolyAsinDtosDTO.class);
     }
+
+
+    static String convertMonopolyAsinDtosDTO(List<MonopolyAsinDtosDTO> data) {
+        return JSONUtil.toJsonStr(data);
+    }
+
+
+
 
 
 }
