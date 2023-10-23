@@ -10,11 +10,17 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.Objects;
+
+import static java.time.temporal.ChronoField.*;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
 
 /**
  * Tucc 日期工具类
@@ -426,6 +432,30 @@ public class DateUtil {
     public static LocalDate lastDayOfYear() {
         return lastDayOfYear(0L);
     }
+
+    /**
+     *
+     * 格式化当前时间
+     * yyyyMMdd-HHmmss
+     *
+     * @return
+     */
+    public static String formatNow() {
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .appendValue(YEAR, 4)
+                .appendValue(MONTH_OF_YEAR, 2)
+                .appendValue(DAY_OF_MONTH, 2)
+                .appendLiteral('-')
+                .appendValue(HOUR_OF_DAY, 2)
+                .appendValue(MINUTE_OF_HOUR, 2)
+                .appendValue(SECOND_OF_MINUTE, 2)
+                .optionalStart()
+                .appendOffset("+HHMMss", "Z")
+                .toFormatter();
+        return LocalDateTime.now().format(formatter);
+    }
+
 
     /**
      * 获取指定偏移 offset 个年份的最后一天的日期<br/>
