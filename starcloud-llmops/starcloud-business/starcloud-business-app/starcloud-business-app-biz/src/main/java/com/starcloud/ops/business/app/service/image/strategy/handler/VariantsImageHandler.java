@@ -90,7 +90,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
         }
         // 图片的 steps
         if (Objects.isNull(request.getSteps())) {
-            request.setSteps(50);
+            request.setSteps(30);
         }
 
         log.info("VariantsImageHandler handleRequest: 处理裂变图片请求结束：处理后数据：{}", JSONUtil.toJsonStr(request));
