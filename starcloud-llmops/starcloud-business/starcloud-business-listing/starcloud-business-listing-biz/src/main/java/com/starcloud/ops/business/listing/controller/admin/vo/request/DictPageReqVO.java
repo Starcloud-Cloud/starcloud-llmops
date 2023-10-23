@@ -11,6 +11,4 @@ public class DictPageReqVO extends PageParam {
     @Schema(description = "词库名称")
     private String name;
 
-    @Schema(description = "关键字")
-    private String keyword;
 }

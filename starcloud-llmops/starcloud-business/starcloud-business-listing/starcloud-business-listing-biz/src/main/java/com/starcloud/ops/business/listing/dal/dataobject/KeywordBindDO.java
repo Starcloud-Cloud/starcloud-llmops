@@ -5,43 +5,51 @@ import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.starcloud.ops.business.listing.enums.KeywordBindTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-@TableName("listing_dict")
+@TableName("listing_keyword_bind")
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class ListingDictDO extends TenantBaseDO {
+public class KeywordBindDO extends TenantBaseDO {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String uid;
-
-    private String name;
+    /**
+     * 词库id
+     */
+    private Long dictId;
 
     /**
-     * 所属站点
+     * 草稿Id
      */
-    private String endpoint;
+    private Long draftId;
+
+    /**
+     * 关键词
+     */
+    private String keyword;
+
+    /**
+     * 类型  词库/草稿
+     *
+     * {@link KeywordBindTypeEnum}
+     */
+    private String type;
+
+    /**
+     * 标签
+     */
+    private String tag;
 
     /**
      * 启用/禁用
      */
     private Boolean enable;
-
-    /**
-     * 关键词状态
-     * {@link com.starcloud.ops.business.listing.enums.AnalysisStatusEnum}
-     */
-    private String status;
-
-    /**
-     * 关键词分析耗时
-     */
-    private Long analysisTime;
 
 
 }

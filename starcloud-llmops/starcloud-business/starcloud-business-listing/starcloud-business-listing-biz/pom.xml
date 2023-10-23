@@ -22,6 +22,11 @@
             <artifactId>starcloud-business-listing-api</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

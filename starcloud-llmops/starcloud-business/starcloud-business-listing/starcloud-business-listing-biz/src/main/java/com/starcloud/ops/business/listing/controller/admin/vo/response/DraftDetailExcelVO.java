@@ -9,9 +9,6 @@ import lombok.Data;
 @Data
 public class DraftDetailExcelVO {
 
-    @ExcelProperty("uid")
-    private String uid;
-
     @ExcelProperty("标题")
     private String title;
 
@@ -30,14 +27,11 @@ public class DraftDetailExcelVO {
     @ExcelProperty("asin")
     private String asin;
 
-    @ExcelProperty("词库Uid")
-    private String dictUid;
-
-    @Schema(description = "草稿配置")
-    private DraftConfigDTO draftConfig;
-
     @ExcelProperty("关键词摘要")
     private String keywordResume;
+
+    @ExcelProperty("uid")
+    private String uid;
 
     @ExcelProperty("版本")
     private Integer version;

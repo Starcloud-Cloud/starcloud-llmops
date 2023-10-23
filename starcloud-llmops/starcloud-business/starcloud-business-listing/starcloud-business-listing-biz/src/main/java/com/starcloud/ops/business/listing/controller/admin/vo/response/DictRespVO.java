@@ -24,17 +24,27 @@ public class DictRespVO {
     private String endpoint;
 
     @Schema(description = "关键词摘要")
-    private List<KeywordResumeDTO> keywordResume;
+    private List<String> keywordResume;
 
-//    @Schema(description = "关键词元数据")
-//    private List<KeywordMetaDataDTO> keywordMetaData;
-
-    @Schema(description = "关键词数量")
-    private Integer count;
+    @Schema(description = "关键词数据")
+    private List<KeywordMetaDataDTO> keywordMetaData;
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
     @Schema(description = "更新时间")
     private LocalDateTime updateTime;
+
+    @Schema(description = "创建人")
+    private String creator;
+
+    @Schema(description = "更新人")
+    private String updater;
+
+    /**
+     *
+     * {@link com.starcloud.ops.business.listing.enums.AnalysisStatusEnum}
+     */
+    @Schema(description = "词库状态")
+    private String status;
 }

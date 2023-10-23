@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 @Data
 @Schema(description = "草稿操作")
@@ -17,4 +18,10 @@ public class DraftOperationReqVO {
     @Schema(description = "草稿版本")
     @Min(value = 1, message = "草稿版本必须大于0")
     private Integer version;
+
+    @Schema(description = "删除关键词key")
+    private List<String> removeBindKey;
+
+    @Schema(description = "删除关键词")
+    private List<String> addKey;
 }
