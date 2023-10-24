@@ -100,14 +100,20 @@ public interface ErrorCodeConstants {
     // ========== 应用收藏错误码 300 300 xxx ==========
 
     /**
+     * 收藏UID是必须的
+     */
+    ErrorCode FAVORITE_UID_IS_REQUIRED = new ErrorCode(300300110, "收藏UID是必须的，请检查后重试！");
+
+    /**
      * 应用收藏不存在
      */
-    ErrorCode FAVORITE_APP_NON_EXISTENT = new ErrorCode(300300110, "应用收藏不存在，请稍后重试或者联系管理员（{}）！");
+    ErrorCode FAVORITE_APP_NON_EXISTENT = new ErrorCode(300300120, "应用收藏不存在，请稍后重试或者联系管理员（{}）！");
 
     /**
      * 该应用已经被收藏了
      */
-    ErrorCode FAVORITE_APP_BEAN = new ErrorCode(300300120, "该应用已经被收藏了，您可以在收藏列表中查看！");
+    ErrorCode FAVORITE_APP_ALREADY_EXISTS = new ErrorCode(300300130, "该应用已经被收藏了，您可以在收藏列表中查看！");
+
 
     // ========== 应用发布错误码 300 400 xxx ==========
 
@@ -417,7 +423,5 @@ public interface ErrorCodeConstants {
     ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400010, "{} 实际的配置类型是 {}");
 
     ErrorCode CHAT_CONFIG_IS_REPEAT = new ErrorCode(300400011, "{}已经存在 , {}");
-
-
 
 }

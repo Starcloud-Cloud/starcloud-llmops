@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.market;
 
-import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
@@ -81,37 +80,4 @@ public interface AppMarketService {
      * @param request 操作请求
      */
     void operate(AppOperateReqVO request);
-
-    /**
-     * 应用市场应用收藏列表
-     *
-     * @param userId 用户 uid
-     * @return 收藏列表
-     */
-    List<AppFavoriteRespVO> listFavorite(String userId);
-
-    /**
-     * 获取用户收藏的应用的详情
-     *
-     * @param userId 用户 id
-     * @param uid    应用 uid
-     * @return 收藏应用
-     */
-    AppFavoriteRespVO getFavoriteApp(String userId, String uid);
-
-    /**
-     * 将应用加入到收藏夹
-     *
-     * @param userId 用户 id
-     * @param uid    应用 uid
-     */
-    void favorite(String userId, String uid);
-
-    /**
-     * 取消收藏
-     *
-     * @param userId 用户 id
-     * @param uid    应用 uid
-     */
-    void cancelFavorite(String userId, String uid);
 }
