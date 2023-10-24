@@ -30,7 +30,7 @@
         a.creator AS favoriteCreator,
         a.create_time AS favoriteTime
         FROM llm_app_favorite a
-        LEFT JOIN llm_app_market b ON a.app_uid = b.uid
+        LEFT JOIN llm_app_market b ON a.market_uid = b.uid
         <where>
             <if test="query.userId != null and query.userId != '' ">
                 AND a.creator = #{query.userId}
@@ -53,7 +53,8 @@
 
     <!-- 查询收藏应用列表 -->
     <select id="page" resultType="com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO">
-        SELECT b.uid,
+        SELECT
+            b.uid,
         b.name,
         b.type,
         b.model,
@@ -79,7 +80,7 @@
         a.creator AS favoriteCreator,
         a.create_time AS favoriteTime
         FROM llm_app_favorite a
-        LEFT JOIN llm_app_market b ON a.app_uid = b.uid
+        LEFT JOIN llm_app_market b ON a.market_uid = b.uid
         <where>
             <if test="query.userId != null and query.userId != '' ">
                 AND a.creator = #{query.userId}
