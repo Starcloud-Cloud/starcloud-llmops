@@ -6,13 +6,13 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-@Schema(description = "建议关键词")
+@Schema(description = "内容配置")
 public class DraftContentConfigDTO {
 
     @Schema(description = "不计入已使用")
-    private Boolean ignoreUse;
+    private Boolean ignoreUse = false;
 
     @Schema(description = "建议关键词")
-    private List<String> recommendKeys;
+    private List<DraftRecommendKeyDTO> recommendKeys;
 
 }

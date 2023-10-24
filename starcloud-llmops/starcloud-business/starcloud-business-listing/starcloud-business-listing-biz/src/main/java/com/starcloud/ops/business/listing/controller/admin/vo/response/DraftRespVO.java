@@ -38,13 +38,13 @@ public class DraftRespVO {
     private DraftConfigDTO draftConfig;
 
     @Schema(description = "草稿分数")
-    private Integer score;
+    private Double score;
 
     @Schema(description = "命中搜索量")
-    private Integer matchSearchers;
+    private Long matchSearchers;
 
     @Schema(description = "总搜索量")
-    private Integer totalSearches;
+    private Long totalSearches;
 
     @Schema(description = "各项分数")
     private DraftItemScoreDTO itemScore;
