@@ -3,7 +3,7 @@ package com.starcloud.ops.business.listing.service.sellersprite;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
-import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareRepose;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 
@@ -42,7 +42,7 @@ public interface SellerSpriteService {
     /**
      * 根据 ASIN 获取变种
      */
-    PrepareRepose extendPrepare(PrepareRequestDTO prepareRequestDTO);
+    PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO);
 
     /**
      * 根据 ASIN 拓展流量词

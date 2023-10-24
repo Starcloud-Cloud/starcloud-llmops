@@ -3,8 +3,6 @@ package com.starcloud.ops.business.listing.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -18,8 +16,12 @@ import com.starcloud.ops.business.listing.dal.mysql.KeywrodMetadataMapper;
 import com.starcloud.ops.business.listing.enums.KeywordMetadataStatusEnum;
 import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
 import com.starcloud.ops.business.listing.service.KeywordMetadataService;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ItemsDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.SellerSpriteService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -30,7 +32,6 @@ import org.springframework.util.concurrent.ListenableFuture;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -159,6 +160,30 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         Assert.notBlank(asin, "ASIN 不可以为空");
         SellerSpriteMarketEnum marketInfo = getMarketInfo(marketName);
         return sellerSpriteService.getListingByAsin(asin, marketInfo.getCode());
+    }
+
+    /**
+     * 根据 ASIN获取变体
+     *
+     * @param prepareRequestDTO
+     * @return
+     */
+    @Override
+    public PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO) {
+        Assert.notNull(prepareRequestDTO, "根据 ASIN获取变体失败，请求对象不可为空");
+        return sellerSpriteService.extendPrepare(prepareRequestDTO);
+    }
+
+    /**
+     * 根据 ASIN获取关键词拓展数据
+     *
+     * @param extendAsinRequestDTO
+     * @return
+     */
+    @Override
+    public ExtendAsinReposeDTO extendAsin(ExtendAsinRequestDTO extendAsinRequestDTO) {
+        Assert.notNull(extendAsinRequestDTO, "根据 ASIN获取变体失败，请求对象不可为空");
+        return sellerSpriteService.extendAsin(extendAsinRequestDTO);
     }
 
     /**

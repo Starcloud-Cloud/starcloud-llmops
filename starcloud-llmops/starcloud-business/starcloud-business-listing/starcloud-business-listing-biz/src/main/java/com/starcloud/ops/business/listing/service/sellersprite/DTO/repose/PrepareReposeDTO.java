@@ -10,7 +10,7 @@ import java.util.List;
  */
 @NoArgsConstructor
 @Data
-public class PrepareRepose {
+public class PrepareReposeDTO {
 
     /**
      * 站点
