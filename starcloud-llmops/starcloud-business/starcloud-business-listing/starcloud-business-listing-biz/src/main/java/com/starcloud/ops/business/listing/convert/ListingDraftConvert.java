@@ -39,7 +39,7 @@ public interface ListingDraftConvert {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-    @Mapping(source = "endpoint",target = "endpoint",ignore = true)
+    @Mapping(source = "endpoint", target = "endpoint", ignore = true)
     void update(DraftReqVO reqVO, @MappingTarget ListingDraftDO draftDO);
 
     default String jsonStr(DraftConfigDTO object) {
@@ -59,7 +59,7 @@ public interface ListingDraftConvert {
     }
 
     default DraftItemScoreDTO parseScore(String str) {
-        return JSONUtil.toBean(str,DraftItemScoreDTO.class);
+        return JSONUtil.toBean(str, DraftItemScoreDTO.class);
     }
 
     @Named("parseKeyword")

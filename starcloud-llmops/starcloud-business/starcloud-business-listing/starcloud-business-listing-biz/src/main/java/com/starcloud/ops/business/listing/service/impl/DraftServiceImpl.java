@@ -13,6 +13,7 @@ import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespV
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftDetailExcelVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftRespVO;
 import com.starcloud.ops.business.listing.convert.ListingDraftConvert;
+import com.starcloud.ops.business.listing.convert.ListingKeywordConvert;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordBindDO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftDO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywordBindMapper;
@@ -115,14 +116,14 @@ public class DraftServiceImpl implements DraftService {
             draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
             draftMapper.insert(draftDO);
             if (CollectionUtils.isNotEmpty(reqVO.getKeys())) {
-                List<String> keys = reqVO.getKeys().stream().map(String::trim).distinct().collect(Collectors.toList());
+                List<String> keys = reqVO.getKeys().stream().map(String::trim).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
                 keywordBindService.addDraftKeyword(keys, draftDO.getId());
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
                 draftMapper.updateById(draftDO);
                 executor.execute(() -> {
                     try {
                         keywordBindService.analysisKeyword(keys, draftDO.getEndpoint());
-                        updateSearchers(draftDO, keys);
+                        updateDo(draftDO, keys);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
                     } catch (Exception e) {
                         log.error("analysis keyword error", e);
@@ -138,14 +139,16 @@ public class DraftServiceImpl implements DraftService {
 
         ListingDraftConvert.INSTANCE.update(reqVO, draftDO);
 
-        ListingDraftDO latest = draftMapper.getLatest(reqVO.getUid());
-        draftDO.setVersion(Math.addExact(latest.getVersion(), 1));
-        draftDO.setId(null);
+//        ListingDraftDO latest = draftMapper.getLatest(reqVO.getUid());
+//        draftDO.setVersion(Math.addExact(latest.getVersion(), 1));
+        draftDO.setVersion(1);
+//        draftDO.setId(null);
 
         DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
         draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
 
-        draftMapper.insert(draftDO);
+//        draftMapper.insert(draftDO);
+        draftMapper.updateById(draftDO);
         return ListingDraftConvert.INSTANCE.convert(draftDO);
     }
 
@@ -176,7 +179,7 @@ public class DraftServiceImpl implements DraftService {
         validStatus(draftDO);
 
         List<String> newKey = reqVO.getAddKey().stream()
-                .map(String::trim).distinct().collect(Collectors.toList());
+                .map(String::trim).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
 
         List<String> oldKey = keywordBindMapper.getByDraftId(draftDO.getId())
                 .stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
@@ -199,7 +202,7 @@ public class DraftServiceImpl implements DraftService {
         executor.execute(() -> {
             try {
                 keywordBindService.analysisKeyword(newKey, draftDO.getEndpoint());
-                updateSearchers(draftDO, newKey);
+                updateDo(draftDO, newKey);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
             } catch (Exception e) {
                 log.error("analysis error", e);
@@ -216,7 +219,7 @@ public class DraftServiceImpl implements DraftService {
         }
         ListingDraftDO draftDO = getVersion(reqVO.getUid(), reqVO.getVersion());
         List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
-        updateSearchers(draftDO, keys);
+        updateDo(draftDO, keys);
         draftMapper.updateById(draftDO);
         keywordBindMapper.deleteDraftKey(reqVO.getRemoveBindKey(), draftDO.getId());
     }
@@ -286,6 +289,60 @@ public class DraftServiceImpl implements DraftService {
     }
 
     /**
+     * 推荐词
+     *
+     * @param draftDO
+     * @param keys
+     */
+    private void updateRecommendKey(ListingDraftDO draftDO, List<String> keys) {
+        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint());
+        if (CollectionUtils.isEmpty(metaData)) {
+            return;
+        }
+        metaData = metaData.stream().sorted((a, b) -> Math.toIntExact(b.mouthSearches() - a.mouthSearches())).collect(Collectors.toList());
+
+        DraftConfigDTO draftConfigDTO = ListingDraftConvert.INSTANCE.parseConfig(draftDO.getConfig());
+
+        Integer fiveDescNum = draftConfigDTO.getFiveDescNum();
+
+        Map<String, DraftContentConfigDTO> fiveDescConfig = Optional.ofNullable(draftConfigDTO.getFiveDescConfig()).orElseGet(HashMap::new);
+
+        DraftContentConfigDTO titleConfig = splitData(draftConfigDTO.getTitleConfig(), metaData);
+        metaData = CollUtil.sub(metaData, 5, metaData.size());
+        draftConfigDTO.setTitleConfig(titleConfig);
+        for (int i = 1; i <= fiveDescNum; i++) {
+            DraftContentConfigDTO draftContentConfigDTO = splitData(fiveDescConfig.get(String.valueOf(i)), metaData);
+            metaData = CollUtil.sub(metaData, 5, metaData.size());
+            fiveDescConfig.put(String.valueOf(i), draftContentConfigDTO);
+        }
+        draftConfigDTO.setFiveDescConfig(fiveDescConfig);
+
+        DraftContentConfigDTO productConfig = splitData(draftConfigDTO.getProductDescConfig(), metaData);
+        metaData = CollUtil.sub(metaData, 5, metaData.size());
+        draftConfigDTO.setProductDescConfig(productConfig);
+        DraftContentConfigDTO searchConfig = splitData(draftConfigDTO.getSearchTermConfig(), metaData);
+        draftConfigDTO.setSearchTermConfig(searchConfig);
+
+        draftDO.setConfig(ListingDraftConvert.INSTANCE.jsonStr(draftConfigDTO));
+    }
+
+    private void updateDo(ListingDraftDO draftDO, List<String> keys) {
+        updateSearchers(draftDO, keys);
+        updateRecommendKey(draftDO, keys);
+    }
+
+    private DraftContentConfigDTO splitData(DraftContentConfigDTO config, List<KeywordMetaDataDTO> metaData) {
+        if (config == null) {
+            config = new DraftContentConfigDTO();
+        }
+        if (metaData.size() > 0) {
+            List<KeywordMetaDataDTO> keywordMetaData = metaData.subList(0, Math.min(metaData.size(), 5));
+            config.setRecommendKeys(ListingKeywordConvert.INSTANCE.convert2(keywordMetaData));
+        }
+        return config;
+    }
+
+    /**
      * 更新搜索量
      */
     private void updateSearchers(ListingDraftDO draftDO, List<String> keys) {
@@ -293,9 +350,10 @@ public class DraftServiceImpl implements DraftService {
         if (CollectionUtils.isEmpty(metaData)) {
             draftDO.setTotalSearches(0L);
             draftDO.setMatchSearchers(0L);
+            draftDO.setScore((double) 0);
             return;
         }
-        Long totalSearches = metaData.stream().mapToLong(k -> k.getSearches() == null ? 0L : k.getSearches()).sum();
+        Long totalSearches = metaData.stream().mapToLong(KeywordMetaDataDTO::mouthSearches).sum();
 
         DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
         Map<String, KeywordMetaDataDTO> metaMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity()));
@@ -304,7 +362,7 @@ public class DraftServiceImpl implements DraftService {
         // 搜索量
         draftDO.setTotalSearches(totalSearches);
         draftDO.setMatchSearchers(matchSearchers);
-
+        draftDO.setScore((double) 0);
     }
 
     private Long containsKeySearchers(List<String> keys, DraftRespVO respVO, Map<String, KeywordMetaDataDTO> metaMap) {
@@ -345,7 +403,7 @@ public class DraftServiceImpl implements DraftService {
         Long titleSearchers = 0L;
         for (String key : contentKeys) {
             KeywordMetaDataDTO keywordMetaDataDTO = metaMap.get(key);
-            titleSearchers += keywordMetaDataDTO == null ? 0L : keywordMetaDataDTO.getSearches();
+            titleSearchers += keywordMetaDataDTO == null ? 0L : keywordMetaDataDTO.mouthSearches();
         }
         return titleSearchers;
     }

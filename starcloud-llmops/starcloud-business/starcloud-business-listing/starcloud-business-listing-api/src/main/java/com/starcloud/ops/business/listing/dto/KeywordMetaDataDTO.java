@@ -19,4 +19,8 @@ public class KeywordMetaDataDTO {
     @Schema(description = "月购买量比列")
     private Double purchaseRate;
 
+    public Long mouthSearches() {
+        return searches == null ? 0L : searches;
+    }
+
 }
