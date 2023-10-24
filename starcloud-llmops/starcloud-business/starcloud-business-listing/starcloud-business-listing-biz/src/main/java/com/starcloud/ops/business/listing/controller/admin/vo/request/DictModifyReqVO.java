@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.listing.controller.admin.vo.request;
 
-import com.starcloud.ops.business.listing.dto.KeywordResumeDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -19,7 +18,7 @@ public class DictModifyReqVO {
     private String name;
 
     @Schema(description = "所有关键字")
-    private List<KeywordResumeDTO> keywordResume;
+    private List<String> keywordResume;
 
     @Schema(description = "状态")
     private Boolean enable;

@@ -10,4 +10,6 @@ public interface ErrorCodeConstant {
 
     ErrorCode DRAFT_NOT_EXISTS = new ErrorCode(500020001, "草稿不存在，uid = {}, version = {}");
 
+    ErrorCode DRAFT_IS_EXECUTING = new ErrorCode(500020002, "草稿正在执行中");
+
 }

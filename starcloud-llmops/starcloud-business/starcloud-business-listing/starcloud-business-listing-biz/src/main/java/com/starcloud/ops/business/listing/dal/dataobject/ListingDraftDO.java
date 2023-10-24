@@ -27,14 +27,14 @@ public class ListingDraftDO extends TenantBaseDO {
     private String asin;
 
     /**
-     * 关键词摘要
-     */
-    private String keywordResume;
-
-    /**
      * 草稿配置
      */
     private String config;
+
+    /**
+     * 草稿总分
+     */
+    private Double score;
 
     /**
      * listing 标题
@@ -57,6 +57,21 @@ public class ListingDraftDO extends TenantBaseDO {
     private String searchTerm;
 
     /**
+     * 各项分数
+     */
+    private String itemScore;
+
+    /**
+     * 命中搜索量
+     */
+    private Long matchSearchers;
+
+    /**
+     * 总搜索量
+     */
+    private Long totalSearches;
+
+    /**
      * 草稿版本
      */
     private Integer version;
@@ -66,6 +81,16 @@ public class ListingDraftDO extends TenantBaseDO {
      * {@link com.starcloud.ops.business.listing.enums.AnalysisStatusEnum}
      */
     private String status;
+
+    /**
+     * 关键词分析耗时
+     */
+    private Long analysisTime;
+
+    /**
+     * 执行耗时
+     */
+    private Long executeTime;
 
 
 }

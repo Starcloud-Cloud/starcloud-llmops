@@ -5,7 +5,10 @@ import lombok.Getter;
 @Getter
 public enum DraftSortFieldEnum {
 
-    createTime("create_time");
+    score("score"),
+    createTime("create_time"),
+    updateTime("update_time"),
+    ;
 
     private String column;
 

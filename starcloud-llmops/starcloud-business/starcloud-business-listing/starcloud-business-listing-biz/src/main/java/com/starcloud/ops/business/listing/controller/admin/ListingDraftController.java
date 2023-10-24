@@ -7,6 +7,7 @@ import com.starcloud.ops.business.listing.controller.admin.vo.request.*;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftDetailExcelVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftRespVO;
 import com.starcloud.ops.business.listing.service.DraftService;
+import com.starcloud.ops.framework.common.api.util.DateUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -57,36 +57,61 @@ public class ListingDraftController {
         return CommonResult.success(draftResp);
     }
 
-    @GetMapping("/import/temp")
-    @Operation(summary = "导入模板", description = "导入模板")
-    public void importTemplate(HttpServletResponse response) throws IOException {
-        ExcelUtils.write(response, "导入模板.xls", "草稿模板", DraftDetailExcelVO.class, Collections.emptyList());
+    @PutMapping("/save")
+    @Operation(summary = "保存草稿 - 不包含关键词", description = "保存草稿")
+    public CommonResult<DraftRespVO> save(@Valid @RequestBody DraftReqVO saveReqVO) {
+        DraftRespVO draftRespVO = draftService.saveDraftVersion(saveReqVO);
+        return CommonResult.success(draftRespVO);
     }
 
+//    @GetMapping("/import/temp")
+//    @Operation(summary = "导入模板", description = "导入模板")
+//    public void importTemplate(HttpServletResponse response) throws IOException {
+//        ExcelUtils.write(response, "导入模板.xls", "草稿模板", DraftDetailExcelVO.class, Collections.emptyList());
+//    }
+
     @GetMapping("/export")
-    @Operation(summary = "导出最新版草稿", description = "导出最新版草稿")
-    public void export(@Valid @RequestBody List<DraftOperationReqVO> operationReq, HttpServletResponse response) throws IOException {
-        List<DraftDetailExcelVO> export = draftService.export(operationReq);
-        ExcelUtils.write(response, "导出草稿.xls", "草稿", DraftDetailExcelVO.class, export);
+    @Operation(summary = "导出草稿", description = "导出草稿")
+    public void export(@Valid @RequestBody List<Long> ids, HttpServletResponse response) throws IOException {
+        List<DraftDetailExcelVO> export = draftService.export(ids);
+        String prefix = DateUtil.formatNow();
+        ExcelUtils.write(response, prefix + "-导出草稿.xls", "草稿", DraftDetailExcelVO.class, export);
     }
 
     @DeleteMapping("/delete")
     @Operation(summary = "删除草稿", description = "删除草稿")
-    public CommonResult<Boolean> delete(@RequestBody List<DraftOperationReqVO> operationReq) {
-        draftService.delete(operationReq);
+    public CommonResult<Boolean> delete(@RequestBody List<Long> ids) {
+        draftService.delete(ids);
+        return CommonResult.success(true);
+    }
+
+    @PostMapping("/key/add")
+    @Operation(summary = "新增关键词", description = "新增关键词")
+    public CommonResult<Boolean> addKeyword(@Valid @RequestBody DraftOperationReqVO reqVO) {
+        draftService.addKeyword(reqVO);
+        return CommonResult.success(true);
+    }
+
+    @DeleteMapping("/key/remove")
+    @Operation(summary = "删除关键词", description = "删除关键词")
+    public CommonResult<Boolean> removeKeyword(@Valid @RequestBody DraftOperationReqVO reqVO) {
+        draftService.removeKeyword(reqVO);
+        return CommonResult.success(true);
+    }
+
+    @PutMapping("/import/dict")
+    @Operation(summary = "导入词库中的关键词", description = "导入词库中的关键词")
+    public CommonResult<Boolean> importDict(@Valid @RequestBody ImportDictReqVO reqVO) {
+        draftService.importDict(reqVO);
         return CommonResult.success(true);
     }
 
 
-    @PostMapping("/add")
-    @Operation(summary = "新增关键词", description = "新增关键词")
-    public void addKeyword(@RequestBody DraftSaveReqVO reqVO) {
-        draftService.addKeyword(reqVO);
+    @PutMapping("/score")
+    @Operation(summary = "计算分值", description = "计算分值")
+    public CommonResult<DraftRespVO> score(@Valid @RequestBody DraftReqVO reqVO) {
+        DraftRespVO score = draftService.score(reqVO);
+        return CommonResult.success(score);
     }
-
-
-    // 删除关键词
-
-
 
 }

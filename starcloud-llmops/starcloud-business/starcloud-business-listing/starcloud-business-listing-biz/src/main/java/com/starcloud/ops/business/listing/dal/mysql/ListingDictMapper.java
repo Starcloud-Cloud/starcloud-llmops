@@ -29,7 +29,6 @@ public interface ListingDictMapper extends BaseMapperX<ListingDictDO> {
     default PageResult<ListingDictDO> page(DictPageReqVO reqVO) {
         LambdaQueryWrapper<ListingDictDO> wrapper = Wrappers.lambdaQuery(ListingDictDO.class)
                 .eq(StringUtils.isNotBlank(reqVO.getName()), ListingDictDO::getName, reqVO.getName())
-                .like(StringUtils.isNotBlank(reqVO.getKeyword()),ListingDictDO::getKeywordResume, reqVO.getKeyword())
                 .orderByDesc(ListingDictDO::getCreateTime);
         return selectPage(reqVO, wrapper);
     }

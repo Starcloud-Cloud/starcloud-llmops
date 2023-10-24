@@ -53,7 +53,17 @@ public interface DictService {
     /**
      * 新增关键词
      *
-     * @param modifyReqVO
+     * @param uid
+     * @param keys
      */
-    void addKeyword(DictModifyReqVO modifyReqVO);
+    void addKeyword(String uid, List<String> keys);
+
+
+    /**
+     * 删除关键词
+     *
+     * @param uid
+     * @param keys
+     */
+    void removeKey(String uid, List<String> keys);
 }

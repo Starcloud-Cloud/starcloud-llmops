@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.listing.controller.admin.vo.request;
 
-
-import com.starcloud.ops.business.listing.dto.KeywordResumeDTO;
+import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
+import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -18,9 +18,10 @@ public class DictCreateReqVO {
 
     @Schema(description = "站点")
     @NotBlank(message = "站点不能为空")
+    @InEnum(value = SellerSpriteMarketEnum.class, message = "应用类型[{value}]必须是: {values}")
     private String endpoint;
 
-    @Schema(description = "关键词摘要")
-    private List<KeywordResumeDTO> keywordResume;
+    @Schema(description = "关键词")
+    private List<String> keys;
 
 }

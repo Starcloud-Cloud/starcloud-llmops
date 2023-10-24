@@ -47,29 +47,29 @@ public interface DraftService {
      *
      * @param saveReqVO
      */
-    void saveDraft(DraftSaveReqVO saveReqVO);
+    DraftRespVO saveDraftVersion(DraftReqVO saveReqVO);
 
     /**
      * 批量导出草稿
      *
-     * @param operationReq
+     * @param ids
      * @return
      */
-    List<DraftDetailExcelVO> export(List<DraftOperationReqVO> operationReq);
+    List<DraftDetailExcelVO> export(List<Long> ids);
 
     /**
      * 批量删除草稿
      *
-     * @param operationReq
+     * @param ids
      */
-    void delete(List<DraftOperationReqVO> operationReq);
+    void delete(List<Long> ids);
 
     /**
      * 绑定&分析关键词
      *
      * @param reqVO
      */
-    void addKeyword(DraftSaveReqVO reqVO);
+    void addKeyword(DraftOperationReqVO reqVO);
 
     /**
      * 批量执行
@@ -77,4 +77,24 @@ public interface DraftService {
      * @param operationReq
      */
     void batchExecute(List<DraftOperationReqVO> operationReq);
+
+    /**
+     * 移除关键词
+     *
+     * @param reqVO
+     */
+    void removeKeyword(DraftOperationReqVO reqVO);
+
+    /**
+     * 导入词库中的关键词
+     *
+     * @param reqVO
+     */
+    void importDict(ImportDictReqVO reqVO);
+
+    /**
+     * 计算得分
+     * @param reqVO
+     */
+    DraftRespVO score(DraftReqVO reqVO);
 }

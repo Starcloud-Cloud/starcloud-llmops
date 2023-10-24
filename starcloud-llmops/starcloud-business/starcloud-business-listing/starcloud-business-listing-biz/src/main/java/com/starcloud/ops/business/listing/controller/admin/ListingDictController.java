@@ -50,7 +50,7 @@ public class ListingDictController {
 
     @DeleteMapping("/delete")
     @Operation(summary = "批量删除词库", description = "批量删除词库")
-    public CommonResult<Boolean> delete(@RequestParam("uids") List<String> uids) {
+    public CommonResult<Boolean> delete(@RequestBody List<String> uids) {
         dictService.deleteDict(uids);
         return CommonResult.success(true);
     }
@@ -59,5 +59,22 @@ public class ListingDictController {
     @Operation(summary = "词库详情", description = "词库详情")
     public CommonResult<DictRespVO> dictDetail(@PathVariable("uid") String uid) {
         return CommonResult.success(dictService.dictDetail(uid));
+    }
+
+    @PutMapping("/key/add/{uid}")
+    @Operation(summary = "新增关键词", description = "新增关键词")
+    public CommonResult<Boolean> addKeyword(@PathVariable("uid") String uid,
+                                            @RequestBody List<String> keys) {
+        dictService.addKeyword(uid, keys);
+        return CommonResult.success(true);
+    }
+
+
+    @PutMapping("/key/remove/{uid}")
+    @Operation(summary = "新增关键词", description = "新增关键词")
+    public CommonResult<Boolean> deleteKey(@PathVariable("uid") String uid,
+                                           @RequestBody List<String> keys) {
+        dictService.removeKey(uid, keys);
+        return CommonResult.success(true);
     }
 }
