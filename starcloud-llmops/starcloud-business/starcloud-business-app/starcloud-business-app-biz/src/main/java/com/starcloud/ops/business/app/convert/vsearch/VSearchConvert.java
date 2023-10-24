@@ -53,7 +53,7 @@ public interface VSearchConvert {
             if (request.getImageStrength() != null) {
                 vSearchImageRequest.setStartSchedule(request.getImageStrength());
             } else {
-                vSearchImageRequest.setStartSchedule(0.65);
+                vSearchImageRequest.setStartSchedule(0.6);
             }
         }
 
@@ -90,7 +90,7 @@ public interface VSearchConvert {
         if (request.getImageStrength() != null) {
             vSearchImageRequest.setStartSchedule(request.getImageStrength());
         } else {
-            vSearchImageRequest.setStartSchedule(0.65);
+            vSearchImageRequest.setStartSchedule(0.6);
         }
 
         vSearchImageRequest.setPrompts(prompts);

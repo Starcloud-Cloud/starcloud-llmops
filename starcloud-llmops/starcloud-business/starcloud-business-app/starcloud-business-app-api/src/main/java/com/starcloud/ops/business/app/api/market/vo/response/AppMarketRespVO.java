@@ -201,4 +201,10 @@ public class AppMarketRespVO implements Serializable {
     @Schema(description = "更新者")
     private String updater;
 
+    /**
+     * 是否收藏
+     */
+    @Schema(description = "是否收藏")
+    private Boolean isFavorite;
+
 }

@@ -34,6 +34,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -129,6 +130,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 throw exception(ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
             }
             imageResponse.setFromScene(request.getScene());
+            imageResponse.setGenerateTime(new Date());
             // 扣除权益
             Integer costPoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
             benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) costPoints, request.getUserId(), request.getConversationUid());

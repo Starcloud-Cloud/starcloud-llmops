@@ -26,6 +26,18 @@ public class AppFavoriteRespVO extends AppMarketRespVO {
     private static final long serialVersionUID = 4430780734779852216L;
 
     /**
+     * 收藏 UID
+     */
+    @Schema(description = "收藏 UID")
+    private String favoriteUid;
+
+    /**
+     * 收藏者 ID
+     */
+    @Schema(description = "收藏者 ID")
+    private String favoriteCreator;
+
+    /**
      * 收藏时间
      */
     @Schema(description = "收藏时间")
