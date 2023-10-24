@@ -58,6 +58,18 @@ public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
     AppFavoritePO getMarketInfo(@Param("uid") String uid);
 
     /**
+     * 查询用户收藏的应用列表
+     *
+     * @param userId 用户ID
+     * @return 收藏应用列表
+     */
+    default List<AppFavoriteDO> listByUserId(String userId) {
+        LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(AppFavoriteDO::getCreator, userId);
+        return selectList(wrapper);
+    }
+
+    /**
      * 查询用户收藏的应用列表，只查询少量字段
      *
      * @param query 搜索条件

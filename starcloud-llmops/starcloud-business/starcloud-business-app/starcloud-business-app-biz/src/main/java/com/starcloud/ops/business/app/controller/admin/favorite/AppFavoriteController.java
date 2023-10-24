@@ -9,13 +9,16 @@ import com.starcloud.ops.business.app.api.favorite.vo.request.AppFavoriteCancelR
 import com.starcloud.ops.business.app.api.favorite.vo.request.AppFavoriteCreateReqVO;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.service.favorite.AppFavoriteService;
+import com.starcloud.ops.business.app.service.spell.SpellService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -44,14 +47,14 @@ public class AppFavoriteController {
     @PostMapping("/list")
     @Operation(summary = "获取当前用户的收藏应用列表", description = "获取当前用户的收藏应用列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<List<AppFavoriteRespVO>> list(@Validated @RequestBody AppFavoriteListReqVO query) {
+    public CommonResult<List<AppFavoriteRespVO>> list(@Validated @RequestBody(required = false) AppFavoriteListReqVO query) {
         return CommonResult.success(appFavoriteService.list(query));
     }
 
     @PostMapping("/page")
     @Operation(summary = "获取当前用户的收藏应用分页列表", description = "获取当前用户的收藏应用分页列表")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<PageResp<AppFavoriteRespVO>> page(@Validated @RequestBody AppFavoritePageReqVO query) {
+    public CommonResult<PageResp<AppFavoriteRespVO>> page(@Validated @RequestBody(required = false) AppFavoritePageReqVO query) {
         return CommonResult.success(appFavoriteService.page(query));
     }
 
@@ -69,6 +72,14 @@ public class AppFavoriteController {
     public CommonResult<Boolean> cancel(@Validated @RequestBody AppFavoriteCancelReqVO request) {
         appFavoriteService.cancel(request);
         return CommonResult.success(Boolean.TRUE);
+    }
+
+    @Resource
+    private SpellService spellService;
+
+    @GetMapping("/test")
+    public CommonResult<String> test(@RequestParam("text") String text) {
+        return CommonResult.success(spellService.getSpell(text));
     }
 
 }

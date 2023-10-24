@@ -105,10 +105,11 @@ public class AppMarketServiceImpl implements AppMarketService {
     public List<AppMarketGroupCategoryRespVO> listGroupByCategory(AppMarketListGroupByCategoryQuery query) {
         List<AppMarketGroupCategoryRespVO> result = Lists.newArrayList();
 
-        // 查询应用市场列表
-        AppMarketListQuery appMarketListQuery = new AppMarketListQuery();
-        appMarketListQuery.setModel(AppModelEnum.COMPLETION.name());
-        List<AppMarketDO> appMarketList = appMarketMapper.defaultListMarketApp(appMarketListQuery);
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+
+        // 查询用户收藏的应用列表
+        List<AppFavoriteDO> favoriteList = appFavoritesMapper.listByUserId(String.valueOf(loginUserId));
 
         // 是否查询热门搜索的应用
         if (query.getIsHot()) {
@@ -122,6 +123,11 @@ public class AppMarketServiceImpl implements AppMarketService {
                             .map(name -> hotSearchList.stream().filter(item -> name.equals(item.getName())).findFirst().orElse(null))
                             .filter(Objects::nonNull)
                             .map(AppMarketConvert.INSTANCE::convertResponse)
+                            .peek(item -> {
+                                if (CollectionUtil.isNotEmpty(favoriteList)) {
+                                    item.setIsFavorite(favoriteList.parallelStream().anyMatch(favorite -> item.getUid().equals(favorite.getMarketUid())));
+                                }
+                            })
                             .collect(Collectors.toList());
                     AppMarketGroupCategoryRespVO hotSearchResponse = new AppMarketGroupCategoryRespVO();
                     hotSearchResponse.setName("热门");
@@ -134,6 +140,11 @@ public class AppMarketServiceImpl implements AppMarketService {
             }
         }
 
+        // 查询应用市场列表
+        AppMarketListQuery appMarketListQuery = new AppMarketListQuery();
+        appMarketListQuery.setModel(AppModelEnum.COMPLETION.name());
+        List<AppMarketDO> appMarketList = appMarketMapper.defaultListMarketApp(appMarketListQuery);
+
         // 如果为空，直接返回
         if (CollectionUtil.isEmpty(appMarketList)) {
             return result;
@@ -142,7 +153,13 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 按照类别分组
         Map<String, List<AppMarketRespVO>> appMap = CollectionUtil.emptyIfNull(appMarketList).parallelStream()
                 .filter(item -> StringUtils.isNotBlank(item.getCategory()))
-                .map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.groupingBy(AppMarketRespVO::getCategory));
+                .map(AppMarketConvert.INSTANCE::convertResponse)
+                .peek(item -> {
+                    if (CollectionUtil.isNotEmpty(favoriteList)) {
+                        item.setIsFavorite(favoriteList.parallelStream().anyMatch(favorite -> item.getUid().equals(favorite.getMarketUid())));
+                    }
+                })
+                .collect(Collectors.groupingBy(AppMarketRespVO::getCategory));
 
         // 目前是两层树，二级分类。
         List<AppCategoryVO> categoryTreeList = appDictionaryService.categoryTree();
