@@ -53,7 +53,7 @@ public class BaseImageResponse implements Serializable {
      * 生成时间
      */
     @Schema(description = "生成时间")
-    private Date generateTime = new Date();
+    private Date finishTime = new Date();
 
     /**
      * 构造空的响应
@@ -64,7 +64,7 @@ public class BaseImageResponse implements Serializable {
     public static BaseImageResponse ofEmpty(String fromScene) {
         BaseImageResponse response = new BaseImageResponse();
         response.setFromScene(fromScene);
-        response.setGenerateTime(new Date());
+        response.setFinishTime(new Date());
         response.setImages(Collections.emptyList());
         return response;
     }
