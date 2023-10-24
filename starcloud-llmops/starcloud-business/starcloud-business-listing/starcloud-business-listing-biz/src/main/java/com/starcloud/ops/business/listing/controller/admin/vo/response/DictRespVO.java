@@ -26,9 +26,6 @@ public class DictRespVO {
     @Schema(description = "关键词摘要")
     private List<String> keywordResume;
 
-    @Schema(description = "关键词数据")
-    private List<KeywordMetaDataDTO> keywordMetaData;
-
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
