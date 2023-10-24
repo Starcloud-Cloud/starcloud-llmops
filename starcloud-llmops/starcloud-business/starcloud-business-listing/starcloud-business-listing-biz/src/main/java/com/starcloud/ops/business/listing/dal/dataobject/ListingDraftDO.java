@@ -34,7 +34,7 @@ public class ListingDraftDO extends TenantBaseDO {
     /**
      * 草稿总分
      */
-    private Integer score;
+    private Double score;
 
     /**
      * listing 标题

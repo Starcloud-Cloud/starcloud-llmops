@@ -19,8 +19,7 @@ public class DraftConfigDTO {
 
 
     @Schema(description = "五点数量")
-    private Integer fiveDescNum;
-//
+    private Integer fiveDescNum = 5;
 
     @Schema(description = "标题配置")
     private DraftContentConfigDTO titleConfig;

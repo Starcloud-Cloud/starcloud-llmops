@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictCreateReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictModifyReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictPageReqVO;
@@ -134,7 +135,7 @@ public class DictServiceImpl implements DictService {
             return;
         }
         List<String> newKey = keys.stream()
-                .map(String::trim).distinct().collect(Collectors.toList());
+                .map(String::trim).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
 
         List<String> oldKey = keywordBindMapper.getByDictId(dictDO.getId())
                 .stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
@@ -155,7 +156,7 @@ public class DictServiceImpl implements DictService {
     }
 
     private void execute(List<String> keys, ListingDictDO dictDO) {
-        List<String> keywords = keys.stream().map(String::trim)
+        List<String> keywords = keys.stream().map(String::trim).filter(StringUtils::isNotBlank)
                 .distinct().collect(Collectors.toList());
         dictDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
         keywordBindService.addDictKeyword(keywords, dictDO.getId());
