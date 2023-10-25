@@ -293,6 +293,13 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
         if (status == 429) {
             return ErrorCodeConstants.EXECUTE_IMAGE_FEIGN_429_FAILURE;
         }
+        if (status == -1) {
+            // 连接超时
+            if (StringUtils.contains(exception.getMessage(), "timed out")) {
+                return ErrorCodeConstants.EXECUTE_IMAGE_FEIGN_TIME_OUT_FAILURE;
+            }
+            return ErrorCodeConstants.EXECUTE_IMAGE_FEIGN_500_FAILURE;
+        }
         return ErrorCodeConstants.EXECUTE_IMAGE_FEIGN_500_FAILURE;
     }
 

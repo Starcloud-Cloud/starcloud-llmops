@@ -336,9 +336,14 @@ public interface ErrorCodeConstants {
     ErrorCode EXECUTE_IMAGE_FEIGN_429_FAILURE = new ErrorCode(310400429, "生成图片失败：当前请求过多！。请稍后重试或联系管理员！");
 
     /**
-     * 生成图片失败, feign 调用失败， 余额不足！请购买点数！
+     * 生成图片失败, feign 调用失败， 系统异常！
      */
     ErrorCode EXECUTE_IMAGE_FEIGN_500_FAILURE = new ErrorCode(310400450, "生成图片失败：系统异常！。请稍后重试或联系管理员！");
+
+    /**
+     * 生成图片失败, feign 调用失败， 系统异常！
+     */
+    ErrorCode EXECUTE_IMAGE_FEIGN_TIME_OUT_FAILURE = new ErrorCode(310400460, "生成图片失败：连接超时！。请稍后重试或联系管理员！");
 
     /**
      * 创建图片实体失败
