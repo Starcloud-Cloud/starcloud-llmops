@@ -5,6 +5,10 @@ import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywo
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataBasicRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 
 import java.util.List;
 
@@ -51,5 +55,21 @@ public interface KeywordMetadataService {
      * @return
      */
     SellerSpriteListingVO getListingByAsin(String asin, String marketName);
+
+    /**
+     * 根据 ASIN获取变体
+     * @param prepareRequestDTO
+     * @return PrepareReposeDTO
+     */
+    PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO);
+
+
+    /**
+     * 根据 ASIN获取关键词拓展数据
+     *
+     * @param extendAsinRequestDTO
+     * @return ExtendAsinReposeDTO
+     */
+    ExtendAsinReposeDTO extendAsin(ExtendAsinRequestDTO extendAsinRequestDTO);
 
 }

@@ -6,9 +6,12 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictCreateReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.DictKeyPageReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictModifyReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictPageReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.DictKeyPageRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
 import com.starcloud.ops.business.listing.convert.ListingDictConvert;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordBindDO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDictDO;
@@ -18,6 +21,7 @@ import com.starcloud.ops.business.listing.dto.KeywordMetaDataDTO;
 import com.starcloud.ops.business.listing.enums.AnalysisStatusEnum;
 import com.starcloud.ops.business.listing.service.DictService;
 import com.starcloud.ops.business.listing.service.KeywordBindService;
+import com.starcloud.ops.business.listing.service.KeywordMetadataService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -48,6 +52,9 @@ public class DictServiceImpl implements DictService {
 
     @Resource(name = "listingExecutor")
     private ThreadPoolTaskExecutor executor;
+
+    @Resource
+    private KeywordMetadataService keywordMetadataService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -117,15 +124,8 @@ public class DictServiceImpl implements DictService {
         List<String> keywordBinds = keywordBindMapper.getByDictId(dictDO.getId()).stream()
                 .map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         respVO.setKeywordResume(keywordBinds);
-        if (AnalysisStatusEnum.ANALYSIS.name().equals(respVO.getStatus())) {
-            return respVO;
-        }
-
-        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keywordBinds, dictDO.getEndpoint());
-        respVO.setKeywordMetaData(metaData);
         return respVO;
     }
-
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -153,6 +153,19 @@ public class DictServiceImpl implements DictService {
         }
         ListingDictDO dictDO = getDict(uid);
         keywordBindMapper.deleteDictKey(keys, dictDO.getId());
+    }
+
+    @Override
+    public DictKeyPageRespVO queryMetaData(DictKeyPageReqVO pageReqVO) {
+        ListingDictDO dictDO = getDict(pageReqVO.getDictUid());
+        if (AnalysisStatusEnum.ANALYSIS.name().equals(dictDO.getStatus())) {
+            return DictKeyPageRespVO.builder().status(dictDO.getStatus()).build();
+        }
+        List<String> keys = keywordBindMapper.getByDictId(dictDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
+        pageReqVO.setIncludeKeywords(keys);
+        pageReqVO.setMarketName(dictDO.getEndpoint());
+        PageResult<KeywordMetadataRespVO> pageResult = keywordMetadataService.queryMetaData(pageReqVO);
+        return DictKeyPageRespVO.builder().status(dictDO.getStatus()).keywordMetadataResp(pageResult).build();
     }
 
     private void execute(List<String> keys, ListingDictDO dictDO) {

@@ -2,13 +2,12 @@ package com.starcloud.ops.business.listing.service.sellersprite;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
-import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareRepose;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.KeywordMinerRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
@@ -49,7 +48,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     /**
      * 通过 ASIN 获取 Listing
      * <p>
-     * https://www.sellersprite.com/v3/api/listing-builder/get-listing-by-asin?asin=B0949DWJCV&marketPlace=1
      */
     private final static String GET_LISTING_BY_ASIN = "listing-builder/get-listing-by-asin";
 
@@ -118,9 +116,10 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * @param prepareRequestDTO
      */
     @Override
-    public PrepareRepose extendPrepare(PrepareRequestDTO prepareRequestDTO) {
-
-        return null;
+    public PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO) {
+        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_PREPARE, JSONUtil.toJsonStr(prepareRequestDTO), COOKIE);
+        Assert.notBlank(reposeResult,"系统繁忙，请稍后再试");
+        return JSONUtil.toBean(reposeResult, PrepareReposeDTO.class);
     }
 
     /**
@@ -131,8 +130,12 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      */
     @Override
     public ExtendAsinReposeDTO extendAsin(ExtendAsinRequestDTO extendAsinRequestDTO) {
-        return null;
+
+        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_ASIN, JSONUtil.toJsonStr(extendAsinRequestDTO), COOKIE);
+        Assert.notBlank(reposeResult,"系统繁忙，请稍后再试");
+        return JSONUtil.toBean(reposeResult, ExtendAsinReposeDTO.class);
     }
+
 
     /**
      * 根据 ASIN 获取 Listing
@@ -141,7 +144,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     public SellerSpriteListingVO getListingByAsin(String asin, Integer market) {
 
         String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, String.format("asin=%s&marketPlace=%s",asin,market ), COOKIE);
-
+        Assert.notBlank(reposeResult,"系统繁忙，请稍后再试");
         return JSONUtil.toBean(reposeResult, SellerSpriteListingVO.class);
     }
 

@@ -4,10 +4,10 @@ package com.starcloud.ops.business.listing.controller.admin;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.listing.controller.admin.vo.request.DictCreateReqVO;
-import com.starcloud.ops.business.listing.controller.admin.vo.request.DictModifyReqVO;
-import com.starcloud.ops.business.listing.controller.admin.vo.request.DictPageReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.*;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.DictKeyPageRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
 import com.starcloud.ops.business.listing.service.DictService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -71,10 +71,16 @@ public class ListingDictController {
 
 
     @PutMapping("/key/remove/{uid}")
-    @Operation(summary = "新增关键词", description = "新增关键词")
+    @Operation(summary = "删除关键词", description = "删除关键词")
     public CommonResult<Boolean> deleteKey(@PathVariable("uid") String uid,
                                            @RequestBody List<String> keys) {
         dictService.removeKey(uid, keys);
         return CommonResult.success(true);
+    }
+
+    @PostMapping("/key/page")
+    @Operation(summary = "分页查询关键词列表", description = "分页查询关键词列表")
+    public CommonResult<DictKeyPageRespVO> page(@Valid @RequestBody DictKeyPageReqVO pageReqVO) {
+        return CommonResult.success(dictService.queryMetaData(pageReqVO));
     }
 }

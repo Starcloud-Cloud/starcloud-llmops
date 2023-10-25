@@ -12,4 +12,6 @@ public interface ErrorCodeConstant {
 
     ErrorCode DRAFT_IS_EXECUTING = new ErrorCode(500020002, "草稿正在执行中");
 
+    ErrorCode KEYWORD_IS_NOT_EMPTY = new ErrorCode(500020003, "存在绑定的关键词,不允许修改站点");
+
 }

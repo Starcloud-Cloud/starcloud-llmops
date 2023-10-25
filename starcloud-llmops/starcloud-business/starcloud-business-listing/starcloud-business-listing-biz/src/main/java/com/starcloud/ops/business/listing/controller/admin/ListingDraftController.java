@@ -58,7 +58,7 @@ public class ListingDraftController {
     }
 
     @PutMapping("/save")
-    @Operation(summary = "保存草稿 - 不包含关键词", description = "保存草稿")
+    @Operation(summary = "保存草稿", description = "保存草稿")
     public CommonResult<DraftRespVO> save(@Valid @RequestBody DraftReqVO saveReqVO) {
         DraftRespVO draftRespVO = draftService.saveDraftVersion(saveReqVO);
         return CommonResult.success(draftRespVO);

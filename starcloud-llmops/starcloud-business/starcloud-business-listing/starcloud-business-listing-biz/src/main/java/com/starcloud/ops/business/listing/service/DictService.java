@@ -3,8 +3,10 @@ package com.starcloud.ops.business.listing.service;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictCreateReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.DictKeyPageReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictModifyReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictPageReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.DictKeyPageRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespVO;
 
 import java.util.List;
@@ -66,4 +68,12 @@ public interface DictService {
      * @param keys
      */
     void removeKey(String uid, List<String> keys);
+
+    /**
+     * 分页查询关键词数据
+     *
+     * @param pageReqVO
+     * @return
+     */
+    DictKeyPageRespVO queryMetaData(DictKeyPageReqVO pageReqVO);
 }

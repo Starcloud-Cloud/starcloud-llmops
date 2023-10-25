@@ -35,6 +35,7 @@ public class KeywordBindServiceImpl implements KeywordBindService {
     @Override
     public void analysisKeyword(List<String> keys, String endpoint) {
         long start = System.currentTimeMillis();
+        log.info("开始分析关键词");
         Boolean success = metadataService.addMetaData(keys, endpoint);
         if (!success) {
             log.warn("分析关键词失败");
@@ -50,6 +51,7 @@ public class KeywordBindServiceImpl implements KeywordBindService {
             return Collections.emptyList();
         }
         long start = System.currentTimeMillis();
+        log.info("开始查询关键词");
         List<KeywordMetadataBasicRespVO> keywordsBasic = metadataService.getKeywordsBasic(keys, endpoint);
         long end = System.currentTimeMillis();
         log.info("查询关键词成功, {} ms", end - start);

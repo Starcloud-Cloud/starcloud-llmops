@@ -3,8 +3,6 @@ package com.starcloud.ops.business.listing.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -17,9 +15,14 @@ import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywrodMetadataMapper;
 import com.starcloud.ops.business.listing.enums.KeywordMetadataStatusEnum;
 import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
+import com.starcloud.ops.business.listing.service.KeyWordMetadataRepository;
 import com.starcloud.ops.business.listing.service.KeywordMetadataService;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ItemsDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.SellerSpriteService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -30,7 +33,6 @@ import org.springframework.util.concurrent.ListenableFuture;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,9 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
 
     @Resource
     private KeywrodMetadataMapper keywrodMetadataMapper;
+
+    @Resource
+    private KeyWordMetadataRepository keyWordMetadataRepository;
 
 
     /**
@@ -74,6 +79,11 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     public Boolean addMetaData(List<String> keywordList, String marketName) {
         // 站点数据转换
         SellerSpriteMarketEnum sellerSpriteMarketEnum = getMarketInfo(marketName);
+
+        Assert.isFalse(CollUtil.isEmpty(keywordList), "关键词不可为空");
+        // 关键词去重
+        keywordList = CollUtil.distinct(keywordList);
+
 
         List<KeywordMetadataDO> keywordMetadataDOS = keywrodMetadataMapper.selectList(Wrappers.lambdaQuery(KeywordMetadataDO.class)
                 .eq(KeywordMetadataDO::getMarketId, sellerSpriteMarketEnum.getCode())
@@ -104,7 +114,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         List<Boolean> results = new ArrayList<>();
         List<ListenableFuture<Boolean>> futures = new ArrayList<>();
         for (List<String> splitNotInKeyword : splitNotInKeywords) {
-            ListenableFuture<Boolean> booleanListenableFuture = this.executeAsyncRequestData(splitNotInKeyword, sellerSpriteMarketEnum.getCode());
+            ListenableFuture<Boolean> booleanListenableFuture = keyWordMetadataRepository.executeAsyncRequestData(splitNotInKeyword, sellerSpriteMarketEnum.getCode());
             futures.add(booleanListenableFuture);
         }
 
@@ -162,75 +172,29 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     }
 
     /**
-     * 异步同步
+     * 根据 ASIN获取变体
      *
-     * @param keywords
-     * @param marketId
+     * @param prepareRequestDTO
+     * @return
      */
-    @Async
-    @TenantIgnore
-    public ListenableFuture<Boolean> executeAsyncRequestData(List<String> keywords, Integer marketId) {
-        // 初始化不存在数据
-        List<KeywordMetadataDO> keywordMetadataDOInitList = keywords.stream()
-                .map(keyword -> new KeywordMetadataDO()
-                        .setKeyword(keyword)
-                        .setMarketId(Long.valueOf(marketId))
-                        .setStatus(KeywordMetadataStatusEnum.INIT.getCode()))
-                .collect(Collectors.toList());
-
-        // 插入数据
-        keywrodMetadataMapper.insertBatch(keywordMetadataDOInitList);
-
-        KeywordMinerReposeDTO keywordMinerReposeDTO;
-        try {
-            keywordMinerReposeDTO = sellerSpriteService.BatchKeywordMiner(keywords, marketId);
-
-
-            List<ItemsDTO> items = keywordMinerReposeDTO.getItems();
-
-            if (items.isEmpty()) {
-                keywordMetadataDOInitList.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode()));
-                keywrodMetadataMapper.updateBatch(keywordMetadataDOInitList, keywordMetadataDOInitList.size());
-                return AsyncResult.forValue(true);
-            }
-
-            for (KeywordMetadataDO keywordMetadataDO : keywordMetadataDOInitList) {
-                // 查找匹配的ItemsDTO
-                ItemsDTO matchingItem = items.stream()
-                        .filter(item -> item.getKeyword().equals(keywordMetadataDO.getKeyword()))
-                        .findFirst()
-                        .orElse(null);
-
-                if (matchingItem != null) {
-                    // 进行对象转换
-                    KeywordMetadataDO convertDO = KeywordMetadataConvert.INSTANCE.convert(matchingItem);
-                    convertDO.setId(keywordMetadataDO.getId());
-                    convertDO.setCreator(keywordMetadataDO.getCreator());
-                    convertDO.setCreateTime(keywordMetadataDO.getCreateTime());
-                    convertDO.setUpdater(keywordMetadataDO.getUpdater());
-                    convertDO.setUpdateTime(keywordMetadataDO.getUpdateTime());
-                    convertDO.setDeleted(keywordMetadataDO.getDeleted());
-                    BeanUtil.copyProperties(convertDO, keywordMetadataDO);
-                    // 匹配成功，设置状态为成功
-                    keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.SUCCESS.getCode());
-
-                } else {
-                    // 没有匹配，设置状态为失败
-                    keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode());
-                }
-            }
-
-            keywrodMetadataMapper.updateBatch(keywordMetadataDOInitList, keywordMetadataDOInitList.size());
-
-            return AsyncResult.forValue(true);
-        } catch (Exception e) {
-            keywordMetadataDOInitList.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.ERROR.getCode()));
-            keywrodMetadataMapper.updateBatch(keywordMetadataDOInitList, keywordMetadataDOInitList.size());
-            return AsyncResult.forValue(false);
-        }
-
-
+    @Override
+    public PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO) {
+        Assert.notNull(prepareRequestDTO, "根据 ASIN获取变体失败，请求对象不可为空");
+        return sellerSpriteService.extendPrepare(prepareRequestDTO);
     }
+
+    /**
+     * 根据 ASIN获取关键词拓展数据
+     *
+     * @param extendAsinRequestDTO
+     * @return
+     */
+    @Override
+    public ExtendAsinReposeDTO extendAsin(ExtendAsinRequestDTO extendAsinRequestDTO) {
+        Assert.notNull(extendAsinRequestDTO, "根据 ASIN获取变体失败，请求对象不可为空");
+        return sellerSpriteService.extendAsin(extendAsinRequestDTO);
+    }
+
 
 
     private SellerSpriteMarketEnum getMarketInfo(String marketName) {
