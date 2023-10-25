@@ -28,6 +28,12 @@ public class AppFavoriteListReqVO implements Serializable {
     private String name;
 
     /**
+     * 应用名称拼音
+     */
+    @Schema(description = "应用名称拼音")
+    private String spell;
+
+    /**
      * 用户ID
      */
     @Schema(description = "用户ID", hidden = true)

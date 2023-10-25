@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.PinyinCache;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import org.apache.commons.lang3.StringUtils;
@@ -233,44 +234,45 @@ public interface AppConvert {
      * @return AppRespVO
      */
     default AppRespVO convertResponse(AppDO app, boolean needUserName) {
-        AppRespVO appRespVO = new AppRespVO();
-        appRespVO.setUid(app.getUid());
-        appRespVO.setName(app.getName());
-        appRespVO.setModel(app.getModel());
-        appRespVO.setType(app.getType());
-        appRespVO.setSource(app.getSource());
-        appRespVO.setSort(app.getSort());
-        appRespVO.setCategory(app.getCategory());
-        appRespVO.setTags(AppUtils.split(app.getTags()));
-        appRespVO.setScenes(AppUtils.splitScenes(app.getScenes()));
-        appRespVO.setImages(AppUtils.split(app.getImages()));
-        appRespVO.setIcon(app.getIcon());
-        appRespVO.setDescription(app.getDescription());
-        appRespVO.setPublishUid(app.getPublishUid());
-        appRespVO.setInstallUid(app.getInstallUid());
-        appRespVO.setCreator(app.getCreator());
-        appRespVO.setUpdater(app.getUpdater());
-        appRespVO.setTenantId(app.getTenantId());
+        AppRespVO appResponse = new AppRespVO();
+        appResponse.setUid(app.getUid());
+        appResponse.setName(app.getName());
+        appResponse.setSpell(PinyinCache.get(app.getName()));
+        appResponse.setModel(app.getModel());
+        appResponse.setType(app.getType());
+        appResponse.setSource(app.getSource());
+        appResponse.setSort(app.getSort());
+        appResponse.setCategory(app.getCategory());
+        appResponse.setTags(AppUtils.split(app.getTags()));
+        appResponse.setScenes(AppUtils.splitScenes(app.getScenes()));
+        appResponse.setImages(AppUtils.split(app.getImages()));
+        appResponse.setIcon(app.getIcon());
+        appResponse.setDescription(app.getDescription());
+        appResponse.setPublishUid(app.getPublishUid());
+        appResponse.setInstallUid(app.getInstallUid());
+        appResponse.setCreator(app.getCreator());
+        appResponse.setUpdater(app.getUpdater());
+        appResponse.setTenantId(app.getTenantId());
         if (needUserName) {
-            appRespVO.setCreatorName(UserUtils.getUsername(app.getCreator()));
-            appRespVO.setUpdaterName(UserUtils.getUsername(app.getUpdater()));
+            appResponse.setCreatorName(UserUtils.getUsername(app.getCreator()));
+            appResponse.setUpdaterName(UserUtils.getUsername(app.getUpdater()));
         }
-        appRespVO.setCreateTime(app.getCreateTime());
-        appRespVO.setUpdateTime(app.getUpdateTime());
-        appRespVO.setLastPublish(app.getLastPublish());
+        appResponse.setCreateTime(app.getCreateTime());
+        appResponse.setUpdateTime(app.getUpdateTime());
+        appResponse.setLastPublish(app.getLastPublish());
         // 处理配置
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-                appRespVO.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigRespVO.class));
-                appRespVO.setActionIcons(buildActionIcons(appRespVO.getWorkflowConfig()));
+                appResponse.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigRespVO.class));
+                appResponse.setActionIcons(buildActionIcons(appResponse.getWorkflowConfig()));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-                appRespVO.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigRespVO.class));
+                appResponse.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigRespVO.class));
             } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
-                appRespVO.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigRespVO.class));
+                appResponse.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigRespVO.class));
             }
         }
 
-        return appRespVO;
+        return appResponse;
     }
 
     /**

@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.PinyinCache;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import org.apache.commons.collections4.CollectionUtils;
 import org.mapstruct.Mapper;
@@ -43,6 +44,7 @@ public interface AppFavoriteConvert {
         AppFavoriteRespVO response = new AppFavoriteRespVO();
         response.setUid(favorite.getUid());
         response.setName(favorite.getName());
+        response.setSpell(PinyinCache.get(favorite.getName()));
         response.setType(favorite.getType());
         response.setModel(favorite.getModel());
         response.setVersion(favorite.getVersion());
@@ -65,6 +67,7 @@ public interface AppFavoriteConvert {
         response.setCreateTime(favorite.getCreateTime());
         response.setUpdateTime(favorite.getUpdateTime());
 
+        response.setIsFavorite(Boolean.TRUE);
         response.setFavoriteUid(favorite.getFavoriteUid());
         response.setFavoriteCreator(favorite.getFavoriteCreator());
         response.setFavoriteTime(favorite.getFavoriteTime());

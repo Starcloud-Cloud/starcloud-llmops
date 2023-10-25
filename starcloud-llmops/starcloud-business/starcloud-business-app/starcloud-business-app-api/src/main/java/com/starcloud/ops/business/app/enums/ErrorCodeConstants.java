@@ -48,6 +48,11 @@ public interface ErrorCodeConstants {
     /**
      * 不支持的应用分类
      */
+    ErrorCode APP_CATEGORY_REQUIRED = new ErrorCode(300100150, "应用分类是必填项！");
+
+    /**
+     * 不支持的应用分类
+     */
     ErrorCode APP_CATEGORY_NONSUPPORT = new ErrorCode(300100150, "不支持的应用分类，请检查后重试（{}）！");
 
     /**
