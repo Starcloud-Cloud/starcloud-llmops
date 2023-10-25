@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.mysql.favorite;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,7 +12,11 @@ import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 应用操作关联 Mapper 接口
@@ -67,6 +72,20 @@ public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
         LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(AppFavoriteDO::getCreator, userId);
         return selectList(wrapper);
+    }
+
+    /**
+     * 查询用户收藏的应用Map
+     *
+     * @param userId 用户ID
+     * @return 收藏应用Map
+     */
+    default Map<String, AppFavoriteDO> mapByUserId(String userId) {
+        List<AppFavoriteDO> list = listByUserId(userId);
+        if (CollectionUtil.isEmpty(list)) {
+            return Collections.emptyMap();
+        }
+        return list.stream().collect(Collectors.toMap(AppFavoriteDO::getMarketUid, Function.identity()));
     }
 
     /**

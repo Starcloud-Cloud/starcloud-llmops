@@ -108,8 +108,8 @@ public class AppMarketServiceImpl implements AppMarketService {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
 
-        // 查询用户收藏的应用列表
-        List<AppFavoriteDO> favoriteList = appFavoritesMapper.listByUserId(String.valueOf(loginUserId));
+        // 查询用户收藏的应用Map, key为应用市场 UID
+        Map<String, AppFavoriteDO> favoriteMap = appFavoritesMapper.mapByUserId(String.valueOf(loginUserId));
 
         // 是否查询热门搜索的应用
         if (query.getIsHot()) {
@@ -124,8 +124,8 @@ public class AppMarketServiceImpl implements AppMarketService {
                             .filter(Objects::nonNull)
                             .map(AppMarketConvert.INSTANCE::convertResponse)
                             .peek(item -> {
-                                if (CollectionUtil.isNotEmpty(favoriteList)) {
-                                    item.setIsFavorite(favoriteList.parallelStream().anyMatch(favorite -> item.getUid().equals(favorite.getMarketUid())));
+                                if (CollectionUtil.isNotEmpty(favoriteMap)) {
+                                    item.setIsFavorite(favoriteMap.containsKey(item.getUid()));
                                 }
                             })
                             .collect(Collectors.toList());
@@ -155,8 +155,8 @@ public class AppMarketServiceImpl implements AppMarketService {
                 .filter(item -> StringUtils.isNotBlank(item.getCategory()))
                 .map(AppMarketConvert.INSTANCE::convertResponse)
                 .peek(item -> {
-                    if (CollectionUtil.isNotEmpty(favoriteList)) {
-                        item.setIsFavorite(favoriteList.parallelStream().anyMatch(favorite -> item.getUid().equals(favorite.getMarketUid())));
+                    if (CollectionUtil.isNotEmpty(favoriteMap)) {
+                        item.setIsFavorite(favoriteMap.containsKey(item.getUid()));
                     }
                 })
                 .collect(Collectors.groupingBy(AppMarketRespVO::getCategory));
