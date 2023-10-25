@@ -13,20 +13,15 @@ import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMe
 import com.starcloud.ops.business.listing.convert.KeywordMetadataConvert;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywrodMetadataMapper;
-import com.starcloud.ops.business.listing.enums.KeywordMetadataStatusEnum;
 import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
 import com.starcloud.ops.business.listing.service.KeyWordMetadataRepository;
 import com.starcloud.ops.business.listing.service.KeywordMetadataService;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
-import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ItemsDTO;
-import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.SellerSpriteService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -63,7 +58,6 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     @Override
     @TenantIgnore
     public PageResult<KeywordMetadataRespVO> queryMetaData(QueryKeywordMetadataPageReqVO pageReqVO) {
-
         return KeywordMetadataConvert.INSTANCE.convertPage(keywrodMetadataMapper.selectPage(pageReqVO));
     }
 
