@@ -182,4 +182,9 @@ public class QueryKeywordMetadataPageReqVO extends PageParam {
      */
     private Boolean amazonChoice;
 
+    /**
+     * 倒序
+     */
+    private Boolean desc ;
+
 }
