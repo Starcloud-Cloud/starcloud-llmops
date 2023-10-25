@@ -37,7 +37,8 @@ public interface ListingDraftMapper extends BaseMapperX<ListingDraftDO> {
 
     default List<ListingDraftDO> listVersion(String uid) {
         LambdaQueryWrapper<ListingDraftDO> wrapper = Wrappers.lambdaQuery(ListingDraftDO.class)
-                .eq(ListingDraftDO::getUid, uid);
+                .eq(ListingDraftDO::getUid, uid)
+                .orderByDesc(ListingDraftDO::getVersion);
         return selectList(wrapper);
     }
 

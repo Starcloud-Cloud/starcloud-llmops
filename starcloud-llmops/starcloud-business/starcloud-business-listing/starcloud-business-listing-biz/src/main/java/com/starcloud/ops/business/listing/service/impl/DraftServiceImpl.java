@@ -137,17 +137,26 @@ public class DraftServiceImpl implements DraftService {
 
         ListingDraftDO draftDO = getVersion(reqVO.getUid(), reqVO.getVersion());
 
+        if (StringUtils.isNotBlank(reqVO.getEndpoint()) && !reqVO.getEndpoint().equals(draftDO.getEndpoint())) {
+            List<KeywordBindDO> keywordBindDOS = keywordBindMapper.getByDraftId(draftDO.getId());
+            if (CollectionUtils.isNotEmpty(keywordBindDOS)) {
+                throw exception(KEYWORD_IS_NOT_EMPTY);
+            }
+        }
         ListingDraftConvert.INSTANCE.update(reqVO, draftDO);
-
-//        ListingDraftDO latest = draftMapper.getLatest(reqVO.getUid());
-//        draftDO.setVersion(Math.addExact(latest.getVersion(), 1));
         draftDO.setVersion(1);
-//        draftDO.setId(null);
+
+        if (CollectionUtils.isNotEmpty(reqVO.getKeys())) {
+            DraftOperationReqVO operationReqVO = new DraftOperationReqVO();
+            operationReqVO.setUid(reqVO.getUid());
+            operationReqVO.setVersion(reqVO.getVersion());
+            operationReqVO.setAddKey(reqVO.getKeys());
+            addKeyword(operationReqVO);
+        }
 
         DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
         draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
 
-//        draftMapper.insert(draftDO);
         draftMapper.updateById(draftDO);
         return ListingDraftConvert.INSTANCE.convert(draftDO);
     }
@@ -219,9 +228,11 @@ public class DraftServiceImpl implements DraftService {
         }
         ListingDraftDO draftDO = getVersion(reqVO.getUid(), reqVO.getVersion());
         List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
+        List<String> removeKey = reqVO.getRemoveBindKey().stream().map(String::trim).collect(Collectors.toList());
+        keys.removeAll(removeKey);
         updateDo(draftDO, keys);
         draftMapper.updateById(draftDO);
-        keywordBindMapper.deleteDraftKey(reqVO.getRemoveBindKey(), draftDO.getId());
+        keywordBindMapper.deleteDraftKey(removeKey, draftDO.getId());
     }
 
     @Override
@@ -338,6 +349,8 @@ public class DraftServiceImpl implements DraftService {
         if (metaData.size() > 0) {
             List<KeywordMetaDataDTO> keywordMetaData = metaData.subList(0, Math.min(metaData.size(), 5));
             config.setRecommendKeys(ListingKeywordConvert.INSTANCE.convert2(keywordMetaData));
+        } else {
+            config.setRecommendKeys(Collections.emptyList());
         }
         return config;
     }
@@ -365,6 +378,14 @@ public class DraftServiceImpl implements DraftService {
         draftDO.setScore((double) 0);
     }
 
+    /**
+     * 搜索量计算
+     *
+     * @param keys
+     * @param respVO
+     * @param metaMap
+     * @return
+     */
     private Long containsKeySearchers(List<String> keys, DraftRespVO respVO, Map<String, KeywordMetaDataDTO> metaMap) {
         String title = respVO.getTitle();
         String productDesc = respVO.getProductDesc();
