@@ -43,6 +43,12 @@ public class AppMarketRespVO implements Serializable {
     private String name;
 
     /**
+     * 应用名称拼音
+     */
+    @Schema(description = "应用名称拼音")
+    private String spell;
+
+    /**
      * 应用类型
      */
     @Schema(description = "应用类型")
@@ -200,5 +206,11 @@ public class AppMarketRespVO implements Serializable {
      */
     @Schema(description = "更新者")
     private String updater;
+
+    /**
+     * 是否收藏
+     */
+    @Schema(description = "是否收藏")
+    private Boolean isFavorite;
 
 }

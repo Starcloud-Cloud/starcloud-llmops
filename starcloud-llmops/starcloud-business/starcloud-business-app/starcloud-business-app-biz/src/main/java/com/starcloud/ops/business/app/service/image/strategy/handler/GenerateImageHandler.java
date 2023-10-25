@@ -67,7 +67,7 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         // 初始化图片
         if (StringUtils.isNotBlank(request.getInitImage())) {
             if (Objects.isNull(request.getImageStrength())) {
-                request.setImageStrength(0.65);
+                request.setImageStrength(0.6);
             }
         }
         // 提示词

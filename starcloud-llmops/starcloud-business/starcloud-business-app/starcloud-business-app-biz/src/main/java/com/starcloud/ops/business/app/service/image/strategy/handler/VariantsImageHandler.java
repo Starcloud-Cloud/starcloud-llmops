@@ -67,7 +67,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
 
         // 初始化图片
         if (Objects.isNull(request.getImageStrength())) {
-            request.setImageStrength(0.65);
+            request.setImageStrength(0.6);
         }
         request.setPrompt(ImageUtils.handlePrompt(request.getPrompt(), Boolean.TRUE));
         // 反义词

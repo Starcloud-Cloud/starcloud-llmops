@@ -1,14 +1,22 @@
 package com.starcloud.ops.business.app.dal.mysql.favorite;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoriteListReqVO;
+import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoritePageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 应用操作关联 Mapper 接口
@@ -21,21 +29,81 @@ import java.util.List;
 public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
 
     /**
-     * 查询用户收藏的应用列表，只查询少量字段
+     * 根据收藏UID查询收藏的应用记录
      *
-     * @param userId 用户ID
-     * @return 应用列表
+     * @param uid 收藏UID
+     * @return 收藏的应用
      */
-    List<AppFavoritePO> listFavorite(@Param("userId") String userId);
+    default AppFavoriteDO get(String uid) {
+        LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(AppFavoriteDO::getUid, uid);
+        return selectOne(wrapper);
+    }
+
+    /**
+     * 根据应用UID和用户ID查询收藏的应用
+     *
+     * @param marketUid 应用UID
+     * @param userId    用户ID
+     * @return 收藏的应用
+     */
+    default AppFavoriteDO get(String marketUid, String userId) {
+        LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(AppFavoriteDO::getMarketUid, marketUid);
+        wrapper.eq(AppFavoriteDO::getCreator, userId);
+        return selectOne(wrapper);
+    }
 
     /**
      * 根据用户ID和应用UID查询收藏的应用
      *
-     * @param userId 用户ID
-     * @param appUid 应用UID
+     * @param uid 用户ID
      * @return 收藏的应用
      */
-    AppFavoritePO getFavoriteApp(@Param("userId") String userId, @Param("appUid") String appUid);
+    AppFavoritePO getMarketInfo(@Param("uid") String uid);
+
+    /**
+     * 查询用户收藏的应用列表
+     *
+     * @param userId 用户ID
+     * @return 收藏应用列表
+     */
+    default List<AppFavoriteDO> listByUserId(String userId) {
+        LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(AppFavoriteDO::getCreator, userId);
+        return selectList(wrapper);
+    }
+
+    /**
+     * 查询用户收藏的应用Map
+     *
+     * @param userId 用户ID
+     * @return 收藏应用Map
+     */
+    default Map<String, AppFavoriteDO> mapByUserId(String userId) {
+        List<AppFavoriteDO> list = listByUserId(userId);
+        if (CollectionUtil.isEmpty(list)) {
+            return Collections.emptyMap();
+        }
+        return list.stream().collect(Collectors.toMap(AppFavoriteDO::getMarketUid, Function.identity()));
+    }
+
+    /**
+     * 查询用户收藏的应用列表，只查询少量字段
+     *
+     * @param query 搜索条件
+     * @return 收藏应用列表
+     */
+    List<AppFavoritePO> list(@Param("query") AppFavoriteListReqVO query);
+
+    /**
+     * 分页查询用户收藏的应用列表
+     *
+     * @param page  分页参数
+     * @param query 搜索条件
+     * @return 收藏应用列表
+     */
+    IPage<AppFavoritePO> page(IPage<AppFavoritePO> page, @Param("query") AppFavoritePageReqVO query);
 
     /**
      * 根据应用UID删除收藏的应用
@@ -44,7 +112,7 @@ public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
      */
     default void deleteByMarketUid(String marketUid) {
         LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(AppFavoriteDO::getAppUid, marketUid);
+        wrapper.eq(AppFavoriteDO::getMarketUid, marketUid);
         delete(wrapper);
     }
 }

@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.PinyinCache;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
@@ -224,6 +225,7 @@ public interface AppMarketConvert {
         AppMarketRespVO appMarketResponse = new AppMarketRespVO();
         appMarketResponse.setUid(appMarket.getUid());
         appMarketResponse.setName(appMarket.getName());
+        appMarketResponse.setSpell(PinyinCache.get(appMarket.getName()));
         appMarketResponse.setType(appMarket.getType());
         appMarketResponse.setModel(appMarket.getModel());
         appMarketResponse.setVersion(appMarket.getVersion());

@@ -277,20 +277,26 @@ public class AppServiceImpl implements AppService {
      * @param request 请求信息
      */
     private void handlerAndValidateRequest(AppReqVO request) {
-        List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
-        Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
-        if (!categoryOptional.isPresent()) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
+        // 应用类目校验
+        if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
+            if (StringUtils.isBlank(request.getCategory())) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_REQUIRED, request.getCategory());
+            }
+            List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
+            Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
+            if (!categoryOptional.isPresent()) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
+            }
+            AppCategoryVO category = categoryOptional.get();
+            if (AppConstants.ROOT.equals(category.getParentCode())) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
+            }
+            if (StringUtils.isBlank(request.getIcon())) {
+                request.setIcon(category.getIcon());
+            }
+            // 图片默认为分类图片
+            request.setImages(Collections.singletonList(category.getImage()));
         }
-        AppCategoryVO category = categoryOptional.get();
-        if (AppConstants.ROOT.equals(category.getParentCode())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
-        }
-        if (StringUtils.isBlank(request.getIcon())) {
-            request.setIcon(category.getIcon());
-        }
-        // 图片默认为分类图片
-        request.setImages(Collections.singletonList(category.getImage()));
 
         // 未指定应用类型，默认为普通应用
         if (StringUtils.isBlank(request.getType())) {
