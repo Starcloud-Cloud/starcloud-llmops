@@ -71,8 +71,7 @@ public class AppReqVO implements Serializable {
     /**
      * 应用类别
      */
-    @Schema(description = "应用类别", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "应用类别是必填的！")
+    @Schema(description = "应用类目")
     private String category;
 
     /**
