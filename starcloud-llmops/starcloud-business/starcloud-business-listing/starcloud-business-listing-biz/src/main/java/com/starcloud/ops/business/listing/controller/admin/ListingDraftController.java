@@ -71,7 +71,7 @@ public class ListingDraftController {
         return CommonResult.success(draftRespVO);
     }
 
-    @GetMapping("/export")
+    @PostMapping("/export")
     @Operation(summary = "导出草稿", description = "导出草稿")
     public void export(@Valid @RequestBody List<Long> ids, HttpServletResponse response) throws IOException {
         List<DraftDetailExcelVO> export = draftService.export(ids);
