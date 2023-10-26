@@ -303,7 +303,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional(rollbackFor = Exception.class)
     public DraftRespVO cloneDraft(DraftOperationReqVO reqVO) {
         ListingDraftDO sourceDraft = getVersion(reqVO.getUid(), reqVO.getVersion());
-        if (AnalysisStatusEnum.ANALYSIS.name().equals(sourceDraft)) {
+        if (AnalysisStatusEnum.ANALYSIS.name().equals(sourceDraft.getStatus())) {
             throw exception(KEYWORD_IS_ANALYSIS);
         }
         List<String> keys = keywordBindMapper.getByDraftId(sourceDraft.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
@@ -357,9 +357,6 @@ public class DraftServiceImpl implements DraftService {
 
     /**
      * 推荐词
-     *
-     * @param draftDO
-     * @param keys
      */
     private void updateRecommendKey(ListingDraftDO draftDO, List<String> keys) {
         TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
@@ -439,11 +436,6 @@ public class DraftServiceImpl implements DraftService {
 
     /**
      * 搜索量计算
-     *
-     * @param keys
-     * @param respVO
-     * @param metaMap
-     * @return
      */
     private Long containsKeySearchers(List<String> keys, DraftRespVO respVO, Map<String, KeywordMetaDataDTO> metaMap) {
         String title = respVO.getTitle();
@@ -481,7 +473,7 @@ public class DraftServiceImpl implements DraftService {
         }
 
         List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(content::contains).distinct().collect(Collectors.toList());
-        Long titleSearchers = 0L;
+        long titleSearchers = 0L;
         for (String key : contentKeys) {
             KeywordMetaDataDTO keywordMetaDataDTO = metaMap.get(key);
             titleSearchers += keywordMetaDataDTO == null ? 0L : keywordMetaDataDTO.mouthSearches();
