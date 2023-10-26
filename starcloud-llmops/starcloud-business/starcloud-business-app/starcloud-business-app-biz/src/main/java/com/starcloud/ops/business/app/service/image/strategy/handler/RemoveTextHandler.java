@@ -36,8 +36,23 @@ import java.util.Objects;
 @ImageScene(AppSceneEnum.IMAGE_REMOVE_TEXT)
 public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, RemoveTextResponse> {
 
+    /**
+     * 图片处理引擎
+     */
+    private static final String ENGINE = "clip-drop-remove-text";
+
     @Resource
     private ClipDropImageService clipDropImageService;
+
+    /**
+     * 获取图片处理引擎
+     *
+     * @param request 请求
+     */
+    @Override
+    public String obtainEngine(RemoveTextRequest request) {
+        return ENGINE;
+    }
 
     /**
      * 构建图片配置信息配置
@@ -82,6 +97,18 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
     }
 
     /**
+     * 获取图片处理的积分
+     *
+     * @param request  请求
+     * @param response 响应
+     * @return 积分
+     */
+    @Override
+    public Integer getCostPoints(RemoveTextRequest request, RemoveTextResponse response) {
+        return 6;
+    }
+
+    /**
      * 处理日志消息
      *
      * @param messageRequest 日志信息
@@ -94,6 +121,5 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
         if (Objects.nonNull(response) && CollectionUtil.isNotEmpty(response.getImages())) {
             messageRequest.setTotalPrice(new BigDecimal("1").multiply(ImageUtils.CD_PRICE));
         }
-        messageRequest.setAiModel("clip-drop");
     }
 }

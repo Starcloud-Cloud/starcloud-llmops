@@ -56,5 +56,4 @@ public class WorkflowStepEntity extends ActionEntity {
      */
     private Boolean isCanEditStep;
 
-
 }

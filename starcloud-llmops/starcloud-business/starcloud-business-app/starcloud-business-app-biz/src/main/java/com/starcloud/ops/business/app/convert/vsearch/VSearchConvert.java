@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,13 +49,11 @@ public interface VSearchConvert {
 
         // 初始化图片
         if (StringUtils.isNotBlank(request.getInitImage())) {
-            vSearchImageRequest.setInitImage(ImageUtils.handlerBase64Image(request.getInitImage()));
+            vSearchImageRequest.setInitImage(request.getInitImage());
             if (request.getImageStrength() != null) {
-                BigDecimal one = new BigDecimal("1");
-                BigDecimal imageStrength = new BigDecimal(String.valueOf(request.getImageStrength()));
-                vSearchImageRequest.setStartSchedule(one.subtract(imageStrength).doubleValue());
+                vSearchImageRequest.setStartSchedule(request.getImageStrength());
             } else {
-                vSearchImageRequest.setStartSchedule(0.65);
+                vSearchImageRequest.setStartSchedule(0.6);
             }
         }
 
@@ -91,11 +88,9 @@ public interface VSearchConvert {
         vSearchImageRequest.setInitImage(ImageUtils.handlerBase64Image(request.getInitImage()));
 
         if (request.getImageStrength() != null) {
-            BigDecimal one = new BigDecimal("1");
-            BigDecimal imageStrength = new BigDecimal(String.valueOf(request.getImageStrength()));
-            vSearchImageRequest.setStartSchedule(one.subtract(imageStrength).doubleValue());
+            vSearchImageRequest.setStartSchedule(request.getImageStrength());
         } else {
-            vSearchImageRequest.setStartSchedule(0.65);
+            vSearchImageRequest.setStartSchedule(0.6);
         }
 
         vSearchImageRequest.setPrompts(prompts);

@@ -48,6 +48,12 @@ public class AppMarketDO extends TenantBaseDO {
     private String name;
 
     /**
+     * 应用类型：SYSTEM：系统应用，MARKET：市场应用
+     */
+    @TableField("type")
+    private String type;
+
+    /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @TableField("model")
@@ -64,6 +70,12 @@ public class AppMarketDO extends TenantBaseDO {
      */
     @TableField("language")
     private String language;
+
+    /**
+     * 应用排序，越小越靠前
+     */
+    @TableField("sort")
+    private Long sort;
 
     /**
      * 应用标签，多个以逗号分割

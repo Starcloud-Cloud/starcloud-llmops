@@ -7,9 +7,11 @@
         SELECT id,
         uid,
         name,
+        type,
         model,
         version,
         language,
+        sort,
         tags,
         category,
         scenes,
@@ -35,6 +37,10 @@
                 AND name LIKE CONCAT(#{query.name}, '%')
             </if>
 
+            <if test="query.type != null and query.type != '' ">
+                AND type = #{query.type}
+            </if>
+
             <if test="query.model != null and query.model != '' ">
                 AND model = #{query.model}
             </if>
@@ -58,6 +64,7 @@
             </if>
             AND deleted = 0
         </where>
+        ORDER BY sort ASC, create_time DESC
     </select>
 
     <!-- 根据应用名称查询 COMPLETION 模式的应用数量 -->

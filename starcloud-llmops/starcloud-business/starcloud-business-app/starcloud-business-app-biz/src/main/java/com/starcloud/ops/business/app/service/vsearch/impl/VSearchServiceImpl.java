@@ -156,6 +156,9 @@ public class VSearchServiceImpl implements VSearchService {
                 message = "请求图片尺寸过大。";
             }
         }
+        if (StringUtils.contains(message, "Invalid prompts detected")) {
+            message = "无效的提示信息。";
+        }
         return message;
     }
 

@@ -11,6 +11,7 @@ import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用管理服务
@@ -20,6 +21,13 @@ import java.util.List;
  * @since 2023-05-29
  */
 public interface AppService {
+
+    /**
+     * 获取元数据信息
+     *
+     * @return 获取元数据信息
+     */
+    Map<String, List<Option>> metadata();
 
     /**
      * 查询应用分类列表
@@ -35,13 +43,6 @@ public interface AppService {
      * @return 应用分类列表
      */
     List<AppCategoryVO> categoryTree();
-
-    /**
-     * 查询应用语言列表
-     *
-     * @return 应用语言列表
-     */
-    List<Option> languages();
 
     /**
      * 查询推荐的应用列表

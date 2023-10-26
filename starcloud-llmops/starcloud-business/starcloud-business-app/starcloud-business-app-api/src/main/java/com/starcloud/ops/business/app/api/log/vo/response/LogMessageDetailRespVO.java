@@ -62,10 +62,22 @@ public class LogMessageDetailRespVO implements Serializable {
     private String fromScene;
 
     /**
+     * AI 模型
+     */
+    @Schema(description = "AI 模型")
+    private String aiModel;
+
+    /**
      * 消息内容
      */
     @Schema(description = "消息内容")
     private String message;
+
+    /**
+     * 返回内容
+     */
+    @Schema(description = "返回内容")
+    private String answer;
 
     /**
      * 执行耗时
@@ -74,9 +86,9 @@ public class LogMessageDetailRespVO implements Serializable {
     private Long elapsed;
 
     /**
-     * 成功标志
+     * 执行状态
      */
-    @Schema(description = "成功标志")
+    @Schema(description = "执行状态")
     private String status;
 
     /**
@@ -94,6 +106,7 @@ public class LogMessageDetailRespVO implements Serializable {
     /**
      * 应用执行者（游客，用户，或者具体的用户）
      */
+    @Schema(description = "应用执行者（游客，用户，或者具体的用户）")
     private String appExecutor;
 
     /**
@@ -107,12 +120,6 @@ public class LogMessageDetailRespVO implements Serializable {
      */
     @Schema(description = "images")
     private List<String> images;
-
-    /**
-     * 返回内容
-     */
-    @Schema(description = "返回内容")
-    private String answer;
 
     /**
      * 渠道详情

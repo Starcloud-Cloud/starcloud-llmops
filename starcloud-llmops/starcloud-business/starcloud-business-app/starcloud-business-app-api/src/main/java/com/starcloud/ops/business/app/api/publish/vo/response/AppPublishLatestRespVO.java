@@ -40,10 +40,22 @@ public class AppPublishLatestRespVO implements Serializable {
     private String appUid;
 
     /**
+     * 应用市场UID
+     */
+    @Schema(description = "应用市场UID")
+    private String marketUid;
+
+    /**
      * 应用名称
      */
     @Schema(description = "应用名称")
     private String name;
+
+    /**
+     * 应用类型
+     */
+    @Schema(description = "应用类型")
+    private String type;
 
     /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用

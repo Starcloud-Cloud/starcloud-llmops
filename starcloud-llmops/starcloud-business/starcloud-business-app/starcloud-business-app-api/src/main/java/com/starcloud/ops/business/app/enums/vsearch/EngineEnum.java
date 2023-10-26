@@ -8,7 +8,13 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-07-19
  */
+@Getter
 public enum EngineEnum implements IEnumable<String> {
+
+    /**
+     * stable-diffusion-xl-1024-v0-9
+     */
+    STABLE_DIFFUSION_XL_1024_V1_0("stable-diffusion-xl-1024-v1-0", "Stable Diffusion XL 1.0", "Stability-AI Stable Diffusion XL v1.0", "PICTURE", "IMAGE"),
 
     /**
      * stable-diffusion-xl-1024-v0-9
@@ -18,17 +24,17 @@ public enum EngineEnum implements IEnumable<String> {
     /**
      * stable-diffusion-512-v2-1
      */
-    STABLE_DIFFUSION_512_V2_1("stable-diffusion-512-v2-1", "Stable Diffusion v2.1", "Stability-AI Stable Diffusion v2.1", "PICTURE", "IMAGE"),
+    STABLE_DIFFUSION_512_V2_1("stable-diffusion-512-v2-1", "Stable Diffusion v2.1", "Stability-AI Stable Diffusion v2.1", "PICTURE", ""),
 
     /**
      * stable-diffusion-768-v2-1
      */
-    STABLE_DIFFUSION_768_V2_1("stable-diffusion-768-v2-1", "Stable Diffusion v2.1-768", "Stability-AI Stable Diffusion 768 v2.1", "PICTURE", "IMAGE"),
+    STABLE_DIFFUSION_768_V2_1("stable-diffusion-768-v2-1", "Stable Diffusion v2.1-768", "Stability-AI Stable Diffusion 768 v2.1", "PICTURE", ""),
 
     /**
      * stable-diffusion-xl-beta-v2-2-2
      */
-    STABLE_DIFFUSION_XL_BETA_V2_2_2("stable-diffusion-xl-beta-v2-2-2", "SDXL Beta", "Stability-AI Stable Diffusion XL Beta v2.2.2", "PICTURE", "IMAGE"),
+    STABLE_DIFFUSION_XL_BETA_V2_2_2("stable-diffusion-xl-beta-v2-2-2", "SDXL Beta", "Stability-AI Stable Diffusion XL Beta v2.2.2", "PICTURE", ""),
 
     /**
      * esrgan-v1-x2plus
@@ -38,23 +44,18 @@ public enum EngineEnum implements IEnumable<String> {
     /**
      * stable-diffusion-x4-latent-upscaler
      */
-    STABLE_DIFFUSION_X4_LATENT_UPSCALER("stable-diffusion-x4-latent-upscaler", "Stable Diffusion x4 Latent Upscaler", "Stable Diffusion x4 Latent Upscaler", "PICTURE", "UPSCALING"),
+    STABLE_DIFFUSION_X4_LATENT_UPSCALER("stable-diffusion-x4-latent-upscaler", "Stable Diffusion x4 Latent Upscaler", "Stable Diffusion x4 Latent Upscaler", "PICTURE", ""),
 
     ;
 
-    @Getter
     private final String code;
 
-    @Getter
     private final String label;
 
-    @Getter
     private final String description;
 
-    @Getter
     private final String type;
 
-    @Getter
     private final String engineType;
 
     EngineEnum(String code, String label, String description, String type, String engineType) {

@@ -16,7 +16,7 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
-import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -155,7 +155,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
     @Override
     public List<LogAppMessageRespVO> conversationDetail(String shareKey) {
         ShareConversationDO shareConversationDO = getShareDO(shareKey);
-        LogAppMessageExportReqVO exportReqVO = new LogAppMessageExportReqVO();
+        LogAppMessageListReqVO exportReqVO = new LogAppMessageListReqVO();
         exportReqVO.setAppUid(shareConversationDO.getAppUid());
         exportReqVO.setAppConversationUid(shareConversationDO.getConversationUid());
         List<LogAppMessageDO> appMessageList = messageService.listAppLogMessage(exportReqVO);

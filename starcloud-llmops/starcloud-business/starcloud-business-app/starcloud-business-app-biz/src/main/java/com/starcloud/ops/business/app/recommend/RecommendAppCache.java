@@ -11,10 +11,13 @@ import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.util.PinyinCache;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -59,9 +62,19 @@ public class RecommendAppCache {
      */
     public static List<AppRespVO> get(String model) {
         if (StringUtils.isNotBlank(model) && AppModelEnum.CHAT.name().equals(model)) {
-            return get().stream().filter(app -> AppModelEnum.CHAT.name().equals(app.getModel())).collect(Collectors.toList());
+            return get().stream().filter(app -> AppModelEnum.CHAT.name().equals(app.getModel()))
+                    .peek(item -> {
+                        item.setSpell(PinyinCache.get(item.getName()));
+                        item.setSpellSimple(PinyinCache.getSimple(item.getName()));
+                    })
+                    .collect(Collectors.toList());
         }
-        return get().stream().filter(app -> !AppModelEnum.CHAT.name().equals(app.getModel())).collect(Collectors.toList());
+        return get().stream().filter(app -> !AppModelEnum.CHAT.name().equals(app.getModel()))
+                .peek(item -> {
+                    item.setSpell(PinyinCache.get(item.getName()));
+                    item.setSpellSimple(PinyinCache.getSimple(item.getName()));
+                })
+                .collect(Collectors.toList());
     }
 
     /**

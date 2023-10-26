@@ -66,6 +66,12 @@ public class AppDTO implements Serializable {
     private String source;
 
     /**
+     * 应用排序，越小越靠前
+     */
+    @Schema(description = "应用排序，越小越靠前")
+    private Long sort;
+
+    /**
      * 应用类别
      */
     @Schema(description = "应用类别")

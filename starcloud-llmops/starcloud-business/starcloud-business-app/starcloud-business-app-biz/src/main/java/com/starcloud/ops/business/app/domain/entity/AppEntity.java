@@ -4,7 +4,6 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -40,6 +39,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +47,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +104,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
             // name 不能重复
             if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE.getCode(), stepWrapper.getName());
+                throw exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE, stepWrapper.getName());
             }
             stepWrapper.validate();
         }
@@ -151,6 +152,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             appContext.setConversationUid(request.getConversationUid());
             appContext.setSseEmitter(request.getSseEmitter());
             appContext.setMediumUid(request.getMediumUid());
+            appContext.setAiModel(this.obtainLlmAiModelType(request));
             if (StringUtils.isNotBlank(request.getStepId())) {
                 appContext.setStepId(request.getStepId());
             } else {
@@ -158,11 +160,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             }
             log.info("应用工作流执行: 应用参数：\n{}", JSONUtil.parse(appContext.getContextVariablesValues()).toStringPretty());
         } catch (ServerException exception) {
-            log.info("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
+            log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
             this.createAppMessageLog(request, exception);
             throw exception;
         } catch (Exception exception) {
-            log.info("应用工作流执行异常(exception): 错误信息: {}", exception.getMessage());
+            log.error("应用工作流执行异常(exception): 错误信息: {}", exception.getMessage());
             this.createAppMessageLog(request, exception);
             throw exception;
         }
@@ -228,6 +230,16 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     }
 
     /**
+     * 模版方法：获取应用的 AI 模型类型
+     *
+     * @param request 请求参数
+     */
+    @Override
+    protected String obtainLlmAiModelType(AppExecuteReqVO request) {
+        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+    }
+
+    /**
      * 模版方法：历史记录初始化
      *
      * @param request            请求参数
@@ -284,17 +296,21 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         // 如果异常，抛出异常
         if (Objects.nonNull(fire.getResultException())) {
             Throwable resultException = fire.getResultException();
-            log.info("应用工作流执行异常: 步骤 ID: {}, 错误信息: {}", appContext.getStepId(), resultException.getMessage());
+            log.error("应用工作流执行异常: 步骤 ID: {}, 错误信息: {}", appContext.getStepId(), resultException.getMessage());
             if (resultException instanceof ServiceException) {
                 throw (ServiceException) resultException;
             }
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode(), resultException.getMessage());
+            // 工作流框架可能会包装 ServiceException，所以尝试从 cause 中获取
+            if (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ServiceException) {
+                throw (ServiceException) resultException.getCause();
+            }
+            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, resultException.getMessage());
         }
 
         // 如果执行失败，抛出异常
         if (!fire.isSuccess()) {
-            log.info("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
+            log.error("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
+            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
         }
 
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
@@ -333,18 +349,19 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
         this.createAppMessage((messageCreateRequest) -> {
-            messageCreateRequest.setCreator(String.valueOf(appContext.getUserId()));
-            messageCreateRequest.setEndUser(appContext.getEndUser());
+
             messageCreateRequest.setAppConversationUid(appContext.getConversationUid());
             messageCreateRequest.setAppStep(appContext.getStepId());
+            messageCreateRequest.setEndUser(appContext.getEndUser());
+            messageCreateRequest.setCreator(String.valueOf(appContext.getUserId()));
+            messageCreateRequest.setUpdater(String.valueOf(appContext.getUserId()));
             messageCreateRequest.setCreateTime(nodeTracking.getStartTime());
             messageCreateRequest.setUpdateTime(nodeTracking.getStartTime());
             messageCreateRequest.setElapsed(nodeTracking.getSpendTime());
             messageCreateRequest.setFromScene(appContext.getScene().name());
             messageCreateRequest.setMediumUid(appContext.getMediumUid());
             messageCreateRequest.setCurrency("USD");
-            Map<String, Object> variables = appContext.getContextVariablesValues();
-            messageCreateRequest.setAiModel(String.valueOf(Optional.ofNullable(variables.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName())));
+            messageCreateRequest.setAiModel(appContext.getAiModel());
 
             // actionResponse 不为空说明已经执行成功
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
@@ -362,20 +379,28 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 messageCreateRequest.setAnswerTokens(actionResponse.getAnswerTokens().intValue());
                 messageCreateRequest.setAnswerUnitPrice(actionResponse.getAnswerUnitPrice());
                 messageCreateRequest.setTotalPrice(actionResponse.getTotalPrice());
+                messageCreateRequest.setCostPoints(actionResponse.getCostPoints());
                 return;
             }
 
             // 说明执行失败
+            ModelTypeEnum modelType = TokenCalculator.fromName(appContext.getAiModel());
+            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
+            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+
+            // 获取所有变量
+            Map<String, Object> variables = appContext.getContextVariablesValues();
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
             messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
             messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
-            messageCreateRequest.setMessage(String.valueOf(Optional.ofNullable(variables.get("PROMPT")).orElse("")));
+            messageCreateRequest.setMessage(String.valueOf(variables.getOrDefault("PROMPT", "")));
             messageCreateRequest.setMessageTokens(0);
-            messageCreateRequest.setMessageUnitPrice(new BigDecimal("0.02"));
+            messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
             messageCreateRequest.setAnswer("");
             messageCreateRequest.setAnswerTokens(0);
-            messageCreateRequest.setAnswerUnitPrice(new BigDecimal("0.02"));
+            messageCreateRequest.setAnswerUnitPrice(answerUnitPrice);
             messageCreateRequest.setTotalPrice(new BigDecimal("0"));
+            messageCreateRequest.setCostPoints(0);
             Optional<Throwable> taskExceptionOptional = Optional.ofNullable(nodeTracking.getTaskException());
             if (taskExceptionOptional.isPresent()) {
                 Throwable throwable = taskExceptionOptional.get();
@@ -404,32 +429,43 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     private void createAppMessageLog(AppExecuteReqVO request, Exception exception) {
         this.createAppMessage((messageCreateRequest) -> {
-            messageCreateRequest.setCreator(String.valueOf(request.getUserId()));
-            messageCreateRequest.setEndUser(request.getEndUser());
+            // 构建应用上下文
+            AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
+
+            Map<String, Object> variablesValues = appContext.getContextVariablesValues();
+            String aiModel = this.obtainLlmAiModelType(request);
+            ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
+            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
+            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+
             messageCreateRequest.setAppConversationUid(request.getConversationUid());
             messageCreateRequest.setAppStep(request.getStepId());
             messageCreateRequest.setElapsed(100L);
             messageCreateRequest.setFromScene(request.getScene());
+            messageCreateRequest.setAiModel(aiModel);
             messageCreateRequest.setMediumUid(request.getMediumUid());
             messageCreateRequest.setCurrency("USD");
             messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
+            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variablesValues));
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setMessage("");
+            messageCreateRequest.setMessage(String.valueOf(variablesValues.getOrDefault("PROMPT", "")));
             messageCreateRequest.setMessageTokens(0);
-            messageCreateRequest.setMessageUnitPrice(new BigDecimal("0.02"));
+            messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
             messageCreateRequest.setAnswer("");
             messageCreateRequest.setAnswerTokens(0);
-            messageCreateRequest.setAnswerUnitPrice(new BigDecimal("0.02"));
+            messageCreateRequest.setAnswerUnitPrice(answerUnitPrice);
             messageCreateRequest.setTotalPrice(new BigDecimal("0"));
             messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
+            messageCreateRequest.setCreator(String.valueOf(request.getUserId()));
+            messageCreateRequest.setUpdater(String.valueOf(request.getUserId()));
+            messageCreateRequest.setCreateTime(LocalDateTime.now());
+            messageCreateRequest.setUpdateTime(LocalDateTime.now());
+            messageCreateRequest.setEndUser(request.getEndUser());
+            messageCreateRequest.setCostPoints(0);
             if (exception instanceof ServerException) {
                 messageCreateRequest.setErrorCode(String.valueOf(((ServerException) exception).getCode()));
             }
             messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
-            // 构建应用上下文
-            AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
-            Map<String, Object> variablesValues = appContext.getContextVariablesValues();
-            messageCreateRequest.setAiModel(String.valueOf(Optional.ofNullable(variablesValues.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName())));
 
         });
     }

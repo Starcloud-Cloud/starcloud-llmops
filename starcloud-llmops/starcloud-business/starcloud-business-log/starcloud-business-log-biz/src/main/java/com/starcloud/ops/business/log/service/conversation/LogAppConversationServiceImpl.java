@@ -7,16 +7,15 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationListReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationExportReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationUpdateReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
 import com.starcloud.ops.business.log.dal.mysql.LogAppConversationMapper;
-import com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import org.apache.commons.lang3.StringUtils;
@@ -42,9 +41,6 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
 
     @Resource
     private LogAppConversationMapper appConversationMapper;
-
-    @Resource
-    private LogAppMessageMapper logAppMessageMapper;
 
     /**
      * 创建应用执行日志会话
@@ -81,26 +77,13 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     /**
      * 更新应用执行日志会话状态
      *
-     * @param uid    编号
-     * @param status 状态
-     */
-    @Override
-    public void updateAppLogConversationStatus(String uid, String status) {
-        appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class)
-                .eq(LogAppConversationDO::getUid, uid)
-                .set(LogAppConversationDO::getStatus, status)
-                .set(LogAppConversationDO::getUpdateTime, LocalDateTime.now()));
-    }
-
-    /**
-     * 更新应用执行日志会话状态
-     *
      * @param request 更新信息
      */
     @Override
     public void updateAppLogConversationStatus(LogAppConversationStatusReqVO request) {
         appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class)
                 .eq(LogAppConversationDO::getUid, request.getUid())
+                .set(LogAppConversationDO::getAiModel, request.getAiModel())
                 .set(LogAppConversationDO::getStatus, request.getStatus())
                 .set(LogAppConversationDO::getErrorCode, request.getErrorCode())
                 .set(LogAppConversationDO::getErrorMsg, request.getErrorMsg())
@@ -143,6 +126,24 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     }
 
     /**
+     * 获取用户最新会话
+     *
+     * @param appUid  应用uid
+     * @param creator 用户uid
+     * @return 应用执行日志会话
+     */
+    @Override
+    public LogAppConversationDO getUserRecentlyConversation(String appUid, String creator, String scene) {
+        LambdaQueryWrapper<LogAppConversationDO> wrapper = Wrappers.lambdaQuery(LogAppConversationDO.class)
+                .eq(LogAppConversationDO::getAppUid, appUid)
+                .eq(LogAppConversationDO::getCreator, creator)
+                .eq(LogAppConversationDO::getFromScene, scene)
+                .orderByDesc(LogAppConversationDO::getCreateTime)
+                .last("limit 1");
+        return appConversationMapper.selectOne(wrapper);
+    }
+
+    /**
      * 获得应用执行日志会话列表
      *
      * @param ids 编号
@@ -154,36 +155,25 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     }
 
     /**
-     * 获得应用执行日志会话分页
+     * 获得应用执行日志会话列表
      *
-     * @param pageReqVO 分页查询
-     * @return 应用执行日志会话分页
-     */
-    @Override
-    public PageResult<LogAppConversationDO> pageAppLogConversation(LogAppConversationPageReqVO pageReqVO) {
-        return appConversationMapper.selectPage(pageReqVO);
-    }
-
-    /**
-     * 获得应用执行日志会话列表, 用于 Excel 导出
-     *
-     * @param exportReqVO 查询条件
+     * @param query 查询条件
      * @return 应用执行日志会话列表
      */
     @Override
-    public List<LogAppConversationDO> listAppLogConversation(LogAppConversationExportReqVO exportReqVO) {
-        return appConversationMapper.selectList(exportReqVO);
+    public List<LogAppConversationDO> listAppLogConversation(LogAppConversationListReqVO query) {
+        return appConversationMapper.selectList(query);
     }
 
+    /**
+     * 获得应用执行日志会话分页
+     *
+     * @param query 分页查询
+     * @return 应用执行日志会话分页
+     */
     @Override
-    public LogAppConversationDO getUserRecentlyConversation(String appUid, String creator, String scene) {
-        LambdaQueryWrapper<LogAppConversationDO> wrapper = Wrappers.lambdaQuery(LogAppConversationDO.class)
-                .eq(LogAppConversationDO::getAppUid, appUid)
-                .eq(LogAppConversationDO::getCreator, creator)
-                .eq(LogAppConversationDO::getFromScene, scene)
-                .orderByDesc(LogAppConversationDO::getCreateTime)
-                .last("limit 1");
-        return appConversationMapper.selectOne(wrapper);
+    public PageResult<LogAppConversationDO> pageAppLogConversation(LogAppConversationPageReqVO query) {
+        return appConversationMapper.selectPage(query);
     }
 
     /**
@@ -224,20 +214,6 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         Page<LogAppConversationDO> page = new Page<>(query.getPageNo(), query.getPageSize());
         IPage<LogAppConversationInfoPO> infoPage = appConversationMapper.pageLogAppConversation(page, query);
         return new PageResult<>(infoPage.getRecords(), infoPage.getTotal());
-    }
-
-    /**
-     * 获取最新的会话
-     *
-     * @param appUid 应用编号
-     */
-    @Override
-    public LogAppConversationDO getRecentlyConversation(String appUid) {
-        LambdaQueryWrapper<LogAppConversationDO> wrapper = Wrappers.lambdaQuery(LogAppConversationDO.class)
-                .eq(LogAppConversationDO::getAppUid, appUid)
-                .orderByDesc(LogAppConversationDO::getCreateTime)
-                .last("limit 1");
-        return appConversationMapper.selectOne(wrapper);
     }
 
     /**

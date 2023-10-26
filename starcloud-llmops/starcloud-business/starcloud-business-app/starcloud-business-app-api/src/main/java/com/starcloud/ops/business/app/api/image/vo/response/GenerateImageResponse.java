@@ -43,6 +43,12 @@ public class GenerateImageResponse extends BaseImageResponse {
     private String engine;
 
     /**
+     * 原始图片的 URL
+     */
+    @Schema(description = "原始图片的 URL")
+    private String originalUrl;
+
+    /**
      * 图片的宽度
      */
     @Schema(description = "图片的宽度")
@@ -65,5 +71,6 @@ public class GenerateImageResponse extends BaseImageResponse {
      */
     @Schema(description = "图片的类型")
     private String stylePreset;
+
 
 }

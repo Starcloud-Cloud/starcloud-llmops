@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
+
 /**
  * 管理后台 - 应用执行日志会话创建 Request VO
  *
@@ -36,5 +38,15 @@ public class LogAppConversationCreateReqVO extends LogAppConversationBaseVO {
      * 指定更新者
      */
     private String updater;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 
 }

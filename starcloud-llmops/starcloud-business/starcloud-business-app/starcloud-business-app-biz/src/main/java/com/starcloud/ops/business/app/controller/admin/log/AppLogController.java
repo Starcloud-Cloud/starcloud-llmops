@@ -4,12 +4,12 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.image.vo.query.HistoryImageRecordsQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
 import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
@@ -98,17 +98,18 @@ public class AppLogController {
     }
 
     @PostMapping("/infoPageByMarketUid")
+    @DataPermission(enable = false)
     @Operation(summary = "根据应用市场 UID 获得应用执行日志信息分页")
     @ApiOperationSupport(order = 7, author = "nacoyer")
     public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@Valid @RequestBody AppLogConversationInfoPageUidReqVO query) {
         return success(appLogService.pageLogConversationByMarketUid(query));
     }
 
-    @PostMapping("/historyImageRecords")
+    @PostMapping("/imageRecords")
     @Operation(summary = "查询历史图片列表", description = "查询历史图片列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<PageResult<ImageLogMessageRespVO>> historyImageRecords(@RequestBody HistoryImageRecordsQuery query) {
-        return CommonResult.success(appLogService.pageHistoryImageRecords(query));
+    public CommonResult<PageResult<ImageLogMessageRespVO>> imageRecords(@RequestBody LogAppConversationPageReqVO query) {
+        return CommonResult.success(appLogService.pageImageRecord(query));
     }
 
 }
