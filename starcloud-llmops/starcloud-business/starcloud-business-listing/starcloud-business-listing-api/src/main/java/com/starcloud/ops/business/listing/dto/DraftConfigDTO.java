@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -32,5 +31,8 @@ public class DraftConfigDTO {
 
     @Schema(description = "搜索词配置")
     private DraftContentConfigDTO searchTermConfig;
+
+    @Schema(description = "隐藏已使用")
+    private Boolean hiddenUsed;
 
 }

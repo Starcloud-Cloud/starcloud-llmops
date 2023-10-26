@@ -117,16 +117,18 @@ public class DraftServiceImpl implements DraftService {
             draftMapper.insert(draftDO);
             if (CollectionUtils.isNotEmpty(reqVO.getKeys())) {
                 List<String> keys = reqVO.getKeys().stream().map(String::trim).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
-                keywordBindService.addDraftKeyword(keys, draftDO.getId());
+                TreeSet<String> treeSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
+                List<String> distinctKeys = new ArrayList<>(treeSet);
+                keywordBindService.addDraftKeyword(distinctKeys, draftDO.getId());
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
                 updateById(draftDO);
                 executor.execute(() -> {
                     try {
                         long start = System.currentTimeMillis();
-                        keywordBindService.analysisKeyword(keys, draftDO.getEndpoint());
+                        keywordBindService.analysisKeyword(distinctKeys, draftDO.getEndpoint());
                         long end = System.currentTimeMillis();
                         draftDO.setAnalysisTime(end - start);
-                        updateDo(draftDO, keys);
+                        updateDo(draftDO, distinctKeys);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
                     } catch (Exception e) {
                         log.error("analysis keyword error", e);
@@ -156,11 +158,10 @@ public class DraftServiceImpl implements DraftService {
             operationReqVO.setAddKey(reqVO.getKeys());
             addKeyword(operationReqVO);
         } else {
+            DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
+            draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
             updateDo(draftDO, keywordBind.stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList()));
         }
-
-        DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
-        draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
 
         updateById(draftDO);
         return ListingDraftConvert.INSTANCE.convert(draftDO);
@@ -194,32 +195,37 @@ public class DraftServiceImpl implements DraftService {
 
         List<String> newKey = reqVO.getAddKey().stream()
                 .map(String::trim).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        TreeSet<String> treeSet = CollUtil.toTreeSet(newKey, String.CASE_INSENSITIVE_ORDER);
 
         List<String> oldKey = keywordBindMapper.getByDraftId(draftDO.getId())
                 .stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
-        newKey.removeAll(oldKey);
-        keywordBindService.addDraftKeyword(newKey, draftDO.getId());
-
-        CollUtil.addAllIfNotContains(newKey, oldKey);
-        if (newKey.size() > 2000) {
-            throw exception(new ErrorCode(500, "关键词总个数不能超过2000，新增后数量:{}"), newKey.size());
+        // 新 + 旧 去重
+        treeSet.addAll(oldKey);
+        List<String> allKeys = new ArrayList<>(treeSet);
+        if (treeSet.size() > 2000) {
+            throw exception(new ErrorCode(500, "关键词总个数不能超过2000，新增后数量:{}"), treeSet.size());
         }
 
-        if (CollectionUtils.isEmpty(newKey)) {
+        // 新 + 旧 - 旧   待新增
+        oldKey.forEach(treeSet::remove);
+        List<String> addKey = new ArrayList<>(treeSet);
+        if (CollectionUtils.isEmpty(addKey)) {
             return;
         }
+        keywordBindService.addDraftKeyword(addKey, draftDO.getId());
 
         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
-
+        DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
+        draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
         updateById(draftDO);
 
         executor.execute(() -> {
             try {
                 long start = System.currentTimeMillis();
-                keywordBindService.analysisKeyword(newKey, draftDO.getEndpoint());
+                keywordBindService.analysisKeyword(addKey, draftDO.getEndpoint());
                 long end = System.currentTimeMillis();
                 draftDO.setAnalysisTime(end - start);
-                updateDo(draftDO, newKey);
+                updateDo(draftDO, allKeys);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
             } catch (Exception e) {
                 log.error("analysis error", e);
@@ -338,13 +344,13 @@ public class DraftServiceImpl implements DraftService {
                 .titleLength(ListingDraftScoreUtil.judgmentLength(title, 150, 250))
                 .titleUppercase(ListingDraftScoreUtil.titleUppercase(title))
                 .withoutSpecialChat(ListingDraftScoreUtil.withoutSpecialChat(title))
-//                .fiveDescLength(ListingDraftScoreUtil.judgmentLength(fiveDesc, 150, 200))
-//                .allUppercase(ListingDraftScoreUtil.allUppercase(fiveDesc))
-//                .partUppercase(ListingDraftScoreUtil.partUppercase(fiveDesc))
+                .fiveDescLength(ListingDraftScoreUtil.judgmentLength(fiveDesc, 150, 200))
+                .allUppercase(ListingDraftScoreUtil.allUppercase(fiveDesc))
+                .partUppercase(ListingDraftScoreUtil.partUppercase(fiveDesc))
                 .fiveDescScore(ListingDraftScoreUtil.fiveDescScore(fiveDesc))
                 .productLength(ListingDraftScoreUtil.judgmentLength(productDesc, 1500, 2000))
                 .withoutUrl(!ListingDraftScoreUtil.contains(productDesc))
-                .searchTermLength(ListingDraftScoreUtil.judgmentLength(searchTerm, 0, 250))
+                .searchTermLength((StringUtils.isBlank(searchTerm)) || searchTerm.length() < 250)
                 .build();
 
     }
@@ -356,6 +362,8 @@ public class DraftServiceImpl implements DraftService {
      * @param keys
      */
     private void updateRecommendKey(ListingDraftDO draftDO, List<String> keys) {
+        TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
+        keys = new ArrayList<>(allSet);
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint());
         if (CollectionUtils.isEmpty(metaData)) {
             return;
@@ -408,6 +416,8 @@ public class DraftServiceImpl implements DraftService {
      * 更新搜索量
      */
     private void updateSearchers(ListingDraftDO draftDO, List<String> keys) {
+        TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
+        keys = new ArrayList<>(allSet);
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint());
         if (CollectionUtils.isEmpty(metaData)) {
             draftDO.setTotalSearches(0L);
