@@ -29,7 +29,7 @@ public class DraftReqVO {
     @InEnum(value = SellerSpriteMarketEnum.class, message = "应用类型[{value}]必须是: {values}")
     private String endpoint;
 
-    @Schema(description = "关键词")
+    @Schema(description = "增加关键词")
     private List<String> keys;
 
     @Schema(description = "标题")

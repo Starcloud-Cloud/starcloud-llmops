@@ -119,7 +119,7 @@ public class DraftServiceImpl implements DraftService {
                 List<String> keys = reqVO.getKeys().stream().map(String::trim).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
                 keywordBindService.addDraftKeyword(keys, draftDO.getId());
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
-                draftMapper.updateById(draftDO);
+                updateById(draftDO);
                 executor.execute(() -> {
                     try {
                         long start = System.currentTimeMillis();
@@ -132,7 +132,7 @@ public class DraftServiceImpl implements DraftService {
                         log.error("analysis keyword error", e);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
                     }
-                    draftMapper.updateById(draftDO);
+                    updateById(draftDO);
                 });
             }
             return ListingDraftConvert.INSTANCE.convert(draftDO);
@@ -140,9 +140,9 @@ public class DraftServiceImpl implements DraftService {
 
         ListingDraftDO draftDO = getVersion(reqVO.getUid(), reqVO.getVersion());
 
+        List<KeywordBindDO> keywordBind = keywordBindMapper.getByDraftId(draftDO.getId());
         if (StringUtils.isNotBlank(reqVO.getEndpoint()) && !reqVO.getEndpoint().equals(draftDO.getEndpoint())) {
-            List<KeywordBindDO> keywordBindDOS = keywordBindMapper.getByDraftId(draftDO.getId());
-            if (CollectionUtils.isNotEmpty(keywordBindDOS)) {
+            if (CollectionUtils.isNotEmpty(keywordBind)) {
                 throw exception(KEYWORD_IS_NOT_EMPTY);
             }
         }
@@ -155,12 +155,14 @@ public class DraftServiceImpl implements DraftService {
             operationReqVO.setVersion(reqVO.getVersion());
             operationReqVO.setAddKey(reqVO.getKeys());
             addKeyword(operationReqVO);
+        } else {
+            updateDo(draftDO, keywordBind.stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList()));
         }
 
         DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
         draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
 
-        draftMapper.updateById(draftDO);
+        updateById(draftDO);
         return ListingDraftConvert.INSTANCE.convert(draftDO);
     }
 
@@ -209,7 +211,7 @@ public class DraftServiceImpl implements DraftService {
 
         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
 
-        draftMapper.updateById(draftDO);
+        updateById(draftDO);
 
         executor.execute(() -> {
             try {
@@ -223,7 +225,7 @@ public class DraftServiceImpl implements DraftService {
                 log.error("analysis error", e);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
             }
-            draftMapper.updateById(draftDO);
+            updateById(draftDO);
         });
     }
 
@@ -237,7 +239,7 @@ public class DraftServiceImpl implements DraftService {
         List<String> removeKey = reqVO.getRemoveBindKey().stream().map(String::trim).collect(Collectors.toList());
         keys.removeAll(removeKey);
         updateDo(draftDO, keys);
-        draftMapper.updateById(draftDO);
+        updateById(draftDO);
         keywordBindMapper.deleteDraftKey(removeKey, draftDO.getId());
     }
 
@@ -268,7 +270,7 @@ public class DraftServiceImpl implements DraftService {
         operationReqVO.setAddKey(keys);
         addKeyword(operationReqVO);
 
-        return detail(reqVO.getUid(),reqVO.getVersion());
+        return detail(reqVO.getUid(), reqVO.getVersion());
     }
 
     @Override
@@ -295,12 +297,19 @@ public class DraftServiceImpl implements DraftService {
     @Transactional(rollbackFor = Exception.class)
     public DraftRespVO cloneDraft(DraftOperationReqVO reqVO) {
         ListingDraftDO sourceDraft = getVersion(reqVO.getUid(), reqVO.getVersion());
+        if (AnalysisStatusEnum.ANALYSIS.name().equals(sourceDraft)) {
+            throw exception(KEYWORD_IS_ANALYSIS);
+        }
+        List<String> keys = keywordBindMapper.getByDraftId(sourceDraft.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
 
         sourceDraft.setId(null);
         sourceDraft.setUid(IdUtil.fastSimpleUUID());
         sourceDraft.setVersion(1);
+        sourceDraft.setCreator(null);
+        sourceDraft.setUpdater(null);
+        sourceDraft.setCreateTime(null);
+        sourceDraft.setUpdater(null);
         draftMapper.insert(sourceDraft);
-        List<String> keys = keywordBindMapper.getByDraftId(sourceDraft.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         keywordBindService.addDraftKeyword(keys, sourceDraft.getId());
         return detail(sourceDraft.getUid(), sourceDraft.getVersion());
     }
@@ -476,6 +485,11 @@ public class DraftServiceImpl implements DraftService {
         if (AnalysisStatusEnum.EXECUTING.name().equals(draftDO.getStatus())) {
             throw exception(DRAFT_IS_EXECUTING);
         }
+    }
+
+    private void updateById(ListingDraftDO draftDO) {
+        draftDO.setUpdateTime(null);
+        draftMapper.updateById(draftDO);
     }
 
     private ListingDraftDO getVersion(String uid, Integer version) {
