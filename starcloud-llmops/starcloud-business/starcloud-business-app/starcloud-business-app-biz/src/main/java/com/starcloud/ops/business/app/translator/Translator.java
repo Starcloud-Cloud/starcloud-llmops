@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.translator;
 
-import com.starcloud.ops.business.app.translator.response.TranslateResponse;
 import com.starcloud.ops.business.app.translator.request.TranslateRequest;
+import com.starcloud.ops.business.app.translator.response.TranslateResponse;
 
 /**
  * 翻译基本接口

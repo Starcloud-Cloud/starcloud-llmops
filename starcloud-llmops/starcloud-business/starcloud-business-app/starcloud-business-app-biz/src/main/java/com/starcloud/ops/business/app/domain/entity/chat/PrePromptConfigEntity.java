@@ -1,18 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
 import com.starcloud.ops.business.app.domain.entity.config.BaseConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.GptPluginSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * 聊天应用配置实体

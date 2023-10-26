@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.api.app.vo.response.action;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

@@ -10,9 +10,11 @@ import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.domain.handler.datasearch.*;
+import com.starcloud.ops.business.app.domain.handler.datasearch.ImageSearchHandler;
+import com.starcloud.ops.business.app.domain.handler.datasearch.NewsSearchHandler;
+import com.starcloud.ops.business.app.domain.handler.datasearch.TiYuBaiduHandler;
+import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
 import com.starcloud.ops.business.app.domain.handler.imggeneration.ImageGenerationHandler;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.chat.ChatSkillService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -20,7 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**

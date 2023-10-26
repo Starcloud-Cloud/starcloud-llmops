@@ -7,8 +7,6 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import lombok.Data;
 
-import java.util.Arrays;
-
 /**
  * 基础 prompt配置类
  */

@@ -10,7 +10,6 @@ import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 /**
  * @author nacoyer

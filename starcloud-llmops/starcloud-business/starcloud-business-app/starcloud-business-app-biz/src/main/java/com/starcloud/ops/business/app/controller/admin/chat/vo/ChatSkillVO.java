@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.controller.admin.chat.vo;
 
 
 import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

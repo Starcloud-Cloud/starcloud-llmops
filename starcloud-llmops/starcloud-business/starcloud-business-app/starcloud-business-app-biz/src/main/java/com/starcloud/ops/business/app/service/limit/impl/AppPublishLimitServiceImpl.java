@@ -66,7 +66,7 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
 
         // 查询 DB
         AppPublishLimitDO appPublishLimit = appPublishLimitMapper.get(query);
-        AppValidate.notNull(appPublishLimit, ErrorCodeConstants.APP_PUBLISH_LIMIT_EXISTS);
+        AppValidate.notNull(appPublishLimit, ErrorCodeConstants.LIMIT_NON_EXISTENT);
 
         // 重新存入
         appPublishLimitRedisMapper.put(appPublishLimit);

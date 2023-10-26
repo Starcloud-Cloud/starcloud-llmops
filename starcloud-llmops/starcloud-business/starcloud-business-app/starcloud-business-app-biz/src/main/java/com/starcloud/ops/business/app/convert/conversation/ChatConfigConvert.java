@@ -2,7 +2,12 @@ package com.starcloud.ops.business.app.convert.conversation;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
-import com.starcloud.ops.business.app.api.chat.config.dto.*;
+import com.starcloud.ops.business.app.api.chat.config.dto.ApiSkillDTO;
+import com.starcloud.ops.business.app.api.chat.config.dto.AppWorkflowSkillDTO;
+import com.starcloud.ops.business.app.api.chat.config.dto.BaseExpandConfigDTO;
+import com.starcloud.ops.business.app.api.chat.config.dto.ChatMenuConfigDTO;
+import com.starcloud.ops.business.app.api.chat.config.dto.GptPluginSkillDTO;
+import com.starcloud.ops.business.app.api.chat.config.dto.SystemHandlerSkillDTO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigReqVO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
 import com.starcloud.ops.business.app.dal.databoject.config.ChatExpandConfigDO;
@@ -12,7 +17,12 @@ import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.enums.config.ChatExpandConfigEnum;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import org.apache.commons.lang3.StringUtils;
-import org.mapstruct.*;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValueCheckStrategy;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.springframework.util.CollectionUtils;
 

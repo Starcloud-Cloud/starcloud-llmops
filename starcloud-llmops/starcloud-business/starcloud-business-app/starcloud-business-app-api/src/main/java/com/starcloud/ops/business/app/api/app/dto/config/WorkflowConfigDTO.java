@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.api.app.dto.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.dto.action.WorkflowStepDTO;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

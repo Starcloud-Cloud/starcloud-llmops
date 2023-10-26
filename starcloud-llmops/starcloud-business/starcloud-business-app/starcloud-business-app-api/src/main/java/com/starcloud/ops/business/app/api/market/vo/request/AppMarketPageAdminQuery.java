@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.api.market.vo.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.framework.common.api.dto.PageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

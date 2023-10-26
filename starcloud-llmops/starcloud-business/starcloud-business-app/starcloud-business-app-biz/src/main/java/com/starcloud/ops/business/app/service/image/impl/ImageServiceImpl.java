@@ -10,7 +10,6 @@ import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageHandlerHolder;
 import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHandler;
-import com.starcloud.ops.business.app.service.log.impl.AppLogServiceImpl;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import lombok.extern.slf4j.Slf4j;

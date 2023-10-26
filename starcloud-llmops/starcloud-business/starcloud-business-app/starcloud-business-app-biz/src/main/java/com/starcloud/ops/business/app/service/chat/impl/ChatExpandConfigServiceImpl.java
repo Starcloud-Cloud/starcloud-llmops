@@ -25,7 +25,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_NON_EXISTENT;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CHAT_CONFIG_IS_REPEAT;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CHAT_CONFIG_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MODIFY_CONFIG_ERROR;
 
 @Slf4j
 @Service

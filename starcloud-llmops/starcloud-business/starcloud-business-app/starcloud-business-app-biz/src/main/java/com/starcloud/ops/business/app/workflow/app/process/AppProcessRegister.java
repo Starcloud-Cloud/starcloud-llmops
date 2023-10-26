@@ -4,7 +4,6 @@ import cn.kstry.framework.core.bus.ScopeDataQuery;
 import cn.kstry.framework.core.component.bpmn.link.ProcessLink;
 import cn.kstry.framework.core.component.dynamic.creator.DynamicProcess;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

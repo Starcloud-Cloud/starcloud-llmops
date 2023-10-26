@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.enums.limit;
 
 import com.starcloud.ops.business.app.api.limit.dto.AppLimitRuleDTO;
-import com.starcloud.ops.business.app.enums.RecommendAppConsts;
+import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
@@ -96,7 +96,7 @@ public enum AppLimitRuleEnum implements IEnumable<Integer> {
             rule.setOrder(Integer.MAX_VALUE - 100);
             rule.setThreshold(500);
             rule.setTimeInterval(60L);
-            rule.setIncludeApps(Collections.singletonList(RecommendAppConsts.BASE_GENERATE_IMAGE));
+            rule.setIncludeApps(Collections.singletonList(RecommendAppEnum.GENERATE_IMAGE.name()));
             rule.setTimeUnit("SECONDS");
             rule.setMessage("当前访问用户过多，请稍后再试！");
             return rule;
@@ -166,13 +166,12 @@ public enum AppLimitRuleEnum implements IEnumable<Integer> {
     /**
      * 应用级别限流忽略的应用
      */
-    private static final List<String> RATE_IGNORE_APPS = Arrays.asList(RecommendAppConsts.GENERATE_TEXT, RecommendAppConsts.GENERATE_ARTICLE, RecommendAppConsts.BASE_GENERATE_IMAGE, RecommendAppConsts.CHAT_ROBOT);
+    private static final List<String> RATE_IGNORE_APPS = Arrays.asList(RecommendAppEnum.GENERATE_TEXT.name(), RecommendAppEnum.GENERATE_ARTICLE.name(), RecommendAppEnum.GENERATE_IMAGE.name(), RecommendAppEnum.CHAT_ROBOT.name());
 
     /**
      * 推荐应用限流
      */
-    private static final List<String> DEFAULT_RECOMMEND_APPS = Arrays.asList(RecommendAppConsts.GENERATE_TEXT, RecommendAppConsts.GENERATE_ARTICLE, RecommendAppConsts.CHAT_ROBOT);
-
+    private static final List<String> DEFAULT_RECOMMEND_APPS = Arrays.asList(RecommendAppEnum.GENERATE_TEXT.name(), RecommendAppEnum.GENERATE_ARTICLE.name(), RecommendAppEnum.CHAT_ROBOT.name());
 
     /**
      * 获取限流默认配置

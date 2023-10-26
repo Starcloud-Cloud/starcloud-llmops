@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.service.channel.strategy.handler;
 
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.channel.dto.WeChatAccountChannelConfigDTO;
-import com.starcloud.ops.business.app.api.channel.dto.WecomGroupChannelConfigDTO;
 import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigType;

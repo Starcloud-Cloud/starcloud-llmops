@@ -3,16 +3,12 @@ package com.starcloud.ops.business.app.api.app.dto.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.dto.action.WorkflowStepDTO;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableDTO;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * AIGC 步骤包装类 DTO，不同的步骤，会有不同的配置。

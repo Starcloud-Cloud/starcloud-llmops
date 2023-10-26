@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.chat.vo;
 
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
-import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

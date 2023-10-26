@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
 import com.starcloud.ops.business.app.domain.entity.config.OpenaiCompletionParams;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Data;
 
 @Data

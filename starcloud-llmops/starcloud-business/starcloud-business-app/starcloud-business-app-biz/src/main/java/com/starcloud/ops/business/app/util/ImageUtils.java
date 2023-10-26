@@ -18,7 +18,6 @@ import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;

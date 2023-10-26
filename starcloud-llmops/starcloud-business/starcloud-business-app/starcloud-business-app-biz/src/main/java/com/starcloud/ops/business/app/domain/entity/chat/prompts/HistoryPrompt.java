@@ -3,12 +3,8 @@ package com.starcloud.ops.business.app.domain.entity.chat.prompts;
 
 import com.starcloud.ops.llm.langchain.core.memory.BaseChatMemory;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
-import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**

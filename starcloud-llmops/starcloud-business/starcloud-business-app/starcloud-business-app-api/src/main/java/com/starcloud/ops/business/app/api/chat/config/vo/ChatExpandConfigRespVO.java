@@ -1,7 +1,11 @@
 package com.starcloud.ops.business.app.api.chat.config.vo;
 
 
-import com.starcloud.ops.business.app.api.chat.config.dto.*;
+import com.starcloud.ops.business.app.api.chat.config.dto.ApiSkillDTO;
+import com.starcloud.ops.business.app.api.chat.config.dto.AppWorkflowSkillDTO;
+import com.starcloud.ops.business.app.api.chat.config.dto.ChatMenuConfigDTO;
+import com.starcloud.ops.business.app.api.chat.config.dto.GptPluginSkillDTO;
+import com.starcloud.ops.business.app.api.chat.config.dto.SystemHandlerSkillDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

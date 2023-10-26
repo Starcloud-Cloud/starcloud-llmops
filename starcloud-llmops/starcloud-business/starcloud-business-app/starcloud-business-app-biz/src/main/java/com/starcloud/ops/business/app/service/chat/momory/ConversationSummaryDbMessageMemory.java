@@ -7,7 +7,6 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
@@ -25,12 +24,17 @@ import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentActi
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
-import com.starcloud.ops.llm.langchain.core.model.llm.base.*;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
-import com.starcloud.ops.llm.langchain.core.schema.message.*;
+import com.starcloud.ops.llm.langchain.core.schema.message.AIMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.FunctionMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
-import com.starcloud.ops.llm.langchain.core.utils.TokenUtils;
 import com.theokanning.openai.completion.chat.ChatFunctionCall;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.Data;
@@ -38,7 +42,12 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**

@@ -10,7 +10,7 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.limit.dto.AppLimitRuleDTO;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.RecommendAppConsts;
+import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.limit.AppLimitRuleEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
@@ -190,7 +190,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      */
     @Override
     public List<String> appLimitWhiteList() {
-        List<String> list = Arrays.asList(RecommendAppConsts.GENERATE_TEXT, RecommendAppConsts.GENERATE_ARTICLE, RecommendAppConsts.BASE_GENERATE_IMAGE, RecommendAppConsts.CHAT_ROBOT);
+        List<String> list = Arrays.asList(RecommendAppEnum.GENERATE_TEXT.name(), RecommendAppEnum.GENERATE_ARTICLE.name(), RecommendAppEnum.GENERATE_IMAGE.name(), RecommendAppEnum.CHAT_ROBOT.name());
         List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_LIMIT_WHITE_LIST);
         List<String> collect = CollectionUtil.emptyIfNull(dictDataList)
                 .stream()
@@ -251,15 +251,6 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
             return Collections.emptyList();
         }
         return dictDataList;
-    }
-
-    /**
-     * 获取应用系统限流兜底配置
-     *
-     * @return 应用限流兜底配置
-     */
-    private static List<AppLimitConfigDTO> defaultSystemLimitConfig() {
-        return Arrays.stream(AppLimitConfigEnum.values()).map(AppLimitConfigEnum::getDefaultSystemConfig).collect(Collectors.toList());
     }
 
     /**

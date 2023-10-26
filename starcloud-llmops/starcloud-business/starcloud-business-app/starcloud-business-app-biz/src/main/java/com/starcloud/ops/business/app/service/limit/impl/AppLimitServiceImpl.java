@@ -89,15 +89,13 @@ public class AppLimitServiceImpl implements AppLimitService {
         // 限流总开关
         Boolean limitSwitch = appDictionaryService.appLimitSwitch();
         if (!limitSwitch) {
-            log.info("应用限流开关：{}, 将不会执行限流逻辑！", false);
+            log.info("应用限流开关：{}, 将不会执行限流逻辑！", Boolean.FALSE);
             return;
         }
 
         // 用户 ID
         String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
-        if (StringUtils.isBlank(loginUserId)) {
-            throw exception("you may be not login, please try again or contact the administrator");
-        }
+        AppValidate.notBlank(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
 
         // 用户白名单, 当前登录用户在白名单中，不进行限流
         List<String> userWhiteList = appDictionaryService.appLimitUserWhiteList();
@@ -106,6 +104,7 @@ public class AppLimitServiceImpl implements AppLimitService {
         }
 
         log.info("应用限流开始：应用UID: {}, 执行场景: {}, 用户ID: {}", request.getAppUid(), request.getFromScene(), loginUserId);
+
         request.setUserId(loginUserId);
         request.setIsLoginLimit(Boolean.TRUE);
 
@@ -144,9 +143,7 @@ public class AppLimitServiceImpl implements AppLimitService {
 
         // 用户 ID
         String loginUserId = Optional.ofNullable(SecurityFrameworkUtils.getLoginUserId()).map(String::valueOf).orElse(null);
-        if (StringUtils.isBlank(loginUserId)) {
-            throw exception("you may be not login, please try again or contact the administrator");
-        }
+        AppValidate.notBlank(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
 
         // 用户白名单, 当前登录用户在白名单中，不进行限流
         List<String> userWhiteList = appDictionaryService.appLimitUserWhiteList();
@@ -156,7 +153,7 @@ public class AppLimitServiceImpl implements AppLimitService {
 
         log.info("应用市场限流开始：应用市场UID: {}, 执行场景: {}, 用户ID: {}", request.getAppUid(), request.getFromScene(), loginUserId);
         request.setUserId(loginUserId);
-        request.setIsLoginLimit(Boolean.FALSE);
+        request.setIsLoginLimit(Boolean.TRUE);
 
         // 系统限流
         doSystemLimit(request);
@@ -226,7 +223,7 @@ public class AppLimitServiceImpl implements AppLimitService {
         } else {
             // 查询渠道信息
             AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(request.getMediumUid());
-            AppValidate.notNull(channel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST);
+            AppValidate.notNull(channel, ErrorCodeConstants.CHANNEL_NON_EXISTENT);
             request.setAppUid(channel.getAppUid());
         }
 
@@ -291,7 +288,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      */
     private boolean doLimitSse(AppLimitRequest request, SseEmitter emitter, Consumer<AppLimitRequest> consumer) {
         if (Objects.isNull(emitter)) {
-            throw exception("system error, please try again or contact the administrator");
+            throw exception("系统限流异常，请联系管理员或稍后重试！");
         }
         try {
             consumer.accept(request);
@@ -330,11 +327,11 @@ public class AppLimitServiceImpl implements AppLimitService {
         // 限流计数 Key
         String limitKey = context.getLimitKey();
         RLock lock = redissonClient.getLock(getLockKey(limitKey));
-        // 如果获取锁失败，直接抛出异常。
-        if (!lock.tryLock(10, 10, TimeUnit.SECONDS)) {
-            throw exceptionLimit("系统繁忙，请稍后再试！");
-        }
         try {
+            // 如果获取锁失败，直接抛出异常。
+            if (!lock.tryLock(10, 10, TimeUnit.SECONDS)) {
+                throw exceptionLimit("系统繁忙，请稍后再试！");
+            }
             // 获取时间单位
             ChronoUnit timeUnit = ChronoUnit.valueOf(config.getTimeUnit());
             // 将配置中的时间转换成毫秒
@@ -584,6 +581,7 @@ public class AppLimitServiceImpl implements AppLimitService {
      * @param message 异常信息
      * @return 限流异常
      */
+    @SuppressWarnings("all")
     private static AppLimitException exception(String message) {
         return AppLimitException.exception(500, message);
     }

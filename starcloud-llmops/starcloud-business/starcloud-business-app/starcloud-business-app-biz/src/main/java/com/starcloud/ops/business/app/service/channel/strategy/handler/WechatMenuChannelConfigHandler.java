@@ -1,11 +1,9 @@
 package com.starcloud.ops.business.app.service.channel.strategy.handler;
 
-import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.channel.dto.WeChatMenuChannelConfigDTO;
 import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigTemplate;
 import com.starcloud.ops.business.app.service.channel.strategy.AppPublishChannelConfigType;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
