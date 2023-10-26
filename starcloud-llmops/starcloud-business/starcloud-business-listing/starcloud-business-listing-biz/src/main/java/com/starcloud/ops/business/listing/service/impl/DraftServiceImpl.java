@@ -474,12 +474,13 @@ public class DraftServiceImpl implements DraftService {
             }
         }
 
-        String content = sj.toString();
+        String content = sj.toString().toLowerCase();
 
         if (StringUtils.isBlank(content)) {
             return 0L;
         }
-        List<String> contentKeys = keys.stream().filter(content::contains).distinct().collect(Collectors.toList());
+
+        List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(content::contains).distinct().collect(Collectors.toList());
         Long titleSearchers = 0L;
         for (String key : contentKeys) {
             KeywordMetaDataDTO keywordMetaDataDTO = metaMap.get(key);
