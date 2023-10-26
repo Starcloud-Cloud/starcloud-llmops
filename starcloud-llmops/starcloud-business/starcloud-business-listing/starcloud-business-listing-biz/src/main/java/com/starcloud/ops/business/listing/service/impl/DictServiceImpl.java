@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.listing.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -32,6 +33,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -70,7 +72,9 @@ public class DictServiceImpl implements DictService {
 
         List<String> keys = reqVO.getKeys();
         if (CollectionUtil.isNotEmpty(keys)) {
-            execute(keys, listingDictDO);
+            TreeSet<String> treeSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
+            List<String> distinctKeys = new ArrayList<>(treeSet);
+            execute(distinctKeys, listingDictDO);
         }
         return ListingDictConvert.INSTANCE.convert(listingDictDO);
     }
@@ -99,23 +103,7 @@ public class DictServiceImpl implements DictService {
         if (!dictDO.getEndpoint().equals(modifyReqVO.getEndpoint()) && CollectionUtils.isNotEmpty(oldKey)) {
             throw exception(KEYWORD_IS_NOT_EMPTY);
         }
-
-        List<String> newKey = modifyReqVO.getKeywordResume();
-
-        ListingDictConvert.INSTANCE.updateParams(modifyReqVO, dictDO);
-        if (CollectionUtil.isNotEmpty(newKey)) {
-            List<Long> delKeyIds = new ArrayList<>();
-            for (KeywordBindDO keywordBindDO : oldKey) {
-                boolean remove = newKey.remove(keywordBindDO.getKeyword());
-                if (!remove) {
-                    delKeyIds.add(keywordBindDO.getId());
-                }
-            }
-            keywordBindMapper.deleteBatchIds(delKeyIds);
-            execute(newKey, dictDO);
-        } else {
-            updateById(dictDO);
-        }
+        updateById(dictDO);
     }
 
     @Override
@@ -149,10 +137,17 @@ public class DictServiceImpl implements DictService {
         List<String> oldKey = keywordBindMapper.getByDictId(dictDO.getId())
                 .stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         newKey.removeAll(oldKey);
-        if (oldKey.size() + newKey.size() > 2000) {
-            throw exception(new ErrorCode(500, "关键词总个数不能超过2000，新增后数量:{}"), oldKey.size() + newKey.size());
+
+
+        TreeSet<String> treeSet = CollUtil.toTreeSet(newKey, String.CASE_INSENSITIVE_ORDER);
+        treeSet.addAll(oldKey);
+
+        if (treeSet.size() > 2000) {
+            throw exception(new ErrorCode(500, "关键词总个数不能超过2000，新增后数量:{}"), treeSet.size());
         }
-        execute(newKey, dictDO);
+
+        oldKey.forEach(treeSet::remove);
+        execute(new ArrayList<>(treeSet), dictDO);
     }
 
     @Override

@@ -1,10 +1,13 @@
 package com.starcloud.ops.business.listing.utils;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.starcloud.ops.business.listing.dto.DraftFiveDescScoreDTO;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,7 +39,7 @@ public class ListingDraftScoreUtil {
     }
 
     public static Boolean containsSymbol(String text) {
-        String symbolPattern = "[^\\p{L}\\p{N}]";
+        String symbolPattern = "\\p{Punct}";
         return checkForMatch(text, symbolPattern);
     }
 

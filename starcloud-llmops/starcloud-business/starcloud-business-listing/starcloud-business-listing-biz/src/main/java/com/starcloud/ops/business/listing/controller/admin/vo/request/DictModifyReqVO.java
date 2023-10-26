@@ -19,8 +19,6 @@ public class DictModifyReqVO {
     @Schema(description = "词库名称")
     private String name;
 
-    @Schema(description = "所有关键字")
-    private List<String> keywordResume;
 
     @Schema(description = "状态")
     private Boolean enable;

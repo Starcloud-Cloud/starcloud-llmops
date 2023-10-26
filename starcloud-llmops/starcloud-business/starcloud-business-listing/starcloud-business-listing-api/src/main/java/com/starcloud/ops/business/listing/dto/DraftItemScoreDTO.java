@@ -24,14 +24,14 @@ public class DraftItemScoreDTO {
     private Boolean titleUppercase;
 
     // 五要要点
-//    @Schema(description = "每个要点包含150到200个字符")
-//    private Boolean fiveDescLength;
-//
-//    @Schema(description = "五要点的第一个字母大写")
-//    private Boolean allUppercase;
-//
-//    @Schema(description = "五要点不全是大写")
-//    private Boolean partUppercase;
+    @Schema(description = "每个要点包含150到200个字符")
+    private Boolean fiveDescLength;
+
+    @Schema(description = "五要点的第一个字母大写")
+    private Boolean allUppercase;
+
+    @Schema(description = "五要点不全是大写")
+    private Boolean partUppercase;
 
     @Schema(description = "五要点打分")
     private Map<String,DraftFiveDescScoreDTO> fiveDescScore;
