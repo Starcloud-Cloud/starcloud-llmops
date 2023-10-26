@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictPageReqVO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDictDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -28,9 +30,10 @@ public interface ListingDictMapper extends BaseMapperX<ListingDictDO> {
 
     default PageResult<ListingDictDO> page(DictPageReqVO reqVO) {
         LambdaQueryWrapper<ListingDictDO> wrapper = Wrappers.lambdaQuery(ListingDictDO.class)
-                .eq(StringUtils.isNotBlank(reqVO.getName()), ListingDictDO::getName, reqVO.getName())
-                .eq(StringUtils.isNotBlank(reqVO.getEndpoint()),ListingDictDO::getEndpoint,reqVO.getEndpoint())
-                .orderByDesc(ListingDictDO::getCreateTime);
+                .like(StringUtils.isNotBlank(reqVO.getName()), ListingDictDO::getName, reqVO.getName())
+                .eq(StringUtils.isNotBlank(reqVO.getEndpoint()), ListingDictDO::getEndpoint, reqVO.getEndpoint())
+                .eq(reqVO.getEnable() != null, ListingDictDO::getEnable, reqVO.getEnable())
+                .last(reqVO.orderSql());
         return selectPage(reqVO, wrapper);
     }
 
@@ -40,4 +43,12 @@ public interface ListingDictMapper extends BaseMapperX<ListingDictDO> {
                 .in(ListingDictDO::getUid, uids);
         delete(wrapper);
     }
+
+
+    List<ListingDictDO> limitList(@Param("reqVO") DictPageReqVO reqVO,
+                                  @Param("orderSql") String orderSql,
+                                  @Param("begin") Integer begin,
+                                  @Param("pageSize") Integer pageSize);
+
+    Long count(@Param("reqVO") DictPageReqVO reqVO);
 }

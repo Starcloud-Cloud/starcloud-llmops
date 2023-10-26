@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.listing.dal.mysql.ListingDictMapper">
+
+    <select id="limitList" resultType="com.starcloud.ops.business.listing.dal.dataobject.ListingDictDO">
+        SELECT d.id,d.uid,d.name,d.endpoint,d.count,d.enable,d.status,d.analysis_time,d.creator,
+        d.create_time,d.updater,d.update_time,d.deleted,d.tenant_id
+        FROM listing_dict d
+        LEFT JOIN listing_keyword_bind k ON d.id = k.dict_id
+        <where>
+            d.deleted = false and k.deleted = false
+            <if test="reqVO.name != null and reqVO.name != ''">
+                and d.name like  CONCAT('%',#{reqVO.name},'%')
+            </if>
+            <if test="reqVO.endpoint != null and reqVO.endpoint != ''">
+                and d.endpoint = #{reqVO.endpoint}
+            </if>
+            <if test="reqVO.enable != null ">
+                and d.enable = #{reqVO.enable}
+            </if>
+            <if test="reqVO.keyword != null and reqVO.keyword != ''">
+                and k.keyword = #{reqVO.keyword}
+            </if>
+        </where>
+        GROUP BY d.id
+        ${orderSql} limit #{begin},#{pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        SELECT count(DISTINCT d.id)
+        FROM listing_dict d
+        LEFT JOIN listing_keyword_bind k ON d.id = k.dict_id
+        <where>
+            d.deleted = false and k.deleted = false
+            <if test="reqVO.name != null and reqVO.name != ''">
+                and d.name like CONCAT('%',#{reqVO.name},'%')
+            </if>
+            <if test="reqVO.endpoint != null and reqVO.endpoint != ''">
+                and d.endpoint = #{reqVO.endpoint}
+            </if>
+            <if test="reqVO.enable != null">
+                and d.enable = #{reqVO.enable}
+            </if>
+            <if test="reqVO.keyword != null and reqVO.keyword != ''">
+                and k.keyword = #{reqVO.keyword}
+            </if>
+        </where>
+    </select>
+</mapper>

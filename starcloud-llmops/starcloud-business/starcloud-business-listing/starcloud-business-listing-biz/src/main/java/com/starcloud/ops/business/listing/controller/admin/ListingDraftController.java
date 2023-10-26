@@ -64,11 +64,12 @@ public class ListingDraftController {
         return CommonResult.success(draftRespVO);
     }
 
-//    @GetMapping("/import/temp")
-//    @Operation(summary = "导入模板", description = "导入模板")
-//    public void importTemplate(HttpServletResponse response) throws IOException {
-//        ExcelUtils.write(response, "导入模板.xls", "草稿模板", DraftDetailExcelVO.class, Collections.emptyList());
-//    }
+    @PostMapping("/clone")
+    @Operation(summary = "克隆模板", description = "克隆模板")
+    public CommonResult<DraftRespVO> importTemplate(@Valid @RequestBody DraftOperationReqVO reqVO) throws IOException {
+        DraftRespVO draftRespVO = draftService.cloneDraft(reqVO);
+        return CommonResult.success(draftRespVO);
+    }
 
     @GetMapping("/export")
     @Operation(summary = "导出草稿", description = "导出草稿")
@@ -101,13 +102,21 @@ public class ListingDraftController {
 
     @PutMapping("/import/dict")
     @Operation(summary = "导入词库中的关键词", description = "导入词库中的关键词")
-    public CommonResult<Boolean> importDict(@Valid @RequestBody ImportDictReqVO reqVO) {
-        draftService.importDict(reqVO);
-        return CommonResult.success(true);
+    public CommonResult<DraftRespVO> importDict(@Valid @RequestBody ImportDictReqVO reqVO) {
+        DraftRespVO respVO = draftService.importDict(reqVO);
+        return CommonResult.success(respVO);
+    }
+
+    @GetMapping("/recommend/{uid}/{version}")
+    @Operation(summary = "智能推荐", description = "智能推荐")
+    public CommonResult<String> searchTermRecommend(@PathVariable("uid") String uid,
+                                                    @PathVariable("version") Integer version) {
+        String recommend = draftService.searchTermRecommend(uid, version);
+        return CommonResult.success(recommend);
     }
 
 
-    @PutMapping("/score")
+    @PutMapping("/score/{uid}/{version}")
     @Operation(summary = "计算分值", description = "计算分值")
     public CommonResult<DraftRespVO> score(@Valid @RequestBody DraftReqVO reqVO) {
         DraftRespVO score = draftService.score(reqVO);

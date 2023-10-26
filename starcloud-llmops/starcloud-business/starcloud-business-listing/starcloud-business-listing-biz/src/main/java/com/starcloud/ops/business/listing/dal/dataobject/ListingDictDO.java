@@ -28,6 +28,11 @@ public class ListingDictDO extends TenantBaseDO {
     private String endpoint;
 
     /**
+     * 关键词数量
+     */
+    private Long count;
+
+    /**
      * 启用/禁用
      */
     private Boolean enable;

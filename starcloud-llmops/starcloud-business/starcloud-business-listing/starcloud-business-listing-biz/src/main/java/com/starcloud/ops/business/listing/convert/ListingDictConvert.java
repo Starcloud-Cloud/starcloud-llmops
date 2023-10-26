@@ -29,6 +29,8 @@ public interface ListingDictConvert {
 
     DictRespVO convert(ListingDictDO dictDO);
 
+    List<DictRespVO> convert(List<ListingDictDO> list);
+
     PageResult<DictRespVO> convert(PageResult<ListingDictDO> page);
 
     @Named("parseKey")

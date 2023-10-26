@@ -9,6 +9,12 @@ import lombok.Data;
 @Data
 public class DraftDetailExcelVO {
 
+    @ExcelProperty("站点")
+    private String endpoint;
+
+    @ExcelProperty("ASIN")
+    private String asin;
+
     @ExcelProperty("标题")
     private String title;
 
@@ -21,18 +27,4 @@ public class DraftDetailExcelVO {
     @ExcelProperty("搜索词")
     private String searchTerm;
 
-    @ExcelProperty("所属站点")
-    private String endpoint;
-
-    @ExcelProperty("asin")
-    private String asin;
-
-    @ExcelProperty("关键词摘要")
-    private String keywordResume;
-
-    @ExcelProperty("uid")
-    private String uid;
-
-    @ExcelProperty("版本")
-    private Integer version;
 }

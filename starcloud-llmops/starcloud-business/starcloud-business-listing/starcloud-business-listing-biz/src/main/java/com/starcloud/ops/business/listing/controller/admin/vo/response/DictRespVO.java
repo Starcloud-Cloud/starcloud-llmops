@@ -23,6 +23,9 @@ public class DictRespVO {
     @Schema(description = "站点")
     private String endpoint;
 
+    @Schema(description = "关键词数量")
+    private Long count;
+
     @Schema(description = "关键词摘要")
     private List<String> keywordResume;
 

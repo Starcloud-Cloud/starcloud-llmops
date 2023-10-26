@@ -15,8 +15,8 @@ public class DraftConfigDTO {
     @Schema(description = "开启ai模式")
     private Boolean enableAi;
 
-    // todo  ai 配置
-
+    @Schema(description = "ai模式配置")
+    private AiConfigDTO aiConfigDTO;
 
     @Schema(description = "五点数量")
     private Integer fiveDescNum = 5;

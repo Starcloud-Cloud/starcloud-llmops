@@ -17,6 +17,7 @@ import org.mapstruct.factory.Mappers;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 @Mapper
 public interface ListingDraftConvert {
@@ -35,12 +36,25 @@ public interface ListingDraftConvert {
 
     List<DraftRespVO> convert(List<ListingDraftDO> draftDOS);
 
+
     List<DraftDetailExcelVO> convertExcel(List<ListingDraftDO> draftDOS);
+
+    @Mapping(source = "fiveDesc", target = "fiveDesc", qualifiedByName = "fiveDescExportFormat")
+    DraftDetailExcelVO listingDraftDOToDraftDetailExcelVO(ListingDraftDO listingDraftDO);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-//    @Mapping(source = "endpoint", target = "endpoint", ignore = true)
     void update(DraftReqVO reqVO, @MappingTarget ListingDraftDO draftDO);
+
+    @Named("fiveDescExportFormat")
+    default String fiveDescExportFormat(String str) {
+        Map<String, String> map = parseFiveDesc(str);
+        StringJoiner sj = new StringJoiner("\n");
+        for (String value : map.values()) {
+            sj.add(value);
+        }
+        return sj.toString();
+    }
 
     default String jsonStr(DraftConfigDTO object) {
         return JSONUtil.toJsonStr(object);

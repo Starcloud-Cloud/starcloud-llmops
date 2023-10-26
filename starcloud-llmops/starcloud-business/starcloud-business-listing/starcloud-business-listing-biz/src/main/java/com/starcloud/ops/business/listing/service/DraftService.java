@@ -90,11 +90,29 @@ public interface DraftService {
      *
      * @param reqVO
      */
-    void importDict(ImportDictReqVO reqVO);
+    DraftRespVO importDict(ImportDictReqVO reqVO);
 
     /**
      * 计算得分
+     *
      * @param reqVO
      */
     DraftRespVO score(DraftReqVO reqVO);
+
+    /**
+     * 克隆草稿
+     *
+     * @param reqVO
+     * @return
+     */
+    DraftRespVO cloneDraft(DraftOperationReqVO reqVO);
+
+    /**
+     * 搜索词智能推荐
+     *
+     * @param uid
+     * @param version
+     * @return
+     */
+    String searchTermRecommend(String uid, Integer version);
 }

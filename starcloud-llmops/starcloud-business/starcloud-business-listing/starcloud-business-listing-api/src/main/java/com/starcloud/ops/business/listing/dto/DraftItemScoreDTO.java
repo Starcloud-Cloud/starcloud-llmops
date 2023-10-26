@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 @Schema(description = "各项分数")
 @Builder
@@ -22,14 +24,17 @@ public class DraftItemScoreDTO {
     private Boolean titleUppercase;
 
     // 五要要点
-    @Schema(description = "每个要点包含150到200个字符")
-    private Boolean fiveDescLength;
+//    @Schema(description = "每个要点包含150到200个字符")
+//    private Boolean fiveDescLength;
+//
+//    @Schema(description = "五要点的第一个字母大写")
+//    private Boolean allUppercase;
+//
+//    @Schema(description = "五要点不全是大写")
+//    private Boolean partUppercase;
 
-    @Schema(description = "五要点的第一个字母大写")
-    private Boolean allUppercase;
-
-    @Schema(description = "五要点不全是大写")
-    private Boolean partUppercase;
+    @Schema(description = "五要点打分")
+    private Map<String,DraftFiveDescScoreDTO> fiveDescScore;
 
     // 描述
     @Schema(description = "产品描述1500到2000个字符")

@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.listing.utils;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.starcloud.ops.business.listing.dto.DraftFiveDescScoreDTO;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,6 +81,38 @@ public class ListingDraftScoreUtil {
 
     public static Boolean uppercase(String text) {
         return !StringUtils.isBlank(text) && Character.isUpperCase(text.charAt(0));
+    }
+
+
+    public static Boolean titleUppercase(String text) {
+        if (StringUtils.isBlank(text)) {
+            return false;
+        }
+        for (String s : text.split(" ")) {
+            if (!Character.isUpperCase(s.charAt(0))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static Map<String, DraftFiveDescScoreDTO> fiveDescScore(Map<String, String> fiveDesc) {
+        if (fiveDesc == null) {
+            return null;
+        }
+        Map<String, DraftFiveDescScoreDTO> result = new HashMap<>(fiveDesc.size());
+        for (String key : fiveDesc.keySet()) {
+            String value = fiveDesc.get(key);
+            Boolean uppercase = uppercase(value);
+            Boolean length = judgmentLength(value, 150, 250);
+            DraftFiveDescScoreDTO draftFiveDescScoreDTO = new DraftFiveDescScoreDTO(length, uppercase);
+            result.put(key,draftFiveDescScoreDTO);
+        }
+        return result;
+    }
+
+    public static Boolean judgmentLength(String text, int min, int max) {
+        return (!StringUtils.isBlank(text)) && text.length() >= min && text.length() < max;
     }
 
     public static Boolean judgmentLength(Map<String, String> fiveDesc, int min, int max) {
