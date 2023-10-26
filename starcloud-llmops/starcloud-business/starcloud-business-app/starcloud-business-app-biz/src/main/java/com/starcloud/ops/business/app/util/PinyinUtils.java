@@ -97,14 +97,36 @@ public class PinyinUtils {
         StringBuilder strChar = new StringBuilder();
         for (String str : strArray) {
             char[] arr = str.toCharArray();
-            for (char c : arr) {
-                if (c >= 65 && c < 91) {
-                    strChar.append(c);
+            for (char character : arr) {
+                if (CharUtils.isAsciiAlphaUpper(character)) {
+                    strChar.append(character);
                 }
             }
             strChar.append(",");
         }
         return strChar.substring(0, strChar.length() - 1);
+    }
+
+    /**
+     * 将汉字转换为拼音简拼 大写，多音字的返回多个拼音以逗号分隔
+     *
+     * @param chinese 汉字
+     * @return 拼音
+     */
+    public static String pinyinFirstSimple(String chinese) {
+        String[] strArray = pinyin(chinese).split(",");
+        StringBuilder strChar = new StringBuilder();
+        if (ArrayUtils.isEmpty(strArray)) {
+            return "";
+        }
+        String first = strArray[0];
+        char[] arr = first.toCharArray();
+        for (char character : arr) {
+            if (CharUtils.isAsciiAlphaUpper(character)) {
+                strChar.append(character);
+            }
+        }
+        return strChar.toString();
     }
 
     /**

@@ -50,6 +50,12 @@ public class AppRespVO implements Serializable {
     private String spell;
 
     /**
+     * 名称拼音简拼
+     */
+    @Schema(description = "名称拼音简拼")
+    private String spellSimple;
+
+    /**
      * 应用类型：MYSELF：我的应用，DOWNLOAD：已下载应用
      */
     @Schema(description = "应用类型：MYSELF：我的应用，DOWNLOAD：已下载应用")

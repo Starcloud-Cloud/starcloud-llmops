@@ -238,6 +238,7 @@ public interface AppConvert {
         appResponse.setUid(app.getUid());
         appResponse.setName(app.getName());
         appResponse.setSpell(PinyinCache.get(app.getName()));
+        appResponse.setSpellSimple(PinyinCache.getSimple(app.getName()));
         appResponse.setModel(app.getModel());
         appResponse.setType(app.getType());
         appResponse.setSource(app.getSource());
