@@ -49,6 +49,12 @@ public class AppMarketRespVO implements Serializable {
     private String spell;
 
     /**
+     * 应用名称拼音简拼
+     */
+    @Schema(description = "应用名称拼音简拼")
+    private String spellSimple;
+
+    /**
      * 应用类型
      */
     @Schema(description = "应用类型")

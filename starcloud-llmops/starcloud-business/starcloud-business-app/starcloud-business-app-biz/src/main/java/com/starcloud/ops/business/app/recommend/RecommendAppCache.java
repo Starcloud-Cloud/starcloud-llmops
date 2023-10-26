@@ -63,11 +63,17 @@ public class RecommendAppCache {
     public static List<AppRespVO> get(String model) {
         if (StringUtils.isNotBlank(model) && AppModelEnum.CHAT.name().equals(model)) {
             return get().stream().filter(app -> AppModelEnum.CHAT.name().equals(app.getModel()))
-                    .peek(item -> item.setSpell(PinyinCache.get(item.getName())))
+                    .peek(item -> {
+                        item.setSpell(PinyinCache.get(item.getName()));
+                        item.setSpellSimple(PinyinCache.getSimple(item.getName()));
+                    })
                     .collect(Collectors.toList());
         }
         return get().stream().filter(app -> !AppModelEnum.CHAT.name().equals(app.getModel()))
-                .peek(item -> item.setSpell(PinyinCache.get(item.getName())))
+                .peek(item -> {
+                    item.setSpell(PinyinCache.get(item.getName()));
+                    item.setSpellSimple(PinyinCache.getSimple(item.getName()));
+                })
                 .collect(Collectors.toList());
     }
 
