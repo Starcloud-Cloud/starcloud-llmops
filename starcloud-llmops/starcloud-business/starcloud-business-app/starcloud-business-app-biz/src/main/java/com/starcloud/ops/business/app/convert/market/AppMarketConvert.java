@@ -226,6 +226,7 @@ public interface AppMarketConvert {
         appMarketResponse.setUid(appMarket.getUid());
         appMarketResponse.setName(appMarket.getName());
         appMarketResponse.setSpell(PinyinCache.get(appMarket.getName()));
+        appMarketResponse.setSpellSimple(PinyinCache.getSimple(appMarket.getName()));
         appMarketResponse.setType(appMarket.getType());
         appMarketResponse.setModel(appMarket.getModel());
         appMarketResponse.setVersion(appMarket.getVersion());
