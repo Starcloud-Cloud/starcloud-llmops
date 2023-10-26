@@ -6,21 +6,11 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Filename:     starcloud-llmops
- * Description:  com.starcloud.ops.business.listing.service.sellersprite.DTO.request
- * Company:      mdc.ai Inc.
- *
- * @Author: djl
- * @version: 1.0
- * Create at:    2023/10/17  15:19
- * Modification History:
- * Date          Author      Version     Description
- * ------------------------------------------------------------------
- * 2023/10/17   AlanCusack    1.0         1.0 Version
+ * ExtendAsinRequestDTO
  */
 @NoArgsConstructor
 @Data
-public class ExtendAsinRequestDTO {
+public class ExtendAsinRequestDTO{
 
 
     /**
