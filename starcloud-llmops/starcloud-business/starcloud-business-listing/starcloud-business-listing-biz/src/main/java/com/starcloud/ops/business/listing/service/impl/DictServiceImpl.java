@@ -114,7 +114,7 @@ public class DictServiceImpl implements DictService {
             keywordBindMapper.deleteBatchIds(delKeyIds);
             execute(newKey, dictDO);
         } else {
-            dictMapper.updateById(dictDO);
+            updateById(dictDO);
         }
     }
 
@@ -166,7 +166,7 @@ public class DictServiceImpl implements DictService {
         keywordBindMapper.deleteDictKey(keys, dictDO.getId());
         Long count = keywordBindMapper.selectCount(KeywordBindDO::getDictId, dictDO.getId());
         dictDO.setCount(count);
-        dictMapper.updateById(dictDO);
+        updateById(dictDO);
     }
 
     @Override
@@ -190,7 +190,7 @@ public class DictServiceImpl implements DictService {
 
         Long count = keywordBindMapper.selectCount(KeywordBindDO::getDictId, dictDO.getId());
         dictDO.setCount(count);
-        dictMapper.updateById(dictDO);
+        updateById(dictDO);
         executor.execute(() -> {
             try {
                 long start = System.currentTimeMillis();
@@ -198,13 +198,18 @@ public class DictServiceImpl implements DictService {
                 long end = System.currentTimeMillis();
                 dictDO.setAnalysisTime(end - start);
                 dictDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
-                dictMapper.updateById(dictDO);
+                updateById(dictDO);
             } catch (Exception e) {
                 log.error("分析关键词失败", e);
                 dictDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
-                dictMapper.updateById(dictDO);
+                updateById(dictDO);
             }
         });
+    }
+
+    private void updateById(ListingDictDO dictDO) {
+        dictDO.setUpdateTime(null);
+        dictMapper.updateById(dictDO);
     }
 
     private ListingDictDO getDict(String uid) {
