@@ -38,6 +38,12 @@ public class AppMarketReqVO implements Serializable {
     private String name;
 
     /**
+     * 应用类型
+     */
+    @Schema(description = "应用类型")
+    private String type;
+
+    /**
      * 应用模型
      */
     @Schema(description = "应用模型", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -52,16 +58,22 @@ public class AppMarketReqVO implements Serializable {
     private String language;
 
     /**
-     * 应用标签
+     * 应用排序，越小越靠前
      */
-    @Schema(description = "应用标签")
-    private List<String> tags;
+    @Schema(description = "应用排序")
+    private Long sort;
 
     /**
      * 应用类别
      */
     @Schema(description = "应用类别", requiredMode = Schema.RequiredMode.REQUIRED)
-    private List<String> categories;
+    private String category;
+
+    /**
+     * 应用标签
+     */
+    @Schema(description = "应用标签")
+    private List<String> tags;
 
     /**
      * 应用场景

@@ -56,7 +56,7 @@ public class UserBenefitsUsageLogServiceImpl implements UserBenefitsUsageLogServ
         validateBenefitsTypeExists(createReqVO.getBenefitsType());
 
         // 插入
-        UserBenefitsUsageLogDO userBenefitsUsageLog = UserBenefitsUsageLogConvert.INSTANCE.convert(createReqVO);
+        UserBenefitsUsageLogDO userBenefitsUsageLog = UserBenefitsUsageLogConvert.INSTANCE.InsertConvert(createReqVO);
         userBenefitsUsageLogMapper.insert(userBenefitsUsageLog);
         // 返回
         return userBenefitsUsageLog.getId();
@@ -91,6 +91,9 @@ public class UserBenefitsUsageLogServiceImpl implements UserBenefitsUsageLogServ
         usageLog.setUsageTime(usageTime);
         usageLog.setBenefitsType(benefitsType.getCode());
         usageLog.setAmount(amount);
+        usageLog.setCreator(userBenefitsDO.getCreator());
+        usageLog.setUpdater(userBenefitsDO.getUpdater());
+        usageLog.setTenantId(userBenefitsDO.getTenantId());
         return usageLog;
     }
 

@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.app.service.image;
 
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.HistoryGenerateImagePageQuery;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -24,11 +24,12 @@ public interface ImageService {
     Map<String, List<ImageMetaDTO>> meta();
 
     /**
-     * 查询历史图片列表
+     * 上传图片，并且返回图片URL
      *
-     * @return 图片列表
+     * @param image 上传图片
+     * @return 图片url
      */
-    PageResult<ImageMessageRespVO> historyGenerateImages(HistoryGenerateImagePageQuery query);
+    UploadImageInfoDTO upload(MultipartFile image);
 
     /**
      * 文本生成图片
@@ -36,6 +37,6 @@ public interface ImageService {
      * @param request 请求参数
      * @return 图片信息
      */
-    ImageMessageRespVO generateImage(ImageReqVO request);
+    ImageRespVO execute(ImageReqVO request);
 
 }

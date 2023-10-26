@@ -3,45 +3,137 @@
 <mapper namespace="com.starcloud.ops.business.app.dal.mysql.favorite.AppFavoriteMapper">
 
     <!-- 查询收藏应用列表 -->
-    <select id="listFavorite" resultType="com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO">
-        SELECT b.uid, b.name, b.description, b.categories, b.scenes, a.create_time AS favorite_time
+    <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO">
+        SELECT b.uid,
+        b.name,
+        b.type,
+        b.model,
+        b.version,
+        b.language,
+        b.sort,
+        b.tags,
+        b.category,
+        b.scenes,
+        b.images,
+        b.icon,
+        b.free,
+        b.cost,
+        b.usage_count,
+        b.like_count,
+        b.view_count,
+        b.install_count,
+        b.description,
+        b.creator,
+        b.create_time,
+        b.create_time,
+        a.uid AS favoriteUid,
+        a.creator AS favoriteCreator,
+        a.create_time AS favoriteTime
         FROM llm_app_favorite a
-                 LEFT JOIN llm_app_market b ON a.app_uid = b.uid
-        WHERE a.user = #{userId}
-          AND a.deleted = 0
-          AND b.audit = 1
-          AND b.deleted = 0
+        LEFT JOIN llm_app_market b ON a.market_uid = b.uid
+        <where>
+            <if test="query.userId != null and query.userId != '' ">
+                AND a.creator = #{query.userId}
+            </if>
+            <if test="query.name != null and query.name != '' ">
+                <bind name="name" value="query.name+'%'"/>
+                AND b.name LIKE #{name}
+            </if>
+            <if test="query.model != null and query.model != '' ">
+                AND b.model = #{query.model}
+            </if>
+            <if test="query.category != null and query.category != '' ">
+                AND b.category = #{query.category}
+            </if>
+            AND a.deleted = 0
+            AND b.deleted = 0
+        </where>
+        ORDER BY a.create_time DESC;
+    </select>
+
+    <!-- 查询收藏应用列表 -->
+    <select id="page" resultType="com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO">
+        SELECT
+            b.uid,
+        b.name,
+        b.type,
+        b.model,
+        b.version,
+        b.language,
+        b.sort,
+        b.tags,
+        b.category,
+        b.scenes,
+        b.images,
+        b.icon,
+        b.free,
+        b.cost,
+        b.usage_count,
+        b.like_count,
+        b.view_count,
+        b.install_count,
+        b.description,
+        b.creator,
+        b.create_time,
+        b.create_time,
+        a.uid AS favoriteUid,
+        a.creator AS favoriteCreator,
+        a.create_time AS favoriteTime
+        FROM llm_app_favorite a
+        LEFT JOIN llm_app_market b ON a.market_uid = b.uid
+        <where>
+            <if test="query.userId != null and query.userId != '' ">
+                AND a.creator = #{query.userId}
+            </if>
+            <if test="query.name != null and query.name != '' ">
+                <bind name="name" value="query.name+'%'"/>
+                AND b.name LIKE #{name}
+            </if>
+            <if test="query.model != null and query.model != '' ">
+                AND b.model = #{query.model}
+            </if>
+            <if test="query.category != null and query.category != '' ">
+                AND b.category = #{query.category}
+            </if>
+            AND a.deleted = 0
+            AND b.deleted = 0
+        </where>
         ORDER BY a.create_time DESC;
     </select>
 
     <!-- 根据用户 ID 和应用 UID 获取应用详情 -->
-    <select id="getFavoriteApp" resultType="com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO">
+    <select id="getMarketInfo" resultType="com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO">
         SELECT b.uid,
                b.name,
+               b.type,
                b.model,
                b.version,
                b.language,
+               b.sort,
                b.tags,
-               b.categories,
+               b.category,
                b.scenes,
                b.images,
                b.icon,
                b.free,
                b.cost,
+               b.usage_count,
                b.like_count,
                b.view_count,
-               b.download_count,
+               b.install_count,
                b.config,
-               b.create_time,
+               b.description,
                b.example,
+               b.creator,
                b.create_time,
-               a.create_time AS favorite_time
+               b.create_time,
+               a.uid         AS favoriteUid,
+               a.creator     AS favoriteCreator,
+               a.create_time AS favoriteTime
         FROM llm_app_favorite a
-                 LEFT JOIN llm_app_market b ON a.app_uid = b.uid
-        WHERE a.user = #{userId}
-          AND a.app_uid = #{appUid}
+                 LEFT JOIN llm_app_market b ON a.market_uid = b.uid
+        WHERE a.uid = #{uid}
           AND a.deleted = 0
-          AND b.audit = 1
           AND b.deleted = 0
         ORDER BY a.create_time DESC
         LIMIT 1;

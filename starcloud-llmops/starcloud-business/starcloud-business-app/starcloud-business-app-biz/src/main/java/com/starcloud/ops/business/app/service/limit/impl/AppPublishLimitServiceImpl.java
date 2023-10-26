@@ -45,7 +45,7 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     @Override
     public AppPublishLimitRespVO get(String uid) {
         AppPublishLimitDO appPublishLimit = appPublishLimitMapper.get(uid);
-        AppValidate.notNull(appPublishLimit, ErrorCodeConstants.APP_PUBLISH_LIMIT_NOT_EXISTS_UID, uid);
+        AppValidate.notNull(appPublishLimit, ErrorCodeConstants.LIMIT_NON_EXISTENT, uid);
         return AppPublishLimitConvert.INSTANCE.convertResponse(appPublishLimit);
     }
 
@@ -81,9 +81,9 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     @Override
     public void create(AppPublishLimitReqVO request) {
         long countByAppUid = appPublishLimitMapper.countByAppUid(request.getAppUid());
-        AppValidate.isFalse(countByAppUid > 0, ErrorCodeConstants.APP_PUBLISH_LIMIT_EXISTS);
+        AppValidate.isFalse(countByAppUid > 0, ErrorCodeConstants.LIMIT_ALREADY_EXISTENT);
         long countByPublishUid = appPublishLimitMapper.countByPublishUid(request.getPublishUid());
-        AppValidate.isFalse(countByPublishUid > 0, ErrorCodeConstants.APP_PUBLISH_LIMIT_EXISTS);
+        AppValidate.isFalse(countByPublishUid > 0, ErrorCodeConstants.LIMIT_ALREADY_EXISTENT);
 
         AppPublishLimitDO appPublishLimit = AppPublishLimitConvert.INSTANCE.convert(request);
         appPublishLimit.setUid(IdUtil.fastSimpleUUID());
@@ -101,7 +101,7 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     @Override
     public void modify(AppPublishLimitModifyReqVO request) {
         AppPublishLimitDO appPublishLimit = appPublishLimitMapper.get(request.getUid());
-        AppValidate.notNull(appPublishLimit, ErrorCodeConstants.APP_PUBLISH_LIMIT_EXISTS);
+        AppValidate.notNull(appPublishLimit, ErrorCodeConstants.LIMIT_ALREADY_EXISTENT);
 
         AppPublishLimitDO modifyAppPublishLimit = AppPublishLimitConvert.INSTANCE.convertModify(request);
         modifyAppPublishLimit.setId(appPublishLimit.getId());
@@ -142,7 +142,7 @@ public class AppPublishLimitServiceImpl implements AppPublishLimitService {
     @Override
     public void delete(String uid) {
         AppPublishLimitDO appPublishLimitDO = appPublishLimitMapper.get(uid);
-        AppValidate.notNull(appPublishLimitDO, ErrorCodeConstants.APP_PUBLISH_LIMIT_NOT_EXISTS_UID);
+        AppValidate.notNull(appPublishLimitDO, ErrorCodeConstants.LIMIT_NON_EXISTENT);
         appPublishLimitMapper.delete(uid);
         appPublishLimitRedisMapper.delete(appPublishLimitDO.getAppUid());
     }

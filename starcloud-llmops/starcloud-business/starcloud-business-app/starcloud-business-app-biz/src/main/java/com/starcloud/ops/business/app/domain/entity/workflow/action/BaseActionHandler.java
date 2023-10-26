@@ -3,10 +3,13 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.common.exception.ServerException;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -27,20 +30,67 @@ import java.util.Map;
  */
 @Data
 @Slf4j
+@SuppressWarnings("all")
 public abstract class BaseActionHandler<Q, R> {
 
-    private static UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
+    /**
+     * 权益服务
+     */
+    private static final UserBenefitsService USER_BENEFITS_SERVICE = SpringUtil.getBean(UserBenefitsService.class);
 
+    /**
+     * 步骤名称
+     */
     private String name;
 
+    /**
+     * 步骤描述
+     */
     private String description;
 
+    /**
+     * 请求应用上下文
+     */
     private AppContext appContext;
 
     /**
-     * 执行步骤
+     * 执行具体的步骤
      */
-    protected abstract ActionResponse _execute(Q request);
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected abstract ActionResponse doExecute(Q request);
+
+    /**
+     * 获取应用的UID
+     *
+     * @return 应用的UID
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected String getAppUid() {
+        return this.getAppContext().getApp().getUid();
+    }
+
+    /**
+     * 获取当前handler消耗的权益类型，如果返回自动扣除权益，返回null,则不处理权益扣除
+     *
+     * @return 权益类型
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected BenefitsTypeEnums getBenefitsType() {
+        return BenefitsTypeEnums.COMPUTATIONAL_POWER;
+    }
+
+
+    /**
+     * 获取当前handler消耗的权益点数
+     *
+     * @return 权益点数
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected abstract Integer getCostPoints(Q request);
 
     /**
      * 流程执行器，action 执行入口
@@ -49,72 +99,74 @@ public abstract class BaseActionHandler<Q, R> {
      * @param scopeDataOperator 作用域数据操作器
      * @return 执行结果
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
+        log.info("Action 执行开始...");
         try {
-            log.info("Action 执行开始...");
             this.appContext = context;
             Q request = this.parseInput();
 
-            // 执行 Action
-            ActionResponse actionResponse = this._execute(request);
+            // 执行具体的步骤
+            ActionResponse actionResponse = this.doExecute(request);
 
             // 执行结果校验, 如果失败，抛出异常
             if (!actionResponse.getSuccess()) {
-                if (StringUtils.isBlank(actionResponse.getErrorMsg())) {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, "Action 执行失败");
+                String errorCode = StringUtils.isNoneBlank(actionResponse.getErrorCode()) ? actionResponse.getErrorCode() : ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode().toString();
+                String errorMsg = StringUtils.isNoneBlank(actionResponse.getErrorMsg()) ? actionResponse.getErrorMsg() : "应用Action执行失败，请稍后重试或者联系管理员！";
+                Integer code;
+                try {
+                    code = Integer.parseInt(errorCode);
+                } catch (Exception e) {
+                    code = ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode();
                 }
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_FAIL, actionResponse.getErrorMsg());
+                throw ServiceExceptionUtil.exception(new ErrorCode(code, errorMsg));
             }
 
             // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
-            if (this.getBenefitsType() != null && actionResponse.getTotalTokens() > 0) {
-                //权益记录
-                userBenefitsService.expendBenefits(this.getBenefitsType().getCode(), actionResponse.getTotalTokens(), context.getUserId(), context.getConversationUid());
+            if (this.getBenefitsType() != null && actionResponse.getCostPoints() > 0 && actionResponse.getTotalTokens() > 0) {
+                // 权益类型
+                BenefitsTypeEnums benefitsType = this.getBenefitsType();
+                // 权益点数
+                Integer costPoints = actionResponse.getCostPoints();
+                USER_BENEFITS_SERVICE.expendBenefits(benefitsType.getCode(), (long) costPoints, context.getUserId(), context.getConversationUid());
             }
+
             log.info("Action 执行成功...");
             return actionResponse;
-        } catch (ServerException exception) {
+        } catch (ServiceException exception) {
             log.error("Action 执行异常：异常码: {}, 异常信息: {}", exception.getCode(), exception.getMessage());
             throw exception;
 
         } catch (Exception exception) {
-            log.error("Action 执行异常：异常信息: {}", exception.getMessage());
+            log.error("Action 执行失败：异常信息: {}", exception.getMessage());
             throw exception;
         }
     }
 
+    /**
+     * 解析输入参数
+     *
+     * @return 输入参数
+     */
+    @SuppressWarnings("all")
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected Q parseInput() {
-
         Map<String, Object> stepParams = this.appContext.getContextVariablesValues();
-
-        //只拿新参数
-
-        //用新参数 覆盖老结构的参数
-        this.getAppContext().getJsonData();
-
-        //优化方案：老结构数据全部废除，实体初始化好配置的参数，前端只传必要的参数
-        //还是 传入的参数 覆盖 保存的参数
+        // 将 MODEL 传入到 stepParams 中
+        stepParams.put("MODEL", this.appContext.getAiModel());
 
         Type query = TypeUtil.getTypeArgument(this.getClass());
         Class<Q> inputCls = (Class<Q>) query;
+        return BeanUtil.toBean(new HashMap<String, Object>() {
+            private static final long serialVersionUID = -5958990436311575905L;
 
-        Q request = BeanUtil.toBean(new HashMap<String, Object>() {{
-            put("stepParams", stepParams);
-        }}, inputCls);
-
-        return request;
+            {
+                put("stepParams", stepParams);
+            }
+        }, inputCls);
     }
 
-    /**
-     * 获取当前handler消耗的权益类型，如果返回自动扣除权益，返回null,则不处理权益扣除
-     *
-     * @return 权益类型
-     */
-    protected BenefitsTypeEnums getBenefitsType() {
-        return BenefitsTypeEnums.TOKEN;
-    }
 
-    protected String getAppUid() {
-        return this.getAppContext().getApp().getUid();
-    }
 }

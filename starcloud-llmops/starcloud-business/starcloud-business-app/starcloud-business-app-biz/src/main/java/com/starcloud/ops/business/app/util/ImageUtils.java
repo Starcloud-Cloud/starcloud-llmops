@@ -1,8 +1,14 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.UpscaleImageRequest;
+import com.starcloud.ops.business.app.api.image.vo.request.VariantsImageRequest;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.image.ImageTaskConfigTypeEnum;
+import com.starcloud.ops.business.app.enums.image.ProductImageTypeEnum;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
 import com.starcloud.ops.business.app.enums.vsearch.GuidancePresetEnum;
 import com.starcloud.ops.business.app.enums.vsearch.ImageSizeEnum;
@@ -10,12 +16,14 @@ import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplesEnum;
 import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.i18n.LocaleContextHolder;
 
+import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -27,6 +35,16 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("all")
 public class ImageUtils {
+
+    /**
+     * SD 价格
+     */
+    public static final BigDecimal SD_PRICE = new BigDecimal("0.01");
+
+    /**
+     * ClipDrop 价格
+     */
+    public static final BigDecimal CD_PRICE = new BigDecimal("0.026784");
 
     /**
      * 获取 engine
@@ -108,6 +126,43 @@ public class ImageUtils {
     }
 
     /**
+     * 商品图模板
+     *
+     * @return 商品图模板
+     */
+    public static List<ImageMetaDTO> productTemplates() {
+        return Arrays.stream(ProductImageTypeEnum.values()).filter(item -> StringUtils.isNotBlank(item.getPrompt())).map(item -> {
+            ImageMetaDTO metadata = new ImageMetaDTO();
+            metadata.setValue(item.getCode());
+            metadata.setLabel(item.getLabel());
+            Locale locale = LocaleContextHolder.getLocale();
+            if (!Locale.CHINA.equals(locale)) {
+                metadata.setLabel(item.getLabelEn());
+            }
+            metadata.setImage(item.getImage());
+            return metadata;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 任务配置类型
+     *
+     * @return 任务配置类型
+     */
+    public static List<ImageMetaDTO> configTaskType() {
+        return Arrays.stream(ImageTaskConfigTypeEnum.values()).map(item -> {
+            ImageMetaDTO metadata = new ImageMetaDTO();
+            metadata.setValue(item.getCode());
+            metadata.setLabel(item.getLabel());
+            Locale locale = LocaleContextHolder.getLocale();
+            if (!Locale.CHINA.equals(locale)) {
+                metadata.setLabel(item.getLabelEn());
+            }
+            return metadata;
+        }).collect(Collectors.toList());
+    }
+
+    /**
      * 转换为 ImageMetaDTO
      *
      * @param code        枚举值
@@ -164,11 +219,7 @@ public class ImageUtils {
      * @param request 请求参数
      * @return token数量
      */
-    public static BigDecimal countAnswerCredits(ImageRequest request) {
-        String engine = request.getEngine();
-        Integer steps = request.getSteps();
-        Integer width = request.getWidth();
-        Integer height = request.getHeight();
+    public static BigDecimal countAnswerCredits(String engine, Integer steps, Integer width, Integer height) {
         if (steps == null) {
             steps = 50;
         }
@@ -181,8 +232,8 @@ public class ImageUtils {
         BigDecimal stepsDecimal = new BigDecimal(steps.toString());
         BigDecimal multiplier = new BigDecimal("100");
 
-        // SDXL 0.9
-        if (EngineEnum.STABLE_DIFFUSION_XL_1024_V0_9.getCode().equals(engine)) {
+        // SDXL 0.9 || SDXL 1.0
+        if (EngineEnum.STABLE_DIFFUSION_XL_1024_V0_9.getCode().equals(engine) || EngineEnum.STABLE_DIFFUSION_XL_1024_V1_0.getCode().equals(engine)) {
             BigDecimal factor;
             if (steps == 30) {
                 factor = new BigDecimal("0.016");
@@ -222,6 +273,44 @@ public class ImageUtils {
     }
 
     /**
+     * 计算回答图片消耗的 SD 点数
+     *
+     * @param request 请求参数
+     * @return token数量
+     */
+    public static BigDecimal countAnswerCredits(VariantsImageRequest request) {
+        String engine = request.getEngine();
+        Integer steps = request.getSteps();
+        Integer width = request.getWidth();
+        Integer height = request.getHeight();
+        return countAnswerCredits(engine, steps, width, height);
+    }
+
+    /**
+     * 计算回答图片消耗的 SD 点数
+     *
+     * @param request 请求参数
+     * @return token数量
+     */
+    public static BigDecimal countAnswerCredits(GenerateImageRequest request) {
+        String engine = request.getEngine();
+        Integer steps = request.getSteps();
+        Integer width = request.getWidth();
+        Integer height = request.getHeight();
+        return countAnswerCredits(engine, steps, width, height);
+    }
+
+    /**
+     * 计算回答图片消耗的 SD 点数
+     *
+     * @param request 请求参数
+     * @return token数量
+     */
+    public static BigDecimal countAnswerCredits(UpscaleImageRequest request) {
+        return new BigDecimal("0.2");
+    }
+
+    /**
      * 计算回答图片的token数量
      *
      * @param credits 消耗点数
@@ -240,26 +329,58 @@ public class ImageUtils {
     public static String handleNegativePrompt(String negativePrompt, boolean isJoin) {
         if (isJoin) {
             if (StringUtils.isBlank(negativePrompt)) {
-                return AppConstants.DEFAULT_NEGATIVE_PROMPT;
+                return AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT;
             } else {
-                if (StringUtils.endsWith(negativePrompt, ".")) {
-                    negativePrompt = negativePrompt.substring(0, negativePrompt.length() - 1);
+                if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT)) {
+                    return negativePrompt;
                 }
-                return negativePrompt + ", " + AppConstants.DEFAULT_NEGATIVE_PROMPT;
+                return AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT + ", " + negativePrompt;
             }
         }
-        if (StringUtils.endsWith(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
-            if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_NEGATIVE_PROMPT)) {
+        if (StringUtils.startsWith(negativePrompt, AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT)) {
+            if (StringUtils.equals(negativePrompt, AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT)) {
                 return "";
             } else {
-                return negativePrompt.substring(0, negativePrompt.length() - AppConstants.DEFAULT_NEGATIVE_PROMPT.length() - 2) + ".";
+                String negative = negativePrompt.substring(AppConstants.DEFAULT_IMAGE_NEGATIVE_PROMPT.length()).trim();
+                if (StringUtils.startsWith(negative, ",") || StringUtils.startsWith(negative, "，") || StringUtils.startsWith(negative, ".") || StringUtils.startsWith(negative, "。")) {
+                    return negative.substring(1).trim();
+                }
             }
         }
         return negativePrompt;
     }
 
     /**
+     * 处理 Prompt
+     *
+     * @param prompt Prompt
+     * @param isJoin 是否拼接
+     * @return 处理后的 Prompt
+     */
+    public static String handlePrompt(String prompt, boolean isJoin) {
+        if (isJoin) {
+            if (StringUtils.isBlank(prompt)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PROMPT_IS_REQUIRED);
+            } else {
+                if (StringUtils.startsWith(prompt, AppConstants.DEFAULT_IMAGE_PROMPT)) {
+                    return prompt;
+                }
+                return AppConstants.DEFAULT_IMAGE_PROMPT + prompt;
+            }
+        }
+        if (StringUtils.startsWith(prompt, AppConstants.DEFAULT_IMAGE_PROMPT)) {
+            if (StringUtils.equals(prompt, AppConstants.DEFAULT_IMAGE_PROMPT)) {
+                return "";
+            } else {
+                return prompt.substring(AppConstants.DEFAULT_IMAGE_PROMPT.length()).trim();
+            }
+        }
+        return prompt;
+    }
+
+    /**
      * 处理图片base64
+     *
      * @param base64Image base64
      * @return 处理后的base64
      */
@@ -271,4 +392,5 @@ public class ImageUtils {
             return base64Image;
         }
     }
+
 }

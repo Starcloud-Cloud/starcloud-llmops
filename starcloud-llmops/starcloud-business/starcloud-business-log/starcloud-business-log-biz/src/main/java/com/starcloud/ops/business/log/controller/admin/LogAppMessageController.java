@@ -1,7 +1,11 @@
 package com.starcloud.ops.business.log.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.log.api.message.vo.*;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageUpdateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
@@ -39,14 +43,14 @@ public class LogAppMessageController {
     @Operation(summary = "创建应用执行日志结果")
     @PreAuthorize("@ss.hasPermission('log:app-message:create')")
     public CommonResult<Long> createAppMessage(@Valid @RequestBody LogAppMessageCreateReqVO createReqVO) {
-        return success(appMessageService.createAppMessage(createReqVO));
+        return success(appMessageService.createAppLogMessage(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新应用执行日志结果")
     @PreAuthorize("@ss.hasPermission('log:app-message:update')")
     public CommonResult<Boolean> updateAppMessage(@Valid @RequestBody LogAppMessageUpdateReqVO updateReqVO) {
-        appMessageService.updateAppMessage(updateReqVO);
+        appMessageService.updateAppLogMessage(updateReqVO);
         return success(true);
     }
 
@@ -55,7 +59,7 @@ public class LogAppMessageController {
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('log:app-message:delete')")
     public CommonResult<Boolean> deleteAppMessage(@RequestParam("id") Long id) {
-        appMessageService.deleteAppMessage(id);
+        appMessageService.deleteAppLogMessage(id);
         return success(true);
     }
 
@@ -64,7 +68,7 @@ public class LogAppMessageController {
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     @PreAuthorize("@ss.hasPermission('log:app-message:query')")
     public CommonResult<LogAppMessageRespVO> getAppMessage(@RequestParam("id") Long id) {
-        LogAppMessageDO appMessage = appMessageService.getAppMessage(id);
+        LogAppMessageDO appMessage = appMessageService.getAppLogMessage(id);
         return success(LogAppMessageConvert.INSTANCE.convert(appMessage));
     }
 
@@ -73,7 +77,7 @@ public class LogAppMessageController {
     @Parameter(name = "ids", description = "编号列表", required = true, example = "1024,2048")
     @PreAuthorize("@ss.hasPermission('log:app-message:query')")
     public CommonResult<List<LogAppMessageRespVO>> getAppMessageList(@RequestParam("ids") Collection<Long> ids) {
-        List<LogAppMessageDO> list = appMessageService.getAppMessageList(ids);
+        List<LogAppMessageDO> list = appMessageService.listAppLogMessage(ids);
         return success(LogAppMessageConvert.INSTANCE.convertList(list));
     }
 
@@ -81,7 +85,7 @@ public class LogAppMessageController {
     @Operation(summary = "获得应用执行日志结果分页")
     @PreAuthorize("@ss.hasPermission('log:app-message:query')")
     public CommonResult<PageResult<LogAppMessageRespVO>> getAppMessagePage(@Valid LogAppMessagePageReqVO pageVO) {
-        PageResult<LogAppMessageDO> pageResult = appMessageService.getAppMessagePage(pageVO);
+        PageResult<LogAppMessageDO> pageResult = appMessageService.pageAppLogMessage(pageVO);
         return success(LogAppMessageConvert.INSTANCE.convertPage(pageResult));
     }
 
@@ -89,9 +93,9 @@ public class LogAppMessageController {
     @Operation(summary = "导出应用执行日志结果 Excel")
     @PreAuthorize("@ss.hasPermission('log:app-message:export')")
     @OperateLog(type = EXPORT)
-    public void exportAppMessageExcel(@Valid LogAppMessageExportReqVO exportReqVO,
+    public void exportAppMessageExcel(@Valid LogAppMessageListReqVO exportReqVO,
                                       HttpServletResponse response) throws IOException {
-        List<LogAppMessageDO> list = appMessageService.getAppMessageList(exportReqVO);
+        List<LogAppMessageDO> list = appMessageService.listAppLogMessage(exportReqVO);
         // 导出 Excel
         List<LogAppMessageExcelVO> datas = LogAppMessageConvert.INSTANCE.convertList02(list);
         ExcelUtils.write(response, "应用执行日志结果.xls", "数据", LogAppMessageExcelVO.class, datas);

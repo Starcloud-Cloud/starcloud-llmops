@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -43,6 +42,15 @@ public class AppPublishRespVO implements Serializable {
     @Schema(description = "应用市场 UID")
     private String marketUid;
 
+    /**
+     * 用户id
+     */
+    @Schema(description = "用户id")
+    private Long userId;
+
+    /**
+     * 提交人名称
+     */
     @Schema(description = "提交人名称")
     private String submitterUser;
 
@@ -51,6 +59,12 @@ public class AppPublishRespVO implements Serializable {
      */
     @Schema(description = "应用名称")
     private String name;
+
+    /**
+     * 应用市场应用类型
+     */
+    @Schema(description = "应用市场应用类型")
+    private String type;
 
     /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
@@ -68,13 +82,19 @@ public class AppPublishRespVO implements Serializable {
      * 应用类别
      */
     @Schema(description = "应用类别")
-    private List<String> categories;
+    private String category;
 
     /**
      * 应用语言
      */
     @Schema(description = "应用语言")
     private String language;
+
+    /**
+     * 应用排序，越小越靠前
+     */
+    @Schema(description = "应用排序")
+    private Long sort;
 
     /**
      * 发布的应用数据，一条应用的完整数据。备份，分享链接，发布应用数据，均使用该数据。

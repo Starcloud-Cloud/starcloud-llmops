@@ -15,7 +15,6 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
@@ -26,12 +25,11 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
-import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationExportReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppConversationRespVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
@@ -42,8 +40,8 @@ import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.buffer.ConversationBufferMemory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
-import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.PromptValue;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
@@ -56,7 +54,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -155,10 +156,10 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public List<LogAppConversationRespVO> listConversation(String scene, String appUid) {
-        LogAppConversationExportReqVO reqVO = new LogAppConversationExportReqVO();
+        LogAppConversationListReqVO reqVO = new LogAppConversationListReqVO();
         reqVO.setFromScene(scene);
         reqVO.setAppUid(appUid);
-        List<LogAppConversationDO> appConversationList = conversationService.getAppConversationList(reqVO);
+        List<LogAppConversationDO> appConversationList = conversationService.listAppLogConversation(reqVO);
         return LogAppConversationConvert.INSTANCE.convertList(appConversationList);
     }
 
@@ -176,12 +177,12 @@ public class ChatServiceImpl implements ChatService {
         BaseAppEntity appEntity;
         if (StringUtils.isBlank(uid)) {
             recommendApp = RecommendAppFactory.emptyChatRobotApp();
-            appEntity = AppConvert.INSTANCE.convertApp(recommendApp);
+            appEntity = AppConvert.INSTANCE.convertAppEntity(recommendApp);
         } else {
             appEntity = AppFactory.factroyMarket(uid);
         }
 
-        appEntity.setType(AppTypeEnum.MYSELF.name());
+        appEntity.setType(AppTypeEnum.COMMON.name());
         appEntity.setSource(AppSourceEnum.WEB.name());
         appEntity.setUid(null);
         appEntity.setName(name);

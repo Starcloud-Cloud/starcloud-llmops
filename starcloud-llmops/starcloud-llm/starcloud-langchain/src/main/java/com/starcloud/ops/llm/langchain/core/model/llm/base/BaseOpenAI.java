@@ -4,7 +4,6 @@ package com.starcloud.ops.llm.langchain.core.model.llm.base;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.llm.langchain.config.OpenAIConfig;
 import com.starcloud.ops.llm.langchain.core.callbacks.BaseCallbackManager;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
@@ -72,6 +71,7 @@ public class BaseOpenAI extends BaseLLM<CompletionResult> {
     public String getModelType() {
         return this.getModel();
     }
+
 
     @Override
     protected BaseLLMResult<CompletionResult> _generate(List<String> texts, CallbackManagerForLLMRun callbackManager) {

@@ -31,6 +31,10 @@ public enum AppPublishChannelEnum implements IEnumable<Integer> {
 
     QQ(11, "QQ", "QQ"),
 
+    WX_MP_REPLY(12,"公众号自动回复","微信公众号自动回复"),
+
+    WX_MP_MENU(13,"公众号菜单","微信公众号菜单"),
+
     ;
 
     private final Integer code;

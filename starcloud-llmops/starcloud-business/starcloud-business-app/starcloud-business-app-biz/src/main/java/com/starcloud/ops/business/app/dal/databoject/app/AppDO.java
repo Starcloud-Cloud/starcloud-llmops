@@ -65,6 +65,12 @@ public class AppDO extends TenantBaseDO {
     private String source;
 
     /**
+     * 应用排序，越小越靠前
+     */
+    @TableField("sort")
+    private Long sort;
+
+    /**
      * 应用标签，多个以逗号分割
      */
     @TableField("tags")
@@ -73,8 +79,8 @@ public class AppDO extends TenantBaseDO {
     /**
      * 应用类别，多个以逗号分割
      */
-    @TableField("categories")
-    private String categories;
+    @TableField("category")
+    private String category;
 
     /**
      * 应用场景，多个以逗号分割

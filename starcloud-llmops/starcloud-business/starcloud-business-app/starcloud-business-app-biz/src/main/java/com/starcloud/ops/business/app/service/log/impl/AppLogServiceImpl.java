@@ -1,20 +1,20 @@
 package com.starcloud.ops.business.app.service.log.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
-import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
@@ -24,26 +24,27 @@ import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
+import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.AppUtils;
-import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.LogAppApi;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageAppUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoPageReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationInfoRespVO;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppMessageStatisticsListVO;
-import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageInfoRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListAppUidReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.AppLogConversationInfoRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppMessageStatisticsListVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppConversationConvert;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -63,6 +64,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,11 +72,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_NO_EXISTS_UID;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_NON_EXISTENT;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MARKET_APP_NON_EXISTENT;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT;
 
 /**
  * @author nacoyer
@@ -139,9 +142,6 @@ public class AppLogServiceImpl implements AppLogService {
      */
     @Override
     public Page<LogAppMessageRespVO> pageAppLogMessage(AppLogMessageQuery query) {
-        if (StringUtils.isBlank(query.getAppUid())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用UID[appUid]为必填项"));
-        }
         LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
         wrapper.eq(LogAppMessageDO::getAppUid, query.getAppUid());
         wrapper.eq(StringUtils.isNotBlank(query.getAppMode()), LogAppMessageDO::getAppMode, query.getAppMode());
@@ -173,6 +173,35 @@ public class AppLogServiceImpl implements AppLogService {
     }
 
     /**
+     * 获取应用执行日志消息统计数据
+     *
+     * @param query 查询条件
+     * @return 日志消息统计数据
+     */
+    @Override
+    public List<LogAppMessageStatisticsListVO> listLogMessageStatistics(AppLogMessageStatisticsListReqVO query) {
+        if (StringUtils.isBlank(query.getFromScene())) {
+            query.setFromSceneList(getFromSceneList());
+        }
+        // 时间类型默认值
+        query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
+        List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
+        Boolean isAdmin = UserUtils.isAdmin();
+        pageResult = pageResult.stream().peek(item -> {
+            // 非管理员不能查看，平均耗时
+            if (!isAdmin) {
+                item.setCompletionAvgElapsed(new BigDecimal("0"));
+                item.setImageAvgElapsed(new BigDecimal("0"));
+                item.setFeedbackLikeCount(0);
+                item.setTokens(0);
+                item.setCompletionTokens(0);
+                item.setChatTokens(0);
+            }
+        }).collect(Collectors.toList());
+        return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
+    }
+
+    /**
      * 根据 应用 UID 获取应用执行日志消息统计数据列表 <br>
      * 1. 应用分析 <br>
      * 2. 聊天分析 <br>
@@ -181,39 +210,41 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 日志消息统计数据
      */
     @Override
-    public List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(LogAppMessageStatisticsListAppUidReqVO query) {
-        // 应用 UID 不能为空
-        AppValidate.notBlank(query.getAppUid(), new ErrorCode(3000001, "应用分析时，应用UID[appUid]为必填项"));
+    public List<LogAppMessageStatisticsListVO> listLogMessageStatisticsByAppUid(AppLogMessageStatisticsListUidReqVO query) {
         // 查询应用类型
         AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
-        AppValidate.notNull(app, APP_NO_EXISTS_UID, query.getAppUid());
-
+        AppValidate.notNull(app, APP_NON_EXISTENT, query.getAppUid());
+        Boolean isAdmin = UserUtils.isAdmin();
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.APP_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.APP_ANALYSIS_SCENES_NAME));
+            List<AppSceneEnum> appAnalysisScenes = new ArrayList<>(AppSceneEnum.APP_ANALYSIS_SCENES);
+            if (isAdmin) {
+                appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
+            }
+            if (StringUtils.isNotBlank(query.getFromScene()) && !appAnalysisScenes.contains(AppSceneEnum.valueOf(query.getFromScene()))) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
             }
         }
 
         // 应用模型为 CHAT 时，说明为聊天场景下的应用分析
         if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME));
+            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isChatAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不支持！"));
             }
         }
 
         // 执行场景不为空的情况
         if (StringUtils.isNotBlank(query.getFromScene())) {
-            // 如果执行场景不是 WEB_MARKET，则不需要查询应用市场执行信息。如果是 WEB_MARKET，则需要查询应用市场执行信息。
-            if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene())) {
-                query.setMarketUid(null);
-            } else {
+            // 如果是应用市场支持的场景，则需要查询应用市场执行信息。
+            if (AppSceneEnum.isMarketScene(AppSceneEnum.valueOf(query.getFromScene()))) {
                 String marketUid = getMarketUidByApp(app);
                 // 未获取到应用市场 UID，则直接返回空数据。不需要再走数据库查询
                 if (StringUtils.isBlank(marketUid)) {
                     return Collections.emptyList();
                 }
                 query.setMarketUid(marketUid);
+            } else {
+                query.setMarketUid(null);
             }
         } else {
             // 执行场景为空的情况，需要查询应用市场执行信息。
@@ -222,25 +253,37 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.listLogMessageStatisticsByAppUid(query);
+        List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
+        pageResult = pageResult.stream().peek(item -> {
+            // 非管理员不能查看，平均耗时
+            if (!isAdmin) {
+                item.setCompletionAvgElapsed(new BigDecimal("0"));
+                item.setImageAvgElapsed(new BigDecimal("0"));
+                item.setFeedbackLikeCount(0);
+                item.setTokens(0);
+                item.setCompletionTokens(0);
+                item.setChatTokens(0);
+            }
+        }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
     }
 
     /**
-     * 获取应用执行日志消息统计数据
+     * 分页查询应用执行日志会话数据
      *
      * @param query 查询条件
-     * @return 日志消息统计数据
+     * @return 应用执行日志会话数据
      */
     @Override
-    public List<LogAppMessageStatisticsListVO> listLogMessageStatistics(LogAppMessageStatisticsListReqVO query) {
+    @DataPermission
+    public PageResult<AppLogConversationInfoRespVO> pageLogConversation(AppLogConversationInfoPageReqVO query) {
         if (StringUtils.isBlank(query.getFromScene())) {
             query.setFromSceneList(getFromSceneList());
         }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        List<LogAppMessageStatisticsListPO> pageResult = logAppConversationService.listLogMessageStatistics(query);
-        return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
+        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogAppConversation(query);
+        return transformAppLogConversationInfoPage(pageResult);
     }
 
     /**
@@ -250,7 +293,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用市场执行日志会话数据
      */
     @Override
-    public PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(LogAppConversationInfoPageAppUidReqVO query) {
+    public PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(AppLogConversationInfoPageUidReqVO query) {
         AppValidate.notBlank(query.getMarketUid(), new ErrorCode(3000001, "应用市场 UID 不能为空"));
         if (StringUtils.isNotBlank(query.getFromScene())) {
             if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene()) && !AppSceneEnum.OPTIMIZE_PROMPT.name().equals(query.getFromScene())) {
@@ -258,12 +301,12 @@ public class AppLogServiceImpl implements AppLogService {
             }
         }
         AppMarketDO appMarket = appMarketMapper.get(query.getMarketUid(), Boolean.TRUE);
-        AppValidate.notNull(appMarket, APP_MARKET_NO_EXISTS_UID, query.getMarketUid());
+        AppValidate.notNull(appMarket, MARKET_APP_NON_EXISTENT, query.getMarketUid());
 
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         query.setStatus(LogStatusEnum.SUCCESS.name());
-        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversationByAppUid(query);
+        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogAppConversation(query);
         if (pageResult.getTotal() == 0) {
             return new PageResult<>(Collections.emptyList(), 0L);
         }
@@ -272,24 +315,18 @@ public class AppLogServiceImpl implements AppLogService {
         if (CollectionUtil.isEmpty(conversationUidList)) {
             return new PageResult<>(Collections.emptyList(), 0L);
         }
-        LambdaQueryWrapper<LogAppMessageDO> wrapper = Wrappers.lambdaQuery(LogAppMessageDO.class);
-        wrapper.in(LogAppMessageDO::getAppConversationUid, conversationUidList);
-        wrapper.orderByDesc(LogAppMessageDO::getCreateTime);
-
-        List<LogAppMessageDO> messageList = logAppMessageMapper.selectList(wrapper);
-        if (CollectionUtil.isEmpty(messageList)) {
+        Map<String, List<LogAppMessageDO>> messgaeMap = logAppMessageService.mapAppLogMessageAppConversationUid(conversationUidList);
+        if (CollectionUtil.isEmpty(messgaeMap)) {
             return new PageResult<>(Collections.emptyList(), 0L);
         }
-
-        Map<String, List<LogAppMessageDO>> listMap = messageList.stream().collect(Collectors.groupingBy(LogAppMessageDO::getAppConversationUid));
-        List<AppLogMessageRespVO> list = new ArrayList<>();
-
-        listMap.forEach((key, value) -> {
-            if (CollectionUtil.isNotEmpty(value)) {
-                list.add(transformAppLogMessage(value.get(0), appMarket.getName()));
-            }
-        });
-        return new PageResult<>(list, pageResult.getTotal());
+        List<AppLogMessageRespVO> collect = messgaeMap.values().stream()
+                .filter(CollectionUtil::isNotEmpty)
+                .map(list -> list.get(0))
+                .filter(Objects::nonNull)
+                .map(item -> transformAppLogMessage(item, appMarket.getName()))
+                .sorted((o1, o2) -> o2.getCreateTime().compareTo(o1.getCreateTime()))
+                .collect(Collectors.toList());
+        return new PageResult<>(collect, pageResult.getTotal());
     }
 
     /**
@@ -301,39 +338,45 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用执行日志会话数据
      */
     @Override
-    public PageResult<LogAppConversationInfoRespVO> pageLogConversationByAppUid(LogAppConversationInfoPageAppUidReqVO query) {
+    public PageResult<AppLogConversationInfoRespVO> pageLogConversationByAppUid(AppLogConversationInfoPageUidReqVO query) {
         // 应用 UID 不能为空
         AppValidate.notBlank(query.getAppUid(), new ErrorCode(3000001, "应用分析时，应用UID[appUid]为必填项"));
         // 查询应用类型
         AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
-        AppValidate.notNull(app, APP_NO_EXISTS_UID, query.getAppUid());
+        AppValidate.notNull(app, APP_NON_EXISTENT, query.getAppUid());
 
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.APP_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.APP_ANALYSIS_SCENES_NAME));
+            List<AppSceneEnum> appAnalysisScenes = new ArrayList<>(AppSceneEnum.APP_ANALYSIS_SCENES);
+            Boolean isAdmin = UserUtils.isAdmin();
+            if (isAdmin) {
+                appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
+            }
+            if (StringUtils.isNotBlank(query.getFromScene()) && !appAnalysisScenes.contains(AppSceneEnum.valueOf(query.getFromScene()))) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
             }
         }
 
         // 应用模型为 CHAT 时，说明为聊天场景下的应用分析
         if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME.contains(query.getFromScene())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不正确，支持的场景为：" + AppSceneEnum.CHAT_ANALYSIS_SCENES_NAME));
+            if (StringUtils.isNotBlank(query.getFromScene()) && !AppSceneEnum.isChatAnalysisScene(AppSceneEnum.valueOf(query.getFromScene()))) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "聊天应用分析时，应用场景[fromScene]不支持！"));
             }
         }
 
         // 执行场景不为空的情况
         if (StringUtils.isNotBlank(query.getFromScene())) {
-            // 如果执行场景不是 WEB_MARKET，则不需要查询应用市场执行信息。如果是 WEB_MARKET，则需要查询应用市场执行信息。
-            if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene())) {
-                query.setMarketUid(null);
-            } else {
+            // 如果是应用市场支持的场景，则需要查询应用市场执行信息。
+            if (AppSceneEnum.isMarketScene(AppSceneEnum.valueOf(query.getFromScene()))) {
                 String marketUid = getMarketUidByApp(app);
                 // 未获取到应用市场 UID，则直接返回空数据。不需要再走数据库查询
                 if (StringUtils.isBlank(marketUid)) {
                     return new PageResult<>(Collections.emptyList(), 0L);
                 }
                 query.setMarketUid(marketUid);
+            } else {
+                // 如果执行场景不是应用市场的场景，则不需要查询应用市场执行信息。
+                query.setMarketUid(null);
             }
         } else {
             // 执行场景为空的情况，需要查询应用市场执行信息。
@@ -342,38 +385,47 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversationByAppUid(query);
-        PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
-        List<LogAppConversationInfoRespVO> list = result.getList();
-        List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
-                .peek(item -> item.setAppExecutor(UserUtils.identify(item.getCreator(), item.getEndUser())))
-                .collect(Collectors.toList());
-        result.setList(collect);
-        return result;
+        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogAppConversation(query);
+        return transformAppLogConversationInfoPage(pageResult);
     }
 
     /**
-     * 分页查询应用执行日志会话数据
+     * 分页查询应用执行日志消息数据
      *
      * @param query 查询条件
-     * @return 应用执行日志会话数据
+     * @return 应用执行日志消息数据
      */
     @Override
-    @DataPermission
-    public PageResult<LogAppConversationInfoRespVO> pageLogConversation(LogAppConversationInfoPageReqVO query) {
-        if (StringUtils.isBlank(query.getFromScene())) {
-            query.setFromSceneList(getFromSceneList());
+    public PageResult<ImageLogMessageRespVO> pageImageRecord(LogAppConversationPageReqVO query) {
+
+        // 不传入场景时，返回空数据
+        if (CollectionUtil.isEmpty(query.getScenes())) {
+            return new PageResult<>(Collections.emptyList(), 0L);
         }
-        // 时间类型默认值
-        query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogConversation(query);
-        PageResult<LogAppConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
-        List<LogAppConversationInfoRespVO> list = result.getList();
-        List<LogAppConversationInfoRespVO> collect = CollectionUtil.emptyIfNull(list).stream()
-                .peek(item -> item.setAppExecutor(UserUtils.identify(item.getCreator(), item.getEndUser())))
+
+        query.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        PageResult<LogAppConversationDO> page = logAppConversationService.pageAppLogConversation(query);
+        if (CollectionUtil.isEmpty(page.getList())) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+
+        // 获取会话 UID 列表
+        List<String> conversationUidList = page.getList().stream().map(LogAppConversationDO::getUid).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(conversationUidList)) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+        Map<String, List<LogAppMessageDO>> messgaeMap = logAppMessageService.mapAppLogMessageAppConversationUid(conversationUidList);
+        if (CollectionUtil.isEmpty(messgaeMap)) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+        List<ImageLogMessageRespVO> collect = messgaeMap.values().stream()
+                .filter(CollectionUtil::isNotEmpty)
+                .map(list -> list.get(0))
+                .filter(Objects::nonNull)
+                .map(item -> transformImageLogMessage(item, Optional.ofNullable(RecommendAppEnum.of(item.getAppUid())).map(RecommendAppEnum::getLabel).orElse("")))
+                .sorted((o1, o2) -> o2.getCreateTime().compareTo(o1.getCreateTime()))
                 .collect(Collectors.toList());
-        result.setList(collect);
-        return result;
+        return new PageResult<>(collect, page.getTotal());
     }
 
     /**
@@ -383,14 +435,14 @@ public class AppLogServiceImpl implements AppLogService {
      * @return AppLogMessageRespVO
      */
     @Override
-    public AppLogMessageRespVO getLogAppMessageDetail(AppLogMessagePageReqVO query) {
+    public AppLogMessageRespVO getLogAppMessageDetail(LogAppMessagePageReqVO query) {
         // 获取会话记录
-        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
-        AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
+        LogAppConversationDO appConversation = logAppConversationService.getAppLogConversation(query.getAppConversationUid());
+        AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getAppConversationUid());
 
         // 获取消息列表
-        Page<LogAppMessageDO> appMessagePage = logAppMessageService.getAppMessageList(query);
-        List<LogAppMessageDO> appMessageList = appMessagePage.getRecords();
+        PageResult<LogAppMessageDO> appMessagePage = logAppMessageService.pageAppLogMessage(query);
+        List<LogAppMessageDO> appMessageList = appMessagePage.getList();
         // 校验日志消息是否存在
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
 
@@ -413,22 +465,22 @@ public class AppLogServiceImpl implements AppLogService {
      * @return AppLogMessageRespVO
      */
     @Override
-    public PageResult<AppLogMessageRespVO> getChatMessageDetail(AppLogMessagePageReqVO query) {
-        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
-        AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
-        String images = StringUtils.EMPTY;
+    public PageResult<AppLogMessageRespVO> getChatMessageDetail(LogAppMessagePageReqVO query) {
+        LogAppConversationDO appConversation = logAppConversationService.getAppLogConversation(query.getAppConversationUid());
+        AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getAppConversationUid());
+        String images;
 
         if (AppSceneEnum.CHAT_MARKET.name().equals(query.getFromScene())) {
             AppMarketDO appMarketDO = appMarketMapper.get(appConversation.getAppUid(), Boolean.TRUE);
-            AppValidate.notNull(appMarketDO, APP_NO_EXISTS_UID, appConversation.getAppUid());
+            AppValidate.notNull(appMarketDO, APP_NON_EXISTENT, appConversation.getAppUid());
             images = appMarketDO.getImages();
         } else {
             AppDO app = appMapper.get(appConversation.getAppUid(), Boolean.TRUE);
-            AppValidate.notNull(app, APP_NO_EXISTS_UID, appConversation.getAppUid());
+            AppValidate.notNull(app, APP_NON_EXISTENT, appConversation.getAppUid());
             images = app.getImages();
         }
 
-        PageResult<LogAppMessageDO> messagePageResult = chatService.chatHistory(query.getConversationUid(), query.getPageNo(), query.getPageSize());
+        PageResult<LogAppMessageDO> messagePageResult = chatService.chatHistory(query.getAppConversationUid(), query.getPageNo(), query.getPageSize());
         List<LogAppMessageDO> chatMessageList = messagePageResult.getList();
         // 校验日志消息是否存在
         AppValidate.notEmpty(chatMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
@@ -455,20 +507,24 @@ public class AppLogServiceImpl implements AppLogService {
      * @return ImageRespVO
      */
     @Override
-    public ImageLogMessageRespVO getLogImageMessageDetail(AppLogMessagePageReqVO query) {
+    public ImageLogMessageRespVO getLogImageMessageDetail(LogAppMessagePageReqVO query) {
         // 获取会话
-        LogAppConversationDO appConversation = logAppConversationService.getAppConversation(query.getConversationUid());
-        AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getConversationUid());
+        LogAppConversationDO appConversation = logAppConversationService.getAppLogConversation(query.getAppConversationUid());
+        AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getAppConversationUid());
 
         // 获取消息列表
-        Page<LogAppMessageDO> appMessagePage = logAppMessageService.getAppMessageList(query);
-        List<LogAppMessageDO> appMessageList = appMessagePage.getRecords();
+        PageResult<LogAppMessageDO> appMessagePage = logAppMessageService.pageAppLogMessage(query);
+        List<LogAppMessageDO> appMessageList = appMessagePage.getList();
         // 校验日志消息是否存在
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
 
         // 取第一条数据
         LogAppMessageDO logAppMessage = appMessageList.get(0);
         ImageLogMessageRespVO imageLogMessageResponse = transformImageLogMessage(logAppMessage, appConversation);
+
+        if (Objects.isNull(imageLogMessageResponse.getImageInfo()) || CollectionUtil.isEmpty(imageLogMessageResponse.getImageInfo().getImages())) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "图片生成失败，图片信息为空！无法查看详情！"));
+        }
 
         // 如果是通过渠道执行的，需要查询渠道信息
         if (StringUtils.isNotBlank(logAppMessage.getMediumUid())) {
@@ -495,7 +551,7 @@ public class AppLogServiceImpl implements AppLogService {
         // 查询发布信息并校验是否存在
         String appPublishUid = AppUtils.obtainUid(publishUid);
         AppPublishDO appPublish = appPublishMapper.get(appPublishUid, Boolean.TRUE);
-        AppValidate.notNull(appPublish, APP_PUBLISH_NOT_EXISTS_UID, appPublishUid);
+        AppValidate.notNull(appPublish, PUBLISH_APP_NON_EXISTENT, appPublishUid);
 
         // marketUid 为空，说明可能数据有问题，直接返回空数据
         String marketUid = appPublish.getMarketUid();
@@ -505,9 +561,66 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 查询应用市场信息并校验是否存在
         AppMarketDO appMarket = appMarketMapper.get(marketUid, Boolean.TRUE);
-        AppValidate.notNull(appMarket, APP_MARKET_NO_EXISTS_UID, marketUid);
+        AppValidate.notNull(appMarket, MARKET_APP_NON_EXISTENT, marketUid);
 
         return appMarket.getUid();
+    }
+
+    /**
+     * 处理应用执行日志会话分页数据
+     *
+     * @param pageResult 应用执行日志会话分页数据
+     * @return 应用执行日志会话分页数据
+     */
+    private PageResult<AppLogConversationInfoRespVO> transformAppLogConversationInfoPage(PageResult<LogAppConversationInfoPO> pageResult) {
+
+        // 如果没有数据，则直接返回空数据
+        if (CollectionUtil.isEmpty(pageResult.getList())) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+
+        // 处理返回数据
+        PageResult<AppLogConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
+        List<AppLogConversationInfoRespVO> list = result.getList();
+
+        // 获取会话创建人
+        List<Long> userIdList = list.stream()
+                .map(AppLogConversationInfoRespVO::getCreator)
+                .filter(StringUtils::isNotBlank)
+                .filter(item -> !"null".equals(item))
+                .map(Long::parseLong)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<Long, String> userNicknameMap = UserUtils.getUserNicknameMapByIds(userIdList);
+        Map<Long, List<String>> userRoleCodeMap = Maps.newHashMap();
+        Boolean isAdmin = UserUtils.isAdmin();
+        if (isAdmin) {
+            userRoleCodeMap = UserUtils.mapUserRoleCode(userIdList);
+        }
+        // 获取应用执行人
+        Map<Long, List<String>> finalUserRoleCodeMap = userRoleCodeMap;
+        List<AppLogConversationInfoRespVO> collect = list.stream()
+                .peek(item -> {
+                    if (StringUtils.isNotBlank(item.getEndUser())) {
+                        item.setAppExecutor(UserUtils.visitorIdentify(item.getEndUser()));
+                    } else {
+                        item.setAppExecutor(userNicknameMap.get(Long.parseLong(item.getCreator())));
+                    }
+                    if (isAdmin) {
+                        item.setUserLevels(finalUserRoleCodeMap.get(Long.parseLong(item.getCreator())));
+                    }
+                    // 非管理员，不展示消耗tokens
+                    if (!isAdmin) {
+                        item.setTokens(null);
+                        item.setTotalPrice(null);
+                        item.setTotalAnswerTokens(null);
+                        item.setTotalMessageTokens(null);
+                        item.setCreator(null);
+                    }
+                })
+                .collect(Collectors.toList());
+        result.setList(collect);
+        return result;
     }
 
     /**
@@ -531,27 +644,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return AppLogMessageRespVO
      */
     private AppLogMessageRespVO transformAppLogMessage(LogAppMessageDO message, LogAppConversationDO conversation) {
-        AppLogMessageRespVO appLogMessageResponse = new AppLogMessageRespVO();
-        appLogMessageResponse.setUid(message.getUid());
-        appLogMessageResponse.setConversationUid(message.getAppConversationUid());
-        appLogMessageResponse.setAppUid(message.getAppUid());
-        appLogMessageResponse.setAppName(conversation.getAppName());
-        appLogMessageResponse.setAppMode(message.getAppMode());
-        appLogMessageResponse.setFromScene(message.getFromScene());
-        appLogMessageResponse.setMessage(message.getMessage());
-        appLogMessageResponse.setAnswer(message.getAnswer());
-        appLogMessageResponse.setElapsed(message.getElapsed());
-        appLogMessageResponse.setStatus(message.getStatus());
-        appLogMessageResponse.setTokens(message.getMessageTokens() + message.getAnswerTokens());
-        appLogMessageResponse.setPrice(message.getTotalPrice());
-        appLogMessageResponse.setCurrency(message.getCurrency());
-        appLogMessageResponse.setAppExecutor(UserUtils.identify(message.getCreator(), message.getEndUser()));
-        appLogMessageResponse.setErrorCode(message.getErrorCode());
-        appLogMessageResponse.setErrorMessage(message.getErrorMsg());
-        appLogMessageResponse.setCreateTime(message.getCreateTime());
-        appLogMessageResponse.setAppInfo(buildAppResponse(message));
-        appLogMessageResponse.setMsgType(message.getMsgType());
-        return appLogMessageResponse;
+        return transformAppLogMessage(message, Optional.ofNullable(conversation).map(LogAppConversationDO::getAppName).orElse(null));
     }
 
     /**
@@ -576,7 +669,6 @@ public class AppLogServiceImpl implements AppLogService {
         appLogMessageResponse.setTokens(message.getMessageTokens() + message.getAnswerTokens());
         appLogMessageResponse.setPrice(message.getTotalPrice());
         appLogMessageResponse.setCurrency(message.getCurrency());
-        appLogMessageResponse.setAppExecutor(UserUtils.identify(message.getCreator(), message.getEndUser()));
         appLogMessageResponse.setErrorCode(message.getErrorCode());
         appLogMessageResponse.setErrorMessage(message.getErrorMsg());
         appLogMessageResponse.setCreateTime(message.getCreateTime());
@@ -593,21 +685,31 @@ public class AppLogServiceImpl implements AppLogService {
      * @return ImageLogMessageRespVO
      */
     private ImageLogMessageRespVO transformImageLogMessage(LogAppMessageDO message, LogAppConversationDO conversation) {
+        return transformImageLogMessage(message, Optional.ofNullable(conversation).map(LogAppConversationDO::getAppName).orElse(null));
+    }
+
+    /**
+     * 转换图片执行消息
+     *
+     * @param message 消息
+     * @param appName 会话
+     * @return ImageLogMessageRespVO
+     */
+    private ImageLogMessageRespVO transformImageLogMessage(LogAppMessageDO message, String appName) {
         ImageLogMessageRespVO imageLogMessageResponse = new ImageLogMessageRespVO();
         imageLogMessageResponse.setUid(message.getUid());
         imageLogMessageResponse.setConversationUid(message.getAppConversationUid());
         imageLogMessageResponse.setAppUid(message.getAppUid());
-        imageLogMessageResponse.setAppName(conversation.getAppName());
+        imageLogMessageResponse.setAppName(appName);
         imageLogMessageResponse.setAppMode(message.getAppMode());
         imageLogMessageResponse.setFromScene(message.getFromScene());
         imageLogMessageResponse.setMessage(message.getMessage());
         imageLogMessageResponse.setElapsed(message.getElapsed());
         imageLogMessageResponse.setStatus(message.getStatus());
         imageLogMessageResponse.setErrorCode(message.getErrorCode());
-        imageLogMessageResponse.setAppExecutor(UserUtils.identify(message.getCreator(), message.getEndUser()));
         imageLogMessageResponse.setErrorMessage(message.getErrorMsg());
         imageLogMessageResponse.setCreateTime(message.getCreateTime());
-        imageLogMessageResponse.setImageInfo(transformImageMessage(message));
+        imageLogMessageResponse.setImageInfo(transformImageMessageAnswer(message));
         return imageLogMessageResponse;
     }
 
@@ -617,39 +719,19 @@ public class AppLogServiceImpl implements AppLogService {
      * @param message 消息
      * @return ImageMessageRespVO
      */
-    private ImageMessageRespVO transformImageMessage(LogAppMessageDO message) {
+    private BaseImageResponse transformImageMessageAnswer(LogAppMessageDO message) {
         // 如果没有结果，直接返回 null
         if (StringUtils.isBlank(message.getAnswer())) {
-            return null;
+            return BaseImageResponse.ofEmpty(message.getFromScene());
         }
-
-        // 获取图片列表
-        TypeReference<List<ImageDTO>> typeReference = new TypeReference<List<ImageDTO>>() {
-        };
-        List<ImageDTO> imageList = CollectionUtil.emptyIfNull(JSONUtil.toBean(message.getAnswer(), typeReference, Boolean.TRUE)).stream()
-                .filter(imageItem -> Objects.nonNull(imageItem) && StringUtils.isNotBlank(imageItem.getUrl()))
-                .collect(Collectors.toList());
-
-        // 如果没有结果，返回 null
-        if (CollectionUtil.isEmpty(imageList)) {
-            return null;
+        // 新的数据结构
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(message.getAnswer(), BaseImageResponse.class);
+        } catch (Exception exception) {
+            log.error("转换图片响应消息响应异常: {}", exception.getMessage());
+            return BaseImageResponse.ofEmpty(message.getFromScene());
         }
-
-        // 构建图片响应
-        ImageMessageRespVO imageResponse = new ImageMessageRespVO();
-        imageResponse.setPrompt(message.getMessage());
-        imageResponse.setCreateTime(message.getCreateTime());
-        imageResponse.setImages(imageList);
-        ImageRequest imageRequest = JSONUtil.toBean(message.getAppConfig(), ImageRequest.class);
-        if (imageRequest != null) {
-            imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(imageRequest.getNegativePrompt(), Boolean.FALSE));
-            imageResponse.setEngine(imageRequest.getEngine());
-            imageResponse.setWidth(imageRequest.getWidth());
-            imageResponse.setHeight(imageRequest.getHeight());
-            imageResponse.setSteps(imageRequest.getSteps());
-        }
-
-        return imageResponse;
     }
 
     /**
@@ -675,16 +757,21 @@ public class AppLogServiceImpl implements AppLogService {
     private List<Option> getSceneOptions(String type) {
         // 生成记录
         if (LogQueryTypeEnum.GENERATE_RECORD.name().equals(type)) {
-            String permission = UserUtils.getDeptDataPermission();
-            if (UserUtils.ALL.equals(permission)) {
-                return AppSceneEnum.getOptions();
+            if (UserUtils.isAdmin()) {
+                return AppSceneEnum.getOptions(AppSceneEnum.ADMIN_SCENES);
             } else {
                 return AppSceneEnum.getOptions(AppSceneEnum.GENERATE_RECORD_BASE_SCENES);
             }
         }
         // 应用分析
         if (LogQueryTypeEnum.APP_ANALYSIS.name().equals(type)) {
-            return AppSceneEnum.getOptions(AppSceneEnum.APP_ANALYSIS_SCENES);
+            List<Option> options = AppSceneEnum.getOptions(AppSceneEnum.APP_ANALYSIS_SCENES);
+            if (UserUtils.isAdmin()) {
+                AppSceneEnum optimize = AppSceneEnum.OPTIMIZE_PROMPT;
+                options.add(Option.of(optimize.name(), optimize.getLabel(), optimize.getLabelEn()));
+                return options;
+            }
+            return options;
         }
         // 聊天分析
         if (LogQueryTypeEnum.CHAT_ANALYSIS.name().equals(type)) {
@@ -699,8 +786,7 @@ public class AppLogServiceImpl implements AppLogService {
      * @return 应用模型列表
      */
     private List<String> getFromSceneList() {
-        String permission = UserUtils.getDeptDataPermission();
-        if (!UserUtils.ALL.equals(permission)) {
+        if (UserUtils.isNotAdmin()) {
             return AppSceneEnum.GENERATE_RECORD_BASE_SCENES.stream().map(AppSceneEnum::name).collect(Collectors.toList());
         }
         return null;

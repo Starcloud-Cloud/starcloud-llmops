@@ -14,6 +14,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>starcloud-business-open-biz</module>
+        <module>starcloud-business-open-api</module>
     </modules>
 
     <properties>

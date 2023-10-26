@@ -30,10 +30,22 @@ public class AppMarketListQuery implements Serializable {
     private String name;
 
     /**
-     * 应用分类
+     * 应用类型
+     */
+    @Schema(description = "应用类型")
+    private String type;
+
+    /**
+     * 应用模型
      */
     @Schema(description = "应用分类")
     private String model;
+
+    /**
+     * 应用分类
+     */
+    @Schema(description = "应用分类")
+    private String category;
 
     /**
      * 应用场景

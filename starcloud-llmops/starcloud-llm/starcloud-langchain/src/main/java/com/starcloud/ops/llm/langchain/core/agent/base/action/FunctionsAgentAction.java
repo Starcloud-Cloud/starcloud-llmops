@@ -22,6 +22,8 @@ public class FunctionsAgentAction extends AgentAction {
 
     private Object toolInput;
 
+    private Object toolResponse;
+
 
     private List<BaseMessage> messagesLog;
 

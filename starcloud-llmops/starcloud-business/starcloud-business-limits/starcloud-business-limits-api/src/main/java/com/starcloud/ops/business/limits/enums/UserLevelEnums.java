@@ -2,15 +2,19 @@ package com.starcloud.ops.business.limits.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.checkerframework.checker.units.qual.C;
 
 @Getter
 @AllArgsConstructor
 public enum UserLevelEnums {
-    FREE("FREE","普通用户","MOFAAI_FREE"),
 
-    PLUS("PLUS","PLUS用户","MOFAAI_PLUS"),
+    FREE("FREE", "普通用户", "MOFAAI_FREE",1,1,1,1,0),
 
-    PRO("PRO","PRO用户","MOFAAI_PRO"),
+    BASIC("BASIC", "BASIC用户", "MOFAAI_BASIC",5,5,1,5,1),
+
+    PLUS("PLUS", "PLUS用户", "MOFAAI_PLUS",20,20,10,20,3),
+
+    PRO("PRO", "PRO用户", "MOFAAI_PRO",-1,-1,-1,-1,10),
     ;
 
     private final String code;
@@ -18,6 +22,16 @@ public enum UserLevelEnums {
     private final String msg;
 
     private final String roleCode;
+
+    private final Integer app;
+
+    private final Integer bot;
+
+    private final Integer wechatBot;
+
+    private final Integer botDocument;
+
+    private final Integer skillPlugin;
 
 
     public static String getRoleCodeByLevel(UserLevelEnums level) {

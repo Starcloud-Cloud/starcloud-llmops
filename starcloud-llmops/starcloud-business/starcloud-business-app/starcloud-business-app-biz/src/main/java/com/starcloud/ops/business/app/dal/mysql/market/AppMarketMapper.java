@@ -9,13 +9,13 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.List;
 
@@ -37,20 +37,41 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
      * @return 应用市场列表
      */
     default Page<AppMarketDO> page(AppMarketPageQuery query) {
-        // 构建查询条件
         LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
         queryMapper.likeRight(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
-        queryMapper.eq(AppMarketDO::getDeleted, Boolean.FALSE);
+        queryMapper.eq(StringUtils.isNotBlank(query.getCategory()), AppMarketDO::getCategory, query.getCategory());
+        if (UserUtils.isNotAdmin()) {
+            queryMapper.eq(AppMarketDO::getType, AppTypeEnum.COMMON.name());
+        }
         if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
             queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
+        } else {
+            queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
         }
-
-        String local = LocaleContextHolder.getLocale().toString();
-        String language = LanguageEnum.ZH_CN.getCode().equals(local) ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
-        // 先按照语言排序，再按照使用量排序
-        queryMapper.last("ORDER BY CASE WHEN language = '" + language + "' THEN 0 ELSE 1 END, usage_count DESC, view_count Desc, create_time DESC");
-        // 分页查询
+        queryMapper.last("ORDER BY sort IS NULL, sort ASC, update_time DESC");
         return this.selectPage(PageUtil.page(query), queryMapper);
+    }
+
+    /**
+     * 获取应用市场列表选项
+     *
+     * @param query 查询条件
+     * @return 应用列表
+     */
+    default List<AppMarketDO> defaultListMarketApp(AppMarketListQuery query) {
+        LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
+        queryMapper.likeRight(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
+        queryMapper.eq(StringUtils.isNotBlank(query.getCategory()), AppMarketDO::getCategory, query.getCategory());
+        if (UserUtils.isNotAdmin()) {
+            queryMapper.eq(AppMarketDO::getType, AppTypeEnum.COMMON.name());
+        }
+        if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
+            queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
+        } else {
+            queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
+        }
+        queryMapper.last("ORDER BY sort IS NULL, sort ASC, update_time DESC");
+        return this.selectList(queryMapper);
     }
 
     /**
@@ -63,11 +84,12 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
 
     /**
      * 查询员工广场
-     * @return
+     *
+     * @return 应用列表
      */
     default List<AppMarketDO> listChatMarketApp() {
         LambdaQueryWrapper<AppMarketDO> wrapper = queryMapper(true)
-                .eq(AppMarketDO::getModel,AppModelEnum.CHAT.name());
+                .eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
         return selectList(wrapper);
     }
 
@@ -111,7 +133,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     default AppMarketDO modify(AppMarketDO appMarket) {
         // 判断应用是否存在, 不存在无法修改
         AppMarketDO appMarketDO = this.get(appMarket.getUid(), Boolean.TRUE);
-        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, appMarket.getUid());
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, appMarket.getUid());
         // 名称修改了, 则需要校验名称是否重复
         if (!appMarket.getName().equals(appMarketDO.getName())) {
             AppValidate.isFalse(duplicateName(appMarket.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, appMarket.getName());
@@ -129,7 +151,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
      */
     default void delete(String uid) {
         AppMarketDO appMarketDO = this.get(uid, Boolean.TRUE);
-        AppValidate.notNull(appMarketDO, ErrorCodeConstants.APP_MARKET_NO_EXISTS_UID, uid);
+        AppValidate.notNull(appMarketDO, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
         this.deleteById(appMarketDO.getId());
     }
 
@@ -166,13 +188,16 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getId,
                 AppMarketDO::getUid,
                 AppMarketDO::getName,
+                AppMarketDO::getType,
                 AppMarketDO::getModel,
                 AppMarketDO::getVersion,
                 AppMarketDO::getLanguage,
+                AppMarketDO::getSort,
                 AppMarketDO::getTags,
-                AppMarketDO::getCategories,
+                AppMarketDO::getCategory,
                 AppMarketDO::getScenes,
                 AppMarketDO::getImages,
+                AppMarketDO::getIcon,
                 AppMarketDO::getFree,
                 AppMarketDO::getCost,
                 AppMarketDO::getUsageCount,

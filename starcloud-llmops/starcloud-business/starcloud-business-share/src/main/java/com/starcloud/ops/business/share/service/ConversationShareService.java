@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.share.service;
 
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageRespVO;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.AppDetailRespVO;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareReq;
 import com.starcloud.ops.business.share.controller.admin.vo.ConversationShareResp;
@@ -15,7 +15,7 @@ public interface ConversationShareService {
      * @param req
      * @return
      */
-    String createShareLink(ConversationShareReq req);
+    ConversationShareResp createShareLink(ConversationShareReq req);
 
     /**
      * 修改分享记录
@@ -23,6 +23,13 @@ public interface ConversationShareService {
      * @param req
      */
     void modifyRecord(ConversationShareReq req);
+
+    /**
+     * 删除分享记录
+     *
+     * @param appUid
+     */
+    void deleteShare(String appUid);
 
     /**
      * 分享的会话记录
@@ -47,4 +54,12 @@ public interface ConversationShareService {
      * @return
      */
     AppDetailRespVO appDetail(String shareKey);
+
+    /**
+     * 风险记录详情
+     *
+     * @param shareKey
+     * @return
+     */
+    ConversationShareResp recordDetail(String shareKey);
 }

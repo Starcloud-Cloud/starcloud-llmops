@@ -25,7 +25,9 @@
         <module>starcloud-business-log</module>
         <module>starcloud-business-share</module>
         <module>starcloud-business-open</module>
+        <module>starcloud-business-mq</module>
     </modules>
+
 
     <dependencyManagement>
 
@@ -34,12 +36,6 @@
             <dependency>
                 <groupId>com.starcloud.ops</groupId>
                 <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
-                <version>${starcloud.revision}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.starcloud.ops</groupId>
-                <artifactId>starcloud-langchain</artifactId>
                 <version>${starcloud.revision}</version>
             </dependency>
 

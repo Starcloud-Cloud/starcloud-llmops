@@ -6,8 +6,10 @@ import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
+import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 
 /**
  * 推荐应用Variable Item 工厂类
@@ -26,6 +28,29 @@ public class RecommendVariableItemFactory {
      *
      * @return VariableItemRespVO
      */
+    public static VariableItemRespVO defModelVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("model");
+        variableItem.setLabel(MessageUtil.getMessage("OPEN_AI_MODEL_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_MODEL_DESCRIPTION"));
+        variableItem.setDefaultValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        variableItem.setValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.MODEL.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        variableItem.setOptions(AppUtils.aiModelList());
+        return variableItem;
+    }
+
+    /**
+     * Open AI Chat Completion 最大token变量
+     * Open AI Chat Completion Max Token Variable
+     *
+     * @return VariableItemRespVO
+     */
     public static VariableItemRespVO defMaxTokenVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField("max_tokens");
@@ -33,7 +58,7 @@ public class RecommendVariableItemFactory {
         variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_MAX_TOKENS_DESCRIPTION"));
         variableItem.setDefaultValue(1000);
         variableItem.setValue(1000);
-        variableItem.setOrder(1);
+        variableItem.setOrder(2);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
         variableItem.setGroup(AppVariableGroupEnum.MODEL.name());
@@ -55,7 +80,7 @@ public class RecommendVariableItemFactory {
         variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_TEMPERATURE_DESCRIPTION"));
         variableItem.setDefaultValue(0.7);
         variableItem.setValue(0.7);
-        variableItem.setOrder(2);
+        variableItem.setOrder(3);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
         variableItem.setGroup(AppVariableGroupEnum.MODEL.name());
@@ -77,7 +102,7 @@ public class RecommendVariableItemFactory {
         variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_N_DESCRIPTION"));
         variableItem.setDefaultValue(1);
         variableItem.setValue(1);
-        variableItem.setOrder(3);
+        variableItem.setOrder(4);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
         variableItem.setGroup(AppVariableGroupEnum.MODEL.name());

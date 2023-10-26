@@ -17,26 +17,6 @@ import java.math.BigDecimal;
 public class LogAppMessageStatisticsListPO {
 
     /**
-     * 应用 ID
-     */
-    private String appUid;
-
-    /**
-     * 应用名称
-     */
-    private String appName;
-
-    /**
-     * 应用模型
-     */
-    private String appMode;
-
-    /**
-     * 应用场景
-     */
-    private String fromScene;
-
-    /**
      * 消息数
      */
     private Integer messageCount;
@@ -47,14 +27,29 @@ public class LogAppMessageStatisticsListPO {
     private Integer successCount;
 
     /**
+     * 生成/聊天成功数
+     */
+    private Integer completionSuccessCount;
+
+    /**
+     * 图片成功数
+     */
+    private Integer imageSuccessCount;
+
+    /**
      * 失败数
      */
     private Integer errorCount;
 
     /**
-     * 用户数
+     * 生成/聊天失败数
      */
-    private Integer userCount;
+    private Integer completionErrorCount;
+
+    /**
+     * 图片失败数
+     */
+    private Integer imageErrorCount;
 
     /**
      * 用户满意数
@@ -62,27 +57,37 @@ public class LogAppMessageStatisticsListPO {
     private Integer feedbackLikeCount;
 
     /**
-     * 总耗时
+     * 生成/聊天平均耗时
      */
-    private BigDecimal elapsedTotal;
+    private BigDecimal completionAvgElapsed;
 
     /**
-     * 平均耗时
+     * 图片平均耗时
      */
-    private BigDecimal elapsedAvg;
+    private BigDecimal imageAvgElapsed;
 
     /**
-     * 请求消耗 token
+     * 生成/聊天总花费积分
      */
-    private Integer messageTokens;
+    private Integer completionCostPoints;
 
     /**
-     * 回答消耗 token
+     * 图片总花费积分
      */
-    private Integer answerTokens;
+    private Integer imageCostPoints;
 
     /**
-     * 总消耗 token
+     * 应用执行消耗总tokens
+     */
+    private Integer completionTokens;
+
+    /**
+     * 聊天执行消耗总tokens
+     */
+    private Integer chatTokens;
+
+    /**
+     * 生成/聊天执行消耗总tokens
      */
     private Integer tokens;
 

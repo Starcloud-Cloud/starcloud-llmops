@@ -68,12 +68,10 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
         HandlerResponse<SearchEngineHandler.Response> handlerResponse = new HandlerResponse();
 
         handlerResponse.setSuccess(true);
-
         List<InteractiveData> dataList = processFilter(searchInfoDetails);
+        dataList = Optional.ofNullable(dataList).orElse(new ArrayList<>()).stream().limit(context.getRequest().getSize()).collect(Collectors.toList());
 
         handlerResponse.setOutput(new SearchEngineHandler.Response(dataList));
-
-
         handlerResponse.setExt(dataList);
 
         interactiveInfo.setData(dataList);
@@ -89,7 +87,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
      * 包装为文档结构
      */
     @Override
-    protected List<MessageContentDocDTO> convertContentDoc(HandlerContext<SearchEngineHandler.Request> context, HandlerResponse<SearchEngineHandler.Response> handlerResponse) {
+    public List<MessageContentDocDTO> convertContentDoc(HandlerContext<SearchEngineHandler.Request> context, HandlerResponse<SearchEngineHandler.Response> handlerResponse) {
 
         //解析返回的内容 生成 MessageContentDocDTO
 
@@ -107,7 +105,10 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
             messageContentDocDTO.setTitle(interactiveData.getTitle());
             messageContentDocDTO.setContent(interactiveData.getContent());
             messageContentDocDTO.setUrl(interactiveData.getUrl());
-            messageContentDocDTO.setTime(interactiveData.getTime());
+
+            if (StrUtil.isNotBlank(interactiveData.getTime())) {
+                messageContentDocDTO.setTime(interactiveData.getTime());
+            }
 
             return messageContentDocDTO;
 
@@ -151,7 +152,7 @@ public class GoogleSearchHandler extends BaseToolHandler<SearchEngineHandler.Req
             if ("organic".equals(type)) {
 
                 //取3个
-                List<InteractiveData> result = Optional.ofNullable(entry.getValue()).orElse(new ArrayList<>()).stream().limit(2).map(detail -> {
+                List<InteractiveData> result = Optional.ofNullable(entry.getValue()).orElse(new ArrayList<>()).stream().limit(3).map(detail -> {
 
                     InteractiveData interactiveData = new InteractiveData();
 

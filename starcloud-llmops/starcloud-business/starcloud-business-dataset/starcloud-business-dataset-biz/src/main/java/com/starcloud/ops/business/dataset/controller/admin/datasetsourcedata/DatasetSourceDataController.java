@@ -119,7 +119,7 @@ public class DatasetSourceDataController {
         return success(true);
     }
 
-    @PostMapping("/delete")
+    @PostMapping("/enable")
     @Operation(summary = "启用源数据")
     @Parameter(name = "uid", description = "编号", required = true)
     public CommonResult<Boolean> enable(@RequestParam("uid") String uid) {

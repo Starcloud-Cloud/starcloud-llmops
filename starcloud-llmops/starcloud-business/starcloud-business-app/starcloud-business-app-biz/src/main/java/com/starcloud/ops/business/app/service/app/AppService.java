@@ -11,6 +11,7 @@ import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用管理服务
@@ -22,18 +23,26 @@ import java.util.List;
 public interface AppService {
 
     /**
+     * 获取元数据信息
+     *
+     * @return 获取元数据信息
+     */
+    Map<String, List<Option>> metadata();
+
+    /**
      * 查询应用分类列表
+     *
+     * @param isRoot 是否只根节点数据
+     * @return 应用分类列表
+     */
+    List<AppCategoryVO> categoryList(Boolean isRoot);
+
+    /**
+     * 查询应用分类树
      *
      * @return 应用分类列表
      */
-    List<AppCategoryVO> categories();
-
-    /**
-     * 查询应用语言列表
-     *
-     * @return 应用语言列表
-     */
-    List<Option> languages();
+    List<AppCategoryVO> categoryTree();
 
     /**
      * 查询推荐的应用列表

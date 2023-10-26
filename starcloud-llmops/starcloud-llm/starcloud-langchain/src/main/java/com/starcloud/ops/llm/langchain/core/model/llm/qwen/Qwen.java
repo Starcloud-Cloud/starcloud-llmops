@@ -1,6 +1,5 @@
 package com.starcloud.ops.llm.langchain.core.model.llm.qwen;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.extra.spring.SpringUtil;
@@ -9,7 +8,10 @@ import com.alibaba.dashscope.aigc.generation.GenerationResult;
 import com.alibaba.dashscope.aigc.generation.models.QwenParam;
 import com.starcloud.ops.llm.langchain.config.QwenAIConfig;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
-import com.starcloud.ops.llm.langchain.core.model.llm.base.*;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseGeneration;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLM;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 通义千问
@@ -84,7 +85,7 @@ public class Qwen extends BaseLLM<GenerationResult> {
                     .completionTokens(Long.valueOf(result.getUsage().getOutputTokens()))
                     .build();
 
-            usage.setTotalTokens(usage.getTotalTokens() + usage.getCompletionTokens());
+            usage.setTotalTokens(usage.getPromptTokens() + usage.getCompletionTokens());
 
             return BaseLLMResult.data(Arrays.asList(BaseGeneration.<GenerationResult>builder().text(text).generationInfo(result).build()), new HashMap() {{
                 put("model_name", modelName);

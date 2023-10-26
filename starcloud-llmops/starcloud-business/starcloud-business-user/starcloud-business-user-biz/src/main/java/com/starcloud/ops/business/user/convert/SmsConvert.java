@@ -22,7 +22,7 @@ public interface SmsConvert {
     SmsCodeSendReqDTO smsVo2SendDTO(CodeSendReqVO reqVO);
 
     @Mapping(source = "reqVO.account", target = "mobile")
-    SmsCodeUseReqDTO smsVo2UseDTO(CodeValidateReqVO reqVO, Integer scene);
+    SmsCodeUseReqDTO smsVo2UseDTO(CodeValidateReqVO reqVO, Integer scene, String usedIp);
 
     @Mapping(source = "reqVO.account", target = "mobile")
     SmsCodeUseReqDTO convert(CodeLoginReqVO reqVO, Integer scene, String usedIp);

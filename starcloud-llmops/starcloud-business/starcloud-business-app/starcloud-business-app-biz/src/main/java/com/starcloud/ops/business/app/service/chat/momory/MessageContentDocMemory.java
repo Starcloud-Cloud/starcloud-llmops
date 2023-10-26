@@ -9,7 +9,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.service.chat.momory.dto.MessageContentDocDTO;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.enums.DataSourceDataTypeEnum;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import lombok.Data;
@@ -45,8 +45,9 @@ public class MessageContentDocMemory {
     public void initHistory() {
         String appUid = this.messageMemory.getChatAppEntity().getUid();
         String conversationUid = this.messageMemory.getChatRequestVO().getConversationUid();
-        log.info("MessageContentDocMemory init start, appUid:[{}] conversationUid[{}]", appUid, conversationUid);
-        this.loadHistory();
+        //log.info("MessageContentDocMemory init start, appUid:[{}] conversationUid[{}]", appUid, conversationUid);
+        //@todo 不需要初始化文档上下文了。因为不能依赖中间步骤中上传的会话文档（如技能执行，直接上传URL等情况），不然下一次对话会带上不相关的文档内容
+        //this.loadHistory();
     }
 
     public Boolean hasHistory() {
@@ -119,6 +120,22 @@ public class MessageContentDocMemory {
      */
     public void addHistory(List<MessageContentDocDTO> messageContentDocDTOList) {
 
+        Optional.ofNullable(messageContentDocDTOList).orElse(new ArrayList<>()).forEach(doc -> {
+            // 增加到当前历史中，上面异常也可以增加到历史，因为方法传入的就表示有返回值了，可以做为上下文了
+            this.getHistory().addDoc(doc);
+        });
+
+    }
+
+    /**
+     * 保存文档上下文内容
+     * 1，每次都重新查询文档都内容获取 描述或总结
+     * 2，文档状态正常的才会增加到上下文中
+     *
+     * @param messageContentDocDTOList
+     */
+    public void saveHistory(List<MessageContentDocDTO> messageContentDocDTOList) {
+
         this.storageHistoryList(messageContentDocDTOList);
 
         Optional.ofNullable(messageContentDocDTOList).orElse(new ArrayList<>()).forEach(doc -> {
@@ -169,6 +186,7 @@ public class MessageContentDocMemory {
      *
      * @param
      */
+    @Deprecated
     private void storageHistoryList(List<MessageContentDocDTO> docs) {
 
         try {
@@ -181,7 +199,7 @@ public class MessageContentDocMemory {
             //一次只会有一种类型
             Map<String, List<MessageContentDocDTO>> docMaps = Optional.ofNullable(docs).orElse(new ArrayList<>()).stream().collect(Collectors.groupingBy(MessageContentDocDTO::getType));
 
-            BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+            UserBaseDTO baseDBHandleDTO = new UserBaseDTO();
             baseDBHandleDTO.setCreator(userId);
             baseDBHandleDTO.setEndUser(endUser);
 
@@ -298,7 +316,7 @@ public class MessageContentDocMemory {
                 doc.getToolName();
                 //@todo 需要增加扩展信息，如messageId
 
-                BaseDBHandleDTO baseDBHandleDTO = new BaseDBHandleDTO();
+                UserBaseDTO baseDBHandleDTO = new UserBaseDTO();
                 baseDBHandleDTO.setCreator(userId);
                 baseDBHandleDTO.setEndUser(endUser);
 

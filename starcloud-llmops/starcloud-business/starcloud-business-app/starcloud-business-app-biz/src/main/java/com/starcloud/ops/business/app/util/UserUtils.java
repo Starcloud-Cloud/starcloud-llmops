@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
@@ -34,6 +35,16 @@ public class UserUtils {
     public static final String SELF = "SELF";
 
     /**
+     * 管理员角色
+     */
+    public static final String ADMIN_ROLE = "MOFAAI_ADMIN";
+
+    /**
+     * 后台运营角色
+     */
+    public static final String OPERATE_ROLE = "MOFAAI_DEV";
+
+    /**
      * 部门权限
      */
     private static final PermissionApi PERMISSION_API = SpringUtil.getBean(PermissionApi.class);
@@ -42,6 +53,29 @@ public class UserUtils {
      * 用户服务
      */
     private static final AdminUserService ADMIN_USER_SERVICE = SpringUtil.getBean(AdminUserService.class);
+
+    /**
+     * 安全框架服务
+     */
+    private static final SecurityFrameworkService SECURITY_FRAMEWORK_SERVICE = SpringUtil.getBean(SecurityFrameworkService.class);
+
+    /**
+     * 判断是否是管理员
+     *
+     * @return
+     */
+    public static Boolean isAdmin() {
+        return SECURITY_FRAMEWORK_SERVICE.hasAnyRoles(ADMIN_ROLE, OPERATE_ROLE);
+    }
+
+    /**
+     * 判断是否是不是管理员
+     *
+     * @return
+     */
+    public static Boolean isNotAdmin() {
+        return !isAdmin();
+    }
 
     /**
      * 标识用户
@@ -56,6 +90,16 @@ public class UserUtils {
             return "游客(" + endUser + ")";
         }
         return getUsername(userId);
+    }
+
+    /**
+     * 游客标识
+     *
+     * @param endUser 游客
+     * @return 游客标识
+     */
+    public static String visitorIdentify(String endUser) {
+        return "游客(" + endUser + ")";
     }
 
     /**
@@ -103,6 +147,19 @@ public class UserUtils {
             return Collections.emptyMap();
         }
         return userList.stream().collect(Collectors.toMap(AdminUserDO::getId, AdminUserDO::getNickname));
+    }
+
+    /**
+     * 根据用户 ID 集合，获得用户角色集合
+     *
+     * @param userIds 用户 ID 集合
+     * @return 角色集合
+     */
+    public static Map<Long, List<String>> mapUserRoleCode(List<Long> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        return PERMISSION_API.mapRoleCodeListByUserIds(userIds);
     }
 
     /**

@@ -24,13 +24,13 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.PinyinCache;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,6 +42,7 @@ import java.util.Optional;
  * @version 1.0.0
  * @since 2023-06-05
  */
+@SuppressWarnings("all")
 @Mapper
 public interface AppMarketConvert {
 
@@ -58,7 +59,13 @@ public interface AppMarketConvert {
      */
     AppMarketEntity convert(AppMarketReqVO appMarketRequest);
 
-    ChatAppEntity convert2(AppMarketEntity appMarketEntity);
+    /**
+     * AppMarketEntity 转 ChatAppEntity
+     *
+     * @param appMarketEntity AppMarketEntity
+     * @return ChatAppEntity
+     */
+    ChatAppEntity convertChat(AppMarketEntity appMarketEntity);
 
     /**
      * AppMarketEntity 转 AppMarketDO
@@ -70,11 +77,13 @@ public interface AppMarketConvert {
         AppMarketDO appMarket = new AppMarketDO();
         appMarket.setUid(appMarketEntity.getUid());
         appMarket.setName(appMarketEntity.getName());
+        appMarket.setType(appMarketEntity.getType());
         appMarket.setModel(appMarketEntity.getModel());
         appMarket.setVersion(appMarketEntity.getVersion());
         appMarket.setLanguage(appMarketEntity.getLanguage());
+        appMarket.setSort(appMarketEntity.getSort());
         appMarket.setTags(AppUtils.join(appMarketEntity.getTags()));
-        appMarket.setCategories(AppUtils.join(appMarketEntity.getCategories()));
+        appMarket.setCategory(appMarketEntity.getCategory());
         appMarket.setScenes(AppUtils.joinScenes(appMarketEntity.getScenes()));
         appMarket.setImages(AppUtils.join(appMarketEntity.getImages()));
         appMarket.setIcon(appMarketEntity.getIcon());
@@ -99,7 +108,7 @@ public interface AppMarketConvert {
             if (Objects.nonNull(config)) {
                 appMarket.setConfig(JSONUtil.toJsonStr(config));
             }
-        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
+        } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
             ImageConfigEntity config = appMarketEntity.getImageConfig();
             if (Objects.nonNull(config)) {
                 appMarket.setConfig(JSONUtil.toJsonStr(config));
@@ -118,16 +127,22 @@ public interface AppMarketConvert {
         AppMarketEntity appMarketEntity = new AppMarketEntity();
         String appInfo = appPublish.getAppInfo();
         if (StringUtils.isBlank(appInfo)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_APP_INFO_NOT_FOUND);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PUBLISH_APP_INFO_NON_EXISTENT);
         }
+
         AppDO app = JSONUtil.toBean(appInfo, AppDO.class);
+        if (StringUtils.isBlank(app.getCategory())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NON_EXISTENT);
+        }
         appMarketEntity.setUid(appPublish.getMarketUid());
         appMarketEntity.setName(app.getName());
         appMarketEntity.setModel(app.getModel());
+        appMarketEntity.setType(appPublish.getType());
         appMarketEntity.setVersion(appPublish.getVersion());
         appMarketEntity.setLanguage(appPublish.getLanguage());
+        appMarketEntity.setSort(appPublish.getSort());
+        appMarketEntity.setCategory(appPublish.getCategory());
         appMarketEntity.setTags(AppUtils.split(app.getTags()));
-        appMarketEntity.setCategories(AppUtils.split(app.getCategories()));
         appMarketEntity.setScenes(AppUtils.splitScenes(app.getScenes()));
         appMarketEntity.setImages(AppUtils.split(app.getImages()));
         appMarketEntity.setIcon(app.getIcon());
@@ -145,7 +160,7 @@ public interface AppMarketConvert {
                 appMarketEntity.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
                 appMarketEntity.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(app.getModel())) {
+            } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
                 appMarketEntity.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -162,11 +177,13 @@ public interface AppMarketConvert {
         AppMarketEntity appMarketEntity = new AppMarketEntity();
         appMarketEntity.setUid(appMarket.getUid());
         appMarketEntity.setName(appMarket.getName());
+        appMarketEntity.setType(appMarket.getType());
         appMarketEntity.setModel(appMarket.getModel());
         appMarketEntity.setVersion(appMarket.getVersion());
         appMarketEntity.setLanguage(appMarket.getLanguage());
+        appMarketEntity.setSort(appMarket.getSort());
+        appMarketEntity.setCategory(appMarket.getCategory());
         appMarketEntity.setTags(AppUtils.split(appMarket.getTags()));
-        appMarketEntity.setCategories(AppUtils.split(appMarket.getCategories()));
         appMarketEntity.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
         appMarketEntity.setImages(AppUtils.split(appMarket.getImages()));
         appMarketEntity.setIcon(appMarket.getIcon());
@@ -189,7 +206,7 @@ public interface AppMarketConvert {
                 appMarketEntity.setWorkflowConfig(JSONUtil.toBean(appMarket.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
                 appMarketEntity.setChatConfig(JSONUtil.toBean(appMarket.getConfig(), ChatConfigEntity.class));
-            } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
+            } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
                 appMarketEntity.setImageConfig(JSONUtil.toBean(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
@@ -204,15 +221,18 @@ public interface AppMarketConvert {
      * @param appMarket AppMarketDO
      * @return AppMarketRespVO
      */
-    default AppMarketRespVO convertResp(AppMarketDO appMarket) {
+    default AppMarketRespVO convertResponse(AppMarketDO appMarket) {
         AppMarketRespVO appMarketResponse = new AppMarketRespVO();
         appMarketResponse.setUid(appMarket.getUid());
         appMarketResponse.setName(appMarket.getName());
+        appMarketResponse.setSpell(PinyinCache.get(appMarket.getName()));
+        appMarketResponse.setType(appMarket.getType());
         appMarketResponse.setModel(appMarket.getModel());
         appMarketResponse.setVersion(appMarket.getVersion());
         appMarketResponse.setLanguage(appMarket.getLanguage());
+        appMarketResponse.setSort(appMarket.getSort());
+        appMarketResponse.setCategory(appMarket.getCategory());
         appMarketResponse.setTags(AppUtils.split(appMarket.getTags()));
-        appMarketResponse.setCategories(AppUtils.split(appMarket.getCategories()));
         appMarketResponse.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
         appMarketResponse.setImages(AppUtils.split(appMarket.getImages()));
         appMarketResponse.setIcon(appMarket.getIcon());
@@ -238,7 +258,7 @@ public interface AppMarketConvert {
             if (Objects.nonNull(config)) {
                 appMarketResponse.setChatConfig(config);
             }
-        } else if (AppModelEnum.BASE_GENERATE_IMAGE.name().equals(appMarket.getModel())) {
+        } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
             ImageConfigRespVO config = JSONUtil.toBean(appMarket.getConfig(), ImageConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setImageConfig(config);

@@ -43,6 +43,11 @@ public class LogAppConversationInfoPO {
     private String fromScene;
 
     /**
+     * 使用的 ai 模型
+     */
+    private String aiModel;
+
+    /**
      * 总消耗token数
      */
     private Integer totalMessageTokens = 0;
@@ -58,7 +63,7 @@ public class LogAppConversationInfoPO {
     private Integer tokens = 0;
 
     /**
-     * 消息数
+     * 消息数-当前回话下的消息条数
      */
     private Integer messageCount = 0;
 
@@ -78,9 +83,24 @@ public class LogAppConversationInfoPO {
     private BigDecimal totalPrice = BigDecimal.ZERO;
 
     /**
+     * 消耗积分
+     */
+    private Integer costPoints;
+
+    /**
      * 会话状态
      */
     private String status;
+
+    /**
+     * 错误码
+     */
+    private String errorCode;
+
+    /**
+     * 错误信息
+     */
+    private String errorMsg;
 
     /**
      * 创建人

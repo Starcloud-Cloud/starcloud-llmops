@@ -48,11 +48,45 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      * @return 应用分类列表
      */
     @Override
-    public List<AppCategoryVO> categories() {
+    public List<AppCategoryVO> categoryList(Boolean isRoot) {
         // 查询应用分类字典数据
         List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_CATEGORY_DICT_TYPE);
-        // 转换为应用分类列表
-        return dictDataList.stream().map(CategoryConvert.INSTANCE::convert).filter(Objects::nonNull).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return Collections.emptyList();
+        }
+        Stream<AppCategoryVO> stream = dictDataList.stream().map(CategoryConvert.INSTANCE::convert);
+        if (isRoot) {
+            stream = stream.filter(category -> AppConstants.ROOT.equalsIgnoreCase(category.getParentCode()));
+        }
+        return stream.sorted(Comparator.comparingInt(AppCategoryVO::getSort)).collect(Collectors.toList());
+    }
+
+    /**
+     * 查询应用分类列表
+     *
+     * @return 应用分类列表
+     */
+    @Override
+    public List<AppCategoryVO> categoryTree() {
+        List<AppCategoryVO> categoryList = categoryList(Boolean.FALSE);
+        // 递归实现分类树
+        return categoryListToTree(categoryList, AppConstants.ROOT);
+    }
+
+    /**
+     * 热门搜索应用市场应用名称列表
+     *
+     * @return 热门搜索应用市场应用名称列表
+     */
+    @Override
+    public List<String> hotSearchMarketAppNameList() {
+        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_HOT_SEARCH_MARKET);
+        return CollectionUtil.emptyIfNull(dictDataList).stream()
+                .sorted(Comparator.comparingInt(DictDataDO::getSort))
+                .map(DictDataDO::getLabel)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     /**
@@ -217,6 +251,31 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
             return Collections.emptyList();
         }
         return dictDataList;
+    }
+
+    /**
+     * 获取应用系统限流兜底配置
+     *
+     * @return 应用限流兜底配置
+     */
+    private static List<AppLimitConfigDTO> defaultSystemLimitConfig() {
+        return Arrays.stream(AppLimitConfigEnum.values()).map(AppLimitConfigEnum::getDefaultSystemConfig).collect(Collectors.toList());
+    }
+
+    /**
+     * 递归实现分类树
+     *
+     * @param categoryList 应用分类列表
+     * @param parentCode   根节点Code
+     * @return 应用分类列表
+     */
+    private static List<AppCategoryVO> categoryListToTree(List<AppCategoryVO> categoryList, String parentCode) {
+        // 利用 stream 进行递归，尽可能的效率高
+        return categoryList.stream()
+                .filter(category -> parentCode.equalsIgnoreCase(category.getParentCode()))
+                .filter(category -> !"ALL".equalsIgnoreCase(category.getCode()))
+                .peek(category -> category.setChildren(categoryListToTree(categoryList, category.getCode())))
+                .collect(Collectors.toList());
     }
 
 }

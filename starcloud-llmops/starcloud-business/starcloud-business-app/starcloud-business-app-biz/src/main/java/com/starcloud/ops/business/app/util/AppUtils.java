@@ -5,13 +5,18 @@ import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.i18n.LocaleContextHolder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -120,7 +125,7 @@ public class AppUtils {
     public static String obtainUid(String uid) {
         String[] split = uid.split("-");
         if (split.length != 2) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get installUid or publishUid");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.MARKET_GET_UID_FAILURE);
         }
         return split[0];
     }
@@ -134,7 +139,7 @@ public class AppUtils {
     public static Integer obtainVersion(String uid) {
         String[] split = uid.split("-");
         if (split.length != 2) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MARKET_FAIL, "uid not match format, can not get version");
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.MARKET_GET_VERSION_FAILURE);
         }
         return Integer.valueOf(split[1]);
     }
@@ -212,5 +217,30 @@ public class AppUtils {
         }
 
         return containsChinese ? LanguageEnum.ZH_CN.getCode() : LanguageEnum.EN_US.getCode();
+    }
+
+    /**
+     * AI 模型集合
+     *
+     * @return AI 模型集合
+     */
+    public static List<Option> aiModelList() {
+        Locale locale = LocaleContextHolder.getLocale();
+        List<Option> options = new ArrayList<>();
+        Option option35 = new Option();
+        option35.setLabel(Locale.CHINA.equals(locale) ? "默认模型3.5" : "Default Model 3.5");
+        option35.setValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        options.add(option35);
+
+        Option option40 = new Option();
+        option40.setLabel(Locale.CHINA.equals(locale) ? "默认模型4.0" : "Default Model 4.0");
+        option40.setValue(ModelTypeEnum.GPT_4.getName());
+        options.add(option40);
+
+        Option optionQwen = new Option();
+        optionQwen.setLabel(Locale.CHINA.equals(locale) ? "通义千问" : "QWEN");
+        optionQwen.setValue(ModelTypeEnum.QWEN.getName());
+        options.add(optionQwen);
+        return options;
     }
 }

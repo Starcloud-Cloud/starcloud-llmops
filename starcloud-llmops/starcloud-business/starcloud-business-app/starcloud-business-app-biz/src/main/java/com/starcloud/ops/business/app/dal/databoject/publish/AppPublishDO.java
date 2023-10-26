@@ -65,6 +65,12 @@ public class AppPublishDO extends TenantBaseDO {
     private String name;
 
     /**
+     * 应用市场应用类型
+     */
+    @TableField("type")
+    private String type;
+
+    /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @TableField("model")
@@ -79,14 +85,20 @@ public class AppPublishDO extends TenantBaseDO {
     /**
      * 应用类别
      */
-    @TableField("categories")
-    private String categories;
+    @TableField("category")
+    private String category;
 
     /**
      * 语言
      */
     @TableField("language")
     private String language;
+
+    /**
+     * 应用排序，越小越靠前
+     */
+    @TableField("sort")
+    private Long sort;
 
     /**
      * 发布的应用数据，一条应用的完整数据。备份，分享链接，发布应用数据，均使用该数据。

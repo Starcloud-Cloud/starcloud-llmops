@@ -10,7 +10,6 @@ import com.alibaba.dashscope.aigc.generation.models.QwenParam;
 import com.alibaba.dashscope.common.Message;
 import com.alibaba.dashscope.common.MessageManager;
 import com.alibaba.dashscope.common.ResultCallback;
-import com.alibaba.dashscope.utils.JsonUtils;
 import com.starcloud.ops.llm.langchain.config.QwenAIConfig;
 import com.starcloud.ops.llm.langchain.core.callbacks.CallbackManagerForLLMRun;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
@@ -192,7 +191,7 @@ public class ChatQwen extends BaseChatModel<GenerationResult> {
             case "system":
                 return new SystemMessage(chatMessage.getContent());
             default:
-                return new com.starcloud.ops.llm.langchain.core.schema.message.ChatMessage(chatMessage.getContent(), chatMessage.getRole());
+                return new ChatMessage(chatMessage.getContent(), chatMessage.getRole());
 
         }
     }

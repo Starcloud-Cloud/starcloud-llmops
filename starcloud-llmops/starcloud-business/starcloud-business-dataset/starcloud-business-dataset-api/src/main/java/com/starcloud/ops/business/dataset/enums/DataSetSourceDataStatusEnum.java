@@ -33,6 +33,7 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
      * 31 - 40  数据清洗
      */
     CLEANING_IN(31,"数据清洗中"),
+    CLEANING_RETRY(34,"数据清洗失败，正在重试"),
     CLEANING_ERROR(35,"数据清洗失败"),
     CLEANING_COMPLETED(40,"数据清洗完成"),
 
@@ -40,6 +41,7 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
      * 41 - 50  数据清洗
      */
     SPLIT_IN(41,"数据分割中"),
+    SPLIT_RETRY(44,"数据分割失败，正在重试"),
     SPLIT_ERROR(45,"数据分割失败"),
     SPLIT_COMPLETED(50,"数据分割完成"),
 
@@ -47,6 +49,7 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
      * 51 -60  创建索引
      */
     INDEX_IN(51,"正在创建索引"),
+    INDEX_RETRY(54,"创建索引失败，正在重试"),
     INDEX_ERROR(55,"创建索引失败"),
     INDEX_COMPLETED(60,"创建索引完成"),
 
@@ -58,7 +61,7 @@ public enum DataSetSourceDataStatusEnum implements IntArrayValuable {
     /**
      * 99 完成
      */
-    COMPLETED(99," 完成"),
+    COMPLETED(99,"完成"),
 
     ;
 

@@ -60,14 +60,26 @@
             <scope>provided</scope>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>com.starcloud.ops</groupId>-->
+<!--            <artifactId>starcloud-langchain</artifactId>-->
+<!--        </dependency>-->
+
         <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-langchain</artifactId>
+            <groupId>com.github.Starcloud-Cloud</groupId>
+            <artifactId>java-langchain</artifactId>
+<!--            <version>master-0fbe47eb49-1</version>-->
         </dependency>
 
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-dataset-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-mq-producer</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
 
@@ -90,6 +102,17 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.sejda.imageio/webp-imageio -->
+        <dependency>
+            <groupId>org.sejda.imageio</groupId>
+            <artifactId>webp-imageio</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.belerweb/pinyin4j -->
+        <dependency>
+            <groupId>com.belerweb</groupId>
+            <artifactId>pinyin4j</artifactId>
+            <version>2.5.1</version>
+        </dependency>
 
     </dependencies>
 
@@ -101,6 +124,12 @@
                 <version>2021.0.5</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.sejda.imageio/webp-imageio -->
+            <dependency>
+                <groupId>org.sejda.imageio</groupId>
+                <artifactId>webp-imageio</artifactId>
+                <version>0.1.6</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

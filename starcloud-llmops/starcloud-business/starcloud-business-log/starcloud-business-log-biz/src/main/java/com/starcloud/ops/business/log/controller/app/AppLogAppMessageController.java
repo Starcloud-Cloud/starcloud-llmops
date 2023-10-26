@@ -2,7 +2,7 @@ package com.starcloud.ops.business.log.controller.app;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.log.api.LogAppApi;
-import com.starcloud.ops.business.log.api.message.vo.*;
+import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageInfoRespVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;

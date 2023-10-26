@@ -2,18 +2,44 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper">
 
-    <!-- 定义需要查询的字段 -->
+    <!--
+        定义需要查询的字段
+        1. 消息总数,
+        2. 成功消息数,
+        3. 失败消息数,
+        4. 点赞消息数,
+        5. 完成/聊天平均耗时,
+        6. 图片平均耗时,
+        7. 完成/聊天总花费积分,
+        8. 图片总花费积分,
+    -->
     <sql id="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF">
         COUNT(ms.id) AS messageCount,
         COUNT(CASE WHEN ms.status = "SUCCESS" THEN 1 END) AS successCount,
+        COUNT(CASE WHEN ms.status = "SUCCESS" AND ms.app_mode != "IMAGE" THEN 1 END) AS completionSuccessCount,
+        COUNT(CASE WHEN ms.status = "SUCCESS" AND ms.app_mode = "IMAGE" THEN 1 END) AS imageSuccessCount,
+
         COUNT(CASE WHEN ms.status != "SUCCESS" THEN 1 END) AS errorCount,
+        COUNT(CASE WHEN ms.status != "SUCCESS" AND ms.app_mode != "IMAGE" THEN 1 END) AS completionErrorCount,
+        COUNT(CASE WHEN ms.status != "SUCCESS" AND ms.app_mode = "IMAGE" THEN 1 END) AS imageErrorCount,
+
         COUNT(CASE WHEN fb.rating = "LIKE" THEN 1 END) AS feedbackLikeCount,
-        COUNT(DISTINCT ms.creator) AS userCount,
-        SUM(ms.elapsed) AS elapsedTotal,
-        AVG(ms.elapsed) AS elapsedAvg,
-        SUM(ms.message_tokens) AS messageTokens,
-        SUM(ms.answer_tokens) AS answerTokens,
-        SUM(ms.message_tokens + ms.answer_tokens) AS tokens,
+        AVG(CASE WHEN ms.app_mode != "IMAGE" THEN ms.elapsed END) AS completionAvgElapsed,
+        AVG(CASE WHEN ms.app_mode = "IMAGE" THEN ms.elapsed END) AS imageAvgElapsed,
+        SUM(CASE WHEN ms.app_mode != "IMAGE" THEN ms.cost_points END) AS completionCostPoints,
+        SUM(CASE WHEN ms.app_mode = "IMAGE" THEN ms.cost_points END) AS imageCostPoints,
+        SUM(
+        (CASE WHEN ms.app_mode = "COMPLETION" THEN ms.message_tokens END) +
+        (CASE WHEN ms.app_mode = "COMPLETION" THEN ms.answer_tokens END)
+        ) AS completionTokens,
+        SUM(
+        (CASE WHEN ms.app_mode = "CHAT" THEN ms.message_tokens END) +
+        (CASE WHEN ms.app_mode = "CHAT" THEN ms.answer_tokens END)
+        ) AS chatTokens,
+        SUM(
+        (CASE WHEN ms.app_mode = "CHAT" THEN ms.message_tokens END) +
+        (CASE WHEN ms.app_mode = "CHAT" THEN ms.answer_tokens END)
+        ) AS tokens,
         <choose>
             <when test="query.unit == 'HOURS'">
                 DATE_FORMAT(ms.create_time, '%Y-%m-%d %h') as create_date
@@ -49,7 +75,7 @@
     </sql>
 
     <!-- 生成记录日志统计 -->
-    <select id="listLogMessageStatistics"
+    <select id="listLogAppMessageStatistics"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
         SELECT
         <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
@@ -82,6 +108,10 @@
                 </when>
             </choose>
 
+            <if test="query.aiModel != null and query.aiModel != '' ">
+                AND ms.ai_model = #{query.aiModel}
+            </if>
+
             <if test="query.status != null and query.status != '' ">
                 AND ms.status = #{query.status}
             </if>
@@ -95,7 +125,7 @@
     </select>
 
     <!-- 根据应用 UID 日志统计 -->
-    <select id="listLogMessageStatisticsByAppUid"
+    <select id="listLogAppMessageStatisticsByAppUid"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
         SELECT
         <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
@@ -114,6 +144,10 @@
 
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND ms.from_scene = #{query.fromScene}
+            </if>
+
+            <if test="query.aiModel != null and query.aiModel != '' ">
+                AND ms.ai_model = #{query.aiModel}
             </if>
 
             <if test="query.status != null and query.status != '' ">

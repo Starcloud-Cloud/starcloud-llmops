@@ -1,7 +1,11 @@
 package com.starcloud.ops.business.app.dal.databoject.market;
 
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -44,6 +48,12 @@ public class AppMarketDO extends TenantBaseDO {
     private String name;
 
     /**
+     * 应用类型：SYSTEM：系统应用，MARKET：市场应用
+     */
+    @TableField("type")
+    private String type;
+
+    /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @TableField("model")
@@ -62,6 +72,12 @@ public class AppMarketDO extends TenantBaseDO {
     private String language;
 
     /**
+     * 应用排序，越小越靠前
+     */
+    @TableField("sort")
+    private Long sort;
+
+    /**
      * 应用标签，多个以逗号分割
      */
     @TableField("tags")
@@ -70,8 +86,8 @@ public class AppMarketDO extends TenantBaseDO {
     /**
      * 应用类别，多个以逗号分割
      */
-    @TableField("categories")
-    private String categories;
+    @TableField("category")
+    private String category;
 
     /**
      * 应用场景，多个以逗号分割

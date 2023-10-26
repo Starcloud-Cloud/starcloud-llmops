@@ -38,4 +38,6 @@ public interface FileApi {
      */
     String createFile(String name, String path, byte[] content);
 
+    byte[] getContent(String path) throws Exception;
+
 }

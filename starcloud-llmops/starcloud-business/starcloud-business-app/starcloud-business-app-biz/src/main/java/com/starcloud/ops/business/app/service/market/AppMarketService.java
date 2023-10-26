@@ -1,11 +1,11 @@
 package com.starcloud.ops.business.app.service.market;
 
-import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppInstallReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -29,6 +29,13 @@ public interface AppMarketService {
      * @return 应用市场列表
      */
     PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
+
+    /**
+     * 根据分类Code查询应用市场列表
+     *
+     * @return 分组列表
+     */
+    List<AppMarketGroupCategoryRespVO> listGroupByCategory(AppMarketListGroupByCategoryQuery query);
 
     /**
      * 获取优化提示应用列表
@@ -68,49 +75,9 @@ public interface AppMarketService {
     void delete(String uid);
 
     /**
-     * 安装应用
-     *
-     * @param request 安装请求
-     */
-    void install(AppInstallReqVO request);
-
-    /**
      * 应用操作
      *
      * @param request 操作请求
      */
     void operate(AppOperateReqVO request);
-
-    /**
-     * 应用市场应用收藏列表
-     *
-     * @param userId 用户 uid
-     * @return 收藏列表
-     */
-    List<AppFavoriteRespVO> listFavorite(String userId);
-
-    /**
-     * 获取用户收藏的应用的详情
-     *
-     * @param userId 用户 id
-     * @param uid    应用 uid
-     * @return 收藏应用
-     */
-    AppFavoriteRespVO getFavoriteApp(String userId, String uid);
-
-    /**
-     * 将应用加入到收藏夹
-     *
-     * @param userId 用户 id
-     * @param uid    应用 uid
-     */
-    void favorite(String userId, String uid);
-
-    /**
-     * 取消收藏
-     *
-     * @param userId 用户 id
-     * @param uid    应用 uid
-     */
-    void cancelFavorite(String userId, String uid);
 }

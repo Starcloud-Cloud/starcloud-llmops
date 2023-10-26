@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
@@ -12,11 +11,13 @@ import com.alibaba.dashscope.aigc.generation.GenerationResult;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
-import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
-import com.starcloud.ops.business.app.domain.entity.chat.*;
-import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
+import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
+import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrePrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ContextPrompt;
@@ -28,13 +29,7 @@ import com.starcloud.ops.business.app.domain.entity.skill.BaseSkillEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
-import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
-import com.starcloud.ops.business.app.domain.handler.datasearch.GoogleSearchHandler;
-import com.starcloud.ops.business.app.domain.handler.datasearch.SearchEngineHandler;
-import com.starcloud.ops.business.app.domain.handler.datasearch.WebSearch2DocHandler;
-import com.starcloud.ops.business.app.domain.llm.PromptTemplateConfig;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -42,11 +37,10 @@ import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
-import com.starcloud.ops.business.app.util.SseResultUtil;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
@@ -54,7 +48,6 @@ import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
-import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatQwen;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
@@ -68,7 +61,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -201,13 +200,22 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         createRequest.setAppConfig(JSONUtil.toJsonStr(this.getChatConfig()));
     }
 
+    /**
+     * 模版方法：获取应用的 AI 模型类型
+     *
+     * @param request 请求参数
+     */
+    @Override
+    protected String obtainLlmAiModelType(ChatRequestVO request) {
+        return Optional.ofNullable(request.getModelType()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+    }
 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
     protected JsonData doExecute(ChatRequestVO request) {
 
-        this.allowExpendBenefits(BenefitsTypeEnums.TOKEN.getCode(), request.getUserId());
+        this.allowExpendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), request.getUserId());
 
         return executeChat(request, request.getUserId());
     }
@@ -530,30 +538,11 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         //工具入参
         HandlerContext appContext = this.instanceHandlerContext(request);
 
-        //web search
-//        if (searchConfigEntity != null && Boolean.TRUE.equals(searchConfigEntity.getEnabled())) {
-//
-//            //爬取网页
-//            WebSearch2DocHandler webSearch2Doc = new WebSearch2DocHandler();
-//            String description = webSearch2Doc.getDescription() + PromptTemplateConfig.webSearchPrePrompt(searchConfigEntity);
-//            webSearch2Doc.setDescription(description);
-//            webSearch2Doc.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-//            HandlerSkill handlerSkill = new HandlerSkill(webSearch2Doc);
-//            loadTools.add(handlerSkill.createFunTool(appContext));
-//
-//            HandlerSkill searchEngine = HandlerSkill.of("SearchEngineHandler");
-//            searchEngine.getHandler().setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
-//            loadTools.add(searchEngine.createFunTool(appContext));
-//
-//        }
-
         List<BaseTool> handlerFunTools = Optional.ofNullable(chatConfig.getHandlerSkills()).orElse(new ArrayList<>()).stream().filter(HandlerSkill::getEnabled).map(handlerSkill -> {
 
             if (handlerSkill.getHandler() != null) {
-                //设置 memory
-                BaseToolHandler baseToolHandler = handlerSkill.getHandler();
 
-                baseToolHandler.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
+                handlerSkill.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
 
                 return handlerSkill.createFunTool(appContext);
             }
@@ -566,6 +555,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         List<BaseTool> apiFunTools = Optional.ofNullable(chatConfig.getApiSkills()).orElse(new ArrayList<>()).stream().filter(ApiSkill::getEnabled).map(skillEntity -> {
 
             //设置 memory
+            skillEntity.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
 
             return skillEntity.createFunTool(appContext);
         }).filter(Objects::nonNull).collect(Collectors.toList());
@@ -575,6 +565,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         List<BaseTool> appFunTools = Optional.ofNullable(chatConfig.getAppWorkflowSkills()).orElse(new ArrayList<>()).stream().filter(AppWorkflowSkill::getEnabled).map(skillEntity -> {
 
             //设置 memory
+            skillEntity.setMessageContentDocMemory(this.getMessageMemory().getMessageContentDocMemory());
 
             return skillEntity.createFunTool(appContext);
         }).filter(Objects::nonNull).collect(Collectors.toList());

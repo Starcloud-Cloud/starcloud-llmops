@@ -6,7 +6,7 @@ import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.log.AppLogService;
-import com.starcloud.ops.business.log.api.message.vo.AppLogMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -33,7 +33,7 @@ public class AppLogDetailController {
     @PostMapping("/app")
     @DataPermission(enable = false)
     @Operation(summary = "获得应用执行日志详情")
-    public CommonResult<AppLogMessageRespVO> appLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
+    public CommonResult<AppLogMessageRespVO> appLogMessageDetail(@Validated @RequestBody LogAppMessagePageReqVO query) {
         // 默认查询生成式模型的日志，即应用的执行记录
         query.setAppMode(AppModelEnum.COMPLETION.name());
         return CommonResult.success(appLogService.getLogAppMessageDetail(query));
@@ -43,7 +43,7 @@ public class AppLogDetailController {
     @PostMapping("/chat")
     @DataPermission(enable = false)
     @Operation(summary = "获得聊天执行日志详情")
-    public CommonResult<?> chatLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
+    public CommonResult<?> chatLogMessageDetail(@Validated @RequestBody LogAppMessagePageReqVO query) {
         query.setPageSize(1000);
         // 默认查询聊天式模型的日志，即应用的执行记录
         query.setAppMode(AppModelEnum.CHAT.name());
@@ -53,9 +53,9 @@ public class AppLogDetailController {
     @PostMapping("/image")
     @DataPermission(enable = false)
     @Operation(summary = "获取图片生成执行日志详情")
-    public CommonResult<ImageLogMessageRespVO> imageLogMessageDetail(@Validated @RequestBody AppLogMessagePageReqVO query) {
+    public CommonResult<ImageLogMessageRespVO> imageLogMessageDetail(@Validated @RequestBody LogAppMessagePageReqVO query) {
         // 默认查询图片式模型的日志，即应用的执行记录
-        query.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
+        query.setAppMode(AppModelEnum.IMAGE.name());
         return CommonResult.success(appLogService.getLogImageMessageDetail(query));
     }
 

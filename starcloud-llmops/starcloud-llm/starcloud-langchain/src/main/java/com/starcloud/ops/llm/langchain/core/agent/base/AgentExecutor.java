@@ -28,6 +28,7 @@ import com.starcloud.ops.llm.langchain.core.tools.FailTool;
 import com.starcloud.ops.llm.langchain.core.tools.InvalidTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.starcloud.ops.llm.langchain.core.tools.base.FunTool;
+import com.starcloud.ops.llm.langchain.core.tools.base.ToolResponse;
 import com.starcloud.ops.llm.langchain.core.tools.exception.FailToolExecution;
 import com.starcloud.ops.llm.langchain.core.tools.exception.InvalidToolExecution;
 import com.starcloud.ops.llm.langchain.core.tools.exception.ToolContinuesExecution;
@@ -66,6 +67,11 @@ public class AgentExecutor extends Chain<AgentFinish> {
     public static String AgentFinishInputKey = "agentFinish_input";
 
     private List<Object> handleParsingErrors;
+
+    /**
+     * 输入的字段
+     */
+    private List<String> inputKeys = Arrays.asList("input");
 
     private AgentExecutor(BaseSingleActionAgent actionAgent, List<BaseTool> tools, BaseCallbackManager callbackManager, List<String> tags) {
         this.actionAgent = actionAgent;
@@ -147,7 +153,9 @@ public class AgentExecutor extends Chain<AgentFinish> {
 
         //超时这里要增加日志
         BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(stopAgent);
-        this.getMemory().saveContext(null, baseLLMResult);
+        if (this.getMemory() != null) {
+            this.getMemory().saveContext(null, baseLLMResult);
+        }
 
         return this._return(stopAgent, intermediateSteps);
     }
@@ -155,9 +163,9 @@ public class AgentExecutor extends Chain<AgentFinish> {
     @Override
     public String run(List<BaseVariable> baseVariables) {
 
-        AgentAction response = this.call(baseVariables);
+        AgentFinish response = this.call(baseVariables);
         if (response != null) {
-            return String.valueOf(response.getObservation());
+            return String.valueOf(response.getOutput());
         }
         return "";
     }
@@ -244,7 +252,7 @@ public class AgentExecutor extends Chain<AgentFinish> {
         //第一次请求
         if (CollectionUtil.isEmpty(intermediateSteps)) {
 
-            BaseVariable variable = this.getMemory().getPromptInputKey(variables);
+            BaseVariable variable = BaseVariable.findVariable(variables, this.getInputKeys().get(0));
             HumanMessage humanMessage = new HumanMessage(String.valueOf(variable.getValue()));
 
             //用户请求放在第一个
@@ -276,7 +284,7 @@ public class AgentExecutor extends Chain<AgentFinish> {
                     JsonNode params = functionCall.getArguments();
 
                     FunctionMessage functionMessage = new FunctionMessage(((FunctionsAgentAction) actionAgent).getTool(), params);
-                    functionMessage.setContent(JSONUtil.toJsonStr(actionAgent.getObservation()));
+                    functionMessage.setContent(actionAgent.getObservation());
                     functionMessage.setStatus(actionAgent.getStatus());
                     functionMessage.setElapsed(((FunctionsAgentAction) actionAgent).getElapsed());
 
@@ -326,7 +334,7 @@ public class AgentExecutor extends Chain<AgentFinish> {
     @Override
     public String run(String text) {
 
-        return this.run(Arrays.asList(BaseVariable.newString("input", text)));
+        return this.run(Arrays.asList(BaseVariable.newString(this.getInputKeys().get(0), text)));
     }
 
 
@@ -391,7 +399,11 @@ public class AgentExecutor extends Chain<AgentFinish> {
         Optional.ofNullable(nextStepOutput).orElse(new ArrayList<>()).forEach(agentAction -> {
 
             BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(variables, intermediateSteps, agentAction);
-            this.getMemory().saveContext(null, baseLLMResult);
+
+            if (this.getMemory() != null) {
+                this.getMemory().saveContext(null, baseLLMResult);
+            }
+
         });
 
         //判断是否完成了，现在只会有一个元素
@@ -412,13 +424,13 @@ public class AgentExecutor extends Chain<AgentFinish> {
 
             String tool = funAgentAction.getTool();
             Object toolInput = funAgentAction.getToolInput();
-            Object observation = null;
+            ToolResponse toolResponse = null;
 
             /**
              * 执行函数调用，异常catch，保存下来.并且设置返回内容，好让LLM继续做判断
              */
             //现在只会有 FunTool，都是 FunTool 包装后的tool
-            FunTool baseTool = (FunTool) toolMap.get(tool);
+            BaseTool baseTool = toolMap.get(tool);
 
             try {
                 if (toolMap.containsKey(tool)) {
@@ -429,14 +441,15 @@ public class AgentExecutor extends Chain<AgentFinish> {
                     }
 
                     //@todo 捕获工具执行异常
-                    observation = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
+                    toolResponse = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
                     //为空，可能执行异常，告诉LLM 此次调用失败，无效
-                    if (ObjectUtil.isEmpty(observation)) {
+                    if (ObjectUtil.isEmpty(toolResponse.getObservation())) {
                         throw new FailToolExecution(tool, toolInput, -1, "");
                     }
 
                     funAgentAction.setStatus(true);
-                    funAgentAction.setObservation(observation);
+                    funAgentAction.setObservation(toolResponse.getObservation());
+                    funAgentAction.setToolResponse(toolResponse.getResponse());
 
                 } else {
 
@@ -470,71 +483,15 @@ public class AgentExecutor extends Chain<AgentFinish> {
                 funAgentAction.setElapsed(System.currentTimeMillis() - start);
                 //增加 fun 调用日志
                 BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(funAgentAction);
-                this.getMemory().saveContext(null, baseLLMResult);
+                if (this.getMemory() != null) {
+                    this.getMemory().saveContext(null, baseLLMResult);
+                }
             }
 
             result.add(funAgentAction);
         }
 
         return result;
-    }
-
-
-    private List<AgentAction> runTool(Map<String, BaseTool> toolMap, List<AgentAction> agentActions) {
-
-        List<AgentAction> result = new ArrayList<>();
-
-        //现在只有会一个元素
-        for (AgentAction agentAction : agentActions) {
-
-            long start = System.currentTimeMillis();
-            this.callbackManager.onAgentAction(this.getClass(), agentAction, this.getVerbose());
-
-            FunctionsAgentAction funAgentAction = (FunctionsAgentAction) agentAction;
-            String tool = funAgentAction.getTool();
-            Object toolInput = funAgentAction.getToolInput();
-            Object observation = null;
-
-            if (toolMap.containsKey(tool)) {
-
-                BaseTool baseTool = toolMap.get(tool);
-                Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
-
-                if (baseTool.getReturnDirect()) {
-                    toolRunKwargs.put("llm_prefix", "");
-                }
-
-
-                //@todo 捕获工具执行异常
-                observation = baseTool.run(toolInput, this.getVerbose(), toolRunKwargs);
-                //为空，可能执行异常，告诉LLM 此次调用失败，无效
-                if (ObjectUtil.isEmpty(observation)) {
-                    funAgentAction.setStatus(false);
-                    observation = new FailTool(tool).setCallbackManager(this.callbackManager).run(toolInput);
-                } else {
-                    funAgentAction.setStatus(true);
-                }
-
-
-            } else {
-
-                Map<String, Object> toolRunKwargs = this.actionAgent.toolRunLoggingKwargs();
-                //LLM 返回了错误工具的情况
-                observation = new InvalidTool(tool).setCallbackManager(this.callbackManager).run(toolInput);
-            }
-
-            funAgentAction.setObservation(observation);
-            funAgentAction.setElapsed(System.currentTimeMillis() - start);
-
-            //增加 fun 调用日志
-            BaseLLMResult baseLLMResult = this.parseAgentAction2LLmResult(agentAction);
-            this.getMemory().saveContext(null, baseLLMResult);
-
-            result.add(agentAction);
-        }
-
-        return result;
-
     }
 
 

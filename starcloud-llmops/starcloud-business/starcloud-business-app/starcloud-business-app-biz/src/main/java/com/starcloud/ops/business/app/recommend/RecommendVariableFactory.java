@@ -25,7 +25,6 @@ public class RecommendVariableFactory {
         variable.setVariables(Arrays.asList(
                 RecommendVariableItemFactory.defMaxTokenVariable(),
                 RecommendVariableItemFactory.defTemperatureVariable(),
-                RecommendVariableItemFactory.defNumVariable(),
                 RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow)
         ));
         return variable;

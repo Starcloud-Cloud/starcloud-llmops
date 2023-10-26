@@ -18,7 +18,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "StabilityRequest", description = "Stability Ai 基础请求")
+@Schema(name = "StabilityImage", description = "Stability Ai 图片")
 public class VSearchImage {
 
     /**

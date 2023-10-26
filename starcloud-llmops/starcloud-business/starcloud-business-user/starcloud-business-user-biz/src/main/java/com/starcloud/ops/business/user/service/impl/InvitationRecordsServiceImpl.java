@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class InvitationRecordsServiceImpl implements InvitationRecordsService {
     private InvitationRecordsMapper invitationRecordsMapper;
 
     @Override
-    public void createInvitationRecords(Long inviterId, Long inviteeId ) {
+    public void createInvitationRecords(Long inviterId, Long inviteeId) {
         try {
             log.info("[createInvitationRecords][增加邀请记录：邀请人用户ID({})｜被邀请人({})]", inviterId, inviteeId);
             // 插入
@@ -41,7 +42,7 @@ public class InvitationRecordsServiceImpl implements InvitationRecordsService {
             invitationRecords.setCreator(String.valueOf(inviteeId));
             invitationRecords.setUpdater(String.valueOf(inviteeId));
             invitationRecordsMapper.insert(invitationRecords);
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             log.error("[createInvitationRecords][增加邀请记录失败：邀请人用户ID({})｜被邀请人({})]", inviterId, inviteeId);
         }
 
@@ -64,6 +65,20 @@ public class InvitationRecordsServiceImpl implements InvitationRecordsService {
     @Override
     public PageResult<InvitationRecordsDO> getInvitationRecordsPage(InvitationRecordsPageReqVO pageReqVO) {
         return invitationRecordsMapper.selectPage(pageReqVO);
+    }
+
+    /**
+     * 获取当天邀请记录
+     *
+     * @param inviterId 用户ID
+     * @return List<InvitationRecordsDO>
+     */
+    @Override
+    public List<InvitationRecordsDO> getTodayInvitations(Long inviterId) {
+        LocalDateTime now = LocalDateTimeUtil.now();
+        return invitationRecordsMapper.selectList(Wrappers.lambdaQuery(InvitationRecordsDO.class)
+                .eq(InvitationRecordsDO::getInviterId, inviterId)
+                .between(InvitationRecordsDO::getCreateTime, LocalDateTimeUtil.beginOfDay(now), LocalDateTimeUtil.endOfDay(now)));
     }
 
 

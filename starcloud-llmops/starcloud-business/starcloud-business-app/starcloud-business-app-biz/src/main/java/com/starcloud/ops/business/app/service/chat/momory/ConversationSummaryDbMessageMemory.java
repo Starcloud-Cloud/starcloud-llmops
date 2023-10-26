@@ -3,30 +3,25 @@ package com.starcloud.ops.business.app.service.chat.momory;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
+import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogMessageTypeEnum;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
-import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
+import com.starcloud.ops.llm.langchain.core.agent.base.action.FunctionsAgentAction;
 import com.starcloud.ops.llm.langchain.core.memory.ChatMessageHistory;
 import com.starcloud.ops.llm.langchain.core.memory.summary.SummarizerMixin;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
@@ -57,11 +52,6 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
 
     private static LogAppMessageService messageService = SpringUtil.getBean(LogAppMessageService.class);
-
-    /**
-     * 最大需要总结的 tokens数量，当超过次值 需要总结了
-     */
-    private int summaryMaxTokens;
 
     private ChatRequestVO chatRequestVO;
 
@@ -104,7 +94,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         ChatOpenAI chatOpenAi = new ChatOpenAI();
         //16k 去总结
         chatOpenAi.setModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        chatOpenAi.setMaxTokens(500);
+        chatOpenAi.setMaxTokens(350);
         chatOpenAi.setTemperature(0d);
 
         this.setLlm(chatOpenAi);
@@ -150,7 +140,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             log.info("start summary history\nnewLines:\n{}\n\nexistingSummary:\n{}\n\n", newLines, existingSummary);
 
-            BaseLLMResult llmResult = this.predictNewSummary(restMessages, existingSummary);
+            ChatOpenAI chatOpenAI = (ChatOpenAI) this.getLlm();
+            BaseLLMResult llmResult = this.predictNewSummary(restMessages, existingSummary, chatOpenAI.getMaxTokens());
             Long end = System.currentTimeMillis();
 
             if (llmResult == null) {
@@ -161,6 +152,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             log.info("success summary history, {} ms", end - start);
             //简单拼接下内容
             //因为message太长了，只好取上一次的总结内容
+
             this.createSummaryMessage(llmResult, existingSummary);
             String summary = llmResult.getText();
             if (StrUtil.isNotBlank(summary)) {
@@ -259,7 +251,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             if (currentMessage instanceof FunctionMessage) {
                 FunctionMessage functionMessage = (FunctionMessage) currentMessage;
 
-                this.createFunctionCallMessage(functionMessage);
+                this.createFunctionCallMessage(chatGeneration, functionMessage);
 
                 //落盘成功后 加入到 memory
                 this.getChatHistory().addMessage(functionMessage);
@@ -296,8 +288,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
      */
     private void _saveChatContext(List<BaseVariable> variables, BaseLLMResult result) {
 
-
-        BaseVariable variable = this.getPromptInputKey(variables);
+        BaseVariable variable = BaseVariable.findVariable(variables, INPUT_KEY);
         HumanMessage humanMessage = new HumanMessage(String.valueOf(variable.getValue()));
 
         ChatGeneration chatGeneration = (ChatGeneration) result.getGenerations().get(0);
@@ -334,7 +325,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         });
 
         //结构太深，无法把messageID 返回出去，所以在这里处理权益
-        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()), Long.valueOf(logVo.getCreator()), logVo.getUid());
+        Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
+        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(llmParams.getOrDefault("model", "").toString()), Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
     private void createChatFunctionMessage(String message, AIMessage aiMessage) {
@@ -357,14 +349,15 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
 
-        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()) * 3, Long.valueOf(logVo.getCreator()), logVo.getUid());
+        Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
+        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(llmParams.getOrDefault("model", "").toString()), Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
 
     /**
      * 增加 函数调用 日志
      */
-    private void createFunctionCallMessage(FunctionMessage functionMessage) {
+    private void createFunctionCallMessage(ChatGeneration generation, FunctionMessage functionMessage) {
 
         ChatRequestVO request = this.getChatRequestVO();
         ChatConfigEntity chatConfig = this.getChatAppEntity().getChatConfig();
@@ -379,12 +372,35 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         Long elapsed = functionMessage.getElapsed();
         String variables = JsonUtils.toJsonString(functionMessage.getArguments());
 
+
         Long messageTokens = 0l;
         BigDecimal messageUnitPrice = BigDecimal.ZERO;
         Long answerTokens = 0l;
         BigDecimal answerUnitPrice = BigDecimal.ZERO;
         BigDecimal totalPrice = BigDecimal.ZERO;
 
+        //获取技能执行的LLM相关统计（WebSearch2Doc 已经有了）
+        if (generation.getGenerationInfo() != null && generation.getGenerationInfo() instanceof FunctionsAgentAction) {
+            FunctionsAgentAction functionsAgentAction = (FunctionsAgentAction) generation.getGenerationInfo();
+            if (functionsAgentAction.getToolResponse() != null && functionsAgentAction.getToolResponse() instanceof HandlerResponse) {
+                HandlerResponse handlerResponse = (HandlerResponse) functionsAgentAction.getToolResponse();
+
+                messageTokens = handlerResponse.getMessageTokens();
+                messageUnitPrice = handlerResponse.getMessageUnitPrice();
+
+                answerTokens = handlerResponse.getAnswerTokens();
+                answerUnitPrice = handlerResponse.getAnswerUnitPrice();
+
+                totalPrice = handlerResponse.getTotalPrice();
+            }
+        }
+
+
+        Long finalMessageTokens = messageTokens;
+        BigDecimal finalMessageUnitPrice = messageUnitPrice;
+        Long finalAnswerTokens = answerTokens;
+        BigDecimal finalAnswerUnitPrice = answerUnitPrice;
+        BigDecimal finalTotalPrice = totalPrice;
         LogAppMessageCreateReqVO logVo = this.getChatAppEntity().createAppMessage((reqVo) -> {
 
             LogAppMessageCreateReqVO messageCreateReqVO = (LogAppMessageCreateReqVO) reqVo;
@@ -395,19 +411,19 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             messageCreateReqVO.setAppConfig(JsonUtils.toJsonString(chatConfig));
 
             messageCreateReqVO.setVariables(variables);
-            messageCreateReqVO.setAppStep("");
+            messageCreateReqVO.setAppStep(AppModelEnum.CHAT.name());
 
             messageCreateReqVO.setMessage(message);
-            messageCreateReqVO.setMessageTokens(Math.toIntExact(messageTokens));
-            messageCreateReqVO.setMessageUnitPrice(messageUnitPrice);
+            messageCreateReqVO.setMessageTokens(Math.toIntExact(finalMessageTokens));
+            messageCreateReqVO.setMessageUnitPrice(finalMessageUnitPrice);
 
             messageCreateReqVO.setAnswer(answer);
-            messageCreateReqVO.setAnswerTokens(Math.toIntExact(answerTokens));
-            messageCreateReqVO.setAnswerUnitPrice(answerUnitPrice);
+            messageCreateReqVO.setAnswerTokens(Math.toIntExact(finalAnswerTokens));
+            messageCreateReqVO.setAnswerUnitPrice(finalAnswerUnitPrice);
 
             messageCreateReqVO.setElapsed(elapsed);
 
-            messageCreateReqVO.setTotalPrice(totalPrice);
+            messageCreateReqVO.setTotalPrice(finalTotalPrice);
             messageCreateReqVO.setCurrency("USD");
 
 
@@ -455,7 +471,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
 
-        benefitsService.expendBenefits(BenefitsTypeEnums.TOKEN.getCode(), (long) (logVo.getMessageTokens() + logVo.getAnswerTokens()) * 3, Long.valueOf(logVo.getCreator()), logVo.getUid());
+        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(llmParams.getOrDefault("model", "").toString()), Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
 
@@ -480,7 +496,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         messageCreateReqVO.setAppMode(AppModelEnum.CHAT.name());
         messageCreateReqVO.setFromScene(scene);
         messageCreateReqVO.setAppConfig(JsonUtils.toJsonString(chatConfig));
-        messageCreateReqVO.setAppStep("");
+        messageCreateReqVO.setAppStep(AppModelEnum.CHAT.name());
         messageCreateReqVO.setCreator(userId);
         messageCreateReqVO.setEndUser(endUser);
 
@@ -502,6 +518,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
 
         messageCreateReqVO.setVariables(variables);
+        messageCreateReqVO.setAiModel(modelType.getName());
+        messageCreateReqVO.setCostPoints(computationalPower(modelType.getName()).intValue());
 
         messageCreateReqVO.setMessageTokens(Math.toIntExact(messageTokens));
         messageCreateReqVO.setMessageUnitPrice(messageUnitPrice);
@@ -602,7 +620,10 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         if (CollectionUtil.isEmpty(history.getMessages())) {
             return false;
         }
-        int messageTokens = this.calculateMaxTokens(history.getMessages());
+
+        String historyStr = BaseMessage.getBufferString(history.getMessages());
+
+        int messageTokens = SummarizerMixin.calculateTokens(historyStr);
         int maxTokens = this.getSummaryMaxTokens();
 
         log.info("checkNeedSummary: {} > {}", messageTokens, maxTokens);
@@ -611,13 +632,10 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     }
 
 
-    private int calculateMaxTokens(List<BaseMessage> messages) {
-        String historyStr = BaseMessage.getBufferString(messages);
-
-        //@todo 总结也不一定看模型，还要看成本，保证比较小的tokens下进行对话，所以比较的是计算后剩余可用的tokens
-        return  TokenUtils.intTokens(ModelType.GPT_3_5_TURBO, historyStr);
+    private Long computationalPower(String modelType) {
+        ModelTypeEnum modelTypeEnum = TokenCalculator.fromName(modelType);
+        return ModelTypeEnum.GPT_4.equals(modelTypeEnum) ? 30L : 1L;
     }
-
 
     /**
      * @param result

@@ -4,9 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.dto.config.ChatConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.config.ImageConfigDTO;
 import com.starcloud.ops.business.app.api.app.dto.config.WorkflowConfigDTO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -44,6 +41,12 @@ public class AppMarketDTO implements Serializable {
     private String name;
 
     /**
+     * 应用类型：SYSTEM：系统应用，MARKET：市场应用
+     */
+    @Schema(description = "应用类型：SYSTEM：系统应用，MARKET：市场应用")
+    private String type;
+
+    /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @Schema(description = "应用模型：CHAT：聊天式应用，COMPLETION：生成式应用")
@@ -62,16 +65,22 @@ public class AppMarketDTO implements Serializable {
     private String language;
 
     /**
+     * 应用排序，越小越靠前
+     */
+    @Schema(description = "应用排序，越小越靠前")
+    private Long sort;
+
+    /**
+     * 应用类别
+     */
+    @Schema(description = "应用类别")
+    private String category;
+
+    /**
      * 应用标签，多个以逗号分割
      */
     @Schema(description = "应用标签，多个以逗号分割")
     private List<String> tags;
-
-    /**
-     * 应用类别，多个以逗号分割
-     */
-    @Schema(description = "应用类别，多个以逗号分割")
-    private List<String> categories;
 
     /**
      * 应用场景，多个以逗号分割

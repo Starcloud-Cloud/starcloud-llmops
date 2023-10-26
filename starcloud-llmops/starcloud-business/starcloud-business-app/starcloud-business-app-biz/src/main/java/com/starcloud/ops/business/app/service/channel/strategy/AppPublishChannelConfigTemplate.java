@@ -47,7 +47,7 @@ public abstract class AppPublishChannelConfigTemplate<C extends BaseChannelConfi
      */
     public C handler(String configUid, C config) {
         if (StringUtils.isBlank(configUid)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISH_CHANNEL_CONFIG_UID_IS_REQUIRED);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CHANNEL_MEDIUM_UID_REQUIRED);
         }
         // 校验渠道配置信息
         validate(configUid, config);

@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
@@ -18,6 +20,7 @@ import com.starcloud.ops.business.app.dal.redis.limit.AppPublishLimitRedisMapper
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
@@ -29,7 +32,10 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
@@ -39,7 +45,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 应用管理服务实现类
@@ -62,18 +71,7 @@ public class AppServiceImpl implements AppService {
     private AppDictionaryService appDictionaryService;
 
     @Resource
-    private AppPublishLimitService appPublishLimitService;
-
-    /**
-     * 查询应用分类列表
-     *
-     * @return 应用分类列表
-     */
-    @Override
-    public List<AppCategoryVO> categories() {
-        // 查询应用分类字典数据
-        return appDictionaryService.categories();
-    }
+    private AppDeleteProducer appDeleteProducer;
 
     /**
      * 查询应用语言列表
@@ -81,8 +79,37 @@ public class AppServiceImpl implements AppService {
      * @return 应用语言列表
      */
     @Override
-    public List<Option> languages() {
-        return LanguageEnum.languageList();
+    public Map<String, List<Option>> metadata() {
+        Map<String, List<Option>> metadata = new HashMap<>();
+        // 语言列表
+        metadata.put("language", LanguageEnum.languageList());
+        // AI 模型
+        metadata.put("aiModel", AppUtils.aiModelList());
+        // 应用类型
+        metadata.put("type", AppTypeEnum.options());
+        return metadata;
+    }
+
+    /**
+     * 查询应用分类列表
+     *
+     * @param isRoot 是否只根节点数据
+     * @return 应用分类列表
+     */
+    @Override
+    public List<AppCategoryVO> categoryList(Boolean isRoot) {
+        return appDictionaryService.categoryList(isRoot);
+    }
+
+    /**
+     * 查询应用分类列表
+     *
+     * @return 应用分类列表
+     */
+    @Override
+    public List<AppCategoryVO> categoryTree() {
+        // 查询应用分类字典数据
+        return appDictionaryService.categoryTree();
     }
 
     /**
@@ -137,7 +164,7 @@ public class AppServiceImpl implements AppService {
     @Override
     public AppRespVO get(String uid) {
         AppDO app = appMapper.get(uid, Boolean.FALSE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
         return AppConvert.INSTANCE.convertResponse(app);
     }
 
@@ -150,8 +177,8 @@ public class AppServiceImpl implements AppService {
     @Override
     public AppRespVO getSimple(String uid) {
         AppDO app = appMapper.get(uid, Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, uid);
-        return AppConvert.INSTANCE.convertResponse(app,  Boolean.FALSE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
+        return AppConvert.INSTANCE.convertResponse(app, Boolean.FALSE);
     }
 
     /**
@@ -161,13 +188,9 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO create(AppReqVO request) {
+        handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.insert();
-        // 创建应用发布限流信息
-        AppPublishLimitReqVO appPublishLimitReqVO = new AppPublishLimitReqVO();
-        appPublishLimitReqVO.setAppUid(appEntity.getUid());
-        appPublishLimitReqVO.setAppLimitRule(AppLimitRuleEnum.APP_LIMIT_RULE.defaultRule());
-        appPublishLimitService.create(appPublishLimitReqVO);
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
@@ -178,6 +201,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO copy(AppReqVO request) {
+        handlerAndValidateRequest(request);
         request.setName(request.getName() + " - Copy");
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.insert();
@@ -191,6 +215,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO modify(AppUpdateReqVO request) {
+        handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
         appEntity.update();
@@ -209,6 +234,8 @@ public class AppServiceImpl implements AppService {
         appMapper.delete(uid);
         // 删除应用发布信息
         appPublishService.deleteByAppUid(uid);
+        // 删除其他资源
+        appDeleteProducer.send(uid);
     }
 
     /**
@@ -219,7 +246,7 @@ public class AppServiceImpl implements AppService {
         LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class)
                 .eq(AppDO::getSource, AppSourceEnum.WX_WP.name())
                 .eq(AppDO::getModel, AppModelEnum.CHAT.name())
-                .eq(AppDO::getType, AppTypeEnum.MYSELF.name())
+                .eq(AppDO::getType, AppTypeEnum.COMMON.name())
                 .eq(AppDO::getCreator, userId)
                 .orderByDesc(AppDO::getUpdateTime)
                 .last("limit 1");
@@ -245,6 +272,44 @@ public class AppServiceImpl implements AppService {
             if (request.getSseEmitter() != null) {
                 request.getSseEmitter().completeWithError(exception);
             }
+        }
+    }
+
+    /**
+     * 处理校验请求
+     *
+     * @param request 请求信息
+     */
+    private void handlerAndValidateRequest(AppReqVO request) {
+        // 应用类目校验
+        if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
+            if (StringUtils.isBlank(request.getCategory())) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_REQUIRED, request.getCategory());
+            }
+            List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
+            Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
+            if (!categoryOptional.isPresent()) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
+            }
+            AppCategoryVO category = categoryOptional.get();
+            if (AppConstants.ROOT.equals(category.getParentCode())) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
+            }
+            if (StringUtils.isBlank(request.getIcon())) {
+                request.setIcon(category.getIcon());
+            }
+            // 图片默认为分类图片
+            request.setImages(Collections.singletonList(category.getImage()));
+        }
+
+        // 未指定应用类型，默认为普通应用
+        if (StringUtils.isBlank(request.getType())) {
+            request.setType(AppTypeEnum.COMMON.name());
+        }
+
+        // 非普通应用，只有管理员可以创建
+        if (!AppTypeEnum.COMMON.name().equals(request.getType()) && UserUtils.isNotAdmin()) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT, request.getType());
         }
     }
 }

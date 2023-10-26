@@ -8,7 +8,6 @@ import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import lombok.Data;
@@ -120,11 +119,11 @@ public class AppMarketEntity extends AppEntity {
 
         log.info("应用市场执行，增加应用使用量开始：{}", appExecuteResponse);
         if (appExecuteResponse != null) {
-            AppOperateReqVO appOperateReqVO = new AppOperateReqVO();
-            appOperateReqVO.setAppUid(this.getUid());
-            appOperateReqVO.setVersion(AppConstants.DEFAULT_VERSION);
-            appOperateReqVO.setOperate(AppOperateTypeEnum.USAGE.name());
-            appMarketService.operate(appOperateReqVO);
+            AppOperateReqVO appOperateRequest = new AppOperateReqVO();
+            appOperateRequest.setAppUid(this.getUid());
+            appOperateRequest.setUserId(Long.toString(request.getUserId()));
+            appOperateRequest.setOperate(AppOperateTypeEnum.USAGE.name());
+            appMarketService.operate(appOperateRequest);
         }
         log.info("应用市场执行，增加应用使用量结束");
         return appExecuteResponse;

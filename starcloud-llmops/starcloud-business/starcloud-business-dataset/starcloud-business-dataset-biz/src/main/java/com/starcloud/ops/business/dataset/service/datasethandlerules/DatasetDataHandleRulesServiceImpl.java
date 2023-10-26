@@ -76,7 +76,7 @@ public class DatasetDataHandleRulesServiceImpl implements DatasetDataHandleRules
             // 数据转换
             return DatasetHandleRulesConvert.INSTANCE.convertPage(datasetHandleRulesDOPageResult);
         }
-        return new PageResult<DatasetHandleRulesRespVO>();
+        return new PageResult<DatasetHandleRulesRespVO>().setList(new ArrayList<>());
 
     }
 

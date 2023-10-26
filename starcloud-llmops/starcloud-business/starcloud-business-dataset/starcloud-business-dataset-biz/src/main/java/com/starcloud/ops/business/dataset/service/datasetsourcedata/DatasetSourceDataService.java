@@ -3,7 +3,7 @@ package com.starcloud.ops.business.dataset.service.datasetsourcedata;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.dataset.controller.admin.datasetsourcedata.vo.*;
 import com.starcloud.ops.business.dataset.dal.dataobject.datasetsourcedata.DatasetSourceDataDO;
-import com.starcloud.ops.business.dataset.pojo.dto.BaseDBHandleDTO;
+import com.starcloud.ops.business.dataset.pojo.dto.UserBaseDTO;
 import com.starcloud.ops.business.dataset.service.dto.SourceDataUploadDTO;
 import org.springframework.validation.annotation.Validated;
 
@@ -29,21 +29,21 @@ public interface DatasetSourceDataService {
      *
      * @return 编号
      */
-    SourceDataUploadDTO uploadFilesSourceData(UploadFileReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO);
+    SourceDataUploadDTO uploadFilesSourceData(UploadFileReqVO reqVO, UserBaseDTO baseDBHandleDTO);
 
     /**
      * 上传URL-支持批量上传
      *
      * @return 编号
      */
-    List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO);
+    List<SourceDataUploadDTO> uploadUrlsSourceData(UploadUrlReqVO reqVO, UserBaseDTO baseDBHandleDTO);
 
     /**
      * 上传字符-支持批量上传
      *
      * @return 编号
      */
-    List<SourceDataUploadDTO> uploadCharactersSourceData(UploadCharacterReqVO reqVOS, BaseDBHandleDTO baseDBHandleDTO);
+    List<SourceDataUploadDTO> uploadCharactersSourceData(UploadCharacterReqVO reqVOS, UserBaseDTO baseDBHandleDTO);
 
     /**
      * 更新数据集源数据
@@ -58,6 +58,20 @@ public interface DatasetSourceDataService {
      * @param uid 数据集源数据编号
      */
     void deleteDatasetSourceData(String uid);
+
+    /**
+     * 删除知识库下的所有数据
+     *
+     * @param datasetId 知识库 ID
+     */
+    void deleteAllDataByDatasetId(Long datasetId);
+
+    /**
+     * 删除应用下的所有数据
+     *
+     * @param appId 应用 ID
+     */
+    void deleteAllDataByAppId(String appId);
 
     /**
      * 禁用源数据
@@ -189,19 +203,20 @@ public interface DatasetSourceDataService {
      *
      * @return 上传结果
      */
-    SourceDataUploadDTO uploadFilesSourceDataBySession(UploadFileReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO);
+    SourceDataUploadDTO uploadFilesSourceDataBySession(UploadFileReqVO reqVO, UserBaseDTO baseDBHandleDTO);
 
     /**
      * 通过会话上传URL
      *
      * @return 上传结果
      */
-    List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO, BaseDBHandleDTO baseDBHandleDTO);
+    List<SourceDataUploadDTO> uploadUrlsSourceDataBySession(UploadUrlReqVO reqVO, UserBaseDTO baseDBHandleDTO);
 
     /**
      * 通过会话上传自定义文本
      *
      * @return 上传结果
      */
-    List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS, BaseDBHandleDTO baseDBHandleDTO);
+    List<SourceDataUploadDTO> uploadCharactersSourceDataBySession(UploadCharacterReqVO reqVOS, UserBaseDTO baseDBHandleDTO);
+
 }

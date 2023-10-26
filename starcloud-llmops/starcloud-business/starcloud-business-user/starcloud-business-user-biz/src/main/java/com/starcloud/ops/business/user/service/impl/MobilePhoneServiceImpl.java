@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.user.service.impl;
 
+import cn.hutool.extra.servlet.ServletUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.validation.ValidationUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.sms.SmsCodeApi;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
@@ -24,10 +26,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.system.enums.sms.SmsSceneEnum.ADMIN_MEMBER_BIND;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.INVALID_PHONE_NUMBER;
 
 @Slf4j
@@ -57,21 +61,43 @@ public class MobilePhoneServiceImpl implements CommunicationService {
     }
 
     @Override
+    @DataPermission(enable = false)
     public void sendCode(CodeSendReqVO reqVO) {
         checkAccount(reqVO.getAccount());
+        if (ADMIN_MEMBER_BIND.getScene().equals(reqVO.getScene())) {
+            AdminUserDO userByMobile = adminUserService.getUserByMobile(reqVO.getAccount());
+            if (userByMobile != null) {
+                throw exception(USER_MOBILE_EXISTS);
+            }
+        }
         smsCodeApi.sendSmsCode(SmsConvert.INSTANCE.smsVo2SendDTO(reqVO).setCreateIp(getClientIP()));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @DataPermission(enable = false)
     public void validateCode(CodeValidateReqVO reqVO) {
         checkAccount(reqVO.getAccount());
-        smsCodeApi.useSmsCode(SmsConvert.INSTANCE.smsVo2UseDTO(reqVO, SmsSceneEnum.ADMIN_MEMBER_BIND.getScene()));
+        if (ADMIN_MEMBER_BIND.getScene().equals(reqVO.getScene())) {
+            AdminUserDO userByMobile = adminUserService.getUserByMobile(reqVO.getAccount());
+            if (userByMobile != null) {
+                throw exception(USER_MOBILE_EXISTS);
+            }
+        }
+        smsCodeApi.useSmsCode(SmsConvert.INSTANCE.smsVo2UseDTO(reqVO, ADMIN_MEMBER_BIND.getScene(),getClientIP()));
         // 更新手机号
         UserProfileUpdateReqVO userUpdateReqVO = new UserProfileUpdateReqVO();
         Long loginUserId = WebFrameworkUtils.getLoginUserId();
         userUpdateReqVO.setMobile(reqVO.getAccount());
         adminUserService.updateUserProfile(loginUserId, userUpdateReqVO);
+    }
+
+    public static String getClientIP() {
+        HttpServletRequest request = WebFrameworkUtils.getRequest();
+        if (request == null) {
+            return null;
+        }
+        return ServletUtil.getClientIP(request);
     }
 
     @Override

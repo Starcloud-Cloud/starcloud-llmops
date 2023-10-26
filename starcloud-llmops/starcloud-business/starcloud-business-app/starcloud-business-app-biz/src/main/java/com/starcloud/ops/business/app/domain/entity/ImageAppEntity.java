@@ -1,28 +1,27 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.api.image.vo.request.ImageRequest;
-import com.starcloud.ops.business.app.api.image.vo.response.ImageMessageRespVO;
+import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
+import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.service.image.VSearchImageService;
+import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHandler;
+import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
-import com.starcloud.ops.business.log.api.conversation.vo.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.LogAppMessageCreateReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
@@ -34,9 +33,10 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -46,7 +46,7 @@ import java.util.List;
 @SuppressWarnings("all")
 @Slf4j
 @Data
-public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO> {
+public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
 
     /**
      * 用户权益服务
@@ -60,28 +60,15 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private static VSearchImageService vSearchImageService = SpringUtil.getBean(VSearchImageService.class);
+    private static VSearchService vSearchService = SpringUtil.getBean(VSearchService.class);
 
     /**
      * AppRepository
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private static AppRepository appRepository;
+    private static AppRepository appRepository = SpringUtil.getBean(AppRepository.class);
 
-    /**
-     * 获取 AppRepository
-     *
-     * @return {@link AppRepository}
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public static AppRepository getAppRepository() {
-        if (appRepository == null) {
-            appRepository = SpringUtil.getBean(AppRepository.class);
-        }
-        return appRepository;
-    }
 
     /**
      * 基础数据校验
@@ -94,6 +81,19 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     }
 
     /**
+     * 获取当前执行记录的主体用户，会做主体用户做如下操作。默认是当前用户态
+     * 1，扣除权益
+     * 2，记录日志
+     *
+     * @param req
+     * @return 用户 ID
+     */
+    @Override
+    protected Long getRunUserId(ImageReqVO req) {
+        return SecurityFrameworkUtils.getLoginUserId();
+    }
+
+    /**
      * 执行图片生成
      *
      * @param request 请求参数
@@ -102,62 +102,83 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected ImageMessageRespVO doExecute(ImageReqVO request) {
+    protected ImageRespVO doExecute(ImageReqVO request) {
         StopWatch stopWatch = new StopWatch();
-        stopWatch.start("Text to Image Task");
-        Long userId = WebFrameworkUtils.getLoginUserId();
+        stopWatch.start(request.getAppUid() + " Task");
+        // 图片处理器
+        BaseImageHandler imageHandler = request.getImageHandler();
+        if (Objects.isNull(imageHandler)) {
+            LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
+                buildAppMessageLog(messageRequest, request);
+                messageRequest.setStatus(LogStatusEnum.ERROR.name());
+                if (stopWatch.isRunning()) {
+                    stopWatch.stop();
+                }
+                messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
+                messageRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND.getCode()));
+                messageRequest.setErrorMsg(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND.getMsg());
+            });
+            throw exception(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND);
+        }
         try {
             // 检测权益
-            this.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), userId);
+            this.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), request.getUserId());
+
             // 调用图片生成服务
-            ImageMessageRespVO imageResponse = textToImage(request);
+            BaseImageResponse imageResponse = imageHandler.handle(request.getImageRequest());
+            if (Objects.isNull(imageResponse) || CollectionUtil.isEmpty(imageResponse.getImages())) {
+                throw exception(ErrorCodeConstants.GENERATE_IMAGE_EMPTY);
+            }
+            imageResponse.setFromScene(request.getScene());
+            imageResponse.setFinishTime(new Date());
             // 扣除权益
-            benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) imageResponse.getImages().size(), userId, request.getConversationUid());
+            Integer costPoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
+            benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) costPoints, request.getUserId(), request.getConversationUid());
             stopWatch.stop();
 
-            // 计算消耗的 SD 的点数。需要乘以图片数量
-            BigDecimal answerCredit = ImageUtils.countAnswerCredits(request.getImageRequest()).multiply(new BigDecimal(Integer.toString(imageResponse.getImages().size())));
             // 记录消息日志
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
-                buildAppMessageLog(messageRequest, request, userId);
+                buildAppMessageLog(messageRequest, request);
                 messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
-                messageRequest.setAnswer(JSONUtil.toJsonStr(imageResponse.getImages()));
-                // 消耗的 SD 的点数 X 100，有助于数据准确性
-                messageRequest.setAnswerTokens(ImageUtils.countAnswerTokens(answerCredit));
+                messageRequest.setAnswer(JSONUtil.toJsonStr(imageResponse));
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-                messageRequest.setTotalPrice(answerCredit.multiply(messageRequest.getAnswerUnitPrice()).setScale(4, RoundingMode.HALF_UP));
+                messageRequest.setCostPoints(costPoints);
+                imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), imageResponse);
             });
-            // 更新会话日志
-            this.updateAppConversationLog(request.getConversationUid(), Boolean.TRUE);
             // 返回结果
-            return imageResponse;
+            ImageRespVO imageRespVO = new ImageRespVO();
+            imageRespVO.setConversationUid(request.getConversationUid());
+            imageRespVO.setResponse(imageResponse);
+            return imageRespVO;
         } catch (ServiceException exception) {
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", exception.getCode(), exception.getMessage());
+            log.error("处理图片失败，错误码：{}, 错误信息：{}", exception.getCode(), exception.getMessage());
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
-                buildAppMessageLog(messageRequest, request, userId);
+                buildAppMessageLog(messageRequest, request);
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
                 messageRequest.setErrorCode(Integer.toString(exception.getCode()));
                 messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
+                imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), null);
             });
             throw exception;
         } catch (Exception exception) {
-            log.error("文字生成图片失败，错误码：{}, 错误信息：{}", Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()), exception.getMessage());
+            log.error("处理图片失败，错误码：{}, 错误信息：{}", Integer.toString(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode()), exception.getMessage());
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
-                buildAppMessageLog(messageRequest, request, userId);
+                buildAppMessageLog(messageRequest, request);
                 messageRequest.setStatus(LogStatusEnum.ERROR.name());
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-                messageRequest.setErrorCode(Integer.toString(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode()));
+                messageRequest.setErrorCode(Integer.toString(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode()));
                 messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
+                imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), null);
             });
 
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.GENERATE_IMAGE_FAIL.getCode(), exception.getMessage()));
+            throw exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), exception.getMessage()));
         }
     }
 
@@ -214,6 +235,16 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     }
 
     /**
+     * 模版方法：获取应用的 AI 模型类型
+     *
+     * @param request 请求参数
+     */
+    @Override
+    protected String obtainLlmAiModelType(ImageReqVO request) {
+        return request.getImageHandler().obtainEngine(request.getImageRequest());
+    }
+
+    /**
      * 历史记录初始化
      */
     @Override
@@ -230,7 +261,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @JsonIgnore
     @JSONField(serialize = false)
     protected void doInsert() {
-        getAppRepository().insert(this);
+        appRepository.insert(this);
     }
 
     /**
@@ -240,30 +271,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
     @JsonIgnore
     @JSONField(serialize = false)
     protected void doUpdate() {
-        getAppRepository().update(this);
-    }
-
-    /**
-     * 生成图片
-     *
-     * @param request 请求参数
-     * @return {@link ImageMessageRespVO}
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private ImageMessageRespVO textToImage(ImageReqVO request) {
-        ImageRequest imageRequest = request.getImageRequest();
-        List<ImageDTO> imageList = vSearchImageService.textToImage(request.getImageRequest());
-        ImageMessageRespVO imageResponse = new ImageMessageRespVO();
-        imageResponse.setPrompt(request.getImageRequest().getPrompt());
-        imageResponse.setNegativePrompt(ImageUtils.handleNegativePrompt(request.getImageRequest().getNegativePrompt(), Boolean.FALSE));
-        imageResponse.setEngine(request.getImageRequest().getEngine());
-        imageResponse.setWidth(request.getImageRequest().getWidth());
-        imageResponse.setHeight(request.getImageRequest().getHeight());
-        imageResponse.setSteps(request.getImageRequest().getSteps());
-        imageResponse.setCreateTime(LocalDateTime.now());
-        imageResponse.setImages(imageList);
-        return imageResponse;
+        appRepository.update(this);
     }
 
     /**
@@ -271,27 +279,34 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageMessageRespVO
      *
      * @param request      请求参数
      * @param conversation 会话记录
-     * @param userId       用户id
      * @return 消息记录
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void buildAppMessageLog(LogAppMessageCreateReqVO messageRequest, ImageReqVO request, Long userId) {
+    private void buildAppMessageLog(LogAppMessageCreateReqVO messageRequest, ImageReqVO request) {
         messageRequest.setAppConversationUid(request.getConversationUid());
-        messageRequest.setAppUid(request.getConversationUid());
-        messageRequest.setAppMode(AppModelEnum.BASE_GENERATE_IMAGE.name());
-        messageRequest.setAppConfig(JSONUtil.toJsonStr(request.getImageRequest()));
-        messageRequest.setAppStep("BASE_GENERATE_IMAGE");
+        messageRequest.setAppUid(this.getUid());
+        messageRequest.setAppMode(StringUtils.isBlank(request.getMode()) ? AppModelEnum.IMAGE.name() : request.getMode());
+        messageRequest.setAppStep(request.getScene());
+        messageRequest.setFromScene(request.getScene());
+        messageRequest.setAiModel(this.obtainLlmAiModelType(request));
+        messageRequest.setAppConfig(JSONUtil.toJsonStr(this));
         messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
-        messageRequest.setMessage(request.getImageRequest().getPrompt());
+        messageRequest.setMessage("");
         messageRequest.setMessageTokens(0);
         messageRequest.setMessageUnitPrice(new BigDecimal("0.0000"));
         messageRequest.setAnswerTokens(0);
-        messageRequest.setAnswerUnitPrice(new BigDecimal("0.0100"));
+        messageRequest.setAnswerUnitPrice(ImageUtils.SD_PRICE);
         messageRequest.setTotalPrice(new BigDecimal("0.0000"));
         messageRequest.setCurrency("USD");
-        messageRequest.setFromScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.WEB_IMAGE.name() : request.getScene());
+        messageRequest.setCostPoints(0);
+        messageRequest.setElapsed(0L);
+        messageRequest.setStatus(LogStatusEnum.ERROR.name());
         messageRequest.setMediumUid(request.getMediumUid());
         messageRequest.setEndUser(request.getEndUser());
+        messageRequest.setCreator(String.valueOf(request.getUserId()));
+        messageRequest.setUpdater(String.valueOf(request.getUserId()));
+        messageRequest.setCreateTime(LocalDateTime.now());
+        messageRequest.setUpdateTime(LocalDateTime.now());
     }
 }

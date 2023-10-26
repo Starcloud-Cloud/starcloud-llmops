@@ -5,16 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.collections4.SetUtils;
-import org.apache.ibatis.ognl.ObjectElementsAccessor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Builder
 @NoArgsConstructor
@@ -53,8 +50,8 @@ public class BaseVariable {
         return BaseVariable.builder().type(VariableTypeEnum.BOOLEAN).field(field).build();
     }
 
-    public static BaseVariable newInt(String field) {
-        return BaseVariable.builder().type(VariableTypeEnum.INT).field(field).build();
+    public static BaseVariable newInt(String field, Integer value) {
+        return BaseVariable.builder().type(VariableTypeEnum.INT).field(field).value(value).build();
     }
 
     public static BaseVariable newArray(String field) {
@@ -83,6 +80,16 @@ public class BaseVariable {
                 variable.getValue(),
                 variable.getOptions()
         );
+    }
+
+    public static List<BaseVariable> copy(List<BaseVariable> variables) {
+        return Optional.ofNullable(variables).orElse(new ArrayList<>()).stream().map(BaseVariable::copy).collect(Collectors.toList());
+    }
+
+
+    public static BaseVariable findVariable(List<BaseVariable> baseVariables, String field) {
+
+        return Optional.ofNullable(baseVariables).orElse(new ArrayList<>()).stream().filter(variable -> field.equals(variable.getField())).findFirst().orElse(null);
     }
 
     /**

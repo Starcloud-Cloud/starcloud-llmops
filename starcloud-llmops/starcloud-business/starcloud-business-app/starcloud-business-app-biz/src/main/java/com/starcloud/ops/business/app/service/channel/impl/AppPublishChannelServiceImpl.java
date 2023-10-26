@@ -19,6 +19,7 @@ import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.channel.AppPublishChannelMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.channel.AppPublishChannelEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
@@ -124,6 +125,13 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
         return AppPublishChannelConvert.INSTANCE.convert(appPublishChannel);
     }
 
+
+    @Override
+    public List<AppPublishChannelRespVO> getByAppUid(String appUid) {
+        List<AppPublishChannelDO> appPublishChannelDOS = appPublishChannelMapper.getByAppUid(appUid);
+        return AppPublishChannelConvert.INSTANCE.convert(appPublishChannelDOS);
+    }
+
     /**
      * 根据发布媒介 UID 查找发布渠道详情
      *
@@ -156,19 +164,19 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     public AppRespVO getAppByMediumUid(String mediumUid) {
         // 查询发布渠道
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.getByMediumUid(mediumUid);
-        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, mediumUid);
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.CHANNEL_NON_EXISTENT, mediumUid);
 
         // 查询应用发布记录
         AppPublishDO appPublish = appPublishMapper.get(appPublishChannel.getPublishUid(), Boolean.FALSE);
-        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, appPublishChannel.getPublishUid());
+        AppValidate.notNull(appPublish, ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT, appPublishChannel.getPublishUid());
 
         if (StringUtils.isBlank(appPublish.getAppInfo())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appPublish.getAppUid());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NON_EXISTENT, appPublish.getAppUid());
         }
 
         AppDO appDO = JSONUtil.toBean(appPublish.getAppInfo(), AppDO.class);
         if (Objects.isNull(appDO)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NO_EXISTS_UID, appPublish.getAppUid());
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NON_EXISTENT, appPublish.getAppUid());
         }
 
         return AppConvert.INSTANCE.convertResponse(appDO);
@@ -185,11 +193,11 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     public void create(AppPublishChannelReqVO request) {
         // 校验应用是否存在
         AppDO app = appMapper.get(request.getAppUid(), Boolean.TRUE);
-        AppValidate.notNull(app, ErrorCodeConstants.APP_NO_EXISTS_UID, request.getAppUid());
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, request.getAppUid());
 
         // 校验应用发布信息是否存在
         AppPublishDO appPublish = appPublishMapper.get(request.getPublishUid(), Boolean.TRUE);
-        AppValidate.notNull(appPublish, ErrorCodeConstants.APP_PUBLISH_NOT_EXISTS_UID, request.getPublishUid());
+        AppValidate.notNull(appPublish, ErrorCodeConstants.PUBLISH_APP_NON_EXISTENT, request.getPublishUid());
 
         // 生成配置信息唯一标识
         String configUid = request.getMediumUid();
@@ -227,7 +235,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     public void modify(AppPublishChannelModifyReqVO request) {
         // 校验发布渠道是否存在
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
-        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getUid());
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.CHANNEL_NON_EXISTENT, request.getUid());
 
         // 处理配置信息
         AppPublishChannelConfigTemplate handler = appPublishChannelConfigFactory.getHandler(appPublishChannel.getType());
@@ -256,9 +264,9 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     @Override
     public String resetShareSlug(String uid) {
         // 基础校验
-        AppValidate.notBlank(uid, ErrorCodeConstants.APP_CHANNEL_UID_IS_REQUIRED);
+        AppValidate.notBlank(uid, ErrorCodeConstants.CHANNEL_UID_REQUIRED);
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(uid, Boolean.TRUE);
-        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, uid);
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.CHANNEL_NON_EXISTENT, uid);
 
         // 生成分享链接唯一标识
         String configUid = generateConfigUid();
@@ -286,7 +294,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     public void operate(StatusRequest request) {
         // 校验发布渠道是否存在
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(request.getUid(), Boolean.TRUE);
-        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, request.getUid());
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.CHANNEL_NON_EXISTENT, request.getUid());
 
         // 修改发布渠道状态
         AppPublishChannelDO updateAppPublishChannel = new AppPublishChannelDO();
@@ -321,7 +329,7 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         AppPublishChannelDO appPublishChannel = appPublishChannelMapper.get(uid, Boolean.TRUE);
-        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.APP_CHANNEL_NOT_EXIST, uid);
+        AppValidate.notNull(appPublishChannel, ErrorCodeConstants.CHANNEL_NON_EXISTENT, uid);
         appPublishChannelMapper.deleteById(appPublishChannel.getId());
     }
 
@@ -404,8 +412,8 @@ public class AppPublishChannelServiceImpl implements AppPublishChannelService {
      *
      * @return 配置信息唯一标识
      */
-    private String generateRandom(final int count) {
-        return RandomStringUtils.random(count, Boolean.TRUE, Boolean.TRUE);
+    private static String generateRandom(final int count) {
+        return RandomStringUtils.random(count, AppConstants.CHARS).trim();
     }
 
 }

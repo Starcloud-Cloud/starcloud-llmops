@@ -23,12 +23,12 @@ import javax.validation.Valid;
 @RequestMapping("/llm/chat/rule")
 public class RuleGenerateController {
 
-    @Resource
-    private RuleGenerateService ruleGenerateService;
-
-    @Operation(summary = "对话规则生成")
-    @PostMapping("/generate")
-    public CommonResult<RuleGenerateRespVO> conversation(@RequestBody @Valid RuleGenerateRequest request) {
-        return CommonResult.success(ruleGenerateService.generateRule(request));
-    }
+//    @Resource
+//    private RuleGenerateService ruleGenerateService;
+//
+//    @Operation(summary = "对话规则生成")
+//    @PostMapping("/generate")
+//    public CommonResult<RuleGenerateRespVO> conversation(@RequestBody @Valid RuleGenerateRequest request) {
+//        return CommonResult.success(ruleGenerateService.generateRule(request));
+//    }
 }

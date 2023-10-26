@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -57,6 +58,12 @@ public class AppContext {
      */
     @NotNull(message = "执行场景不能为空")
     private AppSceneEnum scene;
+
+    /**
+     * AI模型
+     */
+    @Schema(description = "AI模型")
+    private String aiModel;
 
     /**
      * 当前执行的步骤
@@ -129,11 +136,11 @@ public class AppContext {
     @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapper(String stepId) {
         // 校验 stepId 是否存在
-        AppValidate.notBlank(stepId, ErrorCodeConstants.APP_EXECUTE_STEP_ID_IS_REQUIRED);
+        AppValidate.notBlank(stepId, ErrorCodeConstants.EXECUTE_APP_STEP_ID_REQUIRED);
         // 获取应用配置信息
         WorkflowConfigEntity config = Optional.ofNullable(this.app)
                 .map(AppEntity::getWorkflowConfig)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_APP_CONFIG_IS_NULL));
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED));
         return config.getStepWrapper(stepId);
     }
 

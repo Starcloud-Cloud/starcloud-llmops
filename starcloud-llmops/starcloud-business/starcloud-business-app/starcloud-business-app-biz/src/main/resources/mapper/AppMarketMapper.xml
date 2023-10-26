@@ -7,11 +7,13 @@
         SELECT id,
         uid,
         name,
+        type,
         model,
         version,
         language,
+        sort,
         tags,
-        categories,
+        category,
         scenes,
         images,
         icon,
@@ -35,8 +37,16 @@
                 AND name LIKE CONCAT(#{query.name}, '%')
             </if>
 
+            <if test="query.type != null and query.type != '' ">
+                AND type = #{query.type}
+            </if>
+
             <if test="query.model != null and query.model != '' ">
                 AND model = #{query.model}
+            </if>
+
+            <if test="query.category != null and query.category != '' ">
+                AND category = #{query.category}
             </if>
 
             <if test="query.scenes != null and query.scenes.size() > 0">
@@ -52,9 +62,9 @@
                     FIND_IN_SET(#{tag}, tags)
                 </foreach>
             </if>
-            AND model = 'COMPLETION'
             AND deleted = 0
         </where>
+        ORDER BY sort ASC, create_time DESC
     </select>
 
     <!-- 根据应用名称查询 COMPLETION 模式的应用数量 -->

@@ -1,14 +1,19 @@
 package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.*;
+import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.CommonQuestionRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.DescriptionRespVo;
+import com.starcloud.ops.business.app.api.app.vo.response.config.ModelConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.OpenaiCompletionRespVo;
+import com.starcloud.ops.business.app.api.app.vo.response.config.OpeningStatementRespVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.RecommendAppConsts;
+import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.MessageUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,14 +34,14 @@ public class RecommendAppFactory {
      */
     public static AppRespVO defGenerateTextApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(RecommendAppConsts.GENERATE_TEXT);
+        app.setUid(RecommendAppEnum.GENERATE_TEXT.name());
         app.setName(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
         app.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_DESCRIPTION"));
+        app.setType(AppTypeEnum.COMMON.name());
         app.setModel(AppModelEnum.COMPLETION.name());
-        app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Text"));
-        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setCategory(null);
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
@@ -51,14 +56,14 @@ public class RecommendAppFactory {
      */
     public static AppRespVO defGenerateArticleApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(RecommendAppConsts.GENERATE_ARTICLE);
+        app.setUid(RecommendAppEnum.GENERATE_ARTICLE.name());
         app.setName(MessageUtil.getMessage("GENERATE_ARTICLE_APP_NAME"));
         app.setDescription(MessageUtil.getMessage("GENERATE_ARTICLE_APP_DESCRIPTION"));
+        app.setType(AppTypeEnum.COMMON.name());
         app.setModel(AppModelEnum.COMPLETION.name());
-        app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Generate Article"));
-        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setCategory(null);
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList(AppConstants.APP_MARKET_DEFAULT_IMAGE));
         app.setIcon("seo");
@@ -73,17 +78,17 @@ public class RecommendAppFactory {
      */
     public static AppRespVO defChatRobotApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(RecommendAppConsts.CHAT_ROBOT);
+        app.setUid(RecommendAppEnum.CHAT_ROBOT.name());
         app.setName("亚马逊AI助手");
         app.setDescription("作为一名亚马逊运营AI助手，我熟悉亚马逊运营中的各种基础技能，可以帮你做市场研究和分析、优化产品listing、优化广告文案、处理客户问题。");
+        app.setType(AppTypeEnum.COMMON.name());
         app.setModel(AppModelEnum.CHAT.name());
-        app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Chat"));
-        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setCategory("SEO_WRITING_OTHER");
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList("https://download.hotsalecloud.com/avatar/f88670eed0534ccd9bd80df21b92bf2c.svg"));
-        app.setIcon("seo");
+        app.setIcon(null);
 
         ChatConfigRespVO chatConfigRespVO = new ChatConfigRespVO();
         ModelConfigRespVO openaiModel = ModelConfigRespVO.builder().provider("openai").completionParams(new OpenaiCompletionRespVo()).build();
@@ -106,17 +111,17 @@ public class RecommendAppFactory {
 
     public static AppRespVO emptyChatRobotApp() {
         AppRespVO app = new AppRespVO();
-        app.setUid(RecommendAppConsts.CHAT_ROBOT);
+        app.setUid(RecommendAppEnum.CHAT_ROBOT.name());
 //        app.setName("亚马逊AI助手");
 //        app.setDescription("作为一名亚马逊运营AI助手，我熟悉亚马逊运营中的各种基础技能，可以帮你做市场研究和分析、优化产品listing、优化广告文案、处理客户问题。");
+        app.setType(AppTypeEnum.COMMON.name());
         app.setModel(AppModelEnum.CHAT.name());
-        app.setType(AppTypeEnum.MYSELF.name());
         app.setSource(AppSourceEnum.WEB.name());
         app.setTags(Collections.singletonList("Chat"));
-        app.setCategories(Collections.singletonList("SEO_WRITING"));
+        app.setCategory(null);
         app.setScenes(AppUtils.DEFAULT_SCENES);
         app.setImages(Collections.singletonList("https://download.hotsalecloud.com/avatar/f88670eed0534ccd9bd80df21b92bf2c.svg"));
-        app.setIcon("seo");
+        app.setIcon(null);
 
         ChatConfigRespVO chatConfigRespVO = new ChatConfigRespVO();
         ModelConfigRespVO openaiModel = ModelConfigRespVO.builder().provider("openai").completionParams(new OpenaiCompletionRespVo()).build();

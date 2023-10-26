@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.app.service.chat.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.druid.util.StringUtils;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigReqVO;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.dal.databoject.config.ChatExpandConfigDO;
 import com.starcloud.ops.business.app.dal.mysql.config.ChatExpandConfigMapper;
@@ -12,6 +14,7 @@ import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
+import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,9 @@ public class ChatExpandConfigServiceImpl implements ChatExpandConfigService {
     @Resource
     private ChatExpandConfigMapper chatExpandConfigMapper;
 
+    @Resource
+    private AppPublishService appPublishService;
+
 
     @Override
     public Map<Integer, List<ChatExpandConfigRespVO>> getConfig(String appConfigId) {
@@ -44,7 +50,7 @@ public class ChatExpandConfigServiceImpl implements ChatExpandConfigService {
     public String create(ChatExpandConfigReqVO reqVO) {
         ChatAppEntity chatAppEntity = AppFactory.factoryChatApp(reqVO.getAppConfigId());
         if (chatAppEntity == null || chatAppEntity.getChatConfig() == null) {
-            throw exception(APP_NO_EXISTS_UID, reqVO.getAppConfigId());
+            throw exception(APP_NON_EXISTENT, reqVO.getAppConfigId());
         }
         chatAppEntity.getChatConfig().setAppConfigId(reqVO.getAppConfigId());
         chatAppEntity.update();
@@ -91,6 +97,16 @@ public class ChatExpandConfigServiceImpl implements ChatExpandConfigService {
             throw exception(CHAT_CONFIG_NOT_EXIST);
         }
         chatExpandConfigMapper.deleteById(chatExpandConfigDO.getId());
+    }
+
+    @Override
+    public void deleteByAppUid(String appUid) {
+        Assert.notBlank(appUid,"删除数据失败，appUid为空");
+        chatExpandConfigMapper.deleteByConfigId(appUid);
+        List<AppPublishRespVO> appPublishRespVOS = appPublishService.listByAppUid(appUid);
+        for (AppPublishRespVO appPublishRespVO : appPublishRespVOS) {
+            chatExpandConfigMapper.deleteByConfigId(appPublishRespVO.getUid());
+        }
     }
 
     @Override

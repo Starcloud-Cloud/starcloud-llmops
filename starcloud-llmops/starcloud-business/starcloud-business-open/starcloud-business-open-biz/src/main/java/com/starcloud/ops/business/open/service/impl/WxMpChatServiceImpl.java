@@ -19,10 +19,8 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.exception.AppLimitException;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.app.AppService;
-import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import com.starcloud.ops.business.open.service.WxMpChatService;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +39,7 @@ import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BE
 
 @Slf4j
 @Service
+@Deprecated
 public class WxMpChatServiceImpl implements WxMpChatService {
 
     @Resource
@@ -141,7 +140,7 @@ public class WxMpChatServiceImpl implements WxMpChatService {
         String name = IdUtil.fastUUID();
         appReqVO.setName(name);
         appReqVO.setModel(AppModelEnum.CHAT.name());
-        appReqVO.setType(AppTypeEnum.MYSELF.name());
+        appReqVO.setType(AppTypeEnum.COMMON.name());
         appReqVO.setSource(AppSourceEnum.WX_WP.name());
         ChatConfigReqVO chatConfigReqVO = new ChatConfigReqVO();
         ModelConfigReqVO openaiModel = ModelConfigReqVO.builder().provider("openai").completionParams(new OpenaiCompletionReqVo()).build();

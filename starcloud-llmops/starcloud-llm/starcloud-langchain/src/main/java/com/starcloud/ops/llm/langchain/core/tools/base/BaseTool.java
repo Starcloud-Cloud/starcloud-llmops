@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public abstract class BaseTool<Q, R> {
+public abstract class BaseTool<Q> {
 
     private String name;
 
@@ -28,28 +28,33 @@ public abstract class BaseTool<Q, R> {
     @Transient
     private BaseCallbackManager callbackManager = new CallbackManager();
 
-    protected abstract R _run(Q input);
+    protected abstract ToolResponse _run(Q input);
 
-    public R run(Q input) {
+    public ToolResponse run(Q input) {
         return this.run(input, false, new HashMap<>());
     }
 
-    public R run(Q input, Boolean verbose, Map<String, Object> toolRunKwargs) {
+    public ToolResponse run(Q input, Boolean verbose, Map<String, Object> toolRunKwargs) {
 
         CallbackManagerForToolRun toolRun = this.callbackManager.onToolStart(this.getName(), input, verbose);
 
-        R result = null;
+        ToolResponse result = null;
 
         try {
 
             if (this instanceof FunTool) {
-                Class<Q> qq = (Class<Q>) ((FunTool) this).getInputCls();
+
+                Class<Q> cc = (Class<Q>) ((FunTool) this).getInputCls();
+                input = JSONUtil.toBean(String.valueOf(input), cc);
+
                 result = this._run(input);
 
             } else {
 
                 Type query = TypeUtil.getTypeArgument(this.getClass());
                 Class<Q> cc = (Class<Q>) query;
+                input = JSONUtil.toBean(String.valueOf(input), cc);
+
                 result = this._run(input);
             }
 
@@ -64,10 +69,6 @@ public abstract class BaseTool<Q, R> {
 
         return result;
     }
-
-
-//    public abstract Class<?> getInputCls();
-
 
     /**
      * 把类上的第一个范型转换为 JsonSchema
