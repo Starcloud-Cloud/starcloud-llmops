@@ -39,6 +39,7 @@ public class KeywordBindServiceImpl implements KeywordBindService {
             log.warn("关键词为空");
             return;
         }
+        keys = keys.stream().map(String::toLowerCase).collect(Collectors.toList());
         long start = System.currentTimeMillis();
         log.info("开始分析关键词");
         Boolean success = metadataService.addMetaData(keys, endpoint);
@@ -56,6 +57,7 @@ public class KeywordBindServiceImpl implements KeywordBindService {
             return Collections.emptyList();
         }
         long start = System.currentTimeMillis();
+        keys = keys.stream().map(String::toLowerCase).collect(Collectors.toList());
         log.info("开始查询关键词");
         List<KeywordMetadataBasicRespVO> keywordsBasic = metadataService.getKeywordsBasic(keys, endpoint);
         long end = System.currentTimeMillis();
