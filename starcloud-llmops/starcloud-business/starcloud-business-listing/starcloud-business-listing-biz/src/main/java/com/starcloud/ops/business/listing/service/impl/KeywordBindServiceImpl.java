@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
@@ -34,6 +35,10 @@ public class KeywordBindServiceImpl implements KeywordBindService {
 
     @Override
     public void analysisKeyword(List<String> keys, String endpoint) {
+        if (CollectionUtils.isEmpty(keys)) {
+            log.warn("关键词为空");
+            return;
+        }
         long start = System.currentTimeMillis();
         log.info("开始分析关键词");
         Boolean success = metadataService.addMetaData(keys, endpoint);
@@ -55,7 +60,13 @@ public class KeywordBindServiceImpl implements KeywordBindService {
         List<KeywordMetadataBasicRespVO> keywordsBasic = metadataService.getKeywordsBasic(keys, endpoint);
         long end = System.currentTimeMillis();
         log.info("查询关键词成功, {} ms", end - start);
-        return ListingKeywordConvert.INSTANCE.convert(keywordsBasic);
+        return ListingKeywordConvert.INSTANCE.convert(keywordsBasic).stream().sorted((a, b) -> Math.toIntExact(b.mouthSearches() - a.mouthSearches())).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<KeywordMetaDataDTO> getMetaData(Long draftId, String endpoint) {
+        List<String> keys = keywordBindMapper.getByDraftId(draftId).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
+        return getMetaData(keys, endpoint);
     }
 
     @Override

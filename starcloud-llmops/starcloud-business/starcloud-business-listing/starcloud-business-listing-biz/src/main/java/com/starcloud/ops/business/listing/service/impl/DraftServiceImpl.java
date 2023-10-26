@@ -122,7 +122,10 @@ public class DraftServiceImpl implements DraftService {
                 draftMapper.updateById(draftDO);
                 executor.execute(() -> {
                     try {
+                        long start = System.currentTimeMillis();
                         keywordBindService.analysisKeyword(keys, draftDO.getEndpoint());
+                        long end = System.currentTimeMillis();
+                        draftDO.setAnalysisTime(end - start);
                         updateDo(draftDO, keys);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
                     } catch (Exception e) {
@@ -210,7 +213,10 @@ public class DraftServiceImpl implements DraftService {
 
         executor.execute(() -> {
             try {
+                long start = System.currentTimeMillis();
                 keywordBindService.analysisKeyword(newKey, draftDO.getEndpoint());
+                long end = System.currentTimeMillis();
+                draftDO.setAnalysisTime(end - start);
                 updateDo(draftDO, newKey);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
             } catch (Exception e) {
@@ -237,7 +243,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void importDict(ImportDictReqVO reqVO) {
+    public DraftRespVO importDict(ImportDictReqVO reqVO) {
         if (CollectionUtils.isEmpty(reqVO.getDictUid())) {
             throw exception(new ErrorCode(500, "词库uid不能为空"));
         }
@@ -252,11 +258,17 @@ public class DraftServiceImpl implements DraftService {
         if (CollectionUtils.isEmpty(keys)) {
             throw exception(new ErrorCode(500, "词库中没有关键词"));
         }
+        if (StringUtils.isBlank(reqVO.getUid())) {
+            return saveDraftVersion(reqVO);
+        }
+
         DraftOperationReqVO operationReqVO = new DraftOperationReqVO();
         operationReqVO.setUid(reqVO.getUid());
         operationReqVO.setVersion(reqVO.getVersion());
         operationReqVO.setAddKey(keys);
         addKeyword(operationReqVO);
+
+        return detail(reqVO.getUid(),reqVO.getVersion());
     }
 
     @Override
@@ -279,6 +291,34 @@ public class DraftServiceImpl implements DraftService {
         return respVO;
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public DraftRespVO cloneDraft(DraftOperationReqVO reqVO) {
+        ListingDraftDO sourceDraft = getVersion(reqVO.getUid(), reqVO.getVersion());
+
+        sourceDraft.setId(null);
+        sourceDraft.setUid(IdUtil.fastSimpleUUID());
+        sourceDraft.setVersion(1);
+        draftMapper.insert(sourceDraft);
+        List<String> keys = keywordBindMapper.getByDraftId(sourceDraft.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
+        keywordBindService.addDraftKeyword(keys, sourceDraft.getId());
+        return detail(sourceDraft.getUid(), sourceDraft.getVersion());
+    }
+
+    @Override
+    public String searchTermRecommend(String uid, Integer version) {
+        ListingDraftDO draftDO = getVersion(uid, version);
+        List<KeywordMetaDataDTO> sortMetaData = keywordBindService.getMetaData(draftDO.getId(), draftDO.getEndpoint());
+        StringJoiner sj = new StringJoiner(org.apache.commons.lang3.StringUtils.SPACE);
+        for (KeywordMetaDataDTO sortMetaDatum : sortMetaData) {
+            if (sj.length() + sortMetaDatum.getKeyword().length() > 250) {
+                break;
+            }
+            sj.add(sortMetaDatum.getKeyword());
+        }
+        return sj.toString();
+    }
+
     private DraftItemScoreDTO calculationScore(ListingDraftDO draftDO) {
         String title = draftDO.getTitle();
         Map<String, String> fiveDesc = ListingDraftConvert.INSTANCE.parseFiveDesc(draftDO.getFiveDesc());
@@ -286,15 +326,16 @@ public class DraftServiceImpl implements DraftService {
         String searchTerm = draftDO.getSearchTerm();
 
         return DraftItemScoreDTO.builder()
-                .titleLength(!StringUtils.isBlank(title) && title.length() > 150 && title.length() < 250)
-                .titleUppercase(ListingDraftScoreUtil.uppercase(title))
+                .titleLength(ListingDraftScoreUtil.judgmentLength(title, 150, 250))
+                .titleUppercase(ListingDraftScoreUtil.titleUppercase(title))
                 .withoutSpecialChat(ListingDraftScoreUtil.withoutSpecialChat(title))
-                .fiveDescLength(ListingDraftScoreUtil.judgmentLength(fiveDesc, 150, 200))
-                .allUppercase(ListingDraftScoreUtil.allUppercase(fiveDesc))
-                .partUppercase(ListingDraftScoreUtil.partUppercase(fiveDesc))
-                .productLength(!StringUtils.isBlank(productDesc) && productDesc.length() > 1500 && productDesc.length() < 2000)
+//                .fiveDescLength(ListingDraftScoreUtil.judgmentLength(fiveDesc, 150, 200))
+//                .allUppercase(ListingDraftScoreUtil.allUppercase(fiveDesc))
+//                .partUppercase(ListingDraftScoreUtil.partUppercase(fiveDesc))
+                .fiveDescScore(ListingDraftScoreUtil.fiveDescScore(fiveDesc))
+                .productLength(ListingDraftScoreUtil.judgmentLength(productDesc, 1500, 2000))
                 .withoutUrl(!ListingDraftScoreUtil.contains(productDesc))
-                .searchTermLength(!StringUtils.isBlank(searchTerm) && searchTerm.length() < 250)
+                .searchTermLength(ListingDraftScoreUtil.judgmentLength(searchTerm, 0, 250))
                 .build();
 
     }
@@ -310,7 +351,6 @@ public class DraftServiceImpl implements DraftService {
         if (CollectionUtils.isEmpty(metaData)) {
             return;
         }
-        metaData = metaData.stream().sorted((a, b) -> Math.toIntExact(b.mouthSearches() - a.mouthSearches())).collect(Collectors.toList());
 
         DraftConfigDTO draftConfigDTO = ListingDraftConvert.INSTANCE.parseConfig(draftDO.getConfig());
 

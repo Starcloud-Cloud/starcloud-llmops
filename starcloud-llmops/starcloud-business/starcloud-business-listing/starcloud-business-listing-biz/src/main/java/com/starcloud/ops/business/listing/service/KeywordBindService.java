@@ -23,6 +23,15 @@ public interface KeywordBindService {
      */
     List<KeywordMetaDataDTO> getMetaData(List<String> keys, String endpoint);
 
+    /**
+     * 查询关键词元数据 按搜索量排序
+     *
+     * @param draftId
+     * @param endpoint
+     * @return
+     */
+    List<KeywordMetaDataDTO> getMetaData(Long draftId, String endpoint);
+
 
     /**
      * 草稿新增关键词

@@ -53,9 +53,9 @@ public class KeywordMetadataController {
     }
 
     @GetMapping("/Listing")
-    @Operation(summary = "分页查询关键词列表", description = "分页查询关键词列表")
+    @Operation(summary = "根据 ASIN 获取 Listing 数据", description = "根据 ASIN 获取 Listing 数据")
     public CommonResult<SellerSpriteListingVO> Listing(@RequestParam("asin") String asin, @RequestParam("marketName") String marketName) {
-        return CommonResult.success(keywordMetadataService.getListingByAsin(asin,marketName));
+        return CommonResult.success(keywordMetadataService.getListingByAsin(asin, marketName));
     }
 
 
