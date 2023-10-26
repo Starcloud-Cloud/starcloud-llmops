@@ -12,6 +12,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public interface AppLimitService {
 
     /**
+     * 应用限流
+     *
+     * @param request 请求数据
+     */
+    void limit(AppLimitRequest request);
+
+    /**
      * 应用限流，应用执行限流，走系统默认限流
      *
      * @param request 请求数据
@@ -42,6 +49,12 @@ public interface AppLimitService {
      */
     boolean marketLimit(AppLimitRequest request, SseEmitter emitter);
 
+    /**
+     * 图片执行限流
+     *
+     * @param request 请求数据
+     */
+    void imageLimit(AppLimitRequest request);
 
     /**
      * 应用限流，应用发布渠道执行限流。走用户配置限流。系统默认限流兜底

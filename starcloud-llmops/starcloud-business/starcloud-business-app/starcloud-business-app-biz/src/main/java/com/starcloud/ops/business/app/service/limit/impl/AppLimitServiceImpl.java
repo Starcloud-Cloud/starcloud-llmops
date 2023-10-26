@@ -79,6 +79,21 @@ public class AppLimitServiceImpl implements AppLimitService {
     private RedissonClient redissonClient;
 
     /**
+     * 应用限流
+     *
+     * @param request 请求数据
+     */
+    @Override
+    public void limit(AppLimitRequest request) {
+        // 限流总开关
+        boolean limitSwitch = appDictionaryService.appLimitSwitch();
+        if (!limitSwitch) {
+            log.info("应用限流开关：{}, 将不会执行限流逻辑！", Boolean.FALSE);
+            return;
+        }
+    }
+
+    /**
      * 应用限流，应用执行限流，走系统默认限流
      *
      * @param request 请求数据
@@ -170,6 +185,16 @@ public class AppLimitServiceImpl implements AppLimitService {
     @Override
     public boolean marketLimit(AppLimitRequest request, SseEmitter emitter) {
         return this.doLimitSse(request, emitter, this::marketLimit);
+    }
+
+    /**
+     * 图片执行限流
+     *
+     * @param request 请求数据
+     */
+    @Override
+    public void imageLimit(AppLimitRequest request) {
+
     }
 
     /**
