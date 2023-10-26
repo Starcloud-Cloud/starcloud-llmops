@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.listing.convert;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -11,6 +12,7 @@ import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftDO;
 import com.starcloud.ops.business.listing.dto.DraftConfigDTO;
 import com.starcloud.ops.business.listing.dto.DraftItemScoreDTO;
 import com.starcloud.ops.business.listing.dto.KeywordResumeDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -49,6 +51,9 @@ public interface ListingDraftConvert {
     @Named("fiveDescExportFormat")
     default String fiveDescExportFormat(String str) {
         Map<String, String> map = parseFiveDesc(str);
+        if (CollectionUtil.isEmpty(map)) {
+            return StringUtils.EMPTY;
+        }
         StringJoiner sj = new StringJoiner("\n");
         for (String value : map.values()) {
             sj.add(value);
