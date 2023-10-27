@@ -128,12 +128,12 @@ public class DraftServiceImpl implements DraftService {
                         keywordBindService.analysisKeyword(distinctKeys, draftDO.getEndpoint());
                         long end = System.currentTimeMillis();
                         draftDO.setAnalysisTime(end - start);
-                        updateDo(draftDO, distinctKeys);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
                     } catch (Exception e) {
                         log.error("analysis keyword error", e);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
                     }
+                    updateDo(draftDO, distinctKeys);
                     updateById(draftDO);
                 });
             }
@@ -225,12 +225,12 @@ public class DraftServiceImpl implements DraftService {
                 keywordBindService.analysisKeyword(addKey, draftDO.getEndpoint());
                 long end = System.currentTimeMillis();
                 draftDO.setAnalysisTime(end - start);
-                updateDo(draftDO, allKeys);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
             } catch (Exception e) {
                 log.error("analysis error", e);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
             }
+            updateDo(draftDO, allKeys);
             updateById(draftDO);
         });
     }
@@ -241,12 +241,11 @@ public class DraftServiceImpl implements DraftService {
             throw exception(new ErrorCode(500, "删除关键词不能为空"));
         }
         ListingDraftDO draftDO = getVersion(reqVO.getUid(), reqVO.getVersion());
-        List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         List<String> removeKey = reqVO.getRemoveBindKey().stream().map(String::trim).collect(Collectors.toList());
-        keys.removeAll(removeKey);
+        keywordBindMapper.deleteDraftKey(removeKey, draftDO.getId());
+        List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         updateDo(draftDO, keys);
         updateById(draftDO);
-        keywordBindMapper.deleteDraftKey(removeKey, draftDO.getId());
     }
 
     @Override
@@ -291,15 +290,16 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public DraftRespVO score(DraftReqVO reqVO) {
         ListingDraftDO draftDO = ListingDraftConvert.INSTANCE.convert(reqVO);
-        DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
         ListingDraftDO draft = draftMapper.getVersion(reqVO.getUid(), reqVO.getVersion());
         if (draft != null) {
             List<String> keys = keywordBindService.getMetaData(draft.getId(), draft.getEndpoint()).stream().map(KeywordMetaDataDTO::getKeyword).collect(Collectors.toList());
             updateSearchers(draftDO, keys);
-            respVO.setStatus(draft.getStatus());
+            draftDO.setStatus(draft.getStatus());
         } else {
-            respVO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+            draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
         }
+
+        DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
         DraftItemScoreDTO draftItemScoreDTO = calculationScore(draftDO);
         respVO.setItemScore(draftItemScoreDTO);
         return respVO;
@@ -365,11 +365,14 @@ public class DraftServiceImpl implements DraftService {
      * 推荐词
      */
     private void updateRecommendKey(ListingDraftDO draftDO, List<String> keys) {
+        if (keys == null) {
+            keys = Collections.emptyList();
+        }
         TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
         keys = new ArrayList<>(allSet);
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint());
-        if (CollectionUtils.isEmpty(metaData)) {
-            return;
+        if (metaData == null) {
+            metaData = Collections.emptyList();
         }
 
         DraftConfigDTO draftConfigDTO = ListingDraftConvert.INSTANCE.parseConfig(draftDO.getConfig());
