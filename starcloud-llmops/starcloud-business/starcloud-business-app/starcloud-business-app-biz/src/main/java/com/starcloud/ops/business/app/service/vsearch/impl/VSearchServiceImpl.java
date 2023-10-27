@@ -97,12 +97,12 @@ public class VSearchServiceImpl implements VSearchService {
 
         // 错误码和错误信息都不为空
         if (Objects.nonNull(response.getCode()) && StringUtils.isNotBlank(response.getMessage())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(response.getCode(), getFailureMessage(response.getMessage())));
+            throw ServiceExceptionUtil.exception(failureErrorCode(response.getCode(), response.getMessage()));
         }
 
         // 错误码为空，错误信息不为空
         if (Objects.isNull(response.getCode()) && StringUtils.isNotBlank(response.getMessage())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), response.getMessage()));
+            throw ServiceExceptionUtil.exception(failureErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), response.getMessage()));
         }
 
         // 错误码不为空，错误信息为空
@@ -115,51 +115,52 @@ public class VSearchServiceImpl implements VSearchService {
     }
 
     /**
-     * 获取失败的消息
+     * 处理失败的错误码
      *
-     * @param message 原始消息
-     * @return 失败的消息
+     * @param code    错误码
+     * @param message 错误信息
+     * @return 错误码
      */
-    private static String getFailureMessage(String message) {
+    private static ErrorCode failureErrorCode(Integer code, String message) {
         // 如果是图片尺寸不是64的倍数
         if (StringUtils.contains(message, "image dimensions must be multiples of 64")) {
             Matcher matcher = PX_REGEX.matcher(message);
             if (matcher.find()) {
-                message = "图片尺寸必须是64的倍数(" + matcher.group() + ")。";
+                return new ErrorCode(310400600, "图片尺寸必须是64的倍数(" + matcher.group() + ")。");
             } else {
-                message = "图片尺寸必须是64的倍数。";
+                return new ErrorCode(310400600, "图片尺寸必须是64的倍数。");
             }
         }
         // 图片过大
         if (StringUtils.contains(message, "image too large")) {
             Matcher matcher = BIG_REGEX.matcher(message);
             if (matcher.find()) {
-                message = "图片尺寸过大(" + matcher.group() + ")，图片尺寸不能超过1024x1024。";
+                return new ErrorCode(310400601, "图片尺寸过大(" + matcher.group() + ")，图片尺寸不能超过1024x1024。");
             } else {
-                message = "图片尺寸过大，图片尺寸不能超过1024x1024。";
+                return new ErrorCode(310400601, "图片尺寸过大，图片尺寸不能超过1024x1024。");
             }
         }
         // 原始图片尺寸过大
         if (StringUtils.contains(message, "Input image size is too large")) {
             Matcher matcher = BIG_REGEX.matcher(message);
             if (matcher.find()) {
-                message = "原始图片尺寸过大(" + matcher.group() + ")。";
+                return new ErrorCode(310400602, "原始图片尺寸过大(" + matcher.group() + ")。");
             } else {
-                message = "原始图片尺寸过大。";
+                return new ErrorCode(310400602, "原始图片尺寸过大。");
             }
         }
         if (StringUtils.contains(message, "Requested image size is too large")) {
             Matcher matcher = BIG_REGEX.matcher(message);
             if (matcher.find()) {
-                message = "请求图片尺寸过大(" + matcher.group() + ")。";
+                return new ErrorCode(310400603, "请求图片尺寸过大(" + matcher.group() + ")。");
             } else {
-                message = "请求图片尺寸过大。";
+                return new ErrorCode(310400603, "请求图片尺寸过大。");
             }
         }
         if (StringUtils.contains(message, "Invalid prompts detected")) {
-            message = "无效的提示信息。";
+            return new ErrorCode(310400604, "无效的提示信息(提示词中可能包含敏感词)。");
         }
-        return message;
+        return new ErrorCode(code, message);
     }
 
 }
