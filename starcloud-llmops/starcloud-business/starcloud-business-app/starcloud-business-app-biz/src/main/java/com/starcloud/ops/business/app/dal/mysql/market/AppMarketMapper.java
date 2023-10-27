@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -105,6 +106,14 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         wrapper.eq(AppMarketDO::getUid, uid);
         return this.selectOne(wrapper);
     }
+
+    /**
+     * 根据应用 uid 获取应用详情, 根据 sort 正序去第一个
+     *
+     * @param query 查询条件
+     * @return 应用详情
+     */
+    AppMarketDO get(AppMarketQuery query);
 
     /**
      * 创建应用市场应用
@@ -212,6 +221,5 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         );
         return wrapper;
     }
-
 
 }
