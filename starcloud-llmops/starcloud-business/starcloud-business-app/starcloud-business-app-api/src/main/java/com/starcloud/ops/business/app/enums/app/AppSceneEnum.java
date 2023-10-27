@@ -78,6 +78,11 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     OPTIMIZE_PROMPT(12, "优化提示词", "Optimize Prompt"),
 
     /**
+     * Listing生成
+     */
+    LISTING_GENERATE(19, "Listing生成", "Listing Generate"),
+
+    /**
      * 分享页面场景入口
      */
     SHARE_WEB(13, "页面分享", "Page Share"),
@@ -143,7 +148,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             SHARE_API,
             MP,
             WECOM_GROUP,
-            OPTIMIZE_PROMPT
+            OPTIMIZE_PROMPT,
+            LISTING_GENERATE
 
     );
 
@@ -229,6 +235,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     public static final List<AppSceneEnum> MARKET_SCENES = Arrays.asList(
             WEB_MARKET,
             OPTIMIZE_PROMPT,
+            LISTING_GENERATE,
             CHAT_MARKET
     );
 
@@ -251,6 +258,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             CHAT_MARKET,
             CHAT_TEST,
             OPTIMIZE_PROMPT,
+            LISTING_GENERATE,
             WEB_IMAGE,
             IMAGE_UPSCALING,
             IMAGE_REMOVE_BACKGROUND,
