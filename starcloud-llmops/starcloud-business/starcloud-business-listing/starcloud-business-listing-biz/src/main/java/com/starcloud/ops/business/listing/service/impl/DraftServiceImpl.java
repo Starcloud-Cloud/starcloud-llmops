@@ -344,7 +344,7 @@ public class DraftServiceImpl implements DraftService {
         String searchTerm = draftDO.getSearchTerm();
 
         return DraftItemScoreDTO.builder()
-                .titleLength(ListingDraftScoreUtil.judgmentLength(title, 150, 250))
+                .titleLength(ListingDraftScoreUtil.judgmentLength(title, 150, 200))
                 .titleUppercase(ListingDraftScoreUtil.titleUppercase(title))
                 .withoutSpecialChat(ListingDraftScoreUtil.withoutSpecialChat(title))
                 .fiveDescLength(ListingDraftScoreUtil.judgmentLength(fiveDesc, 150, 200))
