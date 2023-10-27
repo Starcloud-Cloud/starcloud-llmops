@@ -98,7 +98,7 @@ public class DraftServiceImpl implements DraftService {
         if (AnalysisStatusEnum.ANALYSIS.name().equals(respVO.getStatus())) {
             return respVO;
         }
-        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(respVO.getKeywordResume(), draftDO.getEndpoint());
+        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(respVO.getKeywordResume(), draftDO.getEndpoint(), true);
         respVO.setKeywordMetaData(metaData);
         return respVO;
     }
@@ -113,6 +113,7 @@ public class DraftServiceImpl implements DraftService {
             draftDO.setUid(IdUtil.fastSimpleUUID());
             draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
             DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
+            draftDO.setScore(itemScoreDTO.totalScore());
             draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
             draftMapper.insert(draftDO);
             if (CollectionUtils.isNotEmpty(reqVO.getKeys())) {
@@ -159,6 +160,7 @@ public class DraftServiceImpl implements DraftService {
             addKeyword(operationReqVO);
         } else {
             DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
+            draftDO.setScore(itemScoreDTO.totalScore());
             draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
             updateDo(draftDO, keywordBind.stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList()));
         }
@@ -216,6 +218,7 @@ public class DraftServiceImpl implements DraftService {
 
         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
         DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
+        draftDO.setScore(itemScoreDTO.totalScore());
         draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
         updateById(draftDO);
 
@@ -265,15 +268,8 @@ public class DraftServiceImpl implements DraftService {
         if (CollectionUtils.isEmpty(keys)) {
             throw exception(new ErrorCode(500, "词库中没有关键词"));
         }
-        if (StringUtils.isBlank(reqVO.getUid())) {
-            return saveDraftVersion(reqVO);
-        }
-
-        DraftOperationReqVO operationReqVO = new DraftOperationReqVO();
-        operationReqVO.setUid(reqVO.getUid());
-        operationReqVO.setVersion(reqVO.getVersion());
-        operationReqVO.setAddKey(keys);
-        addKeyword(operationReqVO);
+        reqVO.setKeys(keys);
+        saveDraftVersion(reqVO);
 
         return detail(reqVO.getUid(), reqVO.getVersion());
     }
@@ -292,7 +288,7 @@ public class DraftServiceImpl implements DraftService {
         ListingDraftDO draftDO = ListingDraftConvert.INSTANCE.convert(reqVO);
         ListingDraftDO draft = draftMapper.getVersion(reqVO.getUid(), reqVO.getVersion());
         if (draft != null) {
-            List<String> keys = keywordBindService.getMetaData(draft.getId(), draft.getEndpoint()).stream().map(KeywordMetaDataDTO::getKeyword).collect(Collectors.toList());
+            List<String> keys = keywordBindService.getMetaData(draft.getId(), draft.getEndpoint(), true).stream().map(KeywordMetaDataDTO::getKeyword).collect(Collectors.toList());
             updateSearchers(draftDO, keys);
             draftDO.setStatus(draft.getStatus());
         } else {
@@ -301,6 +297,7 @@ public class DraftServiceImpl implements DraftService {
 
         DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
         DraftItemScoreDTO draftItemScoreDTO = calculationScore(draftDO);
+        draftDO.setScore(draftItemScoreDTO.totalScore());
         respVO.setItemScore(draftItemScoreDTO);
         return respVO;
     }
@@ -329,7 +326,8 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public String searchTermRecommend(String uid, Integer version) {
         ListingDraftDO draftDO = getVersion(uid, version);
-        List<KeywordMetaDataDTO> sortMetaData = keywordBindService.getMetaData(draftDO.getId(), draftDO.getEndpoint());
+        List<KeywordMetaDataDTO> sortMetaData = keywordBindService.getMetaData(draftDO.getId(), draftDO.getEndpoint(), true);
+        // todo 过滤状态
         StringJoiner sj = new StringJoiner(org.apache.commons.lang3.StringUtils.SPACE);
         for (KeywordMetaDataDTO sortMetaDatum : sortMetaData) {
             if (sj.length() + sortMetaDatum.getKeyword().length() > 250) {
@@ -356,7 +354,7 @@ public class DraftServiceImpl implements DraftService {
                 .fiveDescScore(ListingDraftScoreUtil.fiveDescScore(fiveDesc))
                 .productLength(ListingDraftScoreUtil.judgmentLength(productDesc, 1500, 2000))
                 .withoutUrl(!ListingDraftScoreUtil.contains(productDesc))
-                .searchTermLength((StringUtils.isBlank(searchTerm)) || searchTerm.length() < 250)
+                .searchTermLength(ListingDraftScoreUtil.judgmentLength(searchTerm, 0, 250))
                 .build();
 
     }
@@ -370,7 +368,8 @@ public class DraftServiceImpl implements DraftService {
         }
         TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
         keys = new ArrayList<>(allSet);
-        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint());
+        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint(), true);
+        // 过滤状态 todo
         if (metaData == null) {
             metaData = Collections.emptyList();
         }
@@ -425,16 +424,14 @@ public class DraftServiceImpl implements DraftService {
         if (CollectionUtils.isEmpty(keys)) {
             draftDO.setTotalSearches(0L);
             draftDO.setMatchSearchers(0L);
-            draftDO.setScore((double) 0);
             return;
         }
         TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
         keys = new ArrayList<>(allSet);
-        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint());
+        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint(), true);
         if (CollectionUtils.isEmpty(metaData)) {
             draftDO.setTotalSearches(0L);
             draftDO.setMatchSearchers(0L);
-            draftDO.setScore((double) 0);
             return;
         }
         Long totalSearches = metaData.stream().mapToLong(KeywordMetaDataDTO::mouthSearches).sum();
@@ -446,7 +443,6 @@ public class DraftServiceImpl implements DraftService {
         // 搜索量
         draftDO.setTotalSearches(totalSearches);
         draftDO.setMatchSearchers(matchSearchers);
-        draftDO.setScore((double) 0);
     }
 
     /**

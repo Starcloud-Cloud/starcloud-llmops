@@ -52,7 +52,7 @@ public class KeywordBindServiceImpl implements KeywordBindService {
     }
 
     @Override
-    public List<KeywordMetaDataDTO> getMetaData(List<String> keys, String endpoint) {
+    public List<KeywordMetaDataDTO> getMetaData(List<String> keys, String endpoint, Boolean filter) {
         if (CollectionUtils.isEmpty(keys)) {
             return Collections.emptyList();
         }
@@ -62,13 +62,18 @@ public class KeywordBindServiceImpl implements KeywordBindService {
         List<KeywordMetadataBasicRespVO> keywordsBasic = metadataService.getKeywordsBasic(keys, endpoint);
         long end = System.currentTimeMillis();
         log.info("查询关键词成功, {} ms", end - start);
+        if (filter) {
+            keywordsBasic = keywordsBasic.stream().filter(k -> {
+                return k.getSearches() != null && k.getSearches() > 0;
+            }).collect(Collectors.toList());
+        }
         return ListingKeywordConvert.INSTANCE.convert(keywordsBasic).stream().sorted((a, b) -> Math.toIntExact(b.mouthSearches() - a.mouthSearches())).collect(Collectors.toList());
     }
 
     @Override
-    public List<KeywordMetaDataDTO> getMetaData(Long draftId, String endpoint) {
+    public List<KeywordMetaDataDTO> getMetaData(Long draftId, String endpoint, Boolean filter) {
         List<String> keys = keywordBindMapper.getByDraftId(draftId).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
-        return getMetaData(keys, endpoint);
+        return getMetaData(keys, endpoint, filter);
     }
 
     @Override

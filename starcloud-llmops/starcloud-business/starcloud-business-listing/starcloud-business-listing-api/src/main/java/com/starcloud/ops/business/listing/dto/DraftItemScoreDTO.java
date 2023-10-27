@@ -34,7 +34,7 @@ public class DraftItemScoreDTO {
     private Boolean partUppercase;
 
     @Schema(description = "五要点打分")
-    private Map<String,DraftFiveDescScoreDTO> fiveDescScore;
+    private Map<String, DraftFiveDescScoreDTO> fiveDescScore;
 
     // 描述
     @Schema(description = "产品描述1500到2000个字符")
@@ -47,5 +47,19 @@ public class DraftItemScoreDTO {
     @Schema(description = "搜索词250个字符以内")
     private Boolean searchTermLength;
 
+
+    public Double totalScore() {
+        double d = 0;
+        d += withoutSpecialChat ? 1 : 0;
+        d += titleLength ? 1 : 0;
+        d += titleUppercase ? 1 : 0;
+        d += fiveDescLength ? 1 : 0;
+        d += allUppercase ? 1 : 0;
+        d += partUppercase ? 1 : 0;
+        d += productLength ? 1 : 0;
+        d += withoutUrl ? 1 : 0;
+        d += searchTermLength ? 1 : 0;
+        return d;
+    }
 
 }
