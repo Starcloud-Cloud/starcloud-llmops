@@ -128,12 +128,12 @@ public class DraftServiceImpl implements DraftService {
                         keywordBindService.analysisKeyword(distinctKeys, draftDO.getEndpoint());
                         long end = System.currentTimeMillis();
                         draftDO.setAnalysisTime(end - start);
-                        updateDo(draftDO, distinctKeys);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
                     } catch (Exception e) {
                         log.error("analysis keyword error", e);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
                     }
+                    updateDo(draftDO, distinctKeys);
                     updateById(draftDO);
                 });
             }
@@ -225,12 +225,12 @@ public class DraftServiceImpl implements DraftService {
                 keywordBindService.analysisKeyword(addKey, draftDO.getEndpoint());
                 long end = System.currentTimeMillis();
                 draftDO.setAnalysisTime(end - start);
-                updateDo(draftDO, allKeys);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
             } catch (Exception e) {
                 log.error("analysis error", e);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
             }
+            updateDo(draftDO, allKeys);
             updateById(draftDO);
         });
     }
@@ -241,12 +241,11 @@ public class DraftServiceImpl implements DraftService {
             throw exception(new ErrorCode(500, "删除关键词不能为空"));
         }
         ListingDraftDO draftDO = getVersion(reqVO.getUid(), reqVO.getVersion());
-        List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         List<String> removeKey = reqVO.getRemoveBindKey().stream().map(String::trim).collect(Collectors.toList());
-        keys.removeAll(removeKey);
+        keywordBindMapper.deleteDraftKey(removeKey, draftDO.getId());
+        List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         updateDo(draftDO, keys);
         updateById(draftDO);
-        keywordBindMapper.deleteDraftKey(removeKey, draftDO.getId());
     }
 
     @Override
@@ -365,6 +364,9 @@ public class DraftServiceImpl implements DraftService {
      * 推荐词
      */
     private void updateRecommendKey(ListingDraftDO draftDO, List<String> keys) {
+        if (CollectionUtils.isEmpty(keys)) {
+            return;
+        }
         TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
         keys = new ArrayList<>(allSet);
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint());
