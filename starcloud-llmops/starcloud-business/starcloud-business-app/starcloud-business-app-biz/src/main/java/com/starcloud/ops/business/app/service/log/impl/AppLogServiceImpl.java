@@ -220,6 +220,7 @@ public class AppLogServiceImpl implements AppLogService {
             List<AppSceneEnum> appAnalysisScenes = new ArrayList<>(AppSceneEnum.APP_ANALYSIS_SCENES);
             if (isAdmin) {
                 appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
+                appAnalysisScenes.add(AppSceneEnum.LISTING_GENERATE);
             }
             if (StringUtils.isNotBlank(query.getFromScene()) && !appAnalysisScenes.contains(AppSceneEnum.valueOf(query.getFromScene()))) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
@@ -296,7 +297,7 @@ public class AppLogServiceImpl implements AppLogService {
     public PageResult<AppLogMessageRespVO> pageLogConversationByMarketUid(AppLogConversationInfoPageUidReqVO query) {
         AppValidate.notBlank(query.getMarketUid(), new ErrorCode(3000001, "应用市场 UID 不能为空"));
         if (StringUtils.isNotBlank(query.getFromScene())) {
-            if (!AppSceneEnum.WEB_MARKET.name().equals(query.getFromScene()) && !AppSceneEnum.OPTIMIZE_PROMPT.name().equals(query.getFromScene())) {
+            if (!AppSceneEnum.isMarketScene(AppSceneEnum.valueOf(query.getFromScene()))) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "不支持的场景"));
             }
         }
@@ -351,6 +352,7 @@ public class AppLogServiceImpl implements AppLogService {
             Boolean isAdmin = UserUtils.isAdmin();
             if (isAdmin) {
                 appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
+                appAnalysisScenes.add(AppSceneEnum.LISTING_GENERATE);
             }
             if (StringUtils.isNotBlank(query.getFromScene()) && !appAnalysisScenes.contains(AppSceneEnum.valueOf(query.getFromScene()))) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3000001, "应用分析时，应用场景[fromScene]不支持！"));
@@ -769,6 +771,8 @@ public class AppLogServiceImpl implements AppLogService {
             if (UserUtils.isAdmin()) {
                 AppSceneEnum optimize = AppSceneEnum.OPTIMIZE_PROMPT;
                 options.add(Option.of(optimize.name(), optimize.getLabel(), optimize.getLabelEn()));
+                AppSceneEnum listing = AppSceneEnum.LISTING_GENERATE;
+                options.add(Option.of(listing.name(), listing.getLabel(), listing.getLabelEn()));
                 return options;
             }
             return options;

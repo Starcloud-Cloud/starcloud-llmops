@@ -46,6 +46,7 @@ public interface ListingDraftConvert {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+    @Mapping(source = "draftConfig", target = "config")
     void update(DraftReqVO reqVO, @MappingTarget ListingDraftDO draftDO);
 
     @Named("fiveDescExportFormat")

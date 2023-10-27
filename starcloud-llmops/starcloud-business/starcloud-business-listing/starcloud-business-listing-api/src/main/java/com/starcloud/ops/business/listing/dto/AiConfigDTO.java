@@ -8,20 +8,21 @@ import lombok.Data;
 public class AiConfigDTO {
 
     @Schema(description = "产品特征")
-    private String productFeatures;
+    private String productFeature;
 
     @Schema(description = "客户特征")
-    private String customerFeatures;
+    private String customerFeature;
 
     @Schema(description = "品牌名称")
-    private String productName;
+    private String brandName;
 
     @Schema(description = "显示位置")
-    private String nameLocation;
+    private String brandNameLocation;
 
     @Schema(description = "语言")
-    private String language;
+    private String targetLanguage;
 
     @Schema(description = "风格")
-    private String style;
+    private String writingStyle;
+
 }

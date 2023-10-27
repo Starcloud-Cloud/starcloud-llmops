@@ -102,6 +102,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode MARKET_OPERATE_NOT_SUPPORTED = new ErrorCode(300200410, "应用市场不支持该操作，请稍后重试或者联系管理员（{}）！");
 
+    /**
+     * 请求参数不能为 null
+     */
+    ErrorCode MARKET_QUERY_REQUIRED = new ErrorCode(300200410, "请求参数是必填的！");
+
     // ========== 应用收藏错误码 300 300 xxx ==========
 
     /**

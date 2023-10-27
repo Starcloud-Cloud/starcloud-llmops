@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
@@ -258,6 +259,20 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 转换并且返回应用数据
         response.setViewCount(viewCount);
         return response;
+    }
+
+    /**
+     * 获取应用详情
+     *
+     * @param query 查询条件
+     * @return 应用详情
+     */
+    @Override
+    public AppMarketRespVO get(AppMarketQuery query) {
+        AppValidate.notNull(query, ErrorCodeConstants.MARKET_QUERY_REQUIRED);
+        AppMarketDO appMarket = appMarketMapper.get(query);
+        AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT);
+        return AppMarketConvert.INSTANCE.convertResponse(appMarket);
     }
 
     /**
