@@ -31,7 +31,7 @@ public class ListingDraftScoreUtil {
     }
 
     public static Boolean containsEmoji(String text) {
-        String emojiPattern = "[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+";
+        String emojiPattern = "[^a-zA-Z0-9\\s]";
         return checkForMatch(text, emojiPattern);
     }
 
@@ -59,7 +59,7 @@ public class ListingDraftScoreUtil {
         }
 
         for (String value : fiveDesc.values()) {
-            if (!uppercase(value)) {
+            if (!wordUpperCase(value)) {
                 return false;
             }
         }
@@ -72,7 +72,7 @@ public class ListingDraftScoreUtil {
         }
 
         for (String value : fiveDesc.values()) {
-            if (uppercase(value)) {
+            if (wordUpperCase(value)) {
                 return true;
             }
         }
@@ -89,7 +89,36 @@ public class ListingDraftScoreUtil {
             return false;
         }
         for (String s : text.split(" ")) {
-            if (!Character.isUpperCase(s.charAt(0))) {
+            if (StringUtils.isNotBlank(s) && !Character.isUpperCase(s.charAt(0))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 字符串中第一个单词大写
+     * @param text
+     * @return
+     */
+    public static Boolean wordUpperCase(String text) {
+        if (StringUtils.isBlank(text)) {
+            return false;
+        }
+        Pattern pattern = Pattern.compile("[^a-zA-Z]+");
+        String[] words = pattern.split(text);
+        for (String word : words) {
+            if (StringUtils.isBlank(word)) {
+                continue;
+            }
+            return isWordUppercase(word);
+        }
+        return false;
+    }
+
+    public static boolean isWordUppercase(String word) {
+        for (char c : word.toCharArray()) {
+            if (!Character.isUpperCase(c)) {
                 return false;
             }
         }
@@ -103,7 +132,7 @@ public class ListingDraftScoreUtil {
         Map<String, DraftFiveDescScoreDTO> result = new HashMap<>(fiveDesc.size());
         for (String key : fiveDesc.keySet()) {
             String value = fiveDesc.get(key);
-            Boolean uppercase = uppercase(value);
+            Boolean uppercase = wordUpperCase(value);
             Boolean length = judgmentLength(value, 150, 250);
             DraftFiveDescScoreDTO draftFiveDescScoreDTO = new DraftFiveDescScoreDTO(length, uppercase);
             result.put(key,draftFiveDescScoreDTO);
