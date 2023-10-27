@@ -98,7 +98,7 @@ public class DraftServiceImpl implements DraftService {
         if (AnalysisStatusEnum.ANALYSIS.name().equals(respVO.getStatus())) {
             return respVO;
         }
-        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(respVO.getKeywordResume(), draftDO.getEndpoint(), true);
+        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(respVO.getKeywordResume(), draftDO.getEndpoint(), false);
         respVO.setKeywordMetaData(metaData);
         return respVO;
     }
