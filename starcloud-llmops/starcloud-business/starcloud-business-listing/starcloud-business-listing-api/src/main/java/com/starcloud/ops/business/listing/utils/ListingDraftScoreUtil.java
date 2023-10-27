@@ -50,7 +50,7 @@ public class ListingDraftScoreUtil {
         if (StringUtils.isBlank(text)) {
             return false;
         }
-        return containsUrl(text) || containsPic(text) || containsEmail(text);
+        return !containsUrl(text) && !containsPic(text) && !containsEmail(text);
     }
 
     public static Boolean allUppercase(Map<String, String> fiveDesc) {
