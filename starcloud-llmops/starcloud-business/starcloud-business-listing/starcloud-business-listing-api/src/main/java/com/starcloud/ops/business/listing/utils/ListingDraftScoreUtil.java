@@ -97,7 +97,7 @@ public class ListingDraftScoreUtil {
     }
 
     /**
-     * 字符串中第一个单词大写
+     * 字符串中第一个单词第一字母大写
      * @param text
      * @return
      */
@@ -111,7 +111,7 @@ public class ListingDraftScoreUtil {
             if (StringUtils.isBlank(word)) {
                 continue;
             }
-            return isWordUppercase(word);
+            return uppercase(word);
         }
         return false;
     }
