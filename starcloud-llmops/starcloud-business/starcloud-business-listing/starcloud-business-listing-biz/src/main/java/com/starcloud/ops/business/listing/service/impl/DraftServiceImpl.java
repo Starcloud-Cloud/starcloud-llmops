@@ -365,14 +365,14 @@ public class DraftServiceImpl implements DraftService {
      * 推荐词
      */
     private void updateRecommendKey(ListingDraftDO draftDO, List<String> keys) {
-        if (CollectionUtils.isEmpty(keys)) {
-            return;
+        if (keys == null) {
+            keys = Collections.emptyList();
         }
         TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
         keys = new ArrayList<>(allSet);
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint());
-        if (CollectionUtils.isEmpty(metaData)) {
-            return;
+        if (metaData == null) {
+            metaData = Collections.emptyList();
         }
 
         DraftConfigDTO draftConfigDTO = ListingDraftConvert.INSTANCE.parseConfig(draftDO.getConfig());
