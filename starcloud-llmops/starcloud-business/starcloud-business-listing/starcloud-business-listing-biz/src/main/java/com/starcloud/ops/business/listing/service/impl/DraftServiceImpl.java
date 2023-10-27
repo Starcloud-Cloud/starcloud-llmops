@@ -291,9 +291,15 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public DraftRespVO score(DraftReqVO reqVO) {
         ListingDraftDO draftDO = ListingDraftConvert.INSTANCE.convert(reqVO);
-        updateSearchers(draftDO, reqVO.getKeys());
-
         DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
+        ListingDraftDO draft = draftMapper.getVersion(reqVO.getUid(), reqVO.getVersion());
+        if (draft != null) {
+            List<String> keys = keywordBindService.getMetaData(draft.getId(), draft.getEndpoint()).stream().map(KeywordMetaDataDTO::getKeyword).collect(Collectors.toList());
+            updateSearchers(draftDO, keys);
+            respVO.setStatus(draft.getStatus());
+        } else {
+            respVO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+        }
         DraftItemScoreDTO draftItemScoreDTO = calculationScore(draftDO);
         respVO.setItemScore(draftItemScoreDTO);
         return respVO;
@@ -413,6 +419,12 @@ public class DraftServiceImpl implements DraftService {
      * 更新搜索量
      */
     private void updateSearchers(ListingDraftDO draftDO, List<String> keys) {
+        if (CollectionUtils.isEmpty(keys)) {
+            draftDO.setTotalSearches(0L);
+            draftDO.setMatchSearchers(0L);
+            draftDO.setScore((double) 0);
+            return;
+        }
         TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
         keys = new ArrayList<>(allSet);
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint());
