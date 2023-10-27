@@ -290,15 +290,16 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public DraftRespVO score(DraftReqVO reqVO) {
         ListingDraftDO draftDO = ListingDraftConvert.INSTANCE.convert(reqVO);
-        DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
         ListingDraftDO draft = draftMapper.getVersion(reqVO.getUid(), reqVO.getVersion());
         if (draft != null) {
             List<String> keys = keywordBindService.getMetaData(draft.getId(), draft.getEndpoint()).stream().map(KeywordMetaDataDTO::getKeyword).collect(Collectors.toList());
             updateSearchers(draftDO, keys);
-            respVO.setStatus(draft.getStatus());
+            draftDO.setStatus(draft.getStatus());
         } else {
-            respVO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+            draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
         }
+
+        DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
         DraftItemScoreDTO draftItemScoreDTO = calculationScore(draftDO);
         respVO.setItemScore(draftItemScoreDTO);
         return respVO;
