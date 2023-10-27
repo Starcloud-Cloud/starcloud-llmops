@@ -28,7 +28,7 @@ public class ListingDraftScoreUtil {
      */
     public static Boolean withoutSpecialChat(String text) {
         if (StringUtils.isBlank(text)) {
-            return true;
+            return false;
         }
         return !containsEmoji(text) && !containsSymbol(text);
     }
