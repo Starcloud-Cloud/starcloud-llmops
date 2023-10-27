@@ -128,12 +128,12 @@ public class DraftServiceImpl implements DraftService {
                         keywordBindService.analysisKeyword(distinctKeys, draftDO.getEndpoint());
                         long end = System.currentTimeMillis();
                         draftDO.setAnalysisTime(end - start);
-                        updateDo(draftDO, distinctKeys);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
                     } catch (Exception e) {
                         log.error("analysis keyword error", e);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
                     }
+                    updateDo(draftDO, distinctKeys);
                     updateById(draftDO);
                 });
             }
@@ -225,12 +225,12 @@ public class DraftServiceImpl implements DraftService {
                 keywordBindService.analysisKeyword(addKey, draftDO.getEndpoint());
                 long end = System.currentTimeMillis();
                 draftDO.setAnalysisTime(end - start);
-                updateDo(draftDO, allKeys);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
             } catch (Exception e) {
                 log.error("analysis error", e);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
             }
+            updateDo(draftDO, allKeys);
             updateById(draftDO);
         });
     }
