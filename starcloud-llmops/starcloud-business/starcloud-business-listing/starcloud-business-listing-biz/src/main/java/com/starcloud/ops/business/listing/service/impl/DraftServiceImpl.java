@@ -327,7 +327,6 @@ public class DraftServiceImpl implements DraftService {
     public String searchTermRecommend(String uid, Integer version) {
         ListingDraftDO draftDO = getVersion(uid, version);
         List<KeywordMetaDataDTO> sortMetaData = keywordBindService.getMetaData(draftDO.getId(), draftDO.getEndpoint(), true);
-        // todo 过滤状态
         StringJoiner sj = new StringJoiner(org.apache.commons.lang3.StringUtils.SPACE);
         for (KeywordMetaDataDTO sortMetaDatum : sortMetaData) {
             if (sj.length() + sortMetaDatum.getKeyword().length() > 250) {
@@ -353,7 +352,7 @@ public class DraftServiceImpl implements DraftService {
                 .partUppercase(ListingDraftScoreUtil.partUppercase(fiveDesc))
                 .fiveDescScore(ListingDraftScoreUtil.fiveDescScore(fiveDesc))
                 .productLength(ListingDraftScoreUtil.judgmentLength(productDesc, 1500, 2000))
-                .withoutUrl(!ListingDraftScoreUtil.contains(productDesc))
+                .withoutUrl(ListingDraftScoreUtil.withOutUrl(productDesc))
                 .searchTermLength(ListingDraftScoreUtil.judgmentLength(searchTerm, 0, 250))
                 .build();
 
@@ -369,7 +368,6 @@ public class DraftServiceImpl implements DraftService {
         TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
         keys = new ArrayList<>(allSet);
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(keys, draftDO.getEndpoint(), true);
-        // 过滤状态 todo
         if (metaData == null) {
             metaData = Collections.emptyList();
         }
