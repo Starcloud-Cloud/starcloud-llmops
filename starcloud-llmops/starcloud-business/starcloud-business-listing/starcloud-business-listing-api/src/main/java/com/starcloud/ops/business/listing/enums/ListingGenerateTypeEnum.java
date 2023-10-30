@@ -24,7 +24,7 @@ public enum ListingGenerateTypeEnum implements IEnumable<Integer> {
     /**
      * Listing五点描述生成
      */
-    FIVE_POINTS(2, "Listing五点描述生成", Arrays.asList("Listing", "FivePoints")),
+    BULLET_POINT(2, "Listing五点描述生成", Arrays.asList("Listing", "BulletPoint")),
 
     /**
      * Listing产品描述生成

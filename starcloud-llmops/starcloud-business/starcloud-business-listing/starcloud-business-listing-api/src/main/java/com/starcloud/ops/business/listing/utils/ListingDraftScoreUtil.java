@@ -66,17 +66,23 @@ public class ListingDraftScoreUtil {
         return true;
     }
 
+    /**
+     * 不全是大写 有小写字母为true
+     *
+     * @param fiveDesc
+     * @return
+     */
     public static Boolean partUppercase(Map<String, String> fiveDesc) {
         if (fiveDesc == null) {
             return false;
         }
 
         for (String value : fiveDesc.values()) {
-            if (wordUpperCase(value)) {
-                return true;
+            if (!hasLowercase(value)) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static Boolean uppercase(String text) {
@@ -98,6 +104,7 @@ public class ListingDraftScoreUtil {
 
     /**
      * 字符串中第一个单词第一字母大写
+     *
      * @param text
      * @return
      */
@@ -133,12 +140,26 @@ public class ListingDraftScoreUtil {
         for (String key : fiveDesc.keySet()) {
             String value = fiveDesc.get(key);
             Boolean uppercase = wordUpperCase(value);
+            Boolean hasLowercase = hasLowercase(value);
             Boolean length = judgmentLength(value, 150, 250);
-            DraftFiveDescScoreDTO draftFiveDescScoreDTO = new DraftFiveDescScoreDTO(length, uppercase);
-            result.put(key,draftFiveDescScoreDTO);
+            DraftFiveDescScoreDTO draftFiveDescScoreDTO = new DraftFiveDescScoreDTO(length, uppercase, hasLowercase);
+            result.put(key, draftFiveDescScoreDTO);
         }
         return result;
     }
+
+    public static Boolean hasLowercase(String text) {
+        if (StringUtils.isBlank(text)) {
+            return false;
+        }
+        for (char c : text.toCharArray()) {
+            if (Character.isLowerCase(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public static Boolean judgmentLength(String text, int min, int max) {
         return (!StringUtils.isBlank(text)) && text.length() >= min && text.length() < max;
