@@ -42,7 +42,7 @@
         ) AS tokens,
         <choose>
             <when test="query.unit == 'HOURS'">
-                DATE_FORMAT(ms.create_time, '%Y-%m-%d %h') as create_date
+                DATE_FORMAT(ms.create_time, '%Y-%m-%d %H') as create_date
             </when>
             <when test="query.unit == 'DAYS'">
                 DATE_FORMAT(ms.create_time, '%Y-%m-%d') as create_date
@@ -60,7 +60,7 @@
     <sql id="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF">
         <choose>
             <when test="query.unit == 'HOURS'">
-                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d %h')
+                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d %H')
             </when>
             <when test="query.unit == 'DAYS'">
                 GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d')
