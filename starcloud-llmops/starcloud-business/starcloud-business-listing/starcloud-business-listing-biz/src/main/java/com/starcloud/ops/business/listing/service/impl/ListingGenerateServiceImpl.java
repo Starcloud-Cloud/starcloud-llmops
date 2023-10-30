@@ -86,6 +86,7 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
         executeRequest.setSseEmitter(request.getSseEmitter());
         executeRequest.setScene(AppSceneEnum.LISTING_GENERATE.name());
         executeRequest.setAppUid(app.getUid());
+        executeRequest.setMediumUid(request.getDraftUid());
         executeRequest.setAiModel(request.getAiModel());
         executeRequest.setAppReqVO(transform(request, app));
         log.info("Listing生成，执行请求: {}\n", JSONUtil.parse(executeRequest).toStringPretty());
