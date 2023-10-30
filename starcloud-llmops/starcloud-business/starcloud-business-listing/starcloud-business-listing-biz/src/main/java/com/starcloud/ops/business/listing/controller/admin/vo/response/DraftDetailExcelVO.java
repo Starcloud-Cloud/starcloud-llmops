@@ -27,4 +27,10 @@ public class DraftDetailExcelVO {
     @ExcelProperty("搜索词")
     private String searchTerm;
 
+    @ExcelProperty("得分")
+    private Double score;
+
+    @ExcelProperty("匹配搜索量")
+    private Long matchSearchers;
+
 }
