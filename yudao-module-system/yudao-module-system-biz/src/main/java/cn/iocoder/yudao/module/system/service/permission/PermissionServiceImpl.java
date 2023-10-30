@@ -11,7 +11,6 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
-import cn.iocoder.yudao.module.system.controller.admin.permission.vo.role.RoleExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.MenuDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
@@ -23,14 +22,18 @@ import cn.iocoder.yudao.module.system.enums.permission.DataScopeEnum;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -38,8 +41,16 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static java.util.Collections.singleton;
@@ -57,7 +68,7 @@ public class PermissionServiceImpl implements PermissionService {
      * 角色编号与菜单编号的缓存映射
      * key：角色编号
      * value：菜单编号的数组
-     *
+     * <p>
      * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
      */
     @Getter
@@ -67,7 +78,7 @@ public class PermissionServiceImpl implements PermissionService {
      * 菜单编号与角色编号的缓存映射
      * key：菜单编号
      * value：角色编号的数组
-     *
+     * <p>
      * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
      */
     @Getter
@@ -78,7 +89,7 @@ public class PermissionServiceImpl implements PermissionService {
      * 用户编号与角色编号的缓存映射
      * key：用户编号
      * value：角色编号的数组
-     *
+     * <p>
      * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
      */
     @Getter
@@ -233,6 +244,44 @@ public class PermissionServiceImpl implements PermissionService {
     public Set<Long> getUserRoleIdListByUserId(Long userId) {
         return convertSet(userRoleMapper.selectListByUserId(userId),
                 UserRoleDO::getRoleId);
+    }
+
+    /**
+     * 获得用户拥有的角色集合
+     *
+     * @param userIds 用户编号集合
+     * @return 角色集合
+     */
+    @Override
+    public Map<Long, List<String>> mapRoleCodeListByUserIds(Collection<Long> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.select(UserRoleDO::getUserId, UserRoleDO::getRoleId);
+        wrapper.in(UserRoleDO::getUserId, userIds);
+
+        // 获得用户角色关联
+        List<UserRoleDO> userRoleList = userRoleMapper.selectList(wrapper);
+        Set<Long> roleIds = convertSet(userRoleList, UserRoleDO::getRoleId);
+        if (CollectionUtil.isEmpty(roleIds)) {
+            return Collections.emptyMap();
+        }
+
+        // 获得角色编号对应的角色
+        List<RoleDO> roles = roleService.getRoleListFromCache(roleIds);
+        if (CollectionUtil.isEmpty(roles)) {
+            return Collections.emptyMap();
+        }
+        Map<Long, String> roleMap = CollectionUtils.convertMap(roles, RoleDO::getId, RoleDO::getCode);
+        Map<Long, List<Long>> userRoleMap = CollectionUtils.convertMultiMap(userRoleList, UserRoleDO::getUserId, UserRoleDO::getRoleId);
+
+        Map<Long, List<String>> userRoleCodeMap = Maps.newHashMap();
+        userRoleMap.forEach((userId, roleIdList) -> {
+            List<String> roleCodeList = roleIdList.stream().map(roleMap::get).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+            userRoleCodeMap.put(userId, roleCodeList);
+        });
+        return userRoleCodeMap;
     }
 
     @Override

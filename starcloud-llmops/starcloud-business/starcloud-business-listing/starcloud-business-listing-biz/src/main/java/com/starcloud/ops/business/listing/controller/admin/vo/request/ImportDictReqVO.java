@@ -9,16 +9,9 @@ import java.util.List;
 
 @Data
 @Schema(description = "导入词库中的关键词")
-public class ImportDictReqVO {
-
-    @Schema(description = "草稿Uid")
-    @NotBlank(message = "草稿uid不能为空")
-    private String uid;
-
-    @Schema(description = "版本")
-    @Min(value = 1, message = "草稿版本必须大于零")
-    private Integer version;
+public class ImportDictReqVO extends DraftReqVO {
 
     @Schema(description = "词库Uid")
     private List<String> dictUid;
+
 }

@@ -5,16 +5,21 @@ import lombok.Getter;
 @Getter
 public enum DraftSortFieldEnum {
 
-    score("score"),
-    createTime("create_time"),
-    updateTime("update_time"),
+    score("score", "分数"),
+
+    createTime("create_time", "创建时间"),
+
+    updateTime("update_time", "更新时间"),
     ;
 
     private String column;
 
+    private String desc;
 
-    DraftSortFieldEnum(String column) {
+
+    DraftSortFieldEnum(String column, String desc) {
         this.column = column;
+        this.desc = desc;
     }
 
     public static String getColumn(String filed) {

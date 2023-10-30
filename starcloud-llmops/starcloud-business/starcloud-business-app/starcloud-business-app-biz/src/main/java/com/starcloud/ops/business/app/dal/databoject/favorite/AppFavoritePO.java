@@ -34,6 +34,11 @@ public class AppFavoritePO implements Serializable {
     private String name;
 
     /**
+     * 应用类型：SYSTEM：系统应用，MARKET：市场应用
+     */
+    private String type;
+
+    /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     private String model;
@@ -47,6 +52,11 @@ public class AppFavoritePO implements Serializable {
      * 应用语言
      */
     private String language;
+
+    /**
+     * 应用排序，越小越靠前
+     */
+    private Long sort;
 
     /**
      * 应用标签，多个以逗号分割
@@ -119,6 +129,11 @@ public class AppFavoritePO implements Serializable {
     private String example;
 
     /**
+     * 应用创建者
+     */
+    private String creator;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;
@@ -129,18 +144,18 @@ public class AppFavoritePO implements Serializable {
     private LocalDateTime updateTime;
 
     /**
+     * 收藏UID
+     */
+    private String favoriteUid;
+
+    /**
+     * 收藏者
+     */
+    private String favoriteCreator;
+
+    /**
      * 应用收藏时间
      */
     private LocalDateTime favoriteTime;
-
-    /**
-     * 创建者
-     */
-    private String creator;
-
-    /**
-     * 更新者，
-     */
-    private String updater;
 
 }

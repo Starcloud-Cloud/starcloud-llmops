@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.listing.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictCreateReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictKeyPageReqVO;
@@ -17,7 +19,6 @@ import com.starcloud.ops.business.listing.dal.dataobject.KeywordBindDO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDictDO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywordBindMapper;
 import com.starcloud.ops.business.listing.dal.mysql.ListingDictMapper;
-import com.starcloud.ops.business.listing.dto.KeywordMetaDataDTO;
 import com.starcloud.ops.business.listing.enums.AnalysisStatusEnum;
 import com.starcloud.ops.business.listing.service.DictService;
 import com.starcloud.ops.business.listing.service.KeywordBindService;
@@ -30,7 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -45,7 +48,6 @@ public class DictServiceImpl implements DictService {
 
     @Resource
     private KeywordBindService keywordBindService;
-
 
     @Resource
     private KeywordBindMapper keywordBindMapper;
@@ -70,15 +72,21 @@ public class DictServiceImpl implements DictService {
 
         List<String> keys = reqVO.getKeys();
         if (CollectionUtil.isNotEmpty(keys)) {
-            execute(keys, listingDictDO);
+            TreeSet<String> treeSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
+            List<String> distinctKeys = new ArrayList<>(treeSet);
+            execute(distinctKeys, listingDictDO);
         }
         return ListingDictConvert.INSTANCE.convert(listingDictDO);
     }
 
     @Override
-    public PageResult<DictRespVO> getDictPage(DictPageReqVO dictPageReqVO) {
-        PageResult<ListingDictDO> page = dictMapper.page(dictPageReqVO);
-        return ListingDictConvert.INSTANCE.convert(page);
+    public PageResult<DictRespVO> getDictPage(DictPageReqVO reqVO) {
+        Long count = dictMapper.count(reqVO);
+        if (count == null || count == 0) {
+            return new PageResult<>(Collections.emptyList(),count);
+        }
+        List<ListingDictDO> limitList = dictMapper.limitList(reqVO, reqVO.orderSql(), PageUtils.getStart(reqVO), reqVO.getPageSize());
+        return new PageResult<>(ListingDictConvert.INSTANCE.convert(limitList),count);
     }
 
 
@@ -91,22 +99,11 @@ public class DictServiceImpl implements DictService {
         }
 
         List<KeywordBindDO> oldKey = keywordBindMapper.getByDictId(dictDO.getId());
-        List<String> newKey = modifyReqVO.getKeywordResume();
 
-        ListingDictConvert.INSTANCE.updateParams(modifyReqVO, dictDO);
-        if (CollectionUtil.isNotEmpty(newKey)) {
-            List<Long> delKeyIds = new ArrayList<>();
-            for (KeywordBindDO keywordBindDO : oldKey) {
-                boolean remove = newKey.remove(keywordBindDO.getKeyword());
-                if (!remove) {
-                    delKeyIds.add(keywordBindDO.getId());
-                }
-            }
-            keywordBindMapper.deleteBatchIds(delKeyIds);
-            execute(newKey, dictDO);
-        } else {
-            dictMapper.updateById(dictDO);
+        if (!dictDO.getEndpoint().equals(modifyReqVO.getEndpoint()) && CollectionUtils.isNotEmpty(oldKey)) {
+            throw exception(KEYWORD_IS_NOT_EMPTY);
         }
+        updateById(dictDO);
     }
 
     @Override
@@ -132,7 +129,7 @@ public class DictServiceImpl implements DictService {
     public void addKeyword(String uid, List<String> keys) {
         ListingDictDO dictDO = getDict(uid);
         if (CollectionUtil.isEmpty(keys)) {
-            return;
+            throw exception(new ErrorCode(500, "新增关键词不能为空"));
         }
         List<String> newKey = keys.stream()
                 .map(String::trim).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
@@ -140,19 +137,31 @@ public class DictServiceImpl implements DictService {
         List<String> oldKey = keywordBindMapper.getByDictId(dictDO.getId())
                 .stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         newKey.removeAll(oldKey);
-        if (oldKey.size() + newKey.size() > 2000) {
-            throw exception(new ErrorCode(500, "关键词总个数不能超过2000，新增后数量:{}"), oldKey.size() + newKey.size());
+
+
+        TreeSet<String> treeSet = CollUtil.toTreeSet(newKey, String.CASE_INSENSITIVE_ORDER);
+        treeSet.addAll(oldKey);
+
+        if (treeSet.size() > 2000) {
+            throw exception(new ErrorCode(500, "关键词总个数不能超过2000，新增后数量:{}"), treeSet.size());
         }
-        execute(newKey, dictDO);
+
+        oldKey.forEach(treeSet::remove);
+        execute(new ArrayList<>(treeSet), dictDO);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void removeKey(String uid, List<String> keys) {
         if (CollectionUtils.isEmpty(keys)) {
             throw exception(new ErrorCode(500, "删除关键词不能为空"));
         }
         ListingDictDO dictDO = getDict(uid);
+        keys = keys.stream().map(String::trim).distinct().collect(Collectors.toList());
         keywordBindMapper.deleteDictKey(keys, dictDO.getId());
+        Long count = keywordBindMapper.selectCount(KeywordBindDO::getDictId, dictDO.getId());
+        dictDO.setCount(count);
+        updateById(dictDO);
     }
 
     @Override
@@ -173,18 +182,29 @@ public class DictServiceImpl implements DictService {
                 .distinct().collect(Collectors.toList());
         dictDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
         keywordBindService.addDictKeyword(keywords, dictDO.getId());
-        dictMapper.updateById(dictDO);
+
+        Long count = keywordBindMapper.selectCount(KeywordBindDO::getDictId, dictDO.getId());
+        dictDO.setCount(count);
+        updateById(dictDO);
         executor.execute(() -> {
             try {
+                long start = System.currentTimeMillis();
                 keywordBindService.analysisKeyword(keywords, dictDO.getEndpoint());
+                long end = System.currentTimeMillis();
+                dictDO.setAnalysisTime(end - start);
                 dictDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
-                dictMapper.updateById(dictDO);
+                updateById(dictDO);
             } catch (Exception e) {
                 log.error("分析关键词失败", e);
                 dictDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
-                dictMapper.updateById(dictDO);
+                updateById(dictDO);
             }
         });
+    }
+
+    private void updateById(ListingDictDO dictDO) {
+        dictDO.setUpdateTime(null);
+        dictMapper.updateById(dictDO);
     }
 
     private ListingDictDO getDict(String uid) {

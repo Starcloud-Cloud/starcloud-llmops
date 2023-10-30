@@ -3,6 +3,8 @@ package cn.iocoder.yudao.module.system.api.permission;
 import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -23,7 +25,7 @@ public interface PermissionApi {
     /**
      * 判断是否有权限，任一一个即可
      *
-     * @param userId 用户编号
+     * @param userId      用户编号
      * @param permissions 权限
      * @return 是否
      */
@@ -33,7 +35,7 @@ public interface PermissionApi {
      * 判断是否有角色，任一一个即可
      *
      * @param userId 用户编号
-     * @param roles 角色数组
+     * @param roles  角色数组
      * @return 是否
      */
     boolean hasAnyRoles(Long userId, String... roles);
@@ -45,5 +47,13 @@ public interface PermissionApi {
      * @return 部门数据权限
      */
     DeptDataPermissionRespDTO getDeptDataPermission(Long userId);
+
+    /**
+     * 获得用户拥有的角色编号集合
+     *
+     * @param userIds 用户编号集合
+     * @return 角色编号集合
+     */
+    Map<Long, List<String>> mapRoleCodeListByUserIds(Collection<Long> userIds);
 
 }

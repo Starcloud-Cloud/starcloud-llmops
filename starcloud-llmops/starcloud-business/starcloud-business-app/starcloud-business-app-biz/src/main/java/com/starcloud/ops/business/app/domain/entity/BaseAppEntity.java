@@ -103,6 +103,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private String source;
 
     /**
+     * 应用排序，越小越靠前
+     */
+    private Long sort;
+
+    /**
      * 应用类别
      */
     private String category;
@@ -256,6 +261,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     protected abstract void buildAppConversationLog(Q request, LogAppConversationCreateReqVO createRequest);
 
     /**
+     * 模版方法：获取应用的 AI 模型类型
+     *
+     * @param request 请求参数
+     */
+    protected abstract String obtainLlmAiModelType(Q request);
+
+    /**
      * 模版方法：新增应用
      */
     @JsonIgnore
@@ -310,7 +322,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             this.afterExecute(request, null);
 
             // 更新会话记录
-            this.successAppConversationLog(request.getConversationUid());
+            this.successAppConversationLog(request.getConversationUid(), request);
             log.info("应用执行结束: 应用UID: {}", this.getUid());
             return result;
 
@@ -318,14 +330,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.error("应用执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             this.afterExecute(request, exception);
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception));
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             throw exception;
 
         } catch (Exception exception) {
             log.error("应用执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception));
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             throw exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage());
         }
     }
@@ -359,18 +371,18 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     this.afterExecute(request, null);
                     log.info("应用异步执行结束: 应用UID： {}", this.getUid());
                     // 更新会话记录
-                    this.successAppConversationLog(request.getConversationUid());
+                    this.successAppConversationLog(request.getConversationUid(), request);
 
                 } catch (ServiceException exception) {
                     log.error("应用异步任务执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
                     // 更新会话记录
-                    this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception));
+                    this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
                     this.afterExecute(request, exception);
 
                 } catch (Exception exception) {
                     log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
                     // 更新会话记录
-                    this.failureAppConversationLog(request.getConversationUid(), String.valueOf(1), exception.getMessage());
+                    this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), exception.getMessage(), request);
                     this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, ExceptionUtil.stackTraceToString(exception)));
                 }
             });
@@ -378,12 +390,12 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         } catch (ServiceException exception) {
             log.error("应用异步执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception));
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             this.afterExecute(request, exception);
         } catch (Exception exception) {
             log.error("应用异步执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
-            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception));
+            this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
         }
     }
@@ -477,39 +489,42 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected String createAppConversationLog(Q request) {
-        LogAppConversationCreateReqVO reqVO = new LogAppConversationCreateReqVO();
+        LogAppConversationCreateReqVO createRequest = new LogAppConversationCreateReqVO();
         String conversationUid = request.getConversationUid();
         if (StringUtils.isBlank(conversationUid)) {
             conversationUid = IdUtil.fastSimpleUUID();
         }
-        reqVO.setUid(conversationUid);
-        reqVO.setAppUid(this.getUid());
-        reqVO.setAppName(this.getName());
-        reqVO.setAppMode(this.getModel());
-        reqVO.setStatus(LogStatusEnum.ERROR.name());
-        reqVO.setEndUser(request.getEndUser());
-        reqVO.setCreator(String.valueOf(request.getUserId()));
-        reqVO.setUpdater(String.valueOf(request.getUserId()));
-        reqVO.setTenantId(this.getTenantId());
-        reqVO.setFromScene(request.getScene());
-        this.buildAppConversationLog(request, reqVO);
-        logAppConversationService.createAppLogConversation(reqVO);
-        return reqVO.getUid();
+        createRequest.setUid(conversationUid);
+        createRequest.setAppUid(this.getUid());
+        createRequest.setAppName(this.getName());
+        createRequest.setAppMode(this.getModel());
+        createRequest.setStatus(LogStatusEnum.ERROR.name());
+        createRequest.setEndUser(request.getEndUser());
+        createRequest.setCreator(String.valueOf(request.getUserId()));
+        createRequest.setUpdater(String.valueOf(request.getUserId()));
+        createRequest.setTenantId(this.getTenantId());
+        createRequest.setFromScene(request.getScene());
+        createRequest.setAiModel(this.obtainLlmAiModelType(request));
+        this.buildAppConversationLog(request, createRequest);
+        logAppConversationService.createAppLogConversation(createRequest);
+        return createRequest.getUid();
     }
 
     /**
      * 更新会话状态为成功
      *
      * @param conversationUid 会话UID
+     * @param request         请求参数
      */
-    protected void successAppConversationLog(String conversationUid) {
+    protected void successAppConversationLog(String conversationUid, Q request) {
         log.info("应用执行成功：更新会话记录开始 会话 UID：{}...", conversationUid);
-        LogAppConversationStatusReqVO request = new LogAppConversationStatusReqVO();
-        request.setUid(conversationUid);
-        request.setStatus(LogStatusEnum.SUCCESS.name());
-        request.setErrorCode(null);
-        request.setErrorMsg(null);
-        this.updateAppConversationLog(request);
+        LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
+        updateRequest.setUid(conversationUid);
+        updateRequest.setAiModel(this.obtainLlmAiModelType(request));
+        updateRequest.setStatus(LogStatusEnum.SUCCESS.name());
+        updateRequest.setErrorCode(null);
+        updateRequest.setErrorMsg(null);
+        this.updateAppLogConversationStatus(updateRequest);
         log.info("应用执行成功：更新会话记录结束, 更新会话成功");
     }
 
@@ -517,21 +532,25 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * 更新会话状态为失败
      *
      * @param conversationUid 会话UID
+     * @param errorCode       错误码
+     * @param errorMsg        错误消息
+     * @param request         请求参数
      */
-    protected void failureAppConversationLog(String conversationUid, String errorCode, String errorMsg) {
+    protected void failureAppConversationLog(String conversationUid, String errorCode, String errorMsg, Q request) {
         log.info("应用执行失败：更新会话记录开始 会话 UID：{}, errorCode：{}，errorMsg：{} ...", conversationUid, errorCode, errorMsg);
-        LogAppConversationStatusReqVO request = new LogAppConversationStatusReqVO();
-        request.setUid(conversationUid);
-        request.setStatus(LogStatusEnum.ERROR.name());
-        request.setErrorCode(errorCode);
-        request.setErrorMsg(errorMsg);
-        this.updateAppConversationLog(request);
+        LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
+        updateRequest.setUid(conversationUid);
+        updateRequest.setAiModel(this.obtainLlmAiModelType(request));
+        updateRequest.setStatus(LogStatusEnum.ERROR.name());
+        updateRequest.setErrorCode(errorCode);
+        updateRequest.setErrorMsg(errorMsg);
+        this.updateAppLogConversationStatus(updateRequest);
         log.info("应用执行失败：更新会话记录结束, 更新会话成功");
     }
 
     @JsonIgnore
     @JSONField(serialize = false)
-    private void updateAppConversationLog(LogAppConversationStatusReqVO request) {
+    private void updateAppLogConversationStatus(LogAppConversationStatusReqVO request) {
         logAppConversationService.updateAppLogConversationStatus(request);
     }
 

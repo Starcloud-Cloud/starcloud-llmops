@@ -36,4 +36,16 @@ public class AppPublishReqVO implements Serializable {
     @Schema(description = "应用语言")
     private String language;
 
+    /**
+     * 应用市场类型
+     */
+    @Schema(description = "应用市场类型")
+    private String type;
+
+    /**
+     * 应用市场排序
+     */
+    @Schema(description = "应用市场排序")
+    private Long sort;
+
 }

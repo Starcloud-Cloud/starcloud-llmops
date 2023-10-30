@@ -40,6 +40,11 @@ public class UserUtils {
     public static final String ADMIN_ROLE = "MOFAAI_ADMIN";
 
     /**
+     * 后台运营角色
+     */
+    public static final String OPERATE_ROLE = "MOFAAI_DEV";
+
+    /**
      * 部门权限
      */
     private static final PermissionApi PERMISSION_API = SpringUtil.getBean(PermissionApi.class);
@@ -60,7 +65,16 @@ public class UserUtils {
      * @return
      */
     public static Boolean isAdmin() {
-        return SECURITY_FRAMEWORK_SERVICE.hasRole(ADMIN_ROLE);
+        return SECURITY_FRAMEWORK_SERVICE.hasAnyRoles(ADMIN_ROLE, OPERATE_ROLE);
+    }
+
+    /**
+     * 判断是否是不是管理员
+     *
+     * @return
+     */
+    public static Boolean isNotAdmin() {
+        return !isAdmin();
     }
 
     /**
@@ -133,6 +147,19 @@ public class UserUtils {
             return Collections.emptyMap();
         }
         return userList.stream().collect(Collectors.toMap(AdminUserDO::getId, AdminUserDO::getNickname));
+    }
+
+    /**
+     * 根据用户 ID 集合，获得用户角色集合
+     *
+     * @param userIds 用户 ID 集合
+     * @return 角色集合
+     */
+    public static Map<Long, List<String>> mapUserRoleCode(List<Long> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        return PERMISSION_API.mapRoleCodeListByUserIds(userIds);
     }
 
     /**

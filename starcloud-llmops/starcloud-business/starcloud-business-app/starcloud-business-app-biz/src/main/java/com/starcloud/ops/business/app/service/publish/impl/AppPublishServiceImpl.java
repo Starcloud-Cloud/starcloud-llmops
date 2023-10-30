@@ -83,9 +83,7 @@ public class AppPublishServiceImpl implements AppPublishService {
     @Override
     public PageResp<AppPublishRespVO> page(AppPublishPageReqVO query) {
         Page<AppPublishDO> page = appPublishMapper.page(query);
-        List<AppPublishRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppPublishConverter.INSTANCE::convert).collect(Collectors.toList());
-        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+        return AppPublishConverter.INSTANCE.convert(page);
     }
 
     /**
@@ -97,10 +95,7 @@ public class AppPublishServiceImpl implements AppPublishService {
     @Override
     public PageResp<AppPublishRespVO> pageAdmin(AppPublishPageReqVO query) {
         Page<AppPublishDO> page = appPublishMapper.page(query);
-        List<AppPublishRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppPublishConverter.INSTANCE::convert)
-                .collect(Collectors.toList());
-        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+        return AppPublishConverter.INSTANCE.convert(page);
     }
 
     /**
@@ -259,7 +254,6 @@ public class AppPublishServiceImpl implements AppPublishService {
         }
 
         appPublish.setUserId(SecurityFrameworkUtils.getLoginUserId());
-        // appPublish.setLanguage(request.getLanguage());
         // 查询该应用 UID 的发布记录
         List<AppPublishDO> appPublishRecords = appPublishMapper.listByAppUid(request.getAppUid());
         // 如果该应用 UID 有发布记录，说明不是第一次发布。

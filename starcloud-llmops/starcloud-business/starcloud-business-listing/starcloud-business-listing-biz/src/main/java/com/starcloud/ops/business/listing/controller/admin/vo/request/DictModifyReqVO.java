@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.listing.controller.admin.vo.request;
 
+import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
+import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -17,10 +19,12 @@ public class DictModifyReqVO {
     @Schema(description = "词库名称")
     private String name;
 
-    @Schema(description = "所有关键字")
-    private List<String> keywordResume;
 
     @Schema(description = "状态")
     private Boolean enable;
+
+    @Schema(description = "站点")
+    @InEnum(value = SellerSpriteMarketEnum.class, message = "应用类型[{value}]必须是: {values}")
+    private String endpoint;
 
 }

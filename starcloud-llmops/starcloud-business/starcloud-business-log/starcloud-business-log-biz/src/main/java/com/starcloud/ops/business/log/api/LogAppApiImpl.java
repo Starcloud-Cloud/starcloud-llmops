@@ -56,17 +56,6 @@ public class LogAppApiImpl implements LogAppApi {
     /**
      * 更新应用会话状态
      *
-     * @param uid        应用会话唯一标识
-     * @param statusEnum 应用会话状态
-     */
-    @Override
-    public void updateAppConversationStatus(String uid, LogStatusEnum statusEnum) {
-        logAppConversationService.updateAppLogConversationStatus(uid, statusEnum.name());
-    }
-
-    /**
-     * 更新应用会话状态
-     *
      * @param request 应用会话状态更新请求
      */
     @Override

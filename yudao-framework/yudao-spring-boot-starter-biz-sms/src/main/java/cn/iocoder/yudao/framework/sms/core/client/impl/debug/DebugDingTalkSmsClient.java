@@ -19,6 +19,7 @@ import cn.iocoder.yudao.framework.sms.core.enums.SmsTemplateAuditStatusEnum;
 import cn.iocoder.yudao.framework.sms.core.property.SmsChannelProperties;
 import cn.iocoder.yudao.framework.common.util.collection.MapUtils;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.Map;
  *
  * @author 芋道源码
  */
+@Slf4j
 public class DebugDingTalkSmsClient extends AbstractSmsClient {
 
     public DebugDingTalkSmsClient(SmsChannelProperties properties) {
@@ -69,6 +71,7 @@ public class DebugDingTalkSmsClient extends AbstractSmsClient {
         String responseText = HttpUtil.post(url, JsonUtils.toJsonString(params));
         // 解析结果
         Map<?, ?> responseObj = JsonUtils.parseObject(responseText, Map.class);
+        log.info("钉钉消息发送,请求为【{}】,解析结果为【{}】",responseText,responseObj);
         return SmsCommonResult.build(MapUtil.getStr(responseObj, "errcode"), MapUtil.getStr(responseObj, "errorMsg"),
                 null, new SmsSendRespDTO().setSerialNo(StrUtil.uuid()), codeMapping);
     }

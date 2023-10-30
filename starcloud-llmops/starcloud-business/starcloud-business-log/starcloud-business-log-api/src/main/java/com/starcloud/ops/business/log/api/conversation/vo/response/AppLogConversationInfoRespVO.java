@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.log.api.conversation.vo.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,6 +10,7 @@ import lombok.ToString;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode
 @NoArgsConstructor
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "LogAppConversationInfoRespVO", description = "应用会话信息响应 VO")
 public class AppLogConversationInfoRespVO implements Serializable {
 
@@ -53,6 +56,12 @@ public class AppLogConversationInfoRespVO implements Serializable {
      */
     @Schema(description = "执行场景")
     private String fromScene;
+
+    /**
+     * 使用的 ai 模型
+     */
+    @Schema(description = "使用的 ai 模型")
+    private String aiModel;
 
     /**
      * 请求总消耗token数
@@ -97,9 +106,15 @@ public class AppLogConversationInfoRespVO implements Serializable {
     private BigDecimal totalPrice;
 
     /**
-     * 执行状态，error：失败，success：成功
+     * 消耗积分
      */
-    @Schema(description = "执行状态，error：失败，success：成功")
+    @Schema(description = "消耗积分")
+    private Integer costPoints;
+
+    /**
+     * 执行状态，ERROR：失败，SUCCESS：成功
+     */
+    @Schema(description = "执行状态，ERROR：失败，SUCCESS：成功")
     private String status;
 
     /**
@@ -131,6 +146,12 @@ public class AppLogConversationInfoRespVO implements Serializable {
      */
     @Schema(description = "应用执行者（游客，用户，或者具体的用户）")
     private String appExecutor;
+
+    /**
+     * 用户等级
+     */
+    @Schema(description = "用户等级")
+    private List<String> userLevels;
 
     /**
      * 创建时间

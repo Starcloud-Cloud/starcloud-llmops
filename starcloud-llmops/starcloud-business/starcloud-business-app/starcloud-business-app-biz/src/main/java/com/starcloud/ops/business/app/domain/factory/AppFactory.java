@@ -79,7 +79,7 @@ public class AppFactory {
         if (StringUtils.isNotBlank(request.getAppUid())) {
             String appId = request.getAppUid();
             // 应用市场场景
-            if (AppSceneEnum.WEB_MARKET.name().equals(request.getScene()) || AppSceneEnum.OPTIMIZE_PROMPT.name().equals(request.getScene())) {
+            if (AppSceneEnum.isMarketScene(AppSceneEnum.valueOf(request.getScene()))) {
                 AppMarketEntity market = Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(appId) : AppFactory.factoryMarket(appId, request.getAppReqVO());
                 return market;
                 // 应用创作中心
@@ -152,7 +152,7 @@ public class AppFactory {
             imageAppEntity.setName(imageApp.getLabel());
             imageAppEntity.setModel(StringUtils.isBlank(request.getMode()) ? AppModelEnum.IMAGE.name() : request.getMode());
             imageAppEntity.setScenes(Collections.singletonList(AppSceneEnum.valueOf(request.getScene()).name()));
-            imageAppEntity.setType(AppTypeEnum.MYSELF.name());
+            imageAppEntity.setType(AppTypeEnum.SYSTEM.name());
             imageAppEntity.setSource(AppSourceEnum.WEB.name());
             ImageConfigEntity imageConfigEntity = new ImageConfigEntity();
             imageConfigEntity.setInfo(request.getImageRequest());

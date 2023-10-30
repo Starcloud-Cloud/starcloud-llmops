@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用管理接口
@@ -58,11 +59,11 @@ public class AppController {
         return CommonResult.success(appService.categoryTree());
     }
 
-    @GetMapping("/languages")
-    @Operation(summary = "查询应用语言列表", description = "查询语言列表")
+    @GetMapping("/metadata")
+    @Operation(summary = "查询元数据", description = "查询元数据")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<List<Option>> languages() {
-        return CommonResult.success(appService.languages());
+    public CommonResult<Map<String, List<Option>>> metadata() {
+        return CommonResult.success(appService.metadata());
     }
 
     @GetMapping("/recommends")

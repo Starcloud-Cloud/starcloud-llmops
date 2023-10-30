@@ -19,9 +19,20 @@ public interface KeywordBindService {
      *
      * @param keys
      * @param endpoint {@link com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum}
+     * @param filter
      * @return
      */
-    List<KeywordMetaDataDTO> getMetaData(List<String> keys, String endpoint);
+    List<KeywordMetaDataDTO> getMetaData(List<String> keys, String endpoint, Boolean filter);
+
+    /**
+     * 查询关键词元数据 按搜索量排序
+     *
+     * @param draftId
+     * @param endpoint
+     * @param filter
+     * @return
+     */
+    List<KeywordMetaDataDTO> getMetaData(Long draftId, String endpoint, Boolean filter);
 
 
     /**

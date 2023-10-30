@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
@@ -34,6 +35,11 @@ public class KeywordBindServiceImpl implements KeywordBindService {
 
     @Override
     public void analysisKeyword(List<String> keys, String endpoint) {
+        if (CollectionUtils.isEmpty(keys)) {
+            log.warn("关键词为空");
+            return;
+        }
+        keys = keys.stream().map(String::toLowerCase).collect(Collectors.toList());
         long start = System.currentTimeMillis();
         log.info("开始分析关键词");
         Boolean success = metadataService.addMetaData(keys, endpoint);
@@ -46,16 +52,28 @@ public class KeywordBindServiceImpl implements KeywordBindService {
     }
 
     @Override
-    public List<KeywordMetaDataDTO> getMetaData(List<String> keys, String endpoint) {
+    public List<KeywordMetaDataDTO> getMetaData(List<String> keys, String endpoint, Boolean filter) {
         if (CollectionUtils.isEmpty(keys)) {
             return Collections.emptyList();
         }
         long start = System.currentTimeMillis();
+        keys = keys.stream().map(String::toLowerCase).collect(Collectors.toList());
         log.info("开始查询关键词");
         List<KeywordMetadataBasicRespVO> keywordsBasic = metadataService.getKeywordsBasic(keys, endpoint);
         long end = System.currentTimeMillis();
         log.info("查询关键词成功, {} ms", end - start);
-        return ListingKeywordConvert.INSTANCE.convert(keywordsBasic);
+        if (filter) {
+            keywordsBasic = keywordsBasic.stream().filter(k -> {
+                return k.getSearches() != null && k.getSearches() > 0;
+            }).collect(Collectors.toList());
+        }
+        return ListingKeywordConvert.INSTANCE.convert(keywordsBasic).stream().sorted((a, b) -> Math.toIntExact(b.mouthSearches() - a.mouthSearches())).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<KeywordMetaDataDTO> getMetaData(Long draftId, String endpoint, Boolean filter) {
+        List<String> keys = keywordBindMapper.getByDraftId(draftId).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
+        return getMetaData(keys, endpoint, filter);
     }
 
     @Override

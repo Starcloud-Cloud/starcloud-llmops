@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
  * @version 1.0.0
  * @since 2023-06-12
  */
+@SuppressWarnings("all")
 public interface ErrorCodeConstants {
 
     // 1.========== 通用错误 300 000 xxx ==========
@@ -16,6 +17,10 @@ public interface ErrorCodeConstants {
      */
     ErrorCode USER_MAY_NOT_LOGIN = new ErrorCode(300000401, "用户未登录，请先登录您的账号！");
 
+    /**
+     * Prompt 是必须的
+     */
+    ErrorCode PROMPT_IS_REQUIRED = new ErrorCode(300000402, "Prompt是必须的，请检查后重试！");
 
     // ========== 基本增删改查错误码 ==========
 
@@ -44,6 +49,11 @@ public interface ErrorCodeConstants {
     /**
      * 不支持的应用分类
      */
+    ErrorCode APP_CATEGORY_REQUIRED = new ErrorCode(300100150, "应用分类是必填项！");
+
+    /**
+     * 不支持的应用分类
+     */
     ErrorCode APP_CATEGORY_NONSUPPORT = new ErrorCode(300100150, "不支持的应用分类，请检查后重试（{}）！");
 
     /**
@@ -55,6 +65,11 @@ public interface ErrorCodeConstants {
      * 应用类目不存在
      */
     ErrorCode APP_CATEGORY_NON_EXISTENT = new ErrorCode(300100152, "应用类目不存在，请检查后重试（{}）！");
+
+    /**
+     * 不支持的应用类型
+     */
+    ErrorCode APP_TYPE_NONSUPPORT = new ErrorCode(300100153, "不支持的应用类型，请检查后重试（{}）！");
 
     // ========== 应用市场错误码 300 200 xxx ==========
 
@@ -88,17 +103,28 @@ public interface ErrorCodeConstants {
      */
     ErrorCode MARKET_OPERATE_NOT_SUPPORTED = new ErrorCode(300200410, "应用市场不支持该操作，请稍后重试或者联系管理员（{}）！");
 
+    /**
+     * 请求参数不能为 null
+     */
+    ErrorCode MARKET_QUERY_REQUIRED = new ErrorCode(300200410, "请求参数是必填的！");
+
     // ========== 应用收藏错误码 300 300 xxx ==========
+
+    /**
+     * 收藏UID是必须的
+     */
+    ErrorCode FAVORITE_UID_IS_REQUIRED = new ErrorCode(300300110, "收藏UID是必须的，请检查后重试！");
 
     /**
      * 应用收藏不存在
      */
-    ErrorCode FAVORITE_APP_NON_EXISTENT = new ErrorCode(300300110, "应用收藏不存在，请稍后重试或者联系管理员（{}）！");
+    ErrorCode FAVORITE_APP_NON_EXISTENT = new ErrorCode(300300120, "应用收藏不存在，请稍后重试或者联系管理员（{}）！");
 
     /**
      * 该应用已经被收藏了
      */
-    ErrorCode FAVORITE_APP_BEAN = new ErrorCode(300300120, "该应用已经被收藏了，您可以在收藏列表中查看！");
+    ErrorCode FAVORITE_APP_ALREADY_EXISTS = new ErrorCode(300300130, "该应用已经被收藏了，您可以在收藏列表中查看！");
+
 
     // ========== 应用发布错误码 300 400 xxx ==========
 
@@ -248,6 +274,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_APP_RESULT_NON_EXISTENT = new ErrorCode(31010510, "生成信息不存在，请稍后重试或者联系管理员（{}）！");
 
+    /**
+     * 执行结果不存在
+     */
+    ErrorCode EXECUTE_APP_GET_COST_FAILURE = new ErrorCode(31010510, "应用执行获取扣除魔力值数值异常！");
+
 
     // ========== 应用市场执行错误码 310 200 xxx ==========
 
@@ -269,6 +300,11 @@ public interface ErrorCodeConstants {
      * 图片应用执行错误码
      */
     ErrorCode EXECUTE_IMAGE_FAILURE = new ErrorCode(310400000, "图片应用执行失败，请稍后重试或者联系管理员（{}）！");
+
+    /**
+     * 图片应用执行失败，未找到对应的图片处理器！
+     */
+    ErrorCode EXECUTE_IMAGE_HANDLER_NOT_FOUND = new ErrorCode(310400001, "图片应用执行失败，未找到对应的图片处理器！");
 
     /**
      * 生成图片失败，请重试或者联系管理员
@@ -306,14 +342,41 @@ public interface ErrorCodeConstants {
     ErrorCode EXECUTE_IMAGE_FEIGN_429_FAILURE = new ErrorCode(310400429, "生成图片失败：当前请求过多！。请稍后重试或联系管理员！");
 
     /**
-     * 生成图片失败, feign 调用失败， 余额不足！请购买点数！
+     * 生成图片失败, feign 调用失败， 系统异常！
      */
-    ErrorCode EXECUTE_IMAGE_FEIGN_500_FAILURE = new ErrorCode(310400450, "生成图片失败：系统异常！。请稍后重试或联系管理员！");
+    ErrorCode EXECUTE_IMAGE_FEIGN_500_FAILURE = new ErrorCode(310400450, "生成图片失败：系统异常！请稍后重试或联系管理员！");
+
+    /**
+     * 生成图片失败, feign 调用失败， 系统异常！
+     */
+    ErrorCode EXECUTE_IMAGE_FEIGN_TIME_OUT_FAILURE = new ErrorCode(310400460, "生成图片失败：连接超时！。请稍后重试或联系管理员！");
 
     /**
      * 创建图片实体失败
      */
     ErrorCode BUILD_IMAGE_ENTITY_FAILURE = new ErrorCode(310400500, "图片生成失败，不支持的appUid（{}）！");
+
+    // ========== Listing 应用执行错误码 310 500 xxx ==========
+
+    /**
+     * Listing 生成失败
+     */
+    ErrorCode EXECUTE_LISTING_FAILURE = new ErrorCode(310500000, "Listing 生成失败，请稍后重试或联系管理员！");
+
+    /**
+     * Listing 生成失败，系统配置错误
+     */
+    ErrorCode EXECUTE_LISTING_CONFIG_FAILURE = new ErrorCode(310500100, "Listing 生成失败，系统配置错误！请联系管理员！");
+
+    /**
+     * Listing 生成失败，系统配置错误
+     */
+    ErrorCode EXECUTE_LISTING_STEP_FAILURE = new ErrorCode(310500101, "Listing 生成失败，系统步骤错误！请联系管理员！");
+
+    /**
+     * Listing 生成失败，系统变量错误
+     */
+    ErrorCode EXECUTE_LISTING_VARIABLE_FAILURE = new ErrorCode(310500102, "Listing 生成失败，系统变量错误！请联系管理员！");
 
     // ========== 图片上传错误码 370 000 xxx ==========
 
@@ -351,6 +414,11 @@ public interface ErrorCodeConstants {
      * 图片信息获取失败
      */
     ErrorCode IMAGE_INFO_FAILURE = new ErrorCode(370000160, "图片信息获取失败，请稍后重试或者联系管理员！");
+
+    /**
+     * 图片像素超过限制
+     */
+    ErrorCode IMAGE_PIXEL_LIMIT_FAILURE = new ErrorCode(370000170, "上传图片大小不能超过{}({}像素)，请重新上传！");
 
     /**
      * 获取文件信息失败
@@ -398,6 +466,5 @@ public interface ErrorCodeConstants {
     ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400010, "{} 实际的配置类型是 {}");
 
     ErrorCode CHAT_CONFIG_IS_REPEAT = new ErrorCode(300400011, "{}已经存在 , {}");
-
 
 }

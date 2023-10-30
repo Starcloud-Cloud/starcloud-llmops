@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.api.market.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.response.InstalledRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -44,6 +43,24 @@ public class AppMarketRespVO implements Serializable {
     private String name;
 
     /**
+     * 应用名称拼音
+     */
+    @Schema(description = "应用名称拼音")
+    private String spell;
+
+    /**
+     * 应用名称拼音简拼
+     */
+    @Schema(description = "应用名称拼音简拼")
+    private String spellSimple;
+
+    /**
+     * 应用类型
+     */
+    @Schema(description = "应用类型")
+    private String type;
+
+    /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @Schema(description = "应用模型：CHAT：聊天式应用，COMPLETION：生成式应用")
@@ -60,6 +77,12 @@ public class AppMarketRespVO implements Serializable {
      */
     @Schema(description = "应用语言")
     private String language;
+
+    /**
+     * 应用排序，越小越靠前
+     */
+    @Schema(description = "应用排序")
+    private Long sort;
 
     /**
      * 应用类别
@@ -191,9 +214,9 @@ public class AppMarketRespVO implements Serializable {
     private String updater;
 
     /**
-     * 应用安装信息
+     * 是否收藏
      */
-    @Schema(description = "应用安装信息")
-    private InstalledRespVO installInfo;
+    @Schema(description = "是否收藏")
+    private Boolean isFavorite;
 
 }

@@ -3,7 +3,7 @@ package com.starcloud.ops.business.log.controller.admin;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
-import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageExportReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageUpdateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.response.LogAppMessageRespVO;
 import com.starcloud.ops.business.log.convert.LogAppMessageConvert;
@@ -93,7 +93,7 @@ public class LogAppMessageController {
     @Operation(summary = "导出应用执行日志结果 Excel")
     @PreAuthorize("@ss.hasPermission('log:app-message:export')")
     @OperateLog(type = EXPORT)
-    public void exportAppMessageExcel(@Valid LogAppMessageExportReqVO exportReqVO,
+    public void exportAppMessageExcel(@Valid LogAppMessageListReqVO exportReqVO,
                                       HttpServletResponse response) throws IOException {
         List<LogAppMessageDO> list = appMessageService.listAppLogMessage(exportReqVO);
         // 导出 Excel

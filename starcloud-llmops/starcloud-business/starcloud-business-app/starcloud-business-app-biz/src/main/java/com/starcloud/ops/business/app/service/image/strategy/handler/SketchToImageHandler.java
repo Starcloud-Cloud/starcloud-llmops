@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -37,8 +37,23 @@ import java.util.Objects;
 @ImageScene(AppSceneEnum.IMAGE_SKETCH)
 public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest, SketchToImageResponse> {
 
+    /**
+     * 图片处理引擎
+     */
+    private static final String ENGINE = "clip-drop-sketch-to-image";
+
     @Resource
     private ClipDropImageService clipDropImageService;
+
+    /**
+     * 获取图片处理引擎
+     *
+     * @param request 请求
+     */
+    @Override
+    public String obtainEngine(SketchToImageRequest request) {
+        return ENGINE;
+    }
 
     /**
      * 构建图片配置信息配置
@@ -60,9 +75,9 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
     public SketchToImageResponse handleImage(SketchToImageRequest request) {
         log.info("草图生成图片开始...");
         // 上传草图
-        byte[] imageBytes = ImageUtils.handlerBase64Image(request.getSketchImage()).getBytes(StandardCharsets.UTF_8);
+        byte[] imageBytes = Base64.getDecoder().decode(ImageUtils.handlerBase64Image(request.getSketchImage()));
         String uuid = IdUtil.fastSimpleUUID();
-        String url = ImageUploadUtils.upload(uuid, MediaType.IMAGE_PNG_VALUE, ImageUploadUtils.GENERATE, imageBytes);
+        String url = ImageUploadUtils.upload(uuid, MediaType.IMAGE_PNG_VALUE, ImageUploadUtils.UPLOAD, imageBytes);
 
         SketchToImageClipDropRequest sketchToImageClipDropRequest = new SketchToImageClipDropRequest();
         sketchToImageClipDropRequest.setPrompt(request.getPrompt());
@@ -84,6 +99,18 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
     }
 
     /**
+     * 获取图片处理的积分
+     *
+     * @param request  请求
+     * @param response 响应
+     * @return 积分
+     */
+    @Override
+    public Integer getCostPoints(SketchToImageRequest request, SketchToImageResponse response) {
+        return 6;
+    }
+
+    /**
      * 处理日志消息
      *
      * @param messageRequest 日志信息
@@ -97,6 +124,5 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
             messageRequest.setTotalPrice(new BigDecimal("1.6").multiply(ImageUtils.CD_PRICE));
         }
         messageRequest.setMessage(request.getPrompt());
-        messageRequest.setAiModel("clip-drop");
     }
 }
