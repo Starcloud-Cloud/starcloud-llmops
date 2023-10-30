@@ -2,8 +2,10 @@ package com.starcloud.ops.business.listing.service;
 
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.listing.vo.ListingGenerateRequest;
+import com.starcloud.ops.framework.common.api.dto.Option;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Listing 生成服务，用于生成 Listing 标题，五点描述，产品描述等
@@ -13,6 +15,13 @@ import java.util.List;
  * @since 2023-10-26
  */
 public interface ListingGenerateService {
+
+    /**
+     * Listing 生成元数据
+     *
+     * @return Listing 生成元数据
+     */
+    Map<String, List<Option>> metadata();
 
     /**
      * 根据应用标签获取应用
