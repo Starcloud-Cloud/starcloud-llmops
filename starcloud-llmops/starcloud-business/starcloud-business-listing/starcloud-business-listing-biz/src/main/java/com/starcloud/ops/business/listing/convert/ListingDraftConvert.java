@@ -55,7 +55,7 @@ public interface ListingDraftConvert {
         if (CollectionUtil.isEmpty(map)) {
             return StringUtils.EMPTY;
         }
-        StringJoiner sj = new StringJoiner("\n");
+        StringJoiner sj = new StringJoiner("\r\n");
         for (String value : map.values()) {
             sj.add(value);
         }
