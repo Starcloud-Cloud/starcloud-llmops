@@ -24,7 +24,7 @@ import java.util.List;
 @Slf4j
 public class SellerSpriteServiceImpl implements SellerSpriteService {
 
-    private final static String COOKIE = "MEIQIA_TRACK_ID=2WbpzKeSozvXT6jCxLOV3h5SPA8; MEIQIA_VISIT_ID=2WbpzHqu0m2z4JeaNRZ2ONCiOX0; current_guest=g6KFXKURsWAh_231011-169653; t_size=50; t_order_field=created_time; t_order_flag=2; p_c_size=20; k_size=50; ecookie=lLlQblAIj8wXGXLQ_CN; _ga_GJFEMFESN5=GS1.1.1697177537.3.0.1697177537.0.0.0; _fp=e922ffabd141ac6185d3e637c34b6f61; 3dad916b41181eaa1ee1=7face27cbe3bd754a9e28bf2b6ae7946; 7bd3ab8ce917b765cafb=d0cf887b23ed257c631c1af078e18a23; _gid=GA1.2.1647017292.1698136054; _gaf_fp=988e8bc580692033346d06954cd3252f; rank-login-user=8441628961OZVWHSUVTxPnXpZhKTXe25aR/RustiuBuS2Bz2Ve5FLCbnZQhzfzic7Hhsh1a/x5; rank-login-user-info=\"eyJuaWNrbmFtZSI6IuadreW3numYv+ivuuS/riIsImlzQWRtaW4iOmZhbHNlLCJhY2NvdW50IjoiMTU2KioqKjYyODEiLCJ0b2tlbiI6Ijg0NDE2Mjg5NjFPWlZXSFNVVlR4UG5YcFpoS1RYZTI1YVIvUnVzdGl1QnVTMkJ6MlZlNUZMQ2JuWlFoemZ6aWM3SGhzaDFhL3g1In0=\"; Sprite-X-Token=eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2Nzk5NjI2YmZlMDQzZTBiYzI5NTEwMTE4ODA3YWExIn0.eyJqdGkiOiJZa0lJR3BuUDV1ZzBDZDFEbXlmZk5BIiwiaWF0IjoxNjk4MjAzODQ4LCJleHAiOjE2OTgyOTAyNDgsIm5iZiI6MTY5ODIwMzc4OCwic3ViIjoieXVueWEiLCJpc3MiOiJyYW5rIiwiYXVkIjoic2VsbGVyU3BhY2UiLCJpZCI6ODM3MDg0LCJwaSI6bnVsbCwibm4iOiLmna3lt57pmL_or7rkv64iLCJzeXMiOiJTU19DTiIsImVkIjoiTiIsInBobiI6IjE1NjU4ODA2MjgxIiwibWwiOiJHIn0.EStqcBIvulYbdH0kT732YmW_DqzZ94_87kw5T6BweG0xeCAXZCGoC2pULthA8v6uueyVGIV4_Nk9gQ-iVAAKMkFRM2zsui8hBRjf2PGAEU3Betsi71b3m0_hC-Rp4Ndw_14Fj0_mI67rULE8cS5X9Me0edeOxWh72NtYjO3CoZ-EuItUPIgz70OJAqdOwgFF-gA7xMMuOBO0JdvniY0RG7FuxbATHjOQNuMzLaK2_MvUKDvhXIM1laqmk9jZmnZC3z6XVlHCCejWP_DnC3XmqROIt5Fnhw9ukIyevcEKEfnc-HKa9qLGZhUYnvSuNNZ20wfWGLo9s1qO-FVDew7Ubw; rank-guest-user=8441628961OZVWHSUVTxPnXpZhKTXe2y81sA/GqKeAx7CGl+LDFWA9QTWiW3XhBy0lIiW/M4iv; _gat_gtag_UA_135032196_1=1; _ga=GA1.1.1322928940.1697011393; JSESSIONID=4EAE9D142582D8A4A77C1126BDBC28D7; _ga_38NCVF2XST=GS1.1.1698227073.34.1.1698227088.45.0.0; _ga_CN0F80S6GL=GS1.1.1698227073.32.1.1698227088.0.0.0";
+    private final static String COOKIE = "MEIQIA_TRACK_ID=2WbpzKeSozvXT6jCxLOV3h5SPA8; MEIQIA_VISIT_ID=2WbpzHqu0m2z4JeaNRZ2ONCiOX0; current_guest=g6KFXKURsWAh_231011-169653; t_size=50; t_order_field=created_time; t_order_flag=2; p_c_size=20; k_size=50; ecookie=lLlQblAIj8wXGXLQ_CN; _ga_GJFEMFESN5=GS1.1.1697177537.3.0.1697177537.0.0.0; _fp=e922ffabd141ac6185d3e637c34b6f61; 7bd3ab8ce917b765cafb=d0cf887b23ed257c631c1af078e18a23; c6f03d623f0773934159=ca964141e81295b935213dc2f1958831; _gid=GA1.2.426447997.1698644183; _gaf_fp=02582e03a79a66c2951c2b8c38e98554; rank-login-user=4670178961mUootleoLbIj0RbLIgjOQM1ZXtFb3KdLEyDALzBwBhyo4RlQ25M2Zh5JOCsFDLca; rank-login-user-info=\"eyJuaWNrbmFtZSI6InN0YXJjbG91ZDAxIiwiaXNBZG1pbiI6ZmFsc2UsImFjY291bnQiOiJzdGFyY2xvdWQwMSIsInRva2VuIjoiNDY3MDE3ODk2MW1Vb290bGVvTGJJajBSYkxJZ2pPUU0xWlh0RmIzS2RMRXlEQUx6QndCaHlvNFJsUTI1TTJaaDVKT0NzRkRMY2EifQ==\"; Sprite-X-Token=eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2Nzk5NjI2YmZlMDQzZTBiYzI5NTEwMTE4ODA3YWExIn0.eyJqdGkiOiJ1Y0daZEFSX2JGc2tYMTVuOVZNN0FRIiwiaWF0IjoxNjk4NjUzMTY0LCJleHAiOjE2OTg3Mzk1NjQsIm5iZiI6MTY5ODY1MzEwNCwic3ViIjoieXVueWEiLCJpc3MiOiJyYW5rIiwiYXVkIjoic2VsbGVyU3BhY2UiLCJpZCI6ODQ3ODA5LCJwaSI6ODQ3NzU4LCJubiI6IuWkp-mjniIsInN5cyI6IlNTX0NOIiwiZWQiOiJOIiwibWwiOiJTIiwiZW5kIjoxNzI5OTI5OTY0MjgyfQ.ZZwnBx0vnf2ZnOsi7Zi8TGdIo4jMSxpdenvg0pViJBH4UCcb4K_gm32DuWQT1xCZHw7FlhvNb2rFdWDm8P0Ly2lf13wGWlVlt7i-NJO9Q5ckciMuiXGinzAe7sENjxmb17ZNk7KapIaPeN2at6EuUUXXADNNBr3wb_r5-wxbOXPSvBF0XAmykbJNzJlCPacb-LXYbEg0ol0a_P7HvIrNo3JamRq3hW8h42tQkad581Sm49c6PsyTIwj6Z2U-v4GK-F8FWx_nAyIZ1XIAPr6NLP7e3tBrmX4sDByKnSfN3_D4m6GMKwVtQ1zGRaErojt3O3f2a9AwXeOGewWgCMWtuA; ao_lo_to_n=\"4670178961mUootleoLbIj0RbLIgjOQH8mXX8DVtFEDSE3j5jpGsCT2AaEZKlgRnENgGTs2hx5u2Ljzyt29CGvaazdwCnec8G0/D6rYLoCgWoBTDWRS1c=\"; _ga=GA1.1.1322928940.1697011393; JSESSIONID=4E58286EB8B53FB741B54E6BAD71D2BD; _ga_38NCVF2XST=GS1.1.1698660956.39.0.1698660956.60.0.0; _ga_CN0F80S6GL=GS1.1.1698660956.37.0.1698660956.0.0.0" ;
 
     /**
      * 卖家精灵 API 地址
@@ -145,6 +145,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     public SellerSpriteListingVO getListingByAsin(String asin, Integer market) {
 
         String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, String.format("asin=%s&marketPlace=%s",asin,market ), COOKIE);
+
         Assert.notBlank(reposeResult,"系统繁忙，请稍后再试");
         return JSONUtil.toBean(reposeResult, SellerSpriteListingVO.class);
     }
@@ -174,6 +175,8 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                 return JSONUtil.toJsonStr(entries.getObj("data"));
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                 log.error("卖家精灵登录失效");
+                throw new Exception("卖家精灵登录失效");
+
             }
             return null;
         } catch (Exception e) {
@@ -195,10 +198,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                     .body(requestData).cookie(cookie)
                     .execute().body();
             JSONObject entries = JSONUtil.parseObj(result);
-            if (!result.isEmpty() || entries.getBool("success", false)) {
+            if (!result.isEmpty() && entries.getBool("success", false)) {
                 return JSONUtil.toJsonStr(entries.getObj("data"));
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                 log.error("卖家精灵登录失效");
+                throw new Exception("卖家精灵登录失效");
             }
             return null;
         } catch (Exception e) {
