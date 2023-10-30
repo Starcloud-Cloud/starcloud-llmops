@@ -8,6 +8,7 @@ import com.starcloud.ops.business.listing.vo.ListingGenerateRequest;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +36,7 @@ public class ListingGenerateController {
     @PostMapping("/title")
     @ApiOperationSupport(order = 10, author = "nacoyer")
     @Operation(summary = "生成Listing标题")
-    public SseEmitter title(@RequestBody ListingGenerateRequest request, HttpServletResponse httpServletResponse) {
+    public SseEmitter title(@Validated @RequestBody ListingGenerateRequest request, HttpServletResponse httpServletResponse) {
         // 设置响应头
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
@@ -53,7 +54,7 @@ public class ListingGenerateController {
     @PostMapping("/bulletPoint")
     @ApiOperationSupport(order = 20, author = "nacoyer")
     @Operation(summary = "生成Listing五点描述")
-    public SseEmitter bulletPoint(@RequestBody ListingGenerateRequest request, HttpServletResponse httpServletResponse) {
+    public SseEmitter bulletPoint(@Validated @RequestBody ListingGenerateRequest request, HttpServletResponse httpServletResponse) {
         // 设置响应头
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
@@ -71,7 +72,7 @@ public class ListingGenerateController {
     @PostMapping("/productDescription")
     @ApiOperationSupport(order = 20, author = "nacoyer")
     @Operation(summary = "生成Listing产品描述")
-    public SseEmitter productDescription(@RequestBody ListingGenerateRequest request, HttpServletResponse httpServletResponse) {
+    public SseEmitter productDescription(@Validated @RequestBody ListingGenerateRequest request, HttpServletResponse httpServletResponse) {
         // 设置响应头
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);

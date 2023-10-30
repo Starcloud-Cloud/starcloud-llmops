@@ -113,7 +113,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
      * @param query 查询条件
      * @return 应用详情
      */
-    AppMarketDO get(AppMarketQuery query);
+    AppMarketDO get(@Param("query") AppMarketQuery query);
 
     /**
      * 创建应用市场应用
