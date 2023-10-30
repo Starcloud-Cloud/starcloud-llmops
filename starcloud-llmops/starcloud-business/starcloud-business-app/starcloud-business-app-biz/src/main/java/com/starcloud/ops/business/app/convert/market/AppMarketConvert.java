@@ -213,7 +213,21 @@ public interface AppMarketConvert {
         return appMarketEntity;
     }
 
+    /**
+     * 请求转为entity
+     *
+     * @param appRequest 请求
+     * @return entity
+     */
     AppMarketEntity convert(AppReqVO appRequest);
+
+    /**
+     * 将返回转换为 AppReqVO
+     *
+     * @param response
+     * @return AppReqVO
+     */
+    AppReqVO convert(AppMarketRespVO response);
 
     /**
      * AppMarketDO 转 AppMarketRespVO

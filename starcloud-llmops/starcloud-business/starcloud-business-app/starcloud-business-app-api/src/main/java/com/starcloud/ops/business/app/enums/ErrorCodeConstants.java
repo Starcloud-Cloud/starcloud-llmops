@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
  * @version 1.0.0
  * @since 2023-06-12
  */
+@SuppressWarnings("all")
 public interface ErrorCodeConstants {
 
     // 1.========== 通用错误 300 000 xxx ==========
@@ -343,7 +344,7 @@ public interface ErrorCodeConstants {
     /**
      * 生成图片失败, feign 调用失败， 系统异常！
      */
-    ErrorCode EXECUTE_IMAGE_FEIGN_500_FAILURE = new ErrorCode(310400450, "生成图片失败：系统异常！。请稍后重试或联系管理员！");
+    ErrorCode EXECUTE_IMAGE_FEIGN_500_FAILURE = new ErrorCode(310400450, "生成图片失败：系统异常！请稍后重试或联系管理员！");
 
     /**
      * 生成图片失败, feign 调用失败， 系统异常！
@@ -354,6 +355,28 @@ public interface ErrorCodeConstants {
      * 创建图片实体失败
      */
     ErrorCode BUILD_IMAGE_ENTITY_FAILURE = new ErrorCode(310400500, "图片生成失败，不支持的appUid（{}）！");
+
+    // ========== Listing 应用执行错误码 310 500 xxx ==========
+
+    /**
+     * Listing 生成失败
+     */
+    ErrorCode EXECUTE_LISTING_FAILURE = new ErrorCode(310500000, "Listing 生成失败，请稍后重试或联系管理员！");
+
+    /**
+     * Listing 生成失败，系统配置错误
+     */
+    ErrorCode EXECUTE_LISTING_CONFIG_FAILURE = new ErrorCode(310500100, "Listing 生成失败，系统配置错误！请联系管理员！");
+
+    /**
+     * Listing 生成失败，系统配置错误
+     */
+    ErrorCode EXECUTE_LISTING_STEP_FAILURE = new ErrorCode(310500101, "Listing 生成失败，系统步骤错误！请联系管理员！");
+
+    /**
+     * Listing 生成失败，系统变量错误
+     */
+    ErrorCode EXECUTE_LISTING_VARIABLE_FAILURE = new ErrorCode(310500102, "Listing 生成失败，系统变量错误！请联系管理员！");
 
     // ========== 图片上传错误码 370 000 xxx ==========
 

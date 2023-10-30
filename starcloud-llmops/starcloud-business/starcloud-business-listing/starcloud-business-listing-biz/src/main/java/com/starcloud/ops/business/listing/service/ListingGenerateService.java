@@ -22,28 +22,12 @@ public interface ListingGenerateService {
      */
     AppMarketRespVO getApp(List<String> tags);
 
-    void asyncGenerate(ListingGenerateRequest request);
-
     /**
-     * 异步生成 Listing 标题
+     * 异步执行AI生成Listing标题或者五点描述或者产品描述等
      *
-     * @param request 生成请求
+     * @param request 请求
      */
-    void asyncGenerateTitle(ListingGenerateRequest request);
-
-    /**
-     * 异步生成 Listing 五点描述
-     *
-     * @param request 生成请求
-     */
-    void asyncGenerateFivePoint(ListingGenerateRequest request);
-
-    /**
-     * 异步生成 Listing 产品描述
-     *
-     * @param request 生成请求
-     */
-    void asyncGenerateProductDescription(ListingGenerateRequest request);
+    void asyncExecute(ListingGenerateRequest request);
 
 
 }
