@@ -2,6 +2,7 @@ package com.starcloud.ops.business.listing.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -17,8 +18,11 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.listing.enums.ListingLanguageEnum;
+import com.starcloud.ops.business.listing.enums.ListingWritingStyleEnum;
 import com.starcloud.ops.business.listing.service.ListingGenerateService;
 import com.starcloud.ops.business.listing.vo.ListingGenerateRequest;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +50,19 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
 
     @Resource
     private AppMarketService appMarketService;
+
+    /**
+     * Listing 生成元数据
+     *
+     * @return Listing 生成元数据
+     */
+    @Override
+    public Map<String, List<Option>> metadata() {
+        Map<String, List<Option>> metadata = Maps.newHashMap();
+        metadata.put("targetLanguage", ListingLanguageEnum.options());
+        metadata.put("writingStyle", ListingWritingStyleEnum.options());
+        return metadata;
+    }
 
     /**
      * 根据应用标签获取应用
