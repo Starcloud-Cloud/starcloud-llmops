@@ -32,6 +32,14 @@ public interface ImageService {
     UploadImageInfoDTO upload(MultipartFile image);
 
     /**
+     * 上传图片，图片大小不能超过1024 并且返回图片URL
+     *
+     * @param image 上传图片
+     * @return 图片url
+     */
+    UploadImageInfoDTO uploadLimit1024(MultipartFile image);
+
+    /**
      * 文本生成图片
      *
      * @param request 请求参数

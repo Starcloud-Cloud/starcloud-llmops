@@ -10,7 +10,6 @@ import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageHandlerHolder;
 import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHandler;
-import com.starcloud.ops.business.app.service.log.impl.AppLogServiceImpl;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +66,18 @@ public class ImageServiceImpl implements ImageService {
     public UploadImageInfoDTO upload(MultipartFile image) {
         log.info("开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
         return ImageUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD);
+    }
+
+    /**
+     * 上传图片，图片大小不能超过1024 并且返回图片URL
+     *
+     * @param image 上传图片
+     * @return 图片url
+     */
+    @Override
+    public UploadImageInfoDTO uploadLimit1024(MultipartFile image) {
+        log.info("开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
+        return ImageUploadUtils.uploadImageLimit1024(image, ImageUploadUtils.UPLOAD);
     }
 
     /**

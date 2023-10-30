@@ -58,6 +58,13 @@ public class ImageController {
         return CommonResult.success(imageService.upload(image));
     }
 
+    @PostMapping(value = "/uploadLimitPixel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "上传图片,图片大小不能超过 1024 x 1024", description = "上传图片")
+    @ApiOperationSupport(order = 30, author = "nacoyer")
+    public CommonResult<UploadImageInfoDTO> uploadLimitPixel(@RequestPart("image") MultipartFile image) {
+        return CommonResult.success(imageService.uploadLimit1024(image));
+    }
+
     @PostMapping("/generate")
     @Operation(summary = "图片生成接口(文生图，图生图)", description = "图片生成接口(文生图，图生图)")
     @ApiOperationSupport(order = 30, author = "nacoyer")
