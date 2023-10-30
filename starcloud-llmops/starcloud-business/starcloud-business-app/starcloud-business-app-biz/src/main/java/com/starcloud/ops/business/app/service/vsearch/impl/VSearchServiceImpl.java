@@ -160,6 +160,10 @@ public class VSearchServiceImpl implements VSearchService {
         if (StringUtils.contains(message, "Invalid prompts detected")) {
             return new ErrorCode(310400604, "无效的提示信息(提示词中可能包含敏感词)。");
         }
+
+        if (StringUtils.contains(message, "Time-out")) {
+            return new ErrorCode(310400701, "请求超时。请稍候再试！");
+        }
         return new ErrorCode(code, message);
     }
 
