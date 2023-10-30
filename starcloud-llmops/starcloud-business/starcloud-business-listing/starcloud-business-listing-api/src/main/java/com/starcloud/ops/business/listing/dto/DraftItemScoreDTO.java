@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.Map;
 
@@ -50,15 +51,15 @@ public class DraftItemScoreDTO {
 
     public Double totalScore() {
         double d = 0;
-        d += withoutSpecialChat ? 1 : 0;
-        d += titleLength ? 1 : 0;
-        d += titleUppercase ? 1 : 0;
-        d += fiveDescLength ? 1 : 0;
-        d += allUppercase ? 1 : 0;
-        d += partUppercase ? 1 : 0;
-        d += productLength ? 1 : 0;
-        d += withoutUrl ? 1 : 0;
-        d += searchTermLength ? 1 : 0;
+        d += BooleanUtils.isTrue(withoutSpecialChat) ? 1 : 0;
+        d += BooleanUtils.isTrue(titleLength) ? 1 : 0;
+        d += BooleanUtils.isTrue(titleUppercase) ? 1 : 0;
+        d += BooleanUtils.isTrue(fiveDescLength) ? 1 : 0;
+        d += BooleanUtils.isTrue(allUppercase) ? 1 : 0;
+        d += BooleanUtils.isTrue(partUppercase) ? 1 : 0;
+        d += BooleanUtils.isTrue(productLength) ? 1 : 0;
+        d += BooleanUtils.isTrue(withoutUrl) ? 1 : 0;
+        d += BooleanUtils.isTrue(searchTermLength) ? 1 : 0;
         return d;
     }
 

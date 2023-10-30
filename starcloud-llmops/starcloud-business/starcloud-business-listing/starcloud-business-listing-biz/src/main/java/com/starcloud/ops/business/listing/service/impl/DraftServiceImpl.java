@@ -297,7 +297,7 @@ public class DraftServiceImpl implements DraftService {
 
         DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
         DraftItemScoreDTO draftItemScoreDTO = calculationScore(draftDO);
-        draftDO.setScore(draftItemScoreDTO.totalScore());
+        respVO.setScore(draftItemScoreDTO.totalScore());
         respVO.setItemScore(draftItemScoreDTO);
         return respVO;
     }
