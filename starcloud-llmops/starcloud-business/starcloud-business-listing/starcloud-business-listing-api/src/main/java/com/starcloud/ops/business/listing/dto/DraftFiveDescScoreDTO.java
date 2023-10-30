@@ -16,4 +16,7 @@ public class DraftFiveDescScoreDTO {
 
     @Schema(description = "首字母大写")
     private Boolean starUppercase;
+
+    @Schema(description = "不全是大写 -- 存在小写 true")
+    private Boolean hasLowercase;
 }
