@@ -416,6 +416,11 @@ public interface ErrorCodeConstants {
     ErrorCode IMAGE_INFO_FAILURE = new ErrorCode(370000160, "图片信息获取失败，请稍后重试或者联系管理员！");
 
     /**
+     * 图片像素超过限制
+     */
+    ErrorCode IMAGE_PIXEL_LIMIT_FAILURE = new ErrorCode(370000170, "上传图片大小不能超过{}({}像素)，请重新上传！");
+
+    /**
      * 获取文件信息失败
      */
     ErrorCode GET_IMAGE_FAILURE = new ErrorCode(370100000, "图片获取失败：{}");
