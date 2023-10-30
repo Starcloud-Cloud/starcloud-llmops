@@ -453,7 +453,7 @@ public class AppLogServiceImpl implements AppLogService {
         AppLogMessageRespVO appLogMessageResponse = transformAppLogMessage(logAppMessage, appConversation);
 
         // 如果是通过渠道执行的，需要查询渠道信息
-        if (StringUtils.isNotBlank(logAppMessage.getMediumUid())) {
+        if (StringUtils.isNotBlank(logAppMessage.getMediumUid()) && !AppSceneEnum.LISTING_GENERATE.name().equals(appLogMessageResponse.getFromScene())) {
             AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(logAppMessage.getMediumUid());
             appLogMessageResponse.setChannel(channel);
         }

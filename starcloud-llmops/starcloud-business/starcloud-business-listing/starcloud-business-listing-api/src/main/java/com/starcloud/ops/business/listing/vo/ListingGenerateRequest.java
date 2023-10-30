@@ -46,6 +46,13 @@ public class ListingGenerateRequest implements java.io.Serializable {
     private List<String> tags;
 
     /**
+     * 草稿UID
+     */
+    @Schema(description = "草稿UID")
+    @NotBlank(message = "请输入草稿UID，这是必填项！")
+    private String draftUid;
+
+    /**
      * AI 模型
      */
     @Schema(description = "AI模型")
@@ -87,6 +94,12 @@ public class ListingGenerateRequest implements java.io.Serializable {
      */
     @Schema(description = "风格")
     private String writingStyle;
+
+    /**
+     * 商品属性
+     */
+    @Schema(description = "商品属性")
+    private List<String> commodityAttributes;
 
     /**
      * 关键词
@@ -131,6 +144,9 @@ public class ListingGenerateRequest implements java.io.Serializable {
         }
         if (StringUtils.isNotBlank(this.writingStyle)) {
             map.put("WRITING_STYLE", this.writingStyle);
+        }
+        if (CollectionUtil.isNotEmpty(this.commodityAttributes)) {
+            map.put("COMMODITY_ATTRIBUTES", StrUtil.join(",", this.commodityAttributes));
         }
         if (CollectionUtil.isNotEmpty(this.keywords)) {
             map.put("KEYWORDS", StrUtil.join(",", this.keywords));

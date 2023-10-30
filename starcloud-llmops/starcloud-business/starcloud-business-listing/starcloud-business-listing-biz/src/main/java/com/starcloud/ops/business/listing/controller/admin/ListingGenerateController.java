@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.listing.controller.admin;
 
+import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.listing.enums.ListingGenerateTypeEnum;
 import com.starcloud.ops.business.listing.service.ListingGenerateService;
 import com.starcloud.ops.business.listing.vo.ListingGenerateRequest;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +19,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Listing 生成 控制器
@@ -32,6 +36,13 @@ public class ListingGenerateController {
 
     @Resource
     private ListingGenerateService listingGenerateService;
+
+    @PostMapping("/metadata")
+    @ApiOperationSupport(order = 1, author = "nacoyer")
+    @Operation(summary = "Listing 生成元数据")
+    public CommonResult<Map<String, List<Option>>> metadata() {
+        return CommonResult.success(listingGenerateService.metadata());
+    }
 
     @PostMapping("/title")
     @ApiOperationSupport(order = 10, author = "nacoyer")
