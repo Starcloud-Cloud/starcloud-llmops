@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Base64;
@@ -154,7 +155,33 @@ public class ImageUploadUtils {
         try {
             // 获取图片字节数组
             byte[] content = IOUtils.toByteArray(image.getInputStream());
-            UploadImageInfoDTO imageInfo = uploadImage(image.getOriginalFilename(), pathType, content);
+            UploadImageInfoDTO imageInfo = uploadImage(image.getOriginalFilename(), pathType, content, null, null);
+            log.info("图片上传成功：图片信息: {}", JSONUtil.toJsonStr(imageInfo));
+            return imageInfo;
+        } catch (ServiceException exception) {
+            log.error("图片上传失败：{}", exception.getMessage(), exception);
+            throw exception;
+        } catch (IOException exception) {
+            log.error("图片上传失败：{}", exception.getMessage(), exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_IO_FAILURE);
+        } catch (Exception exception) {
+            log.error("图片上传失败：{}", exception.getMessage(), exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, exception.getMessage());
+        }
+    }
+
+    /**
+     * 上传图片
+     *
+     * @param image    图片
+     * @param pathType 上传路径类型
+     * @return 图片信息
+     */
+    public static UploadImageInfoDTO uploadImageLimit1024(MultipartFile image, String pathType) {
+        try {
+            // 获取图片字节数组
+            byte[] content = IOUtils.toByteArray(image.getInputStream());
+            UploadImageInfoDTO imageInfo = uploadImage(image.getOriginalFilename(), pathType, content, 1048576, "1024x1024");
             log.info("图片上传成功：图片信息: {}", JSONUtil.toJsonStr(imageInfo));
             return imageInfo;
         } catch (ServiceException exception) {
@@ -177,7 +204,7 @@ public class ImageUploadUtils {
      * @param content   图片内容
      * @return 图片信息
      */
-    public static UploadImageInfoDTO uploadImage(String imageName, String pathType, byte[] content) {
+    public static UploadImageInfoDTO uploadImage(String imageName, String pathType, byte[] content, Integer limitPixel, String limitMessage) {
 
         // 图片名称校验
         if (StringUtils.isBlank(imageName)) {
@@ -193,6 +220,10 @@ public class ImageUploadUtils {
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(content));
             if (Objects.isNull(bufferedImage)) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_INFO_FAILURE);
+            }
+
+            if (Objects.nonNull(limitPixel) && (bufferedImage.getWidth() * bufferedImage.getWidth()) > limitPixel) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_PIXEL_LIMIT_FAILURE, limitMessage, limitPixel);
             }
 
             // 生成文件名称
@@ -361,10 +392,10 @@ public class ImageUploadUtils {
      */
     public static String handleImageToBase64(String url) {
         BufferedImage bufferedImage = getBufferedImage(url);
-        if (bufferedImage.getHeight() * bufferedImage.getWidth() > 1048576) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_IMAGE_REQUEST_FAILURE, "图片大小不能超过 1048576(1024 x 1024)像素");
-        }
-        BufferedImage newImage = graphicsImage64x(bufferedImage);
+        BufferedImage image = scaling1024(bufferedImage);
+//        String uploadUrl = upload(IdUtil.fastSimpleUUID(), getMediaTypeByExtension(getExtension(url)), UPLOAD, bufferedImageToByteArray(image, getExtension(url)));
+//        log.info("处理后的图片上传成功：图片信息: {}", JSONUtil.toJsonStr(uploadUrl));
+        BufferedImage newImage = graphicsImage64x(image);
         // 获取图片的字节数组
         byte[] bytes = bufferedImageToByteArray(newImage, getExtension(url));
         log.info("原图转为64倍数成功：width: {}, height: {}", newImage.getWidth(), newImage.getHeight());
@@ -391,6 +422,38 @@ public class ImageUploadUtils {
             }
             return addValue; // 调整为下一个64的倍数
         }
+    }
+
+    /**
+     * 图片按比例所放到 1024， 小于 1024 * 1024 不做任何处理
+     *
+     * @param bufferedImage 原始图片
+     * @return 处理之后的图片
+     */
+    private static BufferedImage scaling1024(BufferedImage originalImage) {
+        if (originalImage.getWidth() * originalImage.getHeight() > 1048576) {
+            BigDecimal scaleing = new BigDecimal("1024");
+            BigDecimal heightBigDecimal = new BigDecimal(String.valueOf(originalImage.getHeight()));
+            BigDecimal widthBigDecimal = new BigDecimal(String.valueOf(originalImage.getWidth()));
+            int newWidth = 0;
+            int newHeight = 0;
+            // 如果宽大于高，则宽度缩放为1024，高度按照比例缩放
+            if (originalImage.getWidth() > originalImage.getHeight()) {
+                newWidth = 1024;
+                newHeight = heightBigDecimal.multiply(scaleing).divide(widthBigDecimal, 0, BigDecimal.ROUND_HALF_UP).intValue();
+            } else {
+                // 如果高大于宽，则高度缩放为1024，宽度按照比例缩放
+                newHeight = 1024;
+                newWidth = widthBigDecimal.multiply(scaleing).divide(heightBigDecimal, 0, BigDecimal.ROUND_HALF_UP).intValue();
+            }
+            // 按照比例缩放图片
+            BufferedImage newImage = new BufferedImage(newWidth, newHeight, originalImage.getType());
+            newImage.getGraphics().drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+            log.info("缩放图片成功：新图片宽度：{}, 高度：{}, 原始图片宽度：{}, 高度：{}", newWidth, newHeight, originalImage.getWidth(), originalImage.getHeight());
+            return newImage;
+        }
+        log.info("原始图片宽度：{}, 高度：{}，小于 1024 x 1024，不做缩放处理！", originalImage.getWidth(), originalImage.getWidth());
+        return originalImage;
     }
 
     /**
