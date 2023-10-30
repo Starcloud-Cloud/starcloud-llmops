@@ -118,7 +118,7 @@ public class ListingDraftController {
 
     @PutMapping("/score")
     @Operation(summary = "计算分值", description = "计算分值")
-    public CommonResult<DraftRespVO> score(@Valid @RequestBody DraftReqVO reqVO) {
+    public CommonResult<DraftRespVO> score(@RequestBody DraftReqVO reqVO) {
         DraftRespVO score = draftService.score(reqVO);
         return CommonResult.success(score);
     }
