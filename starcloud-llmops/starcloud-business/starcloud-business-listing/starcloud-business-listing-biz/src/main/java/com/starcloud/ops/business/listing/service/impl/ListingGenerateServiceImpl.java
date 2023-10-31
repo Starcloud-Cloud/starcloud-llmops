@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.listing.service.impl;
 
-import cn.hutool.json.JSONUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
@@ -91,7 +90,9 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
      */
     @Override
     public AppExecuteRespVO execute(ListingGenerateRequest request) {
+        log.info("同步Listing生成，Listing类型: {}", request.getListingType());
         AppMarketRespVO app = this.getListingApp(request.getListingType());
+        log.info("同步Listing生成，应用市场查询成功 应用名称: {}, 应用UID: {}", app.getName(), app.getUid());
         AppExecuteReqVO executeRequest = buildExecuteRequest(request, app);
         return appService.execute(executeRequest);
     }
@@ -103,7 +104,9 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
      */
     @Override
     public void asyncExecute(ListingGenerateRequest request) {
+        log.info("异步Listing生成，Listing类型: {}", request.getListingType());
         AppMarketRespVO app = this.getListingApp(request.getListingType());
+        log.info("异步Listing生成，应用市场查询成功 应用名称: {}, 应用UID: {}", app.getName(), app.getUid());
         AppExecuteReqVO executeRequest = buildExecuteRequest(request, app);
         appService.asyncExecute(executeRequest);
     }
@@ -123,7 +126,6 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
         executeRequest.setMediumUid(request.getDraftUid());
         executeRequest.setAiModel(request.getAiModel());
         executeRequest.setAppReqVO(transform(request, app));
-        log.info("Listing生成，执行请求: {}\n", JSONUtil.parse(executeRequest).toStringPretty());
         return executeRequest;
     }
 
