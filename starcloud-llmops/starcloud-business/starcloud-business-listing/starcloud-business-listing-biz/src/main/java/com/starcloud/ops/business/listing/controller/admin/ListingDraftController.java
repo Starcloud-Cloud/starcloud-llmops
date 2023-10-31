@@ -86,6 +86,13 @@ public class ListingDraftController {
         return CommonResult.success(true);
     }
 
+    @PutMapping("/execute")
+    @Operation(summary = "批量执行", description = "批量执行")
+    public CommonResult<Boolean> execute(@RequestBody List<Long> ids) {
+        draftService.batchExecute(ids);
+        return CommonResult.success(true);
+    }
+
     @PostMapping("/key/add")
     @Operation(summary = "新增关键词", description = "新增关键词")
     public CommonResult<Boolean> addKeyword(@Valid @RequestBody DraftOperationReqVO reqVO) {

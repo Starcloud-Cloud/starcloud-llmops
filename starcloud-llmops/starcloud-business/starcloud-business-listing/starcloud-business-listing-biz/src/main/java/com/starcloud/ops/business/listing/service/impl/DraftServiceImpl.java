@@ -5,8 +5,11 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.*;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespVO;
@@ -24,6 +27,7 @@ import com.starcloud.ops.business.listing.dto.DraftItemScoreDTO;
 import com.starcloud.ops.business.listing.dto.KeywordMetaDataDTO;
 import com.starcloud.ops.business.listing.enums.AnalysisStatusEnum;
 import com.starcloud.ops.business.listing.enums.DraftSortFieldEnum;
+import com.starcloud.ops.business.listing.enums.ListExecuteEnum;
 import com.starcloud.ops.business.listing.service.DictService;
 import com.starcloud.ops.business.listing.service.DraftService;
 import com.starcloud.ops.business.listing.service.KeywordBindService;
@@ -35,11 +39,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.listing.enums.DictTypeConstants.LISTING_CONFIG;
 import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.*;
 
 @Slf4j
@@ -57,6 +64,9 @@ public class DraftServiceImpl implements DraftService {
 
     @Resource
     private KeywordBindMapper keywordBindMapper;
+
+    @Resource
+    private DictDataService dictDataService;
 
     @Resource(name = "listingExecutor")
     private ThreadPoolTaskExecutor executor;
@@ -112,9 +122,7 @@ public class DraftServiceImpl implements DraftService {
             draftDO.setVersion(1);
             draftDO.setUid(IdUtil.fastSimpleUUID());
             draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
-            DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
-            draftDO.setScore(itemScoreDTO.totalScore());
-            draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
+            updateScore(draftDO);
             draftMapper.insert(draftDO);
             if (CollectionUtils.isNotEmpty(reqVO.getKeys())) {
                 List<String> keys = reqVO.getKeys().stream().map(String::trim).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
@@ -142,7 +150,7 @@ public class DraftServiceImpl implements DraftService {
         }
 
         ListingDraftDO draftDO = getVersion(reqVO.getUid(), reqVO.getVersion());
-
+        validStatus(draftDO);
         List<KeywordBindDO> keywordBind = keywordBindMapper.getByDraftId(draftDO.getId());
         if (StringUtils.isNotBlank(reqVO.getEndpoint()) && !reqVO.getEndpoint().equals(draftDO.getEndpoint())) {
             if (CollectionUtils.isNotEmpty(keywordBind)) {
@@ -159,9 +167,7 @@ public class DraftServiceImpl implements DraftService {
             operationReqVO.setAddKey(reqVO.getKeys());
             addKeyword(operationReqVO);
         } else {
-            DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
-            draftDO.setScore(itemScoreDTO.totalScore());
-            draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
+            updateScore(draftDO);
             updateDo(draftDO, keywordBind.stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList()));
         }
 
@@ -217,9 +223,7 @@ public class DraftServiceImpl implements DraftService {
         keywordBindService.addDraftKeyword(addKey, draftDO.getId());
 
         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
-        DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
-        draftDO.setScore(itemScoreDTO.totalScore());
-        draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
+        updateScore(draftDO);
         updateById(draftDO);
 
         executor.execute(() -> {
@@ -275,11 +279,17 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public void batchExecute(List<DraftOperationReqVO> operationReq) {
-        for (DraftOperationReqVO draftOperationReqVO : operationReq) {
-            ListingDraftDO draftDO = getVersion(draftOperationReqVO.getUid(), draftOperationReqVO.getVersion());
-            validStatus(draftDO);
-
+    public void batchExecute(List<Long> ids) {
+        DictDataDO dictDataDO = dictDataService.parseDictData(LISTING_CONFIG, "execute_num");
+        int maxNum = dictDataDO == null ? 20 : Integer.parseInt(dictDataDO.getValue());
+        if (ids.size() > maxNum) {
+            throw exception(new ErrorCode(500, "最多同时执行{}个listing"), maxNum);
+        }
+        List<ListingDraftDO> listingDrafts = draftMapper.selectBatchIds(ids)
+                .stream().filter(draftDO -> !ListExecuteEnum.EXECUTED.name().equals(draftDO.getExecuteStatus()))
+                .collect(Collectors.toList());
+        for (ListingDraftDO listingDraftDO : listingDrafts) {
+            executor.execute(() -> executorListing(listingDraftDO));
         }
     }
 
@@ -288,7 +298,7 @@ public class DraftServiceImpl implements DraftService {
         ListingDraftDO draftDO = ListingDraftConvert.INSTANCE.convert(reqVO);
         ListingDraftDO draft = draftMapper.getVersion(reqVO.getUid(), reqVO.getVersion());
         if (draft != null) {
-            List<String> keys = keywordBindService.getMetaData(draft.getId(), draft.getEndpoint(), true).stream().map(KeywordMetaDataDTO::getKeyword).collect(Collectors.toList());
+            List<String> keys = keywordBindMapper.getByDraftId(draft.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
             updateSearchers(draftDO, keys);
             draftDO.setStatus(draft.getStatus());
         } else {
@@ -296,31 +306,30 @@ public class DraftServiceImpl implements DraftService {
         }
 
         DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
-        DraftItemScoreDTO draftItemScoreDTO = calculationScore(draftDO);
-        respVO.setScore(draftItemScoreDTO.totalScore());
-        respVO.setItemScore(draftItemScoreDTO);
+        updateScore(draftDO);
         return respVO;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public DraftRespVO cloneDraft(DraftOperationReqVO reqVO) {
-        ListingDraftDO sourceDraft = getVersion(reqVO.getUid(), reqVO.getVersion());
-        if (AnalysisStatusEnum.ANALYSIS.name().equals(sourceDraft.getStatus())) {
+        ListingDraftDO draftDO = getVersion(reqVO.getUid(), reqVO.getVersion());
+        if (AnalysisStatusEnum.ANALYSIS.name().equals(draftDO.getStatus())) {
             throw exception(KEYWORD_IS_ANALYSIS);
         }
-        List<String> keys = keywordBindMapper.getByDraftId(sourceDraft.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
+        List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
 
-        sourceDraft.setId(null);
-        sourceDraft.setUid(IdUtil.fastSimpleUUID());
-        sourceDraft.setVersion(1);
-        sourceDraft.setCreator(null);
-        sourceDraft.setUpdater(null);
-        sourceDraft.setCreateTime(null);
-        sourceDraft.setUpdater(null);
-        draftMapper.insert(sourceDraft);
-        keywordBindService.addDraftKeyword(keys, sourceDraft.getId());
-        return detail(sourceDraft.getUid(), sourceDraft.getVersion());
+        draftDO.setTitle("Copy-" + (draftDO.getTitle() == null ? draftDO.getId().toString() : draftDO.getTitle()));
+        draftDO.setId(null);
+        draftDO.setUid(IdUtil.fastSimpleUUID());
+        draftDO.setVersion(1);
+        draftDO.setCreator(null);
+        draftDO.setUpdater(null);
+        draftDO.setCreateTime(null);
+        draftDO.setUpdater(null);
+        draftMapper.insert(draftDO);
+        keywordBindService.addDraftKeyword(keys, draftDO.getId());
+        return detail(draftDO.getUid(), draftDO.getVersion());
     }
 
     @Override
@@ -335,6 +344,54 @@ public class DraftServiceImpl implements DraftService {
             sj.add(sortMetaDatum.getKeyword());
         }
         return sj.toString();
+    }
+
+    private void executorListing(ListingDraftDO draftDO) {
+        // todo valid
+        draftDO.setExecuteStatus(ListExecuteEnum.EXECUTING.name());
+        updateById(draftDO);
+
+        validExecute(draftDO);
+
+
+        List<KeywordBindDO> keywordBinds = keywordBindMapper.getByDraftId(draftDO.getId());
+        if (CollectionUtils.isEmpty(keywordBinds)) {
+            draftDO.setErrorMsg("绑定的关键词不能为空");
+            draftDO.setExecuteStatus(ListExecuteEnum.EXECUTE_ERROR.name());
+            updateById(draftDO);
+            return;
+        }
+        Long start = System.currentTimeMillis();
+
+        try {
+            log.info("开始生成listing");
+
+            Long end = System.currentTimeMillis();
+            log.info("生成listing结束. {} ms", end - start);
+            draftDO.setTitle(IdUtil.fastSimpleUUID());
+//            draftDO.setProductDesc("");
+//            draftDO.setSearchTerm("");
+//            draftDO.setFiveDesc("{}");
+            updateDo(draftDO, keywordBinds.stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList()));
+            updateScore(draftDO);
+
+            draftDO.setExecuteStatus(ListExecuteEnum.EXECUTED.name());
+            draftDO.setExecuteTime(end - start);
+            draftDO.setErrorMsg("");
+            updateById(draftDO);
+        } catch (Exception e) {
+            log.error("生成listing失败", e);
+            draftDO.setErrorMsg(e.getMessage());
+            draftDO.setExecuteStatus(ListExecuteEnum.EXECUTE_ERROR.name());
+            updateById(draftDO);
+        }
+    }
+
+    private void updateScore(ListingDraftDO draftDO) {
+        DraftItemScoreDTO itemScoreDTO = calculationScore(draftDO);
+        draftDO.setScore(itemScoreDTO.totalScore());
+        draftDO.setItemScore(JSONUtil.toJsonStr(itemScoreDTO));
+        draftDO.setScoreProportion(itemScoreDTO.scoreProportion());
     }
 
     private DraftItemScoreDTO calculationScore(ListingDraftDO draftDO) {
@@ -422,6 +479,7 @@ public class DraftServiceImpl implements DraftService {
         if (CollectionUtils.isEmpty(keys)) {
             draftDO.setTotalSearches(0L);
             draftDO.setMatchSearchers(0L);
+            draftDO.setSearchersProportion(0.00);
             return;
         }
         TreeSet<String> allSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
@@ -430,6 +488,7 @@ public class DraftServiceImpl implements DraftService {
         if (CollectionUtils.isEmpty(metaData)) {
             draftDO.setTotalSearches(0L);
             draftDO.setMatchSearchers(0L);
+            draftDO.setSearchersProportion(0.00);
             return;
         }
         Long totalSearches = metaData.stream().mapToLong(KeywordMetaDataDTO::mouthSearches).sum();
@@ -437,16 +496,27 @@ public class DraftServiceImpl implements DraftService {
         DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
         Map<String, KeywordMetaDataDTO> metaMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity()));
 
-        Long matchSearchers = containsKeySearchers(keys, respVO, metaMap);
+        String content = listString(respVO);
+        List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(content::contains).distinct().collect(Collectors.toList());
+        long matchSearchers = 0L;
+        for (String key : contentKeys) {
+            KeywordMetaDataDTO keywordMetaDataDTO = metaMap.get(key);
+            matchSearchers += keywordMetaDataDTO == null ? 0L : keywordMetaDataDTO.mouthSearches();
+        }
+
         // 搜索量
         draftDO.setTotalSearches(totalSearches);
         draftDO.setMatchSearchers(matchSearchers);
+        BigDecimal matchSize = BigDecimal.valueOf(contentKeys.size());
+        draftDO.setSearchersProportion(matchSize.divide(new BigDecimal(metaData.size()), 2, RoundingMode.HALF_UP).doubleValue());
     }
+
+
 
     /**
      * 搜索量计算
      */
-    private Long containsKeySearchers(List<String> keys, DraftRespVO respVO, Map<String, KeywordMetaDataDTO> metaMap) {
+    private String listString(DraftRespVO respVO) {
         String title = respVO.getTitle();
         String productDesc = respVO.getProductDesc();
         String searchTerm = respVO.getSearchTerm();
@@ -474,29 +544,20 @@ public class DraftServiceImpl implements DraftService {
                 }
             }
         }
-
-        String content = sj.toString().toLowerCase();
-
-        if (StringUtils.isBlank(content)) {
-            return 0L;
-        }
-
-        List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(content::contains).distinct().collect(Collectors.toList());
-        long titleSearchers = 0L;
-        for (String key : contentKeys) {
-            KeywordMetaDataDTO keywordMetaDataDTO = metaMap.get(key);
-            titleSearchers += keywordMetaDataDTO == null ? 0L : keywordMetaDataDTO.mouthSearches();
-        }
-        return titleSearchers;
+        return sj.toString().toLowerCase();
     }
 
     private void validStatus(ListingDraftDO draftDO) {
         if (AnalysisStatusEnum.ANALYSIS.name().equals(draftDO.getStatus())) {
             throw exception(KEYWORD_IS_ANALYSIS);
         }
-        if (AnalysisStatusEnum.EXECUTING.name().equals(draftDO.getStatus())) {
+        if (ListExecuteEnum.EXECUTING.name().equals(draftDO.getExecuteStatus())) {
             throw exception(DRAFT_IS_EXECUTING);
         }
+    }
+
+    private void validExecute(ListingDraftDO draftDO) {
+
     }
 
     private void updateById(ListingDraftDO draftDO) {

@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.listing.service.impl;
 
-import cn.hutool.json.JSONUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
@@ -11,14 +10,16 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespV
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
-import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.listing.enums.ListingGenerateTypeEnum;
 import com.starcloud.ops.business.listing.enums.ListingLanguageEnum;
 import com.starcloud.ops.business.listing.enums.ListingWritingStyleEnum;
 import com.starcloud.ops.business.listing.service.ListingGenerateService;
@@ -68,15 +69,17 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
     /**
      * 根据应用标签获取应用
      *
-     * @param tags 应用标签
+     * @param listingType listing 类型
      * @return 应用
      */
     @Override
-    public AppMarketRespVO getApp(List<String> tags) {
+    public AppMarketRespVO getListingApp(String listingType) {
         AppMarketQuery query = new AppMarketQuery();
         query.setType(AppTypeEnum.SYSTEM.name());
         query.setModel(AppModelEnum.COMPLETION.name());
-        query.setTags(tags);
+        ListingGenerateTypeEnum listingTypeEnum = ListingGenerateTypeEnum.valueOf(listingType);
+        AppValidate.notNull(listingTypeEnum, ErrorCodeConstants.EXECUTE_LISTING_FAILURE, listingType);
+        query.setTags(listingTypeEnum.getTags());
         return appMarketService.get(query);
     }
 
@@ -86,8 +89,12 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
      * @param request 请求
      */
     @Override
-    public ActionResponse execute(ListingGenerateRequest request) {
-        return null;
+    public AppExecuteRespVO execute(ListingGenerateRequest request) {
+        log.info("同步Listing生成，Listing类型: {}", request.getListingType());
+        AppMarketRespVO app = this.getListingApp(request.getListingType());
+        log.info("同步Listing生成，应用市场查询成功 应用名称: {}, 应用UID: {}", app.getName(), app.getUid());
+        AppExecuteReqVO executeRequest = buildExecuteRequest(request, app);
+        return appService.execute(executeRequest);
     }
 
     /**
@@ -97,7 +104,9 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
      */
     @Override
     public void asyncExecute(ListingGenerateRequest request) {
-        AppMarketRespVO app = this.getApp(request.getTags());
+        log.info("异步Listing生成，Listing类型: {}", request.getListingType());
+        AppMarketRespVO app = this.getListingApp(request.getListingType());
+        log.info("异步Listing生成，应用市场查询成功 应用名称: {}, 应用UID: {}", app.getName(), app.getUid());
         AppExecuteReqVO executeRequest = buildExecuteRequest(request, app);
         appService.asyncExecute(executeRequest);
     }
@@ -112,12 +121,13 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
     private AppExecuteReqVO buildExecuteRequest(ListingGenerateRequest request, AppMarketRespVO app) {
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         executeRequest.setSseEmitter(request.getSseEmitter());
+        executeRequest.setConversationUid(request.getConversationUid());
+        executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(AppSceneEnum.LISTING_GENERATE.name());
         executeRequest.setAppUid(app.getUid());
         executeRequest.setMediumUid(request.getDraftUid());
         executeRequest.setAiModel(request.getAiModel());
         executeRequest.setAppReqVO(transform(request, app));
-        log.info("Listing生成，执行请求: {}\n", JSONUtil.parse(executeRequest).toStringPretty());
         return executeRequest;
     }
 

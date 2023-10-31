@@ -5,6 +5,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.listing.enums.ListingGenerateTypeEnum;
+import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -40,10 +42,18 @@ public class ListingGenerateRequest implements java.io.Serializable {
     private SseEmitter sseEmitter;
 
     /**
+     * 会话UID
+     */
+    @Schema(description = "会话id")
+    private String conversationUid;
+
+    /**
      * 应用标签
      */
-    @Schema(description = "应用标签")
-    private List<String> tags;
+    @Schema(description = "生成类型")
+    @NotBlank(message = "请输入Listing类型，这是必填项！")
+    @InEnum(value = ListingGenerateTypeEnum.class, field = InEnum.EnumField.NAME, message = "请输入正确的Listing类型({value})，目前只支持：{values}")
+    private String listingType;
 
     /**
      * 草稿UID

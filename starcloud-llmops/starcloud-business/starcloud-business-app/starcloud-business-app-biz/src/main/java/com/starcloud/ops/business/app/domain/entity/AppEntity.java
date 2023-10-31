@@ -282,7 +282,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     protected AppExecuteRespVO fire(@Valid AppContext appContext) {
         // 组装请信息
-        StoryRequest<Void> fireRequest = ReqBuilder.returnType(Void.class)
+        StoryRequest<ActionResponse> fireRequest = ReqBuilder.returnType(ActionResponse.class)
                 .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
                 .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
                 .startId(appContext.getConversationUid())
@@ -291,7 +291,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 .build();
 
         // 执行工作流
-        TaskResponse<Void> fire = storyEngine.fire(fireRequest);
+        TaskResponse<ActionResponse> fire = storyEngine.fire(fireRequest);
 
         // 如果异常，抛出异常
         if (Objects.nonNull(fire.getResultException())) {
@@ -313,8 +313,19 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
         }
 
+        ActionResponse result = fire.getResult();
+        if (Objects.isNull(result)) {
+            log.error("应用工作流执行异常(ActionResponse 结果为空): 步骤 ID: {}", appContext.getStepId());
+            throw exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT);
+        }
+
+        if (!result.getSuccess()) {
+            log.error("应用工作流执行异常(ActionResponse success 为 false): 步骤 ID: {}", appContext.getStepId());
+            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, StringUtils.isBlank(result.getErrorMsg()) ? "执行失败" : result.getErrorMsg());
+        }
+
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
-        return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), fire.getResult());
+        return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result);
 
     }
 

@@ -6,6 +6,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.kstry.framework.core.annotation.NoticeResult;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -101,6 +102,7 @@ public abstract class BaseActionHandler<Q, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
+    @NoticeResult
     protected ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         log.info("Action 执行开始...");
         try {
@@ -130,6 +132,7 @@ public abstract class BaseActionHandler<Q, R> {
                 // 权益点数
                 Integer costPoints = actionResponse.getCostPoints();
                 USER_BENEFITS_SERVICE.expendBenefits(benefitsType.getCode(), (long) costPoints, context.getUserId(), context.getConversationUid());
+                log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}", benefitsType.getCode(), costPoints, context.getUserId(), context.getConversationUid());
             }
 
             log.info("Action 执行成功...");
