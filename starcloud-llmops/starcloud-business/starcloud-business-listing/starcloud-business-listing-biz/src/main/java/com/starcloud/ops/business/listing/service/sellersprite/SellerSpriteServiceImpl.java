@@ -4,6 +4,11 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
@@ -14,7 +19,10 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Prepa
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 卖家精灵实现类
@@ -24,7 +32,11 @@ import java.util.List;
 @Slf4j
 public class SellerSpriteServiceImpl implements SellerSpriteService {
 
-    private final static String COOKIE = "MEIQIA_TRACK_ID=2WbpzKeSozvXT6jCxLOV3h5SPA8; MEIQIA_VISIT_ID=2WbpzHqu0m2z4JeaNRZ2ONCiOX0; current_guest=g6KFXKURsWAh_231011-169653; t_size=50; t_order_field=created_time; t_order_flag=2; p_c_size=20; k_size=50; ecookie=lLlQblAIj8wXGXLQ_CN; _ga_GJFEMFESN5=GS1.1.1697177537.3.0.1697177537.0.0.0; _fp=e922ffabd141ac6185d3e637c34b6f61; 7bd3ab8ce917b765cafb=d0cf887b23ed257c631c1af078e18a23; c6f03d623f0773934159=ca964141e81295b935213dc2f1958831; _gid=GA1.2.426447997.1698644183; _gaf_fp=02582e03a79a66c2951c2b8c38e98554; rank-login-user=4670178961mUootleoLbIj0RbLIgjOQM1ZXtFb3KdLEyDALzBwBhyo4RlQ25M2Zh5JOCsFDLca; rank-login-user-info=\"eyJuaWNrbmFtZSI6InN0YXJjbG91ZDAxIiwiaXNBZG1pbiI6ZmFsc2UsImFjY291bnQiOiJzdGFyY2xvdWQwMSIsInRva2VuIjoiNDY3MDE3ODk2MW1Vb290bGVvTGJJajBSYkxJZ2pPUU0xWlh0RmIzS2RMRXlEQUx6QndCaHlvNFJsUTI1TTJaaDVKT0NzRkRMY2EifQ==\"; Sprite-X-Token=eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2Nzk5NjI2YmZlMDQzZTBiYzI5NTEwMTE4ODA3YWExIn0.eyJqdGkiOiJ1Y0daZEFSX2JGc2tYMTVuOVZNN0FRIiwiaWF0IjoxNjk4NjUzMTY0LCJleHAiOjE2OTg3Mzk1NjQsIm5iZiI6MTY5ODY1MzEwNCwic3ViIjoieXVueWEiLCJpc3MiOiJyYW5rIiwiYXVkIjoic2VsbGVyU3BhY2UiLCJpZCI6ODQ3ODA5LCJwaSI6ODQ3NzU4LCJubiI6IuWkp-mjniIsInN5cyI6IlNTX0NOIiwiZWQiOiJOIiwibWwiOiJTIiwiZW5kIjoxNzI5OTI5OTY0MjgyfQ.ZZwnBx0vnf2ZnOsi7Zi8TGdIo4jMSxpdenvg0pViJBH4UCcb4K_gm32DuWQT1xCZHw7FlhvNb2rFdWDm8P0Ly2lf13wGWlVlt7i-NJO9Q5ckciMuiXGinzAe7sENjxmb17ZNk7KapIaPeN2at6EuUUXXADNNBr3wb_r5-wxbOXPSvBF0XAmykbJNzJlCPacb-LXYbEg0ol0a_P7HvIrNo3JamRq3hW8h42tQkad581Sm49c6PsyTIwj6Z2U-v4GK-F8FWx_nAyIZ1XIAPr6NLP7e3tBrmX4sDByKnSfN3_D4m6GMKwVtQ1zGRaErojt3O3f2a9AwXeOGewWgCMWtuA; ao_lo_to_n=\"4670178961mUootleoLbIj0RbLIgjOQH8mXX8DVtFEDSE3j5jpGsCT2AaEZKlgRnENgGTs2hx5u2Ljzyt29CGvaazdwCnec8G0/D6rYLoCgWoBTDWRS1c=\"; _ga=GA1.1.1322928940.1697011393; JSESSIONID=4E58286EB8B53FB741B54E6BAD71D2BD; _ga_38NCVF2XST=GS1.1.1698660956.39.0.1698660956.60.0.0; _ga_CN0F80S6GL=GS1.1.1698660956.37.0.1698660956.0.0.0" ;
+    @Resource
+    private SmsSendApi smsSendApi;
+
+    @Resource
+    private DictDataService dictDataService;
 
     /**
      * 卖家精灵 API 地址
@@ -78,7 +90,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         keywordMinerRequestDTO.setFilterRootWord(0);
         keywordMinerRequestDTO.setMatchType(0);
         keywordMinerRequestDTO.setAmazonChoice(false);
-        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_KEYWORD_MINER, JSONUtil.toJsonStr(keywordMinerRequestDTO), "");
+        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_KEYWORD_MINER, JSONUtil.toJsonStr(keywordMinerRequestDTO));
 
 
         return null;
@@ -97,7 +109,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         keywordMinerRequestDTO.setFilterRootWord(0);
         keywordMinerRequestDTO.setMatchType(0);
         keywordMinerRequestDTO.setAmazonChoice(false);
-        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_KEYWORD_MINER, JSONUtil.toJsonStr(keywordMinerRequestDTO), COOKIE);
+        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_KEYWORD_MINER, JSONUtil.toJsonStr(keywordMinerRequestDTO));
         Assert.notBlank(reposeResult, "卖家精灵关键词批量挖掘失败");
         return JSONUtil.toBean(reposeResult, KeywordMinerReposeDTO.class);
 
@@ -118,8 +130,8 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      */
     @Override
     public PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO) {
-        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_PREPARE, JSONUtil.toJsonStr(prepareRequestDTO), COOKIE);
-        Assert.notBlank(reposeResult,"系统繁忙，请稍后再试");
+        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_PREPARE, JSONUtil.toJsonStr(prepareRequestDTO));
+        Assert.notBlank(reposeResult, "系统繁忙，请稍后再试");
         return JSONUtil.toBean(reposeResult, PrepareReposeDTO.class);
     }
 
@@ -132,8 +144,8 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     @Override
     public ExtendAsinReposeDTO extendAsin(ExtendAsinRequestDTO extendAsinRequestDTO) {
 
-        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_ASIN, JSONUtil.toJsonStr(extendAsinRequestDTO), COOKIE);
-        Assert.notBlank(reposeResult,"系统繁忙，请稍后再试");
+        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_ASIN, JSONUtil.toJsonStr(extendAsinRequestDTO));
+        Assert.notBlank(reposeResult, "系统繁忙，请稍后再试");
         return JSONUtil.toBean(reposeResult, ExtendAsinReposeDTO.class);
     }
 
@@ -144,9 +156,9 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     @Override
     public SellerSpriteListingVO getListingByAsin(String asin, Integer market) {
 
-        String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, String.format("asin=%s&marketPlace=%s",asin,market ), COOKIE);
+        String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, String.format("asin=%s&marketPlace=%s", asin, market));
 
-        Assert.notBlank(reposeResult,"系统繁忙，请稍后再试");
+        Assert.notBlank(reposeResult, "系统繁忙，请稍后再试");
         return JSONUtil.toBean(reposeResult, SellerSpriteListingVO.class);
     }
 
@@ -165,7 +177,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * @param url
      * @return
      */
-    private static String unifiedPostRequest(String url, String requestData, String cookie) {
+    private String unifiedPostRequest(String url, String requestData) {
+
+
+        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getValue();
+
         try {
             String result = HttpRequest.post(url).cookie(cookie)
                     .body(requestData)
@@ -174,9 +190,9 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             if (!result.isEmpty() && entries.getBool("success", false)) {
                 return JSONUtil.toJsonStr(entries.getObj("data"));
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
-                log.error("卖家精灵登录失效");
-                throw new Exception("卖家精灵登录失效");
 
+                log.error("卖家精灵登录失效");
+                this.sendMessage();
             }
             return null;
         } catch (Exception e) {
@@ -192,7 +208,8 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * @param url
      * @return
      */
-    private static String unifiedGetRequest(String url, String requestData, String cookie) {
+    private String unifiedGetRequest(String url, String requestData) {
+        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getValue();
         try {
             String result = HttpRequest.get(url)
                     .body(requestData).cookie(cookie)
@@ -202,7 +219,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                 return JSONUtil.toJsonStr(entries.getObj("data"));
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                 log.error("卖家精灵登录失效");
-                throw new Exception("卖家精灵登录失效");
+                this.sendMessage();
             }
             return null;
         } catch (Exception e) {
@@ -210,12 +227,20 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         }
     }
 
-    public static void main(String[] args) {
-        String asin = "B0949DWJCV";
-        Integer marketPlace = 1;
-        String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, String.format("asin=%s&marketPlace=%s",asin,marketPlace ), COOKIE);
+    @TenantIgnore
+    private void sendMessage() {
+        try {
+            Map<String, Object> templateParams = new HashMap<>();
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                             .setTemplateCode("NOTICE_SELLER_SPRITE_WARN")
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("系统支付通知信息发送失败", e);
+        }
 
-        System.out.println(reposeResult);
     }
+
 
 }

@@ -74,10 +74,10 @@ public class UserBenefitsUsageLogServiceImpl implements UserBenefitsUsageLogServ
         LocalDateTime now = LocalDateTimeUtil.now();
 
         List<UserBenefitsUsageLogDO> collect = Stream.of(
-                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.APP, benefitsStrategy.getAppCount(), now),
-                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.DATASET, benefitsStrategy.getDatasetCount(), now),
+//                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.APP, benefitsStrategy.getAppCount(), now),
+//                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.DATASET, benefitsStrategy.getDatasetCount(), now),
                 createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.IMAGE, benefitsStrategy.getImageCount(), now),
-                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.TOKEN, benefitsStrategy.getTokenCount(), now)
+                createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.COMPUTATIONAL_POWER, benefitsStrategy.getComputationalPowerCount(), now)
         ).collect(Collectors.toList());
         userBenefitsUsageLogMapper.insertBatch(collect);
         return true;
