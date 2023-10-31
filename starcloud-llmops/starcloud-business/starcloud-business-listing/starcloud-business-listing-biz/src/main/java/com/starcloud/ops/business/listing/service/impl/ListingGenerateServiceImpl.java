@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
@@ -77,6 +78,16 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
         query.setModel(AppModelEnum.COMPLETION.name());
         query.setTags(tags);
         return appMarketService.get(query);
+    }
+
+    /**
+     * 同步执行AI生成Listing标题或者五点描述或者产品描述等
+     *
+     * @param request 请求
+     */
+    @Override
+    public ActionResponse execute(ListingGenerateRequest request) {
+        return null;
     }
 
     /**

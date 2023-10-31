@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.listing.service;
 
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.listing.vo.ListingGenerateRequest;
 import com.starcloud.ops.framework.common.api.dto.Option;
 
@@ -30,6 +31,13 @@ public interface ListingGenerateService {
      * @return 应用
      */
     AppMarketRespVO getApp(List<String> tags);
+
+    /**
+     * 同步执行AI生成Listing标题或者五点描述或者产品描述等
+     *
+     * @param request 请求
+     */
+    ActionResponse execute(ListingGenerateRequest request);
 
     /**
      * 异步执行AI生成Listing标题或者五点描述或者产品描述等
