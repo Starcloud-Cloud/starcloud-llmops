@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.workflow;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -55,5 +57,14 @@ public class WorkflowStepEntity extends ActionEntity {
      * 是否是可编辑步骤
      */
     private Boolean isCanEditStep;
+
+    /**
+     * Action 校验
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate() {
+        this.variable.validate();
+    }
 
 }

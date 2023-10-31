@@ -71,6 +71,7 @@ public class WorkflowStepWrapper {
     @JSONField(serialize = false)
     public void validate() {
         this.field = AppUtils.obtainField(this.name);
+        this.flowStep.validate();
     }
 
     /**
@@ -100,6 +101,11 @@ public class WorkflowStepWrapper {
 
     }
 
+    /**
+     * 获取当前步骤的所有变量的 VariableItemEntity 集合
+     *
+     * @return 变量的 VariableItemEntity 集合
+     */
     @JsonIgnore
     @JSONField(serialize = false)
     public Map<String, VariableItemEntity> getContextVariableItems() {

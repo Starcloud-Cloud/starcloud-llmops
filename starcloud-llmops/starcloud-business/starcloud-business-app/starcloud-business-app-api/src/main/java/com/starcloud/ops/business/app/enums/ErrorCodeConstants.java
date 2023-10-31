@@ -22,6 +22,16 @@ public interface ErrorCodeConstants {
      */
     ErrorCode PROMPT_IS_REQUIRED = new ErrorCode(300000402, "Prompt是必须的，请检查后重试！");
 
+    /**
+     * MAX_TOKENS超出限制
+     */
+    ErrorCode MAX_TOKENS_OUT_OF_LIMIT = new ErrorCode(300000403, "最大返回Tokens超出限制（{}）不能超过{}，请检查后重试！");
+
+    /**
+     * 温度值超出限制
+     */
+    ErrorCode TEMPERATURE_OUT_OF_LIMIT = new ErrorCode(300000404, "温度值超出限制（{}）温度值必须在0~2之间，请检查后重试！");
+
     // ========== 基本增删改查错误码 ==========
 
     // 1.========== 应用错误码 300 100 xxx ==========

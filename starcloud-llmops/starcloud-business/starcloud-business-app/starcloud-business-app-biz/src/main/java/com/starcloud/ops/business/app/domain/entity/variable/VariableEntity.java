@@ -88,4 +88,14 @@ public class VariableEntity {
         return Arrays.stream(Optional.ofNullable(keys).orElse(new String[]{})).filter(StrUtil::isNotEmpty).map(String::toUpperCase).collect(Collectors.joining("."));
     }
 
+    /**
+     * 变量 校验
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate() {
+        if (CollectionUtil.isNotEmpty(this.variables)) {
+            this.variables.forEach(VariableItemEntity::validate);
+        }
+    }
 }

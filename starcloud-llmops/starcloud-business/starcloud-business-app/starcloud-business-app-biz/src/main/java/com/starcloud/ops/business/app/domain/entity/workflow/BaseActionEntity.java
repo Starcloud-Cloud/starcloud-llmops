@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.workflow;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 /**
@@ -36,5 +38,13 @@ public abstract class BaseActionEntity {
      * 动作执行结果
      */
     private ActionResponse response;
+
+    /**
+     * Action 校验
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate() {
+    }
 
 }
