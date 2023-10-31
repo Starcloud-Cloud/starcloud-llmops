@@ -1,22 +1,13 @@
 package com.starcloud.ops.business.listing.service.sellersprite.DTO.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 /**
- * Filename:     starcloud-llmops
- * Description:  com.starcloud.ops.business.listing.service.sellersprite.DTO.request
- * Company:      mdc.ai Inc.
- *
- * @Author: djl
- * @version: 1.0
- * Create at:    2023/10/17  15:19
- * Modification History:
- * Date          Author      Version     Description
- * ------------------------------------------------------------------
- * 2023/10/17   AlanCusack    1.0         1.0 Version
+ * ExtendAsinRequestDTO
  */
 @NoArgsConstructor
 @Data
@@ -28,6 +19,7 @@ public class ExtendAsinRequestDTO {
      * 关键词的流量占比数值越大，说明该关键词给ASIN带来的曝光量越大
      * 最小值
      */
+    @Schema(description = "流量占比-最小值")
     private Double minTrafficPercentage;
 
     /**
@@ -35,6 +27,7 @@ public class ExtendAsinRequestDTO {
      * 关键词的流量占比数值越大，说明该关键词给ASIN带来的曝光量越大
      * 最大值
      */
+    @Schema(description = "流量占比-最大值")
     private Double maxTrafficPercentage;
 
 
@@ -43,6 +36,7 @@ public class ExtendAsinRequestDTO {
      * 数字越小表示排名越靠前，搜索量越高
      * 最小值
      */
+    @Schema(description = "ABA周排名-最小值")
     private Integer searchesRankMin;
 
     /**
@@ -50,6 +44,7 @@ public class ExtendAsinRequestDTO {
      * 数字越小表示排名越靠前，搜索量越高
      * 最大值
      */
+    @Schema(description = "ABA周排名-最大值")
     private Integer searchesRankMax;
 
 
@@ -58,6 +53,7 @@ public class ExtendAsinRequestDTO {
      * 您现在看到的是上个月的月搜索量，每月月初更新上个月的数据
      * 最小值
      */
+    @Schema(description = "月搜索量 -最小值")
     private Integer searchesMin;
 
     /**
@@ -65,6 +61,7 @@ public class ExtendAsinRequestDTO {
      * 您现在看到的是上个月的月搜索量，每月月初更新上个月的数据
      * 最大值
      */
+    @Schema(description = "月搜索量 -最大值")
     private Integer searchesMax;
 
     /**
@@ -72,6 +69,7 @@ public class ExtendAsinRequestDTO {
      * 比如：某用户搜索iphone charger，然后1次购买了1个iphone充电器，2条数据线(关联推荐的商品)，则购买量=1
      * 最小值
      */
+    @Schema(description = "月购买量-最小值")
     private Integer purchasesMin;
 
     /**
@@ -79,6 +77,7 @@ public class ExtendAsinRequestDTO {
      * 比如：某用户搜索iphone charger，然后1次购买了1个iphone充电器，2条数据线(关联推荐的商品)，则购买量=1
      * 最大值
      */
+    @Schema(description = "月购买量-最大值")
     private Integer purchasesMax;
 
 
@@ -87,6 +86,8 @@ public class ExtendAsinRequestDTO {
      * 比如关键词wireless charger，一个月内被搜索了120万次，共产生了1.6万次销售(未必全部是无线充电器，也可能是数据线)，则该词的购买率 = 1.6万/120万=1.33%
      * 最小值
      */
+
+    @Schema(description = "购买率-最小值")
     private Double purchaseRateMin;
 
     /**
@@ -94,6 +95,7 @@ public class ExtendAsinRequestDTO {
      * 比如关键词wireless charger，一个月内被搜索了120万次，共产生了1.6万次销售(未必全部是无线充电器，也可能是数据线)，则该词的购买率 = 1.6万/120万=1.33%
      * 最大值
      */
+    @Schema(description = "购买率-最大值")
     private Double purchaseRateMax;
 
 
@@ -103,6 +105,7 @@ public class ExtendAsinRequestDTO {
      * SPR数值越大，表示让关键词排名维持在首页的单量要求更高，竞争更激烈
      * 最小值
      */
+    @Schema(description = "SPR -最小值")
     private Integer minCprExact;
 
     /**
@@ -111,6 +114,7 @@ public class ExtendAsinRequestDTO {
      * SPR数值越大，表示让关键词排名维持在首页的单量要求更高，竞争更激烈
      * 最大值
      */
+    @Schema(description = "SPR -最大值")
     private Integer maxCprExact;
 
 
@@ -119,6 +123,7 @@ public class ExtendAsinRequestDTO {
      * 比如标题密度为12，则代表该关键词的搜索结果第1页中，共有12个产品的标题包含了该关键词
      * 最小值
      */
+    @Schema(description = "标题密度 -最小值")
     private Integer minTitleDensityExact;
 
     /**
@@ -126,18 +131,21 @@ public class ExtendAsinRequestDTO {
      * 比如标题密度为12，则代表该关键词的搜索结果第1页中，共有12个产品的标题包含了该关键词
      * 最大值
      */
+    @Schema(description = "标题密度 -最大值")
     private Integer maxTitleDensityExact;
 
     /**
      * 商品数，指搜索该关键词后出现了多少相关产品(All Departments类目)
      * 最小值
      */
+    @Schema(description = "商品数-最小值")
     private Integer productsMin;
 
     /**
      * 商品数，指搜索该关键词后出现了多少相关产品(All Departments类目)
      * 最大值
      */
+    @Schema(description = "商品数-最大值")
     private Integer productsMax;
 
 
@@ -148,6 +156,7 @@ public class ExtendAsinRequestDTO {
      * 则该关键词对应细分市场的供需比为69,465/14,875=4.7
      * 最小值
      */
+    @Schema(description = "供需比-最小值")
     private Integer supplyDemandRatioMin;
 
     /**
@@ -157,6 +166,7 @@ public class ExtendAsinRequestDTO {
      * 则该关键词对应细分市场的供需比为69,465/14,875=4.7
      * 最大值
      */
+    @Schema(description = "供需比-最大值")
     private Integer supplyDemandRatioMax;
 
     /**
@@ -164,6 +174,7 @@ public class ExtendAsinRequestDTO {
      * 包括SP广告、HR广告、品牌广告和视频广告
      * 最小值
      */
+    @Schema(description = "广告竞品数-最小值")
     private Integer ads7Min;
 
     /**
@@ -171,6 +182,7 @@ public class ExtendAsinRequestDTO {
      * 包括SP广告、HR广告、品牌广告和视频广告
      * 最大值
      */
+    @Schema(description = "广告竞品数-最大值")
     private Integer ads7Max;
 
 
@@ -181,6 +193,7 @@ public class ExtendAsinRequestDTO {
      * 则前三ASIN点击总占比=13.9%+12.4%+11.1%=37.4%
      * 最小值
      */
+    @Schema(description = "点击集中度-最小值")
     private Double minMonopolyClickRate;
 
     /**
@@ -191,6 +204,7 @@ public class ExtendAsinRequestDTO {
      * 则前三ASIN点击总占比=13.9%+12.4%+11.1%=37.4%
      * 最大值
      */
+    @Schema(description = "点击集中度-最大值")
     private Double maxMonopolyClickRate;
 
 
@@ -202,6 +216,7 @@ public class ExtendAsinRequestDTO {
      * 则前三ASIN转化总占比=18.4%+10.9%+5.6%=34.9%
      * 最小值
      */
+    @Schema(description = "转化总占比 -最小值")
     private Double minTop3ConversionRate;
 
     /**
@@ -212,6 +227,7 @@ public class ExtendAsinRequestDTO {
      * 则前三ASIN转化总占比=18.4%+10.9%+5.6%=34.9%
      * 最大值
      */
+    @Schema(description = "转化总占比 -最大值")
     private Double maxTop3ConversionRate;
 
 
@@ -221,6 +237,7 @@ public class ExtendAsinRequestDTO {
      * 在站内广告投放时，您可以优先选择低竞争高需求的关键词，也就是出价较低而搜索量较高的关键词
      * 最小值
      */
+    @Schema(description = "PPC竞价-最小值")
     private Integer bidMin;
 
     /**
@@ -229,6 +246,7 @@ public class ExtendAsinRequestDTO {
      * 在站内广告投放时，您可以优先选择低竞争高需求的关键词，也就是出价较低而搜索量较高的关键词
      * 最大值
      */
+    @Schema(description = "PPC竞价-最大值")
     private Integer bidMax;
 
 
@@ -237,6 +255,7 @@ public class ExtendAsinRequestDTO {
      * 比如iphone11 case单词个数为2，airpods pro case单词个数为3
      * 最小值
      */
+    @Schema(description = "单词个数-最小值")
     private Integer minKeywords;
 
     /**
@@ -244,6 +263,7 @@ public class ExtendAsinRequestDTO {
      * 比如iphone11 case单词个数为2，airpods pro case单词个数为3
      * 最大值
      */
+    @Schema(description = "单词个数-最大值")
     private Integer maxKeywords;
 
 
@@ -254,6 +274,7 @@ public class ExtendAsinRequestDTO {
      * 比如相关ASIN数最小值设置为3，则可以筛选出在查询的ASIN及其变体中，相关ASIN数大于等于3的关键词
      * 最小值
      */
+    @Schema(description = "相关ASIN数-最小值")
     private Integer minCompetitors;
 
     /**
@@ -263,6 +284,7 @@ public class ExtendAsinRequestDTO {
      * 比如相关ASIN数最小值设置为3，则可以筛选出在查询的ASIN及其变体中，相关ASIN数大于等于3的关键词
      * 最大值
      */
+    @Schema(description = "相关ASIN数-最大值")
     private Integer maxCompetitors;
 
     /**
@@ -273,6 +295,7 @@ public class ExtendAsinRequestDTO {
      * 词组匹配：输入后筛选结果中只包含这个词组，且单词顺序保持一致
      * 例如coffee cups，可以匹配到blue coffee cups，coffee cups for traveling等等
      */
+    @Schema(description = "包含关键词")
     private List<String> includeKeywords;
 
     /* 包含关键词
@@ -282,16 +305,19 @@ public class ExtendAsinRequestDTO {
      * 词组匹配：输入后筛选结果中只包含这个词组，且单词顺序保持一致
      * 例如coffee cups，可以匹配到blue coffee cups，coffee cups for traveling等等
      */
+    @Schema(description = "不包含关键词")
     private List<String> excludeKeywords;
 
 
     /**
      * 关键词匹配方式  true 广泛匹配 false 词组匹配
      */
+    @Schema(description = "关键词匹配方式 true 广泛匹配 false 词组匹配")
     private Boolean exactly;
     /**
      * 时间
      */
+    @Schema(description = "时间")
     private String month;
 
 
@@ -299,6 +325,7 @@ public class ExtendAsinRequestDTO {
     /**
      * ASIN 列表
      */
+    @Schema(description = "ASIN 列表")
     private List<String> asinList;
     private List<String> originAsinList;
     private Integer market;
@@ -310,10 +337,12 @@ public class ExtendAsinRequestDTO {
     /**
      * 仅AC 推荐词
      */
+    @Schema(description = "仅AC 推荐词")
     private Boolean ac;
 
     /**
      * 排除关键词
      */
+    @Schema(description = "排除关键词")
     private Boolean filterDeletedKeywords;
 }
