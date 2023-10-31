@@ -6,6 +6,7 @@ import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -33,9 +34,11 @@ public class DraftReqVO {
     private List<String> keys;
 
     @Schema(description = "标题")
+    @Length(max = 500, message = "标题长度不能大于 500 位")
     private String title;
 
     @Schema(description = "asin")
+    @Length(max = 20, message = "asin长度不能大于 20 位")
     private String asin;
 
     @Schema(description = "草稿配置")

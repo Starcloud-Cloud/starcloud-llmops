@@ -47,6 +47,21 @@ public enum ListingGenerateTypeEnum implements IEnumable<Integer> {
     private final List<String> tags;
 
     /**
+     * 根据枚举值获取枚举
+     *
+     * @param name 枚举值
+     * @return 枚举
+     */
+    public static ListingGenerateTypeEnum of(String name) {
+        for (ListingGenerateTypeEnum value : ListingGenerateTypeEnum.values()) {
+            if (value.name().equals(name)) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
      * 构造方法
      *
      * @param code  枚举值

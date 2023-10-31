@@ -3,12 +3,17 @@ package com.starcloud.ops.business.listing.utils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.starcloud.ops.business.listing.dto.DraftFiveDescScoreDTO;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ListingDraftScoreUtil {
+
+    private static final List<String> EXCLUDE_WORD = Arrays.asList("in", "on", "over", "with", "and",
+            "or", "for", "the", "a", "an");
 
 
     public static Boolean checkForMatch(String text, String regex) {
@@ -94,8 +99,13 @@ public class ListingDraftScoreUtil {
         if (StringUtils.isBlank(text)) {
             return false;
         }
-        for (String s : text.split(" ")) {
-            if (StringUtils.isNotBlank(s) && !Character.isUpperCase(s.charAt(0))) {
+        Pattern pattern = Pattern.compile("[^a-zA-Z]+");
+        String[] words = pattern.split(text);
+        for (String s : words) {
+            if (StringUtils.isBlank(s) || EXCLUDE_WORD.contains(s)) {
+                continue;
+            }
+            if (!Character.isUpperCase(s.charAt(0))) {
                 return false;
             }
         }
