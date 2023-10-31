@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
@@ -251,6 +252,18 @@ public class AppServiceImpl implements AppService {
             return null;
         }
         return AppConvert.INSTANCE.convertResponse(appMapper.selectOne(wrapper));
+    }
+
+    /**
+     * 异步执行应用
+     *
+     * @param request 应用执行请求信息
+     */
+    @Override
+    @SuppressWarnings("all")
+    public AppExecuteRespVO execute(AppExecuteReqVO request) {
+        BaseAppEntity app = AppFactory.factory(request);
+        return (AppExecuteRespVO) app.execute(request);
     }
 
     /**

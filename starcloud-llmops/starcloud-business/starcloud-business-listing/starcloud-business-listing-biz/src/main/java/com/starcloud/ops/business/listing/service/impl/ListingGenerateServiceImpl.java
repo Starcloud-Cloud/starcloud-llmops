@@ -11,13 +11,16 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespV
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.listing.enums.ListingGenerateTypeEnum;
 import com.starcloud.ops.business.listing.enums.ListingLanguageEnum;
 import com.starcloud.ops.business.listing.enums.ListingWritingStyleEnum;
 import com.starcloud.ops.business.listing.service.ListingGenerateService;
@@ -67,16 +70,30 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
     /**
      * 根据应用标签获取应用
      *
-     * @param tags 应用标签
+     * @param listingType listing 类型
      * @return 应用
      */
     @Override
-    public AppMarketRespVO getApp(List<String> tags) {
+    public AppMarketRespVO getListingApp(String listingType) {
         AppMarketQuery query = new AppMarketQuery();
         query.setType(AppTypeEnum.SYSTEM.name());
         query.setModel(AppModelEnum.COMPLETION.name());
-        query.setTags(tags);
+        ListingGenerateTypeEnum listingTypeEnum = ListingGenerateTypeEnum.valueOf(listingType);
+        AppValidate.notNull(listingTypeEnum, ErrorCodeConstants.EXECUTE_LISTING_FAILURE, listingType);
+        query.setTags(listingTypeEnum.getTags());
         return appMarketService.get(query);
+    }
+
+    /**
+     * 同步执行AI生成Listing标题或者五点描述或者产品描述等
+     *
+     * @param request 请求
+     */
+    @Override
+    public AppExecuteRespVO execute(ListingGenerateRequest request) {
+        AppMarketRespVO app = this.getListingApp(request.getListingType());
+        AppExecuteReqVO executeRequest = buildExecuteRequest(request, app);
+        return appService.execute(executeRequest);
     }
 
     /**
@@ -86,7 +103,7 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
      */
     @Override
     public void asyncExecute(ListingGenerateRequest request) {
-        AppMarketRespVO app = this.getApp(request.getTags());
+        AppMarketRespVO app = this.getListingApp(request.getListingType());
         AppExecuteReqVO executeRequest = buildExecuteRequest(request, app);
         appService.asyncExecute(executeRequest);
     }
