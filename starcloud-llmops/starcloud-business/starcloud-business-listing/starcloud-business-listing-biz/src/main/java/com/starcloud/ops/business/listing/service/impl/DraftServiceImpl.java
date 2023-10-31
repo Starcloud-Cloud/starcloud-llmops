@@ -15,23 +15,25 @@ import com.starcloud.ops.business.listing.controller.admin.vo.request.*;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftDetailExcelVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftRespVO;
+import com.starcloud.ops.business.listing.convert.ListingAiConfigConvert;
 import com.starcloud.ops.business.listing.convert.ListingDraftConvert;
 import com.starcloud.ops.business.listing.convert.ListingKeywordConvert;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordBindDO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftDO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywordBindMapper;
 import com.starcloud.ops.business.listing.dal.mysql.ListingDraftMapper;
-import com.starcloud.ops.business.listing.dto.DraftConfigDTO;
-import com.starcloud.ops.business.listing.dto.DraftContentConfigDTO;
-import com.starcloud.ops.business.listing.dto.DraftItemScoreDTO;
-import com.starcloud.ops.business.listing.dto.KeywordMetaDataDTO;
+import com.starcloud.ops.business.listing.dto.*;
 import com.starcloud.ops.business.listing.enums.AnalysisStatusEnum;
 import com.starcloud.ops.business.listing.enums.DraftSortFieldEnum;
 import com.starcloud.ops.business.listing.enums.ListExecuteEnum;
+import com.starcloud.ops.business.listing.enums.ListingGenerateTypeEnum;
 import com.starcloud.ops.business.listing.service.DictService;
 import com.starcloud.ops.business.listing.service.DraftService;
 import com.starcloud.ops.business.listing.service.KeywordBindService;
+import com.starcloud.ops.business.listing.service.ListingGenerateService;
 import com.starcloud.ops.business.listing.utils.ListingDraftScoreUtil;
+import com.starcloud.ops.business.listing.vo.ListingGenerateRequest;
+import com.starcloud.ops.business.listing.vo.ListingGenerateResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -67,6 +69,9 @@ public class DraftServiceImpl implements DraftService {
 
     @Resource
     private DictDataService dictDataService;
+
+    @Resource
+    private ListingGenerateService listingGenerateService;
 
     @Resource(name = "listingExecutor")
     private ThreadPoolTaskExecutor executor;
@@ -305,9 +310,8 @@ public class DraftServiceImpl implements DraftService {
             draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
         }
 
-        DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
         updateScore(draftDO);
-        return respVO;
+        return ListingDraftConvert.INSTANCE.convert(draftDO);
     }
 
     @Override
@@ -347,32 +351,81 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void executorListing(ListingDraftDO draftDO) {
-        // todo valid
-        draftDO.setExecuteStatus(ListExecuteEnum.EXECUTING.name());
-        updateById(draftDO);
-
-        validExecute(draftDO);
-
-
-        List<KeywordBindDO> keywordBinds = keywordBindMapper.getByDraftId(draftDO.getId());
-        if (CollectionUtils.isEmpty(keywordBinds)) {
-            draftDO.setErrorMsg("绑定的关键词不能为空");
+        DraftConfigDTO draftConfigDTO = ListingDraftConvert.INSTANCE.parseConfig(draftDO.getConfig());
+        AiConfigDTO aiConfigDTO = Optional.ofNullable(draftConfigDTO.getAiConfigDTO()).orElseGet(AiConfigDTO::new);
+        if (StringUtils.isBlank(aiConfigDTO.getProductFeature())) {
+            draftDO.setErrorMsg("产品特征不能为空");
             draftDO.setExecuteStatus(ListExecuteEnum.EXECUTE_ERROR.name());
             updateById(draftDO);
             return;
         }
+
+        draftDO.setExecuteStatus(ListExecuteEnum.EXECUTING.name());
+        updateById(draftDO);
+
         Long start = System.currentTimeMillis();
 
         try {
             log.info("开始生成listing");
+            ListingGenerateRequest request = ListingAiConfigConvert.INSTANCE.convert(aiConfigDTO);
+            String conversationUid = IdUtil.fastSimpleUUID();
+            request.setConversationUid(conversationUid);
+            request.setDraftUid(draftDO.getUid());
+            request.setListingType(ListingGenerateTypeEnum.TITLE.name());
+            request.setKeywords(recommendKeys(draftConfigDTO.getTitleConfig()));
+            ListingGenerateResponse titleResp = listingGenerateService.execute(request);
+            if (!titleResp.getSuccess()) {
+                updateError(draftDO, "标题生成失败：" + titleResp.getErrorMsg());
+                return;
+            }
+            Long titleEnd = System.currentTimeMillis();
+            log.info("生成title成功，{} ms", titleEnd - start);
+            // title
+            String title = titleResp.getAnswer();
+            draftDO.setTitle(title);
+            // fiveDesc
+            int fiveDescNum = draftConfigDTO.getFiveDescNum() == null ? 0 : draftConfigDTO.getFiveDescNum();
+            HashMap<String, String> fiveDesc = new HashMap<>(fiveDescNum);
+            for (int i = 0; i < fiveDescNum; i++) {
+                if (draftConfigDTO.getFiveDescConfig() != null) {
+                    request.setKeywords(recommendKeys(draftConfigDTO.getFiveDescConfig().get(String.valueOf(i))));
+                } else {
+                    request.setKeywords(Collections.emptyList());
+                }
+
+                request.setTitle(title);
+                request.setBulletPoints(new ArrayList<>(fiveDesc.values()));
+                request.setListingType(ListingGenerateTypeEnum.BULLET_POINT.name());
+                ListingGenerateResponse fiveDescResp = listingGenerateService.execute(request);
+                if (!fiveDescResp.getSuccess()) {
+                    updateError(draftDO, "五点描述生成失败：" + titleResp.getErrorMsg());
+                    return;
+                }
+                String desc = fiveDescResp.getAnswer();
+                fiveDesc.put(String.valueOf(i), desc);
+            }
+            Long fiverDescEnd = System.currentTimeMillis();
+            log.info("生成五点描述成功，{} ms", fiverDescEnd - titleEnd);
+            draftDO.setFiveDesc(ListingDraftConvert.INSTANCE.jsonStr(fiveDesc));
+            // productDesc
+            request.setBulletPoints(new ArrayList<>(fiveDesc.values()));
+            request.setListingType(ListingGenerateTypeEnum.PRODUCT_DESCRIPTION.name());
+            request.setKeywords(recommendKeys(draftConfigDTO.getProductDescConfig()));
+            ListingGenerateResponse productDescResp = listingGenerateService.execute(request);
+            if (!productDescResp.getSuccess()) {
+                updateError(draftDO, "产品描述生成失败：" + titleResp.getErrorMsg());
+                return;
+            }
+            Long productDescEnd = System.currentTimeMillis();
+            log.info("生成产品描述成功，{} ms", productDescEnd - fiverDescEnd);
+            String desc = productDescResp.getAnswer();
+            draftDO.setProductDesc(desc);
 
             Long end = System.currentTimeMillis();
-            log.info("生成listing结束. {} ms", end - start);
-            draftDO.setTitle(IdUtil.fastSimpleUUID());
-//            draftDO.setProductDesc("");
-//            draftDO.setSearchTerm("");
-//            draftDO.setFiveDesc("{}");
-            updateDo(draftDO, keywordBinds.stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList()));
+            log.info("生成listing全部结束. {} ms", end - start);
+
+            List<String> keywordBinds = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
+            updateDo(draftDO, keywordBinds);
             updateScore(draftDO);
 
             draftDO.setExecuteStatus(ListExecuteEnum.EXECUTED.name());
@@ -385,6 +438,19 @@ public class DraftServiceImpl implements DraftService {
             draftDO.setExecuteStatus(ListExecuteEnum.EXECUTE_ERROR.name());
             updateById(draftDO);
         }
+    }
+
+    private List<String> recommendKeys(DraftContentConfigDTO contentConfigDTO) {
+        if (contentConfigDTO == null) {
+            return Collections.emptyList();
+        }
+        return contentConfigDTO.getKeys();
+    }
+
+    private void updateError(ListingDraftDO draftDO, String msg) {
+        draftDO.setErrorMsg(msg);
+        draftDO.setExecuteStatus(ListExecuteEnum.EXECUTE_ERROR.name());
+        updateById(draftDO);
     }
 
     private void updateScore(ListingDraftDO draftDO) {
@@ -510,7 +576,6 @@ public class DraftServiceImpl implements DraftService {
         BigDecimal matchSize = BigDecimal.valueOf(contentKeys.size());
         draftDO.setSearchersProportion(matchSize.divide(new BigDecimal(metaData.size()), 2, RoundingMode.HALF_UP).doubleValue());
     }
-
 
 
     /**
