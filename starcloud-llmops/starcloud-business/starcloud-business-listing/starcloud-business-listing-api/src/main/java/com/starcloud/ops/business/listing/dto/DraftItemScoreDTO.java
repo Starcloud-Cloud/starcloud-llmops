@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.BooleanUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Map;
 
 @Data
@@ -61,6 +64,11 @@ public class DraftItemScoreDTO {
         d += BooleanUtils.isTrue(withoutUrl) ? 1 : 0;
         d += BooleanUtils.isTrue(searchTermLength) ? 1 : 0;
         return d;
+    }
+
+    public Double scoreProportion() {
+        BigDecimal bigDecimal = BigDecimal.valueOf(totalScore());
+        return bigDecimal.divide(new BigDecimal(9),2, RoundingMode.HALF_UP).doubleValue();
     }
 
 }

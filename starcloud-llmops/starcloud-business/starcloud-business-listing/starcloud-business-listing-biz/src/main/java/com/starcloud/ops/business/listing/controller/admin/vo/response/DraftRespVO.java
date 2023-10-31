@@ -46,6 +46,12 @@ public class DraftRespVO {
     @Schema(description = "总搜索量")
     private Long totalSearches;
 
+    @Schema(description = "score / 选项数量")
+    private Double scoreProportion;
+
+    @Schema(description = "匹配关键词数 / 总关键词数")
+    private Double searchersProportion;
+
     @Schema(description = "各项分数")
     private DraftItemScoreDTO itemScore;
 
