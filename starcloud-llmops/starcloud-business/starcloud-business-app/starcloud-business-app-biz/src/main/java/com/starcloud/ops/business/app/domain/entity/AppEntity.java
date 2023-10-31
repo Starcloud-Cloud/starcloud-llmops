@@ -325,7 +325,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         }
 
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
-        return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result);
+        return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result, appContext.getConversationUid());
 
     }
 

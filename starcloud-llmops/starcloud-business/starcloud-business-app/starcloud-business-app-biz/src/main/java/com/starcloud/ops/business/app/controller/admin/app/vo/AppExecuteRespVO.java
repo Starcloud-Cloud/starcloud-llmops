@@ -37,6 +37,12 @@ public class AppExecuteRespVO implements Serializable {
     private Object result;
 
     /**
+     * 会话UID
+     */
+    @Schema(description = "会话id")
+    private String conversationUid;
+
+    /**
      * 成功返回
      *
      * @param resultCode 返回code
@@ -44,20 +50,13 @@ public class AppExecuteRespVO implements Serializable {
      * @param result     返回值
      * @return AppExecuteRespVO
      */
-    public static AppExecuteRespVO success(String resultCode, String resultDesc, Object result) {
+    public static AppExecuteRespVO success(String resultCode, String resultDesc, Object result, String conversationUid) {
         AppExecuteRespVO respVO = new AppExecuteRespVO();
         respVO.setSuccess(Boolean.TRUE);
         respVO.setResultCode(resultCode);
         respVO.setResultDesc(resultDesc);
         respVO.setResult(result);
-        return respVO;
-    }
-
-    public static AppExecuteRespVO failure(String resultCode, String resultDesc) {
-        AppExecuteRespVO respVO = new AppExecuteRespVO();
-        respVO.setSuccess(Boolean.FALSE);
-        respVO.setResultCode(resultCode);
-        respVO.setResultDesc(resultDesc);
+        respVO.setConversationUid(conversationUid);
         return respVO;
     }
 

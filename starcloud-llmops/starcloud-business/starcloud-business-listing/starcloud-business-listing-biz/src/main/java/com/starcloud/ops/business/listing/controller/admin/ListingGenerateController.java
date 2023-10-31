@@ -2,10 +2,10 @@ package com.starcloud.ops.business.listing.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.listing.service.ListingGenerateService;
 import com.starcloud.ops.business.listing.vo.ListingGenerateRequest;
+import com.starcloud.ops.business.listing.vo.ListingGenerateResponse;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,7 +47,7 @@ public class ListingGenerateController {
     @PostMapping("/execute")
     @ApiOperationSupport(order = 20, author = "nacoyer")
     @Operation(summary = "同步生成Listing标题或者五点描述或者产品描述等", description = "同步生成Listing标题或者五点描述或者产品描述等")
-    public CommonResult<AppExecuteRespVO> execute(@Validated @RequestBody ListingGenerateRequest request) {
+    public CommonResult<ListingGenerateResponse> execute(@Validated @RequestBody ListingGenerateRequest request) {
         return CommonResult.success(listingGenerateService.execute(request));
     }
 
