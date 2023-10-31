@@ -121,6 +121,8 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
     private AppExecuteReqVO buildExecuteRequest(ListingGenerateRequest request, AppMarketRespVO app) {
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         executeRequest.setSseEmitter(request.getSseEmitter());
+        executeRequest.setConversationUid(request.getConversationUid());
+        executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(AppSceneEnum.LISTING_GENERATE.name());
         executeRequest.setAppUid(app.getUid());
         executeRequest.setMediumUid(request.getDraftUid());

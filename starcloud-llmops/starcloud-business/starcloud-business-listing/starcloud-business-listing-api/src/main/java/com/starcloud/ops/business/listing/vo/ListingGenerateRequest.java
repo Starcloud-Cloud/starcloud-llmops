@@ -42,6 +42,12 @@ public class ListingGenerateRequest implements java.io.Serializable {
     private SseEmitter sseEmitter;
 
     /**
+     * 会话UID
+     */
+    @Schema(description = "会话id")
+    private String conversationUid;
+
+    /**
      * 应用标签
      */
     @Schema(description = "生成类型")
