@@ -104,8 +104,8 @@ public class VariableItemEntity {
         if ("TEMPERATURE".equalsIgnoreCase(this.field)) {
             Double temperature = (Double) this.value;
             if (temperature == null || temperature <= 0) {
-                this.value = 0.0;
-                temperature = 0.0;
+                this.value = 0.7;
+                temperature = 0.7;
             }
             if (temperature.compareTo(2.0) > 0) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.TEMPERATURE_OUT_OF_LIMIT, temperature);
