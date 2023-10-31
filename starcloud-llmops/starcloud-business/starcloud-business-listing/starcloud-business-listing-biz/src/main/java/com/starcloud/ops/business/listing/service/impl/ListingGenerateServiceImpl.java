@@ -103,6 +103,7 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
             log.info("同步Listing生成，应用市场查询成功 应用名称: {}, 应用UID: {}", app.getName(), app.getUid());
             AppExecuteReqVO executeRequest = buildExecuteRequest(request, app);
             AppExecuteRespVO executeResponse = appService.execute(executeRequest);
+
             if (Objects.isNull(executeResponse)) {
                 return buildFailure(response, ErrorCodeConstants.EXECUTE_LISTING_RESULT_IS_NULL);
             }
