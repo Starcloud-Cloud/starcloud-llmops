@@ -378,6 +378,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_LISTING_VARIABLE_FAILURE = new ErrorCode(310500102, "Listing 生成失败，系统变量错误！请联系管理员！");
 
+    /**
+     * Listing 生成失败，系统变量错误
+     */
+    ErrorCode EXECUTE_LISTING_TYPE_FAILURE = new ErrorCode(310500103, "Listing 生成失败，Listing 类型不支持（{}）！请联系管理员！");
+
     // ========== 图片上传错误码 370 000 xxx ==========
 
     /**

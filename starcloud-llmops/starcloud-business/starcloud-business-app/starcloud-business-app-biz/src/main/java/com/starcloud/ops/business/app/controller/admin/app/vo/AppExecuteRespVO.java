@@ -53,4 +53,12 @@ public class AppExecuteRespVO implements Serializable {
         return respVO;
     }
 
+    public static AppExecuteRespVO failure(String resultCode, String resultDesc) {
+        AppExecuteRespVO respVO = new AppExecuteRespVO();
+        respVO.setSuccess(Boolean.FALSE);
+        respVO.setResultCode(resultCode);
+        respVO.setResultDesc(resultDesc);
+        return respVO;
+    }
+
 }
