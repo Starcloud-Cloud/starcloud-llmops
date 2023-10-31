@@ -158,7 +158,6 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             } else {
                 request.setStepId(appContext.getStepId());
             }
-            log.info("应用工作流执行: 应用参数：\n{}", JSONUtil.parse(appContext.getContextVariablesValues()).toStringPretty());
         } catch (ServerException exception) {
             log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
             this.createAppMessageLog(request, exception);
