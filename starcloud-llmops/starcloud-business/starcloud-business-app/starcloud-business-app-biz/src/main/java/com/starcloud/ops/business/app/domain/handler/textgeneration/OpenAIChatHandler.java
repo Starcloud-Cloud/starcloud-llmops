@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
-import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.dashscope.aigc.generation.GenerationResult;
@@ -10,7 +9,6 @@ import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
@@ -46,50 +44,65 @@ import java.util.List;
  */
 @Data
 @Slf4j
+@SuppressWarnings("all")
 public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, String> {
 
-    private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
-
+    /**
+     * SSE 回调
+     */
     private StreamingSseCallBackHandler streamingSseCallBackHandler;
 
+    /**
+     * 构造函数
+     *
+     * @param streamingSseCallBackHandler SSE 回调
+     */
     public OpenAIChatHandler(StreamingSseCallBackHandler streamingSseCallBackHandler) {
         this.streamingSseCallBackHandler = streamingSseCallBackHandler;
     }
 
+    /**
+     * 执行handler
+     *
+     * @param context 请求上下文
+     * @return 返回结果
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     @Override
     protected HandlerResponse<String> _execute(HandlerContext<OpenAIChatHandler.Request> context) {
-
         return this._executeGpt(context);
     }
 
+    /**
+     * 执行 GPT handler, 调用 ChatGPT AI模型生成内容
+     *
+     * @param context 请求上下文
+     * @return 返回结果
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private HandlerResponse<String> _executeGpt(HandlerContext<OpenAIChatHandler.Request> context) {
 
         Request request = context.getRequest();
         String prompt = request.getPrompt();
-        //prompt = "hi, what you name?";
 
-        HandlerResponse appStepResponse = new HandlerResponse();
+        HandlerResponse<String> appStepResponse = new HandlerResponse<>();
         appStepResponse.setSuccess(false);
         appStepResponse.setStepConfig(JSONUtil.toJsonStr(request));
-        //appStepResponse.setStepConfig(JSON.toJSONString(variablesMaps));
         appStepResponse.setMessage(prompt);
 
         ModelTypeEnum modelType = TokenCalculator.fromName(request.getModel());
-
         appStepResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(modelType, true));
         appStepResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(modelType, false));
 
-
         try {
-
             BaseLLMUsage baseLLMUsage;
             String msg;
-
             if (ModelTypeEnum.QWEN.equals(modelType)) {
                 BaseLLMResult<GenerationResult> result = this._executeQwen(request);
                 baseLLMUsage = result.getUsage();
                 msg = result.getText();
-
             } else {
 
                 ChatOpenAI chatOpenAI = new ChatOpenAI();
@@ -97,11 +110,9 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
                 chatOpenAI.setStream(request.getStream());
                 chatOpenAI.setMaxTokens(request.getMaxTokens());
                 chatOpenAI.setTemperature(request.getTemperature());
-
                 chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
 
                 //数据集支持
-
                 List<List<BaseMessage>> chatMessages = Collections.singletonList(
                         Collections.singletonList(new HumanMessage(prompt))
                 );
@@ -115,9 +126,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             //组装参数
             appStepResponse.setAnswer(msg);
             appStepResponse.setSuccess(true);
-
             appStepResponse.setOutput(msg);
-
             appStepResponse.setMessageTokens(baseLLMUsage.getPromptTokens());
             appStepResponse.setAnswerTokens(baseLLMUsage.getCompletionTokens());
 
@@ -128,7 +137,6 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             appStepResponse.setTotalTokens(baseLLMUsage.getTotalTokens());
             appStepResponse.setTotalPrice(totalPrice);
 
-
         } catch (OpenAiHttpException exc) {
 
             appStepResponse.setErrorCode(ErrorCodeConstants.OPENAI_ERROR.getCode());
@@ -138,11 +146,16 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.OPENAI_ERROR);
         }
 
-
         return appStepResponse;
     }
 
 
+    /**
+     * 执行 通义千问 handler, 调用 通义千问 AI模型生成内容
+     *
+     * @param request 请求
+     * @return 返回结果
+     */
     @JsonIgnore
     @JSONField(serialize = false)
     private BaseLLMResult<GenerationResult> _executeQwen(Request request) {
@@ -164,7 +177,12 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         return result;
     }
 
-
+    /**
+     * 构建聊天模板
+     *
+     * @param prompt 提示
+     * @return 聊天模板
+     */
     @JsonIgnore
     @JSONField(serialize = false)
     public ChatPromptTemplate buildChatPromptTemplate(String prompt) {
@@ -173,10 +191,15 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         return ChatPromptTemplate.fromMessages(Collections.singletonList(humanMessagePromptTemplate));
     }
 
-
+    /**
+     * 请求实体
+     */
     @Data
     public static class Request {
 
+        /**
+         * AI 模型, 默认 ChatGPT 3.5 Turbo
+         */
         private String model = ModelTypeEnum.GPT_3_5_TURBO.getName();
 
         /**
@@ -184,31 +207,50 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
          */
         private String prompt;
 
+        /**
+         * 温度
+         */
         private Double temperature = 0.7d;
 
+        /**
+         * topP
+         */
         private Double topP = 1d;
 
+        /**
+         * 生成几条内容
+         */
         private Integer n = 1;
 
+        /**
+         * 是否流式
+         */
         private Boolean stream = false;
 
+        /**
+         * 是否使用stop
+         */
         private List<String> stop;
 
+        /**
+         * 最大生成长度
+         */
         private Integer maxTokens = 500;
 
+        /**
+         * 预报费
+         */
         private Double presencePenalty = 0d;
 
+        /**
+         * 频数
+         */
         private Double frequencyPenalty = 0d;
 
         /**
          * 数据集支持
          */
         private List<String> docsUid;
-
-//        @Deprecated
-//        private BaseCallbackHandler llmCallbackHandler;
-//
-//        private SseEmitter sseEmitter;
 
     }
 }
