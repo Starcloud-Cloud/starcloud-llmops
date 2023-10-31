@@ -1,5 +1,9 @@
 package com.starcloud.ops.business.app.domain.entity.variable;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -81,4 +85,31 @@ public class VariableItemEntity {
      */
     private List<Option> options;
 
+    /**
+     * 变量校验规则
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate() {
+        if ("MAX_TOKENS".equalsIgnoreCase(this.field)) {
+            Integer maxTokens = (Integer) this.value;
+            if (maxTokens == null || maxTokens <= 0) {
+                this.value = 1000;
+                maxTokens = 1000;
+            }
+            if (maxTokens.compareTo(5000) > 0) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.MAX_TOKENS_OUT_OF_LIMIT, maxTokens, 5000);
+            }
+        }
+        if ("TEMPERATURE".equalsIgnoreCase(this.field)) {
+            Double temperature = (Double) this.value;
+            if (temperature == null || temperature <= 0) {
+                this.value = 0.0;
+                temperature = 0.0;
+            }
+            if (temperature.compareTo(2.0) > 0) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.TEMPERATURE_OUT_OF_LIMIT, temperature);
+            }
+        }
+    }
 }
