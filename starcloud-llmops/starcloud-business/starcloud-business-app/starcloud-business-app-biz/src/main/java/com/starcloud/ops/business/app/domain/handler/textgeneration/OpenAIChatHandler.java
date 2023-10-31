@@ -66,30 +66,23 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
         Request request = context.getRequest();
         String prompt = request.getPrompt();
-        //prompt = "hi, what you name?";
 
-        HandlerResponse appStepResponse = new HandlerResponse();
+        HandlerResponse<String> appStepResponse = new HandlerResponse<>();
         appStepResponse.setSuccess(false);
         appStepResponse.setStepConfig(JSONUtil.toJsonStr(request));
-        //appStepResponse.setStepConfig(JSON.toJSONString(variablesMaps));
         appStepResponse.setMessage(prompt);
 
         ModelTypeEnum modelType = TokenCalculator.fromName(request.getModel());
-
         appStepResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(modelType, true));
         appStepResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(modelType, false));
 
-
         try {
-
             BaseLLMUsage baseLLMUsage;
             String msg;
-
             if (ModelTypeEnum.QWEN.equals(modelType)) {
                 BaseLLMResult<GenerationResult> result = this._executeQwen(request);
                 baseLLMUsage = result.getUsage();
                 msg = result.getText();
-
             } else {
 
                 ChatOpenAI chatOpenAI = new ChatOpenAI();
@@ -97,11 +90,9 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
                 chatOpenAI.setStream(request.getStream());
                 chatOpenAI.setMaxTokens(request.getMaxTokens());
                 chatOpenAI.setTemperature(request.getTemperature());
-
                 chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
 
                 //数据集支持
-
                 List<List<BaseMessage>> chatMessages = Collections.singletonList(
                         Collections.singletonList(new HumanMessage(prompt))
                 );
@@ -115,9 +106,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             //组装参数
             appStepResponse.setAnswer(msg);
             appStepResponse.setSuccess(true);
-
             appStepResponse.setOutput(msg);
-
             appStepResponse.setMessageTokens(baseLLMUsage.getPromptTokens());
             appStepResponse.setAnswerTokens(baseLLMUsage.getCompletionTokens());
 
@@ -128,7 +117,6 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             appStepResponse.setTotalTokens(baseLLMUsage.getTotalTokens());
             appStepResponse.setTotalPrice(totalPrice);
 
-
         } catch (OpenAiHttpException exc) {
 
             appStepResponse.setErrorCode(ErrorCodeConstants.OPENAI_ERROR.getCode());
@@ -137,7 +125,6 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
 
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.OPENAI_ERROR);
         }
-
 
         return appStepResponse;
     }

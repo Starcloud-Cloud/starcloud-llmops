@@ -1,5 +1,8 @@
 package com.starcloud.ops.business.listing.service.impl;
 
+import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
@@ -12,6 +15,7 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -24,6 +28,7 @@ import com.starcloud.ops.business.listing.enums.ListingLanguageEnum;
 import com.starcloud.ops.business.listing.enums.ListingWritingStyleEnum;
 import com.starcloud.ops.business.listing.service.ListingGenerateService;
 import com.starcloud.ops.business.listing.vo.ListingGenerateRequest;
+import com.starcloud.ops.business.listing.vo.ListingGenerateResponse;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +36,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_CONFIG_FAILURE;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_STEP_FAILURE;
@@ -89,12 +95,46 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
      * @param request 请求
      */
     @Override
-    public AppExecuteRespVO execute(ListingGenerateRequest request) {
-        log.info("同步Listing生成，Listing类型: {}", request.getListingType());
-        AppMarketRespVO app = this.getListingApp(request.getListingType());
-        log.info("同步Listing生成，应用市场查询成功 应用名称: {}, 应用UID: {}", app.getName(), app.getUid());
-        AppExecuteReqVO executeRequest = buildExecuteRequest(request, app);
-        return appService.execute(executeRequest);
+    public ListingGenerateResponse execute(ListingGenerateRequest request) {
+        ListingGenerateResponse response = ofBaseResponse(request);
+        try {
+            log.info("同步Listing生成开始，Listing类型: {}", request.getListingType());
+            AppMarketRespVO app = this.getListingApp(request.getListingType());
+            log.info("同步Listing生成，应用市场查询成功 应用名称: {}, 应用UID: {}", app.getName(), app.getUid());
+            AppExecuteReqVO executeRequest = buildExecuteRequest(request, app);
+            AppExecuteRespVO executeResponse = appService.execute(executeRequest);
+
+            if (Objects.isNull(executeResponse)) {
+                return buildFailure(response, ErrorCodeConstants.EXECUTE_LISTING_RESULT_IS_NULL);
+            }
+            if (!executeResponse.getSuccess()) {
+                return buildFailure(response, executeResponse.getResultCode(), executeResponse.getResultDesc());
+            }
+            if (Objects.isNull(executeResponse.getResult())) {
+                return buildFailure(response, ErrorCodeConstants.EXECUTE_LISTING_RESULT_IS_NULL);
+            }
+            if (!(executeResponse.getResult() instanceof ActionResponse)) {
+                return buildFailure(response, ErrorCodeConstants.EXECUTE_LISTING_RESULT_FAILURE);
+            }
+
+            ActionResponse result = (ActionResponse) executeResponse.getResult();
+            if (!result.getSuccess()) {
+                return buildFailure(response, result.getErrorCode(), result.getErrorMsg());
+            }
+
+            response.setSuccess(true);
+            response.setAnswer(result.getAnswer());
+            return response;
+        } catch (ServiceException exception) {
+            log.error("同步Listing生成，Listing类型: {}, 异常: {}", request.getListingType(), exception.getMessage());
+            return buildFailure(response, exception.getCode().toString(), exception.getMessage());
+        } catch (Exception exception) {
+            log.error("同步Listing生成，Listing类型: {}, 异常: {}", request.getListingType(), exception.getMessage());
+            return buildFailure(response, ErrorCodeConstants.EXECUTE_LISTING_FAILURE.getCode().toString(), exception.getMessage());
+        } finally {
+            log.info("同步Listing生成结束，Listing类型: {}, 执行结果:\n {}", request.getListingType(), JSONUtil.parse(response).toStringPretty());
+        }
+
     }
 
     /**
@@ -171,6 +211,44 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
         config.setSteps(steps);
         app.setWorkflowConfig(config);
         return AppMarketConvert.INSTANCE.convert(app);
+    }
+
+    /**
+     * 构建基础响应
+     *
+     * @param request 请求
+     * @return 基础响应
+     */
+    private ListingGenerateResponse ofBaseResponse(ListingGenerateRequest request) {
+        ListingGenerateResponse response = new ListingGenerateResponse();
+        response.setSuccess(Boolean.FALSE);
+        response.setConversationUid(request.getConversationUid());
+        response.setListingType(request.getListingType());
+        response.setDraftUid(request.getDraftUid());
+        return response;
+    }
+
+    /**
+     * 构建失败响应
+     *
+     * @param response  响应
+     * @param errorCode 错误码
+     */
+    private ListingGenerateResponse buildFailure(ListingGenerateResponse response, ErrorCode errorCode) {
+        return buildFailure(response, errorCode.getCode().toString(), errorCode.getMsg());
+    }
+
+    /**
+     * 构建失败响应
+     *
+     * @param response  响应
+     * @param errorCode 错误码
+     * @param errorMsg  错误信息
+     */
+    private ListingGenerateResponse buildFailure(ListingGenerateResponse response, String errorCode, String errorMsg) {
+        response.setErrorCode(errorCode);
+        response.setErrorMsg(errorMsg);
+        return response;
     }
 
 }

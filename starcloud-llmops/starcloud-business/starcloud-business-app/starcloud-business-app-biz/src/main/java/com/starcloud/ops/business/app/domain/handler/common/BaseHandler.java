@@ -4,20 +4,14 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.starcloud.ops.business.app.domain.entity.chat.Interactive.InteractiveInfo;
-import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.llm.langchain.core.tools.utils.OpenAIUtils;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.json.Json;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -77,7 +71,6 @@ public abstract class BaseHandler<Q, R> {
      * @return
      */
     public static BaseHandler of(String name) {
-
         try {
             //头部小写驼峰
             return SpringUtil.getBean(StrUtil.lowerFirst(name));
@@ -91,51 +84,37 @@ public abstract class BaseHandler<Q, R> {
      * 执行步骤
      */
     public HandlerResponse<R> execute(HandlerContext<Q> context) {
-
         HandlerResponse<R> handlerResponse = new HandlerResponse();
         handlerResponse.setSuccess(false);
-
         long start = System.currentTimeMillis();
-
         try {
             //@todo 默认执行开始 tips 提示
             //中间的交互提示 可以在 具体的handler内继续调用
             HandlerResponse<R> source = this._execute(context);
-
             //设置的属性copy
             BeanUtil.copyProperties(source, handlerResponse);
-
             //临时放这里
-            handlerResponse.setType(this.getClass().getSimpleName());
-            handlerResponse.setMessage(JsonUtils.toJsonString(context.getRequest()));
-
-//            handlerResponse.setMessage(JSONUtil.toJsonStr(context.getRequest()));
             handlerResponse.setSuccess(true);
-
-            handlerResponse.setAnswer(JsonUtils.toJsonString(source.getOutput()));
-
+            handlerResponse.setType(this.getClass().getSimpleName());
+            if (StringUtils.isBlank(source.getMessage())) {
+                handlerResponse.setMessage(JsonUtils.toJsonString(context.getRequest()));
+            }
+            if (StringUtils.isBlank(source.getAnswer())) {
+                handlerResponse.setAnswer(JsonUtils.toJsonString(source.getOutput()));
+            }
         } catch (ServiceException e) {
-
             log.error("BaseHandler {} execute is error: {}", this.getClass().getSimpleName(), e.getMessage(), e);
-
             handlerResponse.setErrorCode(e.getCode());
             handlerResponse.setErrorMsg(e.getMessage());
-
             context.sendCurrentInteractiveError(handlerResponse.getErrorCode(), handlerResponse.getErrorMsg());
 
         } catch (Exception e) {
-
             log.error("BaseHandler {} execute is fail: {}", this.getClass().getSimpleName(), e.getMessage(), e);
-
             handlerResponse.setErrorCode(ChatErrorCodeConstants.TOOL_RUN_ERROR.getCode());
             handlerResponse.setErrorMsg(e.getMessage());
-
             context.sendCurrentInteractiveError(handlerResponse.getErrorCode(), handlerResponse.getErrorMsg());
-
         }
-
         handlerResponse.setElapsed(System.currentTimeMillis() - start);
-
         return handlerResponse;
 
     }

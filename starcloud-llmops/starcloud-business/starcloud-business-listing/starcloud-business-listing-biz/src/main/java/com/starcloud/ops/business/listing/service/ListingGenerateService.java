@@ -1,9 +1,8 @@
 package com.starcloud.ops.business.listing.service;
 
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.listing.vo.ListingGenerateRequest;
+import com.starcloud.ops.business.listing.vo.ListingGenerateResponse;
 import com.starcloud.ops.framework.common.api.dto.Option;
 
 import java.util.List;
@@ -39,7 +38,7 @@ public interface ListingGenerateService {
      * @param request 请求
      * @return 执行结果
      */
-    AppExecuteRespVO execute(ListingGenerateRequest request);
+    ListingGenerateResponse execute(ListingGenerateRequest request);
 
     /**
      * 异步执行AI生成Listing标题或者五点描述或者产品描述等

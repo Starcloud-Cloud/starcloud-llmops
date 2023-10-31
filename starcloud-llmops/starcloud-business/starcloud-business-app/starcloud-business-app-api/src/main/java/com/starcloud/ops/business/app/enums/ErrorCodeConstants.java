@@ -364,6 +364,16 @@ public interface ErrorCodeConstants {
     ErrorCode EXECUTE_LISTING_FAILURE = new ErrorCode(310500000, "Listing 生成失败，请稍后重试或联系管理员！");
 
     /**
+     * Listing 生成失败，生成结果为空
+     */
+    ErrorCode EXECUTE_LISTING_RESULT_IS_NULL = new ErrorCode(310500001, "Listing 生成失败，生成结果为空，请稍候重试或者联系管理员！");
+
+    /**
+     * Listing 生成失败，生成结果异常
+     */
+    ErrorCode EXECUTE_LISTING_RESULT_FAILURE = new ErrorCode(310500002, "Listing 生成失败，生成结果异常，请稍候重试或者联系管理员！");
+
+    /**
      * Listing 生成失败，系统配置错误
      */
     ErrorCode EXECUTE_LISTING_CONFIG_FAILURE = new ErrorCode(310500100, "Listing 生成失败，系统配置错误！请联系管理员！");
