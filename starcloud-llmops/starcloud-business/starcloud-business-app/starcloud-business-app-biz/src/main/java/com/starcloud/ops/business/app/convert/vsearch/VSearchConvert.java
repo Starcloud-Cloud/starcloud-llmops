@@ -74,6 +74,12 @@ public interface VSearchConvert {
         return vSearchImageRequest;
     }
 
+    /**
+     * VariantsImageRequest 转 VSearchImageRequest
+     *
+     * @param request 请求参数
+     * @return VSearchImageRequest
+     */
     default VSearchImageRequest convert(VariantsImageRequest request) {
         VSearchImageRequest vSearchImageRequest = new VSearchImageRequest();
         vSearchImageRequest.setEngine(request.getEngine());
