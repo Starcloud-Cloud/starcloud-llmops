@@ -112,7 +112,7 @@ public class DraftServiceImpl implements DraftService {
         if (AnalysisStatusEnum.ANALYSIS.name().equals(respVO.getStatus())) {
             return respVO;
         }
-        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(respVO.getKeywordResume(), draftDO.getEndpoint(), true);
+        List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(respVO.getKeywordResume(), draftDO.getEndpoint(), false);
         respVO.setKeywordMetaData(metaData);
         return respVO;
     }
@@ -256,6 +256,7 @@ public class DraftServiceImpl implements DraftService {
         keywordBindMapper.deleteDraftKey(removeKey, draftDO.getId());
         List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         updateDo(draftDO, keys);
+        updateScore(draftDO);
         updateById(draftDO);
     }
 
@@ -568,15 +569,19 @@ public class DraftServiceImpl implements DraftService {
         String content = listString(respVO);
         List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(content::contains).distinct().collect(Collectors.toList());
         long matchSearchers = 0L;
+
+        BigDecimal matchSize = BigDecimal.valueOf(0);
         for (String key : contentKeys) {
             KeywordMetaDataDTO keywordMetaDataDTO = metaMap.get(key);
-            matchSearchers += keywordMetaDataDTO == null ? 0L : keywordMetaDataDTO.mouthSearches();
+            if (keywordMetaDataDTO != null) {
+                matchSize = matchSize.add(BigDecimal.ONE);
+                matchSearchers += keywordMetaDataDTO.mouthSearches();
+            }
         }
 
         // 搜索量
         draftDO.setTotalSearches(totalSearches);
         draftDO.setMatchSearchers(matchSearchers);
-        BigDecimal matchSize = BigDecimal.valueOf(contentKeys.size());
         draftDO.setSearchersProportion(matchSize.divide(new BigDecimal(metaData.size()), 2, RoundingMode.HALF_UP).doubleValue());
     }
 
