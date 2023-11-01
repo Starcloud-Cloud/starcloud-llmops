@@ -37,6 +37,11 @@ public class ListingDraftDO extends TenantBaseDO {
     private Double score;
 
     /**
+     *  score / 选项数量
+     */
+    private Double scoreProportion;
+
+    /**
      * listing 标题
      */
     private String title;
@@ -72,6 +77,11 @@ public class ListingDraftDO extends TenantBaseDO {
     private Long totalSearches;
 
     /**
+     * 匹配关键词数/总关键词数
+     */
+    private Double searchersProportion;
+
+    /**
      * 草稿版本
      */
     private Integer version;
@@ -91,6 +101,17 @@ public class ListingDraftDO extends TenantBaseDO {
      * 执行耗时
      */
     private Long executeTime;
+
+    /**
+     * 执行失败Msg
+     */
+    private String errorMsg;
+
+
+    /**
+     * 执行状态
+     */
+    private String executeStatus;
 
 
 }

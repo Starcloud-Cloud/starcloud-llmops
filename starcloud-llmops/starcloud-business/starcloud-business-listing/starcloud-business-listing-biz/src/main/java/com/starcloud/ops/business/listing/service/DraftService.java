@@ -74,9 +74,9 @@ public interface DraftService {
     /**
      * 批量执行
      *
-     * @param operationReq
+     * @param ids
      */
-    void batchExecute(List<DraftOperationReqVO> operationReq);
+    void batchExecute(List<Long> ids);
 
     /**
      * 移除关键词

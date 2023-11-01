@@ -3,6 +3,8 @@ package com.starcloud.ops.business.listing.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Schema(description = "ai模式配置")
 public class AiConfigDTO {
@@ -24,5 +26,11 @@ public class AiConfigDTO {
 
     @Schema(description = "风格")
     private String writingStyle;
+
+    @Schema(description = "商品属性")
+    private List<String> commodityAttributes;
+
+    @Schema(description = "AI模型")
+    private String aiModel;
 
 }
