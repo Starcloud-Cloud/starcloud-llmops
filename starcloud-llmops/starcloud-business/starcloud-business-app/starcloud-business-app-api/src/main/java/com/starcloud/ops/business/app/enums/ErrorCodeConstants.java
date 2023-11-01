@@ -25,12 +25,12 @@ public interface ErrorCodeConstants {
     /**
      * MAX_TOKENS超出限制
      */
-    ErrorCode MAX_TOKENS_OUT_OF_LIMIT = new ErrorCode(300000403, "最大返回Tokens超出限制（{}）需要在1～5000之间，请检查后重试！");
+    ErrorCode MAX_TOKENS_OUT_OF_LIMIT = new ErrorCode(300000403, "最大返回Tokens超出限制（{}）需要在1～4000之间，请检查后重试！");
 
     /**
      * MAX_TOKENS格式错误
      */
-    ErrorCode MAX_TOKENS_FORMAT_ERROR = new ErrorCode(300000404, "最大返回Tokens格式错误（{}）必须是正整数且需要在1～5000之间，请检查后重试！");
+    ErrorCode MAX_TOKENS_FORMAT_ERROR = new ErrorCode(300000404, "最大返回Tokens格式错误（{}）必须是正整数，请检查后重试！");
 
     /**
      * 温度值超出限制
