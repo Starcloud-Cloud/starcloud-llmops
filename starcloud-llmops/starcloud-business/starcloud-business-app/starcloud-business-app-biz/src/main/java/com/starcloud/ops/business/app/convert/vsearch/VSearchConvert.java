@@ -52,6 +52,9 @@ public interface VSearchConvert {
             vSearchImageRequest.setInitImage(request.getInitImage());
             if (request.getImageStrength() != null) {
                 vSearchImageRequest.setStartSchedule(request.getImageStrength());
+                if (request.getImageStrength() <= 0.1) {
+                    vSearchImageRequest.setStartSchedule(0.1);
+                }
             } else {
                 vSearchImageRequest.setStartSchedule(0.6);
             }
@@ -71,6 +74,12 @@ public interface VSearchConvert {
         return vSearchImageRequest;
     }
 
+    /**
+     * VariantsImageRequest 转 VSearchImageRequest
+     *
+     * @param request 请求参数
+     * @return VSearchImageRequest
+     */
     default VSearchImageRequest convert(VariantsImageRequest request) {
         VSearchImageRequest vSearchImageRequest = new VSearchImageRequest();
         vSearchImageRequest.setEngine(request.getEngine());
@@ -89,6 +98,9 @@ public interface VSearchConvert {
 
         if (request.getImageStrength() != null) {
             vSearchImageRequest.setStartSchedule(request.getImageStrength());
+            if (request.getImageStrength() <= 0.1) {
+                vSearchImageRequest.setStartSchedule(0.1);
+            }
         } else {
             vSearchImageRequest.setStartSchedule(0.6);
         }
