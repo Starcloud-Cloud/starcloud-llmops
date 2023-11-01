@@ -83,14 +83,6 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     List<AppMarketDO> list(@Param("query") AppMarketListQuery query);
 
     /**
-     * 根据应用 uid 获取应用详情, 根据 sort 正序去第一个
-     *
-     * @param query 查询条件
-     * @return 应用详情
-     */
-    AppMarketDO get(@Param("query") AppMarketQuery query);
-
-    /**
      * 创建应用市场应用
      *
      * @param appMarket 应用市场
