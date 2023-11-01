@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * App 单个变量实体
@@ -92,24 +93,58 @@ public class VariableItemEntity {
     @JSONField(serialize = false)
     public void validate() {
         if ("MAX_TOKENS".equalsIgnoreCase(this.field)) {
-            Integer maxTokens = (Integer) this.value;
-            if (maxTokens == null || maxTokens <= 0) {
-                this.value = 1000;
-                maxTokens = 1000;
-            }
-            if (maxTokens.compareTo(5000) > 0) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.MAX_TOKENS_OUT_OF_LIMIT, maxTokens, 5000);
-            }
+            this.value = handleMaxTokens(this.value, 1000);
+            this.defaultValue = this.value;
         }
         if ("TEMPERATURE".equalsIgnoreCase(this.field)) {
-            Double temperature = (Double) this.value;
-            if (temperature == null || temperature <= 0) {
-                this.value = 0.7;
-                temperature = 0.7;
-            }
-            if (temperature.compareTo(2.0) > 0) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.TEMPERATURE_OUT_OF_LIMIT, temperature);
-            }
+            this.value = handleTemperature(this.value, 0.7);
+            this.defaultValue = this.value;
         }
     }
+
+    /**
+     * MaxTokens 变量校验规则
+     *
+     * @param value            变量值
+     * @param defaultMaxTokens 默认值
+     * @return 校验后的变量值
+     */
+    @SuppressWarnings("all")
+    private static Integer handleMaxTokens(Object value, Integer defaultMaxTokens) {
+        Integer maxTokens;
+        try {
+            maxTokens = Integer.valueOf(Objects.isNull(value) ? "0" : value.toString());
+        } catch (NumberFormatException exception) {
+            maxTokens = defaultMaxTokens;
+        }
+
+        // 0 <= maxTokens <= 5000
+        if (maxTokens.compareTo(0) < 0 || maxTokens.compareTo(5000) > 0) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.MAX_TOKENS_OUT_OF_LIMIT, maxTokens);
+        }
+        return maxTokens;
+    }
+
+    /**
+     * Temperature 变量校验规则
+     *
+     * @param value              变量值
+     * @param defaultTemperature 默认值
+     * @return 校验后的变量值
+     */
+    @SuppressWarnings("all")
+    private static Double handleTemperature(Object value, Double defaultTemperature) {
+        Double temperature;
+        try {
+            temperature = Objects.isNull(value) ? defaultTemperature : Double.valueOf(value.toString());
+        } catch (NumberFormatException exception) {
+            temperature = defaultTemperature;
+        }
+        // 0.0 <= temperature <= 2.0
+        if (temperature.compareTo(0.0) < 0 || temperature.compareTo(2.0) > 0) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.TEMPERATURE_OUT_OF_LIMIT, temperature);
+        }
+        return temperature;
+    }
+
 }
