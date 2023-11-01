@@ -51,10 +51,10 @@ public interface VSearchConvert {
         if (StringUtils.isNotBlank(request.getInitImage())) {
             vSearchImageRequest.setInitImage(request.getInitImage());
             if (request.getImageStrength() != null) {
+                vSearchImageRequest.setStartSchedule(request.getImageStrength());
                 if (request.getImageStrength() <= 0.1) {
                     vSearchImageRequest.setStartSchedule(0.1);
                 }
-                vSearchImageRequest.setStartSchedule(request.getImageStrength());
             } else {
                 vSearchImageRequest.setStartSchedule(0.6);
             }
@@ -97,10 +97,10 @@ public interface VSearchConvert {
         vSearchImageRequest.setInitImage(ImageUtils.handlerBase64Image(request.getInitImage()));
 
         if (request.getImageStrength() != null) {
+            vSearchImageRequest.setStartSchedule(request.getImageStrength());
             if (request.getImageStrength() <= 0.1) {
                 vSearchImageRequest.setStartSchedule(0.1);
             }
-            vSearchImageRequest.setStartSchedule(request.getImageStrength());
         } else {
             vSearchImageRequest.setStartSchedule(0.6);
         }
