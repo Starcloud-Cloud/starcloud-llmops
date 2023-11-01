@@ -37,4 +37,9 @@ public class KeywordMetadataBasicRespVO {
      */
     private Double purchaseRate;
 
+    /**
+     *  状态
+     */
+    private Integer status;
+
 }

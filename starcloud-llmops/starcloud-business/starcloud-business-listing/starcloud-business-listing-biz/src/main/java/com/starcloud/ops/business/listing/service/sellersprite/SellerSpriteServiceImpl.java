@@ -181,7 +181,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     private String unifiedPostRequest(String url, String requestData) {
 
 
-        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getValue();
+        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
 
         try {
             String result = HttpRequest.post(url).cookie(cookie)
@@ -209,7 +209,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * @return
      */
     private String unifiedGetRequest(String url, String requestData) {
-        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getValue();
+        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
         try {
             String result = HttpRequest.get(url)
                     .body(requestData).cookie(cookie)
