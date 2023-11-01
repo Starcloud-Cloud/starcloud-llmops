@@ -9,12 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.*;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
@@ -35,8 +30,8 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -81,19 +76,75 @@ public class AppMarketServiceImpl implements AppMarketService {
     private AppDictionaryService appDictionaryService;
 
     /**
-     * 分页查询应用市场列表
+     * 获取应用详情, 根据 ID 进行查询
+     *
+     * @param id 应用 ID
+     * @return 应用详情
+     */
+    @Override
+    public AppMarketRespVO get(Long id) {
+        AppMarketDO appMarket = appMarketMapper.selectById(id);
+        AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, id);
+        return AppMarketConvert.INSTANCE.convertResponse(appMarket);
+    }
+
+    /**
+     * 获取应用详情
+     *
+     * @param uid 应用 uid
+     * @return 应用详情
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AppMarketRespVO get(String uid) {
+        AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
+        // 查询应用市场信息
+        AppMarketDO appMarket = appMarketMapper.get(uid, Boolean.FALSE);
+        AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
+
+        // 转换应用数据
+        AppMarketRespVO response = AppMarketConvert.INSTANCE.convertResponse(appMarket);
+
+        // 获取当前登录用户并且校验
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+
+        // 查询是否收藏
+        AppFavoriteDO favorite = appFavoritesMapper.get(appMarket.getUid(), String.valueOf(loginUserId));
+        if (Objects.nonNull(favorite)) {
+            response.setIsFavorite(Boolean.TRUE);
+        } else {
+            response.setIsFavorite(Boolean.FALSE);
+        }
+
+        // 操作表中插入一条查看记录, 并且增加查看量
+        appOperateMapper.create(appMarket.getUid(), appMarket.getVersion(), AppOperateTypeEnum.VIEW.name(), String.valueOf(loginUserId));
+
+        // 增加查看量
+        Integer viewCount = appMarket.getViewCount() + 1;
+        LambdaUpdateWrapper<AppMarketDO> updateWrapper = Wrappers.lambdaUpdate(AppMarketDO.class);
+        updateWrapper.set(AppMarketDO::getViewCount, viewCount);
+        // 更新时间保持不变
+        updateWrapper.set(AppMarketDO::getUpdateTime, appMarket.getUpdateTime());
+        updateWrapper.eq(AppMarketDO::getId, appMarket.getId());
+        appMarketMapper.update(null, updateWrapper);
+
+        // 转换并且返回应用数据
+        response.setViewCount(viewCount);
+        return response;
+    }
+
+    /**
+     * 根据条件查询应用市场列表
      *
      * @param query 查询条件
      * @return 应用市场列表
      */
     @Override
-    public PageResp<AppMarketRespVO> page(AppMarketPageQuery query) {
-        // 分页查询
-        Page<AppMarketDO> page = appMarketMapper.page(query);
-        // 转换并且返回数据
-        List<AppMarketRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
-                .map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.toList());
-        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
+    public List<AppMarketRespVO> list(AppMarketListQuery query) {
+        // 查询应用市场列表
+        List<AppMarketDO> list = appMarketMapper.list(query);
+        return CollectionUtil.emptyIfNull(list).stream().filter(Objects::nonNull).map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.toList());
     }
 
     /**
@@ -143,8 +194,13 @@ public class AppMarketServiceImpl implements AppMarketService {
 
         // 查询应用市场列表
         AppMarketListQuery appMarketListQuery = new AppMarketListQuery();
+        // 非管理员，只能查询普通应用
+        if (UserUtils.isNotAdmin()) {
+            appMarketListQuery.setType(AppTypeEnum.COMMON.name());
+        }
+        // 只查询 COMPLETION 的应用
         appMarketListQuery.setModel(AppModelEnum.COMPLETION.name());
-        List<AppMarketDO> appMarketList = appMarketMapper.defaultListMarketApp(appMarketListQuery);
+        List<AppMarketDO> appMarketList = appMarketMapper.list(appMarketListQuery);
 
         // 如果为空，直接返回
         if (CollectionUtil.isEmpty(appMarketList)) {
@@ -195,84 +251,19 @@ public class AppMarketServiceImpl implements AppMarketService {
     }
 
     /**
-     * 获取应用列表
+     * 分页查询应用市场列表
      *
      * @param query 查询条件
-     * @return 应用列表
+     * @return 应用市场列表
      */
     @Override
-    public List<Option> listMarketAppOption(AppMarketListQuery query) {
-        query.setModel(AppModelEnum.COMPLETION.name());
-        query.setType(AppTypeEnum.SYSTEM.name());
-        // 查询应用市场列表
-        List<AppMarketDO> list = appMarketMapper.listMarketApp(query);
+    public PageResp<AppMarketRespVO> page(AppMarketPageQuery query) {
+        // 分页查询
+        Page<AppMarketDO> page = appMarketMapper.page(query);
         // 转换并且返回数据
-        return CollectionUtil.emptyIfNull(list).stream().filter(Objects::nonNull).map(item -> {
-            Option option = new Option();
-            option.setLabel(item.getName());
-            option.setValue(item.getUid());
-            return option;
-        }).collect(Collectors.toList());
-    }
-
-    /**
-     * 获取应用详情
-     *
-     * @param uid 应用 uid
-     * @return 应用详情
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public AppMarketRespVO get(String uid) {
-        AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
-        // 查询应用市场信息
-        AppMarketDO appMarket = appMarketMapper.get(uid, Boolean.FALSE);
-        AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
-
-        // 转换应用数据
-        AppMarketRespVO response = AppMarketConvert.INSTANCE.convertResponse(appMarket);
-
-        // 获取当前登录用户并且校验
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
-
-        // 查询是否收藏
-        AppFavoriteDO favorite = appFavoritesMapper.get(appMarket.getUid(), String.valueOf(loginUserId));
-        if (Objects.nonNull(favorite)) {
-            response.setIsFavorite(Boolean.TRUE);
-        } else {
-            response.setIsFavorite(Boolean.FALSE);
-        }
-
-        // 操作表中插入一条查看记录, 并且增加查看量
-        appOperateMapper.create(appMarket.getUid(), appMarket.getVersion(), AppOperateTypeEnum.VIEW.name(), String.valueOf(loginUserId));
-
-        // 增加查看量
-        Integer viewCount = appMarket.getViewCount() + 1;
-        LambdaUpdateWrapper<AppMarketDO> updateWrapper = Wrappers.lambdaUpdate(AppMarketDO.class);
-        updateWrapper.set(AppMarketDO::getViewCount, viewCount);
-        // 更新时间保持不变
-        updateWrapper.set(AppMarketDO::getUpdateTime, appMarket.getUpdateTime());
-        updateWrapper.eq(AppMarketDO::getId, appMarket.getId());
-        appMarketMapper.update(null, updateWrapper);
-
-        // 转换并且返回应用数据
-        response.setViewCount(viewCount);
-        return response;
-    }
-
-    /**
-     * 获取应用详情
-     *
-     * @param query 查询条件
-     * @return 应用详情
-     */
-    @Override
-    public AppMarketRespVO get(AppMarketQuery query) {
-        AppValidate.notNull(query, ErrorCodeConstants.MARKET_QUERY_REQUIRED);
-        AppMarketDO appMarket = appMarketMapper.get(query);
-        AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT);
-        return AppMarketConvert.INSTANCE.convertResponse(appMarket);
+        List<AppMarketRespVO> list = CollectionUtil.emptyIfNull(page.getRecords()).stream()
+                .map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.toList());
+        return PageResp.of(list, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
     /**

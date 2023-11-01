@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -30,6 +29,19 @@ import java.util.List;
  */
 @Mapper
 public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
+
+    /**
+     * 根据应用 uid 获取应用详情
+     *
+     * @param uid      应用 uid
+     * @param isSimple 是否查询部分字段
+     * @return 应用详情
+     */
+    default AppMarketDO get(String uid, boolean isSimple) {
+        LambdaQueryWrapper<AppMarketDO> wrapper = queryMapper(isSimple);
+        wrapper.eq(AppMarketDO::getUid, uid);
+        return this.selectOne(wrapper);
+    }
 
     /**
      * 分页查询应用市场列表
@@ -59,61 +71,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
      * @param query 查询条件
      * @return 应用列表
      */
-    default List<AppMarketDO> defaultListMarketApp(AppMarketListQuery query) {
-        LambdaQueryWrapper<AppMarketDO> queryMapper = queryMapper(Boolean.TRUE);
-        queryMapper.likeRight(StringUtils.isNotBlank(query.getName()), AppMarketDO::getName, query.getName());
-        queryMapper.eq(StringUtils.isNotBlank(query.getCategory()), AppMarketDO::getCategory, query.getCategory());
-        if (UserUtils.isNotAdmin()) {
-            queryMapper.eq(AppMarketDO::getType, AppTypeEnum.COMMON.name());
-        }
-        if (StringUtils.isNotBlank(query.getModel()) && AppModelEnum.CHAT.name().equals(query.getModel())) {
-            queryMapper.eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
-        } else {
-            queryMapper.eq(AppMarketDO::getModel, AppModelEnum.COMPLETION.name());
-        }
-        queryMapper.last("ORDER BY sort IS NULL, sort ASC, update_time DESC");
-        return this.selectList(queryMapper);
-    }
-
-    /**
-     * 获取应用市场列表选项
-     *
-     * @param query 查询条件
-     * @return 应用列表
-     */
-    List<AppMarketDO> listMarketApp(@Param("query") AppMarketListQuery query);
-
-    /**
-     * 查询员工广场
-     *
-     * @return 应用列表
-     */
-    default List<AppMarketDO> listChatMarketApp() {
-        LambdaQueryWrapper<AppMarketDO> wrapper = queryMapper(true)
-                .eq(AppMarketDO::getModel, AppModelEnum.CHAT.name());
-        return selectList(wrapper);
-    }
-
-    /**
-     * 根据应用 uid 获取应用详情
-     *
-     * @param uid      应用 uid
-     * @param isSimple 是否查询部分字段
-     * @return 应用详情
-     */
-    default AppMarketDO get(String uid, boolean isSimple) {
-        LambdaQueryWrapper<AppMarketDO> wrapper = queryMapper(isSimple);
-        wrapper.eq(AppMarketDO::getUid, uid);
-        return this.selectOne(wrapper);
-    }
-
-    /**
-     * 根据应用 uid 获取应用详情, 根据 sort 正序去第一个
-     *
-     * @param query 查询条件
-     * @return 应用详情
-     */
-    AppMarketDO get(@Param("query") AppMarketQuery query);
+    List<AppMarketDO> list(@Param("query") AppMarketListQuery query);
 
     /**
      * 创建应用市场应用
