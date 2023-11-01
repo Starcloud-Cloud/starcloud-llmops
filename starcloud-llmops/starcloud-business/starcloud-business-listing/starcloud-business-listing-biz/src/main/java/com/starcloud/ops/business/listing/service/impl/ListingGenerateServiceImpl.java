@@ -86,7 +86,7 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
         ListingGenerateTypeEnum listingTypeEnum = ListingGenerateTypeEnum.valueOf(listingType);
         AppValidate.notNull(listingTypeEnum, ErrorCodeConstants.EXECUTE_LISTING_FAILURE, listingType);
         query.setTags(listingTypeEnum.getTags());
-        return appMarketService.get(query);
+        return appMarketService.getOne(query);
     }
 
     /**
@@ -202,6 +202,8 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
             if (requestMap.containsKey(variableItem.getField())) {
                 variableItem.setValue(requestMap.get(variableItem.getField()));
                 variableItem.setDefaultValue(requestMap.get(variableItem.getField()));
+            } else {
+                variableItem.setValue(null);
             }
             fillVariables.add(variableItem);
         }

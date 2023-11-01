@@ -6,6 +6,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
@@ -39,6 +40,11 @@ public class RecommendAppCache {
      * 项目推荐应用缓存, 1小时过期
      */
     private static final Cache<String, List<AppRespVO>> RECOMMENDED_APPS_CACHE = CacheUtil.newTimedCache(1000 * 60 * 60);
+
+    /**
+     * 应用市场 Mapper
+     */
+    private static final AppMarketMapper APP_MARKET_MAPPER = SpringUtil.getBean(AppMarketMapper.class);
 
     /**
      * 获取推荐应用列表，如果本地缓存中没有，则初始化推荐应用列表，并且缓存到本地缓存中
@@ -97,18 +103,19 @@ public class RecommendAppCache {
      * @return 推荐应用列表
      */
     public static List<AppRespVO> initRecommendedApps() {
-        List<AppRespVO> appRespVOS = new ArrayList<AppRespVO>() {
-            {
-                super.add(RecommendAppFactory.defGenerateTextApp());
-                super.add(RecommendAppFactory.defGenerateArticleApp());
-            }
-        };
-        AppMarketMapper marketMapper = SpringUtil.getBean(AppMarketMapper.class);
-        List<AppMarketDO> appMarketDOS = marketMapper.listChatMarketApp();
-        if (CollectionUtil.isNotEmpty(appMarketDOS)) {
-            appRespVOS.addAll(AppMarketConvert.INSTANCE.convert(appMarketDOS));
+        // 初始化推荐应用列表
+        List<AppRespVO> initAppList = new ArrayList<>();
+        initAppList.add(RecommendAppFactory.defGenerateTextApp());
+        initAppList.add(RecommendAppFactory.defGenerateArticleApp());
+
+        // 查询应用市场列表, 只查询 CHAT 的应用
+        AppMarketListQuery appMarketListQuery = new AppMarketListQuery();
+        appMarketListQuery.setModel(AppModelEnum.CHAT.name());
+        List<AppMarketDO> appMarketList = APP_MARKET_MAPPER.list(appMarketListQuery);
+        if (CollectionUtil.isNotEmpty(appMarketList)) {
+            initAppList.addAll(AppMarketConvert.INSTANCE.convert(appMarketList));
         }
-        return appRespVOS;
+        return initAppList;
     }
 
 }
