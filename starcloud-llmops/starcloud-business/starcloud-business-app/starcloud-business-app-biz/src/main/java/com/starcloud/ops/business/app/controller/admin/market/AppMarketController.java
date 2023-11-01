@@ -1,10 +1,9 @@
 package com.starcloud.ops.business.app.controller.admin.market;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.base.vo.request.MarketUidRequest;
-import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
@@ -13,6 +12,8 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCateg
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -20,16 +21,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 星河云海应用市场管理
@@ -64,7 +61,18 @@ public class AppMarketController {
     @Operation(summary = "获取应用列表选项", description = "获取应用列表选项")
     @ApiOperationSupport(order = 30, author = "nacoyer")
     public CommonResult<List<Option>> listMarketAppOption(AppMarketListQuery query) {
-        return CommonResult.success(appMarketService.listMarketAppOption(query));
+        query.setType(AppTypeEnum.SYSTEM.name());
+        query.setModel(AppModelEnum.COMPLETION.name());
+        // 查询应用市场列表
+        List<AppMarketRespVO> list = appMarketService.list(query);
+        // 转换并且返回数据
+        List<Option> collect = CollectionUtil.emptyIfNull(list).stream().filter(Objects::nonNull).map(item -> {
+            Option option = new Option();
+            option.setLabel(item.getName());
+            option.setValue(item.getUid());
+            return option;
+        }).collect(Collectors.toList());
+        return CommonResult.success(collect);
     }
 
     @GetMapping("/get/{uid}")

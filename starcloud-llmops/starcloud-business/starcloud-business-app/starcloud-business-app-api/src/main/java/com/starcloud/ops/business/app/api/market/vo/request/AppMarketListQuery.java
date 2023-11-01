@@ -59,4 +59,10 @@ public class AppMarketListQuery implements Serializable {
     @Schema(description = "应用标签")
     private List<String> tags;
 
+    /**
+     * 查询条数。
+     */
+    @Schema(description = "查询条数")
+    private Long limit;
+
 }

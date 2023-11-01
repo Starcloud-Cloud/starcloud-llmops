@@ -1,15 +1,9 @@
 package com.starcloud.ops.business.app.service.market;
 
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.*;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
-import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;
@@ -24,27 +18,12 @@ import java.util.List;
 public interface AppMarketService {
 
     /**
-     * 分页查询应用市场列表
+     * 获取应用详情, 根据 ID 进行查询
      *
-     * @param query 查询条件
-     * @return 应用市场列表
+     * @param id 应用 ID
+     * @return 应用详情
      */
-    PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
-
-    /**
-     * 根据分类Code查询应用市场列表
-     *
-     * @return 分组列表
-     */
-    List<AppMarketGroupCategoryRespVO> listGroupByCategory(AppMarketListGroupByCategoryQuery query);
-
-    /**
-     * 获取优化提示应用列表
-     *
-     * @param query 查询条件
-     * @return 应用列表
-     */
-    List<Option> listMarketAppOption(AppMarketListQuery query);
+    AppMarketRespVO get(Long id);
 
     /**
      * 获取应用详情
@@ -55,12 +34,27 @@ public interface AppMarketService {
     AppMarketRespVO get(String uid);
 
     /**
-     * 获取应用详情
+     * 根据条件查询应用市场列表
      *
      * @param query 查询条件
-     * @return 应用详情
+     * @return 应用市场列表
      */
-    AppMarketRespVO get(AppMarketQuery query);
+    List<AppMarketRespVO> list(AppMarketListQuery query);
+
+    /**
+     * 根据分类Code查询应用市场列表
+     *
+     * @return 分组列表
+     */
+    List<AppMarketGroupCategoryRespVO> listGroupByCategory(AppMarketListGroupByCategoryQuery query);
+
+    /**
+     * 分页查询应用市场列表
+     *
+     * @param query 查询条件
+     * @return 应用市场列表
+     */
+    PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
 
     /**
      * 创建应用市场的应用
