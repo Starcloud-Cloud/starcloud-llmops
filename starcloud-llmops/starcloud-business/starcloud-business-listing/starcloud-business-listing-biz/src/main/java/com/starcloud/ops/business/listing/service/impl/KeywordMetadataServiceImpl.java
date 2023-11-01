@@ -135,6 +135,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     @Override
     @TenantIgnore
     public List<KeywordMetadataBasicRespVO> getKeywordsBasic(List<String> keywordList, String marketName) {
+
         Assert.isFalse(CollUtil.isEmpty(keywordList), "关键词列表不能为空");
         SellerSpriteMarketEnum marketInfo = getMarketInfo(marketName);
         List<KeywordMetadataDO> keywordMetadataDOS = keywrodMetadataMapper.selectList(Wrappers.lambdaQuery(KeywordMetadataDO.class)
@@ -145,7 +146,8 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
                         KeywordMetadataDO::getKeyword,
                         KeywordMetadataDO::getSearches,
                         KeywordMetadataDO::getPurchases,
-                        KeywordMetadataDO::getPurchaseRate
+                        KeywordMetadataDO::getPurchaseRate,
+                        KeywordMetadataDO::getStatus
                 ));
         List<KeywordMetadataRespVO> keywordMetadataRespVOS = KeywordMetadataConvert.INSTANCE.convertList(keywordMetadataDOS);
         return BeanUtil.copyToList(keywordMetadataRespVOS, KeywordMetadataBasicRespVO.class);
