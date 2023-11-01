@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.listing.service.sellersprite;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
@@ -110,7 +111,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         keywordMinerRequestDTO.setMatchType(0);
         keywordMinerRequestDTO.setAmazonChoice(false);
         String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_KEYWORD_MINER, JSONUtil.toJsonStr(keywordMinerRequestDTO));
-        Assert.notBlank(reposeResult, "卖家精灵关键词批量挖掘失败");
+        Assert.notBlank(reposeResult, "关键词批量挖掘失败");
         return JSONUtil.toBean(reposeResult, KeywordMinerReposeDTO.class);
 
     }
@@ -131,7 +132,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     @Override
     public PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO) {
         String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_PREPARE, JSONUtil.toJsonStr(prepareRequestDTO));
-        Assert.notBlank(reposeResult, "系统繁忙，请稍后再试");
+        Assert.notBlank(reposeResult, "系统繁忙，获取变体数据失败");
         return JSONUtil.toBean(reposeResult, PrepareReposeDTO.class);
     }
 
@@ -145,7 +146,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     public ExtendAsinReposeDTO extendAsin(ExtendAsinRequestDTO extendAsinRequestDTO) {
 
         String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_ASIN, JSONUtil.toJsonStr(extendAsinRequestDTO));
-        Assert.notBlank(reposeResult, "系统繁忙，请稍后再试");
+        Assert.notBlank(reposeResult, "系统繁忙，获取流量词数据失败");
         return JSONUtil.toBean(reposeResult, ExtendAsinReposeDTO.class);
     }
 
@@ -158,7 +159,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
         String reposeResult = unifiedGetRequest(SELLER_SPRITE_ADDRESS + GET_LISTING_BY_ASIN, String.format("asin=%s&marketPlace=%s", asin, market));
 
-        Assert.notBlank(reposeResult, "系统繁忙，请稍后再试");
+        Assert.notBlank(reposeResult, "系统繁忙， Listing 数据失败");
         return JSONUtil.toBean(reposeResult, SellerSpriteListingVO.class);
     }
 
@@ -190,7 +191,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             if (!result.isEmpty() && entries.getBool("success", false)) {
                 return JSONUtil.toJsonStr(entries.getObj("data"));
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
-
                 log.error("卖家精灵登录失效");
                 this.sendMessage();
             }
@@ -229,6 +229,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
     @TenantIgnore
     private void sendMessage() {
+        log.error("卖家精灵Cookie 失效，准备发送预警，当前时间【{}】", DateUtil.now());
         try {
             Map<String, Object> templateParams = new HashMap<>();
             smsSendApi.sendSingleSmsToAdmin(
