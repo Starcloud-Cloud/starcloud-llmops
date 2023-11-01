@@ -25,12 +25,12 @@ public interface ErrorCodeConstants {
     /**
      * MAX_TOKENS超出限制
      */
-    ErrorCode MAX_TOKENS_OUT_OF_LIMIT = new ErrorCode(300000403, "最大返回Tokens超出限制（{}）不能超过{}，请检查后重试！");
+    ErrorCode MAX_TOKENS_OUT_OF_LIMIT = new ErrorCode(300000403, "最大返回Tokens超出限制（{}）需要在0～5000之间，请检查后重试！");
 
     /**
      * 温度值超出限制
      */
-    ErrorCode TEMPERATURE_OUT_OF_LIMIT = new ErrorCode(300000404, "温度值超出限制（{}）温度值必须在0~2之间，请检查后重试！");
+    ErrorCode TEMPERATURE_OUT_OF_LIMIT = new ErrorCode(300000404, "温度值超出限制（{}）温度值必须在0～2之间，请检查后重试！");
 
     // ========== 基本增删改查错误码 ==========
 
