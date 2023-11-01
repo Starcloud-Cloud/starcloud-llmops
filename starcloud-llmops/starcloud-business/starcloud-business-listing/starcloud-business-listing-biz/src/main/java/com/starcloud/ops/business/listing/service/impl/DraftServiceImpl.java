@@ -5,7 +5,6 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
@@ -290,8 +289,8 @@ public class DraftServiceImpl implements DraftService {
         if (ids.size() > maxNum) {
             throw exception(new ErrorCode(500, "最多同时执行{}个listing"), maxNum);
         }
-        List<ListingDraftDO> listingDrafts = draftMapper.selectBatchIds(ids)
-                .stream().filter(draftDO -> !ListExecuteEnum.EXECUTED.name().equals(draftDO.getExecuteStatus()))
+        List<ListingDraftDO> listingDrafts = draftMapper.selectBatchIds(ids).stream()
+                .filter(draftDO -> !ListExecuteEnum.EXECUTING.name().equals(draftDO.getExecuteStatus()))
                 .collect(Collectors.toList());
         for (ListingDraftDO listingDraftDO : listingDrafts) {
             executor.execute(() -> executorListing(listingDraftDO));
@@ -331,6 +330,7 @@ public class DraftServiceImpl implements DraftService {
         draftDO.setUpdater(null);
         draftDO.setCreateTime(null);
         draftDO.setUpdater(null);
+        draftDO.setVersion(1);
         draftMapper.insert(draftDO);
         keywordBindService.addDraftKeyword(keys, draftDO.getId());
         return detail(draftDO.getUid(), draftDO.getVersion());
@@ -351,12 +351,15 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void executorListing(ListingDraftDO draftDO) {
+        if (AnalysisStatusEnum.ANALYSIS.name().equals(draftDO.getStatus())) {
+            updateError(draftDO, "词库关键词分析中,稍后重试");
+            return;
+        }
+
         DraftConfigDTO draftConfigDTO = ListingDraftConvert.INSTANCE.parseConfig(draftDO.getConfig());
         AiConfigDTO aiConfigDTO = Optional.ofNullable(draftConfigDTO.getAiConfigDTO()).orElseGet(AiConfigDTO::new);
         if (StringUtils.isBlank(aiConfigDTO.getProductFeature())) {
-            draftDO.setErrorMsg("产品特征不能为空");
-            draftDO.setExecuteStatus(ListExecuteEnum.EXECUTE_ERROR.name());
-            updateById(draftDO);
+            updateError(draftDO, "产品特征不能为空");
             return;
         }
 
@@ -384,9 +387,9 @@ public class DraftServiceImpl implements DraftService {
             String title = titleResp.getAnswer();
             draftDO.setTitle(title);
             // fiveDesc
-            int fiveDescNum = draftConfigDTO.getFiveDescNum() == null ? 0 : draftConfigDTO.getFiveDescNum();
+            int fiveDescNum = draftConfigDTO.getFiveDescNum() == null ? 5 : draftConfigDTO.getFiveDescNum();
             HashMap<String, String> fiveDesc = new HashMap<>(fiveDescNum);
-            for (int i = 0; i < fiveDescNum; i++) {
+            for (int i = 1; i <= fiveDescNum; i++) {
                 if (draftConfigDTO.getFiveDescConfig() != null) {
                     request.setKeywords(recommendKeys(draftConfigDTO.getFiveDescConfig().get(String.valueOf(i))));
                 } else {
@@ -398,7 +401,7 @@ public class DraftServiceImpl implements DraftService {
                 request.setListingType(ListingGenerateTypeEnum.BULLET_POINT.name());
                 ListingGenerateResponse fiveDescResp = listingGenerateService.execute(request);
                 if (!fiveDescResp.getSuccess()) {
-                    updateError(draftDO, "五点描述生成失败：" + titleResp.getErrorMsg());
+                    updateError(draftDO, "五点描述生成失败：" + fiveDescResp.getErrorMsg());
                     return;
                 }
                 String desc = fiveDescResp.getAnswer();
@@ -413,7 +416,7 @@ public class DraftServiceImpl implements DraftService {
             request.setKeywords(recommendKeys(draftConfigDTO.getProductDescConfig()));
             ListingGenerateResponse productDescResp = listingGenerateService.execute(request);
             if (!productDescResp.getSuccess()) {
-                updateError(draftDO, "产品描述生成失败：" + titleResp.getErrorMsg());
+                updateError(draftDO, "产品描述生成失败：" + productDescResp.getErrorMsg());
                 return;
             }
             Long productDescEnd = System.currentTimeMillis();
@@ -619,10 +622,6 @@ public class DraftServiceImpl implements DraftService {
         if (ListExecuteEnum.EXECUTING.name().equals(draftDO.getExecuteStatus())) {
             throw exception(DRAFT_IS_EXECUTING);
         }
-    }
-
-    private void validExecute(ListingDraftDO draftDO) {
-
     }
 
     private void updateById(ListingDraftDO draftDO) {
