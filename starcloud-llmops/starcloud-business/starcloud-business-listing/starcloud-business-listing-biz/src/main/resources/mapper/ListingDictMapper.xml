@@ -8,7 +8,7 @@
         FROM listing_dict d
         LEFT JOIN listing_keyword_bind k ON d.id = k.dict_id
         <where>
-            d.deleted = false and k.deleted = false
+            d.deleted = false
             <if test="reqVO.name != null and reqVO.name != ''">
                 and d.name like  CONCAT('%',#{reqVO.name},'%')
             </if>
@@ -19,7 +19,7 @@
                 and d.enable = #{reqVO.enable}
             </if>
             <if test="reqVO.keyword != null and reqVO.keyword != ''">
-                and k.keyword = #{reqVO.keyword}
+                and k.deleted = false and k.keyword = #{reqVO.keyword}
             </if>
         </where>
         GROUP BY d.id
@@ -31,7 +31,7 @@
         FROM listing_dict d
         LEFT JOIN listing_keyword_bind k ON d.id = k.dict_id
         <where>
-            d.deleted = false and k.deleted = false
+            d.deleted = false
             <if test="reqVO.name != null and reqVO.name != ''">
                 and d.name like CONCAT('%',#{reqVO.name},'%')
             </if>
@@ -42,7 +42,7 @@
                 and d.enable = #{reqVO.enable}
             </if>
             <if test="reqVO.keyword != null and reqVO.keyword != ''">
-                and k.keyword = #{reqVO.keyword}
+                and k.deleted = false and k.keyword = #{reqVO.keyword}
             </if>
         </where>
     </select>
