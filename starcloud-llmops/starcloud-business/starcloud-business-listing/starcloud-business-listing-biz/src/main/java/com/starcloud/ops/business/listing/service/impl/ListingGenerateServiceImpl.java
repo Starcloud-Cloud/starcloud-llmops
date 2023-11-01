@@ -10,7 +10,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -38,7 +38,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_CONFIG_FAILURE;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_STEP_FAILURE;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_VARIABLE_FAILURE;
 
 /**
  * Listing 生成服务，用于生成 Listing 标题，五点描述，产品描述等
@@ -78,21 +80,13 @@ public class ListingGenerateServiceImpl implements ListingGenerateService {
      */
     @Override
     public AppMarketRespVO getListingApp(String listingType) {
-        AppMarketListQuery query = new AppMarketListQuery();
+        AppMarketQuery query = new AppMarketQuery();
         query.setType(AppTypeEnum.SYSTEM.name());
         query.setModel(AppModelEnum.COMPLETION.name());
-        query.setLimit(1L);
         ListingGenerateTypeEnum listingTypeEnum = ListingGenerateTypeEnum.valueOf(listingType);
         AppValidate.notNull(listingTypeEnum, ErrorCodeConstants.EXECUTE_LISTING_FAILURE, listingType);
         query.setTags(listingTypeEnum.getTags());
-
-        List<AppMarketRespVO> list = appMarketService.list(query);
-        AppValidate.notEmpty(list, ErrorCodeConstants.EXECUTE_LISTING_FAILURE, listingType);
-
-        AppMarketRespVO market = list.get(0);
-        AppValidate.notNull(market, ErrorCodeConstants.EXECUTE_LISTING_FAILURE, listingType);
-
-        return market;
+        return appMarketService.getOne(query);
     }
 
     /**
