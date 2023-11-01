@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +21,7 @@ import java.util.Objects;
  * @version 1.0.0
  * @since 2023-05-31
  */
+@Slf4j
 @Data
 @ToString
 @NoArgsConstructor
@@ -113,13 +115,14 @@ public class VariableItemEntity {
     private static Integer handleMaxTokens(Object value, Integer defaultMaxTokens) {
         Integer maxTokens;
         try {
-            maxTokens = Integer.valueOf(Objects.isNull(value) ? "0" : value.toString());
+            maxTokens = Objects.isNull(value) ? defaultMaxTokens : Integer.valueOf(value.toString());
         } catch (NumberFormatException exception) {
-            maxTokens = defaultMaxTokens;
+            log.error("MaxTokens 变量校验规则异常，value：{}", value, exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.MAX_TOKENS_FORMAT_ERROR, value);
         }
 
-        // 0 <= maxTokens <= 5000
-        if (maxTokens.compareTo(0) < 0 || maxTokens.compareTo(5000) > 0) {
+        // 1 <= maxTokens <= 5000
+        if (maxTokens < 1 || maxTokens > 5000) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.MAX_TOKENS_OUT_OF_LIMIT, maxTokens);
         }
         return maxTokens;
@@ -138,7 +141,8 @@ public class VariableItemEntity {
         try {
             temperature = Objects.isNull(value) ? defaultTemperature : Double.valueOf(value.toString());
         } catch (NumberFormatException exception) {
-            temperature = defaultTemperature;
+            log.error("Temperature 变量校验规则异常，value：{}", value, exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.TEMPERATURE_FORMAT_ERROR, value);
         }
         // 0.0 <= temperature <= 2.0
         if (temperature.compareTo(0.0) < 0 || temperature.compareTo(2.0) > 0) {
