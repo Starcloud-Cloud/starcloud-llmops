@@ -68,7 +68,7 @@ public class DraftItemScoreDTO {
 
     public Double scoreProportion() {
         BigDecimal bigDecimal = BigDecimal.valueOf(totalScore()).multiply(BigDecimal.valueOf(100));
-        return bigDecimal.divide(new BigDecimal(9),2, RoundingMode.HALF_UP).doubleValue();
+        return bigDecimal.divide(new BigDecimal(9),0, RoundingMode.HALF_UP).doubleValue();
     }
 
 }
