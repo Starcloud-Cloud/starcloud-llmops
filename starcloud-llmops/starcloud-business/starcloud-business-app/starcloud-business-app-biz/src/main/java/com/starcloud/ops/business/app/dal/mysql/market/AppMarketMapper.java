@@ -53,6 +53,14 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     AppMarketDO getOne(@Param("query") AppMarketQuery query);
 
     /**
+     * 获取应用市场列表选项
+     *
+     * @param query 查询条件
+     * @return 应用列表
+     */
+    List<AppMarketDO> list(@Param("query") AppMarketListQuery query);
+
+    /**
      * 分页查询应用市场列表
      *
      * @param query 查询条件
@@ -73,14 +81,6 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         queryMapper.last("ORDER BY sort IS NULL, sort ASC, update_time DESC");
         return this.selectPage(PageUtil.page(query), queryMapper);
     }
-
-    /**
-     * 获取应用市场列表选项
-     *
-     * @param query 查询条件
-     * @return 应用列表
-     */
-    List<AppMarketDO> list(@Param("query") AppMarketListQuery query);
 
     /**
      * 创建应用市场应用
@@ -188,5 +188,6 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
         );
         return wrapper;
     }
+
 
 }
