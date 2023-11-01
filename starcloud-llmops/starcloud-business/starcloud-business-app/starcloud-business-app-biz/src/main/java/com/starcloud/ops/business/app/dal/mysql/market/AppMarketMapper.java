@@ -45,6 +45,14 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     }
 
     /**
+     * 根据条件获取应用详情
+     *
+     * @param query 查询条件
+     * @return 应用详情
+     */
+    AppMarketDO getOne(AppMarketQuery query);
+
+    /**
      * 分页查询应用市场列表
      *
      * @param query 查询条件

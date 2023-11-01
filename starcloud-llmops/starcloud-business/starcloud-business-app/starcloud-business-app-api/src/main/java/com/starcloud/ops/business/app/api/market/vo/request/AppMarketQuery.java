@@ -18,10 +18,10 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "AppMarketListQuery", description = "应用基础请求实体")
-public class AppMarketListQuery implements Serializable {
+@Schema(name = "AppMarketQuery", description = "应用基础请求实体")
+public class AppMarketQuery implements Serializable {
 
-    private static final long serialVersionUID = -4586870698292817798L;
+    private static final long serialVersionUID = 1313797329604055849L;
 
     /**
      * 应用名称

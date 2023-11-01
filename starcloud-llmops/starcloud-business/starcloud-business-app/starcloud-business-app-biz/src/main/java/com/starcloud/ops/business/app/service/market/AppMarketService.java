@@ -1,6 +1,11 @@
 package com.starcloud.ops.business.app.service.market;
 
-import com.starcloud.ops.business.app.api.market.vo.request.*;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
@@ -18,20 +23,20 @@ import java.util.List;
 public interface AppMarketService {
 
     /**
-     * 获取应用详情, 根据 ID 进行查询
-     *
-     * @param id 应用 ID
-     * @return 应用详情
-     */
-    AppMarketRespVO get(Long id);
-
-    /**
      * 获取应用详情
      *
      * @param uid 应用 uid
      * @return 应用详情
      */
     AppMarketRespVO get(String uid);
+
+    /**
+     * 获取应用详情
+     *
+     * @param query 查询条件
+     * @return 应用详情
+     */
+    AppMarketRespVO getOne(AppMarketQuery query);
 
     /**
      * 根据条件查询应用市场列表

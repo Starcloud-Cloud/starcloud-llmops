@@ -9,7 +9,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
-import com.starcloud.ops.business.app.api.market.vo.request.*;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
@@ -76,19 +81,6 @@ public class AppMarketServiceImpl implements AppMarketService {
     private AppDictionaryService appDictionaryService;
 
     /**
-     * 获取应用详情, 根据 ID 进行查询
-     *
-     * @param id 应用 ID
-     * @return 应用详情
-     */
-    @Override
-    public AppMarketRespVO get(Long id) {
-        AppMarketDO appMarket = appMarketMapper.selectById(id);
-        AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, id);
-        return AppMarketConvert.INSTANCE.convertResponse(appMarket);
-    }
-
-    /**
      * 获取应用详情
      *
      * @param uid 应用 uid
@@ -132,6 +124,19 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 转换并且返回应用数据
         response.setViewCount(viewCount);
         return response;
+    }
+
+    /**
+     * 获取应用详情
+     *
+     * @param query 查询条件
+     * @return 应用详情
+     */
+    @Override
+    public AppMarketRespVO getOne(AppMarketQuery query) {
+        AppMarketDO one = appMarketMapper.getOne(query);
+        AppValidate.notNull(one, ErrorCodeConstants.MARKET_APP_NON_EXISTENT);
+        return AppMarketConvert.INSTANCE.convertResponse(one);
     }
 
     /**
