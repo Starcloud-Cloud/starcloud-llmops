@@ -9,6 +9,7 @@ import com.starcloud.ops.business.listing.controller.admin.vo.request.DraftReqVO
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftDetailExcelVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftRespVO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftDO;
+import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftUserDTO;
 import com.starcloud.ops.business.listing.dto.DraftConfigDTO;
 import com.starcloud.ops.business.listing.dto.DraftItemScoreDTO;
 import com.starcloud.ops.business.listing.dto.KeywordResumeDTO;
@@ -39,6 +40,14 @@ public interface ListingDraftConvert {
     List<DraftRespVO> convert(List<ListingDraftDO> draftDOS);
 
 
+
+    @Mapping(source = "config", target = "draftConfig", qualifiedByName = "parseConfig")
+    @Mapping(source = "fiveDesc", target = "fiveDesc", qualifiedByName = "parseFiveDesc")
+    DraftRespVO convert(ListingDraftUserDTO draftDO);
+
+    List<DraftRespVO> convert2(List<ListingDraftUserDTO> draftDOS);
+
+
     List<DraftDetailExcelVO> convertExcel(List<ListingDraftDO> draftDOS);
 
     @Mapping(source = "fiveDesc", target = "fiveDesc", qualifiedByName = "fiveDescExportFormat")
@@ -55,7 +64,7 @@ public interface ListingDraftConvert {
         if (CollectionUtil.isEmpty(map)) {
             return StringUtils.EMPTY;
         }
-        StringJoiner sj = new StringJoiner("\r\n");
+        StringJoiner sj = new StringJoiner("\n\n");
         for (String value : map.values()) {
             sj.add(value);
         }

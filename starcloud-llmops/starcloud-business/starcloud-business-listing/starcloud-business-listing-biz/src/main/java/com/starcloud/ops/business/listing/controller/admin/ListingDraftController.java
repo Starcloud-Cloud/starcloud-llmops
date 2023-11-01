@@ -130,4 +130,12 @@ public class ListingDraftController {
         return CommonResult.success(score);
     }
 
+    @PutMapping("/refresh/{uid}/{version}")
+    @Operation(summary = "刷新搜索量", description = "刷新搜索量")
+    public CommonResult<Boolean> refresh(@PathVariable("uid") String uid,
+                                             @PathVariable("version") Integer version) {
+        draftService.refresh(uid, version);
+        return CommonResult.success(true);
+    }
+
 }

@@ -115,4 +115,12 @@ public interface DraftService {
      * @return
      */
     String searchTermRecommend(String uid, Integer version);
+
+    /**
+     * 刷新关键词搜索量
+     *
+     * @param uid
+     * @param version
+     */
+    void refresh(String uid, Integer version);
 }

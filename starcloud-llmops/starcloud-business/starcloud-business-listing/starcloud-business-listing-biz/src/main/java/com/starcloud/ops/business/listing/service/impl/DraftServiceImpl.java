@@ -19,6 +19,7 @@ import com.starcloud.ops.business.listing.convert.ListingDraftConvert;
 import com.starcloud.ops.business.listing.convert.ListingKeywordConvert;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordBindDO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftDO;
+import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftUserDTO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywordBindMapper;
 import com.starcloud.ops.business.listing.dal.mysql.ListingDraftMapper;
 import com.starcloud.ops.business.listing.dto.*;
@@ -87,12 +88,12 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public PageResult<DraftRespVO> getDraftPage(DraftPageReqVO pageParam) {
-        List<ListingDraftDO> latestDrafts = draftMapper.getLatestDrafts(PageUtils.getStart(pageParam),
+        List<ListingDraftUserDTO> latestDrafts = draftMapper.getLatestDrafts(PageUtils.getStart(pageParam),
                 pageParam.getPageSize(),
                 DraftSortFieldEnum.getColumn(pageParam.getSortField()),
                 BooleanUtil.isTrue(pageParam.getAsc()) ? "ASC" : "DESC");
         Long count = draftMapper.count();
-        return new PageResult<>(ListingDraftConvert.INSTANCE.convert(latestDrafts), count);
+        return new PageResult<>(ListingDraftConvert.INSTANCE.convert2(latestDrafts), count);
     }
 
     @Override
@@ -147,6 +148,7 @@ public class DraftServiceImpl implements DraftService {
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
                     }
                     updateDo(draftDO, distinctKeys);
+                    updateScore(draftDO);
                     updateById(draftDO);
                 });
             }
@@ -242,6 +244,7 @@ public class DraftServiceImpl implements DraftService {
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
             }
             updateDo(draftDO, allKeys);
+            updateScore(draftDO);
             updateById(draftDO);
         });
     }
@@ -349,6 +352,27 @@ public class DraftServiceImpl implements DraftService {
             sj.add(sortMetaDatum.getKeyword());
         }
         return sj.toString();
+    }
+
+    @Override
+    public void refresh(String uid, Integer version) {
+        ListingDraftDO draftDO = getVersion(uid, version);
+        List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
+        draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
+        updateById(draftDO);
+        executor.execute(() -> {
+            try {
+                keywordBindService.analysisKeyword(keys, draftDO.getEndpoint());
+                draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+                updateDo(draftDO, keys);
+                updateScore(draftDO);
+                updateById(draftDO);
+            } catch (Exception e) {
+                log.error("refresh error", e);
+                draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
+                updateById(draftDO);
+            }
+        });
     }
 
     private void executorListing(ListingDraftDO draftDO) {

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DraftOperationReqVO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftDO;
+import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftUserDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -45,6 +46,6 @@ public interface ListingDraftMapper extends BaseMapperX<ListingDraftDO> {
 
     Long count();
 
-    List<ListingDraftDO> getLatestDrafts(@Param("start") Integer start, @Param("end") Integer end, @Param("field") String field,@Param("type") String type);
+    List<ListingDraftUserDTO> getLatestDrafts(@Param("start") Integer start, @Param("end") Integer end, @Param("field") String field, @Param("type") String type);
 
 }
