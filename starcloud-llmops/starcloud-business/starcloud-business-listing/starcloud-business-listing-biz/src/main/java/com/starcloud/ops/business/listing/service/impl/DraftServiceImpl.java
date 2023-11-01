@@ -256,6 +256,7 @@ public class DraftServiceImpl implements DraftService {
         keywordBindMapper.deleteDraftKey(removeKey, draftDO.getId());
         List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         updateDo(draftDO, keys);
+        updateScore(draftDO);
         updateById(draftDO);
     }
 
