@@ -200,6 +200,13 @@ public class PayOrderController {
         return success(payOrderService.getAppProductList());
     }
 
+    @PostMapping("/product/discount")
+    @Operation(summary = "获取商品优惠信息")
+    public CommonResult<AppPayProductDiscountRespVO> getOrderProductDiscount(@RequestParam("productCode") String productCode,@RequestParam("discountCode") String discountCode) {
+        return success(payOrderService.getOrderProductDiscount(productCode,discountCode));
+    }
+
+
 
     // @PostMapping("/update-paid")
     // @Operation(summary = "更新示例订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob

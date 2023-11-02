@@ -987,7 +987,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 .filter(obj -> !CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).map(UserBenefitsDO::getId).collect(Collectors.toList());
 
         if (noPayBenefitsIds.size() > 0) {
-            log.info("获取到{}条已经过期的普通权益数据，更新权益状态，过期的权益 ID 为{}",noPayBenefitsIds.size(),noPayBenefitsIds);
+            log.info("获取到{}条已经过期的普通权益数据，更新权益状态，过期的权益 ID 为{}", noPayBenefitsIds.size(), noPayBenefitsIds);
             userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
                     .in(UserBenefitsDO::getId, noPayBenefitsIds)
                     .set(UserBenefitsDO::getEnabled, 0));
@@ -1000,7 +1000,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         if (!payBenefitsS.isEmpty()) {
 
-            log.info("当前时间段获取到已经过期的【支付权益】数据{}，执行权益过期任务与更新角色任务",payBenefitsS);
+            log.info("当前时间段获取到已经过期的【支付权益】数据{}，执行权益过期任务与更新角色任务", payBenefitsS);
             List<Long> basicConfigIds = payBenefitsStrategyS.stream()
                     .filter(obj -> obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_MONTH.getName()) ||
                             obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_YEAR.getName()))
@@ -1064,13 +1064,31 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                         .set(UserBenefitsDO::getEnabled, 0));
             }
 
-        }else {
+        } else {
             log.info("当前时间段没有获取到已经过期的【支付权益】数据，停止执行权益过期任务");
         }
 
 
-
         return (long) resultList.size();
+    }
+
+    /**
+     * 获取用户的支付权益列表
+     *
+     * @param userId 用户 ID
+     * @return
+     */
+    @Override
+    public List<UserBenefitsDO> getPayBenefitList(Long userId) {
+        // 获取用户支付权益策略
+        List<UserBenefitsStrategyDO> payBenefitsStrategyS = userBenefitsStrategyService.getPayBenefitsStrategy();
+        // 获取支付权益策略 ID
+        List<Long> payBenefitsStrategyId = payBenefitsStrategyS.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
+                .in(UserBenefitsDO::getStrategyId, payBenefitsStrategyId);
+
+        return userBenefitsMapper.selectList(wrapper);
+
     }
 
     /**

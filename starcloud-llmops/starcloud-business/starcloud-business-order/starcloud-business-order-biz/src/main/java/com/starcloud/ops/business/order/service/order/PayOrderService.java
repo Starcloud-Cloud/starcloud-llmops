@@ -131,6 +131,15 @@ public interface PayOrderService {
 
 
     /**
+     * 获取商品优惠信息
+     * 分页
+     * @return 支付订单
+     * 分页
+     */
+    AppPayProductDiscountRespVO getOrderProductDiscount( String productCode,String discountCode);
+
+
+    /**
      * 更新示例订单为已支付
      *
      * @param id 编号

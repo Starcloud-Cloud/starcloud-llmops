@@ -124,5 +124,12 @@ public interface UserBenefitsService {
      */
     Long userBenefitsExpired();
 
+    /**
+     * 获取用户的支付权益列表
+     * @param userId 用户 ID
+     * @return
+     */
+    List<UserBenefitsDO> getPayBenefitList(Long userId);
+
 
 }

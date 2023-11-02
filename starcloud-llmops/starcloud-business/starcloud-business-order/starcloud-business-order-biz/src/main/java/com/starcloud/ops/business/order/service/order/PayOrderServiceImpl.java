@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.order.service.order;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.pay.config.PayProperties;
 import cn.iocoder.yudao.framework.pay.core.client.PayClient;
@@ -20,7 +22,11 @@ import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductTimeEnum;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -72,7 +78,6 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_ORDE
 @Validated
 @Slf4j
 public class PayOrderServiceImpl implements PayOrderService {
-
 
     @Resource
     private PayProperties payProperties;
@@ -395,6 +400,13 @@ public class PayOrderServiceImpl implements PayOrderService {
     }
 
 
+    /**
+     * 订单钉钉消息通知
+     *
+     * @param userId      用户 ID
+     * @param productType 商品类型
+     * @param amount      商品金额
+     */
     @TenantIgnore
     private void sendMessage(String userId, String productType, Integer amount) {
 
@@ -402,7 +414,7 @@ public class PayOrderServiceImpl implements PayOrderService {
             AdminUserDO user = userService.getUser(Long.valueOf(userId));
             ProductEnum productEnum = ProductEnum.getByCode(productType);
             Map<String, Object> templateParams = new HashMap<>();
-            String environmentName = dingTalkNoticeProperties.getName().equals("Test")?"测试环境":"正式环境";
+            String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
             templateParams.put("environmentName", environmentName);
             templateParams.put("userName", user.getNickname());
             templateParams.put("productName", productEnum.getName());
@@ -439,7 +451,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         List<PayOrderDO> updatedList = list.stream()
                 .peek(order -> {
                     order.setCreateTime(order.getUpdateTime());
-                    if (now.isAfter(order.getExpireTime())&& !PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
+                    if (now.isAfter(order.getExpireTime()) && !PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
                         order.setStatus(PayOrderStatusEnum.CLOSED.getStatus());
                     }
                     if (!PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
@@ -481,6 +493,29 @@ public class PayOrderServiceImpl implements PayOrderService {
         }
 
         return productListMap;
+    }
+
+    /**
+     * 获取商品优惠信息
+     * 分页
+     *
+     * @param productCode 产品代码
+     * @param discountCode 折扣代码
+     * @return 支付订单
+     * 分页
+     */
+    @Override
+    public AppPayProductDiscountRespVO getOrderProductDiscount(String productCode, String discountCode) {
+        AppPayProductDiscountRespVO appPayProductDiscountRespVO = new AppPayProductDiscountRespVO();
+//        判断商品是否存在 存在则获取商品信息
+
+//        如果有折扣码 则判断折扣码的有效性
+
+//        折扣码有效  则根据折扣码计算对应的价格
+
+
+
+        return null;
     }
 
     /**
@@ -643,5 +678,56 @@ public class PayOrderServiceImpl implements PayOrderService {
     private LocalDateTime getNowGmtTime() {
         long timestamp = System.currentTimeMillis();
         return Instant.ofEpochMilli(timestamp).atZone(ZoneOffset.ofHours(8)).toLocalDateTime();
+    }
+
+
+    /**
+     * 用户是否在指定时间内注册
+     *
+     * @param userId       用户 ID
+     * @param productCodes 产品 code
+     * @return
+     */
+    private Boolean hasOrdersWithSuccessPayment(Long userId, List<String> productCodes) {
+
+        LambdaQueryWrapper<PayOrderDO> wrapper = Wrappers.lambdaQuery(PayOrderDO.class);
+        wrapper.eq(PayOrderDO::getStatus, PayOrderStatusEnum.SUCCESS.getStatus());
+        wrapper.in(CollUtil.isNotEmpty(productCodes), PayOrderDO::getProductCode, productCodes);
+        Long aLong = orderMapper.selectCount(wrapper);
+
+        // 判断创建时间是否在days天内
+        if (aLong <= 0) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
+     * 用户是否在指定时间内注册
+     *
+     * @param userId 用户 ID
+     * @param days   时间（天）
+     * @return
+     */
+    private Boolean isUserRegisteredWithinSpecifiedTime(Long userId, Integer days) {
+        AdminUserDO user = userService.getUser(userId);
+        // 获取用户注册时间
+        LocalDateTime registeredTime = user.getCreateTime();
+
+        // 获取当前时间
+        LocalDateTime nowTime = LocalDateTimeUtil.now();
+
+        // 计算14天后的时间
+        LocalDateTime fourteenDaysLater = nowTime.plusDays(days);
+
+        // 判断创建时间是否在days天内
+        if (registeredTime.isBefore(fourteenDaysLater)) {
+            return true;
+        } else {
+            return false;
+        }
+
     }
 }
