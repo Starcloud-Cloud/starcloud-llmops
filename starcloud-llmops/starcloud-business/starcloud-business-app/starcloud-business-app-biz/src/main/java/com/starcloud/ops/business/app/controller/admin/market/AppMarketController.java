@@ -69,7 +69,7 @@ public class AppMarketController {
     @Operation(summary = "根据 UID 获得应用详情", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 40, author = "nacoyer")
     public CommonResult<AppMarketRespVO> get(@PathVariable("uid") String uid) {
-        return CommonResult.success(appMarketService.get(uid));
+        return CommonResult.success(appMarketService.getAndIncreaseView(uid));
     }
 
     @PostMapping("/modify")
