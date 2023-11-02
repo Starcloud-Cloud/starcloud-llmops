@@ -107,4 +107,79 @@ public class KeyWordMetadataRepository {
 
     }
 
+
+    /**
+     * 异步获取数据
+     *
+     * @param keywordMetadataDOS
+     */
+    @TenantIgnore
+    @Async
+    public void executeAsyncRequestData(List<KeywordMetadataDO> keywordMetadataDOS) {
+
+
+        log.info("更新错误状态关键词，开始从卖家精灵获取数据");
+
+        List<String> keywords = keywordMetadataDOS.stream().map(KeywordMetadataDO::getKeyword).collect(Collectors.toList());
+        List<Long> marketIds = keywordMetadataDOS.stream().map(KeywordMetadataDO::getMarketId).collect(Collectors.toList());
+        log.info("开始更新错误状态关键词,状态关键词为【{}】", keywords);
+
+
+        keywordMetadataDOS.stream().forEach(keywordMetadataDO -> keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.SYNCING.getCode()));
+
+        keywrodMetadataMapper.updateBatch(keywordMetadataDOS, keywordMetadataDOS.size());
+
+
+
+        KeywordMinerReposeDTO keywordMinerReposeDTO;
+        try {
+            keywordMinerReposeDTO = sellerSpriteService.BatchKeywordMiner(keywords, marketIds.get(0).intValue());
+
+
+            List<ItemsDTO> items = keywordMinerReposeDTO.getItems();
+
+            if (items.isEmpty()) {
+                keywordMetadataDOS.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode()));
+                keywrodMetadataMapper.updateBatch(keywordMetadataDOS, keywordMetadataDOS.size());
+                log.warn("当前关键词【{}】未获取到关键词详细数据", keywords);
+            }
+
+            for (KeywordMetadataDO keywordMetadataDO : keywordMetadataDOS) {
+                // 查找匹配的ItemsDTO
+                ItemsDTO matchingItem = items.stream()
+                        .filter(item -> item.getKeyword().equals(keywordMetadataDO.getKeyword()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (matchingItem != null) {
+                    // 进行对象转换
+                    KeywordMetadataDO convertDO = KeywordMetadataConvert.INSTANCE.convert(matchingItem);
+                    convertDO.setId(keywordMetadataDO.getId());
+                    convertDO.setCreator(keywordMetadataDO.getCreator());
+                    convertDO.setCreateTime(keywordMetadataDO.getCreateTime());
+                    convertDO.setUpdater(keywordMetadataDO.getUpdater());
+                    convertDO.setUpdateTime(keywordMetadataDO.getUpdateTime());
+                    convertDO.setDeleted(keywordMetadataDO.getDeleted());
+                    BeanUtil.copyProperties(convertDO, keywordMetadataDO);
+                    // 匹配成功，设置状态为成功
+                    keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.SUCCESS.getCode());
+
+                } else {
+                    log.warn("当前关键词【{}】未获取到关键词详细数据", keywordMetadataDO.getKeyword());
+                    // 没有匹配，设置状态为失败
+                    keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode());
+                }
+            }
+
+            keywrodMetadataMapper.updateBatch(keywordMetadataDOS, keywordMetadataDOS.size());
+
+        } catch (Exception e) {
+            log.error("卖家精灵关键词【{}】获取失败，失败原因是:{}", keywords, e.getMessage(), e);
+            keywordMetadataDOS.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.ERROR.getCode()));
+            keywrodMetadataMapper.updateBatch(keywordMetadataDOS, keywordMetadataDOS.size());
+        }
+
+
+    }
+
 }

@@ -13,6 +13,7 @@ import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMe
 import com.starcloud.ops.business.listing.convert.KeywordMetadataConvert;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywrodMetadataMapper;
+import com.starcloud.ops.business.listing.enums.KeywordMetadataStatusEnum;
 import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
 import com.starcloud.ops.business.listing.service.KeyWordMetadataRepository;
 import com.starcloud.ops.business.listing.service.KeywordMetadataService;
@@ -83,12 +84,20 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
                 .eq(KeywordMetadataDO::getMarketId, sellerSpriteMarketEnum.getCode())
                 .in(KeywordMetadataDO::getKeyword, keywordList));
 
+
         // 如果数据库中数据全部存在则直接返回
         if (!keywordMetadataDOS.isEmpty() && keywordList.size() == keywordMetadataDOS.size()) {
             log.info("【关键词原数据新增】===》当前站点【{}】下关键词数据【{}】全部存在,直接返回", marketName, keywordList.toString());
             return true;
         }
-
+        //获取列表中未同步错误或者没有数据的数据
+        List<KeywordMetadataDO> retryDatas = keywordMetadataDOS.stream().filter(obj -> obj.getStatus() == KeywordMetadataStatusEnum.ERROR.getCode()||obj.getStatus() == KeywordMetadataStatusEnum.NO_DATA.getCode()).collect(Collectors.toList());
+        if (CollUtil.isNotEmpty(retryDatas)){
+            List<List<KeywordMetadataDO>> splitNotInKeywords = CollUtil.split(retryDatas, 20);
+            for (List<KeywordMetadataDO> splitNotInKeyword : splitNotInKeywords) {
+                keyWordMetadataRepository.executeAsyncRequestData(splitNotInKeyword);
+            }
+        }
         // 获取不在列表的数据
         List<String> notInKeywords;
         if (CollUtil.isNotEmpty(keywordMetadataDOS)) {
@@ -190,7 +199,6 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         Assert.notNull(extendAsinRequestDTO, "根据 ASIN获取变体失败，请求对象不可为空");
         return sellerSpriteService.extendAsin(extendAsinRequestDTO);
     }
-
 
 
     private SellerSpriteMarketEnum getMarketInfo(String marketName) {
