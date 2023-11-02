@@ -24,7 +24,9 @@ public interface ListingDictMapper extends BaseMapperX<ListingDictDO> {
 
     default ListingDictDO getByName(String name) {
         LambdaQueryWrapper<ListingDictDO> wrapper = Wrappers.lambdaQuery(ListingDictDO.class)
-                .eq(ListingDictDO::getName, name);
+                .eq(ListingDictDO::getName, name)
+                .last(" limit 1")
+                ;
         return selectOne(wrapper);
     }
 
