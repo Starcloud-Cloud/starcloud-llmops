@@ -41,6 +41,14 @@ public interface AppMarketService {
     AppMarketRespVO getOne(AppMarketQuery query);
 
     /**
+     * 获取应用详情并且增加查看量增加
+     *
+     * @param uid 应用 UID
+     * @return 应用详情
+     */
+    AppMarketRespVO getAndIncreaseView(String uid);
+
+    /**
      * 根据条件查询应用市场列表
      *
      * @param query 查询条件
