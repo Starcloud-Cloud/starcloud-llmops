@@ -89,5 +89,5 @@ public class DraftRespVO {
     private String userName;
 
     @Schema(description = "类型")
-    private String type;
+    private Integer type;
 }
