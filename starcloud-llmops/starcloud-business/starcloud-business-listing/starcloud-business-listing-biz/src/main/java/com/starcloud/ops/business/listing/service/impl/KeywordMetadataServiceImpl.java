@@ -3,6 +3,8 @@ package com.starcloud.ops.business.listing.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -23,6 +25,7 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Exten
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.SellerSpriteService;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Var;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -59,6 +62,13 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     @Override
     @TenantIgnore
     public PageResult<KeywordMetadataRespVO> queryMetaData(QueryKeywordMetadataPageReqVO pageReqVO) {
+        log.info("分页查询关键词元数据数据，查询参是【{}】", JSONUtil.toJsonStr(pageReqVO));
+        try {
+            SellerSpriteMarketEnum.valueOf(pageReqVO.getMarketName());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("站点信息获取失败 请输入正确的站点信息");
+        }
+        Assert.isFalse(StrUtil.isBlank(pageReqVO.getMarketName()),"站点信息不可以为空");
         return KeywordMetadataConvert.INSTANCE.convertPage(keywrodMetadataMapper.selectPage(pageReqVO));
     }
 

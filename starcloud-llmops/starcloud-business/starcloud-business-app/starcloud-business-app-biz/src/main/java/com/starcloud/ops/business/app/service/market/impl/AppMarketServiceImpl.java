@@ -90,8 +90,51 @@ public class AppMarketServiceImpl implements AppMarketService {
      * @return 应用详情
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public AppMarketRespVO get(String uid) {
+        AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
+        // 查询应用市场信息
+        AppMarketDO appMarket = appMarketMapper.get(uid, Boolean.FALSE);
+        AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
+
+        // 转换应用数据
+        AppMarketRespVO response = AppMarketConvert.INSTANCE.convertResponse(appMarket);
+
+        // 获取当前登录用户并且校验
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+
+        // 查询是否收藏
+        AppFavoriteDO favorite = appFavoritesMapper.get(appMarket.getUid(), String.valueOf(loginUserId));
+        if (Objects.nonNull(favorite)) {
+            response.setIsFavorite(Boolean.TRUE);
+        } else {
+            response.setIsFavorite(Boolean.FALSE);
+        }
+
+        return response;
+    }
+
+    /**
+     * 获取应用详情
+     *
+     * @param query 查询条件
+     * @return 应用详情
+     */
+    @Override
+    public AppMarketRespVO getOne(AppMarketQuery query) {
+        AppMarketDO one = appMarketMapper.getOne(query);
+        AppValidate.notNull(one, ErrorCodeConstants.MARKET_APP_NON_EXISTENT);
+        return AppMarketConvert.INSTANCE.convertResponse(one);
+    }
+
+    /**
+     * 获取应用详情并且增加查看量增加
+     *
+     * @param uid 应用 UID
+     * @return 应用详情
+     */
+    @Override
+    public AppMarketRespVO getAndIncreaseView(String uid) {
         AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
         // 查询应用市场信息
         AppMarketDO appMarket = appMarketMapper.get(uid, Boolean.FALSE);
@@ -127,19 +170,6 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 转换并且返回应用数据
         response.setViewCount(viewCount);
         return response;
-    }
-
-    /**
-     * 获取应用详情
-     *
-     * @param query 查询条件
-     * @return 应用详情
-     */
-    @Override
-    public AppMarketRespVO getOne(AppMarketQuery query) {
-        AppMarketDO one = appMarketMapper.getOne(query);
-        AppValidate.notNull(one, ErrorCodeConstants.MARKET_APP_NON_EXISTENT);
-        return AppMarketConvert.INSTANCE.convertResponse(one);
     }
 
     /**

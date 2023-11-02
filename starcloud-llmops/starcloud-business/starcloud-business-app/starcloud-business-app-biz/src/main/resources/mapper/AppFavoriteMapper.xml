@@ -126,7 +126,7 @@
                b.example,
                b.creator,
                b.create_time,
-               b.create_time,
+               b.update_time,
                a.uid         AS favoriteUid,
                a.creator     AS favoriteCreator,
                a.create_time AS favoriteTime
