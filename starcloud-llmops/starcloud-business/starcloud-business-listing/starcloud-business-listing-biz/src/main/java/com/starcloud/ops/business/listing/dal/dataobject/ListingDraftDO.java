@@ -113,5 +113,9 @@ public class ListingDraftDO extends TenantBaseDO {
      */
     private String executeStatus;
 
+    /**
+     * 类型
+     */
+    private Integer type;
 
 }
