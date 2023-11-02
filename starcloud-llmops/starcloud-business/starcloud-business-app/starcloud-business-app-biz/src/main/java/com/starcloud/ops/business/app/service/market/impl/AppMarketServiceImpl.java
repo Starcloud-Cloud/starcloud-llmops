@@ -33,6 +33,7 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -162,11 +163,23 @@ public class AppMarketServiceImpl implements AppMarketService {
      */
     @Override
     public List<Option> listOption(AppMarketOptionListQuery query) {
-        if (StringUtils.isNotBlank(query.getTagType())) {
-
+        query.setType(AppTypeEnum.SYSTEM.name());
+        query.setModel(AppModelEnum.COMPLETION.name());
+        // 如果传入 tags 则使用 tags，未传入 tags 时候且 tagType 不为空的时候，进行处理
+        if (CollectionUtil.isEmpty(query.getTags()) && StringUtils.isNotBlank(query.getTagType())) {
+            AppMarketTagTypeEnum tagTypeEnum = AppMarketTagTypeEnum.of(query.getTagType());
+            if (Objects.isNull(tagTypeEnum)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.MARKET_TAG_TYPE_NOT_SUPPORTED, query.getTagType());
+            }
+            query.setTags(tagTypeEnum.getTags());
         }
-
-        return null;
+        List<AppMarketDO> list = appMarketMapper.list(query);
+        return CollectionUtil.emptyIfNull(list).stream().filter(Objects::nonNull).map(item -> {
+            Option option = new Option();
+            option.setLabel(item.getName());
+            option.setValue(item.getUid());
+            return option;
+        }).collect(Collectors.toList());
     }
 
     /**

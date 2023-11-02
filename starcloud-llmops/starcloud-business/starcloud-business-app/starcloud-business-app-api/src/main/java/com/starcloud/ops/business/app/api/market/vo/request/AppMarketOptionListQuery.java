@@ -6,9 +6,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-import java.util.List;
-
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -16,42 +13,12 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "AppMarketOptionListQuery", description = "应用基础请求实体")
-public class AppMarketOptionListQuery implements Serializable {
+public class AppMarketOptionListQuery extends AppMarketListQuery {
 
     private static final long serialVersionUID = 1781465931721116577L;
-
-    /**
-     * 应用名称
-     */
-    @Schema(description = "应用名称")
-    private String name;
-
-    /**
-     * 应用类型
-     */
-    @Schema(description = "应用类型")
-    private String type;
-
-    /**
-     * 应用模型
-     */
-    @Schema(description = "应用分类")
-    private String model;
-
-    /**
-     * 应用分类
-     */
-    @Schema(description = "应用分类")
-    private String category;
-
-    /**
-     * 应用场景
-     */
-    @Schema(description = "应用场景")
-    private List<String> scenes;
 
     /**
      * 应用标签
