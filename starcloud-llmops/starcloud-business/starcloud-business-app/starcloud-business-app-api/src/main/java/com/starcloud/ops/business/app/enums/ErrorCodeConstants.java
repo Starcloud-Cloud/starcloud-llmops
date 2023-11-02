@@ -128,6 +128,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode MARKET_QUERY_REQUIRED = new ErrorCode(300200410, "请求参数是必填的！");
 
+    /**
+     * tagType 不支持
+     */
+    ErrorCode MARKET_TAG_TYPE_NOT_SUPPORTED = new ErrorCode(300200410, "参数tagType({})不支持！请检查后重试！");
+
     // ========== 应用收藏错误码 300 300 xxx ==========
 
     /**

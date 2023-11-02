@@ -10,7 +10,12 @@ import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.starcloud.ops.business.listing.controller.admin.vo.request.*;
+import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.DraftCreateReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.DraftOperationReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.DraftPageReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.DraftReqVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.request.ImportDictReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftDetailExcelVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DraftRespVO;
@@ -22,11 +27,14 @@ import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftDO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDraftUserDTO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywordBindMapper;
 import com.starcloud.ops.business.listing.dal.mysql.ListingDraftMapper;
-import com.starcloud.ops.business.listing.dto.*;
+import com.starcloud.ops.business.listing.dto.AiConfigDTO;
+import com.starcloud.ops.business.listing.dto.DraftConfigDTO;
+import com.starcloud.ops.business.listing.dto.DraftContentConfigDTO;
+import com.starcloud.ops.business.listing.dto.DraftItemScoreDTO;
+import com.starcloud.ops.business.listing.dto.KeywordMetaDataDTO;
 import com.starcloud.ops.business.listing.enums.AnalysisStatusEnum;
 import com.starcloud.ops.business.listing.enums.DraftSortFieldEnum;
 import com.starcloud.ops.business.listing.enums.ListExecuteEnum;
-import com.starcloud.ops.business.listing.enums.ListingGenerateTypeEnum;
 import com.starcloud.ops.business.listing.service.DictService;
 import com.starcloud.ops.business.listing.service.DraftService;
 import com.starcloud.ops.business.listing.service.KeywordBindService;
@@ -43,13 +51,23 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.StringJoiner;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.listing.enums.DictTypeConstants.LISTING_CONFIG;
-import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.*;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.DRAFT_IS_EXECUTING;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.DRAFT_NOT_EXISTS;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.KEYWORD_IS_ANALYSIS;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.KEYWORD_IS_NOT_EMPTY;
 
 @Slf4j
 @Service
@@ -399,7 +417,7 @@ public class DraftServiceImpl implements DraftService {
             String conversationUid = IdUtil.fastSimpleUUID();
             request.setConversationUid(conversationUid);
             request.setDraftUid(draftDO.getUid());
-            request.setListingType(ListingGenerateTypeEnum.TITLE.name());
+            request.setListingType(AppMarketTagTypeEnum.LISTING_TITLE.name());
             request.setKeywords(recommendKeys(draftConfigDTO.getTitleConfig()));
             ListingGenerateResponse titleResp = listingGenerateService.execute(request);
             if (!titleResp.getSuccess()) {
@@ -423,7 +441,7 @@ public class DraftServiceImpl implements DraftService {
 
                 request.setTitle(title);
                 request.setBulletPoints(new ArrayList<>(fiveDesc.values()));
-                request.setListingType(ListingGenerateTypeEnum.BULLET_POINT.name());
+                request.setListingType(AppMarketTagTypeEnum.LISTING_BULLET_POINT.name());
                 ListingGenerateResponse fiveDescResp = listingGenerateService.execute(request);
                 if (!fiveDescResp.getSuccess()) {
                     updateError(draftDO, "五点描述生成失败：" + fiveDescResp.getErrorMsg());
@@ -437,7 +455,7 @@ public class DraftServiceImpl implements DraftService {
             draftDO.setFiveDesc(ListingDraftConvert.INSTANCE.jsonStr(fiveDesc));
             // productDesc
             request.setBulletPoints(new ArrayList<>(fiveDesc.values()));
-            request.setListingType(ListingGenerateTypeEnum.PRODUCT_DESCRIPTION.name());
+            request.setListingType(AppMarketTagTypeEnum.LISTING_PRODUCT_DESCRIPTION.name());
             request.setKeywords(recommendKeys(draftConfigDTO.getProductDescConfig()));
             ListingGenerateResponse productDescResp = listingGenerateService.execute(request);
             if (!productDescResp.getSuccess()) {
