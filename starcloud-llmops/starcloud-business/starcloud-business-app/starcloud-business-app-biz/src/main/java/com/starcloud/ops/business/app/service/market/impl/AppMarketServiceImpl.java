@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketOptionListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
@@ -32,11 +33,13 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -150,6 +153,33 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 查询应用市场列表
         List<AppMarketDO> list = appMarketMapper.list(query);
         return CollectionUtil.emptyIfNull(list).stream().filter(Objects::nonNull).map(AppMarketConvert.INSTANCE::convertResponse).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据条件查询应用市场列表 Option
+     *
+     * @param query 查询条件
+     * @return 应用市场列表 Option
+     */
+    @Override
+    public List<Option> listOption(AppMarketOptionListQuery query) {
+        query.setType(AppTypeEnum.SYSTEM.name());
+        query.setModel(AppModelEnum.COMPLETION.name());
+        // 如果传入 tags 则使用 tags，未传入 tags 时候且 tagType 不为空的时候，进行处理
+        if (CollectionUtil.isEmpty(query.getTags()) && StringUtils.isNotBlank(query.getTagType())) {
+            AppMarketTagTypeEnum tagTypeEnum = AppMarketTagTypeEnum.of(query.getTagType());
+            if (Objects.isNull(tagTypeEnum)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.MARKET_TAG_TYPE_NOT_SUPPORTED, query.getTagType());
+            }
+            query.setTags(tagTypeEnum.getTags());
+        }
+        List<AppMarketDO> list = appMarketMapper.list(query);
+        return CollectionUtil.emptyIfNull(list).stream().filter(Objects::nonNull).map(item -> {
+            Option option = new Option();
+            option.setLabel(item.getName());
+            option.setValue(item.getUid());
+            return option;
+        }).collect(Collectors.toList());
     }
 
     /**
