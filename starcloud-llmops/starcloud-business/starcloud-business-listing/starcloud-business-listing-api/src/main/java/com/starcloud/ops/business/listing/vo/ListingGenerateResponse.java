@@ -1,14 +1,10 @@
 package com.starcloud.ops.business.listing.vo;
 
-import com.starcloud.ops.business.listing.enums.ListingGenerateTypeEnum;
-import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import javax.validation.constraints.NotBlank;
 
 /**
  * Listing 生成响应
@@ -42,15 +38,12 @@ public class ListingGenerateResponse implements java.io.Serializable {
      * 应用标签
      */
     @Schema(description = "生成类型")
-    @NotBlank(message = "请输入Listing类型，这是必填项！")
-    @InEnum(value = ListingGenerateTypeEnum.class, field = InEnum.EnumField.NAME, message = "请输入正确的Listing类型({value})，目前只支持：{values}")
     private String listingType;
 
     /**
      * 草稿UID
      */
     @Schema(description = "草稿UID")
-    @NotBlank(message = "请输入草稿UID，这是必填项！")
     private String draftUid;
 
     /**
