@@ -58,11 +58,34 @@ public class AppFavoriteServiceImpl implements AppFavoriteService {
      */
     @Override
     public AppFavoriteRespVO getMarketInfo(String uid) {
+
         // 收藏 UID 非空校验
         AppValidate.notBlank(uid, ErrorCodeConstants.FAVORITE_UID_IS_REQUIRED);
+
+        // 用户ID
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+
         AppFavoritePO favorite = appFavoriteMapper.getMarketInfo(uid);
         AppValidate.notNull(favorite, ErrorCodeConstants.FAVORITE_APP_NON_EXISTENT);
-        return AppFavoriteConvert.INSTANCE.convert(favorite);
+
+        AppFavoriteRespVO response = AppFavoriteConvert.INSTANCE.convert(favorite);
+
+        // 操作表中插入一条查看记录, 并且增加查看量
+        appOperateMapper.create(favorite.getUid(), favorite.getVersion(), AppOperateTypeEnum.VIEW.name(), String.valueOf(loginUserId));
+
+        // 增加查看量
+        Integer viewCount = favorite.getViewCount() + 1;
+        LambdaUpdateWrapper<AppMarketDO> updateWrapper = Wrappers.lambdaUpdate(AppMarketDO.class);
+        updateWrapper.set(AppMarketDO::getViewCount, viewCount);
+        // 更新时间保持不变
+        updateWrapper.set(AppMarketDO::getUpdateTime, favorite.getUpdateTime());
+        updateWrapper.eq(AppMarketDO::getUid, favorite.getUid());
+        appMarketMapper.update(null, updateWrapper);
+
+        // 转换并且返回应用数据
+        response.setViewCount(viewCount);
+        return response;
     }
 
     /**

@@ -171,6 +171,12 @@ public class DictServiceImpl implements DictService {
             return DictKeyPageRespVO.builder().status(dictDO.getStatus()).build();
         }
         List<String> keys = keywordBindMapper.getByDictId(dictDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(keys)) {
+            return DictKeyPageRespVO.builder()
+                    .status(AnalysisStatusEnum.ANALYSIS_END.name())
+                    .keywordMetadataResp(PageResult.empty())
+                    .build();
+        }
         pageReqVO.setIncludeKeywords(keys);
         pageReqVO.setMarketName(dictDO.getEndpoint());
         PageResult<KeywordMetadataRespVO> pageResult = keywordMetadataService.queryMetaData(pageReqVO);

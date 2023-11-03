@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.market;
 
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketOptionListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
@@ -9,6 +10,7 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;
@@ -39,12 +41,28 @@ public interface AppMarketService {
     AppMarketRespVO getOne(AppMarketQuery query);
 
     /**
+     * 获取应用详情并且增加查看量增加
+     *
+     * @param uid 应用 UID
+     * @return 应用详情
+     */
+    AppMarketRespVO getAndIncreaseView(String uid);
+
+    /**
      * 根据条件查询应用市场列表
      *
      * @param query 查询条件
      * @return 应用市场列表
      */
     List<AppMarketRespVO> list(AppMarketListQuery query);
+
+    /**
+     * 根据条件查询应用市场列表 Option
+     *
+     * @param query 查询条件
+     * @return 应用市场列表 Option
+     */
+    List<Option> listOption(AppMarketOptionListQuery query);
 
     /**
      * 根据分类Code查询应用市场列表
