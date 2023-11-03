@@ -80,29 +80,30 @@ public enum XhsImageTemplateEnum implements IEnumable<String> {
                     VariableItemRespVO.ofImageVariable("IMAGE_8", "图片8")
             );
         }
-    },
+    }
 
     /**
      * 小红书-(9宫格3*3*3+标题)
      */
-    NINE_BOX_GRID("84b4b7e9dd55445f", "九宫格") {
-        @Override
-        public List<VariableItemRespVO> variables() {
-            return Arrays.asList(
-                    VariableItemRespVO.ofTextVariable("TITLE", "主标题"),
-                    VariableItemRespVO.ofTextVariable("SUB_TITLE", "副标题"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_1", "图片1"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_2", "图片2"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_3", "图片3"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_4", "图片4"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_5", "图片5"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_6", "图片6"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_7", "图片7"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_8", "图片8"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_9", "图片9")
-            );
-        }
-    };
+//    NINE_BOX_GRID("84b4b7e9dd55445f", "九宫格") {
+//        @Override
+//        public List<VariableItemRespVO> variables() {
+//            return Arrays.asList(
+//                    VariableItemRespVO.ofTextVariable("TITLE", "主标题"),
+//                    VariableItemRespVO.ofTextVariable("SUB_TITLE", "副标题"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_1", "图片1"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_2", "图片2"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_3", "图片3"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_4", "图片4"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_5", "图片5"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_6", "图片6"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_7", "图片7"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_8", "图片8"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_9", "图片9")
+//            );
+//        }
+//    }
+            ;
 
     private final String code;
 
