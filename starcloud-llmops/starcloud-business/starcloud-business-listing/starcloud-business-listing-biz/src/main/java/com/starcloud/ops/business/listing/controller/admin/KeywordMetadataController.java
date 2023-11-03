@@ -61,8 +61,8 @@ public class KeywordMetadataController {
 
     @GetMapping("/page")
     @Operation(summary = "分页查询关键词列表", description = "分页查询关键词列表")
-    public CommonResult<PageResult<KeywordMetadataRespVO>> page(@Valid QueryKeywordMetadataPageReqVO pageReqVO) {
-        sendMessage(1000);
+    public CommonResult<PageResult<KeywordMetadataRespVO>> page(@Validated @RequestBody QueryKeywordMetadataPageReqVO pageReqVO) {
+//        sendMessage(1000);
         pageReqVO.setMarketName("US");
         return CommonResult.success(keywordMetadataService.queryMetaData(pageReqVO));
     }
