@@ -20,87 +20,95 @@ public enum BenefitsStrategyTypeEnums {
     /**
      * 普通注册
      */
-    SIGN_IN("SIGN_IN", "注册", "Sign In", "SI", BenefitsTypesEnums.BASIC_BENEFITS),
+    SIGN_IN("SIGN_IN", "注册", "Sign In", "SI", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
 
     /**
      * 邀请注册
      */
-    INVITE_TO_REGISTER("INVITE_TO_REGISTER", "邀请注册", "Invite to Register", "SN", BenefitsTypesEnums.BASIC_BENEFITS),
+    INVITE_TO_REGISTER("INVITE_TO_REGISTER", "邀请注册", "Invite to Register", "SN", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
 
     /**
      * 邀请
      */
-    USER_INVITE("USER_INVITE", "邀请", "Invite", "IN", BenefitsTypesEnums.BASIC_BENEFITS),
+    USER_INVITE("USER_INVITE", "邀请", "Invite", "IN", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
 
     /**
      * 签到
      */
-    USER_ATTENDANCE("USER_ATTENDANCE", "签到", "Check In", "AT", BenefitsTypesEnums.BASIC_BENEFITS),
+    USER_ATTENDANCE("USER_ATTENDANCE", "签到", "Check In", "AT", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
 
 
     /**
      * 自定义套餐
      */
-    GIFT("GIFT", "系统赠送", "System gift", "GI", BenefitsTypesEnums.BASIC_BENEFITS),
+    GIFT("GIFT", "系统赠送", "System gift", "GI", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
 
     /**
      * 体验包
      */
-    EXPERIENCE("EXPERIENCE", "体验包", "Experience Package", "EX", BenefitsTypesEnums.BASIC_BENEFITS),
+    EXPERIENCE("EXPERIENCE", "体验包", "Experience Package", "EX", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
 
     /**
      * 公众号
      */
-    WECHAT_OFFICIAL_ACCOUNTS("WECHAT_OFFICIAL_ACCOUNTS", "系统赠送-关注公众号", "System gift", "WA", BenefitsTypesEnums.BASIC_BENEFITS),
+    WECHAT_OFFICIAL_ACCOUNTS("WECHAT_OFFICIAL_ACCOUNTS", "系统赠送-关注公众号", "System gift", "WA", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
     /**
      * 微信群
      */
-    WECHAT_GROUP("WECHAT_GROUP", "系统赠送-进入官方微信群", "System gift", "VQ", BenefitsTypesEnums.BASIC_BENEFITS),
+    WECHAT_GROUP("WECHAT_GROUP", "系统赠送-进入官方微信群", "System gift", "VQ", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
     /**
      * 视频号
      */
-    WECHAT_CHANNELS("WECHAT_CHANNELS", "系统赠送-关注官方视频号", "System gift", "CS", BenefitsTypesEnums.BASIC_BENEFITS),
+    WECHAT_CHANNELS("WECHAT_CHANNELS", "系统赠送-关注官方视频号", "System gift", "CS", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
     /**
      * 抖音群
      */
-    DOUYIN_GROUP("DOUYIN_GROUP", "系统赠送-关注官方抖音", "System gift", "DG", BenefitsTypesEnums.BASIC_BENEFITS),
+    DOUYIN_GROUP("DOUYIN_GROUP", "系统赠送-关注官方抖音", "System gift", "DG", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
     /**
      * 小红书
      */
-    LITTLE_RED_BOOK("LITTLE_RED_BOOK", "系统赠送-关注官方小红书账号", "System gift", "RB", BenefitsTypesEnums.BASIC_BENEFITS),
+    LITTLE_RED_BOOK("LITTLE_RED_BOOK", "系统赠送-关注官方小红书账号", "System gift", "RB", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
 
 
     /**
      * 多次邀请
      */
-    USER_INVITE_REPEAT("USER_INVITE_REPEAT", "系统赠送-邀请达人礼包", "Invite", "IR", BenefitsTypesEnums.BASIC_BENEFITS),
+    USER_INVITE_REPEAT("USER_INVITE_REPEAT", "系统赠送-邀请达人礼包", "Invite", "IR", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
 
     //====================================支付套餐=======================================================================
 
     /**
      * BASIC套餐
      */
-    PAY_BASIC_MONTH("PAY_BASIC_MONTH", "基础版-月付", "PLUS Package", "PB", BenefitsTypesEnums.BASIC_BENEFITS),
+    PAY_BASIC_MONTH("PAY_BASIC_MONTH", "基础版-月付", "PLUS Package", "PB", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
     /**
      * BASIC套餐
      */
-    PAY_BASIC_YEAR("PAY_BASIC_YEAR", "基础版-年付", "PLUS Package", "PB", BenefitsTypesEnums.BASIC_BENEFITS),
+    PAY_BASIC_YEAR("PAY_BASIC_YEAR", "基础版-年付", "PLUS Package", "PB", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
     /**
      * PLUS套餐
      */
-    PAY_PLUS_MONTH("PAY_PLUS_MONTH", "高级版-月付", "PLUS Package", "PL", BenefitsTypesEnums.BASIC_BENEFITS),
+    PAY_PLUS_MONTH("PAY_PLUS_MONTH", "高级版-月付", "PLUS Package", "PL", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
     /**
      * PLUS套餐
      */
-    PAY_PLUS_YEAR("PAY_PLUS_YEAR", "高级版-年付", "PLUS Package", "PL", BenefitsTypesEnums.BASIC_BENEFITS),
+    PAY_PLUS_YEAR("PAY_PLUS_YEAR", "高级版-年付", "PLUS Package", "PL", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
     /**
      * PRO套餐
      */
-    PAY_PRO_MONTH("PAY_PRO_MONTH", "团队版-月付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS),
+    PAY_PRO_MONTH("PAY_PRO_MONTH", "团队版-月付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
     /**
      * PRO套餐
      */
-    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS),
+    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS,0.00,null),
+
+
+//    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS),
+//    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS),
+//    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS),
+//    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS),
+//    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS),
+//    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS),
 
 
     ;
@@ -120,7 +128,7 @@ public enum BenefitsStrategyTypeEnums {
     private final String englishName;
 
     /**
-     * 配置类
+     * 前缀
      */
     private final String prefix;
 
@@ -128,6 +136,11 @@ public enum BenefitsStrategyTypeEnums {
      * 配置类
      */
     private final BenefitsTypesEnums typesEnums;
+
+
+    private final Double discountNums;
+
+    private final BenefitsDiscountTypeEnums discountTypeEnums;
 
 
     public static BenefitsStrategyTypeEnums getByCode(String code) {
