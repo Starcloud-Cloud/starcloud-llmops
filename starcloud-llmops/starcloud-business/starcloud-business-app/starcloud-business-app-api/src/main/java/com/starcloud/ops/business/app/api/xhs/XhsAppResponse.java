@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.api.xhs;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -41,20 +40,6 @@ public class XhsAppResponse implements java.io.Serializable {
      */
     @Schema(description = "应用类别")
     private String category;
-
-    /**
-     * 应用标签，多个以逗号分割
-     */
-    @Schema(description = "应用标签，多个以逗号分割")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<String> tags;
-
-    /**
-     * 应用图片，多个以逗号分割
-     */
-    @Schema(description = "应用图片，多个以逗号分割")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<String> images;
 
     /**
      * 应用图标

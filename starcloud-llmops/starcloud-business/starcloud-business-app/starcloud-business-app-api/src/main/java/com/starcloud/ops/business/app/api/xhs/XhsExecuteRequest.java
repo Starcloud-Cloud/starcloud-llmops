@@ -6,8 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.validation.constraints.NotBlank;
-import java.util.Map;
+import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -26,21 +26,16 @@ public class XhsExecuteRequest implements java.io.Serializable {
     /**
      * 应用UID
      */
-    @Schema(description = "应用UID")
-    @NotBlank(message = "应用UID不能为空")
-    private String uid;
+    @Valid
+    @Schema(description = "小红书应用请求")
+    private XhsAppExecuteRequest appRequest;
 
     /**
-     * 应用生成参数
+     * 图片请求
      */
-    @Schema(description = "应用生成参数")
-    private Map<String, Object> appParams;
-
-    /**
-     * 图片生成参数
-     */
-    @Schema(description = "图片生成参数")
-    private Map<String, Object> imageParams;
+    @Valid
+    @Schema(description = "图片请求")
+    private List<XhsImageExecuteRequest> imageRequests;
 
 }
 
