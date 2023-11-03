@@ -352,6 +352,8 @@ public class DraftServiceImpl implements DraftService {
         draftDO.setUpdater(null);
         draftDO.setCreateTime(null);
         draftDO.setUpdater(null);
+        updateDo(draftDO, keys);
+        updateScore(draftDO);
         draftMapper.insert(draftDO);
         keywordBindService.addDraftKeyword(keys, draftDO.getId());
         return detail(draftDO.getUid(), draftDO.getVersion());
