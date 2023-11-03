@@ -204,6 +204,18 @@ public class ImageUploadUtils {
      * @param content   图片内容
      * @return 图片信息
      */
+    public static UploadImageInfoDTO uploadImage(String imageName, String pathType, byte[] content) {
+        return uploadImage(imageName, pathType, content, null, null);
+    }
+
+    /**
+     * 上传图片
+     *
+     * @param imageName 图片名称
+     * @param pathType  上传路径类型
+     * @param content   图片内容
+     * @return 图片信息
+     */
     public static UploadImageInfoDTO uploadImage(String imageName, String pathType, byte[] content, Integer limitPixel, String limitMessage) {
 
         // 图片名称校验
