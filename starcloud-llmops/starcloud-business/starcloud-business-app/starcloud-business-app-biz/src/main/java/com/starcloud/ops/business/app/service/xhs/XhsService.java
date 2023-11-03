@@ -3,6 +3,9 @@ package com.starcloud.ops.business.app.service.xhs;
 import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.XhsExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
+
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -10,6 +13,13 @@ import com.starcloud.ops.business.app.api.xhs.XhsExecuteResponse;
  * @since 2023-11-02
  */
 public interface XhsService {
+
+    /**
+     * 获取图片模板
+     *
+     * @return 图片模板
+     */
+    List<XhsImageTemplateDTO> imageTemplates();
 
     /**
      * 获取应用信息
