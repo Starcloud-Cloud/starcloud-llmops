@@ -38,6 +38,8 @@ public interface ErrorCodeConstants {
     ErrorCode PAY_ORDER_ERROR_CREAT = new ErrorCode(1007002003, "订单创建失败，请重试！");
     ErrorCode PAY_ORDER_ERROR_SUBMIT = new ErrorCode(1007002003, "订单支付失败，请重试！");
 
+    ErrorCode PAY_ORDER_ERROR_SUBMIT_DISCOUNT_ERROR = new ErrorCode(1007002004, "订单支付失败，优惠码已经失效");
+
     /**
      * ========== ORDER 模块(拓展单) 1-007-003-000 ==========
      */
@@ -70,5 +72,7 @@ public interface ErrorCodeConstants {
     ErrorCode PAY_DEMO_ORDER_REFUND_FAIL_REFUND_NOT_SUCCESS = new ErrorCode(100790008, "发起退款失败，退款订单未退款成功");
     ErrorCode PAY_DEMO_ORDER_REFUND_FAIL_REFUND_ORDER_ID_ERROR = new ErrorCode(100790008, "发起退款失败，退款单编号不匹配");
     ErrorCode PAY_DEMO_ORDER_REFUND_FAIL_REFUND_PRICE_NOT_MATCH = new ErrorCode(100790004, "发起退款失败，退款单金额不匹配");
+
+
 
 }

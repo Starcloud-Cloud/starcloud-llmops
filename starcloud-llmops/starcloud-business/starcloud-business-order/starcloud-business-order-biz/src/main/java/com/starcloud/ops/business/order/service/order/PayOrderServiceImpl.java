@@ -23,13 +23,13 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
-import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductTimeEnum;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
 import com.starcloud.ops.business.order.convert.order.PayOrderConvert;
@@ -67,6 +67,7 @@ import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
+import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_ORDER_ERROR_SUBMIT_DISCOUNT_ERROR;
 import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_ORDER_NOT_FOUND;
 
 /**
@@ -105,6 +106,9 @@ public class PayOrderServiceImpl implements PayOrderService {
     private UserBenefitsService userBenefitsService;
 
     @Resource
+    private UserBenefitsStrategyService userBenefitsStrategyService;
+
+    @Resource
     private AdminUserService userService;
 
     @Resource
@@ -136,9 +140,17 @@ public class PayOrderServiceImpl implements PayOrderService {
     public String createPayOrder(PayOrderCreateReqDTO reqDTO) {
         log.info("[createPayOrder],用户[userId({})｜租户[({})｜开始创建订单({})]", getLoginUserId(), getTenantId(), reqDTO.getMerchantOrderId());
 
+        Long discountId = null;
+        if (StrUtil.isNotBlank(reqDTO.getDiscountCode())) {
+            UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(reqDTO.getDiscountCode());
+            userBenefitsService.addUserBenefitsByCode(reqDTO.getDiscountCode(), getLoginUserId());
+            reqDTO.setDiscountId(userBenefitsStrategy.getId());
+            discountId = userBenefitsStrategy.getId();
+        }
+
         // 检验是否有历史未支付订单
         PayOrderDO noPayOrder = orderMapper.selectNoCloseByProductCode(
-                reqDTO.getProductCode(), getLoginUserId(), getTenantId());
+                reqDTO.getProductCode(), discountId, getLoginUserId(), getTenantId());
 
         if (noPayOrder != null) {
             log.info("[createPayOrder],用户[userId({}) 已经存在未支付的支付单({})]", getLoginUserId(), noPayOrder.getMerchantOrderId());
@@ -499,23 +511,68 @@ public class PayOrderServiceImpl implements PayOrderService {
      * 获取商品优惠信息
      * 分页
      *
-     * @param productCode 产品代码
+     * @param productCode  产品代码
      * @param discountCode 折扣代码
      * @return 支付订单
      * 分页
      */
     @Override
-    public AppPayProductDiscountRespVO getOrderProductDiscount(String productCode, String discountCode) {
+    public AppPayProductDiscountRespVO getOrderProductDiscount(String productCode, String noNeedProductCode, String discountCode) {
         AppPayProductDiscountRespVO appPayProductDiscountRespVO = new AppPayProductDiscountRespVO();
-//        判断商品是否存在 存在则获取商品信息
+        // 判断商品是否存在 存在则获取商品信息
+        ProductEnum product;
+        try {
+            product = ProductEnum.getByCode(productCode);
+        } catch (RuntimeException e) {
+            throw new RuntimeException("未获取到该产品信息");
+        }
+        //  商品为年付商品
+        if (product.getTimeType().equals(ProductTimeEnum.YEAR)) {
+            // 获取月付产品
+            ProductEnum monthProduct = ProductEnum.getByCode(noNeedProductCode);
+            Integer monthUnitPrice = monthProduct.getPrice();
 
-//        如果有折扣码 则判断折扣码的有效性
+            appPayProductDiscountRespVO.setOriginalAmount((long) (monthUnitPrice * 12));
+            appPayProductDiscountRespVO.setDiscountAmount((long) (monthUnitPrice * 12 - product.getPrice()));
+            appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
+        } else {
+            appPayProductDiscountRespVO.setOriginalAmount(Long.valueOf(product.getPrice()));
+            appPayProductDiscountRespVO.setDiscountAmount(0L);
+            appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
+        }
 
-//        折扣码有效  则根据折扣码计算对应的价格
+        // 如果有折扣码 则判断折扣码的有效性
+        if (StrUtil.isNotBlank(discountCode)) {
 
+            // 折扣码有效  则根据折扣码计算对应的价格
+            if (userBenefitsService.validateDiscount(productCode, discountCode, getLoginUserId())) {
+                Long discountPrice = userBenefitsService.calculateDiscountPrice(productCode, discountCode);
 
+                appPayProductDiscountRespVO.setDiscountAmount(appPayProductDiscountRespVO.getOriginalAmount() - discountPrice);
+                appPayProductDiscountRespVO.setDiscountedAmount(discountPrice);
 
-        return null;
+                appPayProductDiscountRespVO.setDiscountCouponStatus(true);
+
+            } else {
+                appPayProductDiscountRespVO.setDiscountCouponStatus(false);
+            }
+        }
+        return appPayProductDiscountRespVO;
+    }
+
+    /**
+     * 创建订单的时候价格校验
+     *
+     * @param productCode
+     * @param discountCode
+     * @return
+     */
+    @Override
+    public Long getDiscountOrderPrice(String productCode, String discountCode) {
+        if (userBenefitsService.validateDiscount(productCode, discountCode, getLoginUserId())) {
+            return userBenefitsService.calculateDiscountPrice(productCode, discountCode);
+        }
+        throw exception(PAY_ORDER_ERROR_SUBMIT_DISCOUNT_ERROR);
     }
 
     /**

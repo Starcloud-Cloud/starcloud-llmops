@@ -132,13 +132,20 @@ public interface PayOrderService {
 
     /**
      * 获取商品优惠信息
-     * 分页
-     * @return 支付订单
-     * 分页
+     *
+     * @return
+     *
      */
-    AppPayProductDiscountRespVO getOrderProductDiscount( String productCode,String discountCode);
+    AppPayProductDiscountRespVO getOrderProductDiscount(String productCode, String noNeedProductCode, String discountCode);
 
 
+    /**
+     * 创建订单的时候价格校验
+     * @param productCode
+     * @param discountCode
+     * @return
+     */
+    Long getDiscountOrderPrice(String productCode, String discountCode);
     /**
      * 更新示例订单为已支付
      *
@@ -154,5 +161,8 @@ public interface PayOrderService {
      * @param payOrderId 支付订单号
      */
      Boolean notifyUSerOrderPaid(String payOrderId);
+
+
+
 
 }

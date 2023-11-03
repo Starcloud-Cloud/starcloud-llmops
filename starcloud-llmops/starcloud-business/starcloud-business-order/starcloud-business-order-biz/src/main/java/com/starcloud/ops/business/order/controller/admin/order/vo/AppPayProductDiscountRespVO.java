@@ -26,6 +26,6 @@ public class AppPayProductDiscountRespVO {
     private Long discountedAmount;
 
     @Schema(description = "折扣券状态")
-    private Long discountCouponStatus;
+    private Boolean discountCouponStatus;
 
 }

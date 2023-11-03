@@ -41,10 +41,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -1089,6 +1086,92 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         return userBenefitsMapper.selectList(wrapper);
 
+    }
+
+    /**
+     * 折扣优惠是否可用
+     *
+     * @param productCode  产品 code
+     * @param discountCode 优惠码
+     * @param userId       用户 ID
+     * @return true        可用 false 不可用
+     */
+    @Override
+    public Boolean validateDiscount(String productCode, String discountCode, Long userId) {
+        log.info("用户【{}】使用优惠码【{}】对应的的产品代码为【{}】", userId, discountCode, productCode);
+        Assert.notBlank(productCode, "判断优惠码是否有效失败，产品代码不可以为空");
+        Assert.notBlank(discountCode, "判断优惠码是否有效失败,优惠代码不可以为空");
+
+        UserBenefitsStrategyDO benefitsStrategy;
+        // 使用限制校验
+        try {
+             benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
+            if (benefitsStrategy.getLimitNum() != -1) {
+                // 查询条件-检验是否超过兑换限制
+                LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
+                wrapper.eq(UserBenefitsDO::getStrategyId, benefitsStrategy.getId());
+
+                if (benefitsStrategy.getLimitNum() <= userBenefitsMapper.selectCount(wrapper)) {
+                    log.error("[addUserBenefitsByCode][权益超出兑换次数：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
+                    throw exception(USER_BENEFITS_CASH_COUNT_EXCEEDED);
+                }
+            }
+            // 检测权益使用频率是否合法
+            if (benefitsStrategy.getLimitIntervalNum() > 0) {
+                if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
+                    log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
+                    throw exception(USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED);
+                }
+            }
+        } catch (RuntimeException e) {
+            log.warn("用户【{}】无法使用优惠码【{}】对应的的产品代码为【{}】，当前优惠码超过使用限制", userId, discountCode, productCode);
+            return false;
+        }
+
+        BenefitsStrategyTypeEnums discountCodeEnums = BenefitsStrategyTypeEnums.getByCode(benefitsStrategy.getStrategyType());
+        // 适用产品校验
+        BenefitsStrategyTypeEnums[] limitDiscountByCode = ProductEnum.getLimitDiscountByCode(productCode);
+
+        Optional<BenefitsStrategyTypeEnums> anyMatchResult = Arrays.stream(limitDiscountByCode)
+                .filter(discountCodeEnums::equals)
+                .findFirst();
+
+        if (!anyMatchResult.isPresent()) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 计算优惠后的价格
+     *
+     * @param productCode  产品 code
+     * @param discountCode 优惠码
+     * @return 优惠后的价格
+     */
+    @Override
+    public Long calculateDiscountPrice(String productCode, String discountCode) {
+        //  商品信息
+        ProductEnum product = ProductEnum.getByCode(productCode);
+
+        UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
+        // 优惠码信息
+        BenefitsStrategyTypeEnums  discount = BenefitsStrategyTypeEnums.getByCode(userBenefitsStrategy.getStrategyType());
+        Long discountPrice = 0L;
+        switch (discount.getDiscountTypeEnums()){
+            case DIRECT_DISCOUNT:
+                discountPrice= (long) (product.getPrice()-discount.getDiscountNums()*100);
+                break;
+            case PERCENTAGE_DISCOUNT:
+                discountPrice= (long) (product.getPrice()*discount.getDiscountNums());
+                break;
+        }
+        if (discountPrice<=0){
+            log.error("优惠价格计算错误");
+            discountPrice = Long.valueOf(product.getPrice());
+        }
+
+        return discountPrice;
     }
 
     /**

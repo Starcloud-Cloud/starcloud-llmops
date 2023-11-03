@@ -74,6 +74,7 @@ public class UserBenefitsUsageLogServiceImpl implements UserBenefitsUsageLogServ
         LocalDateTime now = LocalDateTimeUtil.now();
 
         List<UserBenefitsUsageLogDO> collect = Stream.of(
+
                 createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.APP, benefitsStrategy.getAppCount(), now),
                 createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.DATASET, benefitsStrategy.getDatasetCount(), now),
                 createUserBenefitsUsageLog(userBenefitsDO, BenefitsTypeEnums.IMAGE, benefitsStrategy.getImageCount(), now),
