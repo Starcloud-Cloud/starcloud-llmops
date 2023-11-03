@@ -175,7 +175,7 @@ public class XhsServiceImpl implements XhsService {
             response.setErrorCode(exception.getCode().toString());
             response.setErrorMsg(exception.getMessage());
         } catch (Exception exception) {
-            log.info("小红书生成图片失败(ServiceException): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
+            log.info("小红书生成图片失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
             response.setErrorCode("350400200");
             response.setErrorMsg(exception.getMessage());
         }

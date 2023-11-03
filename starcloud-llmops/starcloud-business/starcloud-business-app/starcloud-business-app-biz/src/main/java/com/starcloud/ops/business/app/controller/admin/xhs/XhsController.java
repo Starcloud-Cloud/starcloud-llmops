@@ -57,12 +57,6 @@ public class XhsController {
         return CommonResult.success(xhsService.getApp(uid));
     }
 
-    @PostMapping(value = "/bathImageExecute")
-    @Operation(summary = "小红书图片批量执行")
-    public CommonResult<List<XhsImageExecuteResponse>> bathImageExecute(@Validated @RequestBody XhsBathImageExecuteRequest request) {
-        return CommonResult.success(xhsService.bathImageExecute(request));
-    }
-
     @PostMapping(value = "/appExecute")
     @Operation(summary = "小红书应用执行")
     public SseEmitter appExecute(@Validated @RequestBody XhsAppExecuteRequest executeRequest, HttpServletResponse httpServletResponse) {
@@ -83,6 +77,12 @@ public class XhsController {
         // 异步执行应用
         xhsService.asyncAppExecute(executeRequest);
         return emitter;
+    }
+
+    @PostMapping(value = "/bathImageExecute")
+    @Operation(summary = "小红书图片批量执行")
+    public CommonResult<List<XhsImageExecuteResponse>> bathImageExecute(@Validated @RequestBody XhsBathImageExecuteRequest request) {
+        return CommonResult.success(xhsService.bathImageExecute(request));
     }
 
 }
