@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.xhs;
+package com.starcloud.ops.business.app.controller.admin.xhs.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -31,6 +31,18 @@ public class XhsImageExecuteRequest implements java.io.Serializable {
     @Schema(description = "图片模板")
     @NotBlank(message = "图片模板不能为空")
     private String imageTemplate;
+
+    /**
+     * 应用UID
+     */
+    @Schema(description = "图片序号")
+    private Integer index;
+
+    /**
+     * 是否是主图
+     */
+    @Schema(description = "是否是主图")
+    private Boolean isMain;
 
     /**
      * 图片生成参数

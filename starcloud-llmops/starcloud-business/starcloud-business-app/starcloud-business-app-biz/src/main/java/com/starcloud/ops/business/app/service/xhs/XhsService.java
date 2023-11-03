@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.app.service.xhs;
 
 import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
-import com.starcloud.ops.business.app.api.xhs.XhsExecuteRequest;
-import com.starcloud.ops.business.app.api.xhs.XhsExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
 
 import java.util.List;
 
@@ -30,10 +32,25 @@ public interface XhsService {
     XhsAppResponse getApp(String uid);
 
     /**
-     * 执行
+     * 异步执行应用
+     *
+     * @param request 请求
+     */
+    void asyncAppExecute(XhsAppExecuteRequest request);
+
+    /**
+     * 异步执行图片
      *
      * @param request 请求
      * @return 响应
      */
-    XhsExecuteResponse execute(XhsExecuteRequest request);
+    XhsImageExecuteResponse imageExecute(XhsImageExecuteRequest request);
+
+    /**
+     * 异步批量执行图片
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    List<XhsImageExecuteResponse> bathImageExecute(XhsBathImageExecuteRequest request);
 }
