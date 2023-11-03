@@ -17,7 +17,26 @@ import java.util.stream.Collectors;
 @Getter
 public enum XhsImageTemplateEnum implements IEnumable<String> {
 
-    NINE_BOX_GRID("84b4b7e9dd55445f", "九宫格") {
+//    NINE_BOX_GRID("84b4b7e9dd55445f", "九宫格") {
+//        @Override
+//        public List<VariableItemRespVO> variables() {
+//            return Arrays.asList(
+//                    VariableItemRespVO.ofTextVariable("TITLE", "主标题"),
+//                    VariableItemRespVO.ofTextVariable("SUB_TITLE", "副标题"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_1", "图片1"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_2", "图片2"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_3", "图片3"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_4", "图片4"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_5", "图片5"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_6", "图片6"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_7", "图片7"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_8", "图片8"),
+//                    VariableItemRespVO.ofImageVariable("IMAGE_9", "图片9")
+//            );
+//        }
+//    },
+
+    SIX_BOX_GRID("58cf40e9a2d14a5b", "小红书-(6宫格+标题+子标题)") {
         @Override
         public List<VariableItemRespVO> variables() {
             return Arrays.asList(
@@ -28,10 +47,24 @@ public enum XhsImageTemplateEnum implements IEnumable<String> {
                     VariableItemRespVO.ofImageVariable("IMAGE_3", "图片3"),
                     VariableItemRespVO.ofImageVariable("IMAGE_4", "图片4"),
                     VariableItemRespVO.ofImageVariable("IMAGE_5", "图片5"),
+                    VariableItemRespVO.ofImageVariable("IMAGE_6", "图片6")
+            );
+        }
+    },
+
+    EIGHT_BOX_GRID("d14e5942442e4811", "小红书-(8宫格3*2*3+标题)") {
+        @Override
+        public List<VariableItemRespVO> variables() {
+            return Arrays.asList(
+                    VariableItemRespVO.ofTextVariable("TITLE", "标题"),
+                    VariableItemRespVO.ofImageVariable("IMAGE_1", "图片1"),
+                    VariableItemRespVO.ofImageVariable("IMAGE_2", "图片2"),
+                    VariableItemRespVO.ofImageVariable("IMAGE_3", "图片3"),
+                    VariableItemRespVO.ofImageVariable("IMAGE_4", "图片4"),
+                    VariableItemRespVO.ofImageVariable("IMAGE_5", "图片5"),
                     VariableItemRespVO.ofImageVariable("IMAGE_6", "图片6"),
                     VariableItemRespVO.ofImageVariable("IMAGE_7", "图片7"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_8", "图片8"),
-                    VariableItemRespVO.ofImageVariable("IMAGE_9", "图片9")
+                    VariableItemRespVO.ofImageVariable("IMAGE_8", "图片8")
             );
         }
     };

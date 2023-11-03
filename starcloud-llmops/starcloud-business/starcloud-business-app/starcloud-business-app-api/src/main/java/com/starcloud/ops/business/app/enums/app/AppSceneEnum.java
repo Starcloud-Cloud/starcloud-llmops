@@ -83,6 +83,11 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     LISTING_GENERATE(19, "Listing生成", "Listing Generate"),
 
     /**
+     * 小红书文案生成
+     */
+    XHS_WRITING(20, "小红书文案生成", "小红书"),
+
+    /**
      * 分享页面场景入口
      */
     SHARE_WEB(13, "页面分享", "Page Share"),
@@ -149,7 +154,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             MP,
             WECOM_GROUP,
             OPTIMIZE_PROMPT,
-            LISTING_GENERATE
+            LISTING_GENERATE,
+            XHS_WRITING
 
     );
 
@@ -236,6 +242,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             WEB_MARKET,
             OPTIMIZE_PROMPT,
             LISTING_GENERATE,
+            XHS_WRITING,
             CHAT_MARKET
     );
 
@@ -259,6 +266,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             CHAT_TEST,
             OPTIMIZE_PROMPT,
             LISTING_GENERATE,
+            XHS_WRITING,
             WEB_IMAGE,
             IMAGE_UPSCALING,
             IMAGE_REMOVE_BACKGROUND,

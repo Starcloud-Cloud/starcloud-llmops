@@ -258,7 +258,7 @@ public class XhsServiceImpl implements XhsService {
     private AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, Map<String, Object> appParams) {
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
-        executeRequest.setScene(AppSceneEnum.LISTING_GENERATE.name());
+        executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
         executeRequest.setAppUid(app.getUid());
         executeRequest.setAppReqVO(transform(app, appParams));
         return executeRequest;
