@@ -114,7 +114,7 @@ public class XhsServiceImpl implements XhsService {
         }
         // 获取应用
         AppMarketRespVO appMarket = appMarketService.get(request.getUid());
-        AppExecuteReqVO executeRequest = buildExecuteRequest(appMarket, request.getParams());
+        AppExecuteReqVO executeRequest = buildExecuteRequest(appMarket, request);
         // 执行应用
         appService.asyncExecute(executeRequest);
     }
@@ -221,16 +221,17 @@ public class XhsServiceImpl implements XhsService {
     /**
      * 构建执行请求
      *
-     * @param app       应用
-     * @param appParams 请求
+     * @param app     应用
+     * @param request 请求
      * @return 执行请求
      */
-    private AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, Map<String, Object> appParams) {
+    private AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, XhsAppExecuteRequest request) {
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
+        executeRequest.setSseEmitter(request.getSseEmitter());
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
         executeRequest.setAppUid(app.getUid());
-        executeRequest.setAppReqVO(transform(app, appParams));
+        executeRequest.setAppReqVO(transform(app, request.getParams()));
         return executeRequest;
     }
 
