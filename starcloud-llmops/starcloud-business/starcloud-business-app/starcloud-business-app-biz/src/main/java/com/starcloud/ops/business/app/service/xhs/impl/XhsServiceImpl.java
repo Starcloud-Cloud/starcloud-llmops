@@ -216,8 +216,8 @@ public class XhsServiceImpl implements XhsService {
             // 参数校验
             List<VariableItemRespVO> variables = templateEnum.variables();
             for (VariableItemRespVO variable : variables) {
-                if (!params.containsKey(variable.getField()) || Objects.isNull(params.get(variable.getField()))) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(350400204, "参数{}是必填的！"), variable.getLabel());
+                if ("IMAGE".equals(variable.getType()) && (!params.containsKey(variable.getField()) || Objects.isNull(params.get(variable.getField())))) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(350400204, "图片参数{}是必填的！"), variable.getLabel());
                 }
             }
 
