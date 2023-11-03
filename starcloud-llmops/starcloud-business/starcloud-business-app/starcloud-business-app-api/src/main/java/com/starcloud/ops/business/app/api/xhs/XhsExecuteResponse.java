@@ -23,16 +23,21 @@ public class XhsExecuteResponse implements java.io.Serializable {
     private static final long serialVersionUID = 5822526666346723864L;
 
     /**
+     * 任务ID
+     */
+    private String taskId;
+
+    /**
      * 应用执行响应数据
      */
     @Schema(description = "应用执行响应数据")
-    private String text;
+    private XhsAppExecuteResponse app;
 
     /**
      * 图片响应数据
      */
     @Schema(description = "图片生成参数")
-    private List<String> images;
+    private List<XhsImageExecuteResponse> images;
 
 }
 
