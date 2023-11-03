@@ -62,7 +62,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     @Override
     @TenantIgnore
     public PageResult<KeywordMetadataRespVO> queryMetaData(QueryKeywordMetadataPageReqVO pageReqVO) {
-        log.info("分页查询关键词元数据数据，查询参是【{}】", JSONUtil.toJsonStr(pageReqVO));
+        log.info("分页查询关键词元数据数据，查询参数是【{}】", JSONUtil.toJsonStr(pageReqVO));
         try {
             SellerSpriteMarketEnum.valueOf(pageReqVO.getMarketName());
         } catch (IllegalArgumentException e) {
