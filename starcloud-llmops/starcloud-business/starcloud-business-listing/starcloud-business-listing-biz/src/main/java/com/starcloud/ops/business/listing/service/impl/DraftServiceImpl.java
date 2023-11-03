@@ -381,8 +381,11 @@ public class DraftServiceImpl implements DraftService {
         updateById(draftDO);
         executor.execute(() -> {
             try {
+                long start = System.currentTimeMillis();
                 keywordBindService.analysisKeyword(keys, draftDO.getEndpoint());
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+                long end = System.currentTimeMillis();
+                draftDO.setAnalysisTime(end - start);
                 updateDo(draftDO, keys);
                 updateScore(draftDO);
                 updateById(draftDO);
