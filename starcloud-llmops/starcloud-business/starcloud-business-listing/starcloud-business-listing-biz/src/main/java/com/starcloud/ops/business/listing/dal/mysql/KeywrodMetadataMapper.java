@@ -5,11 +5,14 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
 import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
 import com.starcloud.ops.business.listing.enums.SellerSpriteOrderByEnum;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.Objects;
 
 @Mapper
 public interface KeywrodMetadataMapper extends BaseMapperX<KeywordMetadataDO> {
@@ -31,14 +34,21 @@ public interface KeywrodMetadataMapper extends BaseMapperX<KeywordMetadataDO> {
                 .betweenIfPresent(KeywordMetadataDO::getWordCount, reqVO.getMinWordCount(), reqVO.getMaxWordCount())
                 .eqIfPresent(KeywordMetadataDO::getAmazonChoice, reqVO.getAmazonChoice())
                 .notIn(CollUtil.isNotEmpty(reqVO.getExcludeKeywords()), KeywordMetadataDO::getKeyword, reqVO.getExcludeKeywords());
-        if (reqVO.getOrderColumn()!=null&&reqVO.getOrderColumn()>0){
+        if (reqVO.getOrderColumn() != null && reqVO.getOrderColumn() > 0) {
             SellerSpriteOrderByEnum byCode = SellerSpriteOrderByEnum.getByCode(reqVO.getOrderColumn());
-            if (reqVO.getDesc()) {
-                queryWrapper.orderByDesc(byCode.getOrderColumn());
+            SFunction<KeywordMetadataDO, ?> orderColumn;
+            if (byCode.getOrderColumn() != null) {
+                orderColumn = byCode.getOrderColumn();
             } else {
-                queryWrapper.orderByAsc(byCode.getOrderColumn());
+                orderColumn = KeywordMetadataDO::getCreateTime;
             }
-        }else {
+            if (reqVO.getDesc()) {
+                queryWrapper.orderByDesc(orderColumn);
+            } else {
+                queryWrapper.orderByAsc(orderColumn);
+            }
+
+        } else {
             queryWrapper.orderByDesc(KeywordMetadataDO::getId);
         }
 
