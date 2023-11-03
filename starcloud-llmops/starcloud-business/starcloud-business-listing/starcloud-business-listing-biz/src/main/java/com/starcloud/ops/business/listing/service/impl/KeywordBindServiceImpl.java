@@ -64,7 +64,7 @@ public class KeywordBindServiceImpl implements KeywordBindService {
         log.info("查询关键词成功, {} ms", end - start);
         if (filter) {
             keywordsBasic = keywordsBasic.stream().filter(k -> {
-                return k.getSearches() != null && k.getSearches() > 0;
+                return k.getStatus() != null && k.getStatus() == 10;
             }).collect(Collectors.toList());
         }
         return ListingKeywordConvert.INSTANCE.convert(keywordsBasic).stream().sorted((a, b) -> Math.toIntExact(b.mouthSearches() - a.mouthSearches())).collect(Collectors.toList());
