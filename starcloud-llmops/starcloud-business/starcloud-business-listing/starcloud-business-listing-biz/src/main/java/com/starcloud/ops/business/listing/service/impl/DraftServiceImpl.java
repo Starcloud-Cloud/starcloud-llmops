@@ -299,9 +299,8 @@ public class DraftServiceImpl implements DraftService {
             throw exception(new ErrorCode(500, "词库中没有关键词"));
         }
         reqVO.setKeys(keys);
-        saveDraftVersion(reqVO);
 
-        return detail(reqVO.getUid(), reqVO.getVersion());
+        return saveDraftVersion(reqVO);
     }
 
     @Override
