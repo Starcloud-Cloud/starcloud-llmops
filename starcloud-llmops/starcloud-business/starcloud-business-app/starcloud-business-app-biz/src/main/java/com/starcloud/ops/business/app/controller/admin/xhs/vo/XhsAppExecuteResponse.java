@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.xhs;
+package com.starcloud.ops.business.app.controller.admin.xhs.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -15,8 +15,8 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "XhsImageExecuteResponse", description = "小红书图片响应！")
-public class XhsImageExecuteResponse implements java.io.Serializable {
+@Schema(name = "XhsAppExecuteResponse", description = "小红书应用请求")
+public class XhsAppExecuteResponse implements java.io.Serializable {
 
     private static final long serialVersionUID = 3336342789222957644L;
 
@@ -29,14 +29,14 @@ public class XhsImageExecuteResponse implements java.io.Serializable {
     /**
      * 应用UID
      */
-    @Schema(description = "图片UID")
-    private String imageTemplate;
+    @Schema(description = "应用UID")
+    private String uid;
 
     /**
      * 应用生成参数
      */
     @Schema(description = "返回数据")
-    private String url;
+    private String text;
 
     /**
      * 错误码
@@ -50,16 +50,4 @@ public class XhsImageExecuteResponse implements java.io.Serializable {
     @Schema(description = "错误信息")
     private String errorMsg;
 
-    /**
-     * 基础响应
-     *
-     * @param imageTemplate 图片模板
-     * @return XhsImageExecuteResponse
-     */
-    public static XhsImageExecuteResponse ofBase(String imageTemplate) {
-        XhsImageExecuteResponse response = new XhsImageExecuteResponse();
-        response.setImageTemplate(imageTemplate);
-        response.setSuccess(Boolean.FALSE);
-        return response;
-    }
 }
