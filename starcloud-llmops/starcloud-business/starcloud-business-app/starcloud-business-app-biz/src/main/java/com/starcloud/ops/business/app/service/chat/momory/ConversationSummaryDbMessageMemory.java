@@ -641,7 +641,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     }
 
     private Long calculationTokens(Integer token) {
-        if (token <= 1000) {
+        if (token < 1000) {
             return 1L;
         }
         BigDecimal bigDecimal = new BigDecimal(token);
