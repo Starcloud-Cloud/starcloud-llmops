@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
@@ -23,9 +24,10 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRes
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.enums.xhs.XhsImageTemplateEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.xhs.FastPosterFactory;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -40,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_CONFIG_FAILURE;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_STEP_FAILURE;
@@ -61,7 +64,7 @@ public class XhsServiceImpl implements XhsService {
     private AppMarketService appMarketService;
 
     @Resource
-    private FastposterClient fastposterClient;
+    private AppDictionaryService appDictionaryService;
 
     /**
      * 获取图片模板
@@ -69,8 +72,16 @@ public class XhsServiceImpl implements XhsService {
      * @return 图片模板
      */
     @Override
-    public List<XhsImageTemplateDTO> imageTemplates() {
-        return XhsImageTemplateEnum.templateList();
+    public List<XhsImageTemplateResponse> imageTemplates() {
+        List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
+        return CollectionUtil.emptyIfNull(templateList).stream().map(item -> {
+            XhsImageTemplateResponse response = new XhsImageTemplateResponse();
+            response.setId(item.getId());
+            response.setName(item.getName());
+            response.setImageNumber(item.getImageNumber());
+            response.setVariables(item.getVariables());
+            return response;
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -143,20 +154,20 @@ public class XhsServiceImpl implements XhsService {
             }
 
             // 获取图片模板
-            XhsImageTemplateEnum templateEnum = XhsImageTemplateEnum.of(imageTemplate);
-            AppValidate.notNull(templateEnum, new ErrorCode(350400203, "不支持的图片模板！"));
-
-            // 参数校验
-            List<VariableItemRespVO> variables = templateEnum.variables();
-            for (VariableItemRespVO variable : variables) {
-                if ("IMAGE".equals(variable.getType()) && (!params.containsKey(variable.getField()) || Objects.isNull(params.get(variable.getField())))) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(350400204, "图片参数{}是必填的！"), variable.getLabel());
-                }
+            List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
+            Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(templateList).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
+            if (!optional.isPresent()) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
+            }
+            XhsImageTemplateDTO template = optional.get();
+            if (StringUtils.isBlank(template.getToken()) || StringUtils.isBlank(template.getPosterId())) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "系统配置异常！请联系管理员！"));
             }
 
+            FastposterClient fastposterClient = getFastPosterClient(imageTemplate);
             // 执行生成图片
             log.info("小红书执行生成图片调用 FastPoster 开始!");
-            byte[] bytes = fastposterClient.buildPoster(templateEnum.getCode()).params(params).build().bytes();
+            byte[] bytes = fastposterClient.buildPoster(template.getPosterId()).params(params).build().bytes();
             if (Objects.isNull(bytes)) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "生成图片失败！"));
             }
@@ -216,6 +227,25 @@ public class XhsServiceImpl implements XhsService {
         }
         log.info("小红书执行批量生成图片结束");
         return imageResponses;
+    }
+
+    /**
+     * 获取 FastPosterClient
+     *
+     * @param templateId 模板ID
+     * @return FastPosterClient
+     */
+    private FastposterClient getFastPosterClient(String templateId) {
+        List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
+        Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(templateList).stream().filter(item -> StringUtils.equals(item.getId(), templateId)).findFirst();
+        if (!optional.isPresent()) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
+        }
+        String token = optional.get().getToken();
+        if (StringUtils.isBlank(token)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
+        }
+        return FastPosterFactory.factory(token);
     }
 
     /**

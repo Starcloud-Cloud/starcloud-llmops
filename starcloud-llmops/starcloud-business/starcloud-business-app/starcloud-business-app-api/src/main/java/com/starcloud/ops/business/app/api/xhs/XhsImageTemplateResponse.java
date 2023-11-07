@@ -18,10 +18,10 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "XhsImageTemplateDTO", description = "小红书图片模板")
-public class XhsImageTemplateDTO implements java.io.Serializable {
+@Schema(name = "XhsImageTemplateResponse", description = "小红书图片模板响应")
+public class XhsImageTemplateResponse implements java.io.Serializable {
 
-    private static final long serialVersionUID = 20366484377479364L;
+    private static final long serialVersionUID = -8706726775214601674L;
 
     /**
      * 图片模板ID
@@ -30,22 +30,10 @@ public class XhsImageTemplateDTO implements java.io.Serializable {
     private String id;
 
     /**
-     * 图片海报ID
-     */
-    @Schema(description = "海报ID")
-    private String posterId;
-
-    /**
      * 图片模板名称
      */
     @Schema(description = "图片模板名称")
     private String name;
-
-    /**
-     * 应用token
-     */
-    @Schema(description = "应用token")
-    private String token;
 
     /**
      * 图片数量

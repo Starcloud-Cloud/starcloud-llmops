@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.limit.AppLimitConfigEnum;
@@ -176,6 +177,29 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         return CollectionUtil.emptyIfNull(dictionaryList).stream()
                 .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getValue()))
                 .map(DictDataDO::getValue).collect(Collectors.toList());
+    }
+
+    /**
+     * 小红书图片模板
+     *
+     * @return 小红书图片模板
+     */
+    @Override
+    public List<XhsImageTemplateDTO> xhsImageTemplates() {
+        List<DictDataDO> dictionaryList = getDictionaryList(AppConstants.APP_LIMIT_XHS_IMAGE_TEMPLATE_LIST);
+        return CollectionUtil.emptyIfNull(dictionaryList).stream()
+                .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getValue()) && StringUtils.isNotBlank(item.getRemark()))
+                .map(item -> {
+                    String remark = item.getRemark();
+                    XhsImageTemplateDTO template = JSONUtil.toBean(remark, XhsImageTemplateDTO.class);
+                    if (StringUtils.isBlank(template.getId()) || StringUtils.isBlank(template.getPosterId()) ||
+                            StringUtils.isBlank(template.getToken()) || StringUtils.isBlank(template.getName()) ||
+                            CollectionUtil.isEmpty(template.getVariables()) || Objects.isNull(template.getImageNumber())
+                    ) {
+                        return null;
+                    }
+                    return template;
+                }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     /**

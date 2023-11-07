@@ -115,7 +115,7 @@
         </dependency>
         <dependency>
             <groupId>net.fastposter</groupId>
-            <artifactId>fastposter-client-starter</artifactId>
+            <artifactId>fastposter-client</artifactId>
             <version>1.9.2</version>
         </dependency>
     </dependencies>

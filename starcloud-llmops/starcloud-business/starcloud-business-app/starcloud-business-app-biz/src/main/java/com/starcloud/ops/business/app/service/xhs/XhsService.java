@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs;
 
 import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
-import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
@@ -21,7 +21,7 @@ public interface XhsService {
      *
      * @return 图片模板
      */
-    List<XhsImageTemplateDTO> imageTemplates();
+    List<XhsImageTemplateResponse> imageTemplates();
 
     /**
      * 获取应用信息
