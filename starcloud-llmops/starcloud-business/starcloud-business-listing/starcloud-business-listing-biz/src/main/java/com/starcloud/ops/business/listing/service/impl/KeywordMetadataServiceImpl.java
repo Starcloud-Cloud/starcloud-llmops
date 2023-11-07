@@ -25,7 +25,6 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Exten
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.SellerSpriteService;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.ast.Var;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -89,22 +88,18 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         // 关键词去重
         keywordList = CollUtil.distinct(keywordList);
 
-
         List<KeywordMetadataDO> keywordMetadataDOS = keywrodMetadataMapper.selectList(Wrappers.lambdaQuery(KeywordMetadataDO.class)
                 .eq(KeywordMetadataDO::getMarketId, sellerSpriteMarketEnum.getCode())
                 .in(KeywordMetadataDO::getKeyword, keywordList));
 
-
-        // 如果数据库中数据全部存在则直接返回
-        if (!keywordMetadataDOS.isEmpty() && keywordList.size() == keywordMetadataDOS.size()) {
-            log.info("【关键词原数据新增】===》当前站点【{}】下关键词数据【{}】全部存在,直接返回", marketName, keywordList.toString());
-            return true;
-        }
         //获取列表中未同步错误或者没有数据的数据
         List<KeywordMetadataDO> retryDatas = keywordMetadataDOS.stream().filter(obj -> obj.getStatus() == KeywordMetadataStatusEnum.ERROR.getCode()||obj.getStatus() == KeywordMetadataStatusEnum.NO_DATA.getCode()).collect(Collectors.toList());
+
+
         if (CollUtil.isNotEmpty(retryDatas)){
             List<List<KeywordMetadataDO>> splitNotInKeywords = CollUtil.split(retryDatas, 20);
             for (List<KeywordMetadataDO> splitNotInKeyword : splitNotInKeywords) {
+                log.info("【关键词原数据更新】===》当前站点【{}】下关键词数据【{}】开始更新", marketName, keywordList.toString());
                 keyWordMetadataRepository.executeAsyncRequestData(splitNotInKeyword);
             }
         }
@@ -122,6 +117,10 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
             notInKeywords = keywordList;
         }
 
+        // 如果数据库中数据全部存在则直接返回
+        if (notInKeywords.isEmpty()) {
+            return true;
+        }
         List<List<String>> splitNotInKeywords = CollUtil.split(notInKeywords, 20);
         // 等待所有任务完成
         List<Boolean> results = new ArrayList<>();

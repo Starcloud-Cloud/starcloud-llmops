@@ -8,7 +8,6 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
-import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
@@ -104,7 +103,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         keywordMinerRequestDTO.setMarket(market);
         keywordMinerRequestDTO.setPageNum(1);
         keywordMinerRequestDTO.setPageSize(50);
-        keywordMinerRequestDTO.setHistoryDate(null);
+        keywordMinerRequestDTO.setHistoryDate("");
         keywordMinerRequestDTO.setOrderBy(null);
         keywordMinerRequestDTO.setDesc(true);
         keywordMinerRequestDTO.setFilterRootWord(0);

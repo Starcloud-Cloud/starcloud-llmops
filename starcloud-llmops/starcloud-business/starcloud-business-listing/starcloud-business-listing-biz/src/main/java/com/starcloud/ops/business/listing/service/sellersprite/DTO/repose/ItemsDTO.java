@@ -65,7 +65,7 @@ public class ItemsDTO {
     @Schema(description = "月搜索趋势 环比变化是前端计算")
     private List<SearchesTrendDTO> searchesTrend;
     @Schema(description = "月搜索趋势 环比变化是前端计算")
-    private List<SearchesTrendDTO> trends;
+    private List<SearchesTrendsDTO> trends;
 
     /**
      * ABA 周排名
@@ -225,15 +225,21 @@ public class ItemsDTO {
     /**
      * 分类
      */
-    private DepartmentsDTO departments;
+    private List<DepartmentsDTO> departments;
 
+    /**
+     * 前三ASIN转化总占比
+     */
     private Double cvsShareRate;
     private Integer wordCount;
 
     private String month;
     private String supplement;
     private Object relevancy;
-    private Object absoluteRelevancy;
+    /**
+     * 相关度  批量接口不返回数据
+     */
+    private Integer absoluteRelevancy;
     private Boolean amazonChoice;
     private Long searchRank;
     private Long searchWeeklyRank;

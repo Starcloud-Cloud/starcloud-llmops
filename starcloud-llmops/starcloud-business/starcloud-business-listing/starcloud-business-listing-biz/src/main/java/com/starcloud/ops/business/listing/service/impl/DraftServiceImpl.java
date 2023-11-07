@@ -351,6 +351,8 @@ public class DraftServiceImpl implements DraftService {
         draftDO.setUpdater(null);
         draftDO.setCreateTime(null);
         draftDO.setUpdater(null);
+        draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+        draftDO.setExecuteStatus("");
         updateDo(draftDO, keys);
         updateScore(draftDO);
         draftMapper.insert(draftDO);

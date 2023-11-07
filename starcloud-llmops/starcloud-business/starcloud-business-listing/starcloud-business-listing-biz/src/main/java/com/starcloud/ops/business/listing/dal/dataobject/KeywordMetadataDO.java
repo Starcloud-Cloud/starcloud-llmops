@@ -163,6 +163,11 @@ public class KeywordMetadataDO  extends BaseDO {
      */
     private Long searchWeeklyRank;
 
+    /**
+     * 前三ASIN转化总占比
+     */
+    private Double cvsShareRate;
+
 //    /**
 //     * ABA 排名的数据时间
 //     */
