@@ -40,10 +40,12 @@ public class KeywordMetadataRespVO {
      */
     @Schema(description = "关键词-日文")
     private String keywordJp;
+    /**
+     * 类目数据
+     */
+    private List<DepartmentsDTO> departments;
 
-    private DepartmentsDTO departments;
-
-    private List<SearchesTrendDTO> trends;
+    private List<SearchesTrendsDTO> trends;
 
 
     /**
@@ -82,7 +84,7 @@ public class KeywordMetadataRespVO {
     /**
      * 广告竞品数
      */
-    private Long ad_products;
+    private Long adProducts;
 
 
     /**
@@ -155,6 +157,12 @@ public class KeywordMetadataRespVO {
      * 数据时间
      */
     private String month;
+
+
+    /**
+     * 前三ASIN转化总占比
+     */
+    private Double cvsShareRate;
 
 
     /**

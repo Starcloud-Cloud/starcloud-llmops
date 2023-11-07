@@ -1,16 +1,15 @@
 package com.starcloud.ops.business.listing.convert;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.*;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Mapper
@@ -45,17 +44,17 @@ public interface KeywordMetadataConvert {
         return JSONUtil.toJsonStr(data);
     }
 
-    static DepartmentsDTO convertDepartmentsDTO(String data) {
-        return JSONUtil.toBean(data, DepartmentsDTO.class);
+    static List<DepartmentsDTO> convertDepartmentsDTO(String data) {
+        return JSONUtil.toList(data, DepartmentsDTO.class);
     }
-    static String convertDepartmentsDTO(DepartmentsDTO data) {
+    static String convertDepartmentsDTO(List<DepartmentsDTO> data) {
         return JSONUtil.toJsonStr(data);
     }
-    static List<SearchesTrendDTO> convertSearchesTrendDTO(String data) {
-        return JSONUtil.toList(data, SearchesTrendDTO.class);
+    static List<SearchesTrendsDTO> convertSearchesTrendDTO(String data) {
+        return JSONUtil.toList(data, SearchesTrendsDTO.class);
     }
 
-    static String convertSearchesTrendDTO(List<SearchesTrendDTO> data) {
+    static String convertSearchesTrendDTO(List<SearchesTrendsDTO> data) {
         return JSONUtil.toJsonStr(data);
     }
     static List<MonopolyAsinDtosDTO> convertMonopolyAsinDtosDTO(String data) {
