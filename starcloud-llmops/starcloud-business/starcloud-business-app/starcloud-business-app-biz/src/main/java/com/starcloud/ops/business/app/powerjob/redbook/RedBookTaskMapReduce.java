@@ -66,7 +66,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         }
 
         //根据查询，查询出所有执行中的计划下的所有待执行的创作任务
-        //支持的条件可能有，文案模版，图片模版，渠道 （创作任务表上的字段）
+        //支持的条件可能有，文案模版，图片模版，渠道 （创作任务表上的字段） 时间生序查询，优先执行最早的
 
         //查询对应数量的数据
         params.getBathCount();
@@ -99,9 +99,10 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
             //返回所有执行状态
 
             //判断所有执行状态，如果有失败就返回给 job 去做日志，
+            //servide.batch(1,2,3,4)
 
-            String result = "json";
-            return new BaseTaskResult(result, true);
+            String log = "json";
+            return new BaseTaskResult(log, true);
         } catch (Exception e) {
             //不会调用到这里，兜底错误和日志
             return new BaseTaskResult(false, "task id is " + subTask.getPlanUid() + "  RunTask is fail: " + e.getMessage());
@@ -117,33 +118,11 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      */
     @Override
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
-        Integer size = taskResults.size();
-        //判断所有任务执行的状态
-        String codes = Optional.ofNullable(taskResults).orElse(new ArrayList<>()).stream().map(taskResult -> {
-            BaseTaskResult baseTaskResult = JSON.parseObject(taskResult.getResult(), BaseTaskResult.class);
-            return baseTaskResult.getKey();
-        }).collect(Collectors.joining(","));
 
-        List<BaseTaskResult> errors = Optional.ofNullable(taskResults).orElse(new ArrayList<>()).stream().map(taskResult -> {
-            BaseTaskResult baseTaskResult = JSON.parseObject(taskResult.getResult(), BaseTaskResult.class);
-            return baseTaskResult;
-        }).filter(baseTaskResult -> {
-            return !baseTaskResult.isSuccess();
-        }).collect(Collectors.toList());
-        //更新实例
-        try {
-            updateInstance(taskResults);
-        } catch (Exception e) {
-            return new ProcessResult(false, "subTask size " + size + ". done: " + codes + ".\r\n error: SpiderRunTask is fail: " + e.getMessage());
-        }
-
-        if (CollUtil.isNotEmpty(errors)) {
-            return new ProcessResult(false, "subTask size " + size + ". done: " + codes + ".\r\n error: " + JSON.toJSONString(errors));
-        } else {
-            return new ProcessResult(true, "subTask size " + size + ". done: " + codes);
-        }
+        //查询计划表下的 所有状态，并更新计划表的状态
 
 
+        return null;
     }
 
     private void updateInstance(List<TaskResult> taskResults) {
