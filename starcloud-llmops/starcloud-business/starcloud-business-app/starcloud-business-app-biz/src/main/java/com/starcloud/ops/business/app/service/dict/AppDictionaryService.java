@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.dict;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 
 import java.util.List;
@@ -72,5 +73,12 @@ public interface AppDictionaryService {
      * @return 小红书图片模板
      */
     List<XhsImageTemplateDTO> xhsImageTemplates();
+
+    /**
+     * 小红书图片风格
+     *
+     * @return 小红书图片风格
+     */
+    List<XhsImageStyleDTO> xhsImageStyles();
 
 }
