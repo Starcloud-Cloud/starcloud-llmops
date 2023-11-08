@@ -49,6 +49,8 @@ public interface XhsCreativeContentConvert {
         xhsCreativeContentDO.setExtend(toStr(createReq.getExtend()));
         xhsCreativeContentDO.setUid(IdUtil.fastSimpleUUID());
         xhsCreativeContentDO.setStatus(XhsCreativeContentStatusEnums.INIT.getCode());
+        xhsCreativeContentDO.setBusinessUid(createReq.getBusinessUid());
+        xhsCreativeContentDO.setType(createReq.getType());
 
         return xhsCreativeContentDO;
     }
