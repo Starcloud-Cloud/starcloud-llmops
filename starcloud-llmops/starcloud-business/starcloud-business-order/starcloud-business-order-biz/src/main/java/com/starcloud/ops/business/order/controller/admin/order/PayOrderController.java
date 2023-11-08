@@ -207,10 +207,15 @@ public class PayOrderController {
 
     @PostMapping("/product/discount")
     @Operation(summary = "获取商品优惠信息")
-    public CommonResult<AppPayProductDiscountRespVO> getOrderProductDiscount(@RequestParam("productCode") String productCode,
-                                                                             @RequestParam("noNeedProductCode") String noNeedProductCode,
-                                                                             @RequestParam(value = "discountCode",required = false) String discountCode) {
-        return success(payOrderService.getOrderProductDiscount(productCode, noNeedProductCode,discountCode));
+    public CommonResult<AppPayProductDiscountRespVO> getOrderProductDiscount(@RequestBody PayOrderDiscountReqVO payOrderDiscountReqVO) {
+        return success(payOrderService.getOrderProductDiscount(payOrderDiscountReqVO.getProductCode(), payOrderDiscountReqVO.getNoNeedProductCode(),payOrderDiscountReqVO.getDiscountCode()));
+    }
+
+    @PostMapping("/discount/newuser")
+    @Operation(summary = "获取新用户折扣码")
+    public CommonResult<String> getOrderProductDiscount() {
+         return success("");
+        // return success(payOrderService.getOrderProductDiscount(payOrderDiscountReqVO.getProductCode(), payOrderDiscountReqVO.getNoNeedProductCode(),payOrderDiscountReqVO.getDiscountCode()));
     }
 
 
