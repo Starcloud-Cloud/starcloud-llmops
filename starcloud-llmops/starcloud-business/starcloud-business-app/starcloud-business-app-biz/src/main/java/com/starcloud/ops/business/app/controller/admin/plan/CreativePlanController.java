@@ -1,13 +1,17 @@
 package com.starcloud.ops.business.app.controller.admin.plan;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanReqVO;
+import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanStatusReqVO;
 import com.starcloud.ops.business.app.api.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
@@ -89,11 +93,32 @@ public class CreativePlanController {
         return CommonResult.success("创作计划更新成功");
     }
 
+    @PostMapping("/status")
+    @Operation(summary = "更新创作计划状态", description = "更新创作计划状态")
+    @ApiOperationSupport(order = 70, author = "nacoyer")
+    public CommonResult<String> modify(@Validated @RequestBody CreativePlanStatusReqVO request) {
+        if (!CreativePlanStatusEnum.PAUSE.name().equals(request.getStatus()) &&
+                !CreativePlanStatusEnum.RUNNING.name().equals(request.getStatus()) &&
+                !CreativePlanStatusEnum.CANCELED.name().equals(request.getStatus())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_STATUS_NOT_SUPPORTED);
+        }
+        creativePlanService.updateStatus(request.getUid(), request.getStatus());
+        return CommonResult.success("创作计划更新成功");
+    }
+
     @DeleteMapping("/delete/{uid}")
     @Operation(summary = "删除创作计划", description = "删除创作计划")
     @ApiOperationSupport(order = 80, author = "nacoyer")
     public CommonResult<Boolean> delete(@PathVariable String uid) {
         creativePlanService.delete(uid);
+        return CommonResult.success(true);
+    }
+
+    @PostMapping("/execute")
+    @Operation(summary = "执行创作计划", description = "执行创作计划")
+    @ApiOperationSupport(order = 80, author = "nacoyer")
+    public CommonResult<Boolean> execute(@Validated @RequestBody UidRequest request) {
+        creativePlanService.execute(request.getUid());
         return CommonResult.success(true);
     }
 }

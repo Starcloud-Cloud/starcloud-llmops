@@ -70,10 +70,25 @@ public interface CreativePlanService {
     void modify(CreativePlanModifyReqVO request);
 
     /**
+     * 修改创作计划状态
+     *
+     * @param uid    创作计划UID
+     * @param status 修改状态
+     */
+    void updateStatus(String uid, String status);
+
+    /**
      * 删除创作计划
      *
      * @param uid 创作计划UID
      */
     void delete(String uid);
+
+    /**
+     * 执行创作计划
+     *
+     * @param uid 创作计划UID
+     */
+    void execute(String uid);
 
 }

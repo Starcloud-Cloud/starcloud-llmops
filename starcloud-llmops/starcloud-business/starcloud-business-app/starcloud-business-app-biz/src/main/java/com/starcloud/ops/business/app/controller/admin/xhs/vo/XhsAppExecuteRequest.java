@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.vo;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,6 +32,8 @@ public class XhsAppExecuteRequest implements java.io.Serializable {
      * SSE
      */
     @Schema(description = "SSE")
+    @JsonIgnore
+    @JSONField(serialize = false)
     private SseEmitter sseEmitter;
 
     /**

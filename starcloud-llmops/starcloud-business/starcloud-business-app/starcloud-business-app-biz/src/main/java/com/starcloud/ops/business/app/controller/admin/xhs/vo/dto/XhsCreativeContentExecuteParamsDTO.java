@@ -13,4 +13,15 @@ public class XhsCreativeContentExecuteParamsDTO {
 
     private XhsBathImageExecuteRequest bathImageExecuteRequest;
 
+    public static XhsCreativeContentExecuteParamsDTO ofApp(XhsAppExecuteRequest appExecuteRequest) {
+        XhsCreativeContentExecuteParamsDTO executeParamsDTO = new XhsCreativeContentExecuteParamsDTO();
+        executeParamsDTO.setAppExecuteRequest(appExecuteRequest);
+        return executeParamsDTO;
+    }
+
+    public static XhsCreativeContentExecuteParamsDTO ofBathImage(XhsBathImageExecuteRequest bathImageExecuteRequest) {
+        XhsCreativeContentExecuteParamsDTO executeParamsDTO = new XhsCreativeContentExecuteParamsDTO();
+        executeParamsDTO.setBathImageExecuteRequest(bathImageExecuteRequest);
+        return executeParamsDTO;
+    }
 }

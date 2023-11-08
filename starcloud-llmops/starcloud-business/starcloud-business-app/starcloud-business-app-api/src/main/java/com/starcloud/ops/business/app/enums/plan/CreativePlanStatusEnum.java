@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.enums.plan;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -29,13 +31,17 @@ public enum CreativePlanStatusEnum implements IEnumable<Integer> {
     /**
      * 已取消
      */
-    CANCELED(5, "已取消"),
+    CANCELED(4, "已取消"),
 
     /**
      * 已完成
      */
-    COMPLETE(4, "小红书创作计划"),
-    ;
+    COMPLETE(5, "已完成"),
+
+    /**
+     * 失败
+     */
+    FAILURE(6, "失败");
 
     /**
      * 采样器 code
@@ -50,5 +56,9 @@ public enum CreativePlanStatusEnum implements IEnumable<Integer> {
     CreativePlanStatusEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
+    }
+
+    public static Boolean contains(String name) {
+        return Arrays.stream(CreativePlanStatusEnum.values()).anyMatch(e -> e.name().equalsIgnoreCase(name));
     }
 }

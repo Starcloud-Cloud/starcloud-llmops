@@ -42,6 +42,43 @@
         ORDER BY sort IS NULL, sort ASC, update_time DESC
     </sql>
     
+    <sql id="LIST_SELECT_CONDITIONS">
+        <where>
+            <if test="query.name != null and query.name != '' ">
+                AND name LIKE CONCAT(#{query.name}, '%')
+            </if>
+            <if test="query.type != null and query.type != '' ">
+                AND type = #{query.type}
+            </if>
+            <if test="query.model != null and query.model != '' ">
+                AND model = #{query.model}
+            </if>
+            <if test="query.category != null and query.category != '' ">
+                AND category = #{query.category}
+            </if>
+            <if test="query.scenes != null and query.scenes.size() > 0">
+                AND
+                <foreach collection='query.scenes' item='scene' separator=' AND '>
+                    FIND_IN_SET(#{scene}, scenes)
+                </foreach>
+            </if>
+            <if test="query.tags != null and query.tags.size() > 0 ">
+                AND
+                <foreach collection='query.tags' item='tag' separator=' AND '>
+                    FIND_IN_SET(#{tag}, tags)
+                </foreach>
+            </if>
+            <if test="query.uidList != null and query.uidList.size() > 0 ">
+                AND uid IN
+                <foreach collection='query.uidList' item='uid' separator=',' open='(' close=')'>
+                    #{uid}
+                </foreach>
+            </if>
+            AND deleted = 0
+        </where>
+        ORDER BY sort IS NULL, sort ASC, update_time DESC
+    </sql>
+    
     <!-- 根据条件查询应用市场详情 -->
     <select id="getOne" resultType="com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO">
         SELECT
@@ -59,7 +96,7 @@
             , config
         </if>
         FROM llm_app_market
-        <include refid="SELECT_CONDITIONS"/>
+        <include refid="LIST_SELECT_CONDITIONS"/>
     </select>
     
     <!-- 根据应用名称查询 COMPLETION 模式的应用数量 -->

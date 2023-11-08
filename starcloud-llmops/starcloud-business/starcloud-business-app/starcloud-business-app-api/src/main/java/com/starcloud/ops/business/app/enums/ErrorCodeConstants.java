@@ -478,8 +478,30 @@ public interface ErrorCodeConstants {
      */
     ErrorCode CREATIVE_PLAN_TOTAL_EMPTY = new ErrorCode(350100121, "生成数量不能为空！请输入生成数量后重试！");
 
-
+    /**
+     * 生成数量超出限制
+     */
     ErrorCode CREATIVE_PLAN_TOTAL_OUT_OF_RANGE = new ErrorCode(350100122, "生成数量超出限制（{}）必须在1-500范围内！请输入生成数量后重试！");
+
+    /**
+     * 不支持顺序模式
+     */
+    ErrorCode CREATIVE_PLAN_RANDOM_TYPE_NOT_SUPPORTED = new ErrorCode(350100123, "不支持顺序模式！请选择全部随机后重试！");
+
+    /**
+     * 文案模板列表为空
+     */
+    ErrorCode CREATIVE_PLAN_COPY_WRITING_NOT_EXIST = new ErrorCode(350100124, "文案模板列表为空！");
+
+    /**
+     * 创作计划状态不能为空
+     */
+    ErrorCode CREATIVE_PLAN_STATUS_REQUIRED = new ErrorCode(350100125, "创作计划状态是必须的！请稍后重试或者联系管理员！");
+
+    /**
+     * 创作计划状态不支持
+     */
+    ErrorCode CREATIVE_PLAN_STATUS_NOT_SUPPORTED = new ErrorCode(350100126, "创作计划状态不支持（{}）！请稍后重试或者联系管理员！");
 
     // ========== 图片上传错误码 370 000 xxx ==========
 
