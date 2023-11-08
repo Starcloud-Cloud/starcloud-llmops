@@ -26,8 +26,8 @@ public class UidRequest implements Serializable {
     /**
      * 应用 uid
      */
-    @Schema(description = "应用市场应用 uid")
-    @NotBlank(message = "应用市场应用 UID 不能为空")
+    @Schema(description = "uid")
+    @NotBlank(message = "UID 不能为空")
     private String uid;
 
 }

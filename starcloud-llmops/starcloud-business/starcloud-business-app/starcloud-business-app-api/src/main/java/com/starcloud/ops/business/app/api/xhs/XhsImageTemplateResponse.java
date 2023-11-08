@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs;
 
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -45,6 +45,6 @@ public class XhsImageTemplateResponse implements java.io.Serializable {
      * 图片模板变量
      */
     @Schema(description = "图片模板变量")
-    private List<VariableItemRespVO> variables;
+    private List<VariableItemDTO> variables;
 
 }

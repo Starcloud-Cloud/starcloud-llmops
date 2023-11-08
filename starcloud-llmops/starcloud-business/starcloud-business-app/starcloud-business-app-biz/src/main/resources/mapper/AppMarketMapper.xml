@@ -55,6 +55,9 @@
     <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO">
         SELECT
         <include refid="SELECT_COLUMNS"/>
+        <if test="query.isSimple != null and query.isSimple == false ">
+            , config
+        </if>
         FROM llm_app_market
         <include refid="SELECT_CONDITIONS"/>
     </select>
