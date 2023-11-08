@@ -20,7 +20,7 @@ import java.util.concurrent.*;
 public class ThreadWithContext {
 
     ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(8, 36,
-            60, TimeUnit.MICROSECONDS, new SynchronousQueue<>(), new ThreadFactory() {
+            60, TimeUnit.SECONDS, new SynchronousQueue<>(), new ThreadFactory() {
         @Override
         public Thread newThread(@NotNull Runnable r) {
             Thread thread = new Thread(r, "open-ai-thread");

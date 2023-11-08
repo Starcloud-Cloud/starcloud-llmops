@@ -13,7 +13,18 @@
     <artifactId>starcloud-business-app-biz</artifactId>
     <version>${starcloud.revision}</version>
 
+    <properties>
+        <powerjob.version>4.0.1</powerjob.version>
+    </properties>
+
     <dependencies>
+
+        <dependency>
+            <groupId>tech.powerjob</groupId>
+            <artifactId>powerjob-worker</artifactId>
+            <version>${powerjob.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>cn.kstry.framework</groupId>

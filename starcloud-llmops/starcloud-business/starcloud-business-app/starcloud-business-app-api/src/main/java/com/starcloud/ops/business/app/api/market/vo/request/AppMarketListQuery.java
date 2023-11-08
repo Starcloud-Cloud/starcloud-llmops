@@ -24,6 +24,12 @@ public class AppMarketListQuery implements Serializable {
     private static final long serialVersionUID = -4586870698292817798L;
 
     /**
+     * 应用UID列表
+     */
+    @Schema(description = "应用UID列表")
+    private List<String> uidList;
+
+    /**
      * 应用名称
      */
     @Schema(description = "应用名称")
@@ -58,5 +64,11 @@ public class AppMarketListQuery implements Serializable {
      */
     @Schema(description = "应用标签")
     private List<String> tags;
+
+    /**
+     * 是否查询简单字段
+     */
+    @Schema(description = "是否只查询简单字段")
+    private Boolean isSimple;
 
 }
