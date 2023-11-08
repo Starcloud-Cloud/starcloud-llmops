@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper">
+
+    <sql id="page_column">
+        pic.business_uid as businessUid, text.temp_uid as copyWritingUid, pic.temp_uid as pictureTempUid, text.use_picture as usePicture,
+        pic.execute_params as pictureParams, text.execute_params as copyWritingParams, pic.status as pictureStatus, text.status as copyWritingStatus,
+        pic.start_time as pictureStartTime, pic.end_time as pictureEndTime, pic.execute_time as pictureExecuteTime,
+        text.start_time as copyWritingStartTime, text.end_time as copyWritingEndTime, text.execute_time as copyWritingExecuteTime,
+        text.copy_writing_title as copyWritingTitle,text.copy_writing_content as copyWritingContent, pic.picture_num as pictureNum,
+        pic.picture_content as pictureContent, pic.error_msg as pictureErrorMsg, text.error_msg as copyWritingErrorMsg,
+        pic.retry_count as pictureRetryCount, text.retry_count as copyWritingRetryCount,
+        pic.extend as pictureExtend, text.extend as copyWritingExtend,pic.claim as claim
+    </sql>
+
+
+    <select id="selectCount" resultType="java.lang.Long">
+        select count(*) FROM
+            llm_creative_content pic
+            INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+            WHERE pic.type = 'picture' and text.type = 'copy_writing'
+            <if test="req.planUid != null and req.planUid != ''">
+                and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
+            </if>
+    </select>
+
+    <select id="pageSelect" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO">
+        select
+        <include refid="page_column"/>
+        FROM
+        llm_creative_content pic
+        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+        WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        <if test="req.planUid != null and req.planUid != ''">
+            and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
+        </if>
+        order by pic.create_time desc limit #{start},#{end}
+    </select>
+
+    <select id="detail" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO">
+        select
+        <include refid="page_column"/>
+        FROM
+        llm_creative_content
+        where business_uid = #{businessUid}
+    </select>
+
+    <select id="jobQuery" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO">
+        SELECT a.* FROM
+        llm_creative_content a
+        INNER JOIN llm_creative_plan b on a.plan_uid = b.uid
+        WHERE a.retry_count &lt; 3
+        <if test="req.executeStatus != null and req.executeStatus != ''">
+            and a.status = #{req.executeStatus}
+        </if>
+        <if test="req.planUid != null and req.planUid != ''">
+            and a.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.type != null and req.type != ''">
+            and a.type = #{req.type}
+        </if>
+
+        <if test="reqVO.retryProcess != null and reqVO.retryProcess == true">
+            and a.retry_count &gt;= 1
+        </if>
+        <if test="req.planUid != null and req.planUid != ''">
+            and b.status = #{req.planUid}
+        </if>
+        ORDER BY a.update_time ASC
+        LIMIT #{bathCount}
+    </select>
+</mapper>
