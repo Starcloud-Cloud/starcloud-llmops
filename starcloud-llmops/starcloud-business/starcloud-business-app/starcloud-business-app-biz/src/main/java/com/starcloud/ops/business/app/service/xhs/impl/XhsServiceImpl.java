@@ -17,11 +17,16 @@ import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -110,6 +115,64 @@ public class XhsServiceImpl implements XhsService {
     }
 
     /**
+     * 执行应用
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    @Override
+    public XhsAppExecuteResponse appExecute(XhsAppExecuteRequest request) {
+        XhsAppExecuteResponse response = new XhsAppExecuteResponse();
+        response.setSuccess(Boolean.FALSE);
+        // 执行应用
+        try {
+            // 参数校验
+            if (StringUtils.isBlank(request.getUid())) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400101, "应用UID不能为空！"));
+            }
+            response.setUid(request.getUid());
+            if (CollectionUtil.isEmpty(request.getParams())) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
+            }
+            // 获取应用
+            AppMarketRespVO appMarket = appMarketService.get(request.getUid());
+            AppExecuteRespVO executeResponse = appService.execute(buildExecuteRequest(appMarket, request));
+            if (!executeResponse.getSuccess()) {
+                response.setErrorCode(executeResponse.getResultCode());
+                response.setErrorMsg(executeResponse.getResultDesc());
+                return response;
+            }
+            ActionResponse actionResult = (ActionResponse) executeResponse.getResult();
+            if (Objects.isNull(actionResult)) {
+                response.setErrorCode("350400205");
+                response.setErrorMsg("执行结果不存在！请稍候重试或者联系管理员！");
+                return response;
+            }
+            if (!actionResult.getSuccess()) {
+                response.setErrorCode(actionResult.getErrorCode());
+                response.setErrorMsg(actionResult.getErrorMsg());
+                return response;
+            }
+            if (StringUtils.isBlank(actionResult.getAnswer())) {
+                response.setErrorCode("350400206");
+                response.setErrorMsg("执行结果内容不存在！请稍候重试或者联系管理员！");
+                return response;
+            }
+            response.setSuccess(Boolean.TRUE);
+            response.setText(actionResult.getAnswer());
+            return response;
+        } catch (ServiceException exception) {
+            response.setErrorCode(exception.getCode().toString());
+            response.setErrorMsg(exception.getMessage());
+            return response;
+        } catch (Exception exception) {
+            response.setErrorCode("350400200");
+            response.setErrorMsg(exception.getMessage());
+            return response;
+        }
+    }
+
+    /**
      * 异步执行应用
      *
      * @param request 请求
@@ -128,6 +191,40 @@ public class XhsServiceImpl implements XhsService {
         AppExecuteReqVO executeRequest = buildExecuteRequest(appMarket, request);
         // 执行应用
         appService.asyncExecute(executeRequest);
+    }
+
+    /**
+     * 批量执行应用, 同步执行
+     *
+     * @param requests 请求
+     * @return 响应
+     */
+    @Override
+    public List<XhsAppCreativeExecuteResponse> bathAppCreativeExecute(List<XhsAppCreativeExecuteRequest> requests) {
+        if (CollectionUtil.isEmpty(requests)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
+        }
+        // 应用任务集合
+        List<CompletableFuture<XhsAppCreativeExecuteResponse>> appFutures = Lists.newArrayList();
+        for (XhsAppCreativeExecuteRequest request : requests) {
+            appFutures.add(CompletableFuture.supplyAsync(() -> {
+                XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+                XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
+                response.setUid(request.getUid());
+                response.setCreativeContentUid(response.getCreativeContentUid());
+                response.setSuccess(appExecuteResponse.getSuccess());
+                response.setErrorCode(appExecuteResponse.getErrorCode());
+                response.setErrorMsg(appExecuteResponse.getErrorMsg());
+                response.setText(appExecuteResponse.getText());
+                return response;
+            }));
+        }
+        CompletableFuture.allOf(appFutures.toArray(new CompletableFuture[0])).join();
+        List<XhsAppCreativeExecuteResponse> appResponses = Lists.newArrayList();
+        for (CompletableFuture<XhsAppCreativeExecuteResponse> appFuture : appFutures) {
+            appResponses.add(appFuture.join());
+        }
+        return appResponses;
     }
 
     /**
@@ -257,9 +354,11 @@ public class XhsServiceImpl implements XhsService {
      */
     private AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, XhsAppExecuteRequest request) {
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-        executeRequest.setSseEmitter(request.getSseEmitter());
+        if (Objects.nonNull(request.getSseEmitter())) {
+            executeRequest.setSseEmitter(request.getSseEmitter());
+        }
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
-        executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());
         executeRequest.setAppUid(app.getUid());
         executeRequest.setAppReqVO(transform(app, request.getParams()));
         return executeRequest;
