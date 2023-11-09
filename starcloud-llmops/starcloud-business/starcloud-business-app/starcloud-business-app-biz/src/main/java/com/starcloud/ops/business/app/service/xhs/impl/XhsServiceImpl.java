@@ -401,7 +401,13 @@ public class XhsServiceImpl implements XhsService {
                 variableItem.setValue(appParams.get(variableItem.getField()));
                 variableItem.setDefaultValue(appParams.get(variableItem.getField()));
             } else {
-                variableItem.setValue(null);
+                Object value = variableItem.getValue();
+                if (Objects.isNull(value)) {
+                    if (Objects.nonNull(variableItem.getDefaultValue())) {
+                        value = variableItem.getDefaultValue();
+                    }
+                }
+                variableItem.setValue(value);
             }
             fillVariables.add(variableItem);
         }

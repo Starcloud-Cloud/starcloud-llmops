@@ -33,6 +33,12 @@ public class XhsAppExecuteResponse implements java.io.Serializable {
     private String uid;
 
     /**
+     * 生成标题
+     */
+    @Schema(description = "生成标题")
+    private String title;
+
+    /**
      * 应用生成参数
      */
     @Schema(description = "返回数据")
