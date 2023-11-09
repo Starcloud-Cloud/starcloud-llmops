@@ -14,6 +14,20 @@ import java.util.List;
  */
 public interface UserBenefitsService {
 
+
+    /**
+     * 校验当前用户能否使用当前权益
+     * @return
+     */
+    Boolean validateUserBenefitsByCode(String code, Long userId);
+
+    /**
+     * 校验当前用户能否使用当前权益
+     * @return
+     */
+    Boolean validateUserBenefitsByType(String benefitsType, Long userId);
+
+
     /**
      * 新增用户权益
      *
