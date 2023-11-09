@@ -42,7 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -205,14 +204,9 @@ public class XhsServiceImpl implements XhsService {
         if (CollectionUtil.isEmpty(requests)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
         }
-        // 应用应用uid去重，去除重复的应用。此场景约定为 同一个应用的执行参数是相同的。
-        Map<String, List<XhsAppCreativeExecuteRequest>> groupRequestMap = requests.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getUid));
-        List<XhsAppCreativeExecuteRequest> groupRequests = new ArrayList<>();
-        groupRequestMap.forEach((key, value) -> groupRequests.add(value.get(0)));
-
         // 应用任务集合
         List<CompletableFuture<XhsAppCreativeExecuteResponse>> appFutures = Lists.newArrayList();
-        for (XhsAppCreativeExecuteRequest request : groupRequests) {
+        for (XhsAppCreativeExecuteRequest request : requests) {
             appFutures.add(CompletableFuture.supplyAsync(() -> {
                 XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
                 XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
@@ -305,28 +299,19 @@ public class XhsServiceImpl implements XhsService {
      */
     @Override
     public List<XhsImageExecuteResponse> bathImageExecute(XhsBathImageExecuteRequest request) {
-
         log.info("小红书执行批量生成图片开始");
         List<XhsImageExecuteRequest> imageRequestList = request.getImageRequests();
         if (CollectionUtil.isEmpty(imageRequestList)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
         }
-
-        // 图片任务集合，并且处理图片参数
-        List<CompletableFuture<XhsImageExecuteResponse>> imageFutures = Lists.newArrayList();
+        // 图片执行结果
+        List<XhsImageExecuteResponse> imageResponses = Lists.newArrayList();
         for (int i = 0; i < imageRequestList.size(); i++) {
             XhsImageExecuteRequest imageRequest = imageRequestList.get(i);
             imageRequest.setIndex(i + 1);
             imageRequest.setIsMain(i == 0 ? Boolean.TRUE : Boolean.FALSE);
-            imageFutures.add(CompletableFuture.supplyAsync(() -> imageExecute(imageRequest)));
-        }
-
-        CompletableFuture.allOf(imageFutures.toArray(new CompletableFuture[0])).join();
-
-        // 图片执行结果
-        List<XhsImageExecuteResponse> imageResponses = Lists.newArrayList();
-        for (CompletableFuture<XhsImageExecuteResponse> imageFuture : imageFutures) {
-            imageResponses.add(imageFuture.join());
+            XhsImageExecuteResponse response = imageExecute(imageRequest);
+            imageResponses.add(response);
         }
         log.info("小红书执行批量生成图片结束");
         return imageResponses;
@@ -401,7 +386,13 @@ public class XhsServiceImpl implements XhsService {
                 variableItem.setValue(appParams.get(variableItem.getField()));
                 variableItem.setDefaultValue(appParams.get(variableItem.getField()));
             } else {
-                variableItem.setValue(null);
+                Object value = variableItem.getValue();
+                if (Objects.isNull(value)) {
+                    if (Objects.nonNull(variableItem.getDefaultValue())) {
+                        value = variableItem.getDefaultValue();
+                    }
+                }
+                variableItem.setValue(value);
             }
             fillVariables.add(variableItem);
         }
