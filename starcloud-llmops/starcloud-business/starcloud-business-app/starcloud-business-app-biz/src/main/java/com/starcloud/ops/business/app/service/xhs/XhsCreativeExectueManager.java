@@ -3,6 +3,9 @@ package com.starcloud.ops.business.app.service.xhs;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
@@ -26,10 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 @Slf4j
@@ -48,8 +49,20 @@ public class XhsCreativeExectueManager {
     private DictDataService dictDataService;
 
 
-    public Map<Long, Boolean> executeCopyWriting(List<XhsCreativeContentDO> xhsCreativeContentDO, Boolean force) {
-        Map<Long, Boolean> result = new HashMap<>(xhsCreativeContentDO.size());
+    public Map<Long, Boolean> executeCopyWriting(List<XhsCreativeContentDO> xhsCreativeContentDOList, Boolean force) {
+        Map<Long, Boolean> result = new HashMap<>(xhsCreativeContentDOList.size());
+
+        List<XhsAppCreativeExecuteRequest> collect = xhsCreativeContentDOList.stream().map(item -> {
+            XhsCreativeContentExecuteParamsDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(item.getExecuteParams());
+            XhsAppExecuteRequest appExecuteRequest = executeParams.getAppExecuteRequest();
+            XhsAppCreativeExecuteRequest request = new XhsAppCreativeExecuteRequest();
+            request.setUid(appExecuteRequest.getUid());
+            request.setCreativeContentUid(item.getUid());
+            request.setParams(appExecuteRequest.getParams());
+            request.setScene(appExecuteRequest.getScene());
+            return request;
+        }).collect(Collectors.toList());
+        List<XhsAppCreativeExecuteResponse> responses = xhsService.bathAppCreativeExecute(collect);
 
         return result;
     }
@@ -107,8 +120,15 @@ public class XhsCreativeExectueManager {
                 contentDO.setEndTime(end);
                 contentDO.setPictureNum(pictureContent.size());
                 Long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+
                 contentDO.setExecuteTime(executeTime);
-                updateDO(contentDO, StringUtils.EMPTY, contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
+                contentDO.setErrorMsg(StringUtils.EMPTY);
+                contentDO.setRetryCount(contentDO.getRetryCount() + 1);
+                contentDO.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
+                contentDO.setPictureNum(resp.size());
+                contentDO.setPictureContent(JSONUtil.toJsonStr(resp));
+                creativeContentMapper.updateById(contentDO);
+
                 result.put(contentDO.getId(), true);
                 log.warn("图片执行成功： {} ms", executeTime);
             } catch (Exception e) {
