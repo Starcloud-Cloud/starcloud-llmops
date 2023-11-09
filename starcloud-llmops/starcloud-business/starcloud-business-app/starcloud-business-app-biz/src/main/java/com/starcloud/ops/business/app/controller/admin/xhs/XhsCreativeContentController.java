@@ -36,10 +36,19 @@ public class XhsCreativeContentController {
         return CommonResult.success(creativeContentService.detail(businessUid));
     }
 
-    @GetMapping("/modify")
+    @PutMapping("/modify")
     @Operation(summary = "修改内容")
     public CommonResult<XhsCreativeContentResp> modify(@Valid @RequestBody XhsCreativeContentModifyReq modifyReq) {
         XhsCreativeContentResp detail = creativeContentService.modify(modifyReq);
         return CommonResult.success(detail);
     }
+
+    @DeleteMapping("/delete/{businessUid}")
+    @Operation(summary = "删除创作内容")
+    public CommonResult<Boolean> delete(
+            @PathVariable("businessUid")String businessUid) {
+        creativeContentService.delete(businessUid);
+        return CommonResult.success(true);
+    }
+
 }

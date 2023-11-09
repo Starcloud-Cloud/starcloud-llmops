@@ -3,14 +3,17 @@ package com.starcloud.ops.business.app.convert.xhs;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExtendDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativePictureContentDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -34,6 +37,9 @@ public interface XhsCreativeContentConvert {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     void updateSelective(XhsCreativeContentModifyReq modifyReq,@MappingTarget XhsCreativeContentDO contentDO);
+
+
+    List<XhsCreativePictureContentDTO> convert2(List<XhsImageExecuteResponse> resp);
 
     default XhsCreativeContentDO convert(XhsCreativeContentCreateReq createReq) {
         if (createReq == null) {
@@ -67,15 +73,35 @@ public interface XhsCreativeContentConvert {
         return JSONUtil.toJsonStr(extendDTO);
     }
 
+    default String toStr(XhsCreativePictureContentDTO pictureContentDTO) {
+        return JSONUtil.toJsonStr(pictureContentDTO);
+    }
+
     default List<String> toList(String string) {
+        if (StringUtils.isBlank(string)) {
+            return null;
+        }
         return JSONUtil.parseArray(string).toList(String.class);
     }
 
     default XhsCreativeContentExecuteParamsDTO toExecuteParams(String string) {
+        if (StringUtils.isBlank(string)) {
+            return null;
+        }
         return JSONUtil.toBean(string, XhsCreativeContentExecuteParamsDTO.class);
     }
 
     default XhsCreativeContentExtendDTO toExtend(String string) {
+        if (StringUtils.isBlank(string)) {
+            return null;
+        }
         return JSONUtil.toBean(string, XhsCreativeContentExtendDTO.class);
+    }
+
+    default List<XhsCreativePictureContentDTO> toContent(String string) {
+        if (StringUtils.isBlank(string)) {
+            return null;
+        }
+        return JSONUtil.parseArray(string).toList(XhsCreativePictureContentDTO.class);
     }
 }

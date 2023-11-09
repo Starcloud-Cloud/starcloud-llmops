@@ -3,21 +3,29 @@ package com.starcloud.ops.business.app.powerjob.redbook;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
+import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
+import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.powerjob.base.BaseMapReduceTask;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskContext;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskResult;
 import com.starcloud.ops.business.app.powerjob.base.PowerJobTaskContext;
+import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.annotation.Configuration;
 import tech.powerjob.worker.core.processor.ProcessResult;
 import tech.powerjob.worker.core.processor.TaskContext;
 import tech.powerjob.worker.core.processor.TaskResult;
 
+import javax.annotation.Resource;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -27,6 +35,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Configuration
 public class RedBookTaskMapReduce extends BaseMapReduceTask {
+
+    @Resource
+    private XhsCreativeContentService xhsCreativeContentService;
 
 
     @Override
@@ -60,24 +71,34 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
             return BaseTaskResult.builder().success(false).msg("The getRunType parameter is null. getRunType must have a value").build();
         }
 
-        //只执行重试的判断
-        if (Boolean.TRUE.equals(params.getRetryProcess())) {
-
-        }
 
         //根据查询，查询出所有执行中的计划下的所有待执行的创作任务
         //支持的条件可能有，文案模版，图片模版，渠道 （创作任务表上的字段） 时间生序查询，优先执行最早的
 
-        //查询对应数量的数据
-        params.getBathCount();
 
-        List<Object> taskIdList = new ArrayList<>();
+        XhsCreativeQueryReq queryReq = new XhsCreativeQueryReq();
+        queryReq.setType(params.getRunType());
+        queryReq.setRetryProcess(params.getRetryProcess());
+        queryReq.setBathCount(params.getBathCount());
+        List<XhsCreativeContentDO> creativeContentList = xhsCreativeContentService.jobQuery(queryReq);
+        if (CollectionUtils.isEmpty(creativeContentList)) {
+            return new BaseTaskResult(true, "ROOT_PROCESS_SUCCESS : 未找到待执行的任务");
+        }
 
-        //根据数据大小情况，这个subTask 一定要小，有大小限制的
-        List<SubTask> subTasks = Optional.ofNullable(taskIdList).orElse(new ArrayList<>()).stream().map(id -> {
-            return SubTask.builder().redBookList(new ArrayList<>()).build();
+        Map<String, List<XhsCreativeContentDO>> planUidGroup = creativeContentList.stream().collect(Collectors.groupingBy(XhsCreativeContentDO::getPlanUid));
 
-        }).collect(Collectors.toList());
+        List<SubTask> subTasks = new ArrayList<>(planUidGroup.size());
+        Integer subSize = params.getSubSize() == null ? 5 : params.getSubSize();
+        for (String planUid : planUidGroup.keySet()) {
+            List<Long> ids = planUidGroup.get(planUid).stream().map(XhsCreativeContentDO::getId).collect(Collectors.toList());
+            List<List<Long>> split = CollUtil.split(ids, subSize);
+            for (List<Long> longs : split) {
+                SubTask subTask = new SubTask();
+                subTask.setPlanUid(planUid);
+                subTask.setRunType(params.getRunType());
+                subTask.setRedBookIdList(longs);
+            }
+        }
         try {
             map(subTasks, "subTask_RedBook_initTarget");
         } catch (Exception e) {
@@ -92,7 +113,16 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     public BaseTaskResult runSub(BaseTaskContext powerJobTaskContext, SubTask subTask) {
         try {
 
-            List<Object> redBookTask = subTask.getRedBookList();
+            List<Long> redBookTask = subTask.getRedBookIdList();
+            Map<Long, Boolean> resp = xhsCreativeContentService.execute(redBookTask, subTask.getRunType(), false);
+
+            StringJoiner sj = new StringJoiner(",");
+            for (Long id : redBookTask) {
+                if (BooleanUtils.isTrue(resp.get(id))) {
+                    continue;
+                }
+                sj.add(id.toString());
+            }
 
             //调用批量执行的服务，服务内部不要抛异常，执行失败的在后续的轮训中继续执行
 
@@ -101,11 +131,11 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
             //判断所有执行状态，如果有失败就返回给 job 去做日志，
             //servide.batch(1,2,3,4)
 
-            String log = "json";
-            return new BaseTaskResult(log, true);
+
+            return new SubTaskResult(true, sj.toString(), subTask.planUid);
         } catch (Exception e) {
             //不会调用到这里，兜底错误和日志
-            return new BaseTaskResult(false, "task id is " + subTask.getPlanUid() + "  RunTask is fail: " + e.getMessage());
+            return new SubTaskResult(false, "task id is " + subTask.getPlanUid() + "  RunTask is fail: " + e.getMessage());
         }
     }
 
@@ -118,30 +148,28 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      */
     @Override
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
-
+        if (CollectionUtils.isEmpty(taskResults)) {
+            return new ProcessResult(true, "reduce_success");
+        }
+        Map<String, List<SubTaskResult>> planUidGroup = taskResults.stream().map(taskResult -> {
+            SubTaskResult subTaskResult = JSON.parseObject(taskResult.getResult(), SubTaskResult.class);
+            return subTaskResult;
+        }).collect(Collectors.groupingBy(SubTaskResult::getPlanUid));
         //查询计划表下的 所有状态，并更新计划表的状态
 
 
-        return null;
+        return new ProcessResult(true, "reduce_success");
     }
 
-    private void updateInstance(List<TaskResult> taskResults) {
-        //找到所有创作任务
-        List<String> codes = Optional.ofNullable(taskResults).orElse(new ArrayList<>()).stream().map(taskResult -> {
-            BaseTaskResult baseTaskResult = JSON.parseObject(taskResult.getResult(), BaseTaskResult.class);
-            return baseTaskResult;
-        }).filter(baseTaskResult -> {
-            return StrUtil.isNotBlank(baseTaskResult.getKey());
-        }).map(result -> {
-            return result.getKey();
-        }).collect(Collectors.toList());
-        if (CollUtil.isEmpty(codes)) {
-            return;
-        }
+    private void updateInstance(List<String> planUidList) {
 
         //根据创作任务找到所有创作计划
 
         //查询所有创作计划的所有任务状态，判断是否都执行完成。完成就更新创作计划状态到执行完成。
+
+
+
+
 
     }
 
@@ -153,7 +181,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     public static class SubTask {
 
         //DTO对象
-        private List<Object> redBookList;
+        private List<Long> redBookIdList;
 
 
         /**

@@ -39,10 +39,6 @@ public class XhsCreativeContentDO extends TenantBaseDO {
      */
     private String businessUid;
 
-//    /**
-//     * 文案模板Uid
-//     */
-//    private String copyWritingUid;
 
     /**
      * 使用的图片 文案模板Uid
@@ -91,12 +87,17 @@ public class XhsCreativeContentDO extends TenantBaseDO {
     private String copyWritingContent;
 
     /**
+     * 文案字数
+     */
+    private Integer copyWritingCount;
+
+    /**
      * 生成图片数量
      */
     private Integer pictureNum;
 
     /**
-     * 生成图片结果  List<String>
+     * 生成图片结果  List<XhsCreativePictureContentDTO>
      */
     private String pictureContent;
 

@@ -8,8 +8,8 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativ
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 
-import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 public interface XhsCreativeContentService {
 
@@ -24,7 +24,7 @@ public interface XhsCreativeContentService {
      * @param type  XhsCreativeContentTypeEnums.code
      * @param force 忽略重试次数限制
      */
-    void execute(List<Long> ids, String type, Boolean force);
+    Map<Long, Boolean> execute(List<Long> ids, String type, Boolean force);
 
     /**
      * 重试
@@ -34,7 +34,7 @@ public interface XhsCreativeContentService {
     /**
      * 查询任务
      */
-    List<XhsCreativeContentDO> batchSelect(@Valid XhsCreativeQueryReq queryReq);
+    List<XhsCreativeContentDO> jobQuery(XhsCreativeQueryReq queryReq);
 
     /**
      * 分页查询创作内容
@@ -50,4 +50,12 @@ public interface XhsCreativeContentService {
      * 修改创作内容
      */
     XhsCreativeContentResp modify(XhsCreativeContentModifyReq modifyReq);
+
+    /**
+     * 删除
+     *
+     * @param businessUid
+     * @return
+     */
+    void delete(String businessUid);
 }

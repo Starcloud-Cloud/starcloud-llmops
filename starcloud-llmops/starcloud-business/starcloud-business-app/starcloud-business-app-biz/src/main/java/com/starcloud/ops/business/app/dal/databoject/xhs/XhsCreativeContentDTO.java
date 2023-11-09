@@ -24,13 +24,13 @@ public class XhsCreativeContentDTO {
     private String pictureTempUid;
 
     @Schema(description = "使用的图片列表")
-    private List<String> usePicture;
+    private String usePicture;
 
     @Schema(description = "图片执行参数")
-    private XhsCreativeContentExecuteParamsDTO pictureParams;
+    private String pictureParams;
 
     @Schema(description = "文案执行参数")
-    private XhsCreativeContentExecuteParamsDTO copyWritingParams;
+    private String copyWritingParams;
 
     /**
      * {@link com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums}
@@ -66,11 +66,14 @@ public class XhsCreativeContentDTO {
     @Schema(description = "文案内容")
     private String copyWritingContent;
 
+    @Schema(description = "文案文字数量")
+    private String copyWritingCount;
+
     @Schema(description = "生成图片数量")
     private Integer pictureNum;
 
     @Schema(description = "生成图片结果")
-    private List<String> pictureContent;
+    private String pictureContent;
 
     @Schema(description = "图片失败信息")
     private String pictureErrorMsg;
@@ -85,10 +88,10 @@ public class XhsCreativeContentDTO {
     private Integer copyWritingRetryCount;
 
     @Schema(description = "图片拓展信息")
-    private XhsCreativeContentExtendDTO pictureExtend;
+    private String pictureExtend;
 
     @Schema(description = "文案拓展信息")
-    private XhsCreativeContentExtendDTO copyWritingExtend;
+    private String copyWritingExtend;
 
     @Schema(description = "是否认领")
     private Boolean claim;

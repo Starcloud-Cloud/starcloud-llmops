@@ -34,7 +34,8 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "llm_log_app_message",
             "llm_log_app_message_annotations",
             "llm_log_app_message_feedbacks",
-            "llm_log_app_message_save"
+            "llm_log_app_message_save",
+            "llm_creative_content"
     );
 
     @Resource
