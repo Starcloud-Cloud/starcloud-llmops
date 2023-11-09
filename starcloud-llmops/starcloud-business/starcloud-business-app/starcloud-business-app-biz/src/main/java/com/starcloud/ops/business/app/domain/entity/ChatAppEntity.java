@@ -278,7 +278,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
                 }
 
                 if (ModelProviderEnum.GPT4.name().equals(chatRequest.getModelType())) {
-                    Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).map(ModelConfigEntity::getCompletionParams).ifPresent(params -> params.setModel(ModelTypeEnum.GPT_4.getName()));
+                    Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).map(ModelConfigEntity::getCompletionParams).ifPresent(params -> params.setModel(ModelTypeEnum.GPT_4_TURBO.getName()));
                 }
             }
 
@@ -485,7 +485,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         ChatConfigConvert.INSTANCE.updateParams(chatConfig.getModelConfig().getCompletionParams(), chatOpenAI);
 
         chatOpenAI.setStream(false);
-        chatOpenAI.setModel(ModelTypeEnum.GPT_4.getName());
+        chatOpenAI.setModel(ModelTypeEnum.GPT_4_TURBO.getName());
 //        chatOpenAI.setTemperature(0.7d);
 
         chatOpenAI.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));

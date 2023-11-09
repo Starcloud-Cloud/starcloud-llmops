@@ -56,7 +56,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     protected Integer getCostPoints(Request request) {
         Map<String, Object> params = request.getStepParams();
         String aiModel = String.valueOf(Optional.ofNullable(params.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
-        if (ModelTypeEnum.GPT_4.getName().equals(aiModel)) {
+        if (ModelTypeEnum.GPT_4_TURBO.getName().equals(aiModel)) {
             return 30;
         }
         return 1;

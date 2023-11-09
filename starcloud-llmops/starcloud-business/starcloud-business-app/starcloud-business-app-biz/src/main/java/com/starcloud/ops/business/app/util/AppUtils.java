@@ -234,7 +234,7 @@ public class AppUtils {
 
         Option option40 = new Option();
         option40.setLabel(Locale.CHINA.equals(locale) ? "默认模型4.0" : "Default Model 4.0");
-        option40.setValue(ModelTypeEnum.GPT_4.getName());
+        option40.setValue(ModelTypeEnum.GPT_4_TURBO.getName());
         options.add(option40);
 
         Option optionQwen = new Option();
