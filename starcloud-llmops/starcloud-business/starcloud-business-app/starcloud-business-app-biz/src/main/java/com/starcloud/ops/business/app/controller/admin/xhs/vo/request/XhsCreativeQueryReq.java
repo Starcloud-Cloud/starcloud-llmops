@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.vo.request;
 
+import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,7 +31,7 @@ public class XhsCreativeQueryReq {
 
 
     public Boolean valid() {
-        if (StringUtils.isBlank(type)) {
+        if (StringUtils.isBlank(type) || !XhsCreativeContentTypeEnums.contain(type)) {
             return false;
         }
         return true;

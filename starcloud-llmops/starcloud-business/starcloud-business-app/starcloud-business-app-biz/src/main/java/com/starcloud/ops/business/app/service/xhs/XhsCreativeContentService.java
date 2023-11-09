@@ -37,6 +37,11 @@ public interface XhsCreativeContentService {
     List<XhsCreativeContentDO> jobQuery(XhsCreativeQueryReq queryReq);
 
     /**
+     * 查询计划的所有任务
+     */
+    List<XhsCreativeContentDO> listByPlanUid(String planUid);
+
+    /**
      * 分页查询创作内容
      */
     PageResult<XhsCreativeContentResp> page(XhsCreativeContentPageReq req);
