@@ -79,7 +79,7 @@ public class XhsCreativeExectueManager {
                     continue;
                 }
                 executeRequest.setCreativeContentUid(contentDO.getUid());
-                executeRequest.setUserId(contentDO.getCreator());
+                executeRequest.setUserId(Long.valueOf(contentDO.getCreator()));
                 BeanUtil.copyProperties(executeParams.getAppExecuteRequest(), executeRequest);
                 requests.add(executeRequest);
             }

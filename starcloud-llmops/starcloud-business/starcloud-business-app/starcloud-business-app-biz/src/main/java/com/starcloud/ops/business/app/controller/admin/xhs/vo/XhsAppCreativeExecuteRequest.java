@@ -17,8 +17,4 @@ public class XhsAppCreativeExecuteRequest extends XhsAppExecuteRequest {
      */
     private String creativeContentUid;
 
-    /**
-     * 用户id
-     */
-    private String userId;
 }
