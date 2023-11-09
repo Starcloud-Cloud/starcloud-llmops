@@ -527,6 +527,8 @@ public class PayOrderServiceImpl implements PayOrderService {
         } catch (RuntimeException e) {
             throw new RuntimeException("未获取到该产品信息");
         }
+        appPayProductDiscountRespVO.setCode(product.getCode());
+        appPayProductDiscountRespVO.setName(product.getName());
         //  商品为年付商品
         if (product.getTimeType().equals(ProductTimeEnum.YEAR)) {
             // 获取月付产品
