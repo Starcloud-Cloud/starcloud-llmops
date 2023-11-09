@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.order.api.order.dto;
+package com.starcloud.ops.business.order.api.sign.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * 支付单创建 Request DTO
  */
 @Data
-public class PayOrderCreateReqDTO implements Serializable {
+public class PaySignCreateReqDTO implements Serializable {
     /**
      * 应用编号
      */
@@ -53,6 +53,15 @@ public class PayOrderCreateReqDTO implements Serializable {
     private String body;
 
     // ========== 订单相关字段 ==========
+
+
+    /**
+     * 支付金额，单位：分
+     */
+    @NotNull(message = "支付金额不能为空")
+    @DecimalMin(value = "0", inclusive = false, message = "支付金额必须大于零")
+    private Integer first;
+
 
     /**
      * 支付金额，单位：分

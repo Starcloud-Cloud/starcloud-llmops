@@ -103,7 +103,7 @@ public interface UserBenefitsService {
     /**
      * 用户普通注册--增加权益
      *
-     * @param userId  用户 ID
+     * @param userId 用户 ID
      */
     void addUserBenefitsSign(Long userId);
 
@@ -123,6 +123,35 @@ public interface UserBenefitsService {
      * 权益过期处理-返回已处理的数据
      */
     Long userBenefitsExpired();
+
+    /**
+     * 获取用户的支付权益列表
+     *
+     * @param userId 用户 ID
+     * @return
+     */
+    List<UserBenefitsDO> getPayBenefitList(Long userId);
+
+
+    /**
+     * 折扣优惠是否可用
+     *
+     * @param productCode  产品 code
+     * @param discountCode 优惠码
+     * @param userId       用户 ID
+     * @return true        可用 false 不可用
+     */
+    Boolean validateDiscount(String productCode, String discountCode, Long userId);
+
+
+    /**
+     * 计算优惠后的价格
+     *
+     * @param productCode  产品 code
+     * @param discountCode 优惠码
+     * @return 优惠后的价格
+     */
+    Long calculateDiscountPrice(String productCode, String discountCode);
 
 
 }

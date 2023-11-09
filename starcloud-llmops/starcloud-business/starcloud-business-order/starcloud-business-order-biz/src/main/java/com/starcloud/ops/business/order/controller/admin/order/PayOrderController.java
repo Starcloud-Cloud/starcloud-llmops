@@ -3,14 +3,13 @@ package com.starcloud.ops.business.order.controller.admin.order;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
-import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
-import com.starcloud.ops.business.order.api.notify.dto.PayOrderNotifyReqDTO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReq2DTO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
@@ -34,7 +33,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.annotation.security.PermitAll;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +41,6 @@ import java.util.TimeZone;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
-import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
 
@@ -151,8 +148,16 @@ public class PayOrderController {
         payOrderCreateReqDTO.setBody(productEnum.getName());
         // 设置商品描述
         payOrderCreateReqDTO.setSubject(productEnum.getDescription());
+
+        Integer orderPrice;
         // 设置商品价格
-        payOrderCreateReqDTO.setAmount(productEnum.getPrice());
+        if (StrUtil.isNotBlank(req2DTO.getDiscountCode())){
+            orderPrice = Math.toIntExact(payOrderService.getDiscountOrderPrice(req2DTO.getProductCode(), req2DTO.getDiscountCode()));
+            payOrderCreateReqDTO.setDiscountCode(req2DTO.getDiscountCode());
+        }else {
+            orderPrice =productEnum.getPrice();
+        }
+        payOrderCreateReqDTO.setAmount(orderPrice);
         // 设置过期时间
         payOrderCreateReqDTO.setExpireTime(LocalDateTimeUtil.of(req2DTO.getTimestamp(), TimeZone.getTimeZone("Asia/Shanghai")).plusMinutes(5));
         // 设置当前用户 IP
@@ -199,6 +204,20 @@ public class PayOrderController {
     public CommonResult<Map<String, List<AppPayProductDetailsRespVO>>> getProductList() {
         return success(payOrderService.getAppProductList());
     }
+
+    @PostMapping("/product/discount")
+    @Operation(summary = "获取商品优惠信息")
+    public CommonResult<AppPayProductDiscountRespVO> getOrderProductDiscount(@RequestBody PayOrderDiscountReqVO payOrderDiscountReqVO) {
+        return success(payOrderService.getOrderProductDiscount(payOrderDiscountReqVO.getProductCode(), payOrderDiscountReqVO.getNoNeedProductCode(),payOrderDiscountReqVO.getDiscountCode()));
+    }
+
+    @PostMapping("/discount/newuser")
+    @Operation(summary = "获取新用户折扣码")
+    public CommonResult<String> getOrderProductDiscount() {
+         return success("");
+        // return success(payOrderService.getOrderProductDiscount(payOrderDiscountReqVO.getProductCode(), payOrderDiscountReqVO.getNoNeedProductCode(),payOrderDiscountReqVO.getDiscountCode()));
+    }
+
 
 
     // @PostMapping("/update-paid")
