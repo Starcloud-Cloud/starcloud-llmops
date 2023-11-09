@@ -13,6 +13,7 @@ import cn.iocoder.yudao.framework.sms.core.property.SmsChannelProperties;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import cn.iocoder.yudao.module.system.dal.mysql.sms.SmsTemplateMapper;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.sms.SmsChannelService;
 import cn.iocoder.yudao.module.system.service.sms.SmsTemplateServiceImpl;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
@@ -48,6 +49,9 @@ public class SmsTest extends BaseDbUnitTest {
 
     @MockBean
     private RedisMQTemplate redisMQTemplate;
+
+    @MockBean
+    private DictDataService dictDataService;
 
     @Test
     public void smsTest() {

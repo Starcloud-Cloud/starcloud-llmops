@@ -64,9 +64,9 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             if (CollectionUtils.isEmpty(contentList)) {
                 return Collections.emptyMap();
             }
-            if (XhsCreativeContentTypeEnums.PICTURE.getCode().equals(type)) {
+            if (XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equals(type)) {
                 return xhsCreativeExectueManager.executeCopyWriting(contentList, force);
-            } else if (XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equals(type)) {
+            } else if (XhsCreativeContentTypeEnums.PICTURE.getCode().equals(type)) {
                 return xhsCreativeExectueManager.executePicture(contentList, force);
             } else {
                 log.error("不支持的任务类型 {}", type);
