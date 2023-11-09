@@ -46,4 +46,16 @@ public interface CreativePlanMapper extends BaseMapperX<CreativePlanDO> {
      * @return 分页结果
      */
     IPage<CreativePlanPO> pageCreativePlan(IPage<CreativePlanDO> page, @Param("query") CreativePlanPageQuery query);
+
+    /**
+     * 根据名称查询
+     *
+     * @param name 名称
+     * @return 是否存在
+     */
+    default Boolean distinctName(String name) {
+        LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(CreativePlanDO::getName, name);
+        return this.selectCount(wrapper) > 0;
+    }
 }
