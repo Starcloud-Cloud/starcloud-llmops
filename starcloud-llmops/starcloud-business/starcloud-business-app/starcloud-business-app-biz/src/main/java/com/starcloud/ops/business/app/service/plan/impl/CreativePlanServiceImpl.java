@@ -191,6 +191,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     public void create(CreativePlanReqVO request) {
         handlerAndValidate(request);
+        if (creativePlanMapper.distinctName(request.getName())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_NAME_EXIST, request.getName());
+        }
         CreativePlanDO plan = CreativePlanConvert.INSTANCE.convertCreateRequest(request);
         creativePlanMapper.insert(plan);
     }
@@ -208,7 +211,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         CreativePlanDO copyPlan = new CreativePlanDO();
         copyPlan.setUid(IdUtil.fastSimpleUUID());
-        copyPlan.setName(plan.getName() + "-Copy");
+
+        copyPlan.setName(getCopyName(plan.getName()));
         copyPlan.setType(plan.getType());
         copyPlan.setConfig(plan.getConfig());
         copyPlan.setRandomType(plan.getRandomType());
@@ -238,6 +242,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST);
         if (!CreativePlanStatusEnum.PENDING.name().equals(plan.getStatus())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_STATUS_NOT_SUPPORT_MODIFY);
+        }
+        // 名称做了修改，且修改之后的名称已经存在
+        if (!plan.getName().equals(request.getName()) && creativePlanMapper.distinctName(request.getName())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_NAME_EXIST, request.getName());
         }
         CreativePlanDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
@@ -493,6 +501,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         return bathImageExecuteRequestList;
+    }
+
+    /**
+     * 获取复制名称
+     *
+     * @param name 名称
+     * @return 复制名称
+     */
+    private String getCopyName(String name) {
+        String copyName = name + "-Copy";
+        if (!creativePlanMapper.distinctName(copyName)) {
+            return copyName;
+        }
+        return getCopyName(copyName);
     }
 
     /**
