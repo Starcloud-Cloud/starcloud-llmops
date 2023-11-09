@@ -1,15 +1,18 @@
 package com.starcloud.ops.business.app.powerjob.redbook;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.app.api.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
+import com.starcloud.ops.business.app.enums.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.powerjob.base.BaseMapReduceTask;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskContext;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskResult;
 import com.starcloud.ops.business.app.powerjob.base.PowerJobTaskContext;
+import com.starcloud.ops.business.app.service.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +21,9 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import tech.powerjob.worker.core.processor.ProcessResult;
 import tech.powerjob.worker.core.processor.TaskContext;
 import tech.powerjob.worker.core.processor.TaskResult;
@@ -33,14 +38,18 @@ import java.util.stream.Collectors;
  * 小红书生成任务执行入口
  */
 @Slf4j
-@Configuration
+@Component
 public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
     @Resource
     private XhsCreativeContentService xhsCreativeContentService;
 
+    @Resource
+    private CreativePlanService creativePlanService;
+
 
     @Override
+    @TenantIgnore
     protected BaseTaskResult execute(PowerJobTaskContext powerJobTaskContext) {
         if (isRootTask()) {
             return runRoot(powerJobTaskContext);
@@ -97,6 +106,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                 subTask.setPlanUid(planUid);
                 subTask.setRunType(params.getRunType());
                 subTask.setRedBookIdList(longs);
+                subTasks.add(subTask);
             }
         }
         try {
@@ -151,14 +161,16 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         if (CollectionUtils.isEmpty(taskResults)) {
             return new ProcessResult(true, "reduce_success");
         }
-        Map<String, List<SubTaskResult>> planUidGroup = taskResults.stream().map(taskResult -> {
-            SubTaskResult subTaskResult = JSON.parseObject(taskResult.getResult(), SubTaskResult.class);
-            return subTaskResult;
-        }).collect(Collectors.groupingBy(SubTaskResult::getPlanUid));
+
         //查询计划表下的 所有状态，并更新计划表的状态
+        List<String> planUids = taskResults.stream().map(sub -> {
+            SubTaskResult subTaskResult = JSON.parseObject(sub.getResult(), SubTaskResult.class);
+            return subTaskResult.getPlanUid();
+        }).collect(Collectors.toList());
 
+        updateInstance(planUids);
 
-        return new ProcessResult(true, "reduce_success");
+        return new ProcessResult(true, "reduce_success" + planUids.toString());
     }
 
     private void updateInstance(List<String> planUidList) {
@@ -166,11 +178,23 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         //根据创作任务找到所有创作计划
 
         //查询所有创作计划的所有任务状态，判断是否都执行完成。完成就更新创作计划状态到执行完成。
-
-
-
-
-
+        for (String planUid : planUidList) {
+            if (StringUtils.isBlank(planUid)) {
+                return;
+            }
+            List<XhsCreativeContentDO> contentList = xhsCreativeContentService.listByPlanUid(planUid);
+            // 是否全部执行结束
+            boolean complete = contentList.stream().anyMatch(xhsCreativeContentDO -> {
+                if (xhsCreativeContentDO.getRetryCount() != null && xhsCreativeContentDO.getRetryCount() > 3) {
+                    return false;
+                }
+                if (!XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(xhsCreativeContentDO.getStatus())) {
+                    return true;
+                }
+                return false;
+            });
+            creativePlanService.updateStatus(planUid, complete ? CreativePlanStatusEnum.COMPLETE.name() :  CreativePlanStatusEnum.RUNNING.name());
+        }
     }
 
 

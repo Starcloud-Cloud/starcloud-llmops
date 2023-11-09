@@ -19,6 +19,7 @@
             llm_creative_content pic
             INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
             WHERE pic.type = 'picture' and text.type = 'copy_writing'
+            and pic.delete = false and text.delete = false
             <if test="req.planUid != null and req.planUid != ''">
                 and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
             </if>
@@ -31,6 +32,7 @@
         llm_creative_content pic
         INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
         WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        and pic.delete = false and text.delete = false
         <if test="req.planUid != null and req.planUid != ''">
             and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
         </if>
@@ -51,23 +53,19 @@
         SELECT a.* FROM
         llm_creative_content a
         INNER JOIN llm_creative_plan b on a.plan_uid = b.uid
-        WHERE a.retry_count &lt; 3  and b.status in ('PENDING','CANCELED','FAILURE')
+        WHERE a.retry_count &lt; 3  and b.status in ('RUNNING','FAILURE')
         <if test="req.planUid != null and req.planUid != ''">
             and a.plan_uid = #{req.planUid}
         </if>
         <if test="req.type != null and req.type != ''">
             and a.type = #{req.type}
         </if>
-        <choose>
-            <when test="req.retryProcess != null and req.retryProcess == true">
-                and a.retry_count &gt;= 1  and a.status = 'execute_error'
-            </when>
-            <otherwise>
-                and a.status = 'init'
-            </otherwise>
-        </choose>
+        <if test="req.retryProcess != null and req.retryProcess == true">
+            and a.retry_count &gt;= 1  and a.status = 'execute_error'
+        </if>
+        and  a.status != 'execute_success' and a.status != 'executing'
         ORDER BY a.update_time ASC
-        <if test="req.bathCount != null and req.bathCount > 0">
+        <if test="req.bathCount != null and req.bathCount gt 0">
             LIMIT #{req.bathCount}
         </if>
     </select>

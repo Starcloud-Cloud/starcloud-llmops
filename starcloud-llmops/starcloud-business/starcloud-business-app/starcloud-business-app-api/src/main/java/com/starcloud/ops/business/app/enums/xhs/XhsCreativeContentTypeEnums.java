@@ -19,4 +19,13 @@ public enum XhsCreativeContentTypeEnums {
         this.code = code;
         this.desc = desc;
     }
+
+    public static boolean contain(String code) {
+        for (XhsCreativeContentTypeEnums value : XhsCreativeContentTypeEnums.values()) {
+            if (value.getCode().equals(code)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
