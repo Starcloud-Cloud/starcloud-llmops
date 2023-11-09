@@ -10,5 +10,5 @@ public class XhsAppBatchExecuteRequest extends XhsAppExecuteRequest{
     /**
      * 任务uid
      */
-    private String uid;
+    private String creativeContentUid;
 }
