@@ -88,6 +88,61 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     private UserBenefitsStrategyMapper userBenefitsStrategyMapper;
 
     /**
+     * 校验当前用户能否使用当前权益
+     *
+     * @param code
+     * @param userId
+     * @return
+     */
+    @Override
+    public Boolean validateUserBenefitsByCode(String code, Long userId) {
+        // 根据 code 获取权益策略
+        UserBenefitsStrategyDO benefitsStrategy;
+        try {
+            benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(code);
+        } catch (RuntimeException e) {
+            log.error("[validateUserBenefitsByCode][权益码【{}】不存在：用户ID({})})]", code, userId);
+            return false;
+        }
+
+
+        if (benefitsStrategy.getLimitNum() != -1) {
+            // 查询条件-检验是否超过兑换限制
+            LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
+            wrapper.eq(UserBenefitsDO::getStrategyId, benefitsStrategy.getId());
+
+            if (benefitsStrategy.getLimitNum() <= userBenefitsMapper.selectCount(wrapper)) {
+                log.error("[addUserBenefitsByCode][权益超出兑换次数：用户ID({})｜权益码({})｜权益类型({})]", userId, code, benefitsStrategy.getStrategyType());
+                return false;
+            }
+        }
+        // 检测权益使用频率是否合法
+        if (benefitsStrategy.getLimitIntervalNum() > 0) {
+            if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
+                log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益码({})｜权益类型({})]", userId, code, benefitsStrategy.getStrategyType());
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 校验当前用户能否使用当前权益
+     *
+     * @param strategyType
+     * @param userId
+     * @return
+     */
+    @Override
+    public Boolean validateUserBenefitsByType(String strategyType, Long userId) {
+        // 根据 code 获取权益策略
+        UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getMasterConfigStrategyByType(strategyType);
+        return this.validateUserBenefitsByCode(benefitsStrategy.getCode(), userId);
+
+    }
+
+    /**
      * 新增用户权益
      *
      * @param code   权益 code
@@ -1097,7 +1152,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return true        可用 false 不可用
      */
     @Override
-    public UserBenefitsStrategyDO  validateDiscount(String productCode, String discountCode, Long userId) {
+    public UserBenefitsStrategyDO validateDiscount(String productCode, String discountCode, Long userId) {
         log.info("用户【{}】使用优惠码【{}】对应的的产品代码为【{}】", userId, discountCode, productCode);
         Assert.notBlank(productCode, "判断优惠码是否有效失败，产品代码不可以为空");
         Assert.notBlank(discountCode, "判断优惠码是否有效失败,优惠代码不可以为空");
@@ -1105,7 +1160,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserBenefitsStrategyDO benefitsStrategy;
         // 使用限制校验
         try {
-             benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
+            benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
             if (benefitsStrategy.getLimitNum() != -1) {
                 // 查询条件-检验是否超过兑换限制
                 LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
@@ -1156,17 +1211,17 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
         // 优惠码信息
-        BenefitsStrategyTypeEnums  discount = BenefitsStrategyTypeEnums.getByCode(userBenefitsStrategy.getStrategyType());
+        BenefitsStrategyTypeEnums discount = BenefitsStrategyTypeEnums.getByCode(userBenefitsStrategy.getStrategyType());
         Long discountPrice = 0L;
-        switch (discount.getDiscountTypeEnums()){
+        switch (discount.getDiscountTypeEnums()) {
             case DIRECT_DISCOUNT:
-                discountPrice= (long) (product.getPrice()-discount.getDiscountNums()*100);
+                discountPrice = (long) (product.getPrice() - discount.getDiscountNums() * 100);
                 break;
             case PERCENTAGE_DISCOUNT:
-                discountPrice= (long) (product.getPrice()*discount.getDiscountNums());
+                discountPrice = (long) (product.getPrice() * discount.getDiscountNums());
                 break;
         }
-        if (discountPrice<=0){
+        if (discountPrice <= 0) {
             log.error("优惠价格计算错误");
             discountPrice = Long.valueOf(product.getPrice());
         }

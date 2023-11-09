@@ -545,7 +545,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         }
 
         // 如果有折扣码 则判断折扣码的有效性
-        if (StrUtil.isNotBlank(discountCode)) {
+        if (StrUtil.isNotBlank(discountCode) && userBenefitsService.validateUserBenefitsByCode(discountCode, getLoginUserId())) {
 
             // 折扣码有效  则根据折扣码计算对应的价格
             UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsService.validateDiscount(productCode, discountCode, getLoginUserId());
