@@ -14,7 +14,7 @@
     <version>${starcloud.revision}</version>
 
     <properties>
-        <powerjob.version>4.0.1</powerjob.version>
+        <powerjob.version>4.1.0</powerjob.version>
     </properties>
 
     <dependencies>
