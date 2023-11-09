@@ -158,8 +158,16 @@ public class XhsServiceImpl implements XhsService {
                 response.setErrorMsg("执行结果内容不存在！请稍候重试或者联系管理员！");
                 return response;
             }
+            String answer = actionResult.getAnswer();
+            String[] split = answer.split("\n\n\n");
+            if (split.length != 2) {
+                response.setErrorCode("350400207");
+                response.setErrorMsg("执行结果内容不正确！请稍候重试或者联系管理员！");
+                return response;
+            }
             response.setSuccess(Boolean.TRUE);
-            response.setText(actionResult.getAnswer());
+            response.setTitle(split[0]);
+            response.setText(split[1]);
             return response;
         } catch (ServiceException exception) {
             response.setErrorCode(exception.getCode().toString());
@@ -214,6 +222,7 @@ public class XhsServiceImpl implements XhsService {
             response.setSuccess(appExecuteResponse.getSuccess());
             response.setErrorCode(appExecuteResponse.getErrorCode());
             response.setErrorMsg(appExecuteResponse.getErrorMsg());
+            response.setTitle(appExecuteResponse.getTitle());
             response.setText(appExecuteResponse.getText());
             appResponses.add(response);
         }
