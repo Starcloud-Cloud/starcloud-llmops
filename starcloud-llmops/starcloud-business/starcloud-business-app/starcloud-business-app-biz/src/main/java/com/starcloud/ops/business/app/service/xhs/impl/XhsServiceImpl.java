@@ -103,7 +103,7 @@ public class XhsServiceImpl implements XhsService {
                 .map(steps -> steps.get(0)).map(WorkflowStepWrapperRespVO::getVariable)
                 .map(VariableRespVO::getVariables)
                 .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(310900100, "系统步骤不能为空")));
-
+        variableList = variableList.stream().filter(VariableItemRespVO::getIsShow).collect(Collectors.toList());
         XhsAppResponse response = new XhsAppResponse();
         response.setUid(appMarket.getUid());
         response.setName(appMarket.getName());
@@ -136,6 +136,11 @@ public class XhsServiceImpl implements XhsService {
             }
             // 获取应用
             AppMarketRespVO appMarket = appMarketService.get(request.getUid());
+            if (request.getNeedTag()) {
+                Map<String, Object> params = request.getParams();
+                params.put("NEED_TAG", true);
+                request.setParams(params);
+            }
             AppExecuteRespVO executeResponse = appService.execute(buildExecuteRequest(appMarket, request));
             if (!executeResponse.getSuccess()) {
                 response.setErrorCode(executeResponse.getResultCode());
@@ -158,16 +163,18 @@ public class XhsServiceImpl implements XhsService {
                 response.setErrorMsg("执行结果内容不存在！请稍候重试或者联系管理员！");
                 return response;
             }
-            String answer = actionResult.getAnswer();
-            String[] split = answer.split("\n\n\n");
-            if (split.length != 2) {
-                response.setErrorCode("350400207");
-                response.setErrorMsg("执行结果内容不正确！请稍候重试或者联系管理员！");
-                return response;
-            }
+
             response.setSuccess(Boolean.TRUE);
-            response.setTitle(split[0]);
-            response.setText(split[1]);
+            String answer = actionResult.getAnswer();
+            if (request.getNeedTag()) {
+                String title = answer.substring(answer.indexOf("<TITLE_START>") + 1, answer.indexOf("<TITLE_END>"));
+                String text = answer.substring(answer.indexOf("<TEXT_START>") + 1, answer.indexOf("<TEXT_END>"));
+                response.setTitle(title);
+                response.setText(text);
+            } else {
+                response.setTitle(answer);
+            }
+
             return response;
         } catch (ServiceException exception) {
             response.setErrorCode(exception.getCode().toString());
@@ -216,6 +223,7 @@ public class XhsServiceImpl implements XhsService {
         List<XhsAppCreativeExecuteResponse> appResponses = new ArrayList<>();
         for (XhsAppCreativeExecuteRequest request : requests) {
             XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+            request.setNeedTag(Boolean.TRUE);
             XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
             response.setUid(request.getUid());
             response.setCreativeContentUid(request.getCreativeContentUid());

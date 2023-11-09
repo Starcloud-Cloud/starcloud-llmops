@@ -121,6 +121,7 @@ public class AppMarketEntity extends AppEntity {
         if (appExecuteResponse != null) {
             AppOperateReqVO appOperateRequest = new AppOperateReqVO();
             appOperateRequest.setAppUid(this.getUid());
+            appOperateRequest.setTenantId(this.getTenantId());
             appOperateRequest.setUserId(Long.toString(request.getUserId()));
             appOperateRequest.setOperate(AppOperateTypeEnum.USAGE.name());
             appMarketService.operate(appOperateRequest);

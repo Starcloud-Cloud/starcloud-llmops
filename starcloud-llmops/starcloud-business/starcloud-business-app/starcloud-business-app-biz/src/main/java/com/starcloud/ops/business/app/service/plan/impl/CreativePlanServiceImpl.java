@@ -114,6 +114,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     .map(steps -> steps.get(0)).map(WorkflowStepWrapperRespVO::getVariable)
                     .map(VariableRespVO::getVariables)
                     .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(310900100, "系统步骤不能为空")));
+            variableList = variableList.stream().filter(VariableItemRespVO::getIsShow).collect(Collectors.toList());
             XhsAppResponse response = new XhsAppResponse();
             response.setUid(item.getUid());
             response.setName(item.getName());
