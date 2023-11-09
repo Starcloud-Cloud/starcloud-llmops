@@ -50,6 +50,12 @@ public class XhsAppExecuteRequest implements java.io.Serializable {
     private String scene;
 
     /**
+     * 用户ID
+     */
+    @Schema(description = "用户ID")
+    private Long userId;
+
+    /**
      * 应用生成参数
      */
     @Schema(description = "应用生成参数")

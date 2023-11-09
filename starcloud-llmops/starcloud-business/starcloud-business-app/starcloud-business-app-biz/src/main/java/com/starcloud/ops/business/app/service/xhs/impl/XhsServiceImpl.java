@@ -42,11 +42,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_CONFIG_FAILURE;
@@ -205,24 +205,17 @@ public class XhsServiceImpl implements XhsService {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
         }
         // 应用任务集合
-        List<CompletableFuture<XhsAppCreativeExecuteResponse>> appFutures = Lists.newArrayList();
+        List<XhsAppCreativeExecuteResponse> appResponses = new ArrayList<>();
         for (XhsAppCreativeExecuteRequest request : requests) {
-            appFutures.add(CompletableFuture.supplyAsync(() -> {
-                XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
-                XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
-                response.setUid(request.getUid());
-                response.setCreativeContentUid(request.getCreativeContentUid());
-                response.setSuccess(appExecuteResponse.getSuccess());
-                response.setErrorCode(appExecuteResponse.getErrorCode());
-                response.setErrorMsg(appExecuteResponse.getErrorMsg());
-                response.setText(appExecuteResponse.getText());
-                return response;
-            }));
-        }
-        CompletableFuture.allOf(appFutures.toArray(new CompletableFuture[0])).join();
-        List<XhsAppCreativeExecuteResponse> appResponses = Lists.newArrayList();
-        for (CompletableFuture<XhsAppCreativeExecuteResponse> appFuture : appFutures) {
-            appResponses.add(appFuture.join());
+            XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+            XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
+            response.setUid(request.getUid());
+            response.setCreativeContentUid(request.getCreativeContentUid());
+            response.setSuccess(appExecuteResponse.getSuccess());
+            response.setErrorCode(appExecuteResponse.getErrorCode());
+            response.setErrorMsg(appExecuteResponse.getErrorMsg());
+            response.setText(appExecuteResponse.getText());
+            appResponses.add(response);
         }
         return appResponses;
     }
@@ -348,6 +341,7 @@ public class XhsServiceImpl implements XhsService {
         if (Objects.nonNull(request.getSseEmitter())) {
             executeRequest.setSseEmitter(request.getSseEmitter());
         }
+        executeRequest.setUserId(request.getUserId());
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());
         executeRequest.setAppUid(app.getUid());
