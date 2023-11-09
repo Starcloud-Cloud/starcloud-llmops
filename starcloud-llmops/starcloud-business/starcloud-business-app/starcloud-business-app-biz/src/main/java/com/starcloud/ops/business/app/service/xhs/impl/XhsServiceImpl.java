@@ -211,7 +211,7 @@ public class XhsServiceImpl implements XhsService {
                 XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
                 XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
                 response.setUid(request.getUid());
-                response.setCreativeContentUid(response.getCreativeContentUid());
+                response.setCreativeContentUid(request.getCreativeContentUid());
                 response.setSuccess(appExecuteResponse.getSuccess());
                 response.setErrorCode(appExecuteResponse.getErrorCode());
                 response.setErrorMsg(appExecuteResponse.getErrorMsg());
