@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -545,11 +546,13 @@ public class PayOrderServiceImpl implements PayOrderService {
         if (StrUtil.isNotBlank(discountCode)) {
 
             // 折扣码有效  则根据折扣码计算对应的价格
-            if (userBenefitsService.validateDiscount(productCode, discountCode, getLoginUserId())) {
+            UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsService.validateDiscount(productCode, discountCode, getLoginUserId());
+            if (ObjectUtil.isNotNull(userBenefitsStrategyDO)) {
                 Long discountPrice = userBenefitsService.calculateDiscountPrice(productCode, discountCode);
 
                 appPayProductDiscountRespVO.setDiscountAmount(appPayProductDiscountRespVO.getOriginalAmount() - discountPrice);
                 appPayProductDiscountRespVO.setDiscountedAmount(discountPrice);
+                appPayProductDiscountRespVO.setDiscountCouponName(userBenefitsStrategyDO.getStrategyName());
 
                 appPayProductDiscountRespVO.setDiscountCouponStatus(true);
 
@@ -569,7 +572,8 @@ public class PayOrderServiceImpl implements PayOrderService {
      */
     @Override
     public Long getDiscountOrderPrice(String productCode, String discountCode) {
-        if (userBenefitsService.validateDiscount(productCode, discountCode, getLoginUserId())) {
+        UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsService.validateDiscount(productCode, discountCode, getLoginUserId());
+        if (ObjectUtil.isNotNull(userBenefitsStrategyDO)) {
             return userBenefitsService.calculateDiscountPrice(productCode, discountCode);
         }
         throw exception(PAY_ORDER_ERROR_SUBMIT_DISCOUNT_ERROR);
@@ -753,11 +757,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         Long aLong = orderMapper.selectCount(wrapper);
 
         // 判断创建时间是否在days天内
-        if (aLong <= 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return aLong <= 0;
 
     }
 
@@ -780,11 +780,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         LocalDateTime fourteenDaysLater = nowTime.plusDays(days);
 
         // 判断创建时间是否在days天内
-        if (registeredTime.isBefore(fourteenDaysLater)) {
-            return true;
-        } else {
-            return false;
-        }
+        return registeredTime.isBefore(fourteenDaysLater);
 
     }
 }

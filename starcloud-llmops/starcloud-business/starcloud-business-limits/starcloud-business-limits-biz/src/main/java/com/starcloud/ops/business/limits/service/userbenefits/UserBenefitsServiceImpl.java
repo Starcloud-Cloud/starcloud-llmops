@@ -1097,7 +1097,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return true        可用 false 不可用
      */
     @Override
-    public Boolean validateDiscount(String productCode, String discountCode, Long userId) {
+    public UserBenefitsStrategyDO  validateDiscount(String productCode, String discountCode, Long userId) {
         log.info("用户【{}】使用优惠码【{}】对应的的产品代码为【{}】", userId, discountCode, productCode);
         Assert.notBlank(productCode, "判断优惠码是否有效失败，产品代码不可以为空");
         Assert.notBlank(discountCode, "判断优惠码是否有效失败,优惠代码不可以为空");
@@ -1125,7 +1125,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             }
         } catch (RuntimeException e) {
             log.warn("用户【{}】无法使用优惠码【{}】对应的的产品代码为【{}】，当前优惠码超过使用限制", userId, discountCode, productCode);
-            return false;
+            return null;
         }
 
         BenefitsStrategyTypeEnums discountCodeEnums = BenefitsStrategyTypeEnums.getByCode(benefitsStrategy.getStrategyType());
@@ -1137,9 +1137,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 .findFirst();
 
         if (!anyMatchResult.isPresent()) {
-            return false;
+            return null;
         }
-        return true;
+        return benefitsStrategy;
     }
 
     /**

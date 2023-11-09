@@ -28,4 +28,7 @@ public class AppPayProductDiscountRespVO {
     @Schema(description = "折扣券状态")
     private Boolean discountCouponStatus;
 
+    @Schema(description = "折扣券状态")
+    private String discountCouponName;
+
 }

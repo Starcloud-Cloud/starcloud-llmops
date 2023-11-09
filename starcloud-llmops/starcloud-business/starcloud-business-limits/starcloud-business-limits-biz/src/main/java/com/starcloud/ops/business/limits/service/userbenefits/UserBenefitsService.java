@@ -3,6 +3,7 @@ package com.starcloud.ops.business.limits.service.userbenefits;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.*;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 
 import java.util.List;
 
@@ -141,7 +142,7 @@ public interface UserBenefitsService {
      * @param userId       用户 ID
      * @return true        可用 false 不可用
      */
-    Boolean validateDiscount(String productCode, String discountCode, Long userId);
+    UserBenefitsStrategyDO validateDiscount(String productCode, String discountCode, Long userId);
 
 
     /**
