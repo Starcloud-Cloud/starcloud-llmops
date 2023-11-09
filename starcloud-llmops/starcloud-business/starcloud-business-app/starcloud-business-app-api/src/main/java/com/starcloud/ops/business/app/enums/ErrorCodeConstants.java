@@ -503,6 +503,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode CREATIVE_PLAN_STATUS_NOT_SUPPORTED = new ErrorCode(350100126, "创作计划状态不支持（{}）！请稍后重试或者联系管理员！");
 
+    /**
+     * 创作计划名称已存在
+     */
+    ErrorCode CREATIVE_PLAN_NAME_EXIST = new ErrorCode(350100127, "创作计划名称已存在，请重新输入！");
+
     // ========== 图片上传错误码 370 000 xxx ==========
 
     /**
