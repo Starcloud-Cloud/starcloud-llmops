@@ -60,7 +60,7 @@ public class XhsCreativeExectueManager {
             String key = "xhs-content-" + contentDO.getUid();
             RLock lock = redissonClient.getLock(key);
             try {
-                if (!lock.tryLock(0L, 60L, TimeUnit.SECONDS)) {
+                if (lock != null && !lock.tryLock(0L, 60L, TimeUnit.SECONDS)) {
                     log.warn("图片正在执行中，重复调用 {}", contentDO.getId());
                     result.put(contentDO.getId(), false);
                     continue;
@@ -116,7 +116,9 @@ public class XhsCreativeExectueManager {
                 result.put(contentDO.getId(), false);
                 updateDO(contentDO, e.getMessage(), contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_ERROR);
             } finally {
-                lock.unlock();
+                if (lock != null) {
+                    lock.unlock();
+                }
             }
         }
         return result;
