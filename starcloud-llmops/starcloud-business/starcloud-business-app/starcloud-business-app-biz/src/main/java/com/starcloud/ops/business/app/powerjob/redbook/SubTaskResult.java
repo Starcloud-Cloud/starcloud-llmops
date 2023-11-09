@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.powerjob.redbook;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskResult;
 import lombok.*;
 
-@Builder
 @Data
 @ToString
 public class SubTaskResult extends BaseTaskResult {

@@ -50,6 +50,9 @@ public class XhsCreativeExectueManager {
 
     public Map<Long, Boolean> executeCopyWriting(List<XhsCreativeContentDO> xhsCreativeContentDO, Boolean force) {
         Map<Long, Boolean> result = new HashMap<>(xhsCreativeContentDO.size());
+        // 排序 id 加锁
+
+
 
         return result;
     }
