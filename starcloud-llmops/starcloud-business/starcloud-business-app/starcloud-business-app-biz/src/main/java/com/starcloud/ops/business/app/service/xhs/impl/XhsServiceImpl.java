@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -204,9 +205,14 @@ public class XhsServiceImpl implements XhsService {
         if (CollectionUtil.isEmpty(requests)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
         }
+        // 应用应用uid去重，去除重复的应用。此场景约定为 同一个应用的执行参数是相同的。
+        Map<String, List<XhsAppCreativeExecuteRequest>> groupRequestMap = requests.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getUid));
+        List<XhsAppCreativeExecuteRequest> groupRequests = new ArrayList<>();
+        groupRequestMap.forEach((key, value) -> groupRequests.add(value.get(0)));
+
         // 应用任务集合
         List<CompletableFuture<XhsAppCreativeExecuteResponse>> appFutures = Lists.newArrayList();
-        for (XhsAppCreativeExecuteRequest request : requests) {
+        for (XhsAppCreativeExecuteRequest request : groupRequests) {
             appFutures.add(CompletableFuture.supplyAsync(() -> {
                 XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
                 XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
@@ -395,7 +401,13 @@ public class XhsServiceImpl implements XhsService {
                 variableItem.setValue(appParams.get(variableItem.getField()));
                 variableItem.setDefaultValue(appParams.get(variableItem.getField()));
             } else {
-                variableItem.setValue(null);
+                Object value = variableItem.getValue();
+                if (Objects.isNull(value)) {
+                    if (Objects.nonNull(variableItem.getDefaultValue())) {
+                        value = variableItem.getDefaultValue();
+                    }
+                }
+                variableItem.setValue(value);
             }
             fillVariables.add(variableItem);
         }

@@ -211,6 +211,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         copyPlan.setName(plan.getName() + "-Copy");
         copyPlan.setType(plan.getType());
         copyPlan.setConfig(plan.getConfig());
+        copyPlan.setRandomType(plan.getRandomType());
         copyPlan.setTotal(plan.getTotal());
         copyPlan.setStatus(CreativePlanStatusEnum.PENDING.name());
         copyPlan.setStartTime(null);
