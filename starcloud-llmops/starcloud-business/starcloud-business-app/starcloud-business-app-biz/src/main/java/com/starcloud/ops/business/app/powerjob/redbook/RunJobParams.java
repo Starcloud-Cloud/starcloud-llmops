@@ -27,4 +27,9 @@ public class RunJobParams {
      * 是否只执行重试任务
      */
     private Boolean retryProcess;
+
+    /**
+     * 子任务数量
+     */
+    private Integer subSize;
 }

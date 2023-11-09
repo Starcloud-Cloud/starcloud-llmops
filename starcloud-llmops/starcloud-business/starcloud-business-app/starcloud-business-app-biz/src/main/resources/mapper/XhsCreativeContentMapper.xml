@@ -9,7 +9,7 @@
         text.start_time as copyWritingStartTime, text.end_time as copyWritingEndTime, text.execute_time as copyWritingExecuteTime,
         text.copy_writing_title as copyWritingTitle,text.copy_writing_content as copyWritingContent, pic.picture_num as pictureNum,
         pic.picture_content as pictureContent, pic.error_msg as pictureErrorMsg, text.error_msg as copyWritingErrorMsg,
-        pic.retry_count as pictureRetryCount, text.retry_count as copyWritingRetryCount,
+        pic.retry_count as pictureRetryCount, text.retry_count as copyWritingRetryCount,text.copy_writing_count
         pic.extend as pictureExtend, text.extend as copyWritingExtend,pic.claim as claim
     </sql>
 
@@ -41,32 +41,34 @@
         select
         <include refid="page_column"/>
         FROM
-        llm_creative_content
-        where business_uid = #{businessUid}
+        llm_creative_content pic
+        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+        WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        and pic.business_uid = #{businessUid} and text.business_uid = #{businessUid}
     </select>
 
     <select id="jobQuery" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO">
         SELECT a.* FROM
         llm_creative_content a
         INNER JOIN llm_creative_plan b on a.plan_uid = b.uid
-        WHERE a.retry_count &lt; 3
-        <if test="req.executeStatus != null and req.executeStatus != ''">
-            and a.status = #{req.executeStatus}
-        </if>
+        WHERE a.retry_count &lt; 3  and b.status in ('PENDING','CANCELED','FAILURE')
         <if test="req.planUid != null and req.planUid != ''">
             and a.plan_uid = #{req.planUid}
         </if>
         <if test="req.type != null and req.type != ''">
             and a.type = #{req.type}
         </if>
-
-        <if test="reqVO.retryProcess != null and reqVO.retryProcess == true">
-            and a.retry_count &gt;= 1
-        </if>
-        <if test="req.planUid != null and req.planUid != ''">
-            and b.status = #{req.planUid}
-        </if>
+        <choose>
+            <when test="req.retryProcess != null and req.retryProcess == true">
+                and a.retry_count &gt;= 1  and a.status = 'execute_error'
+            </when>
+            <otherwise>
+                and a.status = 'init'
+            </otherwise>
+        </choose>
         ORDER BY a.update_time ASC
-        LIMIT #{bathCount}
+        <if test="req.bathCount != null and req.bathCount > 0">
+            LIMIT #{req.bathCount}
+        </if>
     </select>
 </mapper>

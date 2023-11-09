@@ -47,9 +47,15 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
                 .eq(XhsCreativeContentDO::getBusinessUid, businessUid)
                 .eq(XhsCreativeContentDO::getType, type)
                 .orderByDesc(XhsCreativeContentDO::getCreateTime)
-                .last(" limit 1")
-                ;
+                .last(" limit 1");
         return selectOne(wrapper);
+    }
+
+
+    default int delete(String businessUid) {
+        LambdaQueryWrapper<XhsCreativeContentDO> wrapper = Wrappers.lambdaQuery(XhsCreativeContentDO.class)
+                .eq(XhsCreativeContentDO::getBusinessUid, businessUid);
+        return delete(wrapper);
     }
 
     Long selectCount(@Param("req") XhsCreativeContentPageReq req);

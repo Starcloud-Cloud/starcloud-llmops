@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.vo.response;
 
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExtendDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativePictureContentDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -67,11 +68,14 @@ public class XhsCreativeContentResp {
     @Schema(description = "文案内容")
     private String copyWritingContent;
 
+    @Schema(description = "文案文字数量")
+    private String copyWritingCount;
+
     @Schema(description = "生成图片数量")
     private Integer pictureNum;
 
     @Schema(description = "生成图片结果")
-    private List<String> pictureContent;
+    private List<XhsCreativePictureContentDTO> pictureContent;
 
     @Schema(description = "图片失败信息")
     private String pictureErrorMsg;

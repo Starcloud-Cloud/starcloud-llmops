@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.vo.request;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Data
 public class XhsCreativeQueryReq {
@@ -12,7 +14,6 @@ public class XhsCreativeQueryReq {
     /**
      * 执行任务类型 picture/copy_writing
      */
-    @NotBlank
     private String type;
 
     /**
@@ -25,17 +26,13 @@ public class XhsCreativeQueryReq {
      */
     private Boolean retryProcess;
 
-    /**
-     * 执行状态  init  execute_error
-     */
-    @NotBlank
-    private String executeStatus;
-
-    /**
-     * 执行计划状态
-     */
-    @NotBlank
-    private String planStatus;
 
 
+
+    public Boolean valid() {
+        if (StringUtils.isBlank(type)) {
+            return false;
+        }
+        return true;
+    }
 }
