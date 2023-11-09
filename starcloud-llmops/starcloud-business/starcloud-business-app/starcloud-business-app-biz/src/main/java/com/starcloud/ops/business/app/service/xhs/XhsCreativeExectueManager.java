@@ -6,7 +6,6 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
@@ -26,10 +25,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -82,7 +78,7 @@ public class XhsCreativeExectueManager {
                 if (executeParams == null) {
                     continue;
                 }
-                executeRequest.setUid(contentDO.getUid());
+                executeRequest.setCreativeContentUid(contentDO.getUid());
                 BeanUtil.copyProperties(executeParams.getAppExecuteRequest(), executeRequest);
                 requests.add(executeRequest);
             }
@@ -173,15 +169,8 @@ public class XhsCreativeExectueManager {
                 contentDO.setEndTime(end);
                 contentDO.setPictureNum(pictureContent.size());
                 Long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
-
                 contentDO.setExecuteTime(executeTime);
-                contentDO.setErrorMsg(StringUtils.EMPTY);
-                contentDO.setRetryCount(contentDO.getRetryCount() + 1);
-                contentDO.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
-                contentDO.setPictureNum(resp.size());
-                contentDO.setPictureContent(JSONUtil.toJsonStr(resp));
-                creativeContentMapper.updateById(contentDO);
-
+                updateDO(contentDO, StringUtils.EMPTY, contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
                 result.put(contentDO.getId(), true);
                 log.info("图片执行成功： {} ms", executeTime);
             } catch (Exception e) {
