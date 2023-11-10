@@ -18,7 +18,7 @@ import com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
-import com.starcloud.ops.business.app.service.xhs.XhsCreativeExectueManager;
+import com.starcloud.ops.business.app.service.xhs.XlsCreativeExecuteManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -42,7 +42,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     private XhsCreativeContentMapper creativeContentMapper;
 
     @Resource
-    private XhsCreativeExectueManager xhsCreativeExectueManager;
+    private XlsCreativeExecuteManager xlsCreativeExecuteManager;
 
 
     @Resource
@@ -75,9 +75,9 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
                 return Collections.emptyMap();
             }
             if (XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equals(type)) {
-                return xhsCreativeExectueManager.executeCopyWriting(contentList, force);
+                return xlsCreativeExecuteManager.executeCopyWriting(contentList, force);
             } else if (XhsCreativeContentTypeEnums.PICTURE.getCode().equals(type)) {
-                return xhsCreativeExectueManager.executePicture(contentList, force);
+                return xlsCreativeExecuteManager.executePicture(contentList, force);
             } else {
                 log.error("不支持的任务类型 {}", type);
             }
@@ -104,7 +104,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
 
         if (XhsCreativeContentStatusEnums.INIT.getCode().equals(picDO.getStatus())
                 || XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(picDO.getStatus())) {
-            Map<Long, Boolean> picMap = xhsCreativeExectueManager.executePicture(Collections.singletonList(picDO), false);
+            Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), false);
             if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
                 throw exception(EXECTURE_ERROR, "图片");
             }
@@ -112,9 +112,9 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
 
         if (XhsCreativeContentStatusEnums.INIT.getCode().equals(textDO.getStatus())
                 || XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(textDO.getStatus())) {
-            Map<Long, Boolean> textMap = xhsCreativeExectueManager.executeCopyWriting(Collections.singletonList(textDO), false);
+            Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), false);
             if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
-                throw exception(EXECTURE_ERROR, "文案");
+                throw exception(EXECTURE_ERROR, "文案", textDO.getId());
             }
         }
         return detail(businessUid);

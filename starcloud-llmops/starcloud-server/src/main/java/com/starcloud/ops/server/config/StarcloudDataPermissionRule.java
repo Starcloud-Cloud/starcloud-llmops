@@ -39,6 +39,7 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "listing_dict",
             "listing_draft",
             "listing_keyword_bind",
+            "llm_creative_plan",
             "llm_creative_content"
     );
 

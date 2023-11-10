@@ -10,7 +10,7 @@
         a.`type`,
         COUNT(CASE WHEN b.status = "execute_error" THEN 1 END) AS failureCount,
         COUNT(CASE WHEN b.status = "execute_success" THEN 1 END) AS successCount,
-        a.`total`,
+        COUNT(b.id) AS total,
         a.`status`,
         a.`start_time`,
         a.`end_time`,
@@ -30,6 +30,7 @@
         FROM llm_creative_plan a
         LEFT JOIN llm_creative_content b ON a.`uid` = b.`plan_uid`
         WHERE a.`uid` = #{uid}
+        AND a.`deleted` = 0
         GROUP BY a.`id`
         ORDER BY a.`id` DESC
     </select>
@@ -51,6 +52,7 @@
             <if test="query.status!= null and query.status!= '' ">
                 AND a.`status` = #{query.status}
             </if>
+            AND a.`deleted` = 0
         </where>
         GROUP BY a.`id`
         ORDER BY a.`id` DESC

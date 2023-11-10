@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.dal.mysql.plan;
 
-import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanPageQuery;
@@ -16,7 +16,7 @@ import org.apache.ibatis.annotations.Param;
  * @since 2023-11-07
  */
 @Mapper
-public interface CreativePlanMapper extends BaseMapperX<CreativePlanDO> {
+public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
 
     /**
      * 根据uid查询

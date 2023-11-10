@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class XhsCreativeExectueManager {
+public class XlsCreativeExecuteManager {
 
     @Resource
     private RedissonClient redissonClient;
@@ -113,7 +113,7 @@ public class XhsCreativeExectueManager {
                 updateDO(contentDO, StringUtils.EMPTY, contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
                 result.put(contentDO.getId(), true);
             }
-            log.info("文案执行成功： {} ms", executeTime);
+            log.info("文案执行结束： {} ms", executeTime);
         } catch (Exception e) {
             log.error("文案生成异常", e);
         } finally {

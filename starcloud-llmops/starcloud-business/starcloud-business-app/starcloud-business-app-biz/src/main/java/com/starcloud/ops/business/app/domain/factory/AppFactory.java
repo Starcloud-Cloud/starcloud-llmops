@@ -198,6 +198,7 @@ public class AppFactory {
         appEntity.setUid(appUid);
         appEntity.setCreator(create);
         appEntity.setUpdater(update);
+        appEntity.setTenantId(app.getTenantId());
         return appEntity;
     }
 

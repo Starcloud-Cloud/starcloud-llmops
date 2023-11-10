@@ -54,6 +54,7 @@
         llm_creative_content a
         INNER JOIN llm_creative_plan b on a.plan_uid = b.uid
         WHERE a.retry_count &lt; 3  and b.status in ('RUNNING','FAILURE')
+        and a.deleted = false and b.deleted = false
         <if test="req.planUid != null and req.planUid != ''">
             and a.plan_uid = #{req.planUid}
         </if>

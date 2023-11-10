@@ -208,7 +208,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     public void copy(UidRequest request) {
         AppValidate.notBlank(request.getUid(), ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST);
+        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, request.getUid());
 
         CreativePlanDO copyPlan = new CreativePlanDO();
         copyPlan.setUid(IdUtil.fastSimpleUUID());
@@ -240,7 +240,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notBlank(request.getUid(), ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         handlerAndValidate(request);
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST);
+        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, request.getUid());
         if (!CreativePlanStatusEnum.PENDING.name().equals(plan.getStatus())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_STATUS_NOT_SUPPORT_MODIFY);
         }
@@ -268,7 +268,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         CreativePlanDO plan = creativePlanMapper.get(uid);
-        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST);
+        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, uid);
 
         // 更新
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
@@ -288,7 +288,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     public void delete(String uid) {
         AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         CreativePlanDO plan = creativePlanMapper.get(uid);
-        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST);
+        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, uid);
         // 删除创作计划
         creativePlanMapper.deleteById(plan.getId());
         // 删除创作计划下的创作内容
@@ -306,7 +306,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         CreativePlanRespVO plan = this.get(uid);
         CreativePlanConfigDTO config = plan.getConfig();
-        AppValidate.notNull(config, ErrorCodeConstants.CREATIVE_PLAN_CONFIG_NOT_NULL);
+        AppValidate.notNull(config, ErrorCodeConstants.CREATIVE_PLAN_CONFIG_NOT_NULL, uid);
 
         // 图片素材列表
         List<String> imageUrlList = config.getImageUrlList();
