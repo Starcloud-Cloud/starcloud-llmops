@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class XhsCreativeExectueManager {
+public class XlsCreativeExecuteManager {
 
     @Resource
     private RedissonClient redissonClient;
