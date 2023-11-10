@@ -167,8 +167,8 @@ public class XhsServiceImpl implements XhsService {
             response.setSuccess(Boolean.TRUE);
             String answer = actionResult.getAnswer();
             if (request.getNeedTag()) {
-                String title = answer.substring(answer.indexOf("<TITLE_START>") + 1, answer.indexOf("<TITLE_END>"));
-                String text = answer.substring(answer.indexOf("<TEXT_START>") + 1, answer.indexOf("<TEXT_END>"));
+                String title = answer.substring(answer.indexOf("<TITLE_START>") + 13, answer.indexOf("<TITLE_END>"));
+                String text = answer.substring(answer.indexOf("<TEXT_START>") + 12, answer.indexOf("<TEXT_END>"));
                 response.setTitle(title);
                 response.setText(text);
             } else {
