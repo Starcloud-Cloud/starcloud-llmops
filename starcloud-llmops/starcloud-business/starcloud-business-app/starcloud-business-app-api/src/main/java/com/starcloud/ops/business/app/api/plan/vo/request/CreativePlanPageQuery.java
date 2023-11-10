@@ -22,6 +22,12 @@ public class CreativePlanPageQuery extends PageQuery {
     private static final long serialVersionUID = 2680070754414480259L;
 
     /**
+     * 创作计划uid
+     */
+    @Schema(description = "创作计划uid")
+    private String uid;
+
+    /**
      * 创作计划名称
      */
     @Schema(description = "创作计划名称")
