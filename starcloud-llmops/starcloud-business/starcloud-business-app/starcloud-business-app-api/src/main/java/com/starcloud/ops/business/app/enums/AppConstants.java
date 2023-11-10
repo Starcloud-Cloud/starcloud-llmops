@@ -45,6 +45,16 @@ public interface AppConstants {
     String APP_LIMIT_USER_WHITE_LIST = "STAR_CLOUD_LLM_APP_LIMIT_USER_WHITE_LIST";
 
     /**
+     * 小红书图片模板
+     */
+    String APP_LIMIT_XHS_IMAGE_TEMPLATE_LIST = "STAR_CLOUD_LLM_APP_LIMIT_XHS_IMAGE_TEMPLATE_LIST";
+
+    /**
+     * 小红书图片风格
+     */
+    String APP_LIMIT_XHS_IMAGE_STYLE_LIST = "STAR_CLOUD_LLM_APP_LIMIT_XHS_IMAGE_STYLE_LIST";
+
+    /**
      * 应用市场应用默认图片
      */
     String APP_MARKET_DEFAULT_IMAGE = "https://download.hotsalecloud.com/mofaai/images/category/seo.jpg";

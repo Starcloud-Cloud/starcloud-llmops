@@ -16,6 +16,7 @@ import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.starcloud.ops.business.open.service.WechatService;
+import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
@@ -135,7 +136,12 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
                 String password = "mofaai123456";
                 String username = userName(wxMessage.getFromUser());
                 msg = String.format("您可以使用帐号密码登录，帐号是：%s  登录密码是：%s", username, password);
-                userId = starUserService.createNewUser(username, StringUtils.EMPTY, passwordEncoder.encode(password), 2L, CommonStatusEnum.ENABLE.getStatus());
+                UserDTO userDTO = UserDTO.builder().username(username)
+                        .email(StringUtils.EMPTY)
+                        .password(passwordEncoder.encode(password))
+                        .parentDeptId(2L)
+                        .userStatus(CommonStatusEnum.ENABLE.getStatus()).build();
+                userId = starUserService.createNewUser(userDTO);
             }
             SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
                     .userId(userId).userType(UserTypeEnum.ADMIN.getValue())

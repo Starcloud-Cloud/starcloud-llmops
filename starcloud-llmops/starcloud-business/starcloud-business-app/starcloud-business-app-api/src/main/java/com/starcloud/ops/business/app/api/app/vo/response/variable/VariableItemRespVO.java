@@ -2,6 +2,9 @@ package com.starcloud.ops.business.app.api.app.vo.response.variable;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -114,5 +117,49 @@ public class VariableItemRespVO implements Serializable {
         optionList.add(Option.of(label, value));
         this.options = optionList;
         return this;
+    }
+
+    /**
+     * 构建文本变量
+     *
+     * @param field 字段
+     * @return 变量
+     */
+    public static VariableItemRespVO ofTextVariable(String field, String label) {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(field);
+        variableItem.setLabel(label);
+        variableItem.setDescription(label);
+        variableItem.setDefaultValue(null);
+        variableItem.setValue(null);
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+    /**
+     * 构建图片变量
+     *
+     * @param field 字段
+     * @return 变量
+     */
+    public static VariableItemRespVO ofImageVariable(String field, String label) {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(field);
+        variableItem.setLabel(label);
+        variableItem.setDescription(label);
+        variableItem.setDefaultValue(null);
+        variableItem.setValue(null);
+        variableItem.setOrder(1);
+        variableItem.setType("IMAGE");
+        variableItem.setStyle("IMAGE");
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
     }
 }

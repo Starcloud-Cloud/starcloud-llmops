@@ -111,7 +111,7 @@ public class EmailServiceImpl implements CommunicationService {
     }
 
     @Override
-    public void codeRegister(CodeRegisterReqVO reqVO) {
-
+    public AuthLoginRespVO codeRegister(CodeRegisterReqVO reqVO) {
+        return null;
     }
 }

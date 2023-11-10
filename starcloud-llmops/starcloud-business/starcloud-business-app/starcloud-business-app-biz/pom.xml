@@ -13,7 +13,24 @@
     <artifactId>starcloud-business-app-biz</artifactId>
     <version>${starcloud.revision}</version>
 
+    <properties>
+        <powerjob.version>4.3.2</powerjob.version>
+    </properties>
+
     <dependencies>
+
+        <dependency>
+            <groupId>tech.powerjob</groupId>
+            <artifactId>powerjob-worker-spring-boot-starter</artifactId>
+            <version>${powerjob.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.13.5</version>
+        </dependency>
+
 
         <dependency>
             <groupId>cn.kstry.framework</groupId>
@@ -113,7 +130,11 @@
             <artifactId>pinyin4j</artifactId>
             <version>2.5.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>net.fastposter</groupId>
+            <artifactId>fastposter-client</artifactId>
+            <version>1.9.2</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>

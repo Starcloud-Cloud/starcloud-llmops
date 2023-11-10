@@ -2,7 +2,9 @@ package com.starcloud.ops.business.app.service.market;
 
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketOptionListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
@@ -23,12 +25,44 @@ import java.util.List;
 public interface AppMarketService {
 
     /**
-     * 分页查询应用市场列表
+     * 获取应用详情
+     *
+     * @param uid 应用 uid
+     * @return 应用详情
+     */
+    AppMarketRespVO get(String uid);
+
+    /**
+     * 获取应用详情
+     *
+     * @param query 查询条件
+     * @return 应用详情
+     */
+    AppMarketRespVO getOne(AppMarketQuery query);
+
+    /**
+     * 获取应用详情并且增加查看量增加
+     *
+     * @param uid 应用 UID
+     * @return 应用详情
+     */
+    AppMarketRespVO getAndIncreaseView(String uid);
+
+    /**
+     * 根据条件查询应用市场列表
      *
      * @param query 查询条件
      * @return 应用市场列表
      */
-    PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
+    List<AppMarketRespVO> list(AppMarketListQuery query);
+
+    /**
+     * 根据条件查询应用市场列表 Option
+     *
+     * @param query 查询条件
+     * @return 应用市场列表 Option
+     */
+    List<Option> listOption(AppMarketOptionListQuery query);
 
     /**
      * 根据分类Code查询应用市场列表
@@ -38,20 +72,12 @@ public interface AppMarketService {
     List<AppMarketGroupCategoryRespVO> listGroupByCategory(AppMarketListGroupByCategoryQuery query);
 
     /**
-     * 获取优化提示应用列表
+     * 分页查询应用市场列表
      *
      * @param query 查询条件
-     * @return 应用列表
+     * @return 应用市场列表
      */
-    List<Option> listMarketAppOption(AppMarketListQuery query);
-
-    /**
-     * 获取应用详情
-     *
-     * @param uid 应用 uid
-     * @return 应用详情
-     */
-    AppMarketRespVO get(String uid);
+    PageResp<AppMarketRespVO> page(AppMarketPageQuery query);
 
     /**
      * 创建应用市场的应用

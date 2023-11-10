@@ -21,7 +21,7 @@ public class CodeSendReqVO {
     private Integer scene;
 
 
-    @Schema(description = "发送工具，手机、email", example = "1")
+    @Schema(description = "发送工具，手机 2、email 1", example = "1")
     @NotNull(message = "发送工具不能为空")
     @InEnum(CommunicationToolsEnum.class)
     private Integer tool;

@@ -17,22 +17,22 @@ import java.util.List;
 public enum ProductEnum {
 
     AI_FREE("ai_free", "魔法ai-免费版", 0, "免费版", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.FREE, null, null),
+            UserLevelEnums.FREE, null, null, new BenefitsStrategyTypeEnums[]{}),
 
     AI_BASIC_MONTH("basic_month", "魔法ai-基础版-月付", 5900, "基础版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.BASIC, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_MONTH),
+            UserLevelEnums.BASIC, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_MONTH, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10}),
     AI_PLUS_MONTH("plus_month", "魔法ai-高级版-月付", 19900, "高级版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PLUS, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PLUS_MONTH),
+            UserLevelEnums.PLUS, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PLUS_MONTH, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10}),
     AI_PRO_MONTH("pro_month", "魔法ai-团队版-月付", 49900, "团队版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PRO, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PRO_MONTH),
+            UserLevelEnums.PRO, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PRO_MONTH, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10}),
 
 
     AI_BASIC_YEAR("basic_year", "魔法ai-基础版-年付", 59900, "基础版-年付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.BASIC, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_YEAR),
+            UserLevelEnums.BASIC, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_BASIC_YEAR, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_100}),
     AI_PLUS_YEAR("plus_year", "魔法ai-高级版-年付", 199900, "高级版-年付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PLUS, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_PLUS_YEAR),
+            UserLevelEnums.PLUS, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_PLUS_YEAR, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_100}),
     AI_PRO_YEAR("pro_year", "魔法ai-团队版-年付", 499900, "团队版-年付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PRO, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_PRO_YEAR),
+            UserLevelEnums.PRO, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_PRO_YEAR, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_100}),
     ;
 
 
@@ -75,6 +75,8 @@ public enum ProductEnum {
      */
     private final BenefitsStrategyTypeEnums benefitsStrategyTypeEnums;
 
+    private final BenefitsStrategyTypeEnums[] limitDiscount;
+
 
     public static ProductEnum getByCode(String code) {
         return ArrayUtil.firstMatch(o -> o.getCode().equals(code), values());
@@ -108,5 +110,14 @@ public enum ProductEnum {
         }
         throw new IllegalArgumentException("Invalid product code: " + code);
     }
+
+    public static BenefitsStrategyTypeEnums[] getLimitDiscountByCode(String code) {
+        ProductEnum product = getByCode(code);
+        if (product != null) {
+            return product.getLimitDiscount();
+        }
+        throw new IllegalArgumentException("Invalid product code: " + code);
+    }
+
 
 }

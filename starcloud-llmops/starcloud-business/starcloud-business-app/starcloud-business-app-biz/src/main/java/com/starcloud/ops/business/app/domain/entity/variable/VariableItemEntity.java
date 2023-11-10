@@ -121,8 +121,8 @@ public class VariableItemEntity {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.MAX_TOKENS_FORMAT_ERROR, value);
         }
 
-        // 1 <= maxTokens <= 5000
-        if (maxTokens < 1 || maxTokens > 5000) {
+        // 1 <= maxTokens <= 4000
+        if (maxTokens < 1 || maxTokens > 4000) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.MAX_TOKENS_OUT_OF_LIMIT, maxTokens);
         }
         return maxTokens;

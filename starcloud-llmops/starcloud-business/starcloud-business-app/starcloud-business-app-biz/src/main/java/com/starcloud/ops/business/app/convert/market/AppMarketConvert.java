@@ -200,6 +200,7 @@ public interface AppMarketConvert {
         appMarketEntity.setUpdateTime(appMarket.getUpdateTime());
         appMarketEntity.setAudit(appMarket.getAudit());
         appMarketEntity.setExample(appMarket.getExample());
+        appMarketEntity.setTenantId(appMarket.getTenantId());
         // 处理配置信息
         if (StringUtils.isNotBlank(appMarket.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
@@ -213,7 +214,21 @@ public interface AppMarketConvert {
         return appMarketEntity;
     }
 
+    /**
+     * 请求转为entity
+     *
+     * @param appRequest 请求
+     * @return entity
+     */
     AppMarketEntity convert(AppReqVO appRequest);
+
+    /**
+     * 将返回转换为 AppReqVO
+     *
+     * @param response
+     * @return AppReqVO
+     */
+    AppReqVO convert(AppMarketRespVO response);
 
     /**
      * AppMarketDO 转 AppMarketRespVO

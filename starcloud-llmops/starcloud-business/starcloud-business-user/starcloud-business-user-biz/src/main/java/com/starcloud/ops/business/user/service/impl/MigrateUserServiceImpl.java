@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
+import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.dto.WpUserDTO;
 import com.starcloud.ops.business.user.pojo.dto.MigrateResultDTO;
 import com.starcloud.ops.business.user.service.StarUserService;
@@ -45,7 +46,13 @@ public class MigrateUserServiceImpl implements MigrateUserService {
                 continue;
             }
             try {
-                starUserService.createNewUser(wpUserDTO.getUsername(), wpUserDTO.getEmail(), passwordEncoder.encode("abc123"),3L, CommonStatusEnum.ENABLE.getStatus());
+                UserDTO userDTO = UserDTO.builder().username(wpUserDTO.getUsername())
+                        .email(wpUserDTO.getEmail())
+                        .password(passwordEncoder.encode("abc123"))
+                        .parentDeptId(3L)
+                        .userStatus(CommonStatusEnum.ENABLE.getStatus()).build();
+
+                starUserService.createNewUser(userDTO);
                 migrateResults.add(resultDTO);
             } catch (Exception e) {
                 MigrateResultDTO migrateResultDTO = new MigrateResultDTO();

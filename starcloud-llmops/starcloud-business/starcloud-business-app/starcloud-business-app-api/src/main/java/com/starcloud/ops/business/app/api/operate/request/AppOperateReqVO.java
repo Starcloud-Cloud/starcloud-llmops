@@ -51,4 +51,7 @@ public class AppOperateReqVO implements Serializable {
     @Schema(description = "用户ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private String userId;
 
+
+    private Long tenantId;
+
 }

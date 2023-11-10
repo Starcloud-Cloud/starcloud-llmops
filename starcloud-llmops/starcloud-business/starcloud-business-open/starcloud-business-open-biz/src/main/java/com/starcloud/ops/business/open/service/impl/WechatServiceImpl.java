@@ -196,11 +196,7 @@ public class WechatServiceImpl implements WechatService {
                 }
             } catch (ServiceException e) {
                 log.warn("execute error:", e);
-                if (USER_BENEFITS_USELESS_INSUFFICIENT.getCode().intValue() == e.getCode()) {
-                    sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), "令牌不足，请联系管理员");
-                } else {
-                    sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), e.getMessage());
-                }
+                sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), e.getMessage());
             } catch (Exception e) {
                 log.error("chat error", e);
                 sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), "AI 异常请稍后重试！");

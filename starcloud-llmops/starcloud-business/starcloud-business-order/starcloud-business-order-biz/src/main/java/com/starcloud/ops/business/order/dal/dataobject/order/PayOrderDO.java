@@ -93,7 +93,10 @@ public class PayOrderDO extends BaseDO {
 //    private Map<String, String> merchantExtras;
 
     // ========== 订单相关字段 ==========
-
+    /**
+     *  优惠码 ID
+     */
+    private Long discountId;
     /**
      * 支付金额，单位：分
      */

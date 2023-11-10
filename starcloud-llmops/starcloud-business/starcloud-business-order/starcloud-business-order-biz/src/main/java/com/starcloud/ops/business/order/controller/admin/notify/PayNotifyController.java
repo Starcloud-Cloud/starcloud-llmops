@@ -92,6 +92,16 @@ public class PayNotifyController {
             orderService.notifyPayOrder(channelId, (PayOrderNotifyRespDTO) notify, rawNotify);
             return "success";
         }
+//        // 3.3：签约通知
+//        if (notify instanceof PayOrderNotifyRespDTO) {
+//            orderService.notifyPayOrder(channelId, (PayOrderNotifyRespDTO) notify, rawNotify);
+//            return "success";
+//        }
+//        // 3.2：取消签约通知
+//        if (notify instanceof PayOrderNotifyRespDTO) {
+//            orderService.notifyPayOrder(channelId, (PayOrderNotifyRespDTO) notify, rawNotify);
+//            return "success";
+//        }
         throw new UnsupportedOperationException("未知通知：" + toJsonString(notify));
     }
 

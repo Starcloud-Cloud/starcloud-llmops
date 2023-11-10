@@ -42,6 +42,7 @@ import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataObject.RegisterUserDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
+import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
@@ -165,7 +166,12 @@ public class StarUserServiceImpl implements StarUserService {
         Map<String, Object> map = new HashMap<>();
         map.put("activationUrl", activationUrl);
         // 创建未激活用户
-        Long userId = createNewUser(registerUserDO.getUsername(), registerUserDO.getEmail(), registerUserDO.getPassword(), 2L, CommonStatusEnum.DISABLE.getStatus());
+        UserDTO userDTO = UserDTO.builder().username(registerUserDO.getUsername())
+                .email(registerUserDO.getEmail())
+                .password(registerUserDO.getPassword())
+                .parentDeptId(2L)
+                .userStatus(CommonStatusEnum.DISABLE.getStatus()).build();
+        Long userId = createNewUser(userDTO);
         registerUserDO.setUserId(userId);
         mailSendService.sendSingleMail(request.getEmail(), 1L, UserTypeEnum.ADMIN.getValue(), "register_temp", map);
         int insert = registerUserMapper.insert(registerUserDO);
@@ -257,11 +263,11 @@ public class StarUserServiceImpl implements StarUserService {
     }
 
     @Override
-    public Long createNewUser(String username, String email, String password, Long parentDeptId, Integer userStatus) {
+    public Long createNewUser(UserDTO userDTO) {
         DeptDO deptDO = new DeptDO();
-        deptDO.setParentId(parentDeptId);
-        deptDO.setName(username + "_space");
-        deptDO.setEmail(email);
+        deptDO.setParentId(userDTO.getParentDeptId());
+        deptDO.setName(userDTO.getUsername() + "_space");
+        deptDO.setEmail(userDTO.getEmail());
         deptDO.setStatus(0);
         deptDO.setTenantId(tenantId);
         deptMapper.insert(deptDO);
@@ -269,12 +275,13 @@ public class StarUserServiceImpl implements StarUserService {
         Long deptId = deptDO.getId();
         AdminUserDO userDO = new AdminUserDO();
         userDO.setDeptId(deptId);
-        userDO.setUsername(username);
-        userDO.setEmail(email);
-        userDO.setStatus(userStatus);
-        userDO.setNickname(username);
-        userDO.setPassword(password);
+        userDO.setUsername(userDTO.getUsername());
+        userDO.setEmail(userDTO.getEmail());
+        userDO.setStatus(userDTO.getUserStatus());
+        userDO.setNickname(userDTO.getUsername());
+        userDO.setPassword(userDTO.getPassword());
         userDO.setTenantId(tenantId);
+        userDO.setMobile(userDTO.getMobile());
         adminUserMapper.insert(userDO);
 
         RoleDO roleDO = roleMapper.selectByCode(roleCode, tenantId);

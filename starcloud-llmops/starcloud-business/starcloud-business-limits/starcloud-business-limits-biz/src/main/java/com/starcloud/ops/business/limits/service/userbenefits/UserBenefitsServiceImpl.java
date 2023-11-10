@@ -41,10 +41,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -89,6 +86,61 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
     @Resource
     private UserBenefitsStrategyMapper userBenefitsStrategyMapper;
+
+    /**
+     * 校验当前用户能否使用当前权益
+     *
+     * @param code
+     * @param userId
+     * @return
+     */
+    @Override
+    public Boolean validateUserBenefitsByCode(String code, Long userId) {
+        // 根据 code 获取权益策略
+        UserBenefitsStrategyDO benefitsStrategy;
+        try {
+            benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(code);
+        } catch (RuntimeException e) {
+            log.error("[validateUserBenefitsByCode][权益码【{}】不存在：用户ID({})})]", code, userId);
+            return false;
+        }
+
+
+        if (benefitsStrategy.getLimitNum() != -1) {
+            // 查询条件-检验是否超过兑换限制
+            LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
+            wrapper.eq(UserBenefitsDO::getStrategyId, benefitsStrategy.getId());
+
+            if (benefitsStrategy.getLimitNum() <= userBenefitsMapper.selectCount(wrapper)) {
+                log.error("[addUserBenefitsByCode][权益超出兑换次数：用户ID({})｜权益码({})｜权益类型({})]", userId, code, benefitsStrategy.getStrategyType());
+                return false;
+            }
+        }
+        // 检测权益使用频率是否合法
+        if (benefitsStrategy.getLimitIntervalNum() > 0) {
+            if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
+                log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益码({})｜权益类型({})]", userId, code, benefitsStrategy.getStrategyType());
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 校验当前用户能否使用当前权益
+     *
+     * @param strategyType
+     * @param userId
+     * @return
+     */
+    @Override
+    public Boolean validateUserBenefitsByType(String strategyType, Long userId) {
+        // 根据 code 获取权益策略
+        UserBenefitsStrategyDO benefitsStrategy = userBenefitsStrategyService.getMasterConfigStrategyByType(strategyType);
+        return this.validateUserBenefitsByCode(benefitsStrategy.getCode(), userId);
+
+    }
 
     /**
      * 新增用户权益
@@ -937,8 +989,8 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         long sum = resultList.stream().mapToLong(UserBenefitsDO::getComputationalPowerRemaining).sum();
 
         tokenExpiredReminderVO.setName(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode());
-        tokenExpiredReminderVO.setIsReminder(sum > 20 ? false : true);
-        tokenExpiredReminderVO.setExpiredNum(sum > 20 ? 0 : sum);
+        tokenExpiredReminderVO.setIsReminder(sum > 10 ? false : true);
+        tokenExpiredReminderVO.setExpiredNum(sum > 10 ? 0 : sum);
         expiredReminderVO.setTokenExpiredReminderVO(tokenExpiredReminderVO);
 
         UserBenefitsDO userBenefitsDO = resultList.stream()
@@ -987,7 +1039,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 .filter(obj -> !CollUtil.contains(payBenefitsStrategyId, Long.valueOf(obj.getStrategyId()))).map(UserBenefitsDO::getId).collect(Collectors.toList());
 
         if (noPayBenefitsIds.size() > 0) {
-            log.info("获取到{}条已经过期的普通权益数据，更新权益状态，过期的权益 ID 为{}",noPayBenefitsIds.size(),noPayBenefitsIds);
+            log.info("获取到{}条已经过期的普通权益数据，更新权益状态，过期的权益 ID 为{}", noPayBenefitsIds.size(), noPayBenefitsIds);
             userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
                     .in(UserBenefitsDO::getId, noPayBenefitsIds)
                     .set(UserBenefitsDO::getEnabled, 0));
@@ -1000,7 +1052,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         if (!payBenefitsS.isEmpty()) {
 
-            log.info("当前时间段获取到已经过期的【支付权益】数据{}，执行权益过期任务与更新角色任务",payBenefitsS);
+            log.info("当前时间段获取到已经过期的【支付权益】数据{}，执行权益过期任务与更新角色任务", payBenefitsS);
             List<Long> basicConfigIds = payBenefitsStrategyS.stream()
                     .filter(obj -> obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_MONTH.getName()) ||
                             obj.getStrategyType().equals(BenefitsStrategyTypeEnums.PAY_BASIC_YEAR.getName()))
@@ -1064,13 +1116,117 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                         .set(UserBenefitsDO::getEnabled, 0));
             }
 
-        }else {
+        } else {
             log.info("当前时间段没有获取到已经过期的【支付权益】数据，停止执行权益过期任务");
         }
 
 
-
         return (long) resultList.size();
+    }
+
+    /**
+     * 获取用户的支付权益列表
+     *
+     * @param userId 用户 ID
+     * @return
+     */
+    @Override
+    public List<UserBenefitsDO> getPayBenefitList(Long userId) {
+        // 获取用户支付权益策略
+        List<UserBenefitsStrategyDO> payBenefitsStrategyS = userBenefitsStrategyService.getPayBenefitsStrategy();
+        // 获取支付权益策略 ID
+        List<Long> payBenefitsStrategyId = payBenefitsStrategyS.stream().map(UserBenefitsStrategyDO::getId).collect(Collectors.toList());
+        LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class)
+                .in(UserBenefitsDO::getStrategyId, payBenefitsStrategyId);
+
+        return userBenefitsMapper.selectList(wrapper);
+
+    }
+
+    /**
+     * 折扣优惠是否可用
+     *
+     * @param productCode  产品 code
+     * @param discountCode 优惠码
+     * @param userId       用户 ID
+     * @return true        可用 false 不可用
+     */
+    @Override
+    public UserBenefitsStrategyDO validateDiscount(String productCode, String discountCode, Long userId) {
+        log.info("用户【{}】使用优惠码【{}】对应的的产品代码为【{}】", userId, discountCode, productCode);
+        Assert.notBlank(productCode, "判断优惠码是否有效失败，产品代码不可以为空");
+        Assert.notBlank(discountCode, "判断优惠码是否有效失败,优惠代码不可以为空");
+
+        UserBenefitsStrategyDO benefitsStrategy;
+        // 使用限制校验
+        try {
+            benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
+            if (benefitsStrategy.getLimitNum() != -1) {
+                // 查询条件-检验是否超过兑换限制
+                LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
+                wrapper.eq(UserBenefitsDO::getStrategyId, benefitsStrategy.getId());
+
+                if (benefitsStrategy.getLimitNum() <= userBenefitsMapper.selectCount(wrapper)) {
+                    log.error("[addUserBenefitsByCode][权益超出兑换次数：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
+                    throw exception(USER_BENEFITS_CASH_COUNT_EXCEEDED);
+                }
+            }
+            // 检测权益使用频率是否合法
+            if (benefitsStrategy.getLimitIntervalNum() > 0) {
+                if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
+                    log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
+                    throw exception(USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED);
+                }
+            }
+        } catch (RuntimeException e) {
+            log.warn("用户【{}】无法使用优惠码【{}】对应的的产品代码为【{}】，当前优惠码超过使用限制", userId, discountCode, productCode);
+            return null;
+        }
+
+        BenefitsStrategyTypeEnums discountCodeEnums = BenefitsStrategyTypeEnums.getByCode(benefitsStrategy.getStrategyType());
+        // 适用产品校验
+        BenefitsStrategyTypeEnums[] limitDiscountByCode = ProductEnum.getLimitDiscountByCode(productCode);
+
+        Optional<BenefitsStrategyTypeEnums> anyMatchResult = Arrays.stream(limitDiscountByCode)
+                .filter(discountCodeEnums::equals)
+                .findFirst();
+
+        if (!anyMatchResult.isPresent()) {
+            return null;
+        }
+        return benefitsStrategy;
+    }
+
+    /**
+     * 计算优惠后的价格
+     *
+     * @param productCode  产品 code
+     * @param discountCode 优惠码
+     * @return 优惠后的价格
+     */
+    @Override
+    public Long calculateDiscountPrice(String productCode, String discountCode) {
+        //  商品信息
+        ProductEnum product = ProductEnum.getByCode(productCode);
+
+        UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
+        // 优惠码信息
+        BenefitsStrategyTypeEnums discount = BenefitsStrategyTypeEnums.getByCode(userBenefitsStrategy.getStrategyType());
+        Long discountPrice = 0L;
+        switch (discount.getDiscountTypeEnums()) {
+            case DIRECT_DISCOUNT:
+                discountPrice = (long) (product.getPrice() - discount.getDiscountNums() * 100);
+                break;
+            case PERCENTAGE_DISCOUNT:
+                discountPrice = (long) (product.getPrice() * discount.getDiscountNums());
+                break;
+        }
+        if (discountPrice <= 0) {
+            log.error("优惠价格计算错误");
+            discountPrice = Long.valueOf(product.getPrice());
+        }
+
+        return discountPrice;
     }
 
     /**

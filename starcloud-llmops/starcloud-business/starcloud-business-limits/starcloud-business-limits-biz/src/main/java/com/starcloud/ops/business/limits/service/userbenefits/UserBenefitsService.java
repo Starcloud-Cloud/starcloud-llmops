@@ -3,6 +3,7 @@ package com.starcloud.ops.business.limits.service.userbenefits;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.*;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 
 import java.util.List;
 
@@ -12,6 +13,20 @@ import java.util.List;
  * @author AlanCusack
  */
 public interface UserBenefitsService {
+
+
+    /**
+     * 校验当前用户能否使用当前权益
+     * @return
+     */
+    Boolean validateUserBenefitsByCode(String code, Long userId);
+
+    /**
+     * 校验当前用户能否使用当前权益
+     * @return
+     */
+    Boolean validateUserBenefitsByType(String benefitsType, Long userId);
+
 
     /**
      * 新增用户权益
@@ -103,7 +118,7 @@ public interface UserBenefitsService {
     /**
      * 用户普通注册--增加权益
      *
-     * @param userId  用户 ID
+     * @param userId 用户 ID
      */
     void addUserBenefitsSign(Long userId);
 
@@ -123,6 +138,35 @@ public interface UserBenefitsService {
      * 权益过期处理-返回已处理的数据
      */
     Long userBenefitsExpired();
+
+    /**
+     * 获取用户的支付权益列表
+     *
+     * @param userId 用户 ID
+     * @return
+     */
+    List<UserBenefitsDO> getPayBenefitList(Long userId);
+
+
+    /**
+     * 折扣优惠是否可用
+     *
+     * @param productCode  产品 code
+     * @param discountCode 优惠码
+     * @param userId       用户 ID
+     * @return true        可用 false 不可用
+     */
+    UserBenefitsStrategyDO validateDiscount(String productCode, String discountCode, Long userId);
+
+
+    /**
+     * 计算优惠后的价格
+     *
+     * @param productCode  产品 code
+     * @param discountCode 优惠码
+     * @return 优惠后的价格
+     */
+    Long calculateDiscountPrice(String productCode, String discountCode);
 
 
 }

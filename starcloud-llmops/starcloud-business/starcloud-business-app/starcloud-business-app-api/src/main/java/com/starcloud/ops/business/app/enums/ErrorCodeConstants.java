@@ -25,12 +25,12 @@ public interface ErrorCodeConstants {
     /**
      * MAX_TOKENS超出限制
      */
-    ErrorCode MAX_TOKENS_OUT_OF_LIMIT = new ErrorCode(300000403, "最大返回Tokens超出限制（{}）需要在1～5000之间，请检查后重试！");
+    ErrorCode MAX_TOKENS_OUT_OF_LIMIT = new ErrorCode(300000403, "最大返回Tokens超出限制（{}）需要在1～4000之间，请检查后重试！");
 
     /**
      * MAX_TOKENS格式错误
      */
-    ErrorCode MAX_TOKENS_FORMAT_ERROR = new ErrorCode(300000404, "最大返回Tokens格式错误（{}）必须是正整数且需要在1～5000之间，请检查后重试！");
+    ErrorCode MAX_TOKENS_FORMAT_ERROR = new ErrorCode(300000404, "最大返回Tokens格式错误（{}）必须是正整数，请检查后重试！");
 
     /**
      * 温度值超出限制
@@ -122,6 +122,16 @@ public interface ErrorCodeConstants {
      * 应用市场操作不支持
      */
     ErrorCode MARKET_OPERATE_NOT_SUPPORTED = new ErrorCode(300200410, "应用市场不支持该操作，请稍后重试或者联系管理员（{}）！");
+
+    /**
+     * 请求参数不能为 null
+     */
+    ErrorCode MARKET_QUERY_REQUIRED = new ErrorCode(300200410, "请求参数是必填的！");
+
+    /**
+     * tagType 不支持
+     */
+    ErrorCode MARKET_TAG_TYPE_NOT_SUPPORTED = new ErrorCode(300200410, "参数tagType({})不支持！请检查后重试！");
 
     // ========== 应用收藏错误码 300 300 xxx ==========
 
@@ -359,7 +369,7 @@ public interface ErrorCodeConstants {
     /**
      * 生成图片失败, feign 调用失败， 系统异常！
      */
-    ErrorCode EXECUTE_IMAGE_FEIGN_500_FAILURE = new ErrorCode(310400450, "生成图片失败：系统异常！。请稍后重试或联系管理员！");
+    ErrorCode EXECUTE_IMAGE_FEIGN_500_FAILURE = new ErrorCode(310400450, "生成图片失败：系统异常！请稍后重试或联系管理员！");
 
     /**
      * 生成图片失败, feign 调用失败， 系统异常！
@@ -370,6 +380,133 @@ public interface ErrorCodeConstants {
      * 创建图片实体失败
      */
     ErrorCode BUILD_IMAGE_ENTITY_FAILURE = new ErrorCode(310400500, "图片生成失败，不支持的appUid（{}）！");
+
+    // ========== Listing 应用执行错误码 310 500 xxx ==========
+
+    /**
+     * Listing 生成失败
+     */
+    ErrorCode EXECUTE_LISTING_FAILURE = new ErrorCode(310500000, "Listing 生成失败，请稍后重试或联系管理员！");
+
+    /**
+     * Listing 生成失败，生成结果为空
+     */
+    ErrorCode EXECUTE_LISTING_RESULT_IS_NULL = new ErrorCode(310500001, "Listing 生成失败，生成结果为空，请稍候重试或者联系管理员！");
+
+    /**
+     * Listing 生成失败，生成结果异常
+     */
+    ErrorCode EXECUTE_LISTING_RESULT_FAILURE = new ErrorCode(310500002, "Listing 生成失败，生成结果异常，请稍候重试或者联系管理员！");
+
+    /**
+     * Listing 生成失败，系统配置错误
+     */
+    ErrorCode EXECUTE_LISTING_CONFIG_FAILURE = new ErrorCode(310500100, "Listing 生成失败，系统配置错误！请联系管理员！");
+
+    /**
+     * Listing 生成失败，系统配置错误
+     */
+    ErrorCode EXECUTE_LISTING_STEP_FAILURE = new ErrorCode(310500101, "Listing 生成失败，系统步骤错误！请联系管理员！");
+
+    /**
+     * Listing 生成失败，系统变量错误
+     */
+    ErrorCode EXECUTE_LISTING_VARIABLE_FAILURE = new ErrorCode(310500102, "Listing 生成失败，系统变量错误！请联系管理员！");
+
+    /**
+     * Listing 生成失败，系统变量错误
+     */
+    ErrorCode EXECUTE_LISTING_TYPE_FAILURE = new ErrorCode(310500103, "Listing 生成失败，Listing 类型不支持（{}）！请联系管理员！");
+
+    /**
+     * 创作计划不存在
+     */
+    ErrorCode CREATIVE_PLAN_NOT_EXIST = new ErrorCode(350100110, "创作计划不存在（{}）！请稍后重试或者联系管理员！");
+
+    /**
+     * 创作计划配置不能为空
+     */
+    ErrorCode CREATIVE_PLAN_CONFIG_NOT_NULL = new ErrorCode(350100111, "创作计划配置不能为空（{}）！请稍后重试或者联系管理员！");
+
+    /**
+     * 创作计划配置不能为空
+     */
+    ErrorCode CREATIVE_PLAN_TYPE_REQUIRED = new ErrorCode(350100112, "创作计划类型是必须的！请稍后重试或者联系管理员！");
+
+    /**
+     * 创作计划类型不支持
+     */
+    ErrorCode CREATIVE_PLAN_TYPE_NOT_SUPPORTED = new ErrorCode(350100113, "创作计划类型不支持（{}）！请稍后重试或者联系管理员！");
+
+    /**
+     * 创作计划UID不能为空
+     */
+    ErrorCode CREATIVE_PLAN_UID_REQUIRED = new ErrorCode(350100114, "创作计划UID是必须的！请稍后重试或者联系管理员！");
+
+    /**
+     * 只有待执行的创作计划才允许修改
+     */
+    ErrorCode CREATIVE_PLAN_STATUS_NOT_SUPPORT_MODIFY = new ErrorCode(350100115, "当前计划不支持修改，只有待执行的创作计划才允许修改！");
+
+    /**
+     * 图片素材不能为空
+     */
+    ErrorCode CREATIVE_PLAN_UPLOAD_IMAGE_EMPTY = new ErrorCode(350100116, "图片素材不能为空！请上传图片素材后重试！");
+
+    /**
+     * 文案模板不能为空
+     */
+    ErrorCode CREATIVE_PLAN_COPY_WRITING_EMPTY = new ErrorCode(350100117, "文案模板不能为空！请选择文案模板后重试！");
+
+    /**
+     * 图片风格不能为空
+     */
+    ErrorCode CREATIVE_PLAN_IMAGE_STYLE_EMPTY = new ErrorCode(350100118, "图片风格不能为空！请选择图片风格后重试！");
+
+    /**
+     * 图片随机类型不能为空
+     */
+    ErrorCode CREATIVE_PLAN_RANDOM_TYPE_EMPTY = new ErrorCode(350100119, "随机类型不能为空！请选择随机类型后重试！");
+
+    /**
+     * 图片随机类型不支持
+     */
+    ErrorCode CREATIVE_PLAN_RANDOM_TYPE_NOT_SUPPORT = new ErrorCode(350100120, "随机类型不支持！请重新选择随机类型后重试！");
+
+    /**
+     * 生成数量不能为空
+     */
+    ErrorCode CREATIVE_PLAN_TOTAL_EMPTY = new ErrorCode(350100121, "生成数量不能为空！请输入生成数量后重试！");
+
+    /**
+     * 生成数量超出限制
+     */
+    ErrorCode CREATIVE_PLAN_TOTAL_OUT_OF_RANGE = new ErrorCode(350100122, "生成数量超出限制（{}）必须在1-500范围内！请输入生成数量后重试！");
+
+    /**
+     * 不支持顺序模式
+     */
+    ErrorCode CREATIVE_PLAN_RANDOM_TYPE_NOT_SUPPORTED = new ErrorCode(350100123, "不支持顺序模式！请选择全部随机后重试！");
+
+    /**
+     * 文案模板列表为空
+     */
+    ErrorCode CREATIVE_PLAN_COPY_WRITING_NOT_EXIST = new ErrorCode(350100124, "文案模板列表为空！");
+
+    /**
+     * 创作计划状态不能为空
+     */
+    ErrorCode CREATIVE_PLAN_STATUS_REQUIRED = new ErrorCode(350100125, "创作计划状态是必须的！请稍后重试或者联系管理员！");
+
+    /**
+     * 创作计划状态不支持
+     */
+    ErrorCode CREATIVE_PLAN_STATUS_NOT_SUPPORTED = new ErrorCode(350100126, "创作计划状态不支持（{}）！请稍后重试或者联系管理员！");
+
+    /**
+     * 创作计划名称已存在
+     */
+    ErrorCode CREATIVE_PLAN_NAME_EXIST = new ErrorCode(350100127, "创作计划名称已存在，请重新输入！");
 
     // ========== 图片上传错误码 370 000 xxx ==========
 
@@ -459,5 +596,19 @@ public interface ErrorCodeConstants {
     ErrorCode MODIFY_CONFIG_ERROR = new ErrorCode(300400010, "{} 实际的配置类型是 {}");
 
     ErrorCode CHAT_CONFIG_IS_REPEAT = new ErrorCode(300400011, "{}已经存在 , {}");
+
+
+    ErrorCode CREATIVE_CONTENT_NOT_EXIST = new ErrorCode(300500001, "创作内容不存在, {}");
+
+    ErrorCode CREATIVE_CONTENT_IS_EXECUTEING = new ErrorCode(300500002, "创作内容执行中稍后重试, {}");
+
+    ErrorCode CREATIVE_CONTENT_GREATER_RETRY = new ErrorCode(300500003, "创作内容最多重试 {} 次");
+
+    ErrorCode NO_CREATIVE_CONTENT_CAN_EXECUTE = new ErrorCode(300500004, "不存在可执行的创作任务");
+
+    ErrorCode UNSUPPORTED_TYPE = new ErrorCode(300500005, "不支持的任务类型 {}");
+
+    ErrorCode EXECTURE_ERROR = new ErrorCode(300500006, "{} 执行失败请稍后重试");
+
 
 }

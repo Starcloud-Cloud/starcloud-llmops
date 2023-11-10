@@ -3,10 +3,8 @@ package com.starcloud.ops.business.app.controller.admin.market;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.base.vo.request.MarketUidRequest;
-import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketOptionListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
@@ -63,15 +61,15 @@ public class AppMarketController {
     @GetMapping("/listMarketAppOption")
     @Operation(summary = "获取应用列表选项", description = "获取应用列表选项")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<List<Option>> listMarketAppOption(AppMarketListQuery query) {
-        return CommonResult.success(appMarketService.listMarketAppOption(query));
+    public CommonResult<List<Option>> listOption(AppMarketOptionListQuery query) {
+        return CommonResult.success(appMarketService.listOption(query));
     }
 
     @GetMapping("/get/{uid}")
     @Operation(summary = "根据 UID 获得应用详情", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 40, author = "nacoyer")
     public CommonResult<AppMarketRespVO> get(@PathVariable("uid") String uid) {
-        return CommonResult.success(appMarketService.get(uid));
+        return CommonResult.success(appMarketService.getAndIncreaseView(uid));
     }
 
     @PostMapping("/modify")

@@ -52,9 +52,8 @@ public class UserCommunicationController {
     @PostMapping("/code/register")
     @Operation(summary = "使用手机注册")
     @PermitAll
-    public CommonResult<Boolean> codeRegister(@RequestBody @Valid CodeRegisterReqVO reqVO) {
-        getService(reqVO.getTool()).codeRegister(reqVO);
-        return success(true);
+    public CommonResult<AuthLoginRespVO> codeRegister(@RequestBody @Valid CodeRegisterReqVO reqVO) {
+        return success(getService(reqVO.getTool()).codeRegister(reqVO));
     }
 
     private CommunicationService getService(Integer code) {
