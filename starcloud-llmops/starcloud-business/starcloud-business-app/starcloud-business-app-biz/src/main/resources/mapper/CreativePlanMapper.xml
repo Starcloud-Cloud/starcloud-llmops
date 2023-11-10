@@ -43,8 +43,12 @@
         FROM llm_creative_plan a
         LEFT JOIN llm_creative_content b ON a.`uid` = b.`plan_uid`
         <where>
-            <if test="query.name!= null and query.name!= '' ">
-                AND a.`name` LIKE #{query.name}
+            <if test="query.uid != null and query.uid != '' ">
+                AND a.`uid` = #{query.uid}
+            </if>
+            <if test="query.name != null and query.name != '' ">
+                <bind name="name" value="query.name+'%'"/>
+                AND a.`name` LIKE #{name}
             </if>
             <if test="query.type!= null and query.type!= '' ">
                 AND a.`type` = #{query.type}
