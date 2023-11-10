@@ -102,20 +102,13 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             throw exception(CREATIVE_CONTENT_GREATER_RETRY, maxRetry);
         }
 
-        if (XhsCreativeContentStatusEnums.INIT.getCode().equals(picDO.getStatus())
-                || XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(picDO.getStatus())) {
-            Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), false);
-            if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
-                throw exception(EXECTURE_ERROR, "图片");
-            }
+        Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), true);
+        if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
+            throw exception(EXECTURE_ERROR, "图片");
         }
-
-        if (XhsCreativeContentStatusEnums.INIT.getCode().equals(textDO.getStatus())
-                || XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(textDO.getStatus())) {
-            Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), false);
-            if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
-                throw exception(EXECTURE_ERROR, "文案", textDO.getId());
-            }
+        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
+        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
+            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
         }
         return detail(businessUid);
     }
