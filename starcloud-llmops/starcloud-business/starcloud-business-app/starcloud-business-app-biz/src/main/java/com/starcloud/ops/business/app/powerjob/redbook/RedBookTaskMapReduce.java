@@ -21,8 +21,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import tech.powerjob.worker.core.processor.ProcessResult;
@@ -31,6 +34,7 @@ import tech.powerjob.worker.core.processor.TaskResult;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,7 +51,6 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
     @Resource
     private CreativePlanService creativePlanService;
-
 
     @Override
     @TenantIgnore
@@ -128,10 +131,12 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
             Map<Long, Boolean> resp = xhsCreativeContentService.execute(redBookTask, subTask.getRunType(), false);
 
             StringJoiner sj = new StringJoiner(",");
+            List<Long> errorTasks = new ArrayList<>();
             for (Long id : redBookTask) {
                 if (BooleanUtils.isTrue(resp.get(id))) {
                     continue;
                 }
+                errorTasks.add(id);
                 sj.add(id.toString());
             }
 
@@ -143,7 +148,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
             //servide.batch(1,2,3,4)
 
 
-            return new SubTaskResult(true, sj.toString(), subTask.planUid);
+            return new SubTaskResult(true, sj.toString(), subTask.planUid, redBookTask, errorTasks);
         } catch (Exception e) {
             //不会调用到这里，兜底错误和日志
             return new SubTaskResult(false, "task id is " + subTask.getPlanUid() + "  RunTask is fail: " + e.getMessage());
@@ -158,6 +163,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      * @return
      */
     @Override
+    @TenantIgnore
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
         if (CollectionUtils.isEmpty(taskResults)) {
             return new ProcessResult(true, "reduce_success");
@@ -171,7 +177,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
         updateInstance(planUids);
 
-        return new ProcessResult(true, "reduce_success" + planUids.toString());
+        return new ProcessResult(true, taskResults.toString());
     }
 
     private void updateInstance(List<String> planUidList) {
@@ -179,22 +185,9 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         //根据创作任务找到所有创作计划
 
         //查询所有创作计划的所有任务状态，判断是否都执行完成。完成就更新创作计划状态到执行完成。
+        planUidList = planUidList.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
         for (String planUid : planUidList) {
-            if (StringUtils.isBlank(planUid)) {
-                return;
-            }
-            List<XhsCreativeContentDO> contentList = xhsCreativeContentService.listByPlanUid(planUid);
-            // 是否全部执行结束
-            boolean complete = contentList.stream().anyMatch(xhsCreativeContentDO -> {
-                if (xhsCreativeContentDO.getRetryCount() != null && xhsCreativeContentDO.getRetryCount() > 3) {
-                    return false;
-                }
-                if (!XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(xhsCreativeContentDO.getStatus())) {
-                    return true;
-                }
-                return false;
-            });
-            creativePlanService.updateStatus(planUid, complete ? CreativePlanStatusEnum.COMPLETE.name() :  CreativePlanStatusEnum.RUNNING.name());
+            creativePlanService.updatePlanStatus(planUid);
         }
     }
 

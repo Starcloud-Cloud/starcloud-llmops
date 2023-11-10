@@ -441,7 +441,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         this.createAppMessage((messageCreateRequest) -> {
             // 构建应用上下文
             AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
-
+            if (StringUtils.isNotBlank(request.getStepId())) {
+                appContext.setStepId(request.getStepId());
+            } else {
+                request.setStepId(appContext.getStepId());
+            }
             Map<String, Object> variablesValues = appContext.getContextVariablesValues();
             String aiModel = this.obtainLlmAiModelType(request);
             ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
@@ -449,7 +453,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
 
             messageCreateRequest.setAppConversationUid(request.getConversationUid());
-            messageCreateRequest.setAppStep(request.getStepId());
+            messageCreateRequest.setAppStep(appContext.getStepId());
             messageCreateRequest.setElapsed(100L);
             messageCreateRequest.setFromScene(request.getScene());
             messageCreateRequest.setAiModel(aiModel);

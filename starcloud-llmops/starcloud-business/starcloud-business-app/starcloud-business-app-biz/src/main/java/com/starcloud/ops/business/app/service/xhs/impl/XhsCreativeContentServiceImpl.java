@@ -17,11 +17,13 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.service.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
-import com.starcloud.ops.business.app.service.xhs.XhsCreativeExectueManager;
+import com.starcloud.ops.business.app.service.xhs.XlsCreativeExecuteManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,11 +44,15 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     private XhsCreativeContentMapper creativeContentMapper;
 
     @Resource
-    private XhsCreativeExectueManager xhsCreativeExectueManager;
+    private XlsCreativeExecuteManager xlsCreativeExecuteManager;
 
 
     @Resource
     private DictDataService dictDataService;
+
+    @Resource
+    @Lazy
+    private CreativePlanService creativePlanService;
 
 
     @Override
@@ -74,10 +80,10 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             if (CollectionUtils.isEmpty(contentList)) {
                 return Collections.emptyMap();
             }
-            if (XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equals(type)) {
-                return xhsCreativeExectueManager.executeCopyWriting(contentList, force);
-            } else if (XhsCreativeContentTypeEnums.PICTURE.getCode().equals(type)) {
-                return xhsCreativeExectueManager.executePicture(contentList, force);
+            if (XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equalsIgnoreCase(type)) {
+                return xlsCreativeExecuteManager.executeCopyWriting(contentList, force);
+            } else if (XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(type)) {
+                return xlsCreativeExecuteManager.executePicture(contentList, force);
             } else {
                 log.error("不支持的任务类型 {}", type);
             }
@@ -102,21 +108,15 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             throw exception(CREATIVE_CONTENT_GREATER_RETRY, maxRetry);
         }
 
-        if (XhsCreativeContentStatusEnums.INIT.getCode().equals(picDO.getStatus())
-                || XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(picDO.getStatus())) {
-            Map<Long, Boolean> picMap = xhsCreativeExectueManager.executePicture(Collections.singletonList(picDO), false);
-            if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
-                throw exception(EXECTURE_ERROR, "图片");
-            }
+        Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), true);
+        if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
+            throw exception(EXECTURE_ERROR, "图片", textDO.getId());
         }
-
-        if (XhsCreativeContentStatusEnums.INIT.getCode().equals(textDO.getStatus())
-                || XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(textDO.getStatus())) {
-            Map<Long, Boolean> textMap = xhsCreativeExectueManager.executeCopyWriting(Collections.singletonList(textDO), false);
-            if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
-                throw exception(EXECTURE_ERROR, "文案");
-            }
+        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
+        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
+            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
         }
+        creativePlanService.updatePlanStatus(textDO.getPlanUid());
         return detail(businessUid);
     }
 

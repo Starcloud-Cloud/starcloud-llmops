@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
+import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class XhsCreativeExectueManager {
+public class XlsCreativeExecuteManager {
 
     @Resource
     private RedissonClient redissonClient;
@@ -67,7 +68,9 @@ public class XhsCreativeExectueManager {
         }
         Integer maxRetry = getMaxRetry(force);
         xhsCreativeContentDOList = creativeContentMapper.selectBatchIds(ids).stream().filter(xhsCreativeContentDO -> {
-            return xhsCreativeContentDO.getRetryCount() < maxRetry && !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(xhsCreativeContentDO.getStatus());
+            return xhsCreativeContentDO.getRetryCount() < maxRetry
+                    && !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(xhsCreativeContentDO.getStatus())
+                    && XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equalsIgnoreCase(xhsCreativeContentDO.getType());
         }).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(xhsCreativeContentDOList)) {
             log.warn("没有可执行状态的任务，{}", sj);
@@ -82,8 +85,8 @@ public class XhsCreativeExectueManager {
                 if (executeParams == null) {
                     continue;
                 }
-                executeRequest.setCreativeContentUid(contentDO.getUid());
                 BeanUtil.copyProperties(executeParams.getAppExecuteRequest(), executeRequest);
+                executeRequest.setCreativeContentUid(contentDO.getUid());
                 executeRequest.setUserId(Long.valueOf(contentDO.getCreator()));
                 requests.add(executeRequest);
             }
@@ -113,7 +116,7 @@ public class XhsCreativeExectueManager {
                 updateDO(contentDO, StringUtils.EMPTY, contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
                 result.put(contentDO.getId(), true);
             }
-            log.info("文案执行成功： {} ms", executeTime);
+            log.info("文案执行结束： {} ms", executeTime);
         } catch (Exception e) {
             log.error("文案生成异常", e);
         } finally {
@@ -220,9 +223,18 @@ public class XhsCreativeExectueManager {
             log.warn("未找到对应的创作任务：{}", id);
             return null;
         }
-        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(contentDO.getStatus())
-                || XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus())) {
+        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(contentDO.getStatus())) {
             log.warn("创作任务在执行中：{}", id);
+            return null;
+        }
+
+        if (!force && XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus())) {
+            log.warn("创作任务已成功：{}", id);
+            return null;
+        }
+
+        if (!XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(contentDO.getType())) {
+            log.warn("不是图片类型的任务{}", id);
             return null;
         }
         Integer maxRetry = getMaxRetry(force);
