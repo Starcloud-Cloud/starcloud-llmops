@@ -296,7 +296,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             }
             List<XhsCreativeContentDO> contentList = xhsCreativeContentService.listByPlanUid(planUid);
             // 是否全部执行结束
-            boolean complete = contentList.stream().anyMatch(xhsCreativeContentDO -> {
+            boolean unComplete = contentList.stream().anyMatch(xhsCreativeContentDO -> {
                 if (xhsCreativeContentDO.getRetryCount() != null && xhsCreativeContentDO.getRetryCount() > 3) {
                     return false;
                 }
@@ -305,7 +305,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 }
                 return false;
             });
-            updateStatus(planUid, complete ? CreativePlanStatusEnum.COMPLETE.name() : CreativePlanStatusEnum.RUNNING.name());
+            updateStatus(planUid, unComplete ? CreativePlanStatusEnum.RUNNING.name() : CreativePlanStatusEnum.COMPLETE.name());
         } catch (Exception e) {
             log.warn("更新计划失败", e);
         } finally {
