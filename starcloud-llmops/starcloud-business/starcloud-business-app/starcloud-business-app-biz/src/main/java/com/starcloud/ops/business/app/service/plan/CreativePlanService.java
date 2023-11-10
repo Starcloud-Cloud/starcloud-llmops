@@ -78,6 +78,12 @@ public interface CreativePlanService {
     void updateStatus(String uid, String status);
 
     /**
+     * 更新计划状态
+     *
+     */
+    void updatePlanStatus(String planUid);
+
+    /**
      * 删除创作计划
      *
      * @param uid 创作计划UID
