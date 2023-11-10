@@ -51,4 +51,12 @@ public class XhsCreativeContentController {
         return CommonResult.success(true);
     }
 
+    @GetMapping("/retry/{businessUid}")
+    @Operation(summary = "删除创作内容")
+    public CommonResult<Boolean> retry(
+            @PathVariable("businessUid")String businessUid) {
+        creativeContentService.retry(businessUid);
+        return CommonResult.success(true);
+    }
+
 }

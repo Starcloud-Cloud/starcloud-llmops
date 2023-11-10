@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_CONFIG_FAILURE;
@@ -104,7 +103,7 @@ public class XhsServiceImpl implements XhsService {
                 .map(steps -> steps.get(0)).map(WorkflowStepWrapperRespVO::getVariable)
                 .map(VariableRespVO::getVariables)
                 .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(310900100, "系统步骤不能为空")));
-
+        variableList = variableList.stream().filter(VariableItemRespVO::getIsShow).collect(Collectors.toList());
         XhsAppResponse response = new XhsAppResponse();
         response.setUid(appMarket.getUid());
         response.setName(appMarket.getName());
@@ -137,6 +136,11 @@ public class XhsServiceImpl implements XhsService {
             }
             // 获取应用
             AppMarketRespVO appMarket = appMarketService.get(request.getUid());
+            if (request.getNeedTag()) {
+                Map<String, Object> params = request.getParams();
+                params.put("NEED_TAG", true);
+                request.setParams(params);
+            }
             AppExecuteRespVO executeResponse = appService.execute(buildExecuteRequest(appMarket, request));
             if (!executeResponse.getSuccess()) {
                 response.setErrorCode(executeResponse.getResultCode());
@@ -159,8 +163,18 @@ public class XhsServiceImpl implements XhsService {
                 response.setErrorMsg("执行结果内容不存在！请稍候重试或者联系管理员！");
                 return response;
             }
+
             response.setSuccess(Boolean.TRUE);
-            response.setText(actionResult.getAnswer());
+            String answer = actionResult.getAnswer();
+            if (request.getNeedTag()) {
+                String title = answer.substring(answer.indexOf("<TITLE_START>") + 13, answer.indexOf("<TITLE_END>"));
+                String text = answer.substring(answer.indexOf("<TEXT_START>") + 12, answer.indexOf("<TEXT_END>"));
+                response.setTitle(title);
+                response.setText(text);
+            } else {
+                response.setTitle(answer);
+            }
+
             return response;
         } catch (ServiceException exception) {
             response.setErrorCode(exception.getCode().toString());
@@ -205,30 +219,20 @@ public class XhsServiceImpl implements XhsService {
         if (CollectionUtil.isEmpty(requests)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
         }
-        // 应用应用uid去重，去除重复的应用。此场景约定为 同一个应用的执行参数是相同的。
-        Map<String, List<XhsAppCreativeExecuteRequest>> groupRequestMap = requests.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getUid));
-        List<XhsAppCreativeExecuteRequest> groupRequests = new ArrayList<>();
-        groupRequestMap.forEach((key, value) -> groupRequests.add(value.get(0)));
-
         // 应用任务集合
-        List<CompletableFuture<XhsAppCreativeExecuteResponse>> appFutures = Lists.newArrayList();
-        for (XhsAppCreativeExecuteRequest request : groupRequests) {
-            appFutures.add(CompletableFuture.supplyAsync(() -> {
-                XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
-                XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
-                response.setUid(request.getUid());
-                response.setCreativeContentUid(response.getCreativeContentUid());
-                response.setSuccess(appExecuteResponse.getSuccess());
-                response.setErrorCode(appExecuteResponse.getErrorCode());
-                response.setErrorMsg(appExecuteResponse.getErrorMsg());
-                response.setText(appExecuteResponse.getText());
-                return response;
-            }));
-        }
-        CompletableFuture.allOf(appFutures.toArray(new CompletableFuture[0])).join();
-        List<XhsAppCreativeExecuteResponse> appResponses = Lists.newArrayList();
-        for (CompletableFuture<XhsAppCreativeExecuteResponse> appFuture : appFutures) {
-            appResponses.add(appFuture.join());
+        List<XhsAppCreativeExecuteResponse> appResponses = new ArrayList<>();
+        for (XhsAppCreativeExecuteRequest request : requests) {
+            XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+            request.setNeedTag(Boolean.TRUE);
+            XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
+            response.setUid(request.getUid());
+            response.setCreativeContentUid(request.getCreativeContentUid());
+            response.setSuccess(appExecuteResponse.getSuccess());
+            response.setErrorCode(appExecuteResponse.getErrorCode());
+            response.setErrorMsg(appExecuteResponse.getErrorMsg());
+            response.setTitle(appExecuteResponse.getTitle());
+            response.setText(appExecuteResponse.getText());
+            appResponses.add(response);
         }
         return appResponses;
     }
@@ -305,28 +309,19 @@ public class XhsServiceImpl implements XhsService {
      */
     @Override
     public List<XhsImageExecuteResponse> bathImageExecute(XhsBathImageExecuteRequest request) {
-
         log.info("小红书执行批量生成图片开始");
         List<XhsImageExecuteRequest> imageRequestList = request.getImageRequests();
         if (CollectionUtil.isEmpty(imageRequestList)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
         }
-
-        // 图片任务集合，并且处理图片参数
-        List<CompletableFuture<XhsImageExecuteResponse>> imageFutures = Lists.newArrayList();
+        // 图片执行结果
+        List<XhsImageExecuteResponse> imageResponses = Lists.newArrayList();
         for (int i = 0; i < imageRequestList.size(); i++) {
             XhsImageExecuteRequest imageRequest = imageRequestList.get(i);
             imageRequest.setIndex(i + 1);
             imageRequest.setIsMain(i == 0 ? Boolean.TRUE : Boolean.FALSE);
-            imageFutures.add(CompletableFuture.supplyAsync(() -> imageExecute(imageRequest)));
-        }
-
-        CompletableFuture.allOf(imageFutures.toArray(new CompletableFuture[0])).join();
-
-        // 图片执行结果
-        List<XhsImageExecuteResponse> imageResponses = Lists.newArrayList();
-        for (CompletableFuture<XhsImageExecuteResponse> imageFuture : imageFutures) {
-            imageResponses.add(imageFuture.join());
+            XhsImageExecuteResponse response = imageExecute(imageRequest);
+            imageResponses.add(response);
         }
         log.info("小红书执行批量生成图片结束");
         return imageResponses;
@@ -363,6 +358,7 @@ public class XhsServiceImpl implements XhsService {
         if (Objects.nonNull(request.getSseEmitter())) {
             executeRequest.setSseEmitter(request.getSseEmitter());
         }
+        executeRequest.setUserId(request.getUserId());
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());
         executeRequest.setAppUid(app.getUid());

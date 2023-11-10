@@ -503,6 +503,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode CREATIVE_PLAN_STATUS_NOT_SUPPORTED = new ErrorCode(350100126, "创作计划状态不支持（{}）！请稍后重试或者联系管理员！");
 
+    /**
+     * 创作计划名称已存在
+     */
+    ErrorCode CREATIVE_PLAN_NAME_EXIST = new ErrorCode(350100127, "创作计划名称已存在，请重新输入！");
+
     // ========== 图片上传错误码 370 000 xxx ==========
 
     /**
@@ -597,11 +602,13 @@ public interface ErrorCodeConstants {
 
     ErrorCode CREATIVE_CONTENT_IS_EXECUTEING = new ErrorCode(300500002, "创作内容执行中稍后重试, {}");
 
-    ErrorCode CREATIVE_CONTENT_GREATER_RETRY = new ErrorCode(300500003, "创作内容最多重试 {} 次, {}");
+    ErrorCode CREATIVE_CONTENT_GREATER_RETRY = new ErrorCode(300500003, "创作内容最多重试 {} 次");
 
     ErrorCode NO_CREATIVE_CONTENT_CAN_EXECUTE = new ErrorCode(300500004, "不存在可执行的创作任务");
 
     ErrorCode UNSUPPORTED_TYPE = new ErrorCode(300500005, "不支持的任务类型 {}");
+
+    ErrorCode EXECTURE_ERROR = new ErrorCode(300500006, "{} 执行失败请稍后重试");
 
 
 }

@@ -224,6 +224,7 @@ public class AppFactory {
         appMarketEntity.setUid(appId);
         appMarketEntity.setCreator(market.getCreator());
         appMarketEntity.setUpdater(market.getUpdater());
+        appMarketEntity.setTenantId(market.getTenantId());
         return appMarketEntity;
     }
 

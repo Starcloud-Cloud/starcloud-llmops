@@ -114,6 +114,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     .map(steps -> steps.get(0)).map(WorkflowStepWrapperRespVO::getVariable)
                     .map(VariableRespVO::getVariables)
                     .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(310900100, "系统步骤不能为空")));
+            variableList = variableList.stream().filter(VariableItemRespVO::getIsShow).collect(Collectors.toList());
             XhsAppResponse response = new XhsAppResponse();
             response.setUid(item.getUid());
             response.setName(item.getName());
@@ -191,6 +192,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     public void create(CreativePlanReqVO request) {
         handlerAndValidate(request);
+        if (creativePlanMapper.distinctName(request.getName())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_NAME_EXIST, request.getName());
+        }
         CreativePlanDO plan = CreativePlanConvert.INSTANCE.convertCreateRequest(request);
         creativePlanMapper.insert(plan);
     }
@@ -208,7 +212,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         CreativePlanDO copyPlan = new CreativePlanDO();
         copyPlan.setUid(IdUtil.fastSimpleUUID());
-        copyPlan.setName(plan.getName() + "-Copy");
+
+        copyPlan.setName(getCopyName(plan.getName()));
         copyPlan.setType(plan.getType());
         copyPlan.setConfig(plan.getConfig());
         copyPlan.setRandomType(plan.getRandomType());
@@ -238,6 +243,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST);
         if (!CreativePlanStatusEnum.PENDING.name().equals(plan.getStatus())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_STATUS_NOT_SUPPORT_MODIFY);
+        }
+        // 名称做了修改，且修改之后的名称已经存在
+        if (!plan.getName().equals(request.getName()) && creativePlanMapper.distinctName(request.getName())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_NAME_EXIST, request.getName());
         }
         CreativePlanDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
@@ -275,11 +284,15 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param uid 创作计划UID
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         CreativePlanDO plan = creativePlanMapper.get(uid);
         AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST);
+        // 删除创作计划
         creativePlanMapper.deleteById(plan.getId());
+        // 删除创作计划下的创作内容
+        xhsCreativeContentService.deleteByPlanUid(uid);
     }
 
     /**
@@ -493,6 +506,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         return bathImageExecuteRequestList;
+    }
+
+    /**
+     * 获取复制名称
+     *
+     * @param name 名称
+     * @return 复制名称
+     */
+    private String getCopyName(String name) {
+        String copyName = name + "-Copy";
+        if (!creativePlanMapper.distinctName(copyName)) {
+            return copyName;
+        }
+        return getCopyName(copyName);
     }
 
     /**
