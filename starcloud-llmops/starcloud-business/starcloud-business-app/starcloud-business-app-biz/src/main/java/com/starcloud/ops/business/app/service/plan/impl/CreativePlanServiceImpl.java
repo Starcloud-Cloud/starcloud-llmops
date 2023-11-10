@@ -284,11 +284,15 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param uid 创作计划UID
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         CreativePlanDO plan = creativePlanMapper.get(uid);
         AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST);
+        // 删除创作计划
         creativePlanMapper.deleteById(plan.getId());
+        // 删除创作计划下的创作内容
+        xhsCreativeContentService.deleteByPlanUid(uid);
     }
 
     /**

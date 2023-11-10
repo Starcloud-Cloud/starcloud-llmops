@@ -58,6 +58,12 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
         return delete(wrapper);
     }
 
+    default void deleteByPlanUid(String planUid) {
+        LambdaQueryWrapper<XhsCreativeContentDO> wrapper = Wrappers.lambdaQuery(XhsCreativeContentDO.class)
+                .eq(XhsCreativeContentDO::getPlanUid, planUid);
+        delete(wrapper);
+    }
+
     Long selectCount(@Param("req") XhsCreativeContentPageReq req);
 
     List<XhsCreativeContentDTO> pageSelect(@Param("req") XhsCreativeContentPageReq req,
