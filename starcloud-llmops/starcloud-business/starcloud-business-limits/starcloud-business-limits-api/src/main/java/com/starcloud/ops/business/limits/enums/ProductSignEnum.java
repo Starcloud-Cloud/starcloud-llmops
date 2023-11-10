@@ -16,18 +16,13 @@ import java.util.List;
 @AllArgsConstructor
 public enum ProductSignEnum {
 
-    PRODUCT_BASIC_CONFIG( "基础版", 0, "免费版", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.FREE, null, null, new BenefitsStrategyTypeEnums[]{}),
+    PRODUCT_BASIC_CONFIG("魔法ai-基础版签约配置", 5900, "MONTH", 1, 5900, 5900, 1),
 
-    PRODUCT_PLUS_CONFIG( "魔法ai-基础版-月付", 5900, "基础版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.BASIC, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_MONTH, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10}),
-    PRODUCT_PRO_CONFIG( "魔法ai-高级版-月付", 19900, "高级版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PLUS, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PLUS_MONTH, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10}),
+    PRODUCT_PLUS_CONFIG("魔法ai-高级版签约配置", 109, "MONTH", 1, 100, 10900, 2),
     ;
 
-
     /**
-     *
+     * 配置名称
      */
     private final String name;
     /**
@@ -36,46 +31,29 @@ public enum ProductSignEnum {
     private final Integer firstAmount;
 
     /**
-     * 产品描述
+     * 周期类型 ，枚举值为 DAY 和 MONTH。
      */
-    private final String description;
+    private final String periodType;
 
     /**
-     * 产品图片
+     * 周期数
      */
-    private final String picture;
+    private final Integer period;
 
     /**
-     * 产品关联的用户等级
+     * 单次扣款最大金额，必填，即每次发起扣款时限制的最大金额，单位为元。商家每次发起扣款都不允许大于此金额。
      */
-    private final UserLevelEnums userLevelEnums;
+    private final Integer singleAmount;
 
     /**
-     * 产品关联的时间等级
+     * 订单总金额。首次支付金额，不算在周期扣总金额里面。。
      */
-    private final ProductTimeEnum timeType;
+    private final Integer totalAmount;
 
     /**
-     * 产品关联的权益等级
+     * 总扣款次数。
      */
-    private final BenefitsStrategyTypeEnums benefitsStrategyTypeEnums;
-
-    private final BenefitsStrategyTypeEnums[] limitDiscount;
-
-
-
-
-    public static List<ProductSignEnum> getBySetMealTimeType(ProductTimeEnum timeType) {
-        List<ProductSignEnum> productList = new ArrayList<>();
-
-        for (ProductSignEnum setMealInfo : values()) {
-            if (setMealInfo.getTimeType() == timeType) {
-                productList.add(setMealInfo);
-            }
-        }
-
-        return productList;
-    }
+    private final Integer totalPayments;
 
 
 
