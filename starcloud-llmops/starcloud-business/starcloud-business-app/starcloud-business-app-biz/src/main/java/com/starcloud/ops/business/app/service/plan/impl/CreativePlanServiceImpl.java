@@ -167,7 +167,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
         config.setImageStyleList(appDictionaryService.xhsImageStyles());
         config.setRandomType(CreativeRandomTypeEnum.RANDOM.name());
-        config.setTotal(50);
+        config.setTotal(5);
 
         CreativePlanRespVO redBookResponse = new CreativePlanRespVO();
         redBookResponse.setUid("red-book");
