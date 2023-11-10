@@ -32,12 +32,14 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativ
 import com.starcloud.ops.business.app.convert.plan.CreativePlanConvert;
 import com.starcloud.ops.business.app.dal.databoject.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.plan.CreativePlanPO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.enums.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -48,6 +50,8 @@ import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -87,6 +92,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * 文案模板列表
@@ -159,7 +167,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
         config.setImageStyleList(appDictionaryService.xhsImageStyles());
         config.setRandomType(CreativeRandomTypeEnum.RANDOM.name());
-        config.setTotal(50);
+        config.setTotal(5);
 
         CreativePlanRespVO redBookResponse = new CreativePlanRespVO();
         redBookResponse.setUid("red-book");
@@ -276,6 +284,33 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         updateWrapper.set(CreativePlanDO::getStartTime, LocalDateTime.now());
         updateWrapper.eq(CreativePlanDO::getUid, uid);
         creativePlanMapper.update(null, updateWrapper);
+    }
+
+    @Override
+    public void updatePlanStatus(String planUid) {
+        String key = "xhs-plan-" + planUid;
+        RLock lock = redissonClient.getLock(key);
+        try {
+            if (!lock.tryLock(3, 10, TimeUnit.SECONDS)) {
+                return;
+            }
+            List<XhsCreativeContentDO> contentList = xhsCreativeContentService.listByPlanUid(planUid);
+            // 是否全部执行结束
+            boolean complete = contentList.stream().anyMatch(xhsCreativeContentDO -> {
+                if (xhsCreativeContentDO.getRetryCount() != null && xhsCreativeContentDO.getRetryCount() > 3) {
+                    return false;
+                }
+                if (!XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(xhsCreativeContentDO.getStatus())) {
+                    return true;
+                }
+                return false;
+            });
+            updateStatus(planUid, complete ? CreativePlanStatusEnum.COMPLETE.name() : CreativePlanStatusEnum.RUNNING.name());
+        } catch (Exception e) {
+            log.warn("更新计划失败", e);
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**

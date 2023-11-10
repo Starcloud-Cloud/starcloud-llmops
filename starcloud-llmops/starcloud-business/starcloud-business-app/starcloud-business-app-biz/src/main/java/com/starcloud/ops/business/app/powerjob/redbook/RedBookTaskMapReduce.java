@@ -52,10 +52,6 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     @Resource
     private CreativePlanService creativePlanService;
 
-    @Resource
-    private RedissonClient redissonClient;
-
-
     @Override
     @TenantIgnore
     protected BaseTaskResult execute(PowerJobTaskContext powerJobTaskContext) {
@@ -190,29 +186,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         //查询所有创作计划的所有任务状态，判断是否都执行完成。完成就更新创作计划状态到执行完成。
         planUidList = planUidList.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
         for (String planUid : planUidList) {
-            // 加锁 planuid
-            String key = "xhs-plan-" + planUid;
-            RLock lock = redissonClient.getLock(key);
-            try {
-                lock.tryLock(10, 60, TimeUnit.SECONDS);
-                List<XhsCreativeContentDO> contentList = xhsCreativeContentService.listByPlanUid(planUid);
-                // 是否全部执行结束
-                boolean complete = contentList.stream().anyMatch(xhsCreativeContentDO -> {
-                    if (xhsCreativeContentDO.getRetryCount() != null && xhsCreativeContentDO.getRetryCount() > 3) {
-                        return false;
-                    }
-                    if (!XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(xhsCreativeContentDO.getStatus())) {
-                        return true;
-                    }
-                    return false;
-                });
-                creativePlanService.updateStatus(planUid, complete ? CreativePlanStatusEnum.COMPLETE.name() : CreativePlanStatusEnum.RUNNING.name());
-
-            } catch (Exception e) {
-                log.warn("更新计划失败", e);
-            } finally {
-                lock.unlock();
-            }
+            creativePlanService.updatePlanStatus(planUid);
         }
     }
 

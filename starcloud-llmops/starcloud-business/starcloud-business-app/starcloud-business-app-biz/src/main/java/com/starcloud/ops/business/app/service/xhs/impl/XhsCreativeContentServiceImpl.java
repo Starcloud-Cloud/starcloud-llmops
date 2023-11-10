@@ -17,11 +17,13 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.service.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.XlsCreativeExecuteManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,10 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
 
     @Resource
     private DictDataService dictDataService;
+
+    @Resource
+    @Lazy
+    private CreativePlanService creativePlanService;
 
 
     @Override
@@ -110,6 +116,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
             throw exception(EXECTURE_ERROR, "文案", textDO.getId());
         }
+        creativePlanService.updatePlanStatus(textDO.getPlanUid());
         return detail(businessUid);
     }
 
