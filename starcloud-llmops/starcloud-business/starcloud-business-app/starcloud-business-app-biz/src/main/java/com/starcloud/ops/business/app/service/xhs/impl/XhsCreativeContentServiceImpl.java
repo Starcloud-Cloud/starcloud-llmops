@@ -74,9 +74,9 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             if (CollectionUtils.isEmpty(contentList)) {
                 return Collections.emptyMap();
             }
-            if (XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equals(type)) {
+            if (XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equalsIgnoreCase(type)) {
                 return xlsCreativeExecuteManager.executeCopyWriting(contentList, force);
-            } else if (XhsCreativeContentTypeEnums.PICTURE.getCode().equals(type)) {
+            } else if (XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(type)) {
                 return xlsCreativeExecuteManager.executePicture(contentList, force);
             } else {
                 log.error("不支持的任务类型 {}", type);
@@ -104,7 +104,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
 
         Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), true);
         if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
-            throw exception(EXECTURE_ERROR, "图片");
+            throw exception(EXECTURE_ERROR, "图片", textDO.getId());
         }
         Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
         if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
