@@ -1,7 +1,5 @@
 package com.starcloud.ops.server;
 
-
-import com.starcloud.ops.business.app.powerjob.config.PowerJobAutoConfiguration;
 import com.starcloud.ops.business.core.config.BusinessAppProperties;
 import com.starcloud.ops.business.core.config.BusinessChatProperties;
 import com.starcloud.ops.business.core.config.BusinessDatasetProperties;
