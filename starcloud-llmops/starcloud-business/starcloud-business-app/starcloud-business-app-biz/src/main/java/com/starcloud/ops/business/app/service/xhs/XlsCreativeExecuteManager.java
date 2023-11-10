@@ -85,8 +85,8 @@ public class XlsCreativeExecuteManager {
                 if (executeParams == null) {
                     continue;
                 }
-                executeRequest.setCreativeContentUid(contentDO.getUid());
                 BeanUtil.copyProperties(executeParams.getAppExecuteRequest(), executeRequest);
+                executeRequest.setCreativeContentUid(contentDO.getUid());
                 executeRequest.setUserId(Long.valueOf(contentDO.getCreator()));
                 requests.add(executeRequest);
             }
