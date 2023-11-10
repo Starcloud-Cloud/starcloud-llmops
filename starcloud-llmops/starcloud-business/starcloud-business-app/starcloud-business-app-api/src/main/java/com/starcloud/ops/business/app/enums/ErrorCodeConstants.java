@@ -608,7 +608,7 @@ public interface ErrorCodeConstants {
 
     ErrorCode UNSUPPORTED_TYPE = new ErrorCode(300500005, "不支持的任务类型 {}");
 
-    ErrorCode EXECTURE_ERROR = new ErrorCode(300500006, "{} 执行失败请稍后重试");
+    ErrorCode EXECTURE_ERROR = new ErrorCode(300500006, "{} 执行失败请稍后重试 {}");
 
 
 }

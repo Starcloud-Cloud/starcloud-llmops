@@ -114,7 +114,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
                 || XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(textDO.getStatus())) {
             Map<Long, Boolean> textMap = xhsCreativeExectueManager.executeCopyWriting(Collections.singletonList(textDO), false);
             if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
-                throw exception(EXECTURE_ERROR, "文案");
+                throw exception(EXECTURE_ERROR, "文案", textDO.getId());
             }
         }
         return detail(businessUid);
