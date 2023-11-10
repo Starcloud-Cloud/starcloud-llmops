@@ -3,6 +3,7 @@ package com.starcloud.ops.business.user.service;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
+import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
@@ -69,12 +70,10 @@ public interface StarUserService {
     /**
      * 创建新用户 部门 绑定角色
      *
-     * @param username
-     * @param email
-     * @param password
+     * @param userDTO
      * @return
      */
-    Long createNewUser(String username, String email, String password, Long parentDeptId, Integer userStatus);
+    Long createNewUser(UserDTO userDTO);
 
 
     /**

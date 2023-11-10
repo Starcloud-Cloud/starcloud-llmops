@@ -15,12 +15,12 @@ import org.springframework.stereotype.Component;
 public class DingTalkNoticeProperties {
 
     /**
-     * 阿里云翻译服务的accessKey
+     * 阿里云钉钉服务的accessKey
      */
     private String name;
 
     /**
-     * 阿里云翻译服务的secretKey
+     * 阿里云钉钉服务的secretKey
      */
     private String smsCode;
 

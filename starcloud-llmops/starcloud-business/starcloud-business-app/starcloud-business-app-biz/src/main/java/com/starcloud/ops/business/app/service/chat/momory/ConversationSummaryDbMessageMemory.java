@@ -38,6 +38,7 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -326,7 +327,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         //结构太深，无法把messageID 返回出去，所以在这里处理权益
         Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
-        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(llmParams.getOrDefault("model", "").toString()), Long.valueOf(logVo.getCreator()), logVo.getUid());
+        String model = llmParams.getOrDefault("model", "").toString();
+        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()), Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
     private void createChatFunctionMessage(String message, AIMessage aiMessage) {
@@ -350,7 +352,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         });
 
         Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
-        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(llmParams.getOrDefault("model", "").toString()), Long.valueOf(logVo.getCreator()), logVo.getUid());
+        String model = llmParams.getOrDefault("model", "").toString();
+        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()), Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
 
@@ -470,8 +473,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             messageCreateReqVO.setMsgType(LogMessageTypeEnum.CHAT_DONE.name());
 
         });
-
-        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(llmParams.getOrDefault("model", "").toString()), Long.valueOf(logVo.getCreator()), logVo.getUid());
+        String model = llmParams.getOrDefault("model", "").toString();
+        benefitsService.expendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()), Long.valueOf(logVo.getCreator()), logVo.getUid());
     }
 
 
@@ -634,7 +637,21 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
     private Long computationalPower(String modelType) {
         ModelTypeEnum modelTypeEnum = TokenCalculator.fromName(modelType);
-        return ModelTypeEnum.GPT_4.equals(modelTypeEnum) ? 30L : 1L;
+        return ModelTypeEnum.GPT_4_TURBO.equals(modelTypeEnum) ? 30L : 1L;
+    }
+
+    private Long calculationTokens(Integer token) {
+        if (token < 1000) {
+            return 1L;
+        }
+        BigDecimal bigDecimal = new BigDecimal(token);
+        return bigDecimal.divide(new BigDecimal(500), 0, RoundingMode.FLOOR).longValue();
+    }
+
+    private Long computationalPower(String modelType, Integer tokens) {
+        Long model = computationalPower(modelType);
+        Long token = calculationTokens(tokens);
+        return model * token;
     }
 
     /**

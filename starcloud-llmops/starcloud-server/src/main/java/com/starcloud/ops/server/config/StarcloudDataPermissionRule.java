@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,9 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "llm_log_app_message_annotations",
             "llm_log_app_message_feedbacks",
             "llm_log_app_message_save",
+            "listing_dict",
+            "listing_draft",
+            "listing_keyword_bind",
             "llm_creative_plan",
             "llm_creative_content"
     );

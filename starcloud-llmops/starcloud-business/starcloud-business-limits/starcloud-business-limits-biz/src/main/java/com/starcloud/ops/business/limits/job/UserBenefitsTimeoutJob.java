@@ -33,7 +33,7 @@ public class UserBenefitsTimeoutJob {
     /**
      * 一分钟执行一次,这里选择每2分钟的秒执行，是为了避免整点任务过多的问题
      */
-    @Scheduled(cron = "0 0/2 * * * ? ")
+    @Scheduled(cron = "0 0/5 * * * ? ")
     public void userBenefitsExpired() {
         try {
             log.info("开始执行权益过期任务，获取已经过期权益");

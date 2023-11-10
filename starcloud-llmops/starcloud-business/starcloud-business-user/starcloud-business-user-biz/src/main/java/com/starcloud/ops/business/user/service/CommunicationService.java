@@ -35,5 +35,5 @@ public interface CommunicationService {
      * 验证码注册
      * @param reqVO
      */
-    void codeRegister(CodeRegisterReqVO reqVO);
+    AuthLoginRespVO codeRegister(CodeRegisterReqVO reqVO);
 }

@@ -99,9 +99,10 @@ public interface PayOrderMapper extends BaseMapperX<PayOrderDO> {
         );
     }
 
-    default PayOrderDO selectNoCloseByProductCode(String productCode,Long userId,Long tenantId) {
+    default PayOrderDO selectNoCloseByProductCode(String productCode,Long discountId,Long userId,Long tenantId) {
         return selectOne(new QueryWrapper<PayOrderDO>()
                 .eq("product_code", productCode)
+                .eq("discount_id", discountId)
                 .gt("expire_time", LocalDateTimeUtil.now())
                 .eq("status", 0)
                 .eq("creator", userId)

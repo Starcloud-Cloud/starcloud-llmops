@@ -15,6 +15,7 @@ public class UserProfileUpdateRequest {
 
     @Schema(description = "用户名", required = true, example = "芋艿")
     @Length(max = 16, message = "账号长度为 4-16 位")
+    @Pattern(regexp = "^[A-Za-z0-9]+$", message = "账号格式为数字以及字母")
     private String username;
 
     @Schema(description = "用户昵称", required = true, example = "芋艿")

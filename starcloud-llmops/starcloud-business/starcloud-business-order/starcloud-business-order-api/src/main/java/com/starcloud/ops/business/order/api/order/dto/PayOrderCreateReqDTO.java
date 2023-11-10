@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.order.api.order.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
@@ -66,4 +67,9 @@ public class PayOrderCreateReqDTO implements Serializable {
     @NotNull(message = "支付过期时间不能为空")
     private LocalDateTime expireTime;
 
+    @Schema(description = "优惠代码")
+    private String discountCode;
+
+    @Schema(description = "优惠代码ID")
+    private Long discountId;
 }

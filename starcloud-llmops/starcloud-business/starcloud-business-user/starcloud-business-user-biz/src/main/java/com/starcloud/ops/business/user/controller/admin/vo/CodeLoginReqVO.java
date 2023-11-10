@@ -27,7 +27,7 @@ public class CodeLoginReqVO {
     @Pattern(regexp = "^[0-9]+$", message = "手机验证码必须都是数字")
     private String code;
 
-    @Schema(description = "发送工具，手机、email", example = "1")
+    @Schema(description = "发送工具，手机 2、email 1", example = "1")
     @NotNull(message = "发送工具不能为空")
     @InEnum(CommunicationToolsEnum.class)
     private Integer tool;
