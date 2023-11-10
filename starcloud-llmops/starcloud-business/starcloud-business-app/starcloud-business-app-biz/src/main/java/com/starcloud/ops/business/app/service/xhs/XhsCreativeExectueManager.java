@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.app.service.xhs;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
@@ -22,14 +25,14 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 @Slf4j
@@ -48,31 +51,94 @@ public class XhsCreativeExectueManager {
     private DictDataService dictDataService;
 
 
-    public Map<Long, Boolean> executeCopyWriting(List<XhsCreativeContentDO> xhsCreativeContentDO, Boolean force) {
-        Map<Long, Boolean> result = new HashMap<>(xhsCreativeContentDO.size());
+    public Map<Long, Boolean> executeCopyWriting(List<XhsCreativeContentDO> xhsCreativeContentDOList, Boolean force) {
+        Map<Long, Boolean> result = new HashMap<>(xhsCreativeContentDOList.size());
+
         // 排序 id 加锁
+        List<Long> ids = xhsCreativeContentDOList.stream().map(XhsCreativeContentDO::getId).sorted().collect(Collectors.toList());
+        StringJoiner sj = new StringJoiner("-");
+        ids.forEach(id -> sj.add(id.toString()));
+        String key = "xhs-pic-" + sj.toString();
+        RLock lock = redissonClient.getLock(key);
 
+        if (lock != null && !lock.tryLock()) {
+            log.warn("正在执行中，重复调用 {}", sj);
+            return result;
+        }
+        Integer maxRetry = getMaxRetry(force);
+        xhsCreativeContentDOList = creativeContentMapper.selectBatchIds(ids).stream().filter(xhsCreativeContentDO -> {
+            return xhsCreativeContentDO.getRetryCount() < maxRetry && !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(xhsCreativeContentDO.getStatus());
+        }).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(xhsCreativeContentDOList)) {
+            log.warn("没有可执行状态的任务，{}", sj);
+            return result;
+        }
 
+        try {
+            List<XhsAppCreativeExecuteRequest> requests = new ArrayList<>(xhsCreativeContentDOList.size());
+            for (XhsCreativeContentDO contentDO : xhsCreativeContentDOList) {
+                XhsAppCreativeExecuteRequest executeRequest = new XhsAppCreativeExecuteRequest();
+                XhsCreativeContentExecuteParamsDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(contentDO.getExecuteParams());
+                if (executeParams == null) {
+                    continue;
+                }
+                executeRequest.setCreativeContentUid(contentDO.getUid());
+                BeanUtil.copyProperties(executeParams.getAppExecuteRequest(), executeRequest);
+                executeRequest.setUserId(Long.valueOf(contentDO.getCreator()));
+                requests.add(executeRequest);
+            }
 
+            LocalDateTime start = LocalDateTime.now();
+            List<XhsAppCreativeExecuteResponse> resp = xhsService.bathAppCreativeExecute(requests);
+            if (CollectionUtils.isEmpty(resp)) {
+                return result;
+            }
+            Map<String, XhsAppCreativeExecuteResponse> respMap = resp.stream().collect(Collectors.toMap(XhsAppCreativeExecuteResponse::getCreativeContentUid, Function.identity()));
+            LocalDateTime end = LocalDateTime.now();
+            Long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+            for (XhsCreativeContentDO contentDO : xhsCreativeContentDOList) {
+                XhsAppCreativeExecuteResponse executeResponse = respMap.get(contentDO.getUid());
+                if (!executeResponse.getSuccess()) {
+                    result.put(contentDO.getId(), false);
+                    updateDO(contentDO, executeResponse.getErrorMsg(), contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_ERROR);
+                    continue;
+                }
+
+                contentDO.setCopyWritingContent(executeResponse.getText());
+                contentDO.setCopyWritingTitle(executeResponse.getTitle());
+                contentDO.setCopyWritingCount(executeResponse.getText().length());
+                contentDO.setStartTime(start);
+                contentDO.setEndTime(end);
+                contentDO.setExecuteTime(executeTime);
+                updateDO(contentDO, StringUtils.EMPTY, contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
+                result.put(contentDO.getId(), true);
+            }
+            log.info("文案执行成功： {} ms", executeTime);
+        } catch (Exception e) {
+            log.error("文案生成异常", e);
+        } finally {
+            if (lock != null) {
+                lock.unlock();
+            }
+        }
         return result;
     }
 
     public Map<Long, Boolean> executePicture(List<XhsCreativeContentDO> xhsCreativeContentDO, Boolean force) {
         Map<Long, Boolean> result = new HashMap<>(xhsCreativeContentDO.size());
-        for (XhsCreativeContentDO contentDO : xhsCreativeContentDO) {
-            String key = "xhs-content-" + contentDO.getUid();
+        for (XhsCreativeContentDO sourceContentDO : xhsCreativeContentDO) {
+            String key = "xhs-pic-" + sourceContentDO.getUid();
             RLock lock = redissonClient.getLock(key);
             try {
                 if (lock != null && !lock.tryLock(0L, 60L, TimeUnit.SECONDS)) {
-                    log.warn("图片正在执行中，重复调用 {}", contentDO.getId());
-                    result.put(contentDO.getId(), false);
+                    log.warn("图片正在执行中，重复调用 {}", sourceContentDO.getId());
+                    result.put(sourceContentDO.getId(), false);
                     continue;
                 }
                 // 校验状态 重试次数
-                contentDO = getReadyCreative(contentDO.getId(), force);
+                XhsCreativeContentDO contentDO = getReadyCreative(sourceContentDO.getId(), force);
                 if (contentDO == null) {
-                    log.warn("图片重试次数超过限制： {}", contentDO.getId());
-                    result.put(contentDO.getId(), false);
+                    result.put(sourceContentDO.getId(), false);
                     continue;
                 }
 
@@ -113,11 +179,11 @@ public class XhsCreativeExectueManager {
                 contentDO.setExecuteTime(executeTime);
                 updateDO(contentDO, StringUtils.EMPTY, contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
                 result.put(contentDO.getId(), true);
-                log.warn("图片执行成功： {} ms", executeTime);
+                log.info("图片执行成功： {} ms", executeTime);
             } catch (Exception e) {
                 log.error("执行图片生成失败", e);
-                result.put(contentDO.getId(), false);
-                updateDO(contentDO, e.getMessage(), contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_ERROR);
+                result.put(sourceContentDO.getId(), false);
+                updateDO(sourceContentDO, e.getMessage(), sourceContentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_ERROR);
             } finally {
                 if (lock != null) {
                     lock.unlock();
@@ -133,6 +199,7 @@ public class XhsCreativeExectueManager {
         xhsCreativeContentDO.setErrorMsg(errorMsg);
         xhsCreativeContentDO.setRetryCount(retryCount);
         xhsCreativeContentDO.setStatus(statusEnums.getCode());
+        xhsCreativeContentDO.setUpdateTime(LocalDateTime.now());
         creativeContentMapper.updateById(xhsCreativeContentDO);
     }
 
@@ -153,7 +220,8 @@ public class XhsCreativeExectueManager {
             log.warn("未找到对应的创作任务：{}", id);
             return null;
         }
-        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(contentDO.getStatus())) {
+        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(contentDO.getStatus())
+                || XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus())) {
             log.warn("创作任务在执行中：{}", id);
             return null;
         }

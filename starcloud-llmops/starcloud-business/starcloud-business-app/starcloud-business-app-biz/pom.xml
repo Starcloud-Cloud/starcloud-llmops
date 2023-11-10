@@ -14,14 +14,14 @@
     <version>${starcloud.revision}</version>
 
     <properties>
-        <powerjob.version>4.0.1</powerjob.version>
+        <powerjob.version>4.3.2</powerjob.version>
     </properties>
 
     <dependencies>
 
         <dependency>
             <groupId>tech.powerjob</groupId>
-            <artifactId>powerjob-worker</artifactId>
+            <artifactId>powerjob-worker-spring-boot-starter</artifactId>
             <version>${powerjob.version}</version>
         </dependency>
 

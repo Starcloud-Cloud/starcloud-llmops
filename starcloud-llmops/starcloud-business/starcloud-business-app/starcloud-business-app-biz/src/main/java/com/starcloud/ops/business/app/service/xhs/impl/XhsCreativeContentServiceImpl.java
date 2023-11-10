@@ -3,9 +3,10 @@ package com.starcloud.ops.business.app.service.xhs.impl;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
@@ -28,7 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_NOT_EXIST;
 
 @Service
 @Slf4j
@@ -54,7 +55,9 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     }
 
     @Override
+    @TenantIgnore
     public Map<Long, Boolean> execute(List<Long> ids, String type, Boolean force) {
+        log.info("开始执行 {} 任务 {}", type, ids);
         try {
             List<XhsCreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
                     .stream().filter(content -> {
@@ -86,11 +89,18 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     }
 
     @Override
+    @TenantIgnore
     public List<XhsCreativeContentDO> jobQuery(XhsCreativeQueryReq queryReq) {
-        if (queryReq.valid()) {
+        if (!queryReq.valid()) {
             return Collections.emptyList();
         }
         return creativeContentMapper.jobQuery(queryReq);
+    }
+
+    @Override
+    @TenantIgnore
+    public List<XhsCreativeContentDO> listByPlanUid(String planUid) {
+        return creativeContentMapper.selectByPlanUid(planUid);
     }
 
     @Override
@@ -126,6 +136,16 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         if (count == 0) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
+    }
+
+    /**
+     * 删除计划下的所有创作内容
+     *
+     * @param planUid 计划uid
+     */
+    @Override
+    public void deleteByPlanUid(String planUid) {
+        creativeContentMapper.deleteByPlanUid(planUid);
     }
 
 

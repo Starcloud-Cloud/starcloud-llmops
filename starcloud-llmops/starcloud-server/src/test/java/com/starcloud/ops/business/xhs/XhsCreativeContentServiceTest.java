@@ -2,12 +2,10 @@ package com.starcloud.ops.business.xhs;
 
 import cn.iocoder.yudao.framework.dict.config.YudaoDictAutoConfiguration;
 import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
-import cn.iocoder.yudao.framework.redis.config.YudaoCacheAutoConfiguration;
-import cn.iocoder.yudao.framework.redis.config.YudaoRedisAutoConfiguration;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
+import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
@@ -22,7 +20,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
-import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,6 +42,8 @@ public class XhsCreativeContentServiceTest extends BaseDbUnitTest {
     @MockBean
     private RedissonClient redissonClient;
 
+    @MockBean
+    private FileApi fileApi;
 
     @Autowired
     private XhsCreativeContentService xhsCreativeContentService;
@@ -54,9 +53,19 @@ public class XhsCreativeContentServiceTest extends BaseDbUnitTest {
     public void executeTest() {
 
 
-        List<Long> ids = Arrays.asList(698L, 700L);
+        List<Long> ids = Arrays.asList(402L, 404L);
 
         xhsCreativeContentService.execute(ids, XhsCreativeContentTypeEnums.PICTURE.getCode(), true);
+
+    }
+
+    @Test
+    public void executeTest2() {
+
+
+        List<Long> ids = Arrays.asList(401L, 403L);
+
+        xhsCreativeContentService.execute(ids, XhsCreativeContentTypeEnums.COPY_WRITING.getCode(), true);
 
     }
 

@@ -99,17 +99,17 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 转换应用数据
         AppMarketRespVO response = AppMarketConvert.INSTANCE.convertResponse(appMarket);
 
-        // 获取当前登录用户并且校验
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
-
-        // 查询是否收藏
-        AppFavoriteDO favorite = appFavoritesMapper.get(appMarket.getUid(), String.valueOf(loginUserId));
-        if (Objects.nonNull(favorite)) {
-            response.setIsFavorite(Boolean.TRUE);
-        } else {
-            response.setIsFavorite(Boolean.FALSE);
-        }
+//        // 获取当前登录用户并且校验
+//        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+//        AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+//
+//        // 查询是否收藏
+//        AppFavoriteDO favorite = appFavoritesMapper.get(appMarket.getUid(), String.valueOf(loginUserId));
+//        if (Objects.nonNull(favorite)) {
+//            response.setIsFavorite(Boolean.TRUE);
+//        } else {
+//            response.setIsFavorite(Boolean.FALSE);
+//        }
 
         return response;
     }
@@ -388,6 +388,9 @@ public class AppMarketServiceImpl implements AppMarketService {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
             }
             request.setUserId(Long.toString(loginUserId));
+        }
+        if (Objects.nonNull(appMarketDO.getTenantId())) {
+            request.setTenantId(appMarketDO.getTenantId());
         }
         // 转换数据
         AppOperateDO operateDO = AppOperateConvert.INSTANCE.convert(request);

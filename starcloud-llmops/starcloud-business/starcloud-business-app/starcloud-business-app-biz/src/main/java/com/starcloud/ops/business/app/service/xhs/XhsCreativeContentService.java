@@ -37,6 +37,11 @@ public interface XhsCreativeContentService {
     List<XhsCreativeContentDO> jobQuery(XhsCreativeQueryReq queryReq);
 
     /**
+     * 查询计划的所有任务
+     */
+    List<XhsCreativeContentDO> listByPlanUid(String planUid);
+
+    /**
      * 分页查询创作内容
      */
     PageResult<XhsCreativeContentResp> page(XhsCreativeContentPageReq req);
@@ -58,4 +63,10 @@ public interface XhsCreativeContentService {
      * @return
      */
     void delete(String businessUid);
+
+    /**
+     * 删除计划下的所有创作内容
+     * @param planUid 计划uid
+     */
+    void deleteByPlanUid(String planUid);
 }
