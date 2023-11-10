@@ -63,4 +63,10 @@ public interface XhsCreativeContentService {
      * @return
      */
     void delete(String businessUid);
+
+    /**
+     * 删除计划下的所有创作内容
+     * @param planUid 计划uid
+     */
+    void deleteByPlanUid(String planUid);
 }

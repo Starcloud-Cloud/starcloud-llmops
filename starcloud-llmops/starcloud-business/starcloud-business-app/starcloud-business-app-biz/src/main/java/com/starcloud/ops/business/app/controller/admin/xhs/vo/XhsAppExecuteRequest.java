@@ -56,6 +56,12 @@ public class XhsAppExecuteRequest implements java.io.Serializable {
     private Long userId;
 
     /**
+     * 是否需要标签
+     */
+    @Schema(description = "是否需要标签")
+    private Boolean needTag;
+
+    /**
      * 应用生成参数
      */
     @Schema(description = "应用生成参数")

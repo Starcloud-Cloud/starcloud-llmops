@@ -34,6 +34,7 @@ public interface AppOperateConvert {
         operate.setCreateTime(LocalDateTime.now());
         operate.setUpdateTime(LocalDateTime.now());
         operate.setDeleted(Boolean.FALSE);
+        operate.setTenantId(request.getTenantId());
         return operate;
     }
 

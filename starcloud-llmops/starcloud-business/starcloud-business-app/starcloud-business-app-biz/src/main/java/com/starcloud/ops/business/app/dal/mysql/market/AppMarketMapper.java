@@ -184,7 +184,8 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getCreator,
                 AppMarketDO::getUpdater,
                 AppMarketDO::getCreateTime,
-                AppMarketDO::getUpdateTime
+                AppMarketDO::getUpdateTime,
+                AppMarketDO::getTenantId
         );
         return wrapper;
     }

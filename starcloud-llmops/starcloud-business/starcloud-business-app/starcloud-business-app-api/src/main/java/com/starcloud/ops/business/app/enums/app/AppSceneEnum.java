@@ -266,7 +266,7 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             CHAT_TEST,
             OPTIMIZE_PROMPT,
             LISTING_GENERATE,
-            XHS_WRITING,
+            //XHS_WRITING,
             WEB_IMAGE,
             IMAGE_UPSCALING,
             IMAGE_REMOVE_BACKGROUND,

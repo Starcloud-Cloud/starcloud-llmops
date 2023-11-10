@@ -25,7 +25,11 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -57,7 +61,7 @@ public class XhsCreativeExectueManager {
         String key = "xhs-pic-" + sj.toString();
         RLock lock = redissonClient.getLock(key);
 
-        if (!lock.tryLock()) {
+        if (lock != null && !lock.tryLock()) {
             log.warn("正在执行中，重复调用 {}", sj);
             return result;
         }
@@ -79,8 +83,8 @@ public class XhsCreativeExectueManager {
                     continue;
                 }
                 executeRequest.setCreativeContentUid(contentDO.getUid());
-                executeRequest.setUserId(Long.valueOf(contentDO.getCreator()));
                 BeanUtil.copyProperties(executeParams.getAppExecuteRequest(), executeRequest);
+                executeRequest.setUserId(Long.valueOf(contentDO.getCreator()));
                 requests.add(executeRequest);
             }
 
@@ -113,7 +117,9 @@ public class XhsCreativeExectueManager {
         } catch (Exception e) {
             log.error("文案生成异常", e);
         } finally {
-            lock.unlock();
+            if (lock != null) {
+                lock.unlock();
+            }
         }
         return result;
     }
@@ -215,7 +221,7 @@ public class XhsCreativeExectueManager {
             return null;
         }
         if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(contentDO.getStatus())
-           || XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus())) {
+                || XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus())) {
             log.warn("创作任务在执行中：{}", id);
             return null;
         }
