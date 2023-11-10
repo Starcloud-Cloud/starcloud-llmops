@@ -223,9 +223,13 @@ public class XlsCreativeExecuteManager {
             log.warn("未找到对应的创作任务：{}", id);
             return null;
         }
-        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(contentDO.getStatus())
-                || XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus())) {
+        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(contentDO.getStatus())) {
             log.warn("创作任务在执行中：{}", id);
+            return null;
+        }
+
+        if (!force && XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus())) {
+            log.warn("创作任务已成功：{}", id);
             return null;
         }
 
