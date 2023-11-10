@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
+import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -67,7 +68,9 @@ public class XlsCreativeExecuteManager {
         }
         Integer maxRetry = getMaxRetry(force);
         xhsCreativeContentDOList = creativeContentMapper.selectBatchIds(ids).stream().filter(xhsCreativeContentDO -> {
-            return xhsCreativeContentDO.getRetryCount() < maxRetry && !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(xhsCreativeContentDO.getStatus());
+            return xhsCreativeContentDO.getRetryCount() < maxRetry
+                    && !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(xhsCreativeContentDO.getStatus())
+                    && XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equals(xhsCreativeContentDO.getType());
         }).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(xhsCreativeContentDOList)) {
             log.warn("没有可执行状态的任务，{}", sj);
@@ -223,6 +226,11 @@ public class XlsCreativeExecuteManager {
         if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(contentDO.getStatus())
                 || XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus())) {
             log.warn("创作任务在执行中：{}", id);
+            return null;
+        }
+
+        if (!XhsCreativeContentTypeEnums.PICTURE.getCode().equals(contentDO.getType())) {
+            log.warn("不是图片类型的任务{}", id);
             return null;
         }
         Integer maxRetry = getMaxRetry(force);
