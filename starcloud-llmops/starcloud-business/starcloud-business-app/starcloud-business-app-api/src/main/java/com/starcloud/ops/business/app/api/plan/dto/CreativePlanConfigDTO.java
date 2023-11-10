@@ -80,7 +80,7 @@ public class CreativePlanConfigDTO implements java.io.Serializable {
     @Schema(description = "生成数量")
     @NotNull(message = "生成数量不能为空！")
     @Min(value = 1, message = "生成数量最小值为 1")
-    @Max(value = 500, message = "生成数量最大值为 500")
+    @Max(value = 100, message = "生成数量最大值为 500")
     private Integer total;
 
     /**
@@ -105,7 +105,7 @@ public class CreativePlanConfigDTO implements java.io.Serializable {
         if (Objects.isNull(total)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_TOTAL_EMPTY);
         }
-        if (total < 1 || total > 500) {
+        if (total < 1 || total > 100) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_TOTAL_OUT_OF_RANGE, total);
         }
     }
