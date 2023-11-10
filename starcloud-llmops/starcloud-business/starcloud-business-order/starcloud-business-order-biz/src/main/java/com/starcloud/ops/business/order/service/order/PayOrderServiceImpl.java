@@ -544,6 +544,7 @@ public class PayOrderServiceImpl implements PayOrderService {
             appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
         }
 
+        appPayProductDiscountRespVO.setDiscountCouponStatus(false);
         // 如果有折扣码 则判断折扣码的有效性
         if (StrUtil.isNotBlank(discountCode) && userBenefitsService.validateUserBenefitsByCode(discountCode, getLoginUserId())) {
 
@@ -561,6 +562,8 @@ public class PayOrderServiceImpl implements PayOrderService {
             } else {
                 appPayProductDiscountRespVO.setDiscountCouponStatus(false);
             }
+        }else{
+            appPayProductDiscountRespVO.setDiscountCouponStatus(false);
         }
         return appPayProductDiscountRespVO;
     }
