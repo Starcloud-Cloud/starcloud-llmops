@@ -361,7 +361,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             XhsAppExecuteRequest appExecuteRequest = SerializationUtils.clone(xhsAppExecuteRequests.get(appRandomInt));
             appCreateRequest.setPlanUid(planUid);
             appCreateRequest.setBusinessUid(businessUid);
-            appCreateRequest.setType(XhsCreativeContentTypeEnums.COPY_WRITING.name());
+            appCreateRequest.setType(XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
             appCreateRequest.setTempUid(appExecuteRequest.getUid());
             appCreateRequest.setExecuteParams(XhsCreativeContentExecuteParamsDTO.ofApp(appExecuteRequest));
             xhsCreativeContentCreateReqList.add(appCreateRequest);
@@ -405,7 +405,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
             imageCreateRequest.setPlanUid(planUid);
             imageCreateRequest.setBusinessUid(businessUid);
-            imageCreateRequest.setType(XhsCreativeContentTypeEnums.PICTURE.name());
+            imageCreateRequest.setType(XhsCreativeContentTypeEnums.PICTURE.getCode());
             imageCreateRequest.setTempUid(String.join(",", templateIdList));
             imageCreateRequest.setExecuteParams(XhsCreativeContentExecuteParamsDTO.ofBathImage(bathImageExecuteRequest));
             imageCreateRequest.setUsePicture(useImageList.stream().distinct().collect(Collectors.toList()));

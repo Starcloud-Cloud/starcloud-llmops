@@ -70,7 +70,7 @@ public class XlsCreativeExecuteManager {
         xhsCreativeContentDOList = creativeContentMapper.selectBatchIds(ids).stream().filter(xhsCreativeContentDO -> {
             return xhsCreativeContentDO.getRetryCount() < maxRetry
                     && !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(xhsCreativeContentDO.getStatus())
-                    && XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equals(xhsCreativeContentDO.getType());
+                    && XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equalsIgnoreCase(xhsCreativeContentDO.getType());
         }).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(xhsCreativeContentDOList)) {
             log.warn("没有可执行状态的任务，{}", sj);
@@ -233,7 +233,7 @@ public class XlsCreativeExecuteManager {
             return null;
         }
 
-        if (!XhsCreativeContentTypeEnums.PICTURE.getCode().equals(contentDO.getType())) {
+        if (!XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(contentDO.getType())) {
             log.warn("不是图片类型的任务{}", id);
             return null;
         }
