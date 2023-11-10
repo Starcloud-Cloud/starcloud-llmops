@@ -208,7 +208,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                 creativePlanService.updateStatus(planUid, complete ? CreativePlanStatusEnum.COMPLETE.name() : CreativePlanStatusEnum.RUNNING.name());
 
             } catch (Exception e) {
-                log.warn("", e);
+                log.warn("更新计划失败", e);
             } finally {
                 lock.unlock();
             }
