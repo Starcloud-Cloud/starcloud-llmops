@@ -19,7 +19,7 @@
             llm_creative_content pic
             INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
             WHERE pic.type = 'picture' and text.type = 'copy_writing'
-            and pic.delete = false and text.delete = false
+            and pic.deleted = false and text.deleted = false
             <if test="req.planUid != null and req.planUid != ''">
                 and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
             </if>
@@ -32,7 +32,7 @@
         llm_creative_content pic
         INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
         WHERE pic.type = 'picture' and text.type = 'copy_writing'
-        and pic.delete = false and text.delete = false
+        and pic.deleted = false and text.deleted = false
         <if test="req.planUid != null and req.planUid != ''">
             and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
         </if>

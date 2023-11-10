@@ -602,11 +602,13 @@ public interface ErrorCodeConstants {
 
     ErrorCode CREATIVE_CONTENT_IS_EXECUTEING = new ErrorCode(300500002, "创作内容执行中稍后重试, {}");
 
-    ErrorCode CREATIVE_CONTENT_GREATER_RETRY = new ErrorCode(300500003, "创作内容最多重试 {} 次, {}");
+    ErrorCode CREATIVE_CONTENT_GREATER_RETRY = new ErrorCode(300500003, "创作内容最多重试 {} 次");
 
     ErrorCode NO_CREATIVE_CONTENT_CAN_EXECUTE = new ErrorCode(300500004, "不存在可执行的创作任务");
 
     ErrorCode UNSUPPORTED_TYPE = new ErrorCode(300500005, "不支持的任务类型 {}");
+
+    ErrorCode EXECTURE_ERROR = new ErrorCode(300500006, "{} 执行失败请稍后重试");
 
 
 }

@@ -4,6 +4,8 @@ import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
@@ -19,6 +21,7 @@ import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeExectueManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +45,10 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     private XhsCreativeExectueManager xhsCreativeExectueManager;
 
 
+    @Resource
+    private DictDataService dictDataService;
+
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void create(List<XhsCreativeContentCreateReq> createReqs) {
@@ -57,7 +64,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     @Override
     @TenantIgnore
     public Map<Long, Boolean> execute(List<Long> ids, String type, Boolean force) {
-        log.info("开始执行 {} 任务 {}",type,ids);
+        log.info("开始执行 {} 任务 {}", type, ids);
         try {
             List<XhsCreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
                     .stream().filter(content -> {
@@ -81,11 +88,36 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     }
 
     @Override
-    public void retry(String businessUid) {
+    public XhsCreativeContentResp retry(String businessUid) {
         XhsCreativeContentDO textDO = creativeContentMapper.selectByType(businessUid, XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
         XhsCreativeContentDO picDO = creativeContentMapper.selectByType(businessUid, XhsCreativeContentTypeEnums.PICTURE.getCode());
-        xhsCreativeExectueManager.executePicture(Collections.singletonList(picDO), false);
-        xhsCreativeExectueManager.executeCopyWriting(Collections.singletonList(textDO), false);
+
+        if (textDO == null || picDO == null) {
+            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+        }
+
+        Integer maxRetry = getMaxRetry(false);
+
+        if (textDO.getRetryCount() >= maxRetry || picDO.getRetryCount() >= maxRetry) {
+            throw exception(CREATIVE_CONTENT_GREATER_RETRY, maxRetry);
+        }
+
+        if (XhsCreativeContentStatusEnums.INIT.getCode().equals(picDO.getStatus())
+                || XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(picDO.getStatus())) {
+            Map<Long, Boolean> picMap = xhsCreativeExectueManager.executePicture(Collections.singletonList(picDO), false);
+            if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
+                throw exception(EXECTURE_ERROR, "图片");
+            }
+        }
+
+        if (XhsCreativeContentStatusEnums.INIT.getCode().equals(textDO.getStatus())
+                || XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(textDO.getStatus())) {
+            Map<Long, Boolean> textMap = xhsCreativeExectueManager.executeCopyWriting(Collections.singletonList(textDO), false);
+            if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
+                throw exception(EXECTURE_ERROR, "文案");
+            }
+        }
+        return detail(businessUid);
     }
 
     @Override
@@ -147,5 +179,15 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         return detail;
     }
 
+    private Integer getMaxRetry(Boolean force) {
+        if (BooleanUtils.isTrue(force)) {
+            return Integer.MAX_VALUE;
+        }
+        DictDataDO dictDataDO = dictDataService.parseDictData("xhs", "max_retry");
+        if (dictDataDO == null || dictDataDO.getValue() == null) {
+            return 3;
+        }
+        return Integer.valueOf(dictDataDO.getValue());
+    }
 
 }

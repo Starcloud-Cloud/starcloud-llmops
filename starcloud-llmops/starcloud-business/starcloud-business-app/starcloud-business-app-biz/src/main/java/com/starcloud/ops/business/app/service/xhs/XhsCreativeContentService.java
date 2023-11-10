@@ -29,7 +29,7 @@ public interface XhsCreativeContentService {
     /**
      * 重试
      */
-    void retry(String businessUid);
+    XhsCreativeContentResp retry(String businessUid);
 
     /**
      * 查询任务
