@@ -162,6 +162,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      * @return
      */
     @Override
+    @TenantIgnore
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
         if (CollectionUtils.isEmpty(taskResults)) {
             return new ProcessResult(true, "reduce_success");
