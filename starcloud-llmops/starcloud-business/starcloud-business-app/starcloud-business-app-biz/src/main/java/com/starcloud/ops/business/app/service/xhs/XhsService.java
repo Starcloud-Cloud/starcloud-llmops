@@ -40,7 +40,7 @@ public interface XhsService {
      * @param request 请求
      * @return 响应
      */
-    XhsAppExecuteResponse appExecute(XhsAppExecuteRequest request);
+    List<XhsAppExecuteResponse> appExecute(XhsAppExecuteRequest request);
 
     /**
      * 异步执行应用

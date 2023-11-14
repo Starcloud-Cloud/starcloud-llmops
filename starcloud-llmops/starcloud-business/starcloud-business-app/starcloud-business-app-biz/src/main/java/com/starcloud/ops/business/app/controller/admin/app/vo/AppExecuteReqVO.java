@@ -43,6 +43,12 @@ public class AppExecuteReqVO extends AppContextReqVO {
     private String aiModel;
 
     /**
+     * AI模型返回的条数
+     */
+    @Schema(description = "AI模型返回的条数")
+    private Integer n = 1;
+
+    /**
      * 应用参数
      */
     @Schema(description = "应用参数")

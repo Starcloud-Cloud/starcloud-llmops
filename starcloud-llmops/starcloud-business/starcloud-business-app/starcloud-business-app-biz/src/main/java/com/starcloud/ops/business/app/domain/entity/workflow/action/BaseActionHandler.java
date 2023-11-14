@@ -159,6 +159,8 @@ public abstract class BaseActionHandler<Q, R> {
         Map<String, Object> stepParams = this.appContext.getContextVariablesValues();
         // 将 MODEL 传入到 stepParams 中
         stepParams.put("MODEL", this.appContext.getAiModel());
+        // 将 N 传入到 stepParams 中
+        stepParams.put("N", this.appContext.getN());
 
         Type query = TypeUtil.getTypeArgument(this.getClass());
         Class<Q> inputCls = (Class<Q>) query;
