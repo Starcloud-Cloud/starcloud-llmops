@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.service.xhs.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -36,6 +38,8 @@ import com.starcloud.ops.business.app.service.xhs.FastPosterFactory;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.theokanning.openai.completion.chat.ChatCompletionChoice;
+import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 import net.fastposter.client.FastposterClient;
 import org.apache.commons.lang3.StringUtils;
@@ -121,69 +125,116 @@ public class XhsServiceImpl implements XhsService {
      * @return 响应
      */
     @Override
-    public XhsAppExecuteResponse appExecute(XhsAppExecuteRequest request) {
-        XhsAppExecuteResponse response = new XhsAppExecuteResponse();
-        response.setSuccess(Boolean.FALSE);
+    public List<XhsAppExecuteResponse> appExecute(XhsAppExecuteRequest request) {
+        Integer n = Objects.nonNull(request.getN()) && request.getN() > 0 ? request.getN() : 1;
+        request.setN(n);
+        // 参数校验
+        if (StringUtils.isBlank(request.getUid())) {
+            log.error("小红书执行应用失败。应用UID不能为空, 生成条数: {}", n);
+            return XhsAppExecuteResponse.failure("350400101", "应用UID不能为空, 生成条数: " + n, n);
+        }
         // 执行应用
         try {
-            // 参数校验
-            if (StringUtils.isBlank(request.getUid())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400101, "应用UID不能为空！"));
-            }
-            response.setUid(request.getUid());
-            if (CollectionUtil.isEmpty(request.getParams())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
-            }
+            log.info("小红书执行应用开始。参数为\n：{}", JSONUtil.parse(request).toStringPretty());
             // 获取应用
             AppMarketRespVO appMarket = appMarketService.get(request.getUid());
-            if (request.getNeedTag()) {
-                Map<String, Object> params = request.getParams();
-                params.put("NEED_TAG", true);
-                request.setParams(params);
-            }
             AppExecuteRespVO executeResponse = appService.execute(buildExecuteRequest(appMarket, request));
             if (!executeResponse.getSuccess()) {
-                response.setErrorCode(executeResponse.getResultCode());
-                response.setErrorMsg(executeResponse.getResultDesc());
-                return response;
+                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
+                        request.getUid(), n, executeResponse.getResultCode(), executeResponse.getResultDesc());
+                return XhsAppExecuteResponse.failure(request.getUid(), "350400101", executeResponse.getResultDesc(), n);
             }
             ActionResponse actionResult = (ActionResponse) executeResponse.getResult();
             if (Objects.isNull(actionResult)) {
-                response.setErrorCode("350400205");
-                response.setErrorMsg("执行结果不存在！请稍候重试或者联系管理员！");
-                return response;
+                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
+                        request.getUid(), n, "350400205", "执行结果不存在！请稍候重试或者联系管理员！");
+                return XhsAppExecuteResponse.failure(request.getUid(), "350400205", "执行结果不存在！请稍候重试或者联系管理员！", n);
             }
             if (!actionResult.getSuccess()) {
-                response.setErrorCode(actionResult.getErrorCode());
-                response.setErrorMsg(actionResult.getErrorMsg());
-                return response;
-            }
-            if (StringUtils.isBlank(actionResult.getAnswer())) {
-                response.setErrorCode("350400206");
-                response.setErrorMsg("执行结果内容不存在！请稍候重试或者联系管理员！");
-                return response;
+                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
+                        request.getUid(), n, actionResult.getErrorCode(), actionResult.getErrorMsg());
+                return XhsAppExecuteResponse.failure(request.getUid(), actionResult.getErrorCode(), actionResult.getErrorMsg(), n);
             }
 
-            response.setSuccess(Boolean.TRUE);
             String answer = actionResult.getAnswer();
-            if (request.getNeedTag()) {
-                String title = answer.substring(answer.indexOf("<TITLE_START>") + 13, answer.indexOf("<TITLE_END>"));
-                String text = answer.substring(answer.indexOf("<TEXT_START>") + 12, answer.indexOf("<TEXT_END>"));
-                response.setTitle(title);
-                response.setText(text);
-            } else {
-                response.setTitle(answer);
+            if (StringUtils.isBlank(answer)) {
+                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
+                        request.getUid(), n, "350400206", "执行结果内容不存在！请稍候重试或者联系管理员！");
+                return XhsAppExecuteResponse.failure(request.getUid(), "350400206", "执行结果内容不存在！请稍候重试或者联系管理员！", n);
             }
 
-            return response;
+            if (n == 1) {
+                String[] split = answer.trim().split("&&");
+                if (split.length != 2) {
+                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}, 原数据：{}",
+                            request.getUid(), n, "350400208", "执行结果内容格式不正确！请稍候重试或者联系管理员！", answer);
+                    return XhsAppExecuteResponse.failure(request.getUid(), "350400208", "执行结果内容格式不正确！请稍候重试或者联系管理员！", 1);
+                } else {
+                    String title = split[0];
+                    String text = split[1];
+                    log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 标题: {}, 内容: {}", request.getUid(), n, title, text);
+                    return XhsAppExecuteResponse.success(request.getUid(), title, text, 1);
+                }
+            } else {
+                TypeReference<List<ChatCompletionChoice>> typeReference = new TypeReference<List<ChatCompletionChoice>>() {
+                };
+                List<ChatCompletionChoice> choices = JSONUtil.toBean(answer.trim(), typeReference, true);
+                if (CollectionUtil.isEmpty(choices)) {
+                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
+                            request.getUid(), n, "350400209", "执行结果内容为空！请稍候重试或者联系管理员！");
+                    return XhsAppExecuteResponse.failure(request.getUid(), "350400209", "执行结果内容为空！请稍候重试或者联系管理员！", n);
+                }
+                if (choices.size() != n) {
+                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 实际市场条数：{},  错误码: {}, 错误信息: {}",
+                            request.getUid(), n, choices.size(), "350400210", "执行结果内容条数不正确！请稍候重试或者联系管理员！");
+                    return XhsAppExecuteResponse.failure(request.getUid(), "350400210", "执行结果内容条数不正确！请稍候重试或者联系管理员！", n);
+                }
+                List<XhsAppExecuteResponse> list = new ArrayList<>();
+                for (int i = 0; i < choices.size(); i++) {
+                    ChatCompletionChoice choice = choices.get(i);
+                    XhsAppExecuteResponse appExecuteResponse = new XhsAppExecuteResponse();
+                    appExecuteResponse.setUid(request.getUid());
+
+                    String content = Optional.ofNullable(choice).map(ChatCompletionChoice::getMessage).map(ChatMessage::getContent).orElse("");
+                    if (StringUtils.isBlank(content)) {
+                        log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原数据: {}",
+                                i + 1, request.getUid(), n, "350400211", "执行结果内容为空！请稍候重试或者联系管理员！", content);
+
+                        appExecuteResponse.setSuccess(Boolean.FALSE);
+                        appExecuteResponse.setErrorCode("350400211");
+                        appExecuteResponse.setErrorMsg("执行结果内容为空！请稍候重试或者联系管理员！");
+                        list.add(appExecuteResponse);
+                    } else {
+                        String[] split = content.trim().split("&&");
+                        if (split.length != 2) {
+                            log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原数据: {}",
+                                    i + 1, request.getUid(), n, "350400212", "执行结果内容格式不正确！请稍候重试或者联系管理员！", content);
+
+                            appExecuteResponse.setSuccess(Boolean.FALSE);
+                            appExecuteResponse.setErrorCode("350400212");
+                            appExecuteResponse.setErrorMsg("执行结果内容格式不正确！请稍候重试或者联系管理员！");
+                            list.add(appExecuteResponse);
+                        } else {
+                            log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 标题: {}, 内容: {}",
+                                    i + 1, request.getUid(), n, split[0], split[1]);
+                            appExecuteResponse.setSuccess(Boolean.TRUE);
+                            appExecuteResponse.setTitle(split[0]);
+                            appExecuteResponse.setText(split[1]);
+                            list.add(appExecuteResponse);
+                        }
+                    }
+                }
+                log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 结果: {}", request.getUid(), n, list);
+                return list;
+            }
         } catch (ServiceException exception) {
-            response.setErrorCode(exception.getCode().toString());
-            response.setErrorMsg(exception.getMessage());
-            return response;
+            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
+                    request.getUid(), n, exception.getCode().toString(), exception.getMessage());
+            return XhsAppExecuteResponse.failure(request.getUid(), exception.getCode().toString(), exception.getMessage(), n);
         } catch (Exception exception) {
-            response.setErrorCode("350400200");
-            response.setErrorMsg(exception.getMessage());
-            return response;
+            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
+                    request.getUid(), n, "350400200", exception.getMessage());
+            return XhsAppExecuteResponse.failure(request.getUid(), "350400200", exception.getMessage(), n);
         }
     }
 
@@ -219,22 +270,33 @@ public class XhsServiceImpl implements XhsService {
         if (CollectionUtil.isEmpty(requests)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
         }
-        // 应用任务集合
-        List<XhsAppCreativeExecuteResponse> appResponses = new ArrayList<>();
-        for (XhsAppCreativeExecuteRequest request : requests) {
-            XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
-            request.setNeedTag(Boolean.TRUE);
-            XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
-            response.setUid(request.getUid());
-            response.setCreativeContentUid(request.getCreativeContentUid());
-            response.setSuccess(appExecuteResponse.getSuccess());
-            response.setErrorCode(appExecuteResponse.getErrorCode());
-            response.setErrorMsg(appExecuteResponse.getErrorMsg());
-            response.setTitle(appExecuteResponse.getTitle());
-            response.setText(appExecuteResponse.getText());
-            appResponses.add(response);
+        Map<String, List<XhsAppCreativeExecuteRequest>> groupMap = requests.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getUid));
+
+        // 默认执行参数一样
+        List<XhsAppCreativeExecuteResponse> responseList = new ArrayList<>();
+        for (Map.Entry<String, List<XhsAppCreativeExecuteRequest>> entry : groupMap.entrySet()) {
+            List<XhsAppCreativeExecuteRequest> value = entry.getValue();
+            if (CollectionUtil.isEmpty(value)) {
+                continue;
+            }
+            XhsAppCreativeExecuteRequest request = value.get(0);
+            request.setN(value.size());
+            List<XhsAppExecuteResponse> responses = this.appExecute(request);
+            for (int i = 0; i < responses.size(); i++) {
+                XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+                XhsAppExecuteResponse item = responses.get(i);
+                String contentUid = Optional.ofNullable(value.get(i)).map(XhsAppCreativeExecuteRequest::getCreativeContentUid).orElse("");
+                response.setUid(item.getUid());
+                response.setSuccess(item.getSuccess());
+                response.setTitle(item.getTitle());
+                response.setText(item.getText());
+                response.setErrorCode(item.getErrorCode());
+                response.setErrorMsg(item.getErrorMsg());
+                response.setCreativeContentUid(contentUid);
+                responseList.add(response);
+            }
         }
-        return appResponses;
+        return responseList;
     }
 
     /**
@@ -362,6 +424,7 @@ public class XhsServiceImpl implements XhsService {
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());
         executeRequest.setAppUid(app.getUid());
+        executeRequest.setN(request.getN());
         executeRequest.setAppReqVO(transform(app, request.getParams()));
         return executeRequest;
     }

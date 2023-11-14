@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.enums.AppConstants;
@@ -55,6 +56,12 @@ public class XhsController {
     @Operation(summary = "获取应用信息")
     public CommonResult<XhsAppResponse> getApp(@PathVariable("uid") String uid) {
         return CommonResult.success(xhsService.getApp(uid));
+    }
+
+    @PostMapping("/app/execute")
+    @Operation(summary = "获取应用信息")
+    public CommonResult<List<XhsAppExecuteResponse>> execute(@Validated @RequestBody XhsAppExecuteRequest executeRequest) {
+        return CommonResult.success(xhsService.appExecute(executeRequest));
     }
 
     @PostMapping(value = "/appExecute")
