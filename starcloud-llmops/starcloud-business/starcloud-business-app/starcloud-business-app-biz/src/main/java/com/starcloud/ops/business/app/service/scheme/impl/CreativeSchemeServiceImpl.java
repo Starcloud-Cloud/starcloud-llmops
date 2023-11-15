@@ -6,11 +6,16 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.convert.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.scheme.CreativeSchemeMapper;
@@ -20,7 +25,9 @@ import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +35,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 创作方案服务
@@ -97,6 +105,22 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_NAME_EXIST);
         }
         CreativeSchemeDO creativeScheme = CreativeSchemeConvert.INSTANCE.convertCreateRequest(request);
+        CreativeSchemeConfigDTO configuration = request.getConfiguration();
+        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
+        creativeScheme.setCopyWritingExample(Optional.ofNullable(copyWritingTemplate).map(CreativeSchemeCopyWritingTemplateDTO::getExample).orElse(StringUtils.EMPTY));
+
+        CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
+        List<XhsImageStyleDTO> list = Optional.ofNullable(imageTemplate).map(CreativeSchemeImageTemplateDTO::getStyleList).orElse(Lists.newArrayList());
+        List<String> imageTemplateList = Lists.newArrayList();
+        for (XhsImageStyleDTO style : list) {
+            List<XhsImageTemplateDTO> templateList = style.getTemplateList();
+            for (XhsImageTemplateDTO template : templateList) {
+                if (StringUtils.isNotBlank(template.getExample())) {
+                    imageTemplateList.add(template.getExample());
+                }
+            }
+        }
+        creativeScheme.setImageExample(StringUtil.toString(imageTemplateList));
         creativeSchemeMapper.insert(creativeScheme);
     }
 
@@ -117,7 +141,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         scheme.setCategory(creativeScheme.getCategory());
         scheme.setTags(creativeScheme.getTags());
         scheme.setDescription(creativeScheme.getDescription());
-        scheme.setReferences(creativeScheme.getReferences());
+        scheme.setRefers(creativeScheme.getRefers());
         scheme.setConfiguration(creativeScheme.getConfiguration());
         scheme.setCopyWritingExample(creativeScheme.getCopyWritingExample());
         scheme.setImageExample(creativeScheme.getImageExample());
@@ -143,6 +167,23 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         }
         CreativeSchemeDO scheme = CreativeSchemeConvert.INSTANCE.convertModifyRequest(request);
         scheme.setId(creativeScheme.getId());
+
+        CreativeSchemeConfigDTO configuration = request.getConfiguration();
+        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
+        scheme.setCopyWritingExample(Optional.ofNullable(copyWritingTemplate).map(CreativeSchemeCopyWritingTemplateDTO::getExample).orElse(StringUtils.EMPTY));
+
+        CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
+        List<XhsImageStyleDTO> list = Optional.ofNullable(imageTemplate).map(CreativeSchemeImageTemplateDTO::getStyleList).orElse(Lists.newArrayList());
+        List<String> imageTemplateList = Lists.newArrayList();
+        for (XhsImageStyleDTO style : list) {
+            List<XhsImageTemplateDTO> templateList = style.getTemplateList();
+            for (XhsImageTemplateDTO template : templateList) {
+                if (StringUtils.isNotBlank(template.getExample())) {
+                    imageTemplateList.add(template.getExample());
+                }
+            }
+        }
+        creativeScheme.setImageExample(StringUtil.toString(imageTemplateList));
         creativeSchemeMapper.updateById(scheme);
     }
 

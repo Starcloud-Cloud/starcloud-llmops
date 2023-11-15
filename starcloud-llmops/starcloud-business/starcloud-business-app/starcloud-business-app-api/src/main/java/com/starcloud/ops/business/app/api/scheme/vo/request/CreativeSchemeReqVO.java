@@ -68,7 +68,7 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
     @Valid
     @NotEmpty(message = "创作方案参考账号不能为空！")
     @Schema(description = "创作方案参考账号")
-    private List<CreativeSchemeReferenceDTO> references;
+    private List<CreativeSchemeReferenceDTO> refers;
 
     /**
      * 创作方案配置信息
