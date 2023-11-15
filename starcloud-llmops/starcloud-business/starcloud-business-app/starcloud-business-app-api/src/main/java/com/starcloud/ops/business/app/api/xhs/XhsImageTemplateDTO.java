@@ -44,6 +44,7 @@ public class XhsImageTemplateDTO implements java.io.Serializable {
      * 图片模板名称
      */
     @Schema(description = "图片模板名称")
+    @NotBlank(message = "图片模板名称不能为空!")
     private String name;
 
     /**
@@ -57,6 +58,12 @@ public class XhsImageTemplateDTO implements java.io.Serializable {
      */
     @Schema(description = "图片数量")
     private Integer imageNumber;
+
+    /**
+     * 示例图片
+     */
+    @Schema(description = "示例图片")
+    private String example;
 
     /**
      * 图片模板变量

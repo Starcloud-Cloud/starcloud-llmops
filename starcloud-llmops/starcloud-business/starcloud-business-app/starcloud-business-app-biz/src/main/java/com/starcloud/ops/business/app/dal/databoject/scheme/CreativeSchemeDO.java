@@ -71,8 +71,8 @@ public class CreativeSchemeDO extends TenantBaseDO {
     /**
      * 创作方案参考
      */
-    @TableField("reference")
-    private String reference;
+    @TableField("references")
+    private String references;
 
     /**
      * 创作方案配置信息
