@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
@@ -28,12 +29,14 @@ public class XhsImageStyleDTO implements java.io.Serializable {
      * 风格id
      */
     @Schema(description = "风格id")
+    @NotBlank(message = "风格id不能为空！")
     private String id;
 
     /**
      * 风格名称
      */
     @Schema(description = "风格名称")
+    @NotBlank(message = "风格名称不能为空！")
     private String name;
 
     /**

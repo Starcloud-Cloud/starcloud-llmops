@@ -508,6 +508,16 @@ public interface ErrorCodeConstants {
      */
     ErrorCode CREATIVE_PLAN_NAME_EXIST = new ErrorCode(350100127, "创作计划名称已存在，请重新输入！");
 
+    /**
+     * 创作计划名称已存在
+     */
+    ErrorCode CREATIVE_SCHEME_NOT_EXIST = new ErrorCode(350200110, "创作方案不存在，请重新输入！");
+
+    /**
+     * 创作计划名称已存在
+     */
+    ErrorCode CREATIVE_SCHEME_NAME_EXIST = new ErrorCode(350100127, "创作方案名称已存在，请重新输入！");
+
     // ========== 图片上传错误码 370 000 xxx ==========
 
     /**
