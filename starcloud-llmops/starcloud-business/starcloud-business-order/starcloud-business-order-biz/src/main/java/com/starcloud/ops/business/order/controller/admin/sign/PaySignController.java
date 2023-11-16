@@ -4,13 +4,11 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductSignEnum;
 import com.starcloud.ops.business.order.api.sign.dto.PaySignCreateReqDTO;
 import com.starcloud.ops.business.order.api.sign.dto.PaySignSubmitReqDTO;
-import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderDetailsRespVO;
 import com.starcloud.ops.business.order.controller.admin.sign.vo.SignPayResultReqVO;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayAppDO;
 import com.starcloud.ops.business.order.dal.dataobject.sign.PaySignDO;
@@ -18,18 +16,14 @@ import com.starcloud.ops.business.order.service.merchant.PayAppService;
 import com.starcloud.ops.business.order.service.sign.PaySignService;
 import com.starcloud.ops.business.order.util.PaySeqUtils;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
 
 @Tag(name = "星河云海 - 支付签约")
 @RestController

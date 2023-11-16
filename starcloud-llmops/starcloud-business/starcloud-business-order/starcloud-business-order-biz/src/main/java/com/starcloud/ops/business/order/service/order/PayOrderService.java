@@ -35,7 +35,7 @@ public interface PayOrderService {
     /**
      * 获得支付订单
      *
-     * @param id 编号
+     * @param merchantOrderId 编号
      * @return 支付订单
      */
     PayOrderDO getOrder(String merchantOrderId);

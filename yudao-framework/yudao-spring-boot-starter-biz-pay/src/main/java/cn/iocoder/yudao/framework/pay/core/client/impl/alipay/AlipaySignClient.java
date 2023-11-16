@@ -5,9 +5,7 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDT
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
 import com.alipay.api.AlipayApiException;
-import com.alipay.api.request.AlipayTradeCreateRequest;
 import com.alipay.api.request.AlipayUserAgreementPageSignRequest;
-import com.alipay.api.response.AlipayTradeCreateResponse;
 import com.alipay.api.response.AlipayUserAgreementPageSignResponse;
 import lombok.extern.slf4j.Slf4j;
 

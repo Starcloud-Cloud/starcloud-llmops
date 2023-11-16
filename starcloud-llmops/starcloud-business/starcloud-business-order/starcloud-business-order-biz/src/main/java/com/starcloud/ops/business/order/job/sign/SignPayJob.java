@@ -1,16 +1,8 @@
 package com.starcloud.ops.business.order.job.sign;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import com.starcloud.ops.business.limits.enums.ProductEnum;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
-import com.starcloud.ops.business.order.controller.admin.sign.vo.SignPayResultReqVO;
-import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
 import com.starcloud.ops.business.order.dal.dataobject.sign.PaySignDO;
-import com.starcloud.ops.business.order.service.order.PayOrderService;
 import com.starcloud.ops.business.order.service.sign.PaySignService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -56,9 +48,7 @@ public class SignPayJob {
         List<PaySignDO> ableToPayRecords = signService.getAbleToPayRecords();
 
         if (CollUtil.isNotEmpty(ableToPayRecords)) {
-            ableToPayRecords.stream().forEach(paySignDO -> {
-                signService.processSigningPayment(paySignDO);
-            });
+            ableToPayRecords.stream().forEach(paySignDO -> signService.processSigningPayment(paySignDO));
 
         }
         log.info("处理租户【{}】下的签约自动扣款任务，当前执行了共有【{}】条签约自动扣款任务", TenantContextHolder.getTenantId(), ableToPayRecords.size());

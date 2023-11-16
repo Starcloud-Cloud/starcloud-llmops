@@ -40,13 +40,13 @@ public class PaySignDO extends BaseDO {
     private Long merchantId;
     /**
      * 应用编号
-     *
+     * <p>
      * 关联 {@link PayAppDO#getId()}
      */
     private Long appId;
     /**
      * 渠道编号
-     *
+     * <p>
      * 关联 {@link PayChannelDO#getId()}
      */
     private Long channelId;

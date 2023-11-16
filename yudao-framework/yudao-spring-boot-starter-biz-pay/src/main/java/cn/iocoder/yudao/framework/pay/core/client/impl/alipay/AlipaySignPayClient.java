@@ -1,16 +1,11 @@
 package cn.iocoder.yudao.framework.pay.core.client.impl.alipay;
 
-import cn.hutool.http.Method;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.request.AlipayTradePayRequest;
-import com.alipay.api.request.AlipayUserAgreementPageSignRequest;
 import com.alipay.api.response.AlipayTradePayResponse;
-import com.alipay.api.response.AlipayUserAgreementPageSignResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,7 +30,7 @@ public class AlipaySignPayClient extends AbstractAlipayClient {
         request.setBizContent(reqDTO.getBizContent());
         // 2.1 执行请求
         request.setBizContent(reqDTO.getBizContent());
-        AlipayTradePayResponse response = client.execute(request);;
+        AlipayTradePayResponse response = client.execute(request);
         // 2.2 处理结果
         // validateSuccess(response);
         return new PayOrderUnifiedRespDTO()

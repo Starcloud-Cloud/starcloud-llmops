@@ -17,7 +17,6 @@ import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import com.alibaba.fastjson.JSONObject;
-import com.alipay.api.AlipayResponse;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductSignEnum;
@@ -25,8 +24,6 @@ import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsServic
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.api.sign.dto.PaySignCreateReqDTO;
 import com.starcloud.ops.business.order.api.sign.dto.PaySignSubmitReqDTO;
-import com.starcloud.ops.business.order.api.sign.dto.PaySignToPayCreatReqDTO;
-import com.starcloud.ops.business.order.api.sign.dto.PaySignToPaySubmitReqDTO;
 import com.starcloud.ops.business.order.controller.admin.sign.vo.SignPayResultReqVO;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayAppDO;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayChannelDO;
@@ -51,10 +48,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception0;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
-import static cn.iocoder.yudao.framework.pay.core.enums.PayFrameworkErrorCodeConstants.PAY_EXCEPTION;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
@@ -263,7 +258,7 @@ public class PaySignServiceImpl implements PaySignService {
     /**
      * 提交签约
      *
-     * @param reqDTO 创建请求
+     * @param merchantOrderId 创建请求
      * @return 签约地址
      */
     @Override
@@ -363,9 +358,7 @@ public class PaySignServiceImpl implements PaySignService {
     /**
      * 更新示例订单为已支付
      *
-     * @param id         编号
-     * @param payOrderId 支付订单号
-     * @param signId
+     * @param paySignDO 订单
      */
     @Override
     public void updatePaySign(PaySignDO paySignDO) {
@@ -424,7 +417,7 @@ public class PaySignServiceImpl implements PaySignService {
             TenantContextHolder.setTenantId(order.getTenantId());
             // TODO 设置用户角色 异常处理 日志
             userBenefitsService.addBenefitsAndRole(benefitsType, Long.valueOf(order.getCreator()), roleCode);
-        }else {
+        } else {
             PayOrderDO order = orderService.getOrder(signPayOrderId);
             order.setStatus(PayOrderStatusEnum.CLOSED.getStatus());
             order.setErrorMsg(resultReqVO.getResultMsg());

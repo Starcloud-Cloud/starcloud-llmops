@@ -56,7 +56,7 @@ public class PaySignNotifyRespDTO {
 
     /**
      * TODO @jason 结合其他的渠道定义成枚举,
-     *
+     * <p>
      * alipay
      * NORMAL,正常。
      * UNSIGN, 解约

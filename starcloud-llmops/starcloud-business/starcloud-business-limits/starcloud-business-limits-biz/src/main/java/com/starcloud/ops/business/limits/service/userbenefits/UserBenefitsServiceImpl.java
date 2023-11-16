@@ -3,7 +3,10 @@ package com.starcloud.ops.business.limits.service.userbenefits;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.*;
+import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
@@ -25,7 +28,6 @@ import com.starcloud.ops.business.limits.dal.mysql.userbenefitsstrategy.UserBene
 import com.starcloud.ops.business.limits.enums.*;
 import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import com.starcloud.ops.business.limits.service.userbenefitsusagelog.UserBenefitsUsageLogService;
-import com.starcloud.ops.business.order.api.order.PayOrderApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -1102,7 +1104,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         UserBenefitsStrategyDO benefitsStrategy;
         // 使用限制校验
         try {
-             benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
+            benefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
             if (benefitsStrategy.getLimitNum() != -1) {
                 // 查询条件-检验是否超过兑换限制
                 LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
@@ -1153,17 +1155,17 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
 
         UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(discountCode);
         // 优惠码信息
-        BenefitsStrategyTypeEnums  discount = BenefitsStrategyTypeEnums.getByCode(userBenefitsStrategy.getStrategyType());
+        BenefitsStrategyTypeEnums discount = BenefitsStrategyTypeEnums.getByCode(userBenefitsStrategy.getStrategyType());
         Long discountPrice = 0L;
-        switch (discount.getDiscountTypeEnums()){
+        switch (discount.getDiscountTypeEnums()) {
             case DIRECT_DISCOUNT:
-                discountPrice= (long) (product.getPrice()-discount.getDiscountNums()*100);
+                discountPrice = (long) (product.getPrice() - discount.getDiscountNums() * 100);
                 break;
             case PERCENTAGE_DISCOUNT:
-                discountPrice= (long) (product.getPrice()*discount.getDiscountNums());
+                discountPrice = (long) (product.getPrice() * discount.getDiscountNums());
                 break;
         }
-        if (discountPrice<=0){
+        if (discountPrice <= 0) {
             log.error("优惠价格计算错误");
             discountPrice = Long.valueOf(product.getPrice());
         }
