@@ -4,9 +4,11 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserDiscountCodeInfoVO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
+import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderExtensionDO;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
@@ -29,6 +31,14 @@ public interface PayOrderService {
      * @return 支付订单
      */
     PayOrderDO getOrder(Long id);
+
+    /**
+     * 获得支付订单
+     *
+     * @param id 编号
+     * @return 支付订单
+     */
+    PayOrderDO getOrder(String merchantOrderId);
 
     /**
      * 获得支付订单
@@ -81,7 +91,7 @@ public interface PayOrderService {
      * 提交支付
      * 此时，会发起支付渠道的调用
      *
-     * @param reqVO 提交请求
+     * @param reqVO  提交请求
      * @param userIp 提交 IP
      * @return 提交结果
      */
@@ -92,12 +102,12 @@ public interface PayOrderService {
      * 重新提交支付
      * 此时，会发起支付渠道的调用
      *
-     * @param reqVO 提交请求
+     * @param reqVO  提交请求
      * @param userIp 提交 IP
      * @return 提交结果
      */
     PayOrderSubmitRespVO submitOrderRepay(@Valid PayOrderRepaySubmitReqVO reqVO,
-                                        @NotEmpty(message = "提交 IP 不能为空") String userIp);
+                                          @NotEmpty(message = "提交 IP 不能为空") String userIp);
 
     /**
      * 通知支付单成功
@@ -113,17 +123,18 @@ public interface PayOrderService {
      * 用户获得订单记录
      * 分页
      *
-     * @param userId 分页查询
+     * @param userId   分页查询
      * @param tenantId 分页查询
      * @return 支付订单
      * 分页
      */
-    PageResult<AppPayOrderDetailsRespVO> getAppOrderPage(PayOrderAppPageReqVO pageReqVO,Long userId, Long tenantId);
+    PageResult<AppPayOrderDetailsRespVO> getAppOrderPage(PayOrderAppPageReqVO pageReqVO, Long userId, Long tenantId);
 
 
     /**
      * 获取商品列表
      * 分页
+     *
      * @return 支付订单
      * 分页
      */
@@ -134,35 +145,46 @@ public interface PayOrderService {
      * 获取商品优惠信息
      *
      * @return
-     *
      */
     AppPayProductDiscountRespVO getOrderProductDiscount(String productCode, String noNeedProductCode, String discountCode);
 
 
     /**
      * 创建订单的时候价格校验
+     *
      * @param productCode
      * @param discountCode
      * @return
      */
     Long getDiscountOrderPrice(String productCode, String discountCode);
+
+
+    /**
+     * 获取新用户优惠券
+     */
+    UserDiscountCodeInfoVO getNewUserDiscountCode();
+
     /**
      * 更新示例订单为已支付
      *
-     * @param id 编号
+     * @param id         编号
      * @param payOrderId 支付订单号
      */
     void updateDemoOrderPaid(Long id, Long payOrderId);
 
-
     /**
-     *  用户端检测订单是否支付成功
+     * 用户端检测订单是否支付成功
      *
      * @param payOrderId 支付订单号
      */
-     Boolean notifyUSerOrderPaid(String payOrderId);
+    Boolean notifyUSerOrderPaid(String payOrderId);
 
 
+    PayOrderExtensionDO updatePayOrderExtensionSuccess(String no, String rawNotify);
+
+    PayOrderDO updatePayOrderSuccess(Long channelId, String channelCode, Long orderId, Long orderExtensionId);
+
+    void updatePayOrder(PayOrderDO payOrderDO);
 
 
 }

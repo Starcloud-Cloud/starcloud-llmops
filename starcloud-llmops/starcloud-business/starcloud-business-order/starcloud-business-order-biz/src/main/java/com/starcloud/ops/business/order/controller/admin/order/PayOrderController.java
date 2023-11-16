@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
 import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserDiscountCodeInfoVO;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReq2DTO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
@@ -213,12 +214,9 @@ public class PayOrderController {
 
     @PostMapping("/discount/newuser")
     @Operation(summary = "获取新用户折扣码")
-    public CommonResult<String> getOrderProductDiscount() {
-         return success("");
-        // return success(payOrderService.getOrderProductDiscount(payOrderDiscountReqVO.getProductCode(), payOrderDiscountReqVO.getNoNeedProductCode(),payOrderDiscountReqVO.getDiscountCode()));
+    public CommonResult<UserDiscountCodeInfoVO> getOrderProductDiscount() {
+         return success(payOrderService.getNewUserDiscountCode());
     }
-
-
 
     // @PostMapping("/update-paid")
     // @Operation(summary = "更新示例订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob

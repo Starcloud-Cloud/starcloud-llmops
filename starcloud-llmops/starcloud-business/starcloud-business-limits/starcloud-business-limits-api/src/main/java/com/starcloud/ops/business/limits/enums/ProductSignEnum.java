@@ -16,9 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public enum ProductSignEnum {
 
-    PRODUCT_BASIC_CONFIG("魔法ai-基础版签约配置", 5900, "MONTH", 1, 5900, 5900, 1),
-
-    PRODUCT_PLUS_CONFIG("魔法ai-高级版签约配置", 109, "MONTH", 1, 100, 10900, 2),
+    PRODUCT_BASIC_CONFIG("魔法ai-基础版签约配置", 1, "MONTH", 1, 1, null, null),
     ;
 
     /**

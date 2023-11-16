@@ -6,8 +6,10 @@ import cn.iocoder.yudao.framework.pay.core.client.PayClientFactory;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayRefundNotifyRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PaySignNotifyRespDTO;
 import com.starcloud.ops.business.order.service.order.PayOrderService;
 import com.starcloud.ops.business.order.service.refund.PayRefundService;
+import com.starcloud.ops.business.order.service.sign.PaySignService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,8 @@ public class PayNotifyController {
     @Resource
     private PayRefundService refundService;
 
+    @Resource
+    private PaySignService paySignService;
     @Resource
     private PayClientFactory payClientFactory;
 
@@ -92,11 +96,11 @@ public class PayNotifyController {
             orderService.notifyPayOrder(channelId, (PayOrderNotifyRespDTO) notify, rawNotify);
             return "success";
         }
-//        // 3.3：签约通知
-//        if (notify instanceof PayOrderNotifyRespDTO) {
-//            orderService.notifyPayOrder(channelId, (PayOrderNotifyRespDTO) notify, rawNotify);
-//            return "success";
-//        }
+       // 3.3：签约通知
+       if (notify instanceof PaySignNotifyRespDTO) {
+           paySignService.notifySign(channelId, (PaySignNotifyRespDTO) notify, rawNotify);
+           return "success";
+       }
 //        // 3.2：取消签约通知
 //        if (notify instanceof PayOrderNotifyRespDTO) {
 //            orderService.notifyPayOrder(channelId, (PayOrderNotifyRespDTO) notify, rawNotify);

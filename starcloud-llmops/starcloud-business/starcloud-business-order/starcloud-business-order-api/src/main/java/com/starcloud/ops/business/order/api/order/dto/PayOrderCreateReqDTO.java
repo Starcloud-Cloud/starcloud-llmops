@@ -33,6 +33,12 @@ public class PayOrderCreateReqDTO implements Serializable {
      */
     @NotEmpty(message = "商户订单编号不能为空")
     private String merchantOrderId;
+
+    /**
+     * 商户订单编号
+     */
+    @Schema(description ="商户签约ID" )
+    private Long signId;
     /**
      * 商品标题
      */

@@ -64,12 +64,17 @@ public class PaySignDO extends BaseDO {
      * 商户订单编号
      * 例如说，内部系统 A 的订单号。需要保证每个 PayMerchantDO 唯一
      */
-    private String merchantOrderId;
+    private String merchantSignId;
 
     /**
      * 商品code
      */
     private String productCode;
+
+    /**
+     * 商品名称
+     */
+    private String productName;
 
     /**
      * 支付金额，单位：分
@@ -121,7 +126,12 @@ public class PaySignDO extends BaseDO {
     /**
      * 用户 ID
      */
-    private String user_id;
+    private String userId;
+
+    /**
+     * 用户 IP
+     */
+    private String userIp;
 
     /**
      * 多租户编号

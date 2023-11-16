@@ -75,4 +75,10 @@ public interface ErrorCodeConstants {
 
 
 
+
+    // ========== ORDER 模块 1-007-005-000 =========
+    ErrorCode PAY_SIGN_STATUS_IS_NOT_SUCCESS = new ErrorCode(1007005001, "签约记录处于待签约/已经解约状态");
+
+
+
 }
