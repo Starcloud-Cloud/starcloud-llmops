@@ -10,10 +10,9 @@
     <!-- 根据UID查询创作方案详情 -->
     <select id="get" resultType="com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO">
         SELECT
-        <include refid="SELECT_GENERAL_COLUMNS"/>, `references`, `configuration`
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
         FROM llm_creative_scheme
         WHERE uid = #{uid}
-        AND `creator` = #{loginUserId}
         AND `deleted` = 0
     </select>
     

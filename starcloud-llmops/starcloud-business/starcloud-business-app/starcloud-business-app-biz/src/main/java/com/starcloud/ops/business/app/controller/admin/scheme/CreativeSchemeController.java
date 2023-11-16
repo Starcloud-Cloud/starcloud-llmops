@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.scheme;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
@@ -45,6 +46,7 @@ public class CreativeSchemeController {
     }
 
     @GetMapping("/list")
+    @DataPermission(enable = false)
     @Operation(summary = "查询创作方案列表", description = "查询创作方案列表")
     @ApiOperationSupport(order = 40, author = "nacoyer")
     public CommonResult<List<CreativeSchemeRespVO>> list(CreativeSchemeListReqVO query) {
@@ -83,7 +85,7 @@ public class CreativeSchemeController {
     }
 
     @DeleteMapping("/delete/{uid}")
-    @Operation(summary = "删除创作计划", description = "删除创作计划")
+    @Operation(summary = "删除创作方案", description = "删除创作方案")
     @ApiOperationSupport(order = 90, author = "nacoyer")
     public CommonResult<Boolean> delete(@PathVariable String uid) {
         creativeSchemeService.delete(uid);
