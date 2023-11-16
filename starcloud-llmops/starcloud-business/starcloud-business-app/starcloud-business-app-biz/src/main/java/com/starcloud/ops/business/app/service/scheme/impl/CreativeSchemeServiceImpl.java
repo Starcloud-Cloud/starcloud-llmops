@@ -1,33 +1,45 @@
 package com.starcloud.ops.business.app.service.scheme.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.convert.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.scheme.CreativeSchemeMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeTypeEnum;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 创作方案服务
@@ -42,6 +54,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     @Resource
     private CreativeSchemeMapper creativeSchemeMapper;
+
+    @Resource
+    private AppDictionaryService appDictionaryService;
 
     /**
      * 获取创作方案详情
@@ -96,8 +111,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (creativeSchemeMapper.distinctName(request.getName())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_NAME_EXIST);
         }
-        CreativeSchemeDO creativeScheme = CreativeSchemeConvert.INSTANCE.convertCreateRequest(request);
-        creativeSchemeMapper.insert(creativeScheme);
+        CreativeSchemeDO scheme = CreativeSchemeConvert.INSTANCE.convertCreateRequest(request);
+        handlerScheme(scheme, request);
+        creativeSchemeMapper.insert(scheme);
     }
 
     /**
@@ -117,7 +133,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         scheme.setCategory(creativeScheme.getCategory());
         scheme.setTags(creativeScheme.getTags());
         scheme.setDescription(creativeScheme.getDescription());
-        scheme.setReferences(creativeScheme.getReferences());
+        scheme.setRefers(creativeScheme.getRefers());
         scheme.setConfiguration(creativeScheme.getConfiguration());
         scheme.setCopyWritingExample(creativeScheme.getCopyWritingExample());
         scheme.setImageExample(creativeScheme.getImageExample());
@@ -143,6 +159,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         }
         CreativeSchemeDO scheme = CreativeSchemeConvert.INSTANCE.convertModifyRequest(request);
         scheme.setId(creativeScheme.getId());
+        handlerScheme(scheme, request);
         creativeSchemeMapper.updateById(scheme);
     }
 
@@ -171,6 +188,51 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (StringUtils.isBlank(request.getDescription())) {
             request.setDescription(StringUtils.EMPTY);
         }
+    }
+
+    /**
+     * 处理创作方案配置
+     *
+     * @param scheme  创作方案
+     * @param request 请求
+     */
+    private void handlerScheme(CreativeSchemeDO scheme, CreativeSchemeReqVO request) {
+
+        // 创作方案配置不能为空
+        CreativeSchemeConfigDTO configuration = request.getConfiguration();
+        AppValidate.notNull(configuration, ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL);
+
+        // 文案模板不能为空
+        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
+        AppValidate.notNull(copyWritingTemplate, ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL);
+
+        // 设置创作方案的示例文案
+        scheme.setCopyWritingExample(Optional.ofNullable(copyWritingTemplate.getExample()).orElse(StringUtils.EMPTY));
+
+        // 图片模板不能为空
+        CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
+        AppValidate.notNull(imageTemplate, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL);
+
+        // 图片模板的样式列表不能为空
+        List<XhsImageStyleDTO> list = imageTemplate.getStyleList();
+        AppValidate.notEmpty(list, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY);
+
+        // 从字典中获取图片模板的示例图片
+        List<XhsImageTemplateDTO> imageTemplates = appDictionaryService.xhsImageTemplates();
+        Map<String, String> templateMap = CollectionUtil.emptyIfNull(imageTemplates).stream().collect(Collectors.toMap(XhsImageTemplateDTO::getId, XhsImageTemplateDTO::getExample));
+
+        List<String> imageTemplateList = Lists.newArrayList();
+        for (XhsImageStyleDTO style : list) {
+            List<XhsImageTemplateDTO> templateList = style.getTemplateList();
+            for (XhsImageTemplateDTO template : templateList) {
+                if (templateMap.containsKey(template.getId()) && StringUtils.isNotBlank(templateMap.get(template.getId()))) {
+                    imageTemplateList.add(templateMap.get(template.getId()));
+                }
+            }
+        }
+        // 设置创作方案的示例图片
+        scheme.setImageExample(StringUtil.toString(imageTemplateList));
+
     }
 
     /**

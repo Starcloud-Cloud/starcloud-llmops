@@ -67,7 +67,7 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
      * 创作方案参考
      */
     @Schema(description = "创作方案参考账号")
-    private List<CreativeSchemeReferenceDTO> references;
+    private List<CreativeSchemeReferenceDTO> refers;
 
     /**
      * 创作方案配置信息
@@ -85,7 +85,7 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
      * 创作方案图片示例
      */
     @Schema(description = "创作方案图片示例")
-    private String imageExample;
+    private List<String> imageExample;
 
     /**
      * 创建人

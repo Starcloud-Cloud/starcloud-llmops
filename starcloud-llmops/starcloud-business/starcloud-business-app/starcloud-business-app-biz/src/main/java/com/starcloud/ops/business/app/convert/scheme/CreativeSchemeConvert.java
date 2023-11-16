@@ -46,8 +46,8 @@ public interface CreativeSchemeConvert {
         creativeScheme.setCategory(request.getCategory());
         creativeScheme.setTags(StringUtil.toString(request.getTags()));
         creativeScheme.setDescription(request.getDescription());
-        if (CollectionUtil.isNotEmpty(request.getReferences())) {
-            creativeScheme.setReferences(JSONUtil.toJsonStr(request.getReferences()));
+        if (CollectionUtil.isNotEmpty(request.getRefers())) {
+            creativeScheme.setRefers(JSONUtil.toJsonStr(request.getRefers()));
         }
         if (request.getConfiguration() != null) {
             creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
@@ -84,16 +84,16 @@ public interface CreativeSchemeConvert {
         creativeSchemeResponse.setCategory(creativeScheme.getCategory());
         creativeSchemeResponse.setTags(StringUtil.toList(creativeScheme.getTags()));
         creativeSchemeResponse.setDescription(creativeScheme.getDescription());
-        if (StringUtils.isNotBlank(creativeScheme.getReferences())) {
+        if (StringUtils.isNotBlank(creativeScheme.getRefers())) {
             TypeReference<List<CreativeSchemeReferenceDTO>> typeReference = new TypeReference<List<CreativeSchemeReferenceDTO>>() {
             };
-            creativeSchemeResponse.setReferences(JSONUtil.toBean(creativeScheme.getReferences(), typeReference, Boolean.TRUE));
+            creativeSchemeResponse.setRefers(JSONUtil.toBean(creativeScheme.getRefers(), typeReference, Boolean.TRUE));
         }
         if (StringUtils.isNotBlank(creativeScheme.getConfiguration())) {
             creativeSchemeResponse.setConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
         }
         creativeSchemeResponse.setCopyWritingExample(creativeScheme.getCopyWritingExample());
-        creativeSchemeResponse.setImageExample(creativeScheme.getImageExample());
+        creativeSchemeResponse.setImageExample(StringUtil.toList(creativeScheme.getImageExample()));
         creativeSchemeResponse.setCreator(creativeScheme.getCreator());
         creativeSchemeResponse.setUpdater(creativeScheme.getUpdater());
         creativeSchemeResponse.setCreateTime(creativeScheme.getCreateTime());

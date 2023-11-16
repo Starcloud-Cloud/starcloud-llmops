@@ -518,6 +518,26 @@ public interface ErrorCodeConstants {
      */
     ErrorCode CREATIVE_SCHEME_NAME_EXIST = new ErrorCode(350100127, "创作方案名称已存在，请重新输入！");
 
+    /**
+     * 创作方案配置不能为空
+     */
+    ErrorCode CREATIVE_SCHEME_CONFIGURATION_NOT_NULL = new ErrorCode(350200111, "创作方案模板配置不能为空！");
+
+    /**
+     * 创作方案文案模板不能为空
+     */
+    ErrorCode CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL = new ErrorCode(350200112, "创作方案文案模板不能为空！");
+
+    /**
+     * 创作方案图片模板不能为空
+     */
+    ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL = new ErrorCode(350200113, "创作方案图片模板不能为空！");
+
+    /**
+     * 创作方案图片模板风格不能为空
+     */
+    ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY = new ErrorCode(350200114, "创作方案图片模板风格不能为空！");
+
     // ========== 图片上传错误码 370 000 xxx ==========
 
     /**
