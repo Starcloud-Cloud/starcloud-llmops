@@ -27,6 +27,7 @@
         <module>starcloud-business-open</module>
         <module>starcloud-business-mq</module>
         <module>starcloud-business-listing</module>
+        <module>starcloud-business-mission</module>
     </modules>
 
 

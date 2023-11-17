@@ -2,11 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.listing.dal.mysql.ListingDictMapper">
 
-    <select id="limitList" resultType="com.starcloud.ops.business.listing.dal.dataobject.ListingDictDO">
+    <select id="limitList" resultType="com.starcloud.ops.business.listing.dal.dataobject.ListingDictDTO">
         SELECT d.id,d.uid,d.name,d.endpoint,d.count,d.enable,d.status,d.analysis_time,d.creator,
-        d.create_time,d.updater,d.update_time,d.deleted,d.tenant_id
+        d.create_time,d.updater,d.update_time,d.deleted,d.tenant_id,u.username
         FROM listing_dict d
         LEFT JOIN listing_keyword_bind k ON d.id = k.dict_id
+        INNER JOIN  system_users u ON d.creator = u.id
         <where>
             d.deleted = false
             <if test="reqVO.name != null and reqVO.name != ''">

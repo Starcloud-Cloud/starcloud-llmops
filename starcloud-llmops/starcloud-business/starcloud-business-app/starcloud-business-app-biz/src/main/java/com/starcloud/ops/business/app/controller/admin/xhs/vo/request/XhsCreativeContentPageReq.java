@@ -10,4 +10,10 @@ public class XhsCreativeContentPageReq extends PageParam {
 
     @Schema(description = "创作计划Uid")
     private String planUid;
+
+    @Schema(description = "任务状态", example = "execute_success")
+    private String status;
+
+    @Schema(description = "是否绑定")
+    private Boolean claim;
 }
