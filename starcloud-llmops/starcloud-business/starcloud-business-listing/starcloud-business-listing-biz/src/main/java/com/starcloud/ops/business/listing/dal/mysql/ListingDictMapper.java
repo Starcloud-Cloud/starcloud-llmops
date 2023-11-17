@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictPageReqVO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDictDO;
+import com.starcloud.ops.business.listing.dal.dataobject.ListingDictDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -47,10 +48,10 @@ public interface ListingDictMapper extends BaseMapperX<ListingDictDO> {
     }
 
 
-    List<ListingDictDO> limitList(@Param("reqVO") DictPageReqVO reqVO,
-                                  @Param("orderSql") String orderSql,
-                                  @Param("begin") Integer begin,
-                                  @Param("pageSize") Integer pageSize);
+    List<ListingDictDTO> limitList(@Param("reqVO") DictPageReqVO reqVO,
+                                     @Param("orderSql") String orderSql,
+                                     @Param("begin") Integer begin,
+                                     @Param("pageSize") Integer pageSize);
 
     Long count(@Param("reqVO") DictPageReqVO reqVO);
 }
