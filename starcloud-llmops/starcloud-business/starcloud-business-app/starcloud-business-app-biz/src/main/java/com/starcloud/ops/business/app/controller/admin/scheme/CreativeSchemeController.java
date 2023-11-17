@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -37,6 +38,13 @@ public class CreativeSchemeController {
 
     @Resource
     private CreativeSchemeService creativeSchemeService;
+
+    @GetMapping("/metadata")
+    @Operation(summary = "获取创作方案元数据", description = "获取创作方案元数据")
+    @ApiOperationSupport(order = 20, author = "nacoyer")
+    public CommonResult<Map<String, Object>> metadata() {
+        return CommonResult.success(creativeSchemeService.metadata());
+    }
 
     @GetMapping("/get/{uid}")
     @Operation(summary = "获取创作方案详情", description = "获取创作方案详情")

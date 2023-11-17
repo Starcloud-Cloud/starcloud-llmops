@@ -53,8 +53,8 @@ public interface CreativePlanConvert {
         creativePlan.setName(request.getName());
         creativePlan.setType(StringUtils.isBlank(request.getType()) ? CreativeTypeEnum.XHS.name() : request.getType());
         creativePlan.setConfig(JSONUtil.toJsonStr(request.getConfig()));
-        creativePlan.setRandomType(config.getRandomType());
-        creativePlan.setTotal(config.getTotal());
+        creativePlan.setRandomType(request.getRandomType());
+        creativePlan.setTotal(request.getTotal());
         creativePlan.setStatus(CreativePlanStatusEnum.PENDING.name());
         creativePlan.setStartTime(null);
         creativePlan.setEndTime(null);
@@ -79,8 +79,8 @@ public interface CreativePlanConvert {
         creativePlan.setName(request.getName());
         creativePlan.setType(StringUtils.isBlank(request.getType()) ? CreativeTypeEnum.XHS.name() : request.getType());
         creativePlan.setConfig(JSONUtil.toJsonStr(request.getConfig()));
-        creativePlan.setRandomType(config.getRandomType());
-        creativePlan.setTotal(config.getTotal());
+        creativePlan.setRandomType(request.getRandomType());
+        creativePlan.setTotal(request.getTotal());
         creativePlan.setDescription(StringUtils.isBlank(creativePlan.getDescription()) ? "" : creativePlan.getDescription());
         creativePlan.setDeleted(Boolean.FALSE);
         creativePlan.setUpdateTime(LocalDateTime.now());

@@ -459,6 +459,11 @@ public interface ErrorCodeConstants {
     ErrorCode CREATIVE_PLAN_COPY_WRITING_EMPTY = new ErrorCode(350100117, "文案模板不能为空！请选择文案模板后重试！");
 
     /**
+     * 应用不存在
+     */
+    ErrorCode CREATIVE_PLAN_APP_NOT_EXIST = new ErrorCode(350100118, "应用不存在！请联系管理员！");
+
+    /**
      * 图片风格不能为空
      */
     ErrorCode CREATIVE_PLAN_IMAGE_STYLE_EMPTY = new ErrorCode(350100118, "图片风格不能为空！请选择图片风格后重试！");
@@ -511,6 +516,16 @@ public interface ErrorCodeConstants {
     /**
      * 创作计划名称已存在
      */
+    ErrorCode CREATIVE_PLAN_SCHEME_NOT_EMPTY = new ErrorCode(350100128, "创作计划的创作方案不能为空，请检查您的创作计划是否选择创作方案！");
+
+    /**
+     * 创作方案不存在
+     */
+    ErrorCode CREATIVE_PLAN_SCHEME_NOT_EXIST = new ErrorCode(350100129, "创作方案不存在，请重新选择创作方案后重试！");
+
+    /**
+     * 创作计划名称已存在
+     */
     ErrorCode CREATIVE_SCHEME_NOT_EXIST = new ErrorCode(350200110, "创作方案不存在，请重新输入！");
 
     /**
@@ -521,22 +536,32 @@ public interface ErrorCodeConstants {
     /**
      * 创作方案配置不能为空
      */
-    ErrorCode CREATIVE_SCHEME_CONFIGURATION_NOT_NULL = new ErrorCode(350200111, "创作方案模板配置不能为空！");
+    ErrorCode CREATIVE_SCHEME_CONFIGURATION_NOT_NULL = new ErrorCode(350200111, "创作方案模板配置不能为空！创作方案名称: {}）！");
 
     /**
      * 创作方案文案模板不能为空
      */
-    ErrorCode CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL = new ErrorCode(350200112, "创作方案文案模板不能为空！");
+    ErrorCode CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL = new ErrorCode(350200112, "创作方案文案模板不能为空！创作方案名称: {}）！");
 
     /**
      * 创作方案图片模板不能为空
      */
-    ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL = new ErrorCode(350200113, "创作方案图片模板不能为空！");
+    ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL = new ErrorCode(350200113, "创作方案图片模板不能为空！创作方案名称: {}）!");
 
     /**
      * 创作方案图片模板风格不能为空
      */
-    ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY = new ErrorCode(350200114, "创作方案图片模板风格不能为空！");
+    ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY = new ErrorCode(350200114, "创作方案图片模板风格不能为空！创作方案名称: {}）!");
+
+    /**
+     * 创作计划名称已存在
+     */
+    ErrorCode CREATIVE_SCHEME_REFERS_NOT_EMPTY = new ErrorCode(350200115, "创作方案的参考账号不能为空，请检该创作方案后重试（创作方案名称: {}）！");
+
+    /**
+     * 创作方案图片模板风格的模板列表不能为空
+     */
+    ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY = new ErrorCode(350200116, "创作方案图片模板风格的模板列表不能为空！风格名称: {}）!");
 
     // ========== 图片上传错误码 370 000 xxx ==========
 

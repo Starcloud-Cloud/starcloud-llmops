@@ -6,19 +6,24 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.ImageExampleDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -92,8 +97,16 @@ public interface CreativeSchemeConvert {
         if (StringUtils.isNotBlank(creativeScheme.getConfiguration())) {
             creativeSchemeResponse.setConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
         }
-        creativeSchemeResponse.setCopyWritingExample(creativeScheme.getCopyWritingExample());
-        creativeSchemeResponse.setImageExample(StringUtil.toList(creativeScheme.getImageExample()));
+        if (StringUtils.isNotBlank(creativeScheme.getCopyWritingExample())) {
+            TypeReference<List<CopyWritingExample>> typeReference = new TypeReference<List<CopyWritingExample>>() {
+            };
+            creativeSchemeResponse.setCopyWritingExample(JSONUtil.toBean(creativeScheme.getCopyWritingExample(), typeReference, Boolean.TRUE));
+        }
+        if (StringUtils.isNotBlank(creativeScheme.getImageExample())) {
+            TypeReference<List<ImageExampleDTO>> typeReference = new TypeReference<List<ImageExampleDTO>>() {
+            };
+            creativeSchemeResponse.setImageExample(JSONUtil.toBean(creativeScheme.getImageExample(), typeReference, Boolean.TRUE));
+        }
         creativeSchemeResponse.setCreator(creativeScheme.getCreator());
         creativeSchemeResponse.setUpdater(creativeScheme.getUpdater());
         creativeSchemeResponse.setCreateTime(creativeScheme.getCreateTime());
@@ -119,8 +132,30 @@ public interface CreativeSchemeConvert {
      */
     default PageResult<CreativeSchemeRespVO> convertPage(IPage<CreativeSchemeDO> page) {
         PageResult<CreativeSchemeRespVO> pageResult = new PageResult<>();
+        if (CollectionUtil.isEmpty(page.getRecords())) {
+            return new PageResult<>(Collections.emptyList(), page.getTotal());
+        }
+        List<CreativeSchemeDO> records = page.getRecords();
+
+        // 用户创建者ID列表。
+        List<Long> creatorList = records.stream().map(item -> Long.valueOf(item.getCreator())).distinct().collect(Collectors.toList());
+        // 获取用户创建者ID，昵称 Map。
+        Map<Long, String> creatorMap = UserUtils.getUserNicknameMapByIds(creatorList);
+
+        // 用户更新者ID列表。
+        List<Long> updaterList = records.stream().map(item -> Long.valueOf(item.getUpdater())).distinct().collect(Collectors.toList());
+        // 获取用户更新者ID，昵称 Map。
+        Map<Long, String> updaterMap = UserUtils.getUserNicknameMapByIds(updaterList);
+
+        List<CreativeSchemeRespVO> collect = records.stream().map(item -> {
+            CreativeSchemeRespVO response = this.convertResponse(item);
+            response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
+            response.setUpdater(updaterMap.get(Long.valueOf(item.getUpdater())));
+            return response;
+        }).collect(Collectors.toList());
+
         pageResult.setTotal(page.getTotal());
-        pageResult.setList(convertList(page.getRecords()));
+        pageResult.setList(collect);
         return pageResult;
     }
 }

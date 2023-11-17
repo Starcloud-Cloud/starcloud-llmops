@@ -81,4 +81,10 @@ public interface AppDictionaryService {
      */
     List<XhsImageStyleDTO> xhsImageStyles();
 
+    /**
+     * 查询应用分类树
+     *
+     * @return 应用分类树
+     */
+    List<AppCategoryVO> creativeSchemeCategoryTree();
 }

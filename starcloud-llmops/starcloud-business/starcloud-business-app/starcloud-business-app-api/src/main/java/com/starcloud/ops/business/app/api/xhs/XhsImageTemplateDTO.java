@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -22,6 +23,7 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "XhsImageTemplateDTO", description = "小红书图片模板")
 public class XhsImageTemplateDTO implements java.io.Serializable {
 

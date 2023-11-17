@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,6 +22,8 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(name = "XhsImageStyleDTO", description = "小红书图片风格")
 public class XhsImageStyleDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 3693634357817132472L;

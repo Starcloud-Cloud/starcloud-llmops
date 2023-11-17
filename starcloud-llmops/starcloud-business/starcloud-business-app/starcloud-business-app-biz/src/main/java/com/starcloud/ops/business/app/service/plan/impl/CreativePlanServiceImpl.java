@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -21,6 +22,12 @@ import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanModifyReqV
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeImageTemplateDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
+import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
@@ -41,9 +48,9 @@ import com.starcloud.ops.business.app.enums.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
-import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.plan.CreativePlanService;
+import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -56,13 +63,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -76,11 +83,6 @@ import java.util.stream.Collectors;
 @Service
 public class CreativePlanServiceImpl implements CreativePlanService {
 
-    /**
-     * 临时图片值
-     */
-    private static final String TEMP_IMAGE_VALUE = "TEMP_STARCLOUD_CREATIVE_PLAN_IMAGE_TEMPLATE_PARAM_a589310bb1764f5a8e0d139378f7fe51";
-
     @Resource
     private CreativePlanMapper creativePlanMapper;
 
@@ -91,7 +93,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     private AppMarketService appMarketService;
 
     @Resource
-    private AppDictionaryService appDictionaryService;
+    private CreativeSchemeService creativeSchemeService;
 
     @Resource
     private RedissonClient redissonClient;
@@ -156,26 +158,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     public List<CreativePlanRespVO> listTemplates() {
         CreativePlanConfigDTO config = new CreativePlanConfigDTO();
-        List<XhsAppResponse> xhsAppResponses = copyWritingTemplates(CreativeTypeEnum.XHS.name());
-        if (CollectionUtil.isEmpty(xhsAppResponses)) {
-            config.setCopyWritingList(Collections.emptyList());
-            config.setVariableList(Collections.emptyList());
-        } else {
-            XhsAppResponse app = xhsAppResponses.get(0);
-            config.setCopyWritingList(Collections.singletonList(app.getUid()));
-            config.setVariableList(variableList(app.getVariables()));
-        }
-        config.setImageStyleList(appDictionaryService.xhsImageStyles());
-        config.setRandomType(CreativeRandomTypeEnum.RANDOM.name());
-        config.setTotal(5);
-
         CreativePlanRespVO redBookResponse = new CreativePlanRespVO();
         redBookResponse.setUid("red-book");
         redBookResponse.setName("小红书模板");
         redBookResponse.setType(CreativeTypeEnum.XHS.name());
         redBookResponse.setConfig(config);
-        redBookResponse.setRandomType(config.getRandomType());
-        redBookResponse.setTotal(config.getTotal());
+        redBookResponse.setRandomType(CreativeRandomTypeEnum.RANDOM.name());
+        redBookResponse.setTotal(5);
         redBookResponse.setDescription("小红书模板");
         return Collections.singletonList(redBookResponse);
     }
@@ -271,6 +260,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     public void updateStatus(String uid, String status) {
         AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         AppValidate.notBlank(status, ErrorCodeConstants.CREATIVE_PLAN_STATUS_REQUIRED);
+
         if (!CreativePlanStatusEnum.contains(status) || CreativePlanStatusEnum.PENDING.name().equals(status)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_STATUS_NOT_SUPPORT_MODIFY);
         }
@@ -279,13 +269,22 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, uid);
 
         // 更新
+        LocalDateTime now = LocalDateTime.now();
+        // 计算耗时，毫秒数 now - startTime
+        Duration duration = Duration.between(plan.getStartTime(), now);
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(CreativePlanDO::getStatus, status);
-        updateWrapper.set(CreativePlanDO::getStartTime, LocalDateTime.now());
+        updateWrapper.set(CreativePlanDO::getEndTime, LocalDateTime.now());
+        updateWrapper.set(CreativePlanDO::getElapsed, duration.toMillis());
         updateWrapper.eq(CreativePlanDO::getUid, uid);
         creativePlanMapper.update(null, updateWrapper);
     }
 
+    /**
+     * 更新计划状态
+     *
+     * @param planUid 计划UID
+     */
     @Override
     public void updatePlanStatus(String planUid) {
         String key = "xhs-plan-" + planUid;
@@ -300,10 +299,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 if (xhsCreativeContentDO.getRetryCount() != null && xhsCreativeContentDO.getRetryCount() > 3) {
                     return false;
                 }
-                if (!XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(xhsCreativeContentDO.getStatus())) {
-                    return true;
-                }
-                return false;
+                return !XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(xhsCreativeContentDO.getStatus());
             });
             updateStatus(planUid, unComplete ? CreativePlanStatusEnum.RUNNING.name() : CreativePlanStatusEnum.COMPLETE.name());
         } catch (Exception e) {
@@ -338,63 +334,173 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void execute(String uid) {
+        // 基本校验
         AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         CreativePlanRespVO plan = this.get(uid);
+
+        // 目前只支持随机执行
+        if (!CreativeRandomTypeEnum.RANDOM.name().equals(plan.getRandomType())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_RANDOM_TYPE_NOT_SUPPORTED, plan.getRandomType());
+        }
+
+        // 校验配置信息
         CreativePlanConfigDTO config = plan.getConfig();
         AppValidate.notNull(config, ErrorCodeConstants.CREATIVE_PLAN_CONFIG_NOT_NULL, uid);
 
         // 图片素材列表
         List<String> imageUrlList = config.getImageUrlList();
-        if (CollectionUtil.isEmpty(imageUrlList)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_UPLOAD_IMAGE_EMPTY);
+        AppValidate.notEmpty(imageUrlList, ErrorCodeConstants.CREATIVE_PLAN_UPLOAD_IMAGE_EMPTY);
+
+        // 校验创作方案
+        List<String> schemeUidList = config.getSchemeUidList();
+        AppValidate.notEmpty(schemeUidList, ErrorCodeConstants.CREATIVE_PLAN_SCHEME_NOT_EMPTY);
+
+        // 查询创作方案
+        CreativeSchemeListReqVO schemeQuery = new CreativeSchemeListReqVO();
+        schemeQuery.setUidList(schemeUidList);
+        List<CreativeSchemeRespVO> schemeList = creativeSchemeService.list(schemeQuery);
+        AppValidate.notEmpty(schemeList, ErrorCodeConstants.CREATIVE_PLAN_SCHEME_NOT_EXIST);
+
+        // 处理创作内容执行参数
+        List<XhsCreativeContentExecuteParamsDTO> executeParamsList = handlerCreativeContentExecuteParams(schemeList);
+
+        // 批量执行
+        this.bathRandomTask(plan, executeParamsList);
+
+        // 更新状态
+        LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
+        updateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
+        updateWrapper.set(CreativePlanDO::getStartTime, LocalDateTime.now());
+        updateWrapper.eq(CreativePlanDO::getUid, uid);
+        creativePlanMapper.update(null, updateWrapper);
+    }
+
+    /**
+     * 处理创作内容执行参数
+     *
+     * @param schemeList 创作方案列表
+     * @return 创作内容执行参数
+     */
+    private List<XhsCreativeContentExecuteParamsDTO> handlerCreativeContentExecuteParams(List<CreativeSchemeRespVO> schemeList) {
+
+        List<XhsAppResponse> xhsAppResponses = copyWritingTemplates(CreativeTypeEnum.XHS.name());
+        AppValidate.notEmpty(xhsAppResponses, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
+
+        XhsAppResponse appResponse = xhsAppResponses.get(0);
+        AppValidate.notNull(appResponse, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
+
+        List<XhsCreativeContentExecuteParamsDTO> list = Lists.newArrayList();
+        for (CreativeSchemeRespVO scheme : schemeList) {
+            // 获取创作方案的参考账号信息
+            List<CreativeSchemeReferenceDTO> refers = scheme.getRefers();
+            AppValidate.notEmpty(refers, ErrorCodeConstants.CREATIVE_SCHEME_REFERS_NOT_EMPTY, scheme.getName());
+
+            CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
+            AppValidate.notNull(configuration, ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL, scheme.getName());
+
+            CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
+            AppValidate.notNull(copyWritingTemplate, ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, scheme.getName());
+
+            CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
+            AppValidate.notNull(imageTemplate, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL, scheme.getName());
+
+            List<XhsImageStyleDTO> styleList = imageTemplate.getStyleList();
+            AppValidate.notEmpty(styleList, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY, scheme.getName());
+
+            // 获取应用执行参数
+            XhsAppExecuteRequest appExecuteRequest = getXhsAppExecuteRequest(copyWritingTemplate, appResponse);
+
+            for (XhsImageStyleDTO style : styleList) {
+                List<XhsImageTemplateDTO> templateList = style.getTemplateList();
+                AppValidate.notEmpty(templateList, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY, style.getName());
+                // 图片执行参数
+                XhsBathImageExecuteRequest bathImageExecuteRequest = getBathImageExecuteRequest(templateList);
+
+                XhsCreativeContentExecuteParamsDTO executeParams = new XhsCreativeContentExecuteParamsDTO();
+                executeParams.setAppExecuteRequest(appExecuteRequest);
+                executeParams.setBathImageExecuteRequest(bathImageExecuteRequest);
+                list.add(executeParams);
+            }
         }
 
-        String randomType = config.getRandomType();
-        if (CreativeRandomTypeEnum.RANDOM.name().equals(randomType)) {
-            this.createRandomTasks(plan.getUid(), config);
-            // 更新状态
-            LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
-            updateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
-            updateWrapper.set(CreativePlanDO::getStartTime, LocalDateTime.now());
-            updateWrapper.eq(CreativePlanDO::getUid, uid);
-            creativePlanMapper.update(null, updateWrapper);
-            return;
+        return list;
+    }
+
+    /**
+     * 获取小红书应用执行参数
+     *
+     * @param copyWritingTemplate 文案生成模板
+     * @param appResponse         应用信息
+     * @return 应用执行参数
+     */
+    private XhsAppExecuteRequest getXhsAppExecuteRequest(CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate, XhsAppResponse appResponse) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("IS_PROMOTE_MP", copyWritingTemplate.getIsPromoteMp());
+        params.put("MP_CODE", copyWritingTemplate.getMpCode());
+        params.put("DEMAND", copyWritingTemplate.getDemand());
+        params.put("EXAMPLE", copyWritingTemplate.getExample());
+
+        XhsAppExecuteRequest appExecuteRequest = new XhsAppExecuteRequest();
+        appExecuteRequest.setUid(appResponse.getUid());
+        appExecuteRequest.setParams(params);
+        appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        return appExecuteRequest;
+    }
+
+    /**
+     * 获取小红书批量图片执行参数
+     *
+     * @param templateList 图片模板列表
+     * @return 图片执行参数
+     */
+    private XhsBathImageExecuteRequest getBathImageExecuteRequest(List<XhsImageTemplateDTO> templateList) {
+        // 图片参数信息
+        List<XhsImageExecuteRequest> imageExecuteRequestList = new ArrayList<>();
+        // 处理图片变量
+        for (XhsImageTemplateDTO template : templateList) {
+            Map<String, Object> imageParams = new HashMap<>();
+            for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(template.getVariables())) {
+                // 图片参数，随机放入图片
+                if ("IMAGE".equals(variableItem.getType())) {
+                    imageParams.put(variableItem.getField(), "IMAGE_VARIABLE");
+                } else {
+                    imageParams.put(variableItem.getField(), variableItem.getValue());
+                }
+            }
+            XhsImageExecuteRequest imageExecuteRequest = new XhsImageExecuteRequest();
+            imageExecuteRequest.setImageTemplate(template.getId());
+            imageExecuteRequest.setParams(imageParams);
+            imageExecuteRequestList.add(imageExecuteRequest);
         }
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_RANDOM_TYPE_NOT_SUPPORTED, randomType);
+        // 图片执行参数
+        XhsBathImageExecuteRequest bathImageExecuteRequest = new XhsBathImageExecuteRequest();
+        bathImageExecuteRequest.setImageRequests(imageExecuteRequestList);
+        return bathImageExecuteRequest;
     }
 
     /**
      * 创建随机任务
      *
-     * @param planUid 创作计划UID
-     * @param config  配置
+     * @param plan 创作计划
      */
-    private void createRandomTasks(String planUid, CreativePlanConfigDTO config) {
+    private void bathRandomTask(CreativePlanRespVO plan, List<XhsCreativeContentExecuteParamsDTO> executeParamsList) {
         // 获取生成任务数量量
-        Integer total = config.getTotal();
+        Integer total = plan.getTotal();
+        CreativePlanConfigDTO config = plan.getConfig();
         // 图片素材列表
         List<String> imageUrlList = config.getImageUrlList();
-        // 处理并且获取文案参数
-        List<XhsAppExecuteRequest> xhsAppExecuteRequests = this.handlerAppExecuteRequestList(config);
-        if (CollectionUtil.isEmpty(imageUrlList)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_COPY_WRITING_EMPTY);
-        }
-        // 处理并且获取图片参数
-        List<XhsBathImageExecuteRequest> bathImageExecuteRequestList = handlerCreativePlanImageRequestList(config);
-        if (CollectionUtil.isEmpty(imageUrlList)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_IMAGE_STYLE_EMPTY);
-        }
-
         // 插入任务
         List<XhsCreativeContentCreateReq> xhsCreativeContentCreateReqList = new ArrayList<>(total * 2);
         for (int i = 0; i < total; i++) {
             String businessUid = IdUtil.fastSimpleUUID();
+            int randomInt = RandomUtil.randomInt(executeParamsList.size());
+            XhsCreativeContentExecuteParamsDTO executeParam = SerializationUtils.clone(executeParamsList.get(randomInt));
+
             // 应用执行任务
             XhsCreativeContentCreateReq appCreateRequest = new XhsCreativeContentCreateReq();
-            int appRandomInt = RandomUtil.randomInt(xhsAppExecuteRequests.size());
             // 克隆图片执行参数, 防止引用问题
-            XhsAppExecuteRequest appExecuteRequest = SerializationUtils.clone(xhsAppExecuteRequests.get(appRandomInt));
-            appCreateRequest.setPlanUid(planUid);
+            XhsAppExecuteRequest appExecuteRequest = executeParam.getAppExecuteRequest();
+            appCreateRequest.setPlanUid(plan.getUid());
             appCreateRequest.setBusinessUid(businessUid);
             appCreateRequest.setType(XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
             appCreateRequest.setTempUid(appExecuteRequest.getUid());
@@ -403,144 +509,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
             // 图片执行任务
             XhsCreativeContentCreateReq imageCreateRequest = new XhsCreativeContentCreateReq();
-            int imageRandomInt = RandomUtil.randomInt(bathImageExecuteRequestList.size());
             // 克隆图片执行参数, 防止引用问题
-            XhsBathImageExecuteRequest bathImageExecuteRequest = SerializationUtils.clone(bathImageExecuteRequestList.get(imageRandomInt));
-
-            // 随机从素材库中放入图片参数
-            List<String> templateIdList = new ArrayList<>();
-            // 使用的图片集合
-            List<String> useImageList = new ArrayList<>();
-            // 处理图片执行参数
-            List<XhsImageExecuteRequest> imageExecuteRequests = new ArrayList<>();
-            for (XhsImageExecuteRequest imageExecuteRequest : CollectionUtil.emptyIfNull(bathImageExecuteRequest.getImageRequests())) {
-                templateIdList.add(imageExecuteRequest.getImageTemplate());
-                Map<String, Object> params = imageExecuteRequest.getParams();
-                if (CollectionUtil.isEmpty(params)) {
-                    imageExecuteRequests.add(imageExecuteRequest);
-                    continue;
-                }
-                Map<String, Object> handlerParams = new HashMap<>();
-                for (Map.Entry<String, Object> entry : params.entrySet()) {
-                    // 图片参数替换为素材库中的随机图片
-                    if (Objects.nonNull(entry.getValue()) && TEMP_IMAGE_VALUE.equals(entry.getValue().toString())) {
-                        int randomInt = RandomUtil.randomInt(imageUrlList.size());
-                        String image = imageUrlList.get(randomInt);
-                        handlerParams.put(entry.getKey(), image);
-                        // 备份待使用图片
-                        useImageList.add(image);
-                    } else {
-                        handlerParams.put(entry.getKey(), entry.getValue());
-                    }
-                }
-                imageExecuteRequest.setParams(handlerParams);
-                imageExecuteRequests.add(imageExecuteRequest);
-            }
-            bathImageExecuteRequest.setImageRequests(imageExecuteRequests);
-
-            imageCreateRequest.setPlanUid(planUid);
+            XhsBathImageExecuteRequest bathImageExecuteRequest = executeParam.getBathImageExecuteRequest();
+            String tempUid = CollectionUtil.emptyIfNull(bathImageExecuteRequest.getImageRequests()).stream().map(XhsImageExecuteRequest::getImageTemplate).collect(Collectors.joining(","));
+            imageCreateRequest.setPlanUid(plan.getUid());
             imageCreateRequest.setBusinessUid(businessUid);
             imageCreateRequest.setType(XhsCreativeContentTypeEnums.PICTURE.getCode());
-            imageCreateRequest.setTempUid(String.join(",", templateIdList));
+            imageCreateRequest.setTempUid(tempUid);
             imageCreateRequest.setExecuteParams(XhsCreativeContentExecuteParamsDTO.ofBathImage(bathImageExecuteRequest));
-            imageCreateRequest.setUsePicture(useImageList.stream().distinct().collect(Collectors.toList()));
+            imageCreateRequest.setUsePicture(imageUrlList);
             xhsCreativeContentCreateReqList.add(imageCreateRequest);
         }
+
+        // 批量插入任务
         xhsCreativeContentService.create(xhsCreativeContentCreateReqList);
-
-    }
-
-    /**
-     * 处理文案参数
-     *
-     * @param config 配置
-     * @return 文案执行请求列表
-     */
-    private List<XhsAppExecuteRequest> handlerAppExecuteRequestList(CreativePlanConfigDTO config) {
-        // 文案列表
-        List<String> copyWritingList = config.getCopyWritingList();
-        if (CollectionUtil.isEmpty(copyWritingList)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_COPY_WRITING_NOT_EXIST);
-        }
-        AppMarketListQuery query = new AppMarketListQuery();
-        query.setIsSimple(Boolean.FALSE);
-        query.setUidList(copyWritingList);
-        List<AppMarketRespVO> list = appMarketService.list(query);
-        if (CollectionUtil.isEmpty(list)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_COPY_WRITING_NOT_EXIST);
-        }
-
-        // 处理变量列表
-        Map<String, Object> variableItemMap = CollectionUtil.emptyIfNull(config.getVariableList()).stream()
-                .collect(Collectors.toMap(VariableItemDTO::getField, VariableItemDTO::getValue));
-
-        List<XhsAppExecuteRequest> appExecuteRequestList = new ArrayList<>();
-        for (AppMarketRespVO marketApp : list) {
-            List<VariableItemRespVO> variableList = Optional.of(marketApp).map(AppMarketRespVO::getWorkflowConfig)
-                    .map(WorkflowConfigRespVO::getSteps)
-                    .map(steps -> steps.get(0)).map(WorkflowStepWrapperRespVO::getVariable)
-                    .map(VariableRespVO::getVariables)
-                    .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(310900100, "系统步骤不能为空")));
-
-            XhsAppExecuteRequest appExecuteRequest = new XhsAppExecuteRequest();
-            appExecuteRequest.setUid(marketApp.getUid());
-            appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
-            Map<String, Object> params = new HashMap<>();
-            for (VariableItemRespVO itemResponse : variableList) {
-                params.put(itemResponse.getField(), variableItemMap.getOrDefault(itemResponse.getField(), null));
-            }
-            appExecuteRequest.setParams(params);
-            appExecuteRequestList.add(appExecuteRequest);
-        }
-        return appExecuteRequestList;
-    }
-
-    /**
-     * 处理图片参数
-     *
-     * @param config 配置信息
-     * @return 图片请求
-     */
-    private List<XhsBathImageExecuteRequest> handlerCreativePlanImageRequestList(CreativePlanConfigDTO config) {
-
-        // 图片风格参数列表
-        List<XhsImageStyleDTO> imageStyleList = config.getImageStyleList();
-        if (CollectionUtil.isEmpty(imageStyleList)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_IMAGE_STYLE_EMPTY);
-        }
-
-        List<XhsBathImageExecuteRequest> bathImageExecuteRequestList = new ArrayList<>();
-
-        for (XhsImageStyleDTO imageStyle : imageStyleList) {
-            // 耽搁图片风格里面的图片里模板列表
-            List<XhsImageTemplateDTO> templateList = imageStyle.getTemplateList();
-            // 批量处理图片请求
-            XhsBathImageExecuteRequest bathImageExecuteRequest = new XhsBathImageExecuteRequest();
-            // 图片参数信息
-            List<XhsImageExecuteRequest> imageExecuteRequestList = new ArrayList<>();
-
-            // 处理图片变量
-            for (XhsImageTemplateDTO imageTemplate : templateList) {
-                Map<String, Object> params = new HashMap<>();
-                for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(imageTemplate.getVariables())) {
-                    // 图片参数，随机放入图片
-                    if ("IMAGE".equals(variableItem.getType())) {
-                        params.put(variableItem.getField(), TEMP_IMAGE_VALUE);
-                    } else {
-                        params.put(variableItem.getField(), variableItem.getValue());
-                    }
-                }
-                XhsImageExecuteRequest imageExecuteRequest = new XhsImageExecuteRequest();
-                imageExecuteRequest.setImageTemplate(imageTemplate.getId());
-                imageExecuteRequest.setParams(params);
-                imageExecuteRequestList.add(imageExecuteRequest);
-            }
-
-            bathImageExecuteRequest.setImageRequests(imageExecuteRequestList);
-            bathImageExecuteRequestList.add(bathImageExecuteRequest);
-        }
-
-        return bathImageExecuteRequestList;
     }
 
     /**
@@ -571,28 +553,4 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         config.validate();
     }
 
-    /**
-     * 变量列表转换
-     *
-     * @param variableRespList 变量列表
-     * @return 转换结果
-     */
-    private List<VariableItemDTO> variableList(List<VariableItemRespVO> variableRespList) {
-        return CollectionUtil.emptyIfNull(variableRespList).stream().map(variable -> {
-            VariableItemDTO variableItemDTO = new VariableItemDTO();
-            variableItemDTO.setField(variable.getField());
-            variableItemDTO.setLabel(variable.getLabel());
-            variableItemDTO.setType(variable.getType());
-            variableItemDTO.setStyle(variable.getStyle());
-            variableItemDTO.setGroup(variable.getGroup());
-            variableItemDTO.setOrder(variable.getOrder());
-            variableItemDTO.setValue(variable.getValue());
-            variableItemDTO.setDefaultValue(variable.getDefaultValue());
-            variableItemDTO.setIsShow(variable.getIsShow());
-            variableItemDTO.setIsPoint(variable.getIsPoint());
-            variableItemDTO.setDescription(variable.getDescription());
-            variableItemDTO.setOptions(variable.getOptions());
-            return variableItemDTO;
-        }).collect(Collectors.toList());
-    }
 }

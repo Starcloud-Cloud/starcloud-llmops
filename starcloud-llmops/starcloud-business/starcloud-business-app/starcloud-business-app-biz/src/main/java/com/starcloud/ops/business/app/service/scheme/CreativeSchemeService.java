@@ -9,6 +9,7 @@ import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 创作方案服务
@@ -18,6 +19,13 @@ import java.util.List;
  * @since 2023-11-14
  */
 public interface CreativeSchemeService {
+
+    /**
+     * 获取创作方案元数据
+     *
+     * @return 创作方案元数据
+     */
+    Map<String, Object> metadata();
 
     /**
      * 获取创作方案详情
