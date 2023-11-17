@@ -27,8 +27,10 @@ public enum PayChannelEnum {
     ALIPAY_APP("alipay_app", "支付宝App 支付", AlipayPayClientConfig.class),
     ALIPAY_QR("alipay_qr", "支付宝扫码支付", AlipayPayClientConfig.class),
     ALIPAY_BAR("alipay_bar", "支付宝条码支付", AlipayPayClientConfig.class),
-    ALIPAY_SIGN("alipay_sign", "支付宝签约", AlipayPayClientConfig.class),
-    ALIPAY_SIGN_PAY("alipay_sign_pay", "支付宝签约支付", AlipayPayClientConfig.class),
+    ALIPAY_AGREEMENT("alipay_agreement", "支付宝签约", AlipayPayClientConfig.class),
+    ALIPAY_AGREEMENT_QUERY("alipay_agreement_query", "支付宝签约查询", AlipayPayClientConfig.class),
+    ALIPAY_AGREEMENT_PAY("alipay_agreement_pay", "支付宝签约支付", AlipayPayClientConfig.class),
+    ALIPAY_AGREEMENT_PAY_QUERY("alipay_agreement_pay_query", "支付宝签约支付查询", AlipayPayClientConfig.class),
     ;
 
     /**

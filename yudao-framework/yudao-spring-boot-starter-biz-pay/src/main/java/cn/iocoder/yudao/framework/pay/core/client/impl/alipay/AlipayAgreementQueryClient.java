@@ -4,8 +4,8 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDT
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
 import com.alipay.api.AlipayApiException;
-import com.alipay.api.request.AlipayTradePayRequest;
-import com.alipay.api.response.AlipayTradePayResponse;
+import com.alipay.api.request.AlipayUserAgreementQueryRequest;
+import com.alipay.api.response.AlipayUserAgreementQueryResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -16,25 +16,27 @@ import lombok.extern.slf4j.Slf4j;
  * @author 芋道源码
  */
 @Slf4j
-public class AlipaySignPayClient extends AbstractAlipayClient {
+public class AlipayAgreementQueryClient extends AbstractAlipayClient {
 
-    public AlipaySignPayClient(Long channelId, AlipayPayClientConfig config) {
-        super(channelId, PayChannelEnum.ALIPAY_SIGN_PAY.getCode(), config);
+    public AlipayAgreementQueryClient(Long channelId, AlipayPayClientConfig config) {
+        super(channelId, PayChannelEnum.ALIPAY_AGREEMENT_QUERY.getCode(), config);
     }
 
     @Override
     public PayOrderUnifiedRespDTO doUnifiedOrder(PayOrderUnifiedReqDTO reqDTO) throws AlipayApiException {
+
         // 1.1 构建 AlipayTradeCreateRequest 请求
-        AlipayTradePayRequest request = new AlipayTradePayRequest();
+        AlipayUserAgreementQueryRequest request = new AlipayUserAgreementQueryRequest();
+
+        request.setNotifyUrl(reqDTO.getNotifyUrl());
         // 1.2 签约参数
         request.setBizContent(reqDTO.getBizContent());
         // 2.1 执行请求
-        request.setBizContent(reqDTO.getBizContent());
-        AlipayTradePayResponse response = client.execute(request);
+        AlipayUserAgreementQueryResponse response = client.execute(request);
         // 2.2 处理结果
         // validateSuccess(response);
         return new PayOrderUnifiedRespDTO()
-                .setDisplayMode(response.getCode()).setDisplayContent(response.getSubCode());
+                .setDisplayMode(null).setDisplayContent(response.getCode());
     }
 
 }

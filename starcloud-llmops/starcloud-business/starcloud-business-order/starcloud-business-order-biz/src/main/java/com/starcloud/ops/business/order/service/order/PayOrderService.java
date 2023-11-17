@@ -187,4 +187,12 @@ public interface PayOrderService {
     void updatePayOrder(PayOrderDO payOrderDO);
 
 
+    /**
+     * 获得支付订单
+     *
+     * @return 支付订单
+     */
+    List<PayOrderDO> getOrderBySign(Long signId);
+
+
 }

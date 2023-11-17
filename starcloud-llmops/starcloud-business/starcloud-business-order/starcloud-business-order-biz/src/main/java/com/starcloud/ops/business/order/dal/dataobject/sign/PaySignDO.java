@@ -134,6 +134,11 @@ public class PaySignDO extends BaseDO {
     private String userIp;
 
     /**
+     * 用户 IP
+     */
+    private String alipayOpenId;
+
+    /**
      * 多租户编号
      */
     private Long tenantId;

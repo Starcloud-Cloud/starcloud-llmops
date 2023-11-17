@@ -73,7 +73,7 @@ public interface PaySignService {
     /**
      * 提交签约
      *
-     * @param reqDTO 创建请求
+     * @param merchantOrderId 创建请求
      * @return 签约地址
      */
     SignPayResultReqVO submitSignPay(String merchantOrderId);
@@ -102,6 +102,10 @@ public interface PaySignService {
     List<PaySignDO> getAbleToPayRecords();
 
     Boolean validatePaySignResult(String code);
+
+    Boolean querySignStatus(String merchantSignId);
+
+    Boolean querySignPayStatus(String merchantOrderId);
 
 
     /**

@@ -17,10 +17,10 @@ import lombok.extern.slf4j.Slf4j;
  * @author 芋道源码
  */
 @Slf4j
-public class AlipaySignClient extends AbstractAlipayClient {
+public class AlipayAgreementClient extends AbstractAlipayClient {
 
-    public AlipaySignClient(Long channelId, AlipayPayClientConfig config) {
-        super(channelId, PayChannelEnum.ALIPAY_SIGN.getCode(), config);
+    public AlipayAgreementClient(Long channelId, AlipayPayClientConfig config) {
+        super(channelId, PayChannelEnum.ALIPAY_AGREEMENT.getCode(), config);
     }
 
     @Override

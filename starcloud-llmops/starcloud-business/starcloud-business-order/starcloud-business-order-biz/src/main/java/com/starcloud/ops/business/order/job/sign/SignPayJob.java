@@ -24,12 +24,10 @@ public class SignPayJob {
     private PaySignService signService;
 
 
-
-
     /**
      * 一分钟执行一次,这里选择每2分钟的秒执行，是为了避免整点任务过多的问题
      */
-    @Scheduled(cron = "0 0/2 * * * ? ")
+    @Scheduled(cron = "0 5 0/1 * * ? ")
     public void ableToPayRecords() {
         try {
             log.info("开始执行签约自动扣款任务，获取已经代扣款的签约记录");
@@ -44,11 +42,21 @@ public class SignPayJob {
     public String execute() throws Exception {
         // 设置当前租户信息
         TenantContextHolder.setTenantId(2L);
-        // 获取当天的扣款订单
+        // 获取未解约的签约记录
         List<PaySignDO> ableToPayRecords = signService.getAbleToPayRecords();
 
         if (CollUtil.isNotEmpty(ableToPayRecords)) {
-            ableToPayRecords.stream().forEach(paySignDO -> signService.processSigningPayment(paySignDO));
+            ableToPayRecords.stream().forEach(paySignDO -> {
+
+                // 查询订阅状态
+
+                // 订阅成功 主动扣款
+                // 订阅失败 更新订阅记录 不执行扣款
+
+                // 发起扣款
+                signService.processSigningPayment(paySignDO);
+
+            });
 
         }
         log.info("处理租户【{}】下的签约自动扣款任务，当前执行了共有【{}】条签约自动扣款任务", TenantContextHolder.getTenantId(), ableToPayRecords.size());

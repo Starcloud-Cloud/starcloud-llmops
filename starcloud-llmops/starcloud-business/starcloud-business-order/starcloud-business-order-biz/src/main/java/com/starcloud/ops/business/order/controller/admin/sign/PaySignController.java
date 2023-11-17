@@ -66,7 +66,7 @@ public class PaySignController {
     public CommonResult<String> submitSign(@RequestBody PaySignSubmitReqDTO reqDTO) {
 
         Assert.notBlank(reqDTO.getMerchantSignId(),"签约编号不可以为空");
-        reqDTO.setChannelCode(PayChannelEnum.ALIPAY_SIGN.getCode());
+        reqDTO.setChannelCode(PayChannelEnum.ALIPAY_AGREEMENT.getCode());
         // 根据签约编号 获取签约记录
         PaySignDO paySign = paySignService.getPaySign(reqDTO.getMerchantSignId());
         ProductEnum productEnum = ProductEnum.getByCode(paySign.getProductCode());

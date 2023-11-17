@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.order.service.sign;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
@@ -46,6 +47,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
@@ -54,6 +56,7 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
 import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_ORDER_NOT_FOUND;
+import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_SIGN_NOT_FOUND;
 
 @Service
 @Validated
@@ -166,7 +169,6 @@ public class PaySignServiceImpl implements PaySignService {
     @Override
     public String submitSign(PaySignSubmitReqDTO reqDTO) {
 
-
         // 封装签约参数
         JSONObject access_params = new JSONObject();
         access_params.put("channel", "QRCODE");
@@ -186,18 +188,10 @@ public class PaySignServiceImpl implements PaySignService {
         // 周期规则参数
         JSONObject period_rule_params = new JSONObject();
 
-        // period_rule_params.put("period_type", "DAY");
-        // period_rule_params.put("period", "7");
-        // period_rule_params.put("execute_time", DateUtil.today());
-        // period_rule_params.put("single_amount", "0.01");
-        // period_rule_params.put("total_amount", "");
-        // period_rule_params.put("total_payments", "");
-        // bizContent.put("period_rule_params", period_rule_params);
-
         period_rule_params.put("period_type", reqDTO.getPeriodType());
         period_rule_params.put("period", reqDTO.getPeriod());
         period_rule_params.put("execute_time", reqDTO.getExecuteTime());
-        period_rule_params.put("single_amount", "0.01");
+        period_rule_params.put("single_amount", reqDTO.getSingleAmount());
         period_rule_params.put("total_amount", reqDTO.getTotalAmount());
         period_rule_params.put("total_payments", reqDTO.getTotalPayments());
         bizContent.put("period_rule_params", period_rule_params);
@@ -252,7 +246,9 @@ public class PaySignServiceImpl implements PaySignService {
                 .setExpireTime(LocalDateTimeUtil.now().plusMinutes(5))
                 .setUserIp(getClientIP())
                 .setAppId(paySign.getAppId())
-                .setSignId(paySign.getId()));
+                .setSignId(paySign.getId())
+                .setUserId(paySign.getUserId())
+        );
     }
 
     /**
@@ -270,7 +266,7 @@ public class PaySignServiceImpl implements PaySignService {
         log.info("【签约订单创建支付请求】：用户ID({})|订单 ID({})]", order.getCreator(), merchantOrderId);
 
         // 1.2 校验支付渠道是否有效
-        PayChannelDO channel = validatePayChannelCanSubmit(order.getAppId(), PayChannelEnum.ALIPAY_SIGN_PAY.getCode());
+        PayChannelDO channel = validatePayChannelCanSubmit(order.getAppId(), PayChannelEnum.ALIPAY_AGREEMENT_PAY.getCode());
         PayClient client = payClientFactory.getPayClient(channel.getId());
         log.info("[签约订单创建支付请求][支付渠道验证通过：用户ID({})|渠道 ID({})｜订单编号({})]", order.getCreator(), channel.getId(), merchantOrderId);
         // 2. 插入 PayOrderExtensionDO
@@ -366,13 +362,13 @@ public class PaySignServiceImpl implements PaySignService {
     }
 
     /**
-     * 获取可以支付的签约记录
+     * 获取可以未支付的签约记录
      */
     @Override
     public List<PaySignDO> getAbleToPayRecords() {
         DateTime now = DateUtil.date();
         return signMapper.selectList(Wrappers.lambdaQuery(PaySignDO.class)
-                .eq(PaySignDO::getStatus, PaySignStatusEnum.SUCCESS.getStatus())
+                .in(PaySignDO::getStatus, PaySignStatusEnum.SUCCESS.getStatus(), PaySignStatusEnum.WAITING.getStatus())
                 .between(PaySignDO::getNextPay, DateUtil.beginOfDay(now), DateUtil.endOfDay(now)));
 
     }
@@ -390,6 +386,76 @@ public class PaySignServiceImpl implements PaySignService {
     }
 
     /**
+     * 【查账】主动-查询签约状态
+     *
+     * @param merchantSignId
+     * @return
+     */
+    @Override
+    public Boolean querySignStatus(String merchantSignId) {
+
+        PaySignDO signDO = validatePaySignCanPay(merchantSignId);
+
+        JSONObject bizContent = new JSONObject();
+        bizContent.put("personal_product_code", "GENERAL_WITHHOLDING_P");
+        bizContent.put("sign_scene", "INDUSTRY|MOFAAI");
+        bizContent.put("alipay_open_id", signDO.getAlipayOpenId());
+        bizContent.put("external_agreement_no", merchantSignId);
+        bizContent.put("third_party_type", "PARTNER");
+        bizContent.put("agreement_no", signDO.getAgreementNo());
+
+        PayChannelDO channel = validatePayChannelCanSubmit(signDO.getAppId(), PayChannelEnum.ALIPAY_AGREEMENT_QUERY.getCode());
+        PayClient client = payClientFactory.getPayClient(channel.getId());
+
+        // 3. 调用三方接口
+        PayOrderUnifiedReqDTO unifiedOrderReqDTO = new PayOrderUnifiedReqDTO();
+        unifiedOrderReqDTO.setBizContent(bizContent.toString());
+
+        String displayContent = client.unifiedOrder(unifiedOrderReqDTO).getDisplayContent();
+        return validatePaySignResult(displayContent);
+    }
+
+    /**
+     * @param merchantSignId
+     * @return
+     */
+    @Override
+    public Boolean querySignPayStatus(String merchantSignId) {
+        PaySignDO signDO = validatePaySignCanPay(merchantSignId);
+        List<PayOrderDO> orderDOS = orderService.getOrderBySign(signDO.getId());
+        if (CollUtil.isNotEmpty(orderDOS)) {
+            List<PayOrderDO> waitPayOrderS = orderDOS.stream().filter(payOrderDO -> payOrderDO.getStatus().equals(PayOrderStatusEnum.WAITING.getStatus())).collect(Collectors.toList());
+            if (CollUtil.isNotEmpty(waitPayOrderS)) {
+                waitPayOrderS.stream().forEach(payOrderDO -> {
+
+                    JSONObject bizContent = new JSONObject();
+                    bizContent.put("product_code", "GENERAL_WITHHOLDING");
+                    bizContent.put("out_trade_no", payOrderDO.getMerchantOrderId());
+                    bizContent.put("subject", signDO.getProductName());
+                    bizContent.put("total_amount", signDO.getAmount() / 100.0);
+                    bizContent.put("third_party_type", "PARTNER");
+                    JSONObject agreement_params = new JSONObject();
+                    agreement_params.put("agreement_no", signDO.getAgreementNo());
+                    bizContent.put("agreement_params", agreement_params);
+
+                    PayChannelDO channel = validatePayChannelCanSubmit(signDO.getAppId(), PayChannelEnum.ALIPAY_AGREEMENT_PAY_QUERY.getCode());
+                    PayClient client = payClientFactory.getPayClient(channel.getId());
+
+                    // 3. 调用三方接口
+                    PayOrderUnifiedReqDTO unifiedOrderReqDTO = new PayOrderUnifiedReqDTO();
+                    unifiedOrderReqDTO.setBizContent(bizContent.toString());
+
+                    String displayContent = client.unifiedOrder(unifiedOrderReqDTO).getDisplayContent();
+
+                });
+            }
+        }
+
+
+        return null;
+    }
+
+    /**
      * 处理 签约支付
      *
      * @param paySignDO 创建请求
@@ -397,13 +463,20 @@ public class PaySignServiceImpl implements PaySignService {
      */
     @Override
     public void processSigningPayment(PaySignDO paySignDO) {
-        // TODO 查账
         String signPayOrderId = createSignPay(paySignDO.getMerchantSignId());
         SignPayResultReqVO resultReqVO = submitSignPay(signPayOrderId);
         Boolean paySignResult = validatePaySignResult(resultReqVO.getResultCode());
         if (paySignResult) {
             // 更新表中的下次支付时间
-            paySignDO.setNextPay(DateUtil.date().toLocalDateTime());
+            ProductSignEnum productSignEnum = ProductEnum.getByCode(paySignDO.getProductCode()).getProductSignEnum();
+            LocalDateTime nextPayTime = LocalDateTimeUtil.now();
+            if ("DAY".equals(productSignEnum.getPeriodType())) {
+                nextPayTime = nextPayTime.plusDays(productSignEnum.getPeriod());
+            } else {
+                nextPayTime = nextPayTime.plusMonths(productSignEnum.getPeriod());
+            }
+
+            paySignDO.setNextPay(nextPayTime);
             updatePaySign(paySignDO);
             // 更新订单数据
             orderService.updatePayOrderExtensionSuccess(resultReqVO.getOrderExtensionNo(), JSONUtil.toJsonStr(resultReqVO));
@@ -422,6 +495,11 @@ public class PaySignServiceImpl implements PaySignService {
             order.setStatus(PayOrderStatusEnum.CLOSED.getStatus());
             order.setErrorMsg(resultReqVO.getResultMsg());
             orderService.updatePayOrder(order);
+        }
+        if (!paySignResult && "ACQ.AGREEMENT_NOT_EXIST".equals(resultReqVO.getResultMsg())) {
+            paySignDO.setStatus(PaySignStatusEnum.CLOSED.getStatus());
+            paySignDO.setExpireTime(LocalDateTimeUtil.now());
+            updatePaySign(paySignDO);
         }
     }
 
@@ -460,25 +538,25 @@ public class PaySignServiceImpl implements PaySignService {
     }
 
     private PaySignDO validatePaySignCanSubmit(String merchantSignId) {
-        PaySignDO order = signMapper.selectByMerchantSignId(merchantSignId);
-        if (order == null) { // 是否存在
-            throw exception(PAY_ORDER_NOT_FOUND);
+        PaySignDO signDO = signMapper.selectByMerchantSignId(merchantSignId);
+        if (signDO == null) { // 是否存在
+            throw exception(PAY_SIGN_NOT_FOUND);
         }
-        if (!PaySignStatusEnum.WAITING.getStatus().equals(order.getStatus())) { // 校验状态，必须是待签约
+        if (!PaySignStatusEnum.WAITING.getStatus().equals(signDO.getStatus())) { // 校验状态，必须是待签约
             throw exception(ErrorCodeConstants.PAY_SIGN_STATUS_IS_NOT_SUCCESS);
         }
-        return order;
+        return signDO;
     }
 
     private PaySignDO validatePaySignCanPay(String merchantSignId) {
-        PaySignDO order = signMapper.selectByMerchantSignId(merchantSignId);
-        if (order == null) { // 是否存在
-            throw exception(PAY_ORDER_NOT_FOUND);
+        PaySignDO signDO = signMapper.selectByMerchantSignId(merchantSignId);
+        if (signDO == null) { // 是否存在
+            throw exception(PAY_SIGN_NOT_FOUND);
         }
-        if (!PaySignStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) { // 校验状态，必须是签约成功
+        if (!PaySignStatusEnum.SUCCESS.getStatus().equals(signDO.getStatus())) { // 校验状态，必须是签约成功
             throw exception(ErrorCodeConstants.PAY_SIGN_STATUS_IS_NOT_SUCCESS);
         }
-        return order;
+        return signDO;
     }
 
 }

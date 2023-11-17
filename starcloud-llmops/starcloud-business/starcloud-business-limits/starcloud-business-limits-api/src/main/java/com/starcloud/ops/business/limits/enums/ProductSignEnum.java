@@ -12,7 +12,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ProductSignEnum {
 
-    PRODUCT_BASIC_CONFIG("魔法ai-基础版签约配置", 1, "MONTH", 1, 1, null, null),
+    PRODUCT_BASIC_CONFIG("魔法ai-基础版签约配置", 1, "DAY", 7, 100, null, null),
     ;
 
     /**

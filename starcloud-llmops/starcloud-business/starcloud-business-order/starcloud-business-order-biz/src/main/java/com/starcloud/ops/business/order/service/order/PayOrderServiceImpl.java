@@ -201,6 +201,11 @@ public class PayOrderServiceImpl implements PayOrderService {
         order.setRefundStatus(PayRefundTypeEnum.NO.getStatus())
                 .setRefundTimes(0).setRefundAmount(0L);
         order.setSignId(reqDTO.getSignId());
+
+        if (null == getLoginUserId()) {
+            order.setCreator(reqDTO.getUserId());
+            order.setUpdater(reqDTO.getUserId());
+        }
         orderMapper.insert(order);
         log.info("[createPayOrder],用户[userId({}) 创建新的订单结束，订单编号为({})]", getLoginUserId(), order.getMerchantOrderId());
         return order.getMerchantOrderId();
@@ -768,8 +773,8 @@ public class PayOrderServiceImpl implements PayOrderService {
     /**
      * 更新 PayOrderDO 支付成功
      *
-     * @param channelId          支付渠道
-     * @param channelCode          支付渠道
+     * @param channelId        支付渠道
+     * @param channelCode      支付渠道
      * @param orderId          订单 ID
      * @param orderExtensionId 支付拓展ID
      * @return PayOrderDO 对象
@@ -805,6 +810,17 @@ public class PayOrderServiceImpl implements PayOrderService {
     public void updatePayOrder(PayOrderDO payOrderDO) {
         orderMapper.updateById(payOrderDO);
 
+    }
+
+    /**
+     * 获得支付订单
+     *
+     * @param signId
+     * @return 支付订单
+     */
+    @Override
+    public List<PayOrderDO> getOrderBySign(Long signId) {
+        return orderMapper.selectList(Wrappers.lambdaQuery(PayOrderDO.class).eq(PayOrderDO::getSignId, signId));
     }
 
     /**
