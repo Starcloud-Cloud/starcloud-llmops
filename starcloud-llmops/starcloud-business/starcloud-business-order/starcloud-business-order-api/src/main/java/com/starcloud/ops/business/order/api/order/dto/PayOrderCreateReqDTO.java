@@ -26,6 +26,7 @@ public class PayOrderCreateReqDTO implements Serializable {
     @NotEmpty(message = "用户 IP 不能为空")
     private String userIp;
 
+
     // ========== 商户相关字段 ==========
 
     /**
@@ -33,6 +34,12 @@ public class PayOrderCreateReqDTO implements Serializable {
      */
     @NotEmpty(message = "商户订单编号不能为空")
     private String merchantOrderId;
+
+    /**
+     * 商户订单编号
+     */
+    @Schema(description ="商户签约ID" )
+    private Long signId;
     /**
      * 商品标题
      */
@@ -72,4 +79,9 @@ public class PayOrderCreateReqDTO implements Serializable {
 
     @Schema(description = "优惠代码ID")
     private Long discountId;
+
+    /**
+     * 用户 IP
+     */
+    private String userId;
 }

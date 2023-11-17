@@ -111,4 +111,14 @@ public interface BenefitsApi {
      * @param userBaseDTO 用户信息
      */
     void UsageImageBenefits(Long nums, String outId, UserBaseDTO userBaseDTO);
+
+
+    void addUserBenefitsByCode(String code,Long useId);
+
+    void addBenefitsAndRole(String benefitsType,Long useId,String roleCode);
+
+    Boolean validateDiscount(String productCode,String discountCode,Long useId);
+
+    Long calculateDiscountPrice(String productCode,String discountCode);
+
 }

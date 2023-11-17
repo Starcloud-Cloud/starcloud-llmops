@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.order.convert.order;
+package com.starcloud.ops.business.order.convert.sign;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
@@ -8,6 +8,7 @@ import com.starcloud.ops.business.order.api.order.dto.PayOrderRespDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderExtensionDO;
+import com.starcloud.ops.business.order.dal.dataobject.sign.PaySignDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -22,13 +23,13 @@ import java.util.Map;
  * @author aquan
  */
 @Mapper
-public interface PayOrderConvert {
+public interface PaySignConvert {
 
-    PayOrderConvert INSTANCE = Mappers.getMapper(PayOrderConvert.class);
+    PaySignConvert INSTANCE = Mappers.getMapper(PaySignConvert.class);
 
-    PayOrderRespVO convert(PayOrderDO bean);
+    PayOrderRespVO convert(PaySignDO bean);
 
-    PayOrderRespDTO convert2(PayOrderDO order);
+    PayOrderRespDTO convert2(PaySignDO order);
 
     PayOrderDetailsRespVO orderDetailConvert(PayOrderDO bean);
 
@@ -51,7 +52,7 @@ public interface PayOrderConvert {
     PageResult<AppPayOrderDetailsRespVO> convertAppPage(PageResult<PayOrderDO> page);
 
 
-    PayOrderDO convert(PayOrderCreateReqDTO bean);
+    PaySignDO convert(PayOrderCreateReqDTO bean);
 
     @Mapping(target = "id", ignore = true)
     default PayOrderExtensionDO convert(PayOrderSubmitReqVO bean, String userIp,Long orderId) {
@@ -106,7 +107,6 @@ public interface PayOrderConvert {
     PayOrderUnifiedReqDTO convert4(PayOrder2ReqVO reqVO);
 
     PayOrderSubmitRespVO convert(PayOrderUnifiedRespDTO bean);
-
 
 //    AppPayOrderSubmitRespVO convert3(PayOrderSubmitRespVO bean);
 
