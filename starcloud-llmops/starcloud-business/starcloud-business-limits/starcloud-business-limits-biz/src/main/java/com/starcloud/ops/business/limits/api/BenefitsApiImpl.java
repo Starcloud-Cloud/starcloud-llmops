@@ -3,6 +3,7 @@ package com.starcloud.ops.business.limits.api;
 import com.starcloud.ops.business.limits.api.benefits.BenefitsApi;
 import com.starcloud.ops.business.limits.api.benefits.dto.UserBaseDTO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsBaseResultVO;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import org.springframework.stereotype.Service;
@@ -187,23 +188,30 @@ public class BenefitsApiImpl implements BenefitsApi {
      *
      */
     @Override
-    public void addUserBenefitsByCode(String code,Long useId) {
+    public void addUserBenefitsByCode(String code, Long useId) {
         userBenefitsService.addUserBenefitsByCode(code, useId);
     }
 
-    public void addBenefitsAndRole(String benefitsType,Long useId,String roleCode) {
+    public void addBenefitsAndRole(String benefitsType, Long useId, String roleCode) {
         // TODO 设置用户角色 异常处理 日志
         userBenefitsService.addBenefitsAndRole(benefitsType, useId, roleCode);
     }
 
 
-    public Boolean validateDiscount(String productCode,String discountCode,Long useId) {
-       return userBenefitsService.validateDiscount(productCode, discountCode, useId);
+    public Boolean validateDiscount(String productCode, String discountCode, Long useId) {
+        try {
+            UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsService.validateDiscount(productCode, discountCode, useId);
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
+
+
     }
 
 
-    public Long calculateDiscountPrice(String productCode,String discountCode) {
-        return  userBenefitsService.calculateDiscountPrice(productCode, discountCode);
+    public Long calculateDiscountPrice(String productCode, String discountCode) {
+        return userBenefitsService.calculateDiscountPrice(productCode, discountCode);
     }
 
 
