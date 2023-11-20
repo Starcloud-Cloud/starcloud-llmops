@@ -17,6 +17,12 @@ public class NotificationRespVO {
     @Schema(description = "任务名称")
     private String name;
 
+    @Schema(description = "平台")
+    private String platform;
+
+    @Schema(description = "领域")
+    private String field;
+
     @Schema(description = "任务类型")
     private String type;
 

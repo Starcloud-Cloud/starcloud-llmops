@@ -29,6 +29,16 @@ public class NotificationCenterDO extends TenantBaseDO {
     private String name;
 
     /**
+     * 平台
+     */
+    private String platform;
+
+    /**
+     * 领域
+     */
+    private String field;
+
+    /**
      * 类型 {@link com.starcloud.ops.business.enums.MisssionTypeEnum}
      */
     private String type;
