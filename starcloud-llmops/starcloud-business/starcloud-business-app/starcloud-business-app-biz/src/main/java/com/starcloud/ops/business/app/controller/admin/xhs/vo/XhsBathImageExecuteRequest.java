@@ -24,6 +24,11 @@ public class XhsBathImageExecuteRequest implements java.io.Serializable {
     private static final long serialVersionUID = 5822526666346723864L;
 
     /**
+     * 图片地址
+     */
+    private List<String> imageUrls;
+
+    /**
      * 图片请求
      */
     @Valid

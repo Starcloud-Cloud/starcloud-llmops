@@ -155,6 +155,7 @@ public class XlsCreativeExecuteManager {
                 }
 
                 XhsBathImageExecuteRequest request = executeParams.getBathImageExecuteRequest();
+                request.setImageUrls(JSONUtil.parseArray(contentDO.getUsePicture()).toList(String.class));
                 List<XhsImageExecuteResponse> resp = xhsService.bathImageExecute(request);
 
                 if (CollectionUtils.isEmpty(resp)) {

@@ -242,6 +242,25 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     }
 
     /**
+     * 查询应用分类树
+     *
+     * @return 应用分类树
+     */
+    @Override
+    public List<AppCategoryVO> creativeSchemeCategoryTree() {
+        // 查询应用分类字典数据
+        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.CREATIVE_SCHEME_CATEGORY_DICT_TYPE);
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return Collections.emptyList();
+        }
+        List<AppCategoryVO> collect = dictDataList.stream()
+                .map(CategoryConvert.INSTANCE::convert).sorted(Comparator.comparingInt(AppCategoryVO::getSort))
+                .collect(Collectors.toList());
+        // 递归实现分类树
+        return categoryListToTree(collect, AppConstants.ROOT);
+    }
+
+    /**
      * 根据字典类型，获取正在启用的字典数据列表
      *
      * @param dictType 字典类型

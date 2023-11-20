@@ -26,6 +26,12 @@ public class CreativeSchemeReferenceDTO implements java.io.Serializable {
     private static final long serialVersionUID = -8215160775720598169L;
 
     /**
+     * 参考ID
+     */
+    @Schema(description = "ID")
+    private Long id;
+
+    /**
      * 参考标题
      */
     @Schema(description = "标题")
@@ -40,21 +46,23 @@ public class CreativeSchemeReferenceDTO implements java.io.Serializable {
     private String content;
 
     /**
-     * 参考图片
+     * 参考来源
      */
-    @Schema(description = "图片")
-    private List<String> images;
-
-    /**
-     * 参考账号
-     */
-    @Schema(description = "账号")
-    private String account;
+    @Schema(description = "来源")
+    @NotBlank(message = "参考账号：来源不能为空！")
+    private String source;
 
     /**
      * 参考链接
      */
     @Schema(description = "链接")
     private String link;
+
+    /**
+     * 参考图片
+     */
+    @Schema(description = "图片")
+    private List<ReferenceImageDTO> images;
+
 
 }

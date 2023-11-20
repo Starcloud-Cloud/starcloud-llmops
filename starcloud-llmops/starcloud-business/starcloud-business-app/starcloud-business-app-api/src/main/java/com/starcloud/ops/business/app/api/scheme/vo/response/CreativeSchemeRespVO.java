@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.api.scheme.vo.response;
 
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.ImageExampleDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -79,13 +81,13 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
      * 创作方案文案示例
      */
     @Schema(description = "创作方案文案示例")
-    private String copyWritingExample;
+    private List<CopyWritingExample> copyWritingExample;
 
     /**
      * 创作方案图片示例
      */
     @Schema(description = "创作方案图片示例")
-    private List<String> imageExample;
+    private List<ImageExampleDTO> imageExample;
 
     /**
      * 创建人

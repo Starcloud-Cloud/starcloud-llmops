@@ -44,8 +44,7 @@
                     FIND_IN_SET(#{tag}, tags)
                 </foreach>
             </if>
-            AND `creator` = #{loginUserId}))
-            
+            AND `creator` = #{query.loginUserId}))
             AND `deleted` = 0
         </where>
     </select>

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.xhs.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -27,6 +28,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRespo
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsGenerateContentDTO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -164,14 +166,16 @@ public class XhsServiceImpl implements XhsService {
             }
 
             if (n == 1) {
-                String[] split = answer.trim().split("&&");
-                if (split.length != 2) {
-                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}, 原数据：{}",
+                XhsGenerateContentDTO generateContent = JSONUtil.toBean(answer.trim(), XhsGenerateContentDTO.class);
+
+                if (Objects.isNull(generateContent) || StringUtils.isBlank(generateContent.getTitle()) || StringUtils.isBlank(generateContent.getContent())) {
+                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}, 原始数据：{}",
                             request.getUid(), n, "350400208", "执行结果内容格式不正确！请稍候重试或者联系管理员！", answer);
+
                     return XhsAppExecuteResponse.failure(request.getUid(), "350400208", "执行结果内容格式不正确！请稍候重试或者联系管理员！", 1);
                 } else {
-                    String title = split[0];
-                    String text = split[1];
+                    String title = generateContent.getTitle();
+                    String text = generateContent.getContent();
                     log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 标题: {}, 内容: {}", request.getUid(), n, title, text);
                     return XhsAppExecuteResponse.success(request.getUid(), title, text, 1);
                 }
@@ -197,29 +201,24 @@ public class XhsServiceImpl implements XhsService {
 
                     String content = Optional.ofNullable(choice).map(ChatCompletionChoice::getMessage).map(ChatMessage::getContent).orElse("");
                     if (StringUtils.isBlank(content)) {
-                        log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原数据: {}",
-                                i + 1, request.getUid(), n, "350400211", "执行结果内容为空！请稍候重试或者联系管理员！", content);
+                        log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原始数据: {}",
+                                i + 1, request.getUid(), n, "350400211", "执行结果内容为空！", content);
 
                         appExecuteResponse.setSuccess(Boolean.FALSE);
                         appExecuteResponse.setErrorCode("350400211");
                         appExecuteResponse.setErrorMsg("执行结果内容为空！请稍候重试或者联系管理员！");
                         list.add(appExecuteResponse);
                     } else {
-                        String[] split = content.trim().split("&&");
-                        if (split.length != 2) {
+                        XhsGenerateContentDTO generateContent = JSONUtil.toBean(answer.trim(), XhsGenerateContentDTO.class);
+                        if (Objects.isNull(generateContent) || StringUtils.isBlank(generateContent.getTitle()) || StringUtils.isBlank(generateContent.getContent())) {
                             log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原数据: {}",
                                     i + 1, request.getUid(), n, "350400212", "执行结果内容格式不正确！请稍候重试或者联系管理员！", content);
-
-                            appExecuteResponse.setSuccess(Boolean.FALSE);
-                            appExecuteResponse.setErrorCode("350400212");
-                            appExecuteResponse.setErrorMsg("执行结果内容格式不正确！请稍候重试或者联系管理员！");
-                            list.add(appExecuteResponse);
                         } else {
                             log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 标题: {}, 内容: {}",
-                                    i + 1, request.getUid(), n, split[0], split[1]);
+                                    i + 1, request.getUid(), n, generateContent.getTitle(), generateContent.getContent());
                             appExecuteResponse.setSuccess(Boolean.TRUE);
-                            appExecuteResponse.setTitle(split[0]);
-                            appExecuteResponse.setText(split[1]);
+                            appExecuteResponse.setTitle(generateContent.getTitle());
+                            appExecuteResponse.setText(generateContent.getContent());
                             list.add(appExecuteResponse);
                         }
                     }
@@ -372,6 +371,11 @@ public class XhsServiceImpl implements XhsService {
     @Override
     public List<XhsImageExecuteResponse> bathImageExecute(XhsBathImageExecuteRequest request) {
         log.info("小红书执行批量生成图片开始");
+        List<String> imageUrls = request.getImageUrls();
+        if (CollectionUtil.isEmpty(imageUrls)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400201, "图片URL不能为空！"));
+        }
+
         List<XhsImageExecuteRequest> imageRequestList = request.getImageRequests();
         if (CollectionUtil.isEmpty(imageRequestList)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
@@ -379,9 +383,27 @@ public class XhsServiceImpl implements XhsService {
         // 图片执行结果
         List<XhsImageExecuteResponse> imageResponses = Lists.newArrayList();
         for (int i = 0; i < imageRequestList.size(); i++) {
+
             XhsImageExecuteRequest imageRequest = imageRequestList.get(i);
             imageRequest.setIndex(i + 1);
             imageRequest.setIsMain(i == 0 ? Boolean.TRUE : Boolean.FALSE);
+
+            // 处理参数，随机取一个图片URL。
+            Map<String, Object> handlerParams = imageRequest.getParams();
+            for (Map.Entry<String, Object> entry : imageRequest.getParams().entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                // 如果是 IMAGE_VARIABLE，随机取一个图片URL
+                if ("IMAGE_VARIABLE".equals(value)) {
+                    int randomInt = RandomUtil.randomInt(imageUrls.size());
+                    handlerParams.put(key, imageUrls.get(randomInt));
+                } else {
+                    handlerParams.put(key, value);
+                }
+            }
+
+            imageRequest.setParams(handlerParams);
+
             XhsImageExecuteResponse response = imageExecute(imageRequest);
             imageResponses.add(response);
         }

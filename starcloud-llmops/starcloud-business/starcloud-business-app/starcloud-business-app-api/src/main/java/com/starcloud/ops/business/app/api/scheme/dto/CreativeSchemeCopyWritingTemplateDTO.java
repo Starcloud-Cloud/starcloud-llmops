@@ -8,6 +8,7 @@ import lombok.ToString;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,5 +55,5 @@ public class CreativeSchemeCopyWritingTemplateDTO implements java.io.Serializabl
      * 文案生成模板示例
      */
     @Schema(description = "文案生成模板示例")
-    private String example;
+    private List<CopyWritingExample> example;
 }

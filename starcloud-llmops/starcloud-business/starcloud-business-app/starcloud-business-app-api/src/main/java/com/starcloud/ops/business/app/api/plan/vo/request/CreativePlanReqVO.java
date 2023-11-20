@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.plan.vo.request;
 
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanConfigDTO;
+import com.starcloud.ops.business.app.enums.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -49,6 +52,23 @@ public class CreativePlanReqVO implements java.io.Serializable {
     @Valid
     @NotNull(message = "创作计划：配置参数是必填项！")
     private CreativePlanConfigDTO config;
+
+    /**
+     * 执行随机方式
+     */
+    @Schema(description = "执行随机方式")
+    @NotBlank(message = "执行随机方式不能为空！")
+    @InEnum(value = CreativeRandomTypeEnum.class, field = InEnum.EnumField.NAME, message = "执行随机方式不支持({value})！")
+    private String randomType;
+
+    /**
+     * 生成数量
+     */
+    @Schema(description = "生成数量")
+    @NotNull(message = "生成数量不能为空！")
+    @Min(value = 1, message = "生成数量最小值为 1")
+    @Max(value = 100, message = "生成数量最大值为 500")
+    private Integer total;
 
     /**
      * 创作计划描述

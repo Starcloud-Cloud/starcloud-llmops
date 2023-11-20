@@ -2,14 +2,18 @@ package com.starcloud.ops.business.app.service.scheme.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeImageTemplateDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.ImageExampleDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
@@ -21,13 +25,13 @@ import com.starcloud.ops.business.app.convert.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.scheme.CreativeSchemeMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -57,6 +61,19 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    /**
+     * 获取创作方案元数据
+     *
+     * @return 创作方案元数据
+     */
+    @Override
+    public Map<String, Object> metadata() {
+        Map<String, Object> metadata = Maps.newHashMap();
+        metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
+        metadata.put("refersSource", CreativeSchemeRefersSourceEnum.options());
+        return metadata;
+    }
 
     /**
      * 获取创作方案详情
@@ -200,38 +217,55 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
         // 创作方案配置不能为空
         CreativeSchemeConfigDTO configuration = request.getConfiguration();
-        AppValidate.notNull(configuration, ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL);
+        AppValidate.notNull(configuration, ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL, request.getName());
 
         // 文案模板不能为空
         CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
-        AppValidate.notNull(copyWritingTemplate, ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL);
+        AppValidate.notNull(copyWritingTemplate, ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, request.getName());
 
         // 设置创作方案的示例文案
-        scheme.setCopyWritingExample(Optional.ofNullable(copyWritingTemplate.getExample()).orElse(StringUtils.EMPTY));
+        List<CopyWritingExample> copyWritingExamples = Optional.ofNullable(copyWritingTemplate.getExample()).orElse(Lists.newArrayList());
+        scheme.setCopyWritingExample(JSONUtil.toJsonStr(copyWritingExamples));
 
         // 图片模板不能为空
         CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
-        AppValidate.notNull(imageTemplate, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL);
+        AppValidate.notNull(imageTemplate, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL, request.getName());
 
         // 图片模板的样式列表不能为空
         List<XhsImageStyleDTO> list = imageTemplate.getStyleList();
-        AppValidate.notEmpty(list, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY);
+        AppValidate.notEmpty(list, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY, request.getName());
 
         // 从字典中获取图片模板的示例图片
         List<XhsImageTemplateDTO> imageTemplates = appDictionaryService.xhsImageTemplates();
-        Map<String, String> templateMap = CollectionUtil.emptyIfNull(imageTemplates).stream().collect(Collectors.toMap(XhsImageTemplateDTO::getId, XhsImageTemplateDTO::getExample));
+        Map<String, XhsImageTemplateDTO> templateMap = CollectionUtil.emptyIfNull(imageTemplates).stream().collect(Collectors.toMap(XhsImageTemplateDTO::getId, item -> item));
 
-        List<String> imageTemplateList = Lists.newArrayList();
+        List<ImageExampleDTO> imageExampleList = Lists.newArrayList();
         for (XhsImageStyleDTO style : list) {
             List<XhsImageTemplateDTO> templateList = style.getTemplateList();
+            if (CollectionUtil.isEmpty(templateList)) {
+                continue;
+            }
+            List<XhsImageTemplateDTO> imageTemplateList = Lists.newArrayList();
             for (XhsImageTemplateDTO template : templateList) {
-                if (templateMap.containsKey(template.getId()) && StringUtils.isNotBlank(templateMap.get(template.getId()))) {
-                    imageTemplateList.add(templateMap.get(template.getId()));
+                if (templateMap.containsKey(template.getId())) {
+                    XhsImageTemplateDTO templateDTO = templateMap.get(template.getId());
+                    if (StringUtils.isNotBlank(templateDTO.getExample())) {
+                        XhsImageTemplateDTO xhsImageTemplateDTO = new XhsImageTemplateDTO();
+                        xhsImageTemplateDTO.setId(templateDTO.getId());
+                        xhsImageTemplateDTO.setName(templateDTO.getName());
+                        xhsImageTemplateDTO.setExample(templateDTO.getExample());
+                        imageTemplateList.add(xhsImageTemplateDTO);
+                    }
                 }
             }
+            ImageExampleDTO imageExample = new ImageExampleDTO();
+            imageExample.setId(style.getId());
+            imageExample.setName(style.getName());
+            imageExample.setTemplateList(imageTemplateList);
+            imageExampleList.add(imageExample);
         }
         // 设置创作方案的示例图片
-        scheme.setImageExample(StringUtil.toString(imageTemplateList));
+        scheme.setImageExample(JSONUtil.toJsonStr(imageExampleList));
 
     }
 
