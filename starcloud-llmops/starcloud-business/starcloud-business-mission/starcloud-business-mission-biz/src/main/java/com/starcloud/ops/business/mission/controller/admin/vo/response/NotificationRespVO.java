@@ -26,6 +26,9 @@ public class NotificationRespVO {
     @Schema(description = "任务类型")
     private String type;
 
+    @Schema(description = "状态")
+    private String status;
+
     @Schema(description = "单价明细")
     private PostingUnitPriceDTO unitPrice;
 
