@@ -44,6 +44,19 @@ public interface CreativeSchemeService {
     List<CreativeSchemeRespVO> list(CreativeSchemeListReqVO query);
 
     /**
+     * 查询并且校验创作方案是否存在
+     *
+     * @param schemeUidList 创作方案UID列表
+     * @return 创作方案列表
+     */
+    default List<CreativeSchemeRespVO> list(List<String> schemeUidList) {
+        // 查询创作方案
+        CreativeSchemeListReqVO schemeQuery = new CreativeSchemeListReqVO();
+        schemeQuery.setUidList(schemeUidList);
+        return list(schemeQuery);
+    }
+
+    /**
      * 分页查询创作方案
      *
      * @param query 查询条件
