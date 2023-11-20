@@ -76,7 +76,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     @Resource
     private RoleService roleService;
 
-
     @Resource
     private AdminUserService adminUserService;
 

@@ -3,8 +3,10 @@ package com.starcloud.ops.business.limits.api;
 import com.starcloud.ops.business.limits.api.benefits.BenefitsApi;
 import com.starcloud.ops.business.limits.api.benefits.dto.UserBaseDTO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefitsBaseResultVO;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
@@ -14,6 +16,7 @@ import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.*;
 /**
  * BenefitsApi 的实现类
  */
+@Service
 public class BenefitsApiImpl implements BenefitsApi {
 
 
@@ -180,4 +183,36 @@ public class BenefitsApiImpl implements BenefitsApi {
         }
         UsageImage(nums, outId, userBaseDTO);
     }
+
+    /**
+     *
+     */
+    @Override
+    public void addUserBenefitsByCode(String code, Long useId) {
+        userBenefitsService.addUserBenefitsByCode(code, useId);
+    }
+
+    public void addBenefitsAndRole(String benefitsType, Long useId, String roleCode) {
+        // TODO 设置用户角色 异常处理 日志
+        userBenefitsService.addBenefitsAndRole(benefitsType, useId, roleCode);
+    }
+
+
+    public Boolean validateDiscount(String productCode, String discountCode, Long useId) {
+        try {
+            UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsService.validateDiscount(productCode, discountCode, useId);
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
+
+
+    }
+
+
+    public Long calculateDiscountPrice(String productCode, String discountCode) {
+        return userBenefitsService.calculateDiscountPrice(productCode, discountCode);
+    }
+
+
 }

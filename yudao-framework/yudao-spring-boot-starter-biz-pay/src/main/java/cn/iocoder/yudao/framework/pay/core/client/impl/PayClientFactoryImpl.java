@@ -72,6 +72,10 @@ public class PayClientFactoryImpl implements PayClientFactory {
             case ALIPAY_APP: return (AbstractPayClient<Config>) new AlipayAppPayClient(channelId, (AlipayPayClientConfig) config);
             case ALIPAY_PC: return (AbstractPayClient<Config>) new AlipayPcPayClient(channelId, (AlipayPayClientConfig) config);
             case ALIPAY_BAR: return (AbstractPayClient<Config>) new AlipayBarPayClient(channelId, (AlipayPayClientConfig) config);
+            case ALIPAY_AGREEMENT: return (AbstractPayClient<Config>) new AlipayAgreementClient(channelId, (AlipayPayClientConfig) config);
+            case ALIPAY_AGREEMENT_QUERY: return (AbstractPayClient<Config>) new AlipayAgreementQueryClient(channelId, (AlipayPayClientConfig) config);
+            case ALIPAY_AGREEMENT_PAY: return (AbstractPayClient<Config>) new AlipayAgreementPayClient(channelId, (AlipayPayClientConfig) config);
+            case ALIPAY_AGREEMENT_PAY_QUERY: return (AbstractPayClient<Config>) new AlipayAgreementPayQueryClient(channelId, (AlipayPayClientConfig) config);
         }
         // 创建失败，错误日志 + 抛出异常
         log.error("[createPayClient][配置({}) 找不到合适的客户端实现]", config);

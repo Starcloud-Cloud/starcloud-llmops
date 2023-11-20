@@ -38,6 +38,9 @@ public class DictRespVO {
     @Schema(description = "创建人")
     private String creator;
 
+    @Schema(description = "创建人name")
+    private String createUser;
+
     @Schema(description = "更新人")
     private String updater;
 

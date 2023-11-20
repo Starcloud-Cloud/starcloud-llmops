@@ -20,7 +20,7 @@ public interface PayOrderApi {
      * @param reqDTO 创建请求
      * @return 支付单编号
      */
-    Long createOrder(@Valid PayOrderCreateReqDTO reqDTO);
+    String createOrder(@Valid PayOrderCreateReqDTO reqDTO);
 
     /**
      * 获得支付单
@@ -29,5 +29,13 @@ public interface PayOrderApi {
      * @return 支付单
      */
     PayOrderRespDTO getOrder(Long id);
+
+    /**
+     * 是否存在支付成功订单
+     *
+     * @param userId 支付单编号
+     * @return 支付单列表
+     */
+    Boolean exitSuccessPayOrder(Long userId);
 
 }

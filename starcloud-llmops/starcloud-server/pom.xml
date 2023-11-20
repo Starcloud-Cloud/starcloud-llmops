@@ -81,6 +81,12 @@
             <version>${starcloud.revision}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-mission-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
 
         <!-- Test 测试相关 -->
         <dependency>

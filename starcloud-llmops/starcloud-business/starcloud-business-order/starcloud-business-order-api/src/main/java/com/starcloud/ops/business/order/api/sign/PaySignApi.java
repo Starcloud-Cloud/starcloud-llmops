@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.order.api.sign;
 
 
-import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderRespDTO;
+import com.starcloud.ops.business.order.api.sign.dto.PaySignCreateReqDTO;
 
 import javax.validation.Valid;
 
@@ -20,7 +20,7 @@ public interface PaySignApi {
      * @param reqDTO 创建请求
      * @return 支付单编号
      */
-    Long createOrder(@Valid PayOrderCreateReqDTO reqDTO);
+    Long createOrder(@Valid PaySignCreateReqDTO reqDTO);
 
     /**
      * 获得支付单

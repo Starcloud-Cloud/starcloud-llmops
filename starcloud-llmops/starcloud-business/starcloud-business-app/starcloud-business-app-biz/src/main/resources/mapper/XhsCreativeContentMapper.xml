@@ -23,6 +23,12 @@
             <if test="req.planUid != null and req.planUid != ''">
                 and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
             </if>
+            <if test="req.claim != null ">
+                and pic.claim = #{req.claim} and text.claim = #{req.claim}
+            </if>
+            <if test="req.status != null and req.status != ''">
+                and pic.status = #{req.status} and text.status = #{req.status}
+            </if>
     </select>
 
     <select id="pageSelect" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO">
@@ -35,6 +41,12 @@
         and pic.deleted = false and text.deleted = false
         <if test="req.planUid != null and req.planUid != ''">
             and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.claim != null ">
+            and pic.claim = #{req.claim} and text.claim = #{req.claim}
+        </if>
+        <if test="req.status != null and req.status != ''">
+            and pic.status = #{req.status} and text.status = #{req.status}
         </if>
         order by pic.create_time desc limit #{start},#{end}
     </select>
@@ -69,5 +81,45 @@
         <if test="req.bathCount != null and req.bathCount gt 0">
             LIMIT #{req.bathCount}
         </if>
+    </select>
+
+    <select id="countByBusinessUid" resultType="java.lang.Long">
+        select count(*) FROM
+        llm_creative_content pic
+        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+        WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        and pic.deleted = false and text.deleted = false and pic.claim = false and text.claim = false
+        <if test="businessUids != null and businessUids.size() > 0">
+            and pic.business_uid in
+            <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and text.business_uid in
+            <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectByBusinessUid"
+            resultType="com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO">
+        select
+        <include refid="page_column"/>
+        FROM
+        llm_creative_content pic
+        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+        WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        and pic.deleted = false and text.deleted = false and pic.claim = false and text.claim = false
+        <if test="businessUids != null and businessUids.size() > 0">
+            and pic.business_uid in
+            <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and text.business_uid in
+            <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        order by pic.create_time desc
     </select>
 </mapper>
