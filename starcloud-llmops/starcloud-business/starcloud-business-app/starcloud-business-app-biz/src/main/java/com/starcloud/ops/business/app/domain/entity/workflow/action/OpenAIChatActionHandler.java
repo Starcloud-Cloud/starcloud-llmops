@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -90,14 +91,16 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
         Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7"));
+        Integer n = Integer.valueOf(params.getOrDefault("N", 1).toString());
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
-        handlerRequest.setStream(true);
+        handlerRequest.setStream(Objects.nonNull(this.getAppContext().getSseEmitter()));
         handlerRequest.setModel(model);
         handlerRequest.setPrompt(prompt);
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
+        handlerRequest.setN(n);
         // 数据集支持
         if (request.getEnabledDateset()) {
             handlerRequest.setDocsUid(request.getDatesetList());

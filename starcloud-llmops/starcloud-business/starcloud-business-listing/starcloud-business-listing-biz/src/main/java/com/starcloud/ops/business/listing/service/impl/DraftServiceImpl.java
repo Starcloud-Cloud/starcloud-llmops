@@ -629,7 +629,7 @@ public class DraftServiceImpl implements DraftService {
         // 搜索量
         draftDO.setTotalSearches(totalSearches);
         draftDO.setMatchSearchers(matchSearchers);
-        draftDO.setSearchersProportion(matchSize.divide(new BigDecimal(metaData.size()), 2, RoundingMode.HALF_UP).doubleValue());
+        draftDO.setSearchersProportion(BigDecimal.valueOf(matchSearchers).divide(BigDecimal.valueOf(totalSearches),2, RoundingMode.HALF_UP).doubleValue());
     }
 
 

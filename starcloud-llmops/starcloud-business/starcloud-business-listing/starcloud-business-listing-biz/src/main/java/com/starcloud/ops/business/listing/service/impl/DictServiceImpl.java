@@ -17,6 +17,7 @@ import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMe
 import com.starcloud.ops.business.listing.convert.ListingDictConvert;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordBindDO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDictDO;
+import com.starcloud.ops.business.listing.dal.dataobject.ListingDictDTO;
 import com.starcloud.ops.business.listing.dal.mysql.KeywordBindMapper;
 import com.starcloud.ops.business.listing.dal.mysql.ListingDictMapper;
 import com.starcloud.ops.business.listing.enums.AnalysisStatusEnum;
@@ -85,7 +86,7 @@ public class DictServiceImpl implements DictService {
         if (count == null || count == 0) {
             return new PageResult<>(Collections.emptyList(),count);
         }
-        List<ListingDictDO> limitList = dictMapper.limitList(reqVO, reqVO.orderSql(), PageUtils.getStart(reqVO), reqVO.getPageSize());
+        List<ListingDictDTO> limitList = dictMapper.limitList(reqVO, reqVO.orderSql(), PageUtils.getStart(reqVO), reqVO.getPageSize());
         return new PageResult<>(ListingDictConvert.INSTANCE.convert(limitList),count);
     }
 

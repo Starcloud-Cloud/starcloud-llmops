@@ -119,7 +119,7 @@ public class UserBenefitsStrategyController {
     @PreAuthorize("@ss.hasPermission('starcloud-business-limits:user-benefits-strategy:query')")
     public CommonResult<UserBenefitsStrategyRespVO> getUserBenefitsStrategy(@RequestParam("id") Long id) {
         UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(id);
-        return success(UserBenefitsStrategyConvert.convert(userBenefitsStrategy));
+        return success(UserBenefitsStrategyConvert.INSTANCE.convert(userBenefitsStrategy));
     }
 
 
@@ -128,7 +128,7 @@ public class UserBenefitsStrategyController {
     @PreAuthorize("@ss.hasPermission('starcloud-business-limits:user-benefits-strategy:query')")
     public CommonResult<PageResult<UserBenefitsStrategyRespVO>> getUserBenefitsStrategyPage(@Validated UserBenefitsStrategyPageReqVO pageVO) {
         PageResult<UserBenefitsStrategyDO> pageResult = userBenefitsStrategyService.getUserBenefitsStrategyPage(pageVO);
-        return success(UserBenefitsStrategyConvert.convertPage(pageResult));
+        return success(UserBenefitsStrategyConvert.INSTANCE.convertPage(pageResult));
     }
 
     @GetMapping("/base/strategyType")

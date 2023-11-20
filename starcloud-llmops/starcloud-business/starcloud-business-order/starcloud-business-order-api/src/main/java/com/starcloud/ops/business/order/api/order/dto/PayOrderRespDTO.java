@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.order.api.order.dto;
 
+import cn.hutool.core.math.Money;
 import com.starcloud.ops.business.order.enums.order.PayOrderStatusEnum;
 import lombok.Data;
 
@@ -43,6 +44,12 @@ public class PayOrderRespDTO {
      */
     private Integer status;
 
+
     // ========== 渠道相关字段 ==========
+
+    /**
+     * 支付宝商家扣款参数
+     */
+    private String bizContent;
 
 }

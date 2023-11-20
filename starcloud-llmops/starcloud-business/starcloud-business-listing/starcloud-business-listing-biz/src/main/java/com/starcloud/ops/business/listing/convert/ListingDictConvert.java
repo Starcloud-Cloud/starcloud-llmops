@@ -6,6 +6,7 @@ import com.starcloud.ops.business.listing.controller.admin.vo.request.DictCreate
 import com.starcloud.ops.business.listing.controller.admin.vo.request.DictModifyReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.DictRespVO;
 import com.starcloud.ops.business.listing.dal.dataobject.ListingDictDO;
+import com.starcloud.ops.business.listing.dal.dataobject.ListingDictDTO;
 import com.starcloud.ops.business.listing.dto.KeywordResumeDTO;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -29,9 +30,10 @@ public interface ListingDictConvert {
 
     DictRespVO convert(ListingDictDO dictDO);
 
-    List<DictRespVO> convert(List<ListingDictDO> list);
+    List<DictRespVO> convert(List<ListingDictDTO> list);
 
-    PageResult<DictRespVO> convert(PageResult<ListingDictDO> page);
+    @Mapping(source = "username",target = "createUser")
+    DictRespVO convert(ListingDictDTO dictDO);
 
     @Named("parseKey")
     default String parseKeyword(List<String> keys) {

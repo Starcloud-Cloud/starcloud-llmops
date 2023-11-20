@@ -66,6 +66,12 @@ public class AppContext {
     private String aiModel;
 
     /**
+     * AI模型返回的条数
+     */
+    @Schema(description = "AI模型返回的条数")
+    private Integer n = 1;
+
+    /**
      * 当前执行的步骤
      */
     private String stepId;

@@ -196,7 +196,8 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
                     XhsImageTemplateDTO template = JSONUtil.toBean(remark, XhsImageTemplateDTO.class);
                     if (StringUtils.isBlank(template.getId()) || StringUtils.isBlank(template.getPosterId()) ||
                             StringUtils.isBlank(template.getToken()) || StringUtils.isBlank(template.getName()) ||
-                            CollectionUtil.isEmpty(template.getVariables()) || Objects.isNull(template.getImageNumber())
+                            CollectionUtil.isEmpty(template.getVariables()) || Objects.isNull(template.getImageNumber()) ||
+                            StringUtils.isBlank(template.getExample())
                     ) {
                         return null;
                     }
@@ -238,6 +239,25 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
             style.setTemplateList(collect);
             return style;
         }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    /**
+     * 查询应用分类树
+     *
+     * @return 应用分类树
+     */
+    @Override
+    public List<AppCategoryVO> creativeSchemeCategoryTree() {
+        // 查询应用分类字典数据
+        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.CREATIVE_SCHEME_CATEGORY_DICT_TYPE);
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return Collections.emptyList();
+        }
+        List<AppCategoryVO> collect = dictDataList.stream()
+                .map(CategoryConvert.INSTANCE::convert).sorted(Comparator.comparingInt(AppCategoryVO::getSort))
+                .collect(Collectors.toList());
+        // 递归实现分类树
+        return categoryListToTree(collect, AppConstants.ROOT);
     }
 
     /**

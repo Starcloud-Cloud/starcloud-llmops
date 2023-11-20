@@ -182,6 +182,7 @@ public class AppFactory {
     public static AppEntity factoryApp(String appUid, AppReqVO appRequest) {
         BaseAppEntity app = appRepository.get(appUid);
         String create, update;
+        Long tenantId;
         if (app == null) {
             Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
             if (loginUserId == null) {
@@ -189,16 +190,18 @@ public class AppFactory {
             }
             create = String.valueOf(loginUserId);
             update = String.valueOf(loginUserId);
+            tenantId = TenantContextHolder.getRequiredTenantId();
         } else {
             create = app.getCreator();
             update = app.getUpdater();
+            tenantId = app.getTenantId();
         }
 
         AppEntity appEntity = AppConvert.INSTANCE.convert(appRequest);
         appEntity.setUid(appUid);
         appEntity.setCreator(create);
         appEntity.setUpdater(update);
-        appEntity.setTenantId(app.getTenantId());
+        appEntity.setTenantId(tenantId);
         return appEntity;
     }
 

@@ -107,9 +107,9 @@ public class XlsCreativeExecuteManager {
                     continue;
                 }
 
-                contentDO.setCopyWritingContent(executeResponse.getText());
+                contentDO.setCopyWritingContent(executeResponse.getContent());
                 contentDO.setCopyWritingTitle(executeResponse.getTitle());
-                contentDO.setCopyWritingCount(executeResponse.getText().length());
+                contentDO.setCopyWritingCount(executeResponse.getContent().length());
                 contentDO.setStartTime(start);
                 contentDO.setEndTime(end);
                 contentDO.setExecuteTime(executeTime);
@@ -155,6 +155,7 @@ public class XlsCreativeExecuteManager {
                 }
 
                 XhsBathImageExecuteRequest request = executeParams.getBathImageExecuteRequest();
+                request.setImageUrls(JSONUtil.parseArray(contentDO.getUsePicture()).toList(String.class));
                 List<XhsImageExecuteResponse> resp = xhsService.bathImageExecute(request);
 
                 if (CollectionUtils.isEmpty(resp)) {
