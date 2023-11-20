@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
@@ -180,6 +181,15 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         creativeContentMapper.deleteByPlanUid(planUid);
     }
 
+    @Override
+    public List<XhsCreativeContentResp> bound(List<String> businessUids) {
+        List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids);
+        if (xhsCreativeContents.size() < businessUids.size()) {
+            throw exception(new ErrorCode(500,"存在已绑定的创作内容"));
+        }
+        creativeContentMapper.claim(businessUids);
+        return XhsCreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);
+    }
 
     private XhsCreativeContentDTO byBusinessUid(String businessUid) {
         XhsCreativeContentDTO detail = creativeContentMapper.detail(businessUid);

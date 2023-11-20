@@ -69,4 +69,10 @@ public interface XhsCreativeContentService {
      * @param planUid 计划uid
      */
     void deleteByPlanUid(String planUid);
+
+    /**
+     * 绑定任务
+     */
+    List<XhsCreativeContentResp> bound(List<String> businessUids);
+
 }

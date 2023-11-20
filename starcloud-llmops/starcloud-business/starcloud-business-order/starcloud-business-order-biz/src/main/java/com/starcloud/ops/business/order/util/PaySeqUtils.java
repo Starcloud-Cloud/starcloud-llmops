@@ -50,5 +50,15 @@ public class PaySeqUtils {
                 DateUtil.format(LocalDateTime.now(), DatePattern.PURE_DATETIME_MS_PATTERN),
                 (int) MER_ORDER_NO_SEQ.getAndIncrement() % 10000);
     }
+    public static String genMerchantSignOrderNo() {
+        return String.format("%s%s%04d", "SO",
+                DateUtil.format(LocalDateTime.now(), DatePattern.PURE_DATETIME_MS_PATTERN),
+                (int) MER_ORDER_NO_SEQ.getAndIncrement() % 20000);
+    }
+    public static String genMerchantSignPayOrderNo() {
+        return String.format("%s%s%04d", "IO",
+                DateUtil.format(LocalDateTime.now(), DatePattern.PURE_DATETIME_MS_PATTERN),
+                (int) MER_ORDER_NO_SEQ.getAndIncrement() % 20000);
+    }
 
 }

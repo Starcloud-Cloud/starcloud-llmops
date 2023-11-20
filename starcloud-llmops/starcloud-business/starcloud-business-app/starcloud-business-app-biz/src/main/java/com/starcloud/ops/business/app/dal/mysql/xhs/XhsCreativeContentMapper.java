@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.dal.mysql.xhs;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
@@ -64,6 +65,21 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
         delete(wrapper);
     }
 
+    default List<XhsCreativeContentDO> selectByBusinessUids(List<String> businessUids, Boolean claim) {
+        LambdaQueryWrapper<XhsCreativeContentDO> wrapper = Wrappers.lambdaQuery(XhsCreativeContentDO.class)
+                .eq(XhsCreativeContentDO::getClaim, claim)
+                .in(XhsCreativeContentDO::getBusinessUid, businessUids);
+        return selectList(wrapper);
+    }
+
+    default int claim(List<String> businessUids) {
+        LambdaUpdateWrapper<XhsCreativeContentDO> updateWrapper = Wrappers.lambdaUpdate(XhsCreativeContentDO.class)
+                .in(XhsCreativeContentDO::getBusinessUid, businessUids)
+                .set(XhsCreativeContentDO::getClaim, true);
+        return this.update(null, updateWrapper);
+    }
+
+
     Long selectCount(@Param("req") XhsCreativeContentPageReq req);
 
     List<XhsCreativeContentDTO> pageSelect(@Param("req") XhsCreativeContentPageReq req,
@@ -73,4 +89,8 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
     XhsCreativeContentDTO detail(@Param("businessUid") String businessUid);
 
     List<XhsCreativeContentDO> jobQuery(@Param("req") XhsCreativeQueryReq queryReq);
+
+    Long countByBusinessUid(@Param("businessUids")List<String> businessUids);
+
+    List<XhsCreativeContentDTO> selectByBusinessUid(@Param("businessUids")List<String> businessUids);
 }

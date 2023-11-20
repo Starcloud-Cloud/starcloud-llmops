@@ -129,7 +129,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
 
 
         // 输入转换
-        UserBenefitsStrategyDO userBenefitsStrategy = UserBenefitsStrategyConvert.convert(createReqVO);
+        UserBenefitsStrategyDO userBenefitsStrategy = UserBenefitsStrategyConvert.INSTANCE.convert(createReqVO);
         // 设置 code 前缀
         userBenefitsStrategy.setCode(userBenefitsStrategy.getCode());
         // 数据插入
@@ -187,7 +187,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         // 校验数据是否可以修改
         validateCanModify(updateReqVO.getId());
         // 更新
-        UserBenefitsStrategyDO updateObj = UserBenefitsStrategyConvert.convert(updateReqVO);
+        UserBenefitsStrategyDO updateObj = UserBenefitsStrategyConvert.INSTANCE.convert(updateReqVO);
         userBenefitsStrategyMapper.updateById(updateObj);
         log.info("[deleteUserBenefitsStrategy][修改用户权益策略成功。：策略ID({})|用户ID({})", updateReqVO.getId(), getLoginUserId());
     }

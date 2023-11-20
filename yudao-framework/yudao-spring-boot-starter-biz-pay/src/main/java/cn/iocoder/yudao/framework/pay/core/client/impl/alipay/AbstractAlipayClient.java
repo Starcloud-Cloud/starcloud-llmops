@@ -5,6 +5,7 @@ import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayRefundNotifyRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PaySignNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundUnifiedRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.impl.AbstractPayClient;
@@ -105,11 +106,28 @@ public abstract class AbstractAlipayClient extends AbstractPayClient<AlipayPayCl
                     .refundSuccessTime(parseTime(params.get("gmt_refund")))
                     .build();
         }
+        // 2.1 退款的情况
+        if (bodyObj.containsKey("sign_scene")) {
+            return PaySignNotifyRespDTO.builder()
+                    .agreementNo(bodyObj.get("agreement_no"))
+                    .externalAgreementNo(bodyObj.get("external_agreement_no"))
+                    .notifyType(bodyObj.get("notify_type"))
+                    .signScene(bodyObj.get("sign_scene"))
+                    .personalProductCode(bodyObj.get("personal_product_code"))
+                    .alipayLogonId(bodyObj.get("alipay_logon_id"))
+                    .alipayUserId(bodyObj.get("alipay_user_id"))
+                    .signTime(parseTime(params.get("sign_time")))
+                    .status(bodyObj.get("status"))
+                    .build();
+        }
+
         // 2.2 支付的情况
         return PayOrderNotifyRespDTO.builder().orderExtensionNo(bodyObj.get("out_trade_no"))
                 .channelOrderNo(bodyObj.get("trade_no")).channelUserId(bodyObj.get("seller_id"))
                 .tradeStatus(bodyObj.get("trade_status")).successTime(parseTime(params.get("notify_time")))
                 .build();
+
+
     }
 
 }
