@@ -44,7 +44,7 @@ public class XhsAppExecuteResponse implements java.io.Serializable {
      * 应用生成参数
      */
     @Schema(description = "返回数据")
-    private String text;
+    private String content;
 
     /**
      * 错误码
@@ -63,15 +63,15 @@ public class XhsAppExecuteResponse implements java.io.Serializable {
      *
      * @param uid   appUid
      * @param title 标题
-     * @param text  内容
+     * @param content  内容
      * @return 结果
      */
-    public static XhsAppExecuteResponse success(String uid, String title, String text) {
+    public static XhsAppExecuteResponse success(String uid, String title, String content) {
         XhsAppExecuteResponse response = new XhsAppExecuteResponse();
         response.setSuccess(Boolean.TRUE);
         response.setUid(uid);
         response.setTitle(title);
-        response.setText(text);
+        response.setContent(content);
         return response;
     }
 
@@ -80,13 +80,13 @@ public class XhsAppExecuteResponse implements java.io.Serializable {
      *
      * @param uid   appUid
      * @param title 标题
-     * @param text  内容
+     * @param content  内容
      * @return 结果
      */
-    public static List<XhsAppExecuteResponse> success(String uid, String title, String text, Integer n) {
+    public static List<XhsAppExecuteResponse> success(String uid, String title, String content, Integer n) {
         List<XhsAppExecuteResponse> responses = new java.util.ArrayList<>();
         for (int i = 0; i < n; i++) {
-            responses.add(success(uid, title, text));
+            responses.add(success(uid, title, content));
         }
         return responses;
     }

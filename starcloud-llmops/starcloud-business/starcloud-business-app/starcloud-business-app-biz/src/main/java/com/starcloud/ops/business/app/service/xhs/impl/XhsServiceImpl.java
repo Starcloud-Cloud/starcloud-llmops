@@ -218,7 +218,7 @@ public class XhsServiceImpl implements XhsService {
                                     i + 1, request.getUid(), n, generateContent.getTitle(), generateContent.getContent());
                             appExecuteResponse.setSuccess(Boolean.TRUE);
                             appExecuteResponse.setTitle(generateContent.getTitle());
-                            appExecuteResponse.setText(generateContent.getContent());
+                            appExecuteResponse.setContent(generateContent.getContent());
                             list.add(appExecuteResponse);
                         }
                     }
@@ -288,7 +288,7 @@ public class XhsServiceImpl implements XhsService {
                 response.setUid(item.getUid());
                 response.setSuccess(item.getSuccess());
                 response.setTitle(item.getTitle());
-                response.setText(item.getText());
+                response.setContent(item.getContent());
                 response.setErrorCode(item.getErrorCode());
                 response.setErrorMsg(item.getErrorMsg());
                 response.setCreativeContentUid(contentUid);
