@@ -48,11 +48,6 @@ public class SignPayJob {
         if (CollUtil.isNotEmpty(ableToPayRecords)) {
             ableToPayRecords.stream().forEach(paySignDO -> {
 
-                // 查询订阅状态
-
-                // 订阅成功 主动扣款
-                // 订阅失败 更新订阅记录 不执行扣款
-
                 // 发起扣款
                 signService.processSigningPayment(paySignDO);
 

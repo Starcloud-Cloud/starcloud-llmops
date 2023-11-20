@@ -15,10 +15,16 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PaySignNotifyRespDT
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductSignEnum;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -46,7 +52,9 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -55,7 +63,6 @@ import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getCli
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
-import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_ORDER_NOT_FOUND;
 import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_SIGN_NOT_FOUND;
 
 @Service
@@ -85,6 +92,15 @@ public class PaySignServiceImpl implements PaySignService {
 
     @Resource
     private UserBenefitsService userBenefitsService;
+
+    @Resource
+    private AdminUserService userService;
+
+    @Resource
+    private SmsSendApi smsSendApi;
+
+    @Resource
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
 
     /**
      * 获取订阅信息
@@ -148,7 +164,7 @@ public class PaySignServiceImpl implements PaySignService {
                 .appId(app.getId())
                 .merchantSignId(reqDTO.getMerchantSignId())
                 .productCode(reqDTO.getProductCode())
-                .productName(productEnum.getName())
+                .productName(productEnum.getProductSignEnum().getName())
                 .amount(productSignEnum.getSingleAmount())
                 .nextPay(DateUtil.date().toLocalDateTime())
                 .status(PaySignStatusEnum.WAITING.getStatus())
@@ -176,7 +192,6 @@ public class PaySignServiceImpl implements PaySignService {
         JSONObject bizContent = new JSONObject();
         bizContent.put("product_code", "GENERAL_WITHHOLDING");
         bizContent.put("personal_product_code", "CYCLE_PAY_AUTH_P");
-        // bizContent.put("sign_scene", "INDUSTRY|SOCIALIZATION");
         bizContent.put("sign_scene", "INDUSTRY|MOFAAI");
         // 商家签约号
         bizContent.put("external_agreement_no", reqDTO.getMerchantSignId());
@@ -482,6 +497,8 @@ public class PaySignServiceImpl implements PaySignService {
             orderService.updatePayOrderExtensionSuccess(resultReqVO.getOrderExtensionNo(), JSONUtil.toJsonStr(resultReqVO));
             // 2. 更新 PayOrderDO 支付成功
             PayOrderDO order = orderService.updatePayOrderSuccess(resultReqVO.getChannelId(), resultReqVO.getChannelCode(), resultReqVO.getOrderId(), resultReqVO.getOrderExtensionId());
+            // 发送钉钉通知消息
+            sendMessage(order.getCreator(), order.getProductCode(), order.getAmount());
             // 根据商品 code 获取商品预设用户等级
             String roleCode = ProductEnum.getRoleCodeByCode(order.getProductCode());
             // 根据商品 code 获取权益类型
@@ -557,6 +574,30 @@ public class PaySignServiceImpl implements PaySignService {
             throw exception(ErrorCodeConstants.PAY_SIGN_STATUS_IS_NOT_SUCCESS);
         }
         return signDO;
+    }
+
+    @TenantIgnore
+    private void sendMessage(String userId, String productType, Integer amount) {
+
+        try {
+            AdminUserDO user = userService.getUser(Long.valueOf(userId));
+            ProductEnum productEnum = ProductEnum.getByCode(productType);
+            Map<String, Object> templateParams = new HashMap<>();
+            String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
+            templateParams.put("environmentName", environmentName);
+            templateParams.put("userName", user.getNickname());
+            templateParams.put("productName", productEnum.getName());
+            templateParams.put("amount", amount / 100);
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            // .setTemplateCode("SMS_2023_PAY")
+                            .setTemplateCode(dingTalkNoticeProperties.getSmsCode())
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("系统支付通知信息发送失败", e);
+        }
+
     }
 
 }
