@@ -209,7 +209,7 @@ public class XhsServiceImpl implements XhsService {
                         appExecuteResponse.setErrorMsg("执行结果内容为空！请稍候重试或者联系管理员！");
                         list.add(appExecuteResponse);
                     } else {
-                        XhsGenerateContentDTO generateContent = JSONUtil.toBean(answer.trim(), XhsGenerateContentDTO.class);
+                        XhsGenerateContentDTO generateContent = JSONUtil.toBean(JSONUtil.parseObj(content), XhsGenerateContentDTO.class);
                         if (Objects.isNull(generateContent) || StringUtils.isBlank(generateContent.getTitle()) || StringUtils.isBlank(generateContent.getContent())) {
                             log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原数据: {}",
                                     i + 1, request.getUid(), n, "350400212", "执行结果内容格式不正确！请稍候重试或者联系管理员！", content);
