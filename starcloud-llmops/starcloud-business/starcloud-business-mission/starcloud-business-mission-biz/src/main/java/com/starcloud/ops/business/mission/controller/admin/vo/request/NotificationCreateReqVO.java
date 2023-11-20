@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.starcloud.ops.business.dto.PostingUnitPriceDTO;
 import com.starcloud.ops.business.enums.MisssionTypeEnum;
 import com.starcloud.ops.business.enums.NotificationPlatformEnum;
@@ -7,12 +8,15 @@ import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import static cn.iocoder.yudao.framework.common.util.date.DateUtils.*;
 
 @Data
 @Schema(description = "创建任务")
@@ -43,10 +47,14 @@ public class NotificationCreateReqVO {
 
     @Schema(description = "任务开始时间")
     @NotNull(message = "任务开始时间不能为空")
+    @JsonFormat(pattern = FORMAT_YEAR_MONTH_DAY)
+    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY)
     private LocalDateTime startTime;
 
     @Schema(description = "任务结束时间")
     @NotNull(message = "任务结束时间不能为空")
+    @JsonFormat(pattern = FORMAT_YEAR_MONTH_DAY)
+    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY)
     private LocalDateTime endTime;
 
     @Schema(description = "通告总预算")
