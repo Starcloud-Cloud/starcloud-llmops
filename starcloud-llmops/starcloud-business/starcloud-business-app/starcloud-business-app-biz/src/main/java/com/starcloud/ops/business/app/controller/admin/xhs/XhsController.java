@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
@@ -17,7 +16,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,12 +48,6 @@ public class XhsController {
     @Operation(summary = "获取图片模板列表")
     public CommonResult<List<XhsImageTemplateResponse>> imageTemplates() {
         return CommonResult.success(xhsService.imageTemplates());
-    }
-
-    @GetMapping("/app/{uid}")
-    @Operation(summary = "获取应用信息")
-    public CommonResult<XhsAppResponse> getApp(@PathVariable("uid") String uid) {
-        return CommonResult.success(xhsService.getApp(uid));
     }
 
     @PostMapping("/app/execute")

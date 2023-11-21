@@ -61,6 +61,14 @@ public class CreativeSchemeController {
         return CommonResult.success(creativeSchemeService.list(query));
     }
 
+    @GetMapping("/listOption")
+    @DataPermission(enable = false)
+    @Operation(summary = "查询创作方案列表", description = "查询创作方案列表")
+    @ApiOperationSupport(order = 40, author = "nacoyer")
+    public CommonResult<List<CreativeSchemeRespVO>> listOption(CreativeSchemeListReqVO query) {
+        return CommonResult.success(creativeSchemeService.listOption(query));
+    }
+
     @GetMapping("/page")
     @Operation(summary = "分页查询创作方案列表", description = "分页查询创作方案列表")
     @ApiOperationSupport(order = 50, author = "nacoyer")

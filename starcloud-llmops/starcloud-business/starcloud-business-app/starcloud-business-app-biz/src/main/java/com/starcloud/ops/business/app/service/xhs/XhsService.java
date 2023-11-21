@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs;
 
-import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
@@ -27,12 +27,20 @@ public interface XhsService {
     List<XhsImageTemplateResponse> imageTemplates();
 
     /**
-     * 获取应用信息
+     * 根据类型获取需要执行的应用信息
      *
-     * @param uid 应用UID
+     * @param type 计划类型
      * @return 应用信息
      */
-    XhsAppResponse getApp(String uid);
+    AppMarketRespVO getExecuteApp(String type);
+
+    /**
+     * 根据类型获取应用列表
+     *
+     * @param type 类型
+     * @return 文案模板列表
+     */
+    List<AppMarketRespVO> appMarketplaceList(String type);
 
     /**
      * 执行应用
