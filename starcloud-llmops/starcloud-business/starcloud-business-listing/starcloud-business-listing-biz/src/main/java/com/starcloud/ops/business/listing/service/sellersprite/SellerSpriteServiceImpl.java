@@ -192,10 +192,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                 log.error("卖家精灵登录失效");
                 this.sendMessage();
+                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
             }
             return null;
         } catch (Exception e) {
-            return null;
+            throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
 
 
@@ -219,10 +220,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                 log.error("卖家精灵登录失效");
                 this.sendMessage();
+                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
             }
             return null;
         } catch (Exception e) {
-            return null;
+            throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
     }
 
