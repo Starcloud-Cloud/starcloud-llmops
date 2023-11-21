@@ -58,6 +58,12 @@ public class XhsAppExecuteRequest implements java.io.Serializable {
     private Long userId;
 
     /**
+     * 步骤ID
+     */
+    @Schema(description = "步骤ID")
+    private String stepId;
+
+    /**
      * 生成数量
      */
     @Schema(description = "生成数量")

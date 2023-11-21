@@ -9,7 +9,13 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
@@ -23,13 +29,19 @@ import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespV
 import com.starcloud.ops.business.app.api.scheme.vo.response.SchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeDemandReqVO;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.scheme.CreativeSchemeMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeTypeEnum;
+import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
@@ -49,6 +61,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_CONFIG_FAILURE;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_STEP_FAILURE;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_VARIABLE_FAILURE;
+
 /**
  * 创作方案服务
  *
@@ -65,6 +81,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     @Resource
     private XhsService xhsService;
+
+    @Resource
+    private AppService appService;
 
     @Resource
     private AppDictionaryService appDictionaryService;
@@ -248,8 +267,74 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     @Override
     public void createDemand(CreativeSchemeDemandReqVO request) {
+        AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
+        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
+        if (Objects.nonNull(request.getSseEmitter())) {
+            executeRequest.setSseEmitter(request.getSseEmitter());
+        }
+        executeRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        executeRequest.setMode(AppModelEnum.COMPLETION.name());
+        executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        executeRequest.setAppUid(executeApp.getUid());
+        executeRequest.setN(1);
+        executeRequest.setAppReqVO(transform(executeApp, request));
 
+        appService.asyncExecute(executeRequest);
     }
+
+    private AppReqVO transform(AppMarketRespVO executeApp, CreativeSchemeDemandReqVO request) {
+
+        WorkflowConfigRespVO config = executeApp.getWorkflowConfig();
+        AppValidate.notNull(config, EXECUTE_LISTING_CONFIG_FAILURE);
+
+        List<WorkflowStepWrapperRespVO> steps = config.getSteps();
+        AppValidate.notEmpty(steps, EXECUTE_LISTING_STEP_FAILURE);
+
+        // 直接取第一个步骤，执行第一步骤
+        WorkflowStepWrapperRespVO stepWrapper = steps.get(0);
+        AppValidate.notNull(stepWrapper, EXECUTE_LISTING_STEP_FAILURE);
+
+        VariableRespVO variable = stepWrapper.getVariable();
+        AppValidate.notNull(variable, EXECUTE_LISTING_VARIABLE_FAILURE);
+
+        List<VariableItemRespVO> variables = variable.getVariables();
+        AppValidate.notEmpty(variables, EXECUTE_LISTING_VARIABLE_FAILURE);
+
+        List<VariableItemRespVO> fillVariables = com.google.common.collect.Lists.newArrayList();
+        // 填充变量
+        for (VariableItemRespVO variableItem : variables) {
+            if ("NAME".equals(variableItem.getField()) && StringUtils.isNotBlank(request.getName())) {
+                variableItem.setValue(request.getName());
+                variableItem.setDefaultValue(request.getName());
+            } else if ("TYPE".equals(variableItem.getField()) && StringUtils.isNotBlank(request.getType())) {
+                variableItem.setValue(request.getType());
+                variableItem.setDefaultValue(request.getType());
+            } else if ("DESCRIPTION".equals(variableItem.getField()) && StringUtils.isNotBlank(request.getDescription())) {
+                variableItem.setValue(request.getDescription());
+                variableItem.setDefaultValue(request.getDescription());
+            } else if ("CATEGORY".equals(variableItem.getField()) && StringUtils.isNotBlank(request.getCategory())) {
+                variableItem.setValue(request.getCategory());
+                variableItem.setDefaultValue(request.getCategory());
+            } else if ("TAGS".equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getTags())) {
+                String tags = String.join(",", request.getTags());
+                variableItem.setValue(tags);
+                variableItem.setDefaultValue(tags);
+            } else if ("REFERS".equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getRefers())) {
+                String refers = JSONUtil.toJsonStr(request.getRefers());
+                variableItem.setValue(refers);
+                variableItem.setDefaultValue(refers);
+            }
+            fillVariables.add(variableItem);
+        }
+
+        variable.setVariables(fillVariables);
+        stepWrapper.setVariable(variable);
+        steps.set(0, stepWrapper);
+        config.setSteps(steps);
+        executeApp.setWorkflowConfig(config);
+        return AppMarketConvert.INSTANCE.convert(executeApp);
+    }
+
 
     /**
      * 处理请求并进行验证

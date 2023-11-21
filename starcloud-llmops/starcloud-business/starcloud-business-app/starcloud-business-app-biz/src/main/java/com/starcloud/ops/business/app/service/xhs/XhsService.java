@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs;
 
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
@@ -41,6 +42,14 @@ public interface XhsService {
      * @return 文案模板列表
      */
     List<AppMarketRespVO> appMarketplaceList(String type);
+
+    /**
+     * 通用执行应用
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    String execute(AppExecuteReqVO request);
 
     /**
      * 执行应用

@@ -134,6 +134,25 @@ public class XhsServiceImpl implements XhsService {
     }
 
     /**
+     * 通用执行应用
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    @Override
+    public String execute(AppExecuteReqVO request) {
+        try {
+            AppExecuteRespVO executeResponse = appService.execute(request);
+            ActionResponse actionResponse = (ActionResponse) executeResponse.getResult();
+            return actionResponse.getAnswer();
+        } catch (ServiceException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(350500100, exception.getMessage()));
+        }
+    }
+
+    /**
      * 执行应用
      *
      * @param request 请求
@@ -143,49 +162,21 @@ public class XhsServiceImpl implements XhsService {
     public List<XhsAppExecuteResponse> appExecute(XhsAppExecuteRequest request) {
         Integer n = Objects.nonNull(request.getN()) && request.getN() > 0 ? request.getN() : 1;
         request.setN(n);
-        // 参数校验
-        if (StringUtils.isBlank(request.getUid())) {
-            log.error("小红书执行应用失败。应用UID不能为空, 生成条数: {}", n);
-            return XhsAppExecuteResponse.failure("350400101", "应用UID不能为空, 生成条数: " + n, n);
-        }
-        // 执行应用
         try {
+            // 参数校验
+            if (StringUtils.isBlank(request.getUid())) {
+                return XhsAppExecuteResponse.failure("350400101", "应用UID不能为空, 生成条数: " + n, n);
+            }
             log.info("小红书执行应用开始。参数为\n：{}", JSONUtil.parse(request).toStringPretty());
             // 获取应用
             AppMarketRespVO appMarket = appMarketService.get(request.getUid());
-            AppExecuteRespVO executeResponse = appService.execute(buildExecuteRequest(appMarket, request));
-            if (!executeResponse.getSuccess()) {
-                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                        request.getUid(), n, executeResponse.getResultCode(), executeResponse.getResultDesc());
-                return XhsAppExecuteResponse.failure(request.getUid(), "350400101", executeResponse.getResultDesc(), n);
-            }
-            ActionResponse actionResult = (ActionResponse) executeResponse.getResult();
-            if (Objects.isNull(actionResult)) {
-                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                        request.getUid(), n, "350400205", "执行结果不存在！请稍候重试或者联系管理员！");
-                return XhsAppExecuteResponse.failure(request.getUid(), "350400205", "执行结果不存在！请稍候重试或者联系管理员！", n);
-            }
-            if (!actionResult.getSuccess()) {
-                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                        request.getUid(), n, actionResult.getErrorCode(), actionResult.getErrorMsg());
-                return XhsAppExecuteResponse.failure(request.getUid(), actionResult.getErrorCode(), actionResult.getErrorMsg(), n);
-            }
-
-            String answer = actionResult.getAnswer();
-            if (StringUtils.isBlank(answer)) {
-                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                        request.getUid(), n, "350400206", "执行结果内容不存在！请稍候重试或者联系管理员！");
-                return XhsAppExecuteResponse.failure(request.getUid(), "350400206", "执行结果内容不存在！请稍候重试或者联系管理员！", n);
-            }
-
+            // 执行应用
+            String answer = execute(buildExecuteRequest(appMarket, request));
             if (n == 1) {
                 XhsGenerateContentDTO generateContent = JSONUtil.toBean(answer.trim(), XhsGenerateContentDTO.class);
-
                 if (Objects.isNull(generateContent) || StringUtils.isBlank(generateContent.getTitle()) || StringUtils.isBlank(generateContent.getContent())) {
-                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}, 原始数据：{}",
-                            request.getUid(), n, "350400208", "执行结果内容格式不正确！请稍候重试或者联系管理员！", answer);
-
-                    return XhsAppExecuteResponse.failure(request.getUid(), "350400208", "执行结果内容格式不正确！请稍候重试或者联系管理员！", 1);
+                    log.error("生成格式不正确：原始数据：{}", answer);
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR);
                 } else {
                     String title = generateContent.getTitle();
                     String text = generateContent.getContent();
@@ -197,14 +188,12 @@ public class XhsServiceImpl implements XhsService {
                 };
                 List<ChatCompletionChoice> choices = JSONUtil.toBean(answer.trim(), typeReference, true);
                 if (CollectionUtil.isEmpty(choices)) {
-                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                            request.getUid(), n, "350400209", "执行结果内容为空！请稍候重试或者联系管理员！");
-                    return XhsAppExecuteResponse.failure(request.getUid(), "350400209", "执行结果内容为空！请稍候重试或者联系管理员！", n);
+                    log.error("生成结果为空：原始数据：{}", answer);
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_NOT_EXIST);
                 }
                 if (choices.size() != n) {
-                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 实际市场条数：{},  错误码: {}, 错误信息: {}",
-                            request.getUid(), n, choices.size(), "350400210", "执行结果内容条数不正确！请稍候重试或者联系管理员！");
-                    return XhsAppExecuteResponse.failure(request.getUid(), "350400210", "执行结果内容条数不正确！请稍候重试或者联系管理员！", n);
+                    log.error("生成格式不正确：原始数据：{}", answer);
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR);
                 }
                 List<XhsAppExecuteResponse> list = new ArrayList<>();
                 for (int i = 0; i < choices.size(); i++) {
@@ -214,21 +203,21 @@ public class XhsServiceImpl implements XhsService {
 
                     String content = Optional.ofNullable(choice).map(ChatCompletionChoice::getMessage).map(ChatMessage::getContent).orElse("");
                     if (StringUtils.isBlank(content)) {
-                        log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原始数据: {}",
-                                i + 1, request.getUid(), n, "350400211", "执行结果内容为空！", content);
-
+                        log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 原始数据: {}", i + 1, request.getUid(), n, content);
                         appExecuteResponse.setSuccess(Boolean.FALSE);
-                        appExecuteResponse.setErrorCode("350400211");
-                        appExecuteResponse.setErrorMsg("执行结果内容为空！请稍候重试或者联系管理员！");
+                        appExecuteResponse.setErrorCode(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_NOT_EXIST.getCode().toString());
+                        appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_NOT_EXIST.getMsg());
                         list.add(appExecuteResponse);
                     } else {
                         XhsGenerateContentDTO generateContent = JSONUtil.toBean(JSONUtil.parseObj(content), XhsGenerateContentDTO.class);
                         if (Objects.isNull(generateContent) || StringUtils.isBlank(generateContent.getTitle()) || StringUtils.isBlank(generateContent.getContent())) {
-                            log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原数据: {}",
-                                    i + 1, request.getUid(), n, "350400212", "执行结果内容格式不正确！请稍候重试或者联系管理员！", content);
+                            log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 原数据: {}", i + 1, request.getUid(), n, content);
+                            appExecuteResponse.setSuccess(Boolean.FALSE);
+                            appExecuteResponse.setErrorCode(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getCode().toString());
+                            appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getMsg());
+                            list.add(appExecuteResponse);
                         } else {
-                            log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 标题: {}, 内容: {}",
-                                    i + 1, request.getUid(), n, generateContent.getTitle(), generateContent.getContent());
+                            log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 标题: {}, 内容: {}", i + 1, request.getUid(), n, generateContent.getTitle(), generateContent.getContent());
                             appExecuteResponse.setSuccess(Boolean.TRUE);
                             appExecuteResponse.setTitle(generateContent.getTitle());
                             appExecuteResponse.setContent(generateContent.getContent());
@@ -236,50 +225,15 @@ public class XhsServiceImpl implements XhsService {
                         }
                     }
                 }
-                log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 结果: {}", request.getUid(), n, list);
+                log.info("小红书执行应用结束。应用UID: {}, 生成条数: {}, 结果: {}", request.getUid(), n, list);
                 return list;
             }
         } catch (ServiceException exception) {
-            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                    request.getUid(), n, exception.getCode().toString(), exception.getMessage());
+            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}", request.getUid(), n, exception.getCode().toString(), exception.getMessage());
             return XhsAppExecuteResponse.failure(request.getUid(), exception.getCode().toString(), exception.getMessage(), n);
         } catch (Exception exception) {
-            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                    request.getUid(), n, "350400200", exception.getMessage());
-            return XhsAppExecuteResponse.failure(request.getUid(), "350400200", exception.getMessage(), n);
-        }
-    }
-
-    /**
-     * 同步执行执行应用通用封装
-     *
-     * @param request 请求
-     * @return 响应
-     */
-    private String execute(AppExecuteReqVO request) {
-        try {
-            AppExecuteRespVO execute = appService.execute(request);
-            if (!execute.getSuccess()) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400101, execute.getResultDesc()));
-            }
-            ActionResponse actionResult = (ActionResponse) execute.getResult();
-            if (Objects.isNull(actionResult)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "执行结果不存在！请稍候重试或者联系管理员！"));
-            }
-            if (!actionResult.getSuccess()) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400206, actionResult.getErrorMsg()));
-            }
-            String answer = actionResult.getAnswer();
-            if (StringUtils.isBlank(answer)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400207, "执行结果内容不存在！请稍候重试或者联系管理员！"));
-            }
-            return answer.trim();
-        } catch (ServiceException exception) {
-            log.error("小红书执行应用失败。应用UID: {}, 错误码: {}, 错误信息: {}", request.getAppUid(), exception.getCode(), exception.getMessage());
-            throw exception;
-        } catch (Exception exception) {
-            log.error("小红书执行应用失败。应用UID: {}, 错误码: {}, 错误信息: {}", request.getAppUid(), 350400200, exception.getMessage());
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, exception.getMessage()));
+            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}", request.getUid(), n, "350400100", exception.getMessage());
+            return XhsAppExecuteResponse.failure(request.getUid(), "350400100", exception.getMessage(), n);
         }
     }
 
@@ -466,6 +420,7 @@ public class XhsServiceImpl implements XhsService {
         if (Objects.nonNull(request.getSseEmitter())) {
             executeRequest.setSseEmitter(request.getSseEmitter());
         }
+        executeRequest.setStepId(request.getStepId());
         executeRequest.setUserId(request.getUserId());
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());

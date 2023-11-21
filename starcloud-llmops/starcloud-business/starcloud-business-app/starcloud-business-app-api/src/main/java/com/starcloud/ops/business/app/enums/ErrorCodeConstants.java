@@ -302,8 +302,12 @@ public interface ErrorCodeConstants {
     /**
      * 执行结果不存在
      */
-    ErrorCode EXECUTE_APP_GET_COST_FAILURE = new ErrorCode(31010510, "应用执行获取扣除魔力值数值异常！");
+    ErrorCode EXECUTE_APP_ANSWER_NOT_EXIST = new ErrorCode(31010511, "生成内容不存在！请稍后重试或者联系管理员（{}）！");
 
+    /**
+     * 执行结果不存在
+     */
+    ErrorCode EXECUTE_APP_GET_COST_FAILURE = new ErrorCode(31010512, "应用执行获取扣除魔力值数值异常！");
 
     // ========== 应用市场执行错误码 310 200 xxx ==========
 
@@ -567,6 +571,17 @@ public interface ErrorCodeConstants {
      * 创作方案图片模板风格的模板列表不能为空
      */
     ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY = new ErrorCode(350200116, "创作方案图片模板风格的模板列表不能为空！风格名称: {}）!");
+
+    /**
+     * 应用执行结果不存在
+     */
+    ErrorCode XHS_APP_EXECUTE_RESULT_NOT_EXIST = new ErrorCode(350500110, "应用执行结果内容不存在，请稍后重试或者联系管理员（{}）！");
+
+    /**
+     * 应用执行结果不存在
+     */
+    ErrorCode XHS_APP_EXECUTE_RESULT_FORMAT_ERROR = new ErrorCode(350500111, "执行结果格式不正确！，请稍后重试或者联系管理员（{}）！");
+
 
     // ========== 图片上传错误码 370 000 xxx ==========
 
