@@ -157,7 +157,7 @@ public class DraftServiceImpl implements DraftService {
                 executor.execute(() -> {
                     try {
                         long start = System.currentTimeMillis();
-                        keywordBindService.analysisKeyword(distinctKeys, draftDO.getEndpoint());
+                        keywordBindService.analysisKeyword(reqVO.getKeys(), draftDO.getEndpoint());
                         long end = System.currentTimeMillis();
                         draftDO.setAnalysisTime(end - start);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
@@ -253,7 +253,7 @@ public class DraftServiceImpl implements DraftService {
         executor.execute(() -> {
             try {
                 long start = System.currentTimeMillis();
-                keywordBindService.analysisKeyword(addKey, draftDO.getEndpoint());
+                keywordBindService.analysisKeyword(reqVO.getAddKey(), draftDO.getEndpoint());
                 long end = System.currentTimeMillis();
                 draftDO.setAnalysisTime(end - start);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
