@@ -21,6 +21,7 @@ import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
+import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeDemandReqVO;
 import com.starcloud.ops.business.app.convert.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.scheme.CreativeSchemeMapper;
@@ -102,6 +103,37 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         }
         query.setLoginUserId(String.valueOf(loginUserId));
         List<CreativeSchemeDO> list = creativeSchemeMapper.list(query);
+        return CreativeSchemeConvert.INSTANCE.convertList(list);
+    }
+
+    /**
+     * 查询并且校验创作方案是否存在
+     *
+     * @param uidList 创作方案UID列表
+     * @return 创作方案列表
+     */
+    @Override
+    public List<CreativeSchemeRespVO> list(List<String> uidList) {
+        // 查询创作方案
+        CreativeSchemeListReqVO schemeQuery = new CreativeSchemeListReqVO();
+        schemeQuery.setUidList(uidList);
+        return list(schemeQuery);
+    }
+
+    /**
+     * 获取创作方案列表
+     *
+     * @param query 查询条件
+     * @return 创作方案列表
+     */
+    @Override
+    public List<CreativeSchemeRespVO> listOption(CreativeSchemeListReqVO query) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        if (Objects.isNull(loginUserId)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+        }
+        query.setLoginUserId(String.valueOf(loginUserId));
+        List<CreativeSchemeDO> list = creativeSchemeMapper.listOption(query);
         return CreativeSchemeConvert.INSTANCE.convertList(list);
     }
 
@@ -190,6 +222,16 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(uid);
         AppValidate.notNull(creativeScheme, ErrorCodeConstants.CREATIVE_SCHEME_NOT_EXIST);
         creativeSchemeMapper.deleteById(creativeScheme.getId());
+    }
+
+    /**
+     * 分析生成要求
+     *
+     * @param request 创作方案需求请求
+     */
+    @Override
+    public void createDemand(CreativeSchemeDemandReqVO request) {
+
     }
 
     /**

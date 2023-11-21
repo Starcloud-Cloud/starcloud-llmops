@@ -9,7 +9,6 @@ import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanStatusReqVO;
 import com.starcloud.ops.business.app.api.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.plan.CreativePlanService;
@@ -40,13 +39,6 @@ public class CreativePlanController {
 
     @Resource
     private CreativePlanService creativePlanService;
-
-    @GetMapping("/copyWritingTemplates/{type}")
-    @Operation(summary = "文案模板应用列表", description = "获取应用列表")
-    @ApiOperationSupport(order = 10, author = "nacoyer")
-    public CommonResult<List<XhsAppResponse>> copyWritingTemplates(@PathVariable String type) {
-        return CommonResult.success(creativePlanService.copyWritingTemplates(type));
-    }
 
     @GetMapping("/get/{uid}")
     @Operation(summary = "获取创作计划详情", description = "获取创作计划详情")

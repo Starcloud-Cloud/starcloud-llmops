@@ -3,19 +3,13 @@ package com.starcloud.ops.business.app.service.plan.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanConfigDTO;
@@ -31,7 +25,6 @@ import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTe
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeReferenceDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
@@ -50,10 +43,10 @@ import com.starcloud.ops.business.app.enums.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
-import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -92,51 +85,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     private XhsCreativeContentService xhsCreativeContentService;
 
     @Resource
-    private AppMarketService appMarketService;
+    private XhsService xhsService;
 
     @Resource
     private CreativeSchemeService creativeSchemeService;
 
     @Resource
     private RedissonClient redissonClient;
-
-    /**
-     * 文案模板列表
-     *
-     * @param type 类型
-     * @return 文案模板列表
-     */
-    @Override
-    public List<XhsAppResponse> copyWritingTemplates(String type) {
-        AppValidate.notBlank(type, ErrorCodeConstants.CREATIVE_PLAN_TYPE_REQUIRED);
-        CreativeTypeEnum typeEnum = CreativeTypeEnum.of(type);
-        if (typeEnum == null) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_TYPE_NOT_SUPPORTED, type);
-        }
-        AppMarketListQuery query = new AppMarketListQuery();
-        query.setIsSimple(Boolean.FALSE);
-        query.setTags(typeEnum.getTagType().getTags());
-        List<AppMarketRespVO> list = appMarketService.list(query);
-        if (CollectionUtil.isEmpty(list)) {
-            return Collections.emptyList();
-        }
-        return list.stream().map(item -> {
-            List<VariableItemRespVO> variableList = Optional.ofNullable(item).map(AppMarketRespVO::getWorkflowConfig)
-                    .map(WorkflowConfigRespVO::getSteps)
-                    .map(steps -> steps.get(0)).map(WorkflowStepWrapperRespVO::getVariable)
-                    .map(VariableRespVO::getVariables)
-                    .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(310900100, "系统步骤不能为空")));
-            variableList = variableList.stream().filter(VariableItemRespVO::getIsShow).collect(Collectors.toList());
-            XhsAppResponse response = new XhsAppResponse();
-            response.setUid(item.getUid());
-            response.setName(item.getName());
-            response.setCategory(item.getCategory());
-            response.setIcon(item.getIcon());
-            response.setDescription(item.getDescription());
-            response.setVariables(variableList);
-            return response;
-        }).collect(Collectors.toList());
-    }
 
     /**
      * 获取创作计划详情
@@ -369,7 +324,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 查询并且校验创作方案是否存在
         List<CreativeSchemeRespVO> schemeList = getSchemeList(planConfig.getSchemeUidList());
         // 查询并且校验应用是否存在
-        XhsAppResponse app = getXhsExecuteApp(CreativeTypeEnum.XHS.name());
+        AppMarketRespVO app = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         for (CreativeSchemeRespVO scheme : schemeList) {
@@ -403,20 +358,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         List<CreativeSchemeRespVO> schemeList = creativeSchemeService.list(schemeUidList);
         AppValidate.notEmpty(schemeList, ErrorCodeConstants.CREATIVE_PLAN_SCHEME_NOT_EXIST);
         return schemeList;
-    }
-
-    /**
-     * 查询并且校验应用是否存在
-     *
-     * @param type 计划类型
-     * @return 应用信息
-     */
-    private XhsAppResponse getXhsExecuteApp(String type) {
-        List<XhsAppResponse> apps = copyWritingTemplates(type);
-        AppValidate.notEmpty(apps, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
-        XhsAppResponse app = apps.get(0);
-        AppValidate.notNull(app, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
-        return app;
     }
 
     /**

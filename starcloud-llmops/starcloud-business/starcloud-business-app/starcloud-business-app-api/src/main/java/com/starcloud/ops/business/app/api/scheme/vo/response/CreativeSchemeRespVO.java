@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.scheme.vo.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeReferenceDTO;
@@ -24,6 +25,8 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "创作方案详情")
 public class CreativeSchemeRespVO implements java.io.Serializable {
 
     private static final long serialVersionUID = 1664393955030446928L;

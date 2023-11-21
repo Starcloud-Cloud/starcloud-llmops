@@ -14,8 +14,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -30,8 +30,10 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRes
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsGenerateContentDTO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -95,28 +97,40 @@ public class XhsServiceImpl implements XhsService {
     }
 
     /**
-     * 获取应用信息
+     * 根据类型获取需要执行的应用信息
      *
-     * @param uid 应用UID
+     * @param type 计划类型
      * @return 应用信息
      */
     @Override
-    public XhsAppResponse getApp(String uid) {
-        AppMarketRespVO appMarket = appMarketService.get(uid);
-        List<VariableItemRespVO> variableList = Optional.ofNullable(appMarket).map(AppMarketRespVO::getWorkflowConfig)
-                .map(WorkflowConfigRespVO::getSteps)
-                .map(steps -> steps.get(0)).map(WorkflowStepWrapperRespVO::getVariable)
-                .map(VariableRespVO::getVariables)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(310900100, "系统步骤不能为空")));
-        variableList = variableList.stream().filter(VariableItemRespVO::getIsShow).collect(Collectors.toList());
-        XhsAppResponse response = new XhsAppResponse();
-        response.setUid(appMarket.getUid());
-        response.setName(appMarket.getName());
-        response.setCategory(appMarket.getCategory());
-        response.setIcon(appMarket.getIcon());
-        response.setDescription(appMarket.getDescription());
-        response.setVariables(variableList);
-        return response;
+    public AppMarketRespVO getExecuteApp(String type) {
+        List<AppMarketRespVO> apps = appMarketplaceList(type);
+        AppValidate.notEmpty(apps, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
+        AppMarketRespVO app = apps.get(0);
+        AppValidate.notNull(app, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
+        return app;
+    }
+
+    /**
+     * 根据类型获取应用列表
+     *
+     * @param type 类型
+     * @return 文案模板列表
+     */
+    @Override
+    public List<AppMarketRespVO> appMarketplaceList(String type) {
+        AppValidate.notBlank(type, ErrorCodeConstants.CREATIVE_PLAN_TYPE_REQUIRED);
+        CreativeTypeEnum typeEnum = CreativeTypeEnum.of(type);
+        if (typeEnum == null) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_TYPE_NOT_SUPPORTED, type);
+        }
+        // 查询
+        AppMarketListQuery query = new AppMarketListQuery();
+        query.setIsSimple(Boolean.FALSE);
+        query.setTags(typeEnum.getTagType().getTags());
+        List<AppMarketRespVO> list = appMarketService.list(query);
+
+        return CollectionUtil.emptyIfNull(list);
     }
 
     /**
