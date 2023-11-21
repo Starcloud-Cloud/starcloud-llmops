@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModify
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.scheme.vo.response.SchemeListOptionRespVO;
 import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -63,9 +64,9 @@ public class CreativeSchemeController {
 
     @GetMapping("/listOption")
     @DataPermission(enable = false)
-    @Operation(summary = "查询创作方案列表", description = "查询创作方案列表")
+    @Operation(summary = "查询创作方案列表Option", description = "查询创作方案列表Option")
     @ApiOperationSupport(order = 40, author = "nacoyer")
-    public CommonResult<List<CreativeSchemeRespVO>> listOption(CreativeSchemeListReqVO query) {
+    public CommonResult<List<SchemeListOptionRespVO>> listOption(CreativeSchemeListReqVO query) {
         return CommonResult.success(creativeSchemeService.listOption(query));
     }
 

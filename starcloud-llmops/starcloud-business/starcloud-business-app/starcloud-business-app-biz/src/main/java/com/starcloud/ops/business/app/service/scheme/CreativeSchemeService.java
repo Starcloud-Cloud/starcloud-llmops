@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModify
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.scheme.vo.response.SchemeListOptionRespVO;
 import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeDemandReqVO;
 
 import java.util.List;
@@ -58,7 +59,7 @@ public interface CreativeSchemeService {
      * @param query 查询条件
      * @return 创作方案列表
      */
-    List<CreativeSchemeRespVO> listOption(CreativeSchemeListReqVO query);
+    List<SchemeListOptionRespVO> listOption(CreativeSchemeListReqVO query);
 
     /**
      * 分页查询创作方案
