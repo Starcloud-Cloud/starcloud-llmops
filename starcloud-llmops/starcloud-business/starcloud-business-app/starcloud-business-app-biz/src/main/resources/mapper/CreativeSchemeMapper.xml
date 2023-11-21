@@ -50,14 +50,7 @@
     <!-- 根据条件查询创作方案列表 -->
     <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO">
         SELECT
-        <include refid="SELECT_GENERAL_COLUMNS"/>
-        FROM llm_creative_scheme
-        <include refid="LIST_SELECT_QUERY_CONDITION"/>
-    </select>
-    
-    <!-- 根据条件查询创作方案列表 -->
-    <select id="listOption" resultType="com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO">
-        SELECT `id`, `uid`, `name`, `description`, `configuration`, `create_time`, `deleted`
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
         FROM llm_creative_scheme
         <include refid="LIST_SELECT_QUERY_CONDITION"/>
     </select>

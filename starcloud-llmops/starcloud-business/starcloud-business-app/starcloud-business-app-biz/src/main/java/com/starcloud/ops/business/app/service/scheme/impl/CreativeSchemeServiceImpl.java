@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
@@ -19,6 +20,7 @@ import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModify
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.scheme.vo.response.SchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeDemandReqVO;
@@ -127,14 +129,25 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @return 创作方案列表
      */
     @Override
-    public List<CreativeSchemeRespVO> listOption(CreativeSchemeListReqVO query) {
+    public List<SchemeListOptionRespVO> listOption(CreativeSchemeListReqVO query) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (Objects.isNull(loginUserId)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
         }
         query.setLoginUserId(String.valueOf(loginUserId));
-        List<CreativeSchemeDO> list = creativeSchemeMapper.listOption(query);
-        return CreativeSchemeConvert.INSTANCE.convertList(list);
+        List<CreativeSchemeRespVO> list = list(query);
+        return CollectionUtil.emptyIfNull(list).stream().map(item -> {
+            List<VariableItemDTO> variable = Optional.ofNullable(item.getConfiguration())
+                    .map(CreativeSchemeConfigDTO::getCopyWritingTemplate)
+                    .map(CreativeSchemeCopyWritingTemplateDTO::getVariables).orElse(Lists.newArrayList());
+            SchemeListOptionRespVO option = new SchemeListOptionRespVO();
+            option.setUid(item.getUid());
+            option.setName(item.getName());
+            option.setVariables(variable);
+            option.setDescription(item.getDescription());
+            option.setCreateTime(item.getCreateTime());
+            return option;
+        }).collect(Collectors.toList());
     }
 
     /**
