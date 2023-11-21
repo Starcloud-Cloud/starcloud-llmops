@@ -28,9 +28,16 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
+        <!--会员中心。默认注释，保证编译速度-->
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-module-member-biz</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <!--游客中心-->
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-module-tourist-biz</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
