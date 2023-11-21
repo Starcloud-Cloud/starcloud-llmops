@@ -144,13 +144,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 创作计划请求
      */
     @Override
-    public void create(CreativePlanReqVO request) {
+    public String create(CreativePlanReqVO request) {
         handlerAndValidate(request);
         if (creativePlanMapper.distinctName(request.getName())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_NAME_EXIST, request.getName());
         }
         CreativePlanDO plan = CreativePlanConvert.INSTANCE.convertCreateRequest(request);
         creativePlanMapper.insert(plan);
+        return plan.getUid();
     }
 
     /**
@@ -159,14 +160,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 创作计划请求
      */
     @Override
-    public void copy(UidRequest request) {
+    public String copy(UidRequest request) {
         AppValidate.notBlank(request.getUid(), ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
         AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, request.getUid());
 
         CreativePlanDO copyPlan = new CreativePlanDO();
         copyPlan.setUid(IdUtil.fastSimpleUUID());
-
         copyPlan.setName(getCopyName(plan.getName()));
         copyPlan.setType(plan.getType());
         copyPlan.setConfig(plan.getConfig());
@@ -180,8 +180,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         copyPlan.setDeleted(Boolean.FALSE);
         copyPlan.setCreateTime(LocalDateTime.now());
         copyPlan.setEndTime(LocalDateTime.now());
-
         creativePlanMapper.insert(copyPlan);
+        return copyPlan.getUid();
     }
 
     /**
@@ -190,7 +190,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 创作计划请求
      */
     @Override
-    public void modify(CreativePlanModifyReqVO request) {
+    public String modify(CreativePlanModifyReqVO request) {
         AppValidate.notBlank(request.getUid(), ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
         handlerAndValidate(request);
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
@@ -205,6 +205,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
         creativePlanMapper.updateById(modifyPlan);
+        return modifyPlan.getUid();
     }
 
     /**

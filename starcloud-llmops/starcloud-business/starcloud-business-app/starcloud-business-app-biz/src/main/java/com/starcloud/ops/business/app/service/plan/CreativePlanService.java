@@ -43,22 +43,25 @@ public interface CreativePlanService {
      * 创建创作计划
      *
      * @param request 创作计划请求
+     * @return 创作计划UID
      */
-    void create(CreativePlanReqVO request);
+    String create(CreativePlanReqVO request);
 
     /**
      * 复制创作计划
      *
      * @param request 创作计划请求
+     * @return 创作计划UID
      */
-    void copy(UidRequest request);
+    String copy(UidRequest request);
 
     /**
      * 修改创作计划
      *
      * @param request 创作计划请求
+     * @return 创作计划UID
      */
-    void modify(CreativePlanModifyReqVO request);
+    String modify(CreativePlanModifyReqVO request);
 
     /**
      * 修改创作计划状态

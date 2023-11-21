@@ -251,6 +251,39 @@ public class XhsServiceImpl implements XhsService {
     }
 
     /**
+     * 同步执行执行应用通用封装
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    private String execute(AppExecuteReqVO request) {
+        try {
+            AppExecuteRespVO execute = appService.execute(request);
+            if (!execute.getSuccess()) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400101, execute.getResultDesc()));
+            }
+            ActionResponse actionResult = (ActionResponse) execute.getResult();
+            if (Objects.isNull(actionResult)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "执行结果不存在！请稍候重试或者联系管理员！"));
+            }
+            if (!actionResult.getSuccess()) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400206, actionResult.getErrorMsg()));
+            }
+            String answer = actionResult.getAnswer();
+            if (StringUtils.isBlank(answer)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400207, "执行结果内容不存在！请稍候重试或者联系管理员！"));
+            }
+            return answer.trim();
+        } catch (ServiceException exception) {
+            log.error("小红书执行应用失败。应用UID: {}, 错误码: {}, 错误信息: {}", request.getAppUid(), exception.getCode(), exception.getMessage());
+            throw exception;
+        } catch (Exception exception) {
+            log.error("小红书执行应用失败。应用UID: {}, 错误码: {}, 错误信息: {}", request.getAppUid(), 350400200, exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, exception.getMessage()));
+        }
+    }
+
+    /**
      * 异步执行应用
      *
      * @param request 请求

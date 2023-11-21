@@ -65,24 +65,21 @@ public class CreativePlanController {
     @Operation(summary = "创建创作计划", description = "创建创作计划")
     @ApiOperationSupport(order = 50, author = "nacoyer")
     public CommonResult<String> create(@Validated @RequestBody CreativePlanReqVO request) {
-        creativePlanService.create(request);
-        return CommonResult.success("创作计划创建成功");
+        return CommonResult.success(creativePlanService.create(request));
     }
 
     @PostMapping("/copy")
     @Operation(summary = "复制创作计划", description = "复制创作计划")
     @ApiOperationSupport(order = 60, author = "nacoyer")
     public CommonResult<String> copy(@Validated @RequestBody UidRequest request) {
-        creativePlanService.copy(request);
-        return CommonResult.success("创作计划复制成功");
+        return CommonResult.success(creativePlanService.copy(request));
     }
 
     @PostMapping("/modify")
     @Operation(summary = "更新创作计划", description = "更新创作计划")
     @ApiOperationSupport(order = 70, author = "nacoyer")
     public CommonResult<String> modify(@Validated @RequestBody CreativePlanModifyReqVO request) {
-        creativePlanService.modify(request);
-        return CommonResult.success("创作计划更新成功");
+        return CommonResult.success(creativePlanService.modify(request));
     }
 
     @PostMapping("/status")
