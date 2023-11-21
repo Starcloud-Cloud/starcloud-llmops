@@ -32,6 +32,7 @@ import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeRefersSourceEnu
 import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
+import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -61,6 +62,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     @Resource
     private CreativeSchemeMapper creativeSchemeMapper;
+
+    @Resource
+    private XhsService xhsService;
 
     @Resource
     private AppDictionaryService appDictionaryService;
