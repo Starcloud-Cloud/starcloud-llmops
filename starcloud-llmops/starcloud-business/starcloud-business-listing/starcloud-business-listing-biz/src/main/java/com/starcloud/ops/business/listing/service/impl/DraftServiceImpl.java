@@ -157,7 +157,7 @@ public class DraftServiceImpl implements DraftService {
                 executor.execute(() -> {
                     try {
                         long start = System.currentTimeMillis();
-                        keywordBindService.analysisKeyword(reqVO.getKeys(), draftDO.getEndpoint());
+                        keywordBindService.analysisKeyword(distinctKeys, draftDO.getEndpoint());
                         long end = System.currentTimeMillis();
                         draftDO.setAnalysisTime(end - start);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
@@ -241,11 +241,9 @@ public class DraftServiceImpl implements DraftService {
         // 新 + 旧 - 旧   待新增
         oldKey.forEach(treeSet::remove);
         List<String> addKey = new ArrayList<>(treeSet);
-        if (CollectionUtils.isEmpty(addKey)) {
-            return;
+        if (CollectionUtils.isNotEmpty(addKey)) {
+            keywordBindService.addDraftKeyword(addKey, draftDO.getId());
         }
-        keywordBindService.addDraftKeyword(addKey, draftDO.getId());
-
         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
         updateScore(draftDO);
         updateById(draftDO);
@@ -253,7 +251,7 @@ public class DraftServiceImpl implements DraftService {
         executor.execute(() -> {
             try {
                 long start = System.currentTimeMillis();
-                keywordBindService.analysisKeyword(reqVO.getAddKey(), draftDO.getEndpoint());
+                keywordBindService.analysisKeyword(newKey, draftDO.getEndpoint());
                 long end = System.currentTimeMillis();
                 draftDO.setAnalysisTime(end - start);
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());

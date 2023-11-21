@@ -137,8 +137,6 @@ public class DictServiceImpl implements DictService {
 
         List<String> oldKey = keywordBindMapper.getByDictId(dictDO.getId())
                 .stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
-        newKey.removeAll(oldKey);
-
 
         TreeSet<String> treeSet = CollUtil.toTreeSet(newKey, String.CASE_INSENSITIVE_ORDER);
         treeSet.addAll(oldKey);
@@ -148,7 +146,7 @@ public class DictServiceImpl implements DictService {
         }
 
         oldKey.forEach(treeSet::remove);
-        execute(new ArrayList<>(treeSet), dictDO, keys);
+        execute(new ArrayList<>(treeSet), dictDO, newKey);
     }
 
     @Override
