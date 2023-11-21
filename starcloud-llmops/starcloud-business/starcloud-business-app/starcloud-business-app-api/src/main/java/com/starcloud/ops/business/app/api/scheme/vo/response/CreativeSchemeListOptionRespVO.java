@@ -24,7 +24,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "创作方案详情")
-public class SchemeListOptionRespVO implements java.io.Serializable {
+public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
 
     private static final long serialVersionUID = 347884633370912370L;
 

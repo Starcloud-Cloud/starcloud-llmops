@@ -5,13 +5,14 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.scheme.vo.response.SchemeListOptionRespVO;
-import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeDemandReqVO;
+import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
@@ -71,7 +72,7 @@ public class CreativeSchemeController {
     @DataPermission(enable = false)
     @Operation(summary = "查询创作方案列表Option", description = "查询创作方案列表Option")
     @ApiOperationSupport(order = 40, author = "nacoyer")
-    public CommonResult<List<SchemeListOptionRespVO>> listOption(CreativeSchemeListReqVO query) {
+    public CommonResult<List<CreativeSchemeListOptionRespVO>> listOption(CreativeSchemeListReqVO query) {
         return CommonResult.success(creativeSchemeService.listOption(query));
     }
 
@@ -117,7 +118,7 @@ public class CreativeSchemeController {
     @PostMapping(value = "/demand")
     @Operation(summary = "小红书需求生成")
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public SseEmitter createDemand(@Validated @RequestBody CreativeSchemeDemandReqVO executeRequest, HttpServletResponse httpServletResponse) {
+    public SseEmitter createDemand(@Validated @RequestBody CreativeSchemeSseReqVO executeRequest, HttpServletResponse httpServletResponse) {
         // 设置响应头
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
@@ -127,6 +128,13 @@ public class CreativeSchemeController {
         // 异步执行应用
         creativeSchemeService.createDemand(executeRequest);
         return emitter;
+    }
+
+    @PostMapping(value = "/example")
+    @Operation(summary = "小红书文案测试生成")
+    @ApiOperationSupport(order = 110, author = "nacoyer")
+    public CommonResult<List<CopyWritingExample>> createExample(@Validated @RequestBody CreativeSchemeReqVO executeRequest) {
+        return CommonResult.success(creativeSchemeService.createExample(executeRequest));
     }
 
 }

@@ -9,11 +9,8 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
@@ -25,13 +22,13 @@ import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListRe
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.scheme.vo.response.SchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeDemandReqVO;
-import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeSseReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.convert.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.scheme.CreativeSchemeMapper;
@@ -45,6 +42,7 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
+import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -61,9 +59,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_CONFIG_FAILURE;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_STEP_FAILURE;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_VARIABLE_FAILURE;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE;
 
 /**
  * 创作方案服务
@@ -152,7 +148,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @return 创作方案列表
      */
     @Override
-    public List<SchemeListOptionRespVO> listOption(CreativeSchemeListReqVO query) {
+    public List<CreativeSchemeListOptionRespVO> listOption(CreativeSchemeListReqVO query) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (Objects.isNull(loginUserId)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
@@ -163,7 +159,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             List<VariableItemDTO> variable = Optional.ofNullable(item.getConfiguration())
                     .map(CreativeSchemeConfigDTO::getCopyWritingTemplate)
                     .map(CreativeSchemeCopyWritingTemplateDTO::getVariables).orElse(Lists.newArrayList());
-            SchemeListOptionRespVO option = new SchemeListOptionRespVO();
+            CreativeSchemeListOptionRespVO option = new CreativeSchemeListOptionRespVO();
             option.setUid(item.getUid());
             option.setName(item.getName());
             option.setVariables(variable);
@@ -266,7 +262,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @param request 创作方案需求请求
      */
     @Override
-    public void createDemand(CreativeSchemeDemandReqVO request) {
+    public void createDemand(CreativeSchemeSseReqVO request) {
         AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         if (Objects.nonNull(request.getSseEmitter())) {
@@ -277,62 +273,56 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
         executeRequest.setAppUid(executeApp.getUid());
         executeRequest.setN(1);
-        executeRequest.setAppReqVO(transform(executeApp, request));
-
+        executeRequest.setAppReqVO(CreativeUtil.transform(executeApp, request));
         appService.asyncExecute(executeRequest);
     }
 
-    private AppReqVO transform(AppMarketRespVO executeApp, CreativeSchemeDemandReqVO request) {
+    /**
+     * 创建文案示例
+     *
+     * @param request 创作方案需求请求
+     * @return 文案示例
+     */
+    @Override
+    public List<CopyWritingExample> createExample(CreativeSchemeReqVO request) {
+        AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
+        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
+        List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(executeApp).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(WORKFLOW_CONFIG_FAILURE));
+        // 获取第二步的步骤。约定，生成小红书内容为第二步
+        WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
+        AppValidate.notNull(stepWrapper, ErrorCodeConstants.WORKFLOW_STEP_NOT_EXIST, executeApp.getName());
+        executeRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        executeRequest.setMode(AppModelEnum.COMPLETION.name());
+        executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        executeRequest.setAppUid(executeApp.getUid());
+        executeRequest.setStepId(stepWrapper.getField());
+        executeRequest.setN(5);
+        executeRequest.setAppReqVO(CreativeUtil.transform(executeApp, request));
 
-        WorkflowConfigRespVO config = executeApp.getWorkflowConfig();
-        AppValidate.notNull(config, EXECUTE_LISTING_CONFIG_FAILURE);
-
-        List<WorkflowStepWrapperRespVO> steps = config.getSteps();
-        AppValidate.notEmpty(steps, EXECUTE_LISTING_STEP_FAILURE);
-
-        // 直接取第一个步骤，执行第一步骤
-        WorkflowStepWrapperRespVO stepWrapper = steps.get(0);
-        AppValidate.notNull(stepWrapper, EXECUTE_LISTING_STEP_FAILURE);
-
-        VariableRespVO variable = stepWrapper.getVariable();
-        AppValidate.notNull(variable, EXECUTE_LISTING_VARIABLE_FAILURE);
-
-        List<VariableItemRespVO> variables = variable.getVariables();
-        AppValidate.notEmpty(variables, EXECUTE_LISTING_VARIABLE_FAILURE);
-
-        List<VariableItemRespVO> fillVariables = com.google.common.collect.Lists.newArrayList();
-        // 填充变量
-        for (VariableItemRespVO variableItem : variables) {
-            if ("NAME".equals(variableItem.getField()) && StringUtils.isNotBlank(request.getName())) {
-                variableItem.setValue(request.getName());
-                variableItem.setDefaultValue(request.getName());
-            } else if ("TYPE".equals(variableItem.getField()) && StringUtils.isNotBlank(request.getType())) {
-                variableItem.setValue(request.getType());
-                variableItem.setDefaultValue(request.getType());
-            } else if ("DESCRIPTION".equals(variableItem.getField()) && StringUtils.isNotBlank(request.getDescription())) {
-                variableItem.setValue(request.getDescription());
-                variableItem.setDefaultValue(request.getDescription());
-            } else if ("CATEGORY".equals(variableItem.getField()) && StringUtils.isNotBlank(request.getCategory())) {
-                variableItem.setValue(request.getCategory());
-                variableItem.setDefaultValue(request.getCategory());
-            } else if ("TAGS".equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getTags())) {
-                String tags = String.join(",", request.getTags());
-                variableItem.setValue(tags);
-                variableItem.setDefaultValue(tags);
-            } else if ("REFERS".equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getRefers())) {
-                String refers = JSONUtil.toJsonStr(request.getRefers());
-                variableItem.setValue(refers);
-                variableItem.setDefaultValue(refers);
-            }
-            fillVariables.add(variableItem);
+        String answer = xhsService.execute(executeRequest);
+        List<XhsAppExecuteResponse> responses = CreativeUtil.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
+        if (CollectionUtil.isNotEmpty(responses)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_EXAMPLE_FAILURE);
         }
 
-        variable.setVariables(fillVariables);
-        stepWrapper.setVariable(variable);
-        steps.set(0, stepWrapper);
-        config.setSteps(steps);
-        executeApp.setWorkflowConfig(config);
-        return AppMarketConvert.INSTANCE.convert(executeApp);
+        String errorMsg = "";
+        List<CopyWritingExample> list = Lists.newArrayList();
+        for (XhsAppExecuteResponse response : responses) {
+            CopyWritingExample copyWritingExample = new CopyWritingExample();
+            if (!response.getSuccess() || StringUtils.isBlank(response.getTitle()) || StringUtils.isBlank(response.getContent())) {
+                errorMsg = response.getErrorMsg();
+                continue;
+            }
+            copyWritingExample.setTitle(response.getTitle());
+            copyWritingExample.setContent(response.getContent());
+            list.add(copyWritingExample);
+        }
+
+        if (CollectionUtil.isNotEmpty(list)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_EXAMPLE_FAILURE, errorMsg);
+        }
+        return list;
     }
 
 

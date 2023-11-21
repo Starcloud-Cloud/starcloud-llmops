@@ -42,6 +42,16 @@ public interface ErrorCodeConstants {
      */
     ErrorCode TEMPERATURE_FORMAT_ERROR = new ErrorCode(300000406, "温度值格式错误（{}）温度值必须是数字且需要在0～2之间，请检查后重试！");
 
+    /**
+     * 应用配置错误
+     */
+    ErrorCode WORKFLOW_CONFIG_FAILURE = new ErrorCode(300000407, "应用配置错误，请检查后重试！");
+
+    /**
+     * 应用执行步骤不存在
+     */
+    ErrorCode WORKFLOW_STEP_NOT_EXIST = new ErrorCode(300000407, "应用执行步骤不存在，请稍后重试或者联系管理员！");
+
     // ========== 基本增删改查错误码 ==========
 
     // 1.========== 应用错误码 300 100 xxx ==========
@@ -571,6 +581,11 @@ public interface ErrorCodeConstants {
      * 创作方案图片模板风格的模板列表不能为空
      */
     ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY = new ErrorCode(350200116, "创作方案图片模板风格的模板列表不能为空！风格名称: {}）!");
+
+    /**
+     * 生成文案示例失败
+     */
+    ErrorCode CREATIVE_SCHEME_EXAMPLE_FAILURE = new ErrorCode(350200116, "生成文案示例失败, 请稍候重试！{}");
 
     /**
      * 应用执行结果不存在

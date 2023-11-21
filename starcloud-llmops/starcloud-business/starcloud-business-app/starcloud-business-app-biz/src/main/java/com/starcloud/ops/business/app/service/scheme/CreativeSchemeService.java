@@ -2,13 +2,14 @@ package com.starcloud.ops.business.app.service.scheme;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.scheme.vo.response.SchemeListOptionRespVO;
-import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeDemandReqVO;
+import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeSseReqVO;
 
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ public interface CreativeSchemeService {
      * @param query 查询条件
      * @return 创作方案列表
      */
-    List<SchemeListOptionRespVO> listOption(CreativeSchemeListReqVO query);
+    List<CreativeSchemeListOptionRespVO> listOption(CreativeSchemeListReqVO query);
 
     /**
      * 分页查询创作方案
@@ -102,6 +103,14 @@ public interface CreativeSchemeService {
      *
      * @param request 创作方案需求请求
      */
-    void createDemand(CreativeSchemeDemandReqVO request);
+    void createDemand(CreativeSchemeSseReqVO request);
+
+    /**
+     * 创建文案示例
+     *
+     * @param request 创作方案需求请求
+     * @return 文案示例
+     */
+    List<CopyWritingExample> createExample(CreativeSchemeReqVO request);
 
 }
