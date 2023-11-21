@@ -12,7 +12,6 @@ import cn.iocoder.yudao.framework.tenant.core.service.TenantFrameworkService;
 import cn.iocoder.yudao.framework.web.config.WebProperties;
 import cn.iocoder.yudao.framework.web.core.filter.ApiRequestFilter;
 import cn.iocoder.yudao.framework.web.core.handler.GlobalExceptionHandler;
-import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
 
@@ -41,19 +40,15 @@ public class TenantSecurityWebFilter extends ApiRequestFilter {
     private final GlobalExceptionHandler globalExceptionHandler;
     private final TenantFrameworkService tenantFrameworkService;
 
-    private final AdminUserApi adminUserApi;
-
     public TenantSecurityWebFilter(TenantProperties tenantProperties,
                                    WebProperties webProperties,
                                    GlobalExceptionHandler globalExceptionHandler,
-                                   TenantFrameworkService tenantFrameworkService,
-                                   AdminUserApi adminUserApi) {
+                                   TenantFrameworkService tenantFrameworkService) {
         super(webProperties);
         this.tenantProperties = tenantProperties;
         this.pathMatcher = new AntPathMatcher();
         this.globalExceptionHandler = globalExceptionHandler;
         this.tenantFrameworkService = tenantFrameworkService;
-        this.adminUserApi = adminUserApi;
     }
 
     @Override
@@ -65,7 +60,7 @@ public class TenantSecurityWebFilter extends ApiRequestFilter {
         if (user != null) {
             // 如果获取不到租户编号，则尝试使用登陆用户的租户编号
             if (tenantId == null) {
-                tenantId = adminUserApi.getTenantId(user.getId());
+                tenantId = user.getTenantId();
                 TenantContextHolder.setTenantId(tenantId);
             // 如果传递了租户编号，则进行比对租户编号，避免越权问题
             } else if (!Objects.equals(user.getTenantId(), TenantContextHolder.getTenantId())) {

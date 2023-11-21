@@ -1,7 +1,5 @@
 package cn.iocoder.yudao.module.system.api.user;
 
-import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
-import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import cn.iocoder.yudao.module.system.convert.user.UserConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -11,7 +9,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Admin 用户 API 实现类
@@ -31,16 +28,6 @@ public class AdminUserApiImpl implements AdminUserApi {
     }
 
     @Override
-    @TenantIgnore
-    public Long getTenantId(Long id) {
-        AtomicReference<Long> tenantId = new AtomicReference<>();
-        DataPermissionUtils.executeIgnore(() -> {
-            tenantId.set(userService.getUser(id).getTenantId());
-        });
-        return tenantId.get();
-    }
-
-    @Override
     public List<AdminUserRespDTO> getUserList(Collection<Long> ids) {
         List<AdminUserDO> users = userService.getUserList(ids);
         return UserConvert.INSTANCE.convertList4(users);
@@ -53,7 +40,7 @@ public class AdminUserApiImpl implements AdminUserApi {
     }
 
     @Override
-    public List<AdminUserRespDTO> getUsersByPostIds(Collection<Long> postIds) {
+    public List<AdminUserRespDTO> getUserListByPostIds(Collection<Long> postIds) {
         List<AdminUserDO> users = userService.getUserListByPostIds(postIds);
         return UserConvert.INSTANCE.convertList4(users);
     }
