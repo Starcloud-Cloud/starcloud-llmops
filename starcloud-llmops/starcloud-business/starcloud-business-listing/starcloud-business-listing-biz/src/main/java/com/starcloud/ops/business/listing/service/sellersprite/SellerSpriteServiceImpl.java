@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
+
 /**
  * 卖家精灵实现类
  */
@@ -192,10 +195,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                 log.error("卖家精灵登录失效");
                 this.sendMessage();
+                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
             }
             return null;
         } catch (Exception e) {
-            return null;
+            throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
 
 
@@ -219,10 +223,12 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                 log.error("卖家精灵登录失效");
                 this.sendMessage();
+                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
             }
             return null;
         } catch (Exception e) {
-            return null;
+            throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
+
         }
     }
 
