@@ -18,14 +18,13 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Keywo
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 /**
  * 卖家精灵实现类
@@ -228,7 +227,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             return null;
         } catch (Exception e) {
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
-
         }
     }
 

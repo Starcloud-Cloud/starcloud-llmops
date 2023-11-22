@@ -14,7 +14,6 @@ public interface ErrorCodeConstant {
 
     ErrorCode KEYWORD_IS_NOT_EMPTY = new ErrorCode(500020003, "存在绑定的关键词,不允许修改站点");
 
-
-    ErrorCode SELLER_SPRITE_ACCOUNT_INVALID = new ErrorCode(500020004, "网络异常，请联系管理员！");
+    ErrorCode SELLER_SPRITE_ACCOUNT_INVALID = new ErrorCode(500020004, "网络异常，请联系管理员");
 
 }
