@@ -288,6 +288,18 @@ public class XhsServiceImpl implements XhsService {
             String body = execute.body();
 
             JSONObject jsonObject = JSONUtil.parseObj(body);
+            Boolean success = jsonObject.getBool("success");
+            if (!success) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "生成图片失败！"));
+            }
+            JSONObject data = jsonObject.getJSONObject("data");
+            if (Objects.isNull(data)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "生成图片失败！"));
+            }
+            String url = data.getStr("url");
+            if (StringUtils.isBlank(url)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "生成图片失败！"));
+            }
 
 
             //FastposterClient fastposterClient = getFastPosterClient(imageTemplate);
@@ -302,10 +314,10 @@ public class XhsServiceImpl implements XhsService {
 //            // 上传图片
 //            UploadImageInfoDTO image = ImageUploadUtils.uploadImage(IdUtil.fastSimpleUUID() + ".png", ImageUploadUtils.UPLOAD, bytes);
 //            log.info("小红书执行生成图片，上传图片到OSS成功，url：{}", image.getUrl());
-//            response.setSuccess(Boolean.TRUE);
-//            response.setIsMain(request.getIsMain());
-//            response.setIndex(request.getIndex());
-//            response.setUrl(image.getUrl());
+            response.setSuccess(Boolean.TRUE);
+            response.setIsMain(request.getIsMain());
+            response.setIndex(request.getIndex());
+            response.setUrl(url);
 //            log.info("小红书执行生成图片成功，imageTemplate：{}，url：{}\n", imageTemplate, image.getUrl());
         } catch (ServiceException exception) {
             log.info("小红书生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
