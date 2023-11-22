@@ -17,6 +17,11 @@ import java.util.*;
 public interface DeptService {
 
     /**
+     * 初始化部门的本地缓存
+     */
+    void initLocalCache();
+
+    /**
      * 创建部门
      *
      * @param reqVO 部门信息

@@ -12,7 +12,9 @@ import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import cn.iocoder.yudao.framework.pay.core.client.PayClientFactory;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PaySignNotifyRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
@@ -309,7 +311,7 @@ public class PaySignServiceImpl implements PaySignService {
         PayOrderUnifiedReqDTO unifiedOrderReqDTO = new PayOrderUnifiedReqDTO();
         unifiedOrderReqDTO.setNotifyUrl(getChannelPayNotifyUrl(channel));
         unifiedOrderReqDTO.setBizContent(bizContent.toString());
-        PayOrderUnifiedRespDTO payOrderUnifiedRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
+        PayOrderRespDTO orderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
 
         SignPayResultReqVO signPayResultReqVO = new SignPayResultReqVO()
                 .setChannelId(channel.getId())
@@ -317,8 +319,8 @@ public class PaySignServiceImpl implements PaySignService {
                 .setOrderId(order.getId())
                 .setOrderExtensionId(orderExtension.getId())
                 .setOrderExtensionNo(orderExtension.getNo())
-                .setResultCode(payOrderUnifiedRespDTO.getDisplayMode())
-                .setResultMsg(payOrderUnifiedRespDTO.getDisplayContent());
+                .setResultCode(orderRespDTO.getDisplayMode())
+                .setResultMsg(orderRespDTO.getDisplayContent());
 
         return signPayResultReqVO;
 

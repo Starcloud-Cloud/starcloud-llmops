@@ -1,5 +1,8 @@
 package cn.iocoder.yudao.framework.pay.core.client;
 
+import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayRefundNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundRespDTO;
@@ -85,5 +88,18 @@ public interface PayClient {
      * @return 转账信息
      */
     PayTransferRespDTO unifiedTransfer(PayTransferUnifiedReqDTO reqDTO);
+
+
+    /**
+     * 解析回调数据
+     *
+     * @param rawNotify 通知内容
+     * @return 回调对象
+     *         1. {@link PayRefundNotifyRespDTO} 退款通知
+     *         2. {@link PayOrderNotifyRespDTO} 支付通知
+     */
+    default Object parseNotify(PayNotifyReqDTO rawNotify) {
+        throw new UnsupportedOperationException("未实现 parseNotify 方法！");
+    }
 
 }

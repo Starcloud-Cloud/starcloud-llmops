@@ -20,6 +20,11 @@ import java.util.Set;
 public interface RoleService {
 
     /**
+     * 初始化角色的本地缓存
+     */
+    void initLocalCache();
+
+    /**
      * 创建角色
      *
      * @param reqVO 创建角色信息
@@ -138,5 +143,12 @@ public interface RoleService {
      * @param ids 角色编号数组
      */
     void validateRoleList(Collection<Long> ids);
+
+    /**
+     *
+     * @param code
+     * @return
+     */
+    RoleDO getRoleByCode(String code);
 
 }

@@ -17,6 +17,10 @@ import static java.util.Collections.singleton;
 public interface PermissionService {
 
     /**
+     * 初始化权限的本地缓存
+     */
+    void initLocalCache();
+    /**
      * 判断是否有权限，任一一个即可
      *
      * @param userId      用户编号
@@ -49,6 +53,14 @@ public interface PermissionService {
      * @param roleId 角色编号
      */
     void processRoleDeleted(Long roleId);
+
+    /**
+     * 删除用户绑定的角色
+     *
+     * @param userId
+     * @param roleId
+     */
+    void processRoleDeleted(Long userId, Long roleId);
 
     /**
      * 处理菜单删除时，删除关联授权数据
@@ -142,5 +154,10 @@ public interface PermissionService {
      * @return 部门数据权限
      */
     DeptDataPermissionRespDTO getDeptDataPermission(Long userId);
+
+    /**
+     * 新增用户角色
+     */
+    void addUserRole(Long userId, String role);
 
 }

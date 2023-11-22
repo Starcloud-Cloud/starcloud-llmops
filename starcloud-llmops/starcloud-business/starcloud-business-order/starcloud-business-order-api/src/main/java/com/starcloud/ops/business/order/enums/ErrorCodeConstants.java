@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.pay.enums;
+package com.starcloud.ops.business.order.enums;
 
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 
@@ -83,5 +83,8 @@ public interface ErrorCodeConstants {
     ErrorCode DEMO_ORDER_REFUND_FAIL_REFUND_NOT_SUCCESS = new ErrorCode(1_007_900_008, "发起退款失败，退款订单未退款成功");
     ErrorCode DEMO_ORDER_REFUND_FAIL_REFUND_ORDER_ID_ERROR = new ErrorCode(1_007_900_009, "发起退款失败，退款单编号不匹配");
     ErrorCode DEMO_ORDER_REFUND_FAIL_REFUND_PRICE_NOT_MATCH = new ErrorCode(1_007_900_010, "发起退款失败，退款单金额不匹配");
+    ErrorCode PAY_SIGN_NOT_FOUND = new ErrorCode(1_007_900_011, " 签约数据不存在");
+    ErrorCode PAY_SIGN_STATUS_IS_NOT_SUCCESS = new ErrorCode(1_007_900_012, " 待签约 暂时无法操作");
+
 
 }

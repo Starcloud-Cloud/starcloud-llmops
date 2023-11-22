@@ -14,17 +14,24 @@ import cn.iocoder.yudao.module.system.convert.auth.OAuth2ClientConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2ClientDO;
 import cn.iocoder.yudao.module.system.dal.mysql.oauth2.OAuth2ClientMapper;
 import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
+import cn.iocoder.yudao.module.system.mq.producer.auth.OAuth2ClientProducer;
 import com.google.common.annotations.VisibleForTesting;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 
 /**
@@ -37,8 +44,35 @@ import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 @Slf4j
 public class OAuth2ClientServiceImpl implements OAuth2ClientService {
 
+    /**
+     * 客户端缓存
+     * key：客户端编号 {@link OAuth2ClientDO#getClientId()} ()}
+     *
+     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
+     */
+    @Getter // 解决单测
+    @Setter // 解决单测
+    private volatile Map<String, OAuth2ClientDO> clientCache;
+
     @Resource
     private OAuth2ClientMapper oauth2ClientMapper;
+
+    @Resource
+    private OAuth2ClientProducer oauth2ClientProducer;
+
+    /**
+     * 初始化 {@link #clientCache} 缓存
+     */
+    @Override
+    @PostConstruct
+    public void initLocalCache() {
+        // 第一步：查询数据
+        List<OAuth2ClientDO> clients = oauth2ClientMapper.selectList();
+        log.info("[initLocalCache][缓存 OAuth2 客户端，数量为:{}]", clients.size());
+
+        // 第二步：构建缓存。
+        clientCache = convertMap(clients, OAuth2ClientDO::getClientId);
+    }
 
     @Override
     public Long createOAuth2Client(OAuth2ClientCreateReqVO createReqVO) {

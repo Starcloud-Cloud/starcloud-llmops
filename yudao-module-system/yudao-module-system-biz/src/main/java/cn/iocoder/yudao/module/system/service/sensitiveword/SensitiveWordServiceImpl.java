@@ -11,6 +11,7 @@ import cn.iocoder.yudao.module.system.controller.admin.sensitiveword.vo.Sensitiv
 import cn.iocoder.yudao.module.system.convert.sensitiveword.SensitiveWordConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.sensitiveword.SensitiveWordDO;
 import cn.iocoder.yudao.module.system.dal.mysql.sensitiveword.SensitiveWordMapper;
+import cn.iocoder.yudao.module.system.mq.producer.sensitiveword.SensitiveWordProducer;
 import cn.iocoder.yudao.module.system.util.collection.SimpleTrie;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -64,6 +65,9 @@ public class SensitiveWordServiceImpl implements SensitiveWordService {
 
     @Resource
     private SensitiveWordMapper sensitiveWordMapper;
+
+    @Resource
+    private SensitiveWordProducer sensitiveWordProducer;
 
     /**
      * 默认的敏感词的字典树，包含所有敏感词

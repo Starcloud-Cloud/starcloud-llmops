@@ -17,6 +17,12 @@ import java.util.Map;
 public interface NotifyTemplateService {
 
     /**
+     * 初始化站内信模板的本地缓存
+     */
+    void initLocalCache();
+
+
+    /**
      * 创建站内信模版
      *
      * @param createReqVO 创建信息

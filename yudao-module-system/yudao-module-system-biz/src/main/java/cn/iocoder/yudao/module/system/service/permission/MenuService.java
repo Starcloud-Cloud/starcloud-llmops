@@ -16,6 +16,11 @@ import java.util.List;
 public interface MenuService {
 
     /**
+     * 初始化菜单的本地缓存
+     */
+    void initLocalCache();
+
+    /**
      * 创建菜单
      *
      * @param reqVO 菜单信息

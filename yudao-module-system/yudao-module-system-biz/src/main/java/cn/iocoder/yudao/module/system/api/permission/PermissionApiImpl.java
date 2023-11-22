@@ -49,7 +49,7 @@ public class PermissionApiImpl implements PermissionApi {
      */
     @Override
     public Map<Long, List<String>> mapRoleCodeListByUserIds(Collection<Long> userIds) {
-        return permissionService.mapRoleCodeListByUserIds(userIds);
+        return (Map<Long, List<String>>) permissionService.getRoleMenuListByRoleId(userIds);
     }
 
 }

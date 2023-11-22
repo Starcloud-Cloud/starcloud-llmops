@@ -22,7 +22,8 @@ public class MpAccountProducer {
      */
     public void sendAccountRefreshMessage() {
         MpAccountRefreshMessage message = new MpAccountRefreshMessage();
-        redisMQTemplate.send(message);
+        // FIXME: 2023/11/22  暂不可用
+//        redisMQTemplate.send(message);
     }
 
 }

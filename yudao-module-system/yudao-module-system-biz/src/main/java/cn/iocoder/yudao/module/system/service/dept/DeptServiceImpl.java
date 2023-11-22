@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.controller.admin.dept.vo.dept.DeptCreateReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.dept.vo.dept.DeptUpdateReqVO;
@@ -12,13 +14,19 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
 import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
 import cn.iocoder.yudao.module.system.enums.dept.DeptIdEnum;
+import cn.iocoder.yudao.module.system.mq.producer.dept.DeptProducer;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.*;
 
@@ -36,8 +44,53 @@ import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 @Slf4j
 public class DeptServiceImpl implements DeptService {
 
+    /**
+     * 部门缓存
+     * key：部门编号 {@link DeptDO#getId()}
+     *
+     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
+     */
+    @Getter
+    private volatile Map<Long, DeptDO> deptCache;
+    /**
+     * 父部门缓存
+     * key：部门编号 {@link DeptDO#getParentId()}
+     * value: 直接子部门列表
+     *
+     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
+     */
+    @Getter
+    private volatile Multimap<Long, DeptDO> parentDeptCache;
+
     @Resource
     private DeptMapper deptMapper;
+
+    @Resource
+    private DeptProducer deptProducer;
+
+    /**
+     * 初始化 {@link #parentDeptCache} 和 {@link #deptCache} 缓存
+     */
+    @Override
+    @PostConstruct
+    public synchronized void initLocalCache() {
+        // 注意：忽略自动多租户，因为要全局初始化缓存
+        TenantUtils.executeIgnore(() -> {
+            // 第一步：查询数据
+            List<DeptDO> depts = deptMapper.selectList();
+            log.info("[initLocalCache][缓存部门，数量为:{}]", depts.size());
+
+            // 第二步：构建缓存
+            ImmutableMap.Builder<Long, DeptDO> builder = ImmutableMap.builder();
+            ImmutableMultimap.Builder<Long, DeptDO> parentBuilder = ImmutableMultimap.builder();
+            depts.forEach(deptDO -> {
+                builder.put(deptDO.getId(), deptDO);
+                parentBuilder.put(deptDO.getParentId(), deptDO);
+            });
+            deptCache = builder.build();
+            parentDeptCache = parentBuilder.build();
+        });
+    }
 
     @Override
     @CacheEvict(cacheNames = RedisKeyConstants.DEPT_CHILDREN_ID_LIST,
