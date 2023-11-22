@@ -7,6 +7,8 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -44,6 +46,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE;
 
 /**
  * @author nacoyer
@@ -156,6 +160,11 @@ public class XhsServiceImpl implements XhsService {
             log.info("小红书执行应用开始。参数为\n：{}", JSONUtil.parse(request).toStringPretty());
             // 获取应用
             AppMarketRespVO appMarket = appMarketService.get(request.getUid());
+            List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarket).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                    .orElseThrow(() -> ServiceExceptionUtil.exception(WORKFLOW_CONFIG_FAILURE));
+            // 获取第二步的步骤。约定，生成小红书内容为第二步
+            WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
+            request.setStepId(stepWrapper.getField());
             // 执行应用
             String answer = execute(CreativeUtil.buildExecuteRequest(appMarket, request));
             return CreativeUtil.handleAnswer(answer, request.getUid(), n);
@@ -184,6 +193,11 @@ public class XhsServiceImpl implements XhsService {
         }
         // 获取应用
         AppMarketRespVO appMarket = appMarketService.get(request.getUid());
+        List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarket).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(WORKFLOW_CONFIG_FAILURE));
+        // 获取第二步的步骤。约定，生成小红书内容为第二步
+        WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
+        request.setStepId(stepWrapper.getField());
         AppExecuteReqVO executeRequest = CreativeUtil.buildExecuteRequest(appMarket, request);
         // 执行应用
         appService.asyncExecute(executeRequest);

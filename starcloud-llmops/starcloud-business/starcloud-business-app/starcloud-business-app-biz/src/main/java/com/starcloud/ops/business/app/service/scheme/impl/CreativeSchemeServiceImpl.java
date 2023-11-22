@@ -46,6 +46,7 @@ import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -275,6 +276,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
         executeRequest.setAppUid(executeApp.getUid());
         executeRequest.setN(1);
+//        executeRequest.setAiModel(ModelTypeEnum.GPT_4_TURBO.getName());
         executeRequest.setAppReqVO(CreativeUtil.transform(executeApp, request));
         appService.asyncExecute(executeRequest);
     }
@@ -304,7 +306,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
         String answer = xhsService.execute(executeRequest);
         List<XhsAppExecuteResponse> responses = CreativeUtil.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
-        if (CollectionUtil.isNotEmpty(responses)) {
+        if (CollectionUtil.isEmpty(responses)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_EXAMPLE_FAILURE);
         }
 
@@ -321,7 +323,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             list.add(copyWritingExample);
         }
 
-        if (CollectionUtil.isNotEmpty(list)) {
+        if (CollectionUtil.isEmpty(list)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_EXAMPLE_FAILURE, errorMsg);
         }
         return list;
