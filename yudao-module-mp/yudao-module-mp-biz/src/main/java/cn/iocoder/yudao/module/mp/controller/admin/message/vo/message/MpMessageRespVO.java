@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import me.chanjar.weixin.common.api.WxConsts;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -97,6 +96,6 @@ public class MpMessageRespVO {
     private String eventKey;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
-    private LocalDateTime createTime;
+    private Date createTime;
 
 }

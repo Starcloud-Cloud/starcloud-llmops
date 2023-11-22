@@ -24,11 +24,13 @@ public class BannerApplicationRunner implements ApplicationRunner {
                             "项目启动成功！\n\t" +
                             "接口文档: \t{} \n\t" +
                             "开发文档: \t{} \n\t" +
-                            "视频教程: \t{} \n" +
+                            "视频教程: \t{} \n\t" +
+                            "源码解析: \t{} \n" +
                             "----------------------------------------------------------",
-                    "https://doc.iocoder.cn/api-doc/",
+                    "http://127.0.0.1:48080/doc.html",
                     "https://doc.iocoder.cn",
-                    "https://t.zsxq.com/02Yf6M7Qn");
+                    "https://t.zsxq.com/02Yf6M7Qn",
+                    "https://t.zsxq.com/02B6ujIee");
 
             // 数据报表
             if (isNotPresent("cn.iocoder.yudao.module.report.framework.security.config.SecurityConfiguration")) {

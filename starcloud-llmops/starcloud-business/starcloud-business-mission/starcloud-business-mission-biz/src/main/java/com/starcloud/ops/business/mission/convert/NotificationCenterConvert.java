@@ -10,12 +10,6 @@ import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY;
-
 @Mapper
 public interface NotificationCenterConvert {
 
@@ -30,12 +24,6 @@ public interface NotificationCenterConvert {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     void updateSelective(NotificationModifyReqVO reqVO, @MappingTarget NotificationCenterDO centerDO);
-
-    default LocalDateTime format(String time) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(FORMAT_YEAR_MONTH_DAY);
-        return LocalDate.parse(time, dateTimeFormatter).atStartOfDay();
-    }
-
 
     default String toStr(PostingUnitPriceDTO unitPriceDTO) {
         return JSONUtil.toJsonStr(unitPriceDTO);

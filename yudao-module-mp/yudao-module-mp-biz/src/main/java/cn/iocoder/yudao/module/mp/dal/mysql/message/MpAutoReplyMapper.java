@@ -43,6 +43,15 @@ public interface MpAutoReplyMapper extends BaseMapperX<MpAutoReplyDO> {
                 .eq(MpAutoReplyDO::getRequestMessageType, requestMessageType));
     }
 
+    default MpAutoReplyDO selectOneByAppIdAndType(String appId, Integer type) {
+        LambdaQueryWrapperX<MpAutoReplyDO> last = new LambdaQueryWrapperX<MpAutoReplyDO>()
+                .eq(MpAutoReplyDO::getAppId, appId)
+                .eq(MpAutoReplyDO::getType, type)
+                .orderByDesc(MpAutoReplyDO::getCreateTime)
+                .last("limit 1");
+        return selectOne(last);
+    }
+
     default List<MpAutoReplyDO> selectListByAppIdAndSubscribe(String appId) {
         return selectList(new LambdaQueryWrapperX<MpAutoReplyDO>()
                 .eq(MpAutoReplyDO::getAppId, appId)

@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.mp.framework.mp.core;
 
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
+import cn.iocoder.yudao.module.mp.enums.click.WeChatClickTypeEnum;
 import cn.iocoder.yudao.module.mp.service.handler.menu.MenuHandler;
 import cn.iocoder.yudao.module.mp.service.handler.message.MessageReceiveHandler;
 import cn.iocoder.yudao.module.mp.service.handler.message.MessageAutoReplyHandler;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.common.redis.RedisTemplateWxRedisOps;
+import me.chanjar.weixin.mp.api.WxMpMessageHandler;
 import me.chanjar.weixin.mp.api.WxMpMessageRouter;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.api.impl.WxMpServiceImpl;
@@ -58,11 +60,13 @@ public class DefaultMpServiceFactory implements MpServiceFactory {
     private final StoreCheckNotifyHandler storeCheckNotifyHandler;
     private final MenuHandler menuHandler;
     private final NullHandler nullHandler;
-    private final SubscribeHandler subscribeHandler;
+    private final WxMpMessageHandler subscribeHandler;
     private final UnsubscribeHandler unsubscribeHandler;
     private final LocationHandler locationHandler;
-    private final ScanHandler scanHandler;
+    private final WxMpMessageHandler scanHandler;
     private final MessageAutoReplyHandler messageAutoReplyHandler;
+    private final WxMpMessageHandler wxTextMessageHandler;
+    private final WxMpMessageHandler WeChatSpecialHandler;
 
     @Override
     public void init(List<MpAccountDO> list) {
@@ -138,6 +142,13 @@ public class DefaultMpServiceFactory implements MpServiceFactory {
                 .event(WxMpEventConstants.POI_CHECK_NOTIFY)
                 .handler(storeCheckNotifyHandler).end();
 
+        // 特殊菜单点击事件
+        router.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT)
+                        .event(WxConsts.MenuButtonType.CLICK).matcher(message -> {
+                            String eventKey = message.getEventKey();
+                            return WeChatClickTypeEnum.contains(eventKey);
+                }).handler(WeChatSpecialHandler).end();
+
         // 自定义菜单事件
         router.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT)
                 .event(WxConsts.MenuButtonType.CLICK).handler(menuHandler).end();
@@ -160,6 +171,10 @@ public class DefaultMpServiceFactory implements MpServiceFactory {
         router.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT)
                 .event(WxConsts.EventType.LOCATION).handler(locationHandler)
                 .end();
+
+        // 文本消息
+        router.rule().async(false).msgType(WxConsts.XmlMsgType.TEXT)
+                .handler(wxTextMessageHandler).end();
 
         // 接收地理位置消息
         router.rule().async(false).msgType(WxConsts.XmlMsgType.LOCATION)

@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.api.scheme.dto;
 
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,6 +9,7 @@ import lombok.ToString;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -49,7 +49,7 @@ public class CreativeSchemeCopyWritingTemplateDTO implements java.io.Serializabl
      * 文案生成模板变量
      */
     @Schema(description = "文案生成模板变量")
-    private List<VariableItemDTO> variables;
+    private Map<String, Object> variables;
 
     /**
      * 文案生成模板示例

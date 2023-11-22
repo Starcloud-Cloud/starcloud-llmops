@@ -24,4 +24,27 @@ public class XhsCreativeContentExecuteParamsDTO implements java.io.Serializable 
      */
     private XhsBathImageExecuteRequest bathImageExecuteRequest;
 
+    /**
+     * 根据app执行请求生成XhsCreativeContentExecuteParamsDTO对象
+     *
+     * @param appExecuteRequest app执行请求对象
+     * @return 生成的XhsCreativeContentExecuteParamsDTO对象
+     */
+    public static XhsCreativeContentExecuteParamsDTO ofApp(XhsAppExecuteRequest appExecuteRequest) {
+        XhsCreativeContentExecuteParamsDTO executeParamsDTO = new XhsCreativeContentExecuteParamsDTO();
+        executeParamsDTO.setAppExecuteRequest(appExecuteRequest);
+        return executeParamsDTO;
+    }
+
+    /**
+     * 从XhsBathImageExecuteRequest对象中生成XhsCreativeContentExecuteParamsDTO对象
+     *
+     * @param bathImageExecuteRequest XhsBathImageExecuteRequest对象，用于填充XhsCreativeContentExecuteParamsDTO对象
+     * @return XhsCreativeContentExecuteParamsDTO对象
+     */
+    public static XhsCreativeContentExecuteParamsDTO ofBathImage(XhsBathImageExecuteRequest bathImageExecuteRequest) {
+        XhsCreativeContentExecuteParamsDTO executeParamsDTO = new XhsCreativeContentExecuteParamsDTO();
+        executeParamsDTO.setBathImageExecuteRequest(bathImageExecuteRequest);
+        return executeParamsDTO;
+    }
 }

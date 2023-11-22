@@ -5,10 +5,13 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import cn.iocoder.yudao.framework.pay.core.client.PayClientConfig;
 import cn.iocoder.yudao.framework.pay.core.client.PayClientFactory;
-import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.starcloud.ops.business.order.controller.admin.merchant.vo.channel.PayChannelCreateReqVO;
 import com.starcloud.ops.business.order.controller.admin.merchant.vo.channel.PayChannelExportReqVO;
 import com.starcloud.ops.business.order.controller.admin.merchant.vo.channel.PayChannelPageReqVO;
@@ -16,7 +19,7 @@ import com.starcloud.ops.business.order.controller.admin.merchant.vo.channel.Pay
 import com.starcloud.ops.business.order.convert.channel.PayChannelConvert;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayChannelDO;
 import com.starcloud.ops.business.order.dal.mysql.merchant.PayChannelMapper;
-import com.starcloud.ops.business.order.enums.ErrorCodeConstants;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -24,13 +27,16 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.validation.Validator;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.CHANNEL_EXIST_SAME_CHANNEL_ERROR;
-import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.CHANNEL_NOT_EXISTS;
+import static cn.iocoder.yudao.framework.common.util.cache.CacheUtils.buildAsyncReloadingCache;
+import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.CHANNEL_IS_DISABLE;
+import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.CHANNEL_NOT_FOUND;
+import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.CHANNEL_EXIST_SAME_CHANNEL_ERROR;
 
 /**
  * 支付渠道 Service 实现类
@@ -41,6 +47,25 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.CHANNEL_
 @Slf4j
 @Validated
 public class PayChannelServiceImpl implements PayChannelService {
+
+    /**
+     * {@link PayClient} 缓存，通过它异步清空 smsClientFactory
+     */
+    @Getter
+    private final LoadingCache<Long, PayClient> clientCache = buildAsyncReloadingCache(Duration.ofSeconds(10L),
+            new CacheLoader<Long, PayClient>() {
+
+                @Override
+                public PayClient load(Long id) {
+                    // 查询，然后尝试清空
+                    PayChannelDO channel = channelMapper.selectById(id);
+                    if (channel != null) {
+                        payClientFactory.createOrUpdatePayClient(channel.getId(), channel.getCode(), channel.getConfig());
+                    }
+                    return payClientFactory.getPayClient(id);
+                }
+
+            });
 
     /**
      * 缓存菜单的最大更新时间，用于后续的增量轮询，判断是否有更新
@@ -112,7 +137,7 @@ public class PayChannelServiceImpl implements PayChannelService {
 
     private void validateChannelExists(Long id) {
         if (channelMapper.selectById(id) == null) {
-            throw exception(CHANNEL_NOT_EXISTS);
+            throw exception(CHANNEL_NOT_FOUND);
         }
     }
 
@@ -184,7 +209,7 @@ public class PayChannelServiceImpl implements PayChannelService {
         // 得到这个渠道是微信的还是支付宝的
         Class<? extends PayClientConfig> payClass = PayChannelEnum.getByCode(channel.getCode()).getConfigClass();
         if (ObjectUtil.isNull(payClass)) {
-            throw exception(CHANNEL_NOT_EXISTS);
+            throw exception(CHANNEL_NOT_FOUND);
         }
         // TODO @芋艿：不要使用 hutool 的 json 工具，用项目的
         PayClientConfig config = JSONUtil.toBean(configStr, payClass);
@@ -210,10 +235,16 @@ public class PayChannelServiceImpl implements PayChannelService {
 
     private void validPayChannel(PayChannelDO channel) {
         if (channel == null) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_CHANNEL_NOT_FOUND);
+            throw exception(CHANNEL_NOT_FOUND);
         }
         if (CommonStatusEnum.DISABLE.getStatus().equals(channel.getStatus())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_CHANNEL_IS_DISABLE);
+            throw exception(CHANNEL_IS_DISABLE);
         }
+    }
+
+
+    @Override
+    public PayClient getPayClient(Long id) {
+        return clientCache.getUnchecked(id);
     }
 }

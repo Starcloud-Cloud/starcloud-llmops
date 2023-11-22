@@ -113,4 +113,6 @@ public interface DictDataService {
      * @return 字典数据
      */
     DictDataDO parseDictData(String dictType, String label);
+
+    List<DictDataDO> getDictDataList(String dictType);
 }

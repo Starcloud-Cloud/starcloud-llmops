@@ -4,7 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
 import com.starcloud.ops.business.limits.enums.ProductSignEnum;
 import com.starcloud.ops.business.order.api.sign.dto.PaySignCreateReqDTO;

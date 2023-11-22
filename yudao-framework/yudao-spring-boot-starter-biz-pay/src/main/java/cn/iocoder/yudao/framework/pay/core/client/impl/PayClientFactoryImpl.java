@@ -50,6 +50,12 @@ public class PayClientFactoryImpl implements PayClientFactory {
         clientClass.put(ALIPAY_APP, AlipayAppPayClient.class);
         clientClass.put(ALIPAY_PC, AlipayPcPayClient.class);
         clientClass.put(ALIPAY_BAR, AlipayBarPayClient.class);
+        clientClass.put(ALIPAY_AGREEMENT, AlipayAgreementClient.class);
+        clientClass.put(ALIPAY_AGREEMENT_QUERY, AlipayAgreementQueryClient.class);
+        clientClass.put(ALIPAY_AGREEMENT_PAY, AlipayAgreementPayClient.class);
+        clientClass.put(ALIPAY_AGREEMENT_PAY_QUERY, AlipayAgreementPayQueryClient.class);
+
+
         // Mock 支付客户端
         clientClass.put(MOCK, MockPayClient.class);
     }

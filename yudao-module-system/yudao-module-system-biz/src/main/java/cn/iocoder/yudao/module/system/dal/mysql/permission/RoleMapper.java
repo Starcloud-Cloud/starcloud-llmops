@@ -33,6 +33,16 @@ public interface RoleMapper extends BaseMapperX<RoleDO> {
                 .betweenIfPresent(BaseDO::getCreateTime, reqVO.getCreateTime()));
     }
 
+    default RoleDO selectByCode(String code, Long tenantId) {
+        return selectOne(new LambdaQueryWrapperX<RoleDO>()
+                .eq(RoleDO::getCode, code)
+                .eq(RoleDO::getTenantId, tenantId)
+                .eq(RoleDO::getStatus,0)
+                .orderByDesc(RoleDO::getId)
+                .last("limit 1")
+        );
+    }
+
     default RoleDO selectByName(String name) {
         return selectOne(RoleDO::getName, name);
     }

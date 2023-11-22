@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.vo.response;
 
-import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExtendDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativePictureContentDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,10 +29,10 @@ public class XhsCreativeContentResp {
     private List<String> usePicture;
 
     @Schema(description = "图片执行参数")
-    private CreativePlanExecuteDTO pictureParams;
+    private XhsCreativeContentExecuteParamsDTO pictureParams;
 
     @Schema(description = "文案执行参数")
-    private CreativePlanExecuteDTO copyWritingParams;
+    private XhsCreativeContentExecuteParamsDTO copyWritingParams;
 
     /**
      * {@link com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums}

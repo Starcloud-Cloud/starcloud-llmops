@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Schema(description = "管理后台 - 公众号菜单 Response VO")
 @Data
@@ -23,6 +23,6 @@ public class MpMenuRespVO extends MpMenuBaseVO {
     private String appId;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
-    private LocalDateTime createTime;
+    private Date createTime;
 
 }

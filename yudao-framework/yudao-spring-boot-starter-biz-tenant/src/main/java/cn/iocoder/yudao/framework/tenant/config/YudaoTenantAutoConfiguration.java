@@ -17,8 +17,12 @@ import cn.iocoder.yudao.framework.tenant.core.web.TenantContextWebFilter;
 import cn.iocoder.yudao.framework.web.config.WebProperties;
 import cn.iocoder.yudao.framework.web.core.handler.GlobalExceptionHandler;
 import cn.iocoder.yudao.module.system.api.tenant.TenantApi;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,6 +39,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Objects;
 
+@Slf4j
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "yudao.tenant", value = "enable", matchIfMissing = true) // 允许使用 yudao.tenant.enable=false 禁用多租户
 @EnableConfigurationProperties(TenantProperties.class)
@@ -80,10 +85,14 @@ public class YudaoTenantAutoConfiguration {
     public FilterRegistrationBean<TenantSecurityWebFilter> tenantSecurityWebFilter(TenantProperties tenantProperties,
                                                                                    WebProperties webProperties,
                                                                                    GlobalExceptionHandler globalExceptionHandler,
-                                                                                   TenantFrameworkService tenantFrameworkService) {
+                                                                                   TenantFrameworkService tenantFrameworkService,
+                                                                                   AdminUserApi adminUserApi) {
+
+
+        log.info("====tenantProperties:" + tenantProperties);
         FilterRegistrationBean<TenantSecurityWebFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new TenantSecurityWebFilter(tenantProperties, webProperties,
-                globalExceptionHandler, tenantFrameworkService));
+                globalExceptionHandler, tenantFrameworkService,adminUserApi));
         registrationBean.setOrder(WebFilterOrderEnum.TENANT_SECURITY_FILTER);
         return registrationBean;
     }

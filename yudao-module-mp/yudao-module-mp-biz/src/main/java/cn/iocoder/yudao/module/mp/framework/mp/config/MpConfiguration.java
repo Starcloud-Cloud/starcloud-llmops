@@ -32,23 +32,23 @@ public class MpConfiguration {
         return new RedisTemplateWxRedisOps(stringRedisTemplate);
     }
 
-    @Bean
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    public MpServiceFactory mpServiceFactory(RedisTemplateWxRedisOps redisTemplateWxRedisOps,
-                                             WxMpProperties wxMpProperties,
-                                             MessageReceiveHandler messageReceiveHandler,
-                                             KfSessionHandler kfSessionHandler,
-                                             StoreCheckNotifyHandler storeCheckNotifyHandler,
-                                             MenuHandler menuHandler,
-                                             NullHandler nullHandler,
-                                             SubscribeHandler subscribeHandler,
-                                             UnsubscribeHandler unsubscribeHandler,
-                                             LocationHandler locationHandler,
-                                             ScanHandler scanHandler,
-                                             MessageAutoReplyHandler messageAutoReplyHandler) {
-        return new DefaultMpServiceFactory(redisTemplateWxRedisOps, wxMpProperties,
-                messageReceiveHandler, kfSessionHandler, storeCheckNotifyHandler, menuHandler,
-                nullHandler, subscribeHandler, unsubscribeHandler, locationHandler, scanHandler, messageAutoReplyHandler);
-    }
+//    @Bean
+//    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+//    public MpServiceFactory mpServiceFactory(RedisTemplateWxRedisOps redisTemplateWxRedisOps,
+//                                             WxMpProperties wxMpProperties,
+//                                             MessageReceiveHandler messageReceiveHandler,
+//                                             KfSessionHandler kfSessionHandler,
+//                                             StoreCheckNotifyHandler storeCheckNotifyHandler,
+//                                             MenuHandler menuHandler,
+//                                             NullHandler nullHandler,
+//                                             SubscribeHandler subscribeHandler,
+//                                             UnsubscribeHandler unsubscribeHandler,
+//                                             LocationHandler locationHandler,
+//                                             ScanHandler scanHandler,
+//                                             MessageAutoReplyHandler messageAutoReplyHandler) {
+//        return new DefaultMpServiceFactory(redisTemplateWxRedisOps, wxMpProperties,
+//                messageReceiveHandler, kfSessionHandler, storeCheckNotifyHandler, menuHandler,
+//                nullHandler, subscribeHandler, unsubscribeHandler, locationHandler, scanHandler, messageAutoReplyHandler);
+//    }
 
 }

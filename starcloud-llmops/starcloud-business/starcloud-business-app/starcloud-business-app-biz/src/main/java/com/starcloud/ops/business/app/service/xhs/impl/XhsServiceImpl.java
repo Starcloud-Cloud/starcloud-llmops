@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.xhs.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -370,17 +371,39 @@ public class XhsServiceImpl implements XhsService {
     @Override
     public List<XhsImageExecuteResponse> bathImageExecute(XhsBathImageExecuteRequest request) {
         log.info("小红书执行批量生成图片开始");
+        List<String> imageUrls = request.getImageUrls();
+        if (CollectionUtil.isEmpty(imageUrls)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400201, "图片URL不能为空！"));
+        }
+
         List<XhsImageExecuteRequest> imageRequestList = request.getImageRequests();
         if (CollectionUtil.isEmpty(imageRequestList)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
         }
         // 图片执行结果
         List<XhsImageExecuteResponse> imageResponses = Lists.newArrayList();
-        for (XhsImageExecuteRequest imageRequest : imageRequestList) {
-            imageRequest.setImageTemplate(imageRequest.getImageTemplate());
-            imageRequest.setIndex(imageRequest.getIndex());
-            imageRequest.setIsMain(imageRequest.getIsMain());
-            imageRequest.setParams(imageRequest.getParams());
+        for (int i = 0; i < imageRequestList.size(); i++) {
+
+            XhsImageExecuteRequest imageRequest = imageRequestList.get(i);
+            imageRequest.setIndex(i + 1);
+            imageRequest.setIsMain(i == 0 ? Boolean.TRUE : Boolean.FALSE);
+
+            // 处理参数，随机取一个图片URL。
+            Map<String, Object> handlerParams = imageRequest.getParams();
+            for (Map.Entry<String, Object> entry : imageRequest.getParams().entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                // 如果是 IMAGE_VARIABLE，随机取一个图片URL
+                if ("IMAGE_VARIABLE".equals(value)) {
+                    int randomInt = RandomUtil.randomInt(imageUrls.size());
+                    handlerParams.put(key, imageUrls.get(randomInt));
+                } else {
+                    handlerParams.put(key, value);
+                }
+            }
+
+            imageRequest.setParams(handlerParams);
+
             XhsImageExecuteResponse response = imageExecute(imageRequest);
             imageResponses.add(response);
         }

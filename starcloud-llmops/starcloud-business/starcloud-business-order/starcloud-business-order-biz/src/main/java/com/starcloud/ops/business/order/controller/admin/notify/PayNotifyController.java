@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
+import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.CHANNEL_NOT_FOUND;
 import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_CHANNEL_CLIENT_NOT_FOUND;
 
 @Tag(name = "星河云海 - 支付通知")
@@ -78,7 +79,7 @@ public class PayNotifyController {
         PayClient payClient = payClientFactory.getPayClient(channelId);
         if (payClient == null) {
             log.error("[notifyCallback][渠道编号({}) 找不到对应的支付客户端]", channelId);
-            throw exception(PAY_CHANNEL_CLIENT_NOT_FOUND);
+            throw exception(CHANNEL_NOT_FOUND);
         }
 
         // 2. 解析通知数据

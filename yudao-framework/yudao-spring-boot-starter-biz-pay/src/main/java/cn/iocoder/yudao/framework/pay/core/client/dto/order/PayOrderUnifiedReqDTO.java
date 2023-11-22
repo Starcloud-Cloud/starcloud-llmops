@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.framework.pay.core.client.dto.order;
 
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderDisplayModeEnum;
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.URL;
@@ -88,5 +89,17 @@ public class PayOrderUnifiedReqDTO {
      * 枚举 {@link PayOrderDisplayModeEnum}
      */
     private String displayMode;
+
+
+    // ========== 支付宝周期扣款参数 ==========
+
+    /**
+     * 支付宝商家扣款参数
+     */
+    private String bizContent;
+
+
+
+
 
 }

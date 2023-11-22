@@ -519,11 +519,6 @@ public interface ErrorCodeConstants {
     ErrorCode CREATIVE_PLAN_SCHEME_NOT_EMPTY = new ErrorCode(350100128, "创作计划的创作方案不能为空，请检查您的创作计划是否选择创作方案！");
 
     /**
-     * 创作计划的参数不能为空
-     */
-    ErrorCode CREATIVE_PLAN_PARAM_MAP_NOT_EMPTY = new ErrorCode(350100128, "创作计划的参数不能为空，请检查您的创作计划是否输入创作计划变量！");
-
-    /**
      * 创作方案不存在
      */
     ErrorCode CREATIVE_PLAN_SCHEME_NOT_EXIST = new ErrorCode(350100129, "创作方案不存在，请重新选择创作方案后重试！");
