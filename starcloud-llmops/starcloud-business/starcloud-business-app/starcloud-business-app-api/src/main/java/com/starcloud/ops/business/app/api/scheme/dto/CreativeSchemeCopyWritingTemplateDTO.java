@@ -43,5 +43,5 @@ public class CreativeSchemeCopyWritingTemplateDTO implements java.io.Serializabl
      * 文案生成模板示例
      */
     @Schema(description = "文案生成模板示例")
-    private List<CopyWritingExample> example;
+    private List<CopyWritingContentDTO> example;
 }

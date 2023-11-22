@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.api.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageStyleExecuteDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
@@ -25,7 +26,6 @@ import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsGenerateContentDTO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -302,15 +302,13 @@ public class CreativeUtil {
      */
     public static List<XhsAppExecuteResponse> handleAnswer(String answer, String appUid, Integer n) {
         if (n == 1) {
-            XhsGenerateContentDTO generateContent = JSONUtil.toBean(answer.trim(), XhsGenerateContentDTO.class);
-            if (Objects.isNull(generateContent) || StringUtils.isBlank(generateContent.getTitle()) || StringUtils.isBlank(generateContent.getContent())) {
+            CopyWritingContentDTO copyWriting = JSONUtil.toBean(answer.trim(), CopyWritingContentDTO.class);
+            if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
                 log.error("生成格式不正确：原始数据：{}", answer);
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR);
             } else {
-                String title = generateContent.getTitle();
-                String text = generateContent.getContent();
-                log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 标题: {}, 内容: {}", appUid, n, title, text);
-                return XhsAppExecuteResponse.success(appUid, title, text, 1);
+                log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 文案内容: {}", appUid, n, JSONUtil.toJsonStr(copyWriting));
+                return XhsAppExecuteResponse.success(appUid, copyWriting, n);
             }
         } else {
             TypeReference<List<ChatCompletionChoice>> typeReference = new TypeReference<List<ChatCompletionChoice>>() {
@@ -338,18 +336,17 @@ public class CreativeUtil {
                     appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_NOT_EXIST.getMsg());
                     list.add(appExecuteResponse);
                 } else {
-                    XhsGenerateContentDTO generateContent = JSONUtil.toBean(JSONUtil.parseObj(content), XhsGenerateContentDTO.class);
-                    if (Objects.isNull(generateContent) || StringUtils.isBlank(generateContent.getTitle()) || StringUtils.isBlank(generateContent.getContent())) {
+                    CopyWritingContentDTO copyWriting = JSONUtil.toBean(JSONUtil.parseObj(content), CopyWritingContentDTO.class);
+                    if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
                         log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 原数据: {}", i + 1, appUid, n, content);
                         appExecuteResponse.setSuccess(Boolean.FALSE);
                         appExecuteResponse.setErrorCode(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getCode().toString());
                         appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getMsg());
                         list.add(appExecuteResponse);
                     } else {
-                        log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 标题: {}, 内容: {}", i + 1, appUid, n, generateContent.getTitle(), generateContent.getContent());
+                        log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 文案信息: {}", i + 1, appUid, n, JSONUtil.toJsonStr(copyWriting));
                         appExecuteResponse.setSuccess(Boolean.TRUE);
-                        appExecuteResponse.setTitle(generateContent.getTitle());
-                        appExecuteResponse.setContent(generateContent.getContent());
+                        appExecuteResponse.setCopyWriting(copyWriting);
                         list.add(appExecuteResponse);
                     }
                 }

@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.scheme.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeReferenceDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.ImageExampleDTO;
@@ -84,7 +84,7 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
      * 创作方案文案示例
      */
     @Schema(description = "创作方案文案示例")
-    private List<CopyWritingExample> copyWritingExample;
+    private List<CopyWritingContentDTO> copyWritingExample;
 
     /**
      * 创作方案图片示例

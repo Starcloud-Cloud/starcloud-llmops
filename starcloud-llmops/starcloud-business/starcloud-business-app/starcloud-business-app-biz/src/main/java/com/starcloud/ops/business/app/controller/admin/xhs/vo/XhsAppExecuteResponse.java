@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.vo;
 
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,16 +36,10 @@ public class XhsAppExecuteResponse implements java.io.Serializable {
     private String uid;
 
     /**
-     * 生成标题
+     * 文案数据
      */
-    @Schema(description = "生成标题")
-    private String title;
-
-    /**
-     * 应用生成参数
-     */
-    @Schema(description = "返回数据")
-    private String content;
+    @Schema(description = "文案数据")
+    private CopyWritingContentDTO copyWriting;
 
     /**
      * 错误码
@@ -61,32 +56,29 @@ public class XhsAppExecuteResponse implements java.io.Serializable {
     /**
      * 成功
      *
-     * @param uid   appUid
-     * @param title 标题
-     * @param content  内容
+     * @param uid         appUid
+     * @param copyWriting 文案对象
      * @return 结果
      */
-    public static XhsAppExecuteResponse success(String uid, String title, String content) {
+    public static XhsAppExecuteResponse success(String uid, CopyWritingContentDTO copyWriting) {
         XhsAppExecuteResponse response = new XhsAppExecuteResponse();
         response.setSuccess(Boolean.TRUE);
         response.setUid(uid);
-        response.setTitle(title);
-        response.setContent(content);
+        response.setCopyWriting(copyWriting);
         return response;
     }
 
     /**
      * 成功
      *
-     * @param uid   appUid
-     * @param title 标题
-     * @param content  内容
+     * @param uid         appUid
+     * @param copyWriting 文案对象
      * @return 结果
      */
-    public static List<XhsAppExecuteResponse> success(String uid, String title, String content, Integer n) {
+    public static List<XhsAppExecuteResponse> success(String uid, CopyWritingContentDTO copyWriting, Integer n) {
         List<XhsAppExecuteResponse> responses = new java.util.ArrayList<>();
         for (int i = 0; i < n; i++) {
-            responses.add(success(uid, title, content));
+            responses.add(success(uid, copyWriting));
         }
         return responses;
     }

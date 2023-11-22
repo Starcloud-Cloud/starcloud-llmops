@@ -13,7 +13,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeImageTemplateDTO;
@@ -287,7 +287,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @return 文案示例
      */
     @Override
-    public List<CopyWritingExample> createExample(CreativeSchemeReqVO request) {
+    public List<CopyWritingContentDTO> createExample(CreativeSchemeReqVO request) {
         AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(executeApp).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
@@ -310,16 +310,16 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         }
 
         String errorMsg = "";
-        List<CopyWritingExample> list = Lists.newArrayList();
+        List<CopyWritingContentDTO> list = Lists.newArrayList();
         for (XhsAppExecuteResponse response : responses) {
-            CopyWritingExample copyWritingExample = new CopyWritingExample();
-            if (!response.getSuccess() || StringUtils.isBlank(response.getTitle()) || StringUtils.isBlank(response.getContent())) {
+            if (!response.getSuccess() ||
+                    Objects.isNull(response.getCopyWriting()) ||
+                    StringUtils.isBlank(response.getCopyWriting().getTitle()) ||
+                    StringUtils.isBlank(response.getCopyWriting().getContent())) {
                 errorMsg = response.getErrorMsg();
                 continue;
             }
-            copyWritingExample.setTitle(response.getTitle());
-            copyWritingExample.setContent(response.getContent());
-            list.add(copyWritingExample);
+            list.add(response.getCopyWriting());
         }
 
         if (CollectionUtil.isEmpty(list)) {
@@ -361,7 +361,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         AppValidate.notNull(copyWritingTemplate, ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, request.getName());
 
         // 设置创作方案的示例文案
-        List<CopyWritingExample> copyWritingExamples = Optional.ofNullable(copyWritingTemplate.getExample()).orElse(Lists.newArrayList());
+        List<CopyWritingContentDTO> copyWritingExamples = Optional.ofNullable(copyWritingTemplate.getExample()).orElse(Lists.newArrayList());
         scheme.setCopyWritingExample(JSONUtil.toJsonStr(copyWritingExamples));
 
         // 图片模板不能为空

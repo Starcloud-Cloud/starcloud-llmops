@@ -1,15 +1,17 @@
 package com.starcloud.ops.business.app.service.xhs.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.IdUtil;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
@@ -32,7 +34,6 @@ import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.FastPosterFactory;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.business.app.util.CreativeUtil;
-import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import lombok.extern.slf4j.Slf4j;
 import net.fastposter.client.FastposterClient;
@@ -232,8 +233,7 @@ public class XhsServiceImpl implements XhsService {
                 String contentUid = Optional.ofNullable(value.get(i)).map(XhsAppCreativeExecuteRequest::getCreativeContentUid).orElse("");
                 response.setUid(item.getUid());
                 response.setSuccess(item.getSuccess());
-                response.setTitle(item.getTitle());
-                response.setContent(item.getContent());
+                response.setCopyWriting(item.getCopyWriting());
                 response.setErrorCode(item.getErrorCode());
                 response.setErrorMsg(item.getErrorMsg());
                 response.setCreativeContentUid(contentUid);
@@ -267,33 +267,46 @@ public class XhsServiceImpl implements XhsService {
             }
 
             // 获取图片模板
-            List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
-            Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(templateList).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
-            if (!optional.isPresent()) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
-            }
-            XhsImageTemplateDTO template = optional.get();
-            if (StringUtils.isBlank(template.getToken()) || StringUtils.isBlank(template.getPosterId())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "系统配置异常！请联系管理员！"));
-            }
+//            List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
+//            Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(templateList).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
+//            if (!optional.isPresent()) {
+//                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
+//            }
+//            XhsImageTemplateDTO template = optional.get();
+//            if (StringUtils.isBlank(template.getToken()) || StringUtils.isBlank(template.getPosterId())) {
+//                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "系统配置异常！请联系管理员！"));
+//            }
 
-            FastposterClient fastposterClient = getFastPosterClient(imageTemplate);
+            Map<String, Object> variables = Maps.newHashMap();
+            variables.put("title", "测试标题");
+            variables.put("des", "测试内容");
+            variables.put("people", "http://khs-prod-imgs.oss-cn-hangzhou.aliyuncs.com/1700546743579.png");
+            HttpResponse execute = HttpUtil.createPost("http://cn-test.poster-ui.hotsalestar.com/api/poster")
+                    .header("Content-Type", "application/json")
+                    .body(JSONUtil.createObj().set("id", "1").set("params", variables).toString())
+                    .execute();
+            String body = execute.body();
+
+            JSONObject jsonObject = JSONUtil.parseObj(body);
+
+
+            //FastposterClient fastposterClient = getFastPosterClient(imageTemplate);
             // 执行生成图片
-            log.info("小红书执行生成图片调用 FastPoster 开始!");
-            byte[] bytes = fastposterClient.buildPoster(template.getPosterId()).params(params).build().bytes();
-            if (Objects.isNull(bytes)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "生成图片失败！"));
-            }
-            log.info("小红书执行生成图片成功，调用 FastPoster 成功!");
-
-            // 上传图片
-            UploadImageInfoDTO image = ImageUploadUtils.uploadImage(IdUtil.fastSimpleUUID() + ".png", ImageUploadUtils.UPLOAD, bytes);
-            log.info("小红书执行生成图片，上传图片到OSS成功，url：{}", image.getUrl());
-            response.setSuccess(Boolean.TRUE);
-            response.setIsMain(request.getIsMain());
-            response.setIndex(request.getIndex());
-            response.setUrl(image.getUrl());
-            log.info("小红书执行生成图片成功，imageTemplate：{}，url：{}\n", imageTemplate, image.getUrl());
+//            log.info("小红书执行生成图片调用 FastPoster 开始!");
+//            byte[] bytes = fastposterClient.buildPoster(template.getPosterId()).params(params).build().bytes();
+//            if (Objects.isNull(bytes)) {
+//                throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "生成图片失败！"));
+//            }
+//            log.info("小红书执行生成图片成功，调用 FastPoster 成功!");
+//
+//            // 上传图片
+//            UploadImageInfoDTO image = ImageUploadUtils.uploadImage(IdUtil.fastSimpleUUID() + ".png", ImageUploadUtils.UPLOAD, bytes);
+//            log.info("小红书执行生成图片，上传图片到OSS成功，url：{}", image.getUrl());
+//            response.setSuccess(Boolean.TRUE);
+//            response.setIsMain(request.getIsMain());
+//            response.setIndex(request.getIndex());
+//            response.setUrl(image.getUrl());
+//            log.info("小红书执行生成图片成功，imageTemplate：{}，url：{}\n", imageTemplate, image.getUrl());
         } catch (ServiceException exception) {
             log.info("小红书生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
             response.setErrorCode(exception.getCode().toString());

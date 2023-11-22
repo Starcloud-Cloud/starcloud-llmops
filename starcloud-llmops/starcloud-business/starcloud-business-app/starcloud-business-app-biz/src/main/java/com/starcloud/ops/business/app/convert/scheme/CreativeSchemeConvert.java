@@ -6,7 +6,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeReferenceDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.ImageExampleDTO;
@@ -98,7 +98,7 @@ public interface CreativeSchemeConvert {
             creativeSchemeResponse.setConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
         }
         if (StringUtils.isNotBlank(creativeScheme.getCopyWritingExample())) {
-            TypeReference<List<CopyWritingExample>> typeReference = new TypeReference<List<CopyWritingExample>>() {
+            TypeReference<List<CopyWritingContentDTO>> typeReference = new TypeReference<List<CopyWritingContentDTO>>() {
             };
             creativeSchemeResponse.setCopyWritingExample(JSONUtil.toBean(creativeScheme.getCopyWritingExample(), typeReference, Boolean.TRUE));
         }

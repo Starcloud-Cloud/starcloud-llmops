@@ -8,6 +8,7 @@ import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageStyleExecuteDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
@@ -126,9 +127,16 @@ public class XlsCreativeExecuteManager {
                     continue;
                 }
 
-                contentDO.setCopyWritingContent(executeResponse.getContent());
-                contentDO.setCopyWritingTitle(executeResponse.getTitle());
-                contentDO.setCopyWritingCount(executeResponse.getContent().length());
+                CopyWritingContentDTO copyWriting = executeResponse.getCopyWriting();
+                if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
+                    result.put(contentDO.getId(), false);
+                    updateDO(contentDO, "文案内容为空", contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_ERROR);
+                    continue;
+                }
+
+                contentDO.setCopyWritingContent(copyWriting.getContent());
+                contentDO.setCopyWritingTitle(copyWriting.getTitle());
+                contentDO.setCopyWritingCount(copyWriting.getContent().length());
                 contentDO.setStartTime(start);
                 contentDO.setEndTime(end);
                 contentDO.setExecuteTime(executeTime);

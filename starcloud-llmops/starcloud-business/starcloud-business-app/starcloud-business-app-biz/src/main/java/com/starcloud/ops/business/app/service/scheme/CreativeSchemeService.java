@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.service.scheme;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
@@ -111,6 +111,6 @@ public interface CreativeSchemeService {
      * @param request 创作方案需求请求
      * @return 文案示例
      */
-    List<CopyWritingExample> createExample(CreativeSchemeReqVO request);
+    List<CopyWritingContentDTO> createExample(CreativeSchemeReqVO request);
 
 }

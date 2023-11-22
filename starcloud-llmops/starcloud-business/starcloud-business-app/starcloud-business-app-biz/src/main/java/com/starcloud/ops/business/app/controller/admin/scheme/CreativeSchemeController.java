@@ -5,7 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
@@ -133,7 +133,7 @@ public class CreativeSchemeController {
     @PostMapping(value = "/example")
     @Operation(summary = "小红书文案测试生成")
     @ApiOperationSupport(order = 110, author = "nacoyer")
-    public CommonResult<List<CopyWritingExample>> createExample(@Validated @RequestBody CreativeSchemeReqVO executeRequest) {
+    public CommonResult<List<CopyWritingContentDTO>> createExample(@Validated @RequestBody CreativeSchemeReqVO executeRequest) {
         return CommonResult.success(creativeSchemeService.createExample(executeRequest));
     }
 
