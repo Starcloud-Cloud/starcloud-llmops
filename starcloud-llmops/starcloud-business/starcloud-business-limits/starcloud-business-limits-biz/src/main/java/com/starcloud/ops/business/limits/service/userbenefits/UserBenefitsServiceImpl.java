@@ -850,8 +850,9 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
     public Boolean addBenefitsAndRole(String benefitsType, Long userId, String roleCode) {
         // 增加用户权益
         this.addUserBenefitsByStrategyType(benefitsType, userId);
+        // FIXME: 2023/11/22  合并后恢复
         // 设置用户角色
-        permissionService.addUserRole(userId, roleCode);
+//        permissionService.addUserRole(userId, roleCode);
 
         return Boolean.TRUE;
     }
@@ -1070,50 +1071,50 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                     .map(UserBenefitsStrategyDO::getId)
                     .collect(Collectors.toList());
 
-
-            for (UserBenefitsDO obj : resultList) {
-                List<UserBenefitsDO> payBenefitsByUserId = getPayBenefitsByUserId(Long.valueOf(obj.getUserId()));
-
-                List<UserBenefitsDO> plusBenefits = payBenefitsByUserId.stream()
-                        .filter(o -> plusConfigIds.contains(o.getStrategyId()))
-                        .collect(Collectors.toList());
-
-                if (plusBenefits.isEmpty()) {
-                    log.info("用户【{}】权益高级版过期，清除 PLUS角色", obj.getUserId());
-                    RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PLUS.getRoleCode());
-                    permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
-                    // 设置用户角色
-                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
-                }
-
-                List<UserBenefitsDO> proBenefits = payBenefitsByUserId.stream()
-                        .filter(o -> proConfigIds.contains(o.getStrategyId()))
-                        .collect(Collectors.toList());
-
-                if (proBenefits.isEmpty()) {
-                    log.info("用户【{}】权益团队版过期，清除 PRO角色", obj.getUserId());
-                    RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PRO.getRoleCode());
-                    permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
-                    // 设置用户角色
-                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
-                }
-
-                List<UserBenefitsDO> basicBenefits = payBenefitsByUserId.stream()
-                        .filter(o -> basicConfigIds.contains(o.getStrategyId()))
-                        .collect(Collectors.toList());
-
-                if (basicBenefits.isEmpty()) {
-                    log.info("用户【{}】权益基础版过期，清除 Basic角色", obj.getUserId());
-                    RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.BASIC.getRoleCode());
-                    permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
-                    // 设置用户角色
-                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
-                }
-
-                userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
-                        .eq(UserBenefitsDO::getId, obj.getId())
-                        .set(UserBenefitsDO::getEnabled, 0));
-            }
+            // FIXME: 2023/11/22  合并后恢复
+//            for (UserBenefitsDO obj : resultList) {
+//                List<UserBenefitsDO> payBenefitsByUserId = getPayBenefitsByUserId(Long.valueOf(obj.getUserId()));
+//
+//                List<UserBenefitsDO> plusBenefits = payBenefitsByUserId.stream()
+//                        .filter(o -> plusConfigIds.contains(o.getStrategyId()))
+//                        .collect(Collectors.toList());
+//
+//                if (plusBenefits.isEmpty()) {
+//                    log.info("用户【{}】权益高级版过期，清除 PLUS角色", obj.getUserId());
+//                    RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PLUS.getRoleCode());
+//                    permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+//                    // 设置用户角色
+//                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+//                }
+//
+//                List<UserBenefitsDO> proBenefits = payBenefitsByUserId.stream()
+//                        .filter(o -> proConfigIds.contains(o.getStrategyId()))
+//                        .collect(Collectors.toList());
+//
+//                if (proBenefits.isEmpty()) {
+//                    log.info("用户【{}】权益团队版过期，清除 PRO角色", obj.getUserId());
+//                    RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.PRO.getRoleCode());
+//                    permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+//                    // 设置用户角色
+//                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+//                }
+//
+//                List<UserBenefitsDO> basicBenefits = payBenefitsByUserId.stream()
+//                        .filter(o -> basicConfigIds.contains(o.getStrategyId()))
+//                        .collect(Collectors.toList());
+//
+//                if (basicBenefits.isEmpty()) {
+//                    log.info("用户【{}】权益基础版过期，清除 Basic角色", obj.getUserId());
+//                    RoleDO roleByCode = roleService.getRoleByCode(UserLevelEnums.BASIC.getRoleCode());
+//                    permissionService.processRoleDeleted(Long.valueOf(obj.getUserId()), roleByCode.getId());
+//                    // 设置用户角色
+//                    permissionService.addUserRole(Long.valueOf(obj.getUserId()), UserLevelEnums.FREE.getRoleCode());
+//                }
+//
+//                userBenefitsMapper.update(null, Wrappers.lambdaUpdate(UserBenefitsDO.class)
+//                        .eq(UserBenefitsDO::getId, obj.getId())
+//                        .set(UserBenefitsDO::getEnabled, 0));
+//            }
 
         } else {
             log.info("当前时间段没有获取到已经过期的【支付权益】数据，停止执行权益过期任务");

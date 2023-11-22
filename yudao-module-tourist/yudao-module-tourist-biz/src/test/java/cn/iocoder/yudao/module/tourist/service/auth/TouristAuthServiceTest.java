@@ -31,17 +31,17 @@ import static org.mockito.Mockito.when;
 
 // TODO @芋艿：单测的 review，等逻辑都达成一致后
 /**
- * {@link cn.iocoder.yudao.module.tourist.service.auth.TouristService} 的单元测试类
+ * {@link TouristAuthService} 的单元测试类
  *
  * @author 宋天
  */
-@Import({TouristServiceImpl.class, YudaoRedisAutoConfiguration.class})
-public class TouristServiceTest extends BaseDbAndRedisUnitTest {
+@Import({TouristAuthServiceImpl.class, YudaoRedisAutoConfiguration.class})
+public class TouristAuthServiceTest extends BaseDbAndRedisUnitTest {
 
     // TODO @芋艿：登录相关的单测，待补全
 
     @Resource
-    private TouristServiceImpl authService;
+    private TouristAuthServiceImpl authService;
 
     @MockBean
     private TouristService userService;

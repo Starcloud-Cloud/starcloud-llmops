@@ -7,7 +7,7 @@ import cn.iocoder.yudao.framework.security.config.SecurityProperties;
 import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.tourist.controller.app.auth.vo.*;
-import cn.iocoder.yudao.module.tourist.service.auth.TouristService;
+import cn.iocoder.yudao.module.tourist.service.auth.TouristAuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -32,7 +32,7 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 public class AppAuthController {
 
     @Resource
-    private TouristService authService;
+    private TouristAuthService authService;
 
     @Resource
     private SecurityProperties securityProperties;

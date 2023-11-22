@@ -11,7 +11,7 @@ import javax.validation.Valid;
  *
  * @author 芋道源码
  */
-public interface TouristService {
+public interface TouristAuthService {
 
     /**
      * 手机 + 密码登录

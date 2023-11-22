@@ -10,6 +10,7 @@ import cn.iocoder.yudao.module.tourist.controller.app.user.vo.AppUserUpdateMobil
 import cn.iocoder.yudao.module.tourist.dal.dataobject.user.TouristDO;
 import cn.iocoder.yudao.module.tourist.dal.mysql.user.TouristMapper;
 import cn.iocoder.yudao.module.system.api.sms.SmsCodeApi;
+import cn.iocoder.yudao.module.tourist.service.auth.TouristAuthServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -46,7 +47,7 @@ public class TouristServiceImplTest extends BaseDbAndRedisUnitTest {
     private TouristMapper userMapper;
 
     @MockBean
-    private cn.iocoder.yudao.module.tourist.service.auth.TouristServiceImpl authService;
+    private TouristAuthServiceImpl authService;
 
     @MockBean
     private PasswordEncoder passwordEncoder;

@@ -95,11 +95,4 @@ public class FileServiceImpl implements FileService {
         return client.getContent(path);
     }
 
-    @Override
-    public byte[] getContent(String path) throws Exception {
-        FileClient client = fileConfigService.getMasterFileClient();
-        Assert.notNull(client, "客户端 不能为空");
-        return client.getContent(path);
-    }
-
 }

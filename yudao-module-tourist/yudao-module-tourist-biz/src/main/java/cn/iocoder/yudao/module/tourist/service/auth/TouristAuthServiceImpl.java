@@ -46,7 +46,7 @@ import static cn.iocoder.yudao.module.tourist.enums.ErrorCodeConstants.*;
  */
 @Service
 @Slf4j
-public class TouristServiceImpl implements cn.iocoder.yudao.module.tourist.service.auth.TouristService {
+public class TouristAuthServiceImpl implements TouristAuthService {
 
     @Resource
     private TouristService userService;
@@ -106,8 +106,7 @@ public class TouristServiceImpl implements cn.iocoder.yudao.module.tourist.servi
     @Override
     public AppAuthLoginRespVO socialLogin(AppAuthSocialLoginReqVO reqVO) {
         // 使用 code 授权码，进行登录。然后，获得到绑定的用户编号
-        Long userId = socialUserApi.getBindUserId(UserTypeEnum.MEMBER.getValue(), reqVO.getType(),
-                reqVO.getCode(), reqVO.getState());
+        Long userId =  socialUserApi.getSocialUser(UserTypeEnum.MEMBER.getValue(), reqVO.getType(),reqVO.getCode(),  reqVO.getState()).getUserId();
         if (userId == null) {
             throw exception(AUTH_THIRD_LOGIN_NOT_BIND);
         }
@@ -156,7 +155,8 @@ public class TouristServiceImpl implements cn.iocoder.yudao.module.tourist.servi
 
     @Override
     public String getSocialAuthorizeUrl(Integer type, String redirectUri) {
-        return socialUserApi.getAuthorizeUrl(type, redirectUri);
+        return socialUserApi.getSocialUser(type, null,null,null).getOpenid();
+        // return socialUserApi.getAuthorizeUrl(type, redirectUri);
     }
 
     private TouristDO login0(String mobile, String password) {
@@ -225,7 +225,7 @@ public class TouristServiceImpl implements cn.iocoder.yudao.module.tourist.servi
         TouristDO userDO = checkUserIfExists(reqVO.getMobile());
 
         // 使用验证码
-        smsCodeApi.useSmsCode(AuthConvert.INSTANCE.convert(reqVO, SmsSceneEnum.MEMBER_FORGET_PASSWORD,
+        smsCodeApi.useSmsCode(AuthConvert.INSTANCE.convert(reqVO, SmsSceneEnum.MEMBER_RESET_PASSWORD,
                 getClientIP()));
 
         // 更新密码

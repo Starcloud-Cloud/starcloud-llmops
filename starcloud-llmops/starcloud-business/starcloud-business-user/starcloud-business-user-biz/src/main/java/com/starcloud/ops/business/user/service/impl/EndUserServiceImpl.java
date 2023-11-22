@@ -24,7 +24,7 @@ import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getCli
 
 /**
  * 使用若以的表和逻辑，实现一个简单的游客状态的记录功能
- * 1，根据游客访问渠道（网页，微信对话，钉钉等唯一标识)，直接生成一个会员 参考 TouristServiceImpl
+ * 1，根据游客访问渠道（网页，微信对话，钉钉等唯一标识)，直接生成一个会员 参考 TouristAuthServiceImpl
  * 2，生成令牌和登录记录
  */
 @Service

@@ -45,6 +45,4 @@ public interface FileService {
      */
     byte[] getFileContent(Long configId, String path) throws Exception;
 
-    byte[] getContent(String path) throws Exception;
 }
-
