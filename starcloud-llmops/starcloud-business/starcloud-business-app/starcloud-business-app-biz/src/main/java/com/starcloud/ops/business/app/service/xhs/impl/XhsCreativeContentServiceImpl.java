@@ -35,8 +35,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_GREATER_RETRY;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECTURE_ERROR;
 
+/**
+ * @author admin
+ */
 @Service
 @Slf4j
 public class XhsCreativeContentServiceImpl implements XhsCreativeContentService {
@@ -74,9 +79,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         log.info("开始执行 {} 任务 {}", type, ids);
         try {
             List<XhsCreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
-                    .stream().filter(content -> {
-                        return !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus());
-                    }).collect(Collectors.toList());
+                    .stream().filter(content -> !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())).collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(contentList)) {
                 return Collections.emptyMap();
@@ -185,7 +188,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     public List<XhsCreativeContentResp> bound(List<String> businessUids) {
         List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids);
         if (xhsCreativeContents.size() < businessUids.size()) {
-            throw exception(new ErrorCode(500,"存在已绑定的创作内容"));
+            throw exception(new ErrorCode(500, "存在已绑定的创作内容"));
         }
         creativeContentMapper.claim(businessUids);
         return XhsCreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);

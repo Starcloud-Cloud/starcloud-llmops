@@ -32,6 +32,7 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Mapper
@@ -141,7 +142,10 @@ public interface XhsCreativeContentConvert {
                     int randomInt = RandomUtil.randomInt(useImageList.size());
                     params.put(variableItem.getField(), useImageList.get(randomInt));
                 } else {
-                    params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue()));
+                    if (Objects.isNull(variableItem.getValue())) {
+                        params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
+                    }
+                    params.put(variableItem.getField(), variableItem.getValue());
                 }
             }
 

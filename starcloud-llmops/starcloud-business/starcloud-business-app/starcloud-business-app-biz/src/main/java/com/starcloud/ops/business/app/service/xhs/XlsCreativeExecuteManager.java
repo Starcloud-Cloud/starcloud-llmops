@@ -33,12 +33,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * @author admin
+ */
 @Component
 @Slf4j
 public class XlsCreativeExecuteManager {
@@ -63,7 +67,7 @@ public class XlsCreativeExecuteManager {
         List<Long> ids = xhsCreativeContentDOList.stream().map(XhsCreativeContentDO::getId).sorted().collect(Collectors.toList());
         StringJoiner sj = new StringJoiner("-");
         ids.forEach(id -> sj.add(id.toString()));
-        String key = "xhs-pic-" + sj.toString();
+        String key = "xhs-pic-" + sj;
         RLock lock = redissonClient.getLock(key);
 
         if (lock != null && !lock.tryLock()) {
@@ -94,7 +98,12 @@ public class XlsCreativeExecuteManager {
                 executeRequest.setUid(appExecuteRequest.getUid());
                 executeRequest.setScene(appExecuteRequest.getScene());
                 Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams()).stream()
-                        .collect(Collectors.toMap(VariableItemDTO::getField, item -> Optional.ofNullable(item.getValue()).orElse(item.getDefaultValue())));
+                        .collect(Collectors.toMap(VariableItemDTO::getField, item -> {
+                            if (Objects.isNull(item.getValue())) {
+                                return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
+                            }
+                            return item.getValue();
+                        }));
                 executeRequest.setParams(params);
                 executeRequest.setUserId(Long.valueOf(contentDO.getCreator()));
                 executeRequest.setCreativeContentUid(contentDO.getUid());

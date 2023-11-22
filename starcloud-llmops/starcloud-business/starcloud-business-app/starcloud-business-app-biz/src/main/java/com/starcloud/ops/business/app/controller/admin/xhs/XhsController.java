@@ -8,8 +8,10 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecut
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
+import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +26,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -44,6 +47,9 @@ public class XhsController {
     @Resource
     private AppLimitService appLimitService;
 
+    @Resource
+    private XhsCreativeContentService xhsCreativeContentService;
+
     @GetMapping("/imageTemplates")
     @Operation(summary = "获取图片模板列表")
     public CommonResult<List<XhsImageTemplateResponse>> imageTemplates() {
@@ -54,6 +60,14 @@ public class XhsController {
     @Operation(summary = "获取应用信息")
     public CommonResult<List<XhsAppExecuteResponse>> execute(@Validated @RequestBody XhsAppExecuteRequest executeRequest) {
         return CommonResult.success(xhsService.appExecute(executeRequest));
+    }
+
+    @PostMapping("/app/execute1")
+    @Operation(summary = "获取应用信息")
+    public CommonResult<String> execute1() {
+        List<Long> list = Arrays.asList(1512L, 1514L, 1516L, 1518L, 1520L);
+        xhsCreativeContentService.execute(list, XhsCreativeContentTypeEnums.PICTURE.getCode(), true);
+        return CommonResult.success("");
     }
 
     @PostMapping(value = "/appExecute")
