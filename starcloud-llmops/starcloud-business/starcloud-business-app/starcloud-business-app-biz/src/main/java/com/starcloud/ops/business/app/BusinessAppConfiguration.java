@@ -14,8 +14,8 @@ import org.springframework.web.client.RestTemplate;
 public class BusinessAppConfiguration {
 
     @LoadBalanced
-    @Bean
     public RestTemplate restTemplate() {
+        // FIXME: 2023/11/22  feign 新版本已经存在 考虑替换方案
         return new RestTemplate();
     }
 

@@ -22,8 +22,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_MERCHANT_EXIST_APP_CANT_DELETE;
-import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_MERCHANT_NOT_EXISTS;
+import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.*;
 
 /**
  * 支付商户信息 Service 实现类
@@ -111,7 +110,7 @@ public class PayMerchantServiceImpl implements PayMerchantService {
         }
         PayMerchantDO merchant = merchantMapper.selectById(id);
         if (merchant == null) {
-            throw exception(PAY_MERCHANT_NOT_EXISTS);
+            throw exception(CHANNEL_NOT_FOUND);
         }
     }
 
@@ -122,7 +121,7 @@ public class PayMerchantServiceImpl implements PayMerchantService {
      */
     private void validateMerchantExists(Long id) {
         if (ObjectUtil.isNull(merchantMapper.selectById(id))) {
-            throw exception(PAY_MERCHANT_NOT_EXISTS);
+            throw exception(CHANNEL_NOT_FOUND);
         }
     }
 
@@ -133,7 +132,7 @@ public class PayMerchantServiceImpl implements PayMerchantService {
      */
     private void validateAppExists(Long id) {
         if (payAppMapper.selectCount(id) > 0) {
-            throw exception(PAY_MERCHANT_EXIST_APP_CANT_DELETE);
+            throw exception(CHANNEL_NOT_FOUND);
         }
     }
 

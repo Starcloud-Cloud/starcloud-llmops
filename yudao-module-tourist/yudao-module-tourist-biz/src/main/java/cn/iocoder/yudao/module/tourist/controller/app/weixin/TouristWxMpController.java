@@ -19,10 +19,10 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "微信公众号")
 @RestController
-@RequestMapping("/member/wx-mp")
+@RequestMapping("/tourist/wx-mp")
 @Validated
 @Slf4j
-public class AppWxMpController {
+public class TouristWxMpController {
 
     @Resource
     private WxMpService mpService;

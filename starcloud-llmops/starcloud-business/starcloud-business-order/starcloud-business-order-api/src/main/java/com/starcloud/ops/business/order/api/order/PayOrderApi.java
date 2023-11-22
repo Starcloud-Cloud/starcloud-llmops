@@ -2,7 +2,7 @@ package com.starcloud.ops.business.order.api.order;
 
 
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
-import com.starcloud.ops.business.order.api.order.dto.PayOrderRespDTO;
+import com.starcloud.ops.business.order.api.order.dto.PayOrderRespOldDTO;
 
 import javax.validation.Valid;
 
@@ -28,7 +28,7 @@ public interface PayOrderApi {
      * @param id 支付单编号
      * @return 支付单
      */
-    PayOrderRespDTO getOrder(Long id);
+    PayOrderRespOldDTO getOrder(Long id);
 
     /**
      * 是否存在支付成功订单

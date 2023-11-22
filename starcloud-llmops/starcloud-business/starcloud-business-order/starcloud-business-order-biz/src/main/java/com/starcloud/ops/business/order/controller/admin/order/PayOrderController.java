@@ -7,7 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
-import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserDiscountCodeInfoVO;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
@@ -169,7 +169,7 @@ public class PayOrderController {
         try {
             return success(payOrderService.createPayOrder(payOrderCreateReqDTO));
         } catch (Exception e) {
-            throw exception(ErrorCodeConstants.PAY_ORDER_ERROR_CREAT);
+            throw exception(ErrorCodeConstants.PAY_ORDER_SUBMIT_CHANNEL_ERROR);
         }
 
     }
@@ -189,7 +189,7 @@ public class PayOrderController {
             PayOrderSubmitRespVO respVO = payOrderService.submitOrderRepay(reqVO, getClientIP());
             return success(respVO);
         } catch (Exception e) {
-            throw exception(ErrorCodeConstants.PAY_ORDER_ERROR_SUBMIT);
+            throw exception(ErrorCodeConstants.PAY_ORDER_SUBMIT_CHANNEL_ERROR);
         }
     }
 

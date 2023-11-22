@@ -11,12 +11,12 @@ import org.springframework.context.annotation.Configuration;
  * @author 芋道源码
  */
 @Configuration(proxyBeanMethods = false)
-public class MemberWebConfiguration {
+public class TouristWebConfiguration {
 
     /**
      * member 模块的 API 分组
      */
-    @Bean
+    @Bean(name = "touristGroupedOpenApi2")
     public GroupedOpenApi memberGroupedOpenApi() {
         return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("member");
     }

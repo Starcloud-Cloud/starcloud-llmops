@@ -2,7 +2,7 @@ package com.starcloud.ops.business.order.api.order;
 
 
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
-import com.starcloud.ops.business.order.api.order.dto.PayOrderRespDTO;
+import com.starcloud.ops.business.order.api.order.dto.PayOrderRespOldDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.PayOrderExportReqVO;
 import com.starcloud.ops.business.order.convert.order.PayOrderConvert;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
@@ -29,7 +29,7 @@ public class PayOrderApiImpl implements PayOrderApi {
     }
 
     @Override
-    public PayOrderRespDTO getOrder(Long id) {
+    public PayOrderRespOldDTO getOrder(Long id) {
         PayOrderDO order = payOrderService.getOrder(id);
         return PayOrderConvert.INSTANCE.convert2(order);
     }

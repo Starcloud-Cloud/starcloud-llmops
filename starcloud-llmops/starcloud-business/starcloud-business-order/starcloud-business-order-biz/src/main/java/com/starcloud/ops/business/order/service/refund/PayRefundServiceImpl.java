@@ -10,7 +10,6 @@ import cn.iocoder.yudao.framework.pay.core.client.PayClientFactory;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayRefundNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundUnifiedReqDTO;
-import cn.iocoder.yudao.framework.pay.core.enums.PayNotifyRefundStatusEnum;
 import com.starcloud.ops.business.order.api.refund.dto.PayRefundCreateReqDTO;
 import com.starcloud.ops.business.order.controller.admin.refund.vo.PayRefundExportReqVO;
 import com.starcloud.ops.business.order.controller.admin.refund.vo.PayRefundPageReqVO;
@@ -107,7 +106,7 @@ public class PayRefundServiceImpl implements PayRefundService {
         PayClient client = payClientFactory.getPayClient(channel.getId());
         if (client == null) {
             log.error("[refund][渠道编号({}) 找不到对应的支付客户端]", channel.getId());
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_CHANNEL_CLIENT_NOT_FOUND);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CHANNEL_NOT_FOUND);
         }
 
         // TODO 芋艿：待实现
@@ -130,7 +129,7 @@ public class PayRefundServiceImpl implements PayRefundService {
             if (Objects.equals(PayRefundStatusEnum.SUCCESS.getStatus(), payRefundDO.getStatus())
                     || Objects.equals(PayRefundStatusEnum.CLOSE.getStatus(), payRefundDO.getStatus())) {
                 //已成功退款
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_REFUND_SUCCEED);
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.REFUND_EXISTS);
             }
             //可以重复提交，保证 退款请求号 一致，由渠道保证幂等
         } else {
@@ -159,11 +158,11 @@ public class PayRefundServiceImpl implements PayRefundService {
         }
         // TODO @jason：搞到 convert 里。一些额外的自动，手动 set 下；
         PayRefundUnifiedReqDTO unifiedReqDTO = new PayRefundUnifiedReqDTO();
-        unifiedReqDTO.setUserIp(reqDTO.getUserIp())
-                .setAmount(reqDTO.getAmount())
-                .setChannelOrderNo(order.getChannelOrderNo())
-                .setPayTradeNo(orderExtensionDO.getNo())
-                .setMerchantRefundId(merchantRefundId)  // TODO 芋艿：需要优化
+        unifiedReqDTO
+                .setPayPrice(reqDTO.getAmount())
+                .setOutRefundNo(order.getChannelOrderNo())
+                .setOutTradeNo(orderExtensionDO.getNo())
+                .setOutRefundNo(merchantRefundId)  // TODO 芋艿：需要优化
                 .setNotifyUrl(genChannelPayNotifyUrl(channel)) // TODO 芋艿：优化下 notifyUrl
                 .setReason(reqDTO.getReason());
         // 向渠道发起退款申请
@@ -191,7 +190,7 @@ public class PayRefundServiceImpl implements PayRefundService {
         // 校验支付渠道是否有效
         // TODO 芋艿：需要重构下这块的逻辑
         PayChannelDO channel = channelService.validPayChannel(channelId);
-        if (Objects.equals(PayNotifyRefundStatusEnum.SUCCESS, notify.getStatus())){
+        if (Objects.equals(PayRefundStatusEnum.SUCCESS, notify.getStatus())){
             payRefundSuccess(notify);
         } else {
             //TODO 支付异常， 支付宝似乎没有支付异常的通知。
@@ -205,7 +204,7 @@ public class PayRefundServiceImpl implements PayRefundService {
                 refundNotify.getReqNo());
         if (refundDO == null) {
             log.error("[payRefundSuccess][不存在 seqNo 为{} 的支付退款单]", refundNotify.getReqNo());
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_REFUND_NOT_FOUND);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.REFUND_NOT_FOUND);
         }
 
         // 得到已退金额
@@ -251,19 +250,19 @@ public class PayRefundServiceImpl implements PayRefundService {
     private void validatePayRefund(PayRefundCreateReqDTO reqDTO, PayOrderDO order) {
         // 校验状态，必须是支付状态
         if (!PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_ORDER_STATUS_IS_NOT_SUCCESS);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_ORDER_EXTENSION_IS_PAID);
         }
         // 是否已经全额退款
         if (PayRefundTypeEnum.ALL.getStatus().equals(order.getRefundStatus())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_REFUND_ALL_REFUNDED);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.REFUND_EXISTS);
         }
         // 校验金额 退款金额不能大于 原定的金额
         if (reqDTO.getAmount() + order.getRefundAmount() > order.getAmount()){
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_REFUND_AMOUNT_EXCEED);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.REFUND_PRICE_EXCEED);
         }
         // 校验渠道订单号
         if (StrUtil.isEmpty(order.getChannelOrderNo())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_REFUND_CHN_ORDER_NO_IS_NULL);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.REFUND_NOT_FOUND);
         }
         //TODO  退款的期限  退款次数的控制
     }

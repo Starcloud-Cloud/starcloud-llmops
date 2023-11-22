@@ -18,9 +18,9 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 
 @Tag(name = "用户 App - 社交用户")
 @RestController
-@RequestMapping("/system/social-user")
+@RequestMapping("/tourist/social-user")
 @Validated
-public class AppSocialUserController {
+public class TouristController {
 
     @Resource
     private SocialUserApi socialUserApi;

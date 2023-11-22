@@ -532,7 +532,7 @@ public class PaySignServiceImpl implements PaySignService {
         PayClient client = payClientFactory.getPayClient(channel.getId());
         if (client == null) {
             log.error("[validatePayChannelCanSubmit][渠道编号({}) 找不到对应的支付客户端]", channel.getId());
-            throw exception(ErrorCodeConstants.PAY_CHANNEL_CLIENT_NOT_FOUND);
+            throw exception(ErrorCodeConstants.CHANNEL_NOT_FOUND);
         }
         return channel;
     }

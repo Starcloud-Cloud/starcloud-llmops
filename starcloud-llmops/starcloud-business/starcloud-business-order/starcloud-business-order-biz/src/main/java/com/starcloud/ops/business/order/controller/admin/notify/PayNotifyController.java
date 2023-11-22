@@ -22,7 +22,7 @@ import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
-import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.CHANNEL_NOT_FOUND;
+import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.CHANNEL_NOT_FOUND;
 
 @Tag(name = "星河云海 - 支付通知")
 @RestController

@@ -13,6 +13,7 @@ import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import cn.iocoder.yudao.framework.pay.core.client.PayClientFactory;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
@@ -70,8 +71,7 @@ import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder.getTenantId;
-import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_ORDER_ERROR_SUBMIT_DISCOUNT_ERROR;
-import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_ORDER_NOT_FOUND;
+import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.*;
 
 /**
  * 支付订单 Service 实现类
@@ -242,18 +242,17 @@ public class PayOrderServiceImpl implements PayOrderService {
         // 3. 调用三方接口
         PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(reqVO)
                 // 商户相关的字段
-                .setMerchantOrderId(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
                 .setSubject(order.getSubject()).setBody(order.getBody())
                 .setNotifyUrl(genChannelPayNotifyUrl(channel))
                 // .setReturnUrl(genChannelReturnUrl(channel))
                 // 订单相关字段
-                .setAmount(order.getAmount()).setExpireTime(order.getExpireTime());
-        PayOrderUnifiedRespDTO unifiedOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
+                .setPrice(order.getAmount()).setExpireTime(order.getExpireTime());
+        PayOrderRespDTO payOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
 
         // TODO 轮询三方接口，是否已经支付的任务
         log.info("[submitPayOrder][3.创建支付成功，返回支付链接：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), order.getMerchantOrderId(), userIp);
         // 返回成功
-        return PayOrderConvert.INSTANCE.convert(unifiedOrderRespDTO).setCreateTime(LocalDateTime.now()).setExpireTime(order.getExpireTime());
+        return PayOrderConvert.INSTANCE.convert5(payOrderRespDTO).setCreateTime(LocalDateTime.now()).setExpireTime(order.getExpireTime());
     }
 
     /**
@@ -290,20 +289,19 @@ public class PayOrderServiceImpl implements PayOrderService {
         // 提交支付
         PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(payOrderSubmitReqVO)
                 // 商户相关的字段
-                .setMerchantOrderId(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
                 .setSubject(order.getSubject())
                 .setBody(order.getBody())
                 .setNotifyUrl(genChannelPayNotifyUrl(channel))
                 // 订单相关字段
-                .setAmount(order.getAmount())
+                .setPrice(order.getAmount())
                 .setExpireTime(LocalDateTimeUtil.of(reqVO.getTimestamp(), TimeZone.getTimeZone("Asia/Shanghai")).plusMinutes(5));
-        PayOrderUnifiedRespDTO unifiedOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
+        PayOrderRespDTO unifiedOrderRespDTO = client.unifiedOrder(unifiedOrderReqDTO);
 
         // TODO 轮询三方接口，是否已经支付的任务
         log.info("[submitPayOrder][3.创建支付成功，返回支付链接：用户ID({})|订单 ID({})｜用户 IP({})]", getLoginUser(), order.getMerchantOrderId(), userIp);
 
         // 返回成功
-        return PayOrderConvert.INSTANCE.convert(unifiedOrderRespDTO).setCreateTime(LocalDateTime.now()).setExpireTime(order.getExpireTime());
+        return PayOrderConvert.INSTANCE.convert5(unifiedOrderRespDTO).setCreateTime(LocalDateTime.now()).setExpireTime(order.getExpireTime());
     }
 
     @Deprecated
@@ -360,7 +358,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         PayClient client = payClientFactory.getPayClient(channel.getId());
         if (client == null) {
             log.error("[validatePayChannelCanSubmit][渠道编号({}) 找不到对应的支付客户端]", channel.getId());
-            throw exception(ErrorCodeConstants.PAY_CHANNEL_CLIENT_NOT_FOUND);
+            throw exception(ErrorCodeConstants.CHANNEL_NOT_FOUND);
         }
         return channel;
     }
@@ -600,7 +598,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         if (ObjectUtil.isNotNull(userBenefitsStrategyDO)) {
             return userBenefitsService.calculateDiscountPrice(productCode, discountCode);
         }
-        throw exception(PAY_ORDER_ERROR_SUBMIT_DISCOUNT_ERROR);
+        throw exception(PAY_ORDER_SUBMIT_CHANNEL_ERROR);
     }
 
     /**
@@ -634,7 +632,7 @@ public class PayOrderServiceImpl implements PayOrderService {
     @Override
     public void updateDemoOrderPaid(Long id, Long payOrderId) {
         // // 校验并获得支付订单（可支付）
-        // PayOrderRespDTO payOrder = validateDemoOrderCanPaid(id, payOrderId);
+        // PayOrderRespOldDTO payOrder = validateDemoOrderCanPaid(id, payOrderId);
         //
         // // 更新 PayDemoOrderDO 状态为已支付
         // int updateCount = orderMapper.updateByIdAndStatus(id, PayOrderStatusEnum.SUCCESS.getStatus(),
@@ -675,7 +673,7 @@ public class PayOrderServiceImpl implements PayOrderService {
      * @param payOrderId 支付订单编号
      * @return 交易订单
      */
-    // private PayOrderRespDTO validateDemoOrderCanPaid(Long id, Long payOrderId) {
+    // private PayOrderRespOldDTO validateDemoOrderCanPaid(Long id, Long payOrderId) {
     //     // 1.1 校验订单是否存在
     //     PayOrderDO order = orderMapper.selectById(id);
     //     if (order == null) {
@@ -695,7 +693,7 @@ public class PayOrderServiceImpl implements PayOrderService {
     //     }
     //
     //     // 2.1 校验支付单是否存在
-    //     PayOrderRespDTO payOrder = payOrderApi.getOrder(payOrderId);
+    //     PayOrderRespOldDTO payOrder = payOrderApi.getOrder(payOrderId);
     //     if (payOrder == null) {
     //         log.error("[validateDemoOrderCanPaid][order({}) payOrder({}) 不存在，请进行处理！]", id, payOrderId);
     //         throw exception(PAY_ORDER_NOT_FOUND);

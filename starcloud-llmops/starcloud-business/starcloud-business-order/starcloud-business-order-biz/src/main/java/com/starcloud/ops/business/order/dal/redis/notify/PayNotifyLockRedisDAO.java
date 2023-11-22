@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
-import static com.starcloud.ops.business.order.dal.redis.RedisKeyConstants.PAY_NOTIFY_LOCK;
 
 /**
  * 支付通知的锁 Redis DAO
@@ -33,7 +32,7 @@ public class PayNotifyLockRedisDAO {
     }
 
     private static String formatKey(Long id) {
-        return String.format(PAY_NOTIFY_LOCK.getKeyTemplate(), id);
+        return String.format(null, id);
     }
 
 }

@@ -11,9 +11,11 @@ import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUser
 import cn.iocoder.yudao.module.system.convert.social.SocialUserConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.xingyuv.jushauth.model.AuthUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,6 +51,9 @@ public class SocialUserServiceImpl implements SocialUserService {
     @Resource
     private SocialClientService socialClientService;
 
+    @Resource
+    private AdminUserService adminUserService;
+
     @Override
     public List<SocialUserDO> getSocialUserList(Long userId, Integer userType) {
         // 获得绑定
@@ -83,6 +88,7 @@ public class SocialUserServiceImpl implements SocialUserService {
         return socialUser.getOpenid();
     }
 
+
     @Override
     public void unbindSocialUser(Long userId, Integer userType, Integer socialType, String openid) {
         // 获得 openid 对应的 SocialUserDO 社交用户
@@ -94,7 +100,19 @@ public class SocialUserServiceImpl implements SocialUserService {
         // 获得对应的社交绑定关系
         socialUserBindMapper.deleteByUserTypeAndUserIdAndSocialType(userType, userId, socialUser.getType());
     }
-
+    @Override
+    public AdminUserDO getSocialUser(String openId, Integer socialUserType, Integer userType) {
+        SocialUserDO socialUserDO = socialUserMapper.selectByTypeAndOpenid(socialUserType, openId);
+        if (socialUserDO == null) {
+            return null;
+        }
+        SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectByUserTypeAndSocialUserId(userType, socialUserDO.getId());
+        if (socialUserBindDO == null) {
+            return null;
+        }
+        AdminUserDO user = adminUserService.getUser(socialUserBindDO.getUserId());
+        return user;
+    }
     @Override
     public SocialUserRespDTO getSocialUser(Integer userType, Integer socialType, String code, String state) {
         // 获得社交用户

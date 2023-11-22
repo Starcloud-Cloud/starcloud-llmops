@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.system.api.social.dto.SocialUserBindReqDTO;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserRespDTO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserPageReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 
 import javax.validation.Valid;
@@ -44,6 +45,17 @@ public interface SocialUserService {
      * @param openid 社交平台的 openid
      */
     void unbindSocialUser(Long userId, Integer userType, Integer socialType, String openid);
+
+
+
+
+    /**
+     * 获得绑定用户
+     *
+     * @param openId
+     * @return
+     */
+    AdminUserDO getSocialUser(String openId, Integer socialUserType, Integer userType);
 
     /**
      * 获得社交用户

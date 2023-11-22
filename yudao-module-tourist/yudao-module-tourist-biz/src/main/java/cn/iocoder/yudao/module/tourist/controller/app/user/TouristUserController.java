@@ -24,10 +24,10 @@ import static cn.iocoder.yudao.module.infra.enums.ErrorCodeConstants.FILE_IS_EMP
 
 @Tag(name = "用户 APP - 用户个人中心")
 @RestController
-@RequestMapping("/member/user")
+@RequestMapping("/tourist/user")
 @Validated
 @Slf4j
-public class AppUserController {
+public class TouristUserController {
 
     @Resource
     private TouristService userService;

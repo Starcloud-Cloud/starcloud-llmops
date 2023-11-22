@@ -121,7 +121,7 @@ public class YudaoWebAutoConfiguration implements WebMvcConfigurer {
      *
      * @param restTemplateBuilder {@link RestTemplateAutoConfiguration#restTemplateBuilder}
      */
-    @Bean
+    @Bean(name = "restTemplateNew")
     public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
         return restTemplateBuilder.build();
     }

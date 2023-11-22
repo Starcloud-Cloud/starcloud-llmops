@@ -15,7 +15,7 @@ import javax.annotation.Resource;
  * @author 芋道源码
  */
 @Component
-@TenantJob // 多租户
+// 多租户
 @Slf4j
 public class PayNotifyJob implements JobHandler {
 

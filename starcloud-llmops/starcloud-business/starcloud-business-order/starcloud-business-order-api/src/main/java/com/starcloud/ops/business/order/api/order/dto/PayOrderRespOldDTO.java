@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.order.api.order.dto;
 
-import cn.hutool.core.math.Money;
 import com.starcloud.ops.business.order.enums.order.PayOrderStatusEnum;
 import lombok.Data;
 
@@ -12,7 +11,7 @@ import lombok.Data;
  * @author 芋道源码
  */
 @Data
-public class PayOrderRespDTO {
+public class PayOrderRespOldDTO {
 
     /**
      * 订单编号，数据库自增

@@ -19,15 +19,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
-* {@link AddressServiceImpl} 的单元测试类
+* {@link TouristAddressServiceImpl} 的单元测试类
 *
 * @author 芋道源码
 */
-@Import(AddressServiceImpl.class)
-public class AddressServiceImplTest extends BaseDbUnitTest {
+@Import(TouristAddressServiceImpl.class)
+public class TouristAddressServiceImplTest extends BaseDbUnitTest {
 
     @Resource
-    private AddressServiceImpl addressService;
+    private TouristAddressServiceImpl addressService;
 
     @Resource
     private AddressMapper addressMapper;

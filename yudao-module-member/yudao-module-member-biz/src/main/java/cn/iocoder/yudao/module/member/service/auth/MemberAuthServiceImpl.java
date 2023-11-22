@@ -213,7 +213,7 @@ public class MemberAuthServiceImpl implements MemberAuthService {
             }
         }
         // 情况 2：如果是重置密码场景，需要校验手机号是存在的
-        if (Objects.equals(reqVO.getScene(), SmsSceneEnum.MEMBER_RESET_PASSWORD.getScene())) {
+        if (Objects.equals(reqVO.getScene(), SmsSceneEnum.MEMBER_FORGET_PASSWORD.getScene())) {
             MemberUserDO  user= userService.getUserByMobile(reqVO.getMobile());
             if (user == null) {
                 throw exception(USER_MOBILE_NOT_EXISTS);

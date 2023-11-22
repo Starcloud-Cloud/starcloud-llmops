@@ -23,7 +23,7 @@ import static cn.iocoder.yudao.module.tourist.enums.ErrorCodeConstants.ADDRESS_N
  */
 @Service
 @Validated
-public class AddressServiceImpl implements AddressService {
+public class TouristAddressServiceImpl implements TouristAddressService {
 
     @Resource
     private AddressMapper addressMapper;

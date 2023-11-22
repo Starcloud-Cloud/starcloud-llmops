@@ -29,8 +29,7 @@ import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
-import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_APP_EXIST_TRANSACTION_ORDER_CANT_DELETE;
-import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_APP_NOT_FOUND;
+import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.*;
 
 /**
  * 支付应用信息 Service 实现类
@@ -82,7 +81,7 @@ public class PayAppServiceImpl implements PayAppService {
 
     private void validateAppExists(Long id) {
         if (payAppMapper.selectById(id) == null) {
-            throw exception(PAY_APP_NOT_FOUND);
+            throw exception(APP_NOT_FOUND);
         }
     }
 
@@ -155,7 +154,7 @@ public class PayAppServiceImpl implements PayAppService {
         }
         PayAppDO payApp = payAppMapper.selectById(id);
         if (payApp == null) {
-            throw exception(PAY_APP_NOT_FOUND);
+            throw exception(APP_NOT_FOUND);
         }
     }
 
@@ -167,11 +166,11 @@ public class PayAppServiceImpl implements PayAppService {
     private void validateOrderTransactionExist(Long appId) {
         // 查看交易订单
         if (orderMapper.selectCount(appId, PayOrderStatusEnum.WAITING.getStatus()) > 0) {
-            throw exception(PAY_APP_EXIST_TRANSACTION_ORDER_CANT_DELETE);
+            throw exception(APP_EXIST_ORDER_CANT_DELETE);
         }
         // 查看退款订单
         if (refundMapper.selectCount(appId, PayRefundStatusEnum.CREATE.getStatus()) > 0) {
-            throw exception(PAY_APP_EXIST_TRANSACTION_ORDER_CANT_DELETE);
+            throw exception(APP_EXIST_ORDER_CANT_DELETE);
         }
     }
 
@@ -180,11 +179,11 @@ public class PayAppServiceImpl implements PayAppService {
         PayAppDO app = payAppMapper.selectById(id);
         // 校验是否存在
         if (app == null) {
-            throw ServiceExceptionUtil.exception(PAY_APP_NOT_FOUND);
+            throw ServiceExceptionUtil.exception(APP_NOT_FOUND);
         }
         // 校验是否禁用
         if (CommonStatusEnum.DISABLE.getStatus().equals(app.getStatus())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.PAY_APP_IS_DISABLE);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_IS_DISABLE);
         }
         return app;
     }
@@ -198,7 +197,7 @@ public class PayAppServiceImpl implements PayAppService {
     public PayAppDO getAppInfo() {
         List<PayAppDO> payAppDOS = payAppMapper.selectList();
         if (payAppDOS.size() < 1) {
-            throw ServiceExceptionUtil.exception(PAY_APP_NOT_FOUND);
+            throw ServiceExceptionUtil.exception(APP_NOT_FOUND);
         } else if (payAppDOS.size() > 1) {
             log.error("存在多条应用配置，请立刻删除无用的数据");
         }

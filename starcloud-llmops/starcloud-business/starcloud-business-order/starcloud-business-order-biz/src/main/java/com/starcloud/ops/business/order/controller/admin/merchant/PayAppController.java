@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
-import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import com.starcloud.ops.business.order.controller.admin.merchant.vo.app.*;
 import com.starcloud.ops.business.order.convert.app.PayAppConvert;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayAppDO;

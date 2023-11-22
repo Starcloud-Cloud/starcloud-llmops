@@ -34,9 +34,8 @@ import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.cache.CacheUtils.buildAsyncReloadingCache;
-import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.CHANNEL_IS_DISABLE;
-import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.CHANNEL_NOT_FOUND;
-import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.CHANNEL_EXIST_SAME_CHANNEL_ERROR;
+import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.*;
+
 
 /**
  * 支付渠道 Service 实现类

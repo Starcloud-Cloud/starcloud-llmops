@@ -26,10 +26,10 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 
 @Tag(name = "用户 APP - 认证")
 @RestController
-@RequestMapping("/member/auth")
+@RequestMapping("/tourist/auth")
 @Validated
 @Slf4j
-public class AppAuthController {
+public class TouristAuthController {
 
     @Resource
     private TouristAuthService authService;

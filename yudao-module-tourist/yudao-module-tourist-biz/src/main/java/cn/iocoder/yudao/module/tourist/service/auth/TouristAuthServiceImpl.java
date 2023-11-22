@@ -225,7 +225,7 @@ public class TouristAuthServiceImpl implements TouristAuthService {
         TouristDO userDO = checkUserIfExists(reqVO.getMobile());
 
         // 使用验证码
-        smsCodeApi.useSmsCode(AuthConvert.INSTANCE.convert(reqVO, SmsSceneEnum.MEMBER_RESET_PASSWORD,
+        smsCodeApi.useSmsCode(AuthConvert.INSTANCE.convert(reqVO, SmsSceneEnum.MEMBER_FORGET_PASSWORD,
                 getClientIP()));
 
         // 更新密码
