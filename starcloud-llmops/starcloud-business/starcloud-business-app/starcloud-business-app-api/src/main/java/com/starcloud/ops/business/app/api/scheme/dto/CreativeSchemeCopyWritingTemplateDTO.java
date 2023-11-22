@@ -27,18 +27,6 @@ public class CreativeSchemeCopyWritingTemplateDTO implements java.io.Serializabl
     private static final long serialVersionUID = 2702779004299599670L;
 
     /**
-     * 是否推广到微信公共号
-     */
-    @Schema(description = "是否推广到微信公共号")
-    private Boolean isPromoteMp;
-
-    /**
-     * 微信公共号
-     */
-    @Schema(description = "微信公共号")
-    private String mpCode;
-
-    /**
      * 生成文案的要求
      */
     @Schema(description = "生成文案要求")

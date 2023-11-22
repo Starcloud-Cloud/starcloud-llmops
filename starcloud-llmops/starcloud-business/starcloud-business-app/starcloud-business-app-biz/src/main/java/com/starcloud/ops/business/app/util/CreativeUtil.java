@@ -91,8 +91,6 @@ public class CreativeUtil {
         params.add(ofInputVariableItem(TAGS, String.join(",", CollectionUtil.emptyIfNull(scheme.getTags()))));
         params.add(ofTextAreaVariableItem(DESCRIPTION, scheme.getDescription()));
         params.add(ofTextAreaVariableItem(REFERS, JSONUtil.toJsonStr(CollectionUtil.emptyIfNull(scheme.getRefers()))));
-        params.add(ofInputVariableItem(IS_PROMOTE_MP, copyWritingTemplate.getIsPromoteMp()));
-        params.add(ofInputVariableItem(MP_CODE, copyWritingTemplate.getMpCode()));
         params.add(ofTextAreaVariableItem(DEMAND, CreativeUtil.handlerDemand(copyWritingTemplate, variableList)));
         params.add(ofTextAreaVariableItem(EXAMPLE, copyWritingTemplate.getExample()));
 
@@ -185,16 +183,6 @@ public class CreativeUtil {
                     String refers = JSONUtil.toJsonStr(request.getRefers());
                     variableItem.setValue(refers);
                     variableItem.setDefaultValue(refers);
-
-                } else if (IS_PROMOTE_MP.equals(variableItem.getField()) && Objects.nonNull(copyWritingTemplate.getIsPromoteMp())) {
-                    Boolean isPromoteMp = copyWritingTemplate.getIsPromoteMp();
-                    variableItem.setValue(isPromoteMp);
-                    variableItem.setDefaultValue(isPromoteMp);
-
-                } else if (MP_CODE.equals(variableItem.getField()) && StringUtils.isNotBlank(copyWritingTemplate.getMpCode())) {
-                    String mpCode = copyWritingTemplate.getMpCode();
-                    variableItem.setValue(mpCode);
-                    variableItem.setDefaultValue(mpCode);
 
                 } else if (DEMAND.equals(variableItem.getField()) && StringUtils.isNotBlank(copyWritingTemplate.getDemand())) {
                     String demand = handlerDemand(copyWritingTemplate, null);

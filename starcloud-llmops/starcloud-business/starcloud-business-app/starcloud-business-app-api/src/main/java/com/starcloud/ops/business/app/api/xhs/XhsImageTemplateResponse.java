@@ -42,6 +42,12 @@ public class XhsImageTemplateResponse implements java.io.Serializable {
     private Integer imageNumber;
 
     /**
+     * 示例图片
+     */
+    @Schema(description = "示例图片")
+    private String example;
+
+    /**
      * 图片模板变量
      */
     @Schema(description = "图片模板变量")

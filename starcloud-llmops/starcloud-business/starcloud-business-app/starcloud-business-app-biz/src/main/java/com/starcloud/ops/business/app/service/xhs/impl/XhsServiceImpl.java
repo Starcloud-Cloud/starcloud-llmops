@@ -76,6 +76,7 @@ public class XhsServiceImpl implements XhsService {
             response.setId(item.getId());
             response.setName(item.getName());
             response.setImageNumber(item.getImageNumber());
+            response.setExample(item.getExample());
             response.setVariables(item.getVariables());
             return response;
         }).collect(Collectors.toList());

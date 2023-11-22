@@ -33,7 +33,15 @@
                     FIND_IN_SET(#{tag}, tags)
                 </foreach>
             </if>
-            AND `creator` = #{query.loginUserId}))
+            <choose>
+                <when test="query.isAdmin != null and query.isAdmin != true ">
+                    AND `creator` = #{query.loginUserId}))
+                </when>
+                <otherwise>
+                    ))
+                </otherwise>
+            </choose>
+            
             AND `deleted` = 0
         </where>
     </sql>

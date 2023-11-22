@@ -123,6 +123,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
         }
         query.setLoginUserId(String.valueOf(loginUserId));
+        query.setIsAdmin(UserUtils.isAdmin());
         List<CreativeSchemeDO> list = creativeSchemeMapper.list(query);
         return CreativeSchemeConvert.INSTANCE.convertList(list);
     }
@@ -154,6 +155,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
         }
         query.setLoginUserId(String.valueOf(loginUserId));
+        query.setIsAdmin(UserUtils.isAdmin());
         List<CreativeSchemeRespVO> list = list(query);
         return CollectionUtil.emptyIfNull(list).stream().map(item -> {
             List<VariableItemDTO> variable = Optional.ofNullable(item.getConfiguration())

@@ -34,6 +34,12 @@ public class ReferenceImageDTO implements java.io.Serializable {
     /**
      * 图片参考文本
      */
-    @Schema(description = "图片参考文本")
-    private String content;
+    @Schema(description = "图片标题")
+    private String title;
+
+    /**
+     * 图片参考文本
+     */
+    @Schema(description = "图片副标题")
+    private String subTitle;
 }
