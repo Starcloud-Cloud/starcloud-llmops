@@ -292,16 +292,63 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         if (!CreativeRandomTypeEnum.RANDOM.name().equals(plan.getRandomType())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_RANDOM_TYPE_NOT_SUPPORTED, plan.getRandomType());
         }
-        // 处理创作内容执行参数
-        List<CreativePlanExecuteDTO> executeParamsList = handlerCreativeContentExecuteParams(plan);
         // 批量执行随机任务
-        this.bathRandomTask(plan, executeParamsList);
+        this.bathRandomTask(plan);
         // 更新状态
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
         updateWrapper.set(CreativePlanDO::getStartTime, LocalDateTime.now());
         updateWrapper.eq(CreativePlanDO::getUid, uid);
         creativePlanMapper.update(null, updateWrapper);
+    }
+
+    /**
+     * 创建随机任务
+     *
+     * @param plan 创作计划
+     */
+    private void bathRandomTask(CreativePlanRespVO plan) {
+        // 获取生成任务数量量
+        Integer total = plan.getTotal();
+        CreativePlanConfigDTO config = plan.getConfig();
+        // 图片素材列表
+        List<String> imageUrlList = config.getImageUrlList();
+        // 处理创作内容执行参数
+        List<CreativePlanExecuteDTO> executeParamsList = handlerCreativeContentExecuteParams(plan);
+        // 插入任务
+        List<XhsCreativeContentCreateReq> xhsCreativeContentCreateReqList = new ArrayList<>(total * 2);
+        for (int i = 0; i < total; i++) {
+            String businessUid = IdUtil.fastSimpleUUID();
+            int randomInt = RandomUtil.randomInt(executeParamsList.size());
+            CreativePlanExecuteDTO executeParam = SerializationUtils.clone(executeParamsList.get(randomInt));
+
+            // 应用执行任务
+            XhsCreativeContentCreateReq appCreateRequest = new XhsCreativeContentCreateReq();
+            // 克隆图片执行参数, 防止引用问题
+            CreativePlanAppExecuteDTO appExecuteRequest = executeParam.getAppExecuteRequest();
+            appCreateRequest.setPlanUid(plan.getUid());
+            appCreateRequest.setBusinessUid(businessUid);
+            appCreateRequest.setType(XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+            appCreateRequest.setTempUid(appExecuteRequest.getUid());
+            appCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofApp(appExecuteRequest));
+            xhsCreativeContentCreateReqList.add(appCreateRequest);
+
+            // 图片执行任务
+            XhsCreativeContentCreateReq imageCreateRequest = new XhsCreativeContentCreateReq();
+            // 克隆图片执行参数, 防止引用问题
+            CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParam.getImageStyleExecuteRequest();
+            String tempUid = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests()).stream().map(CreativePlanImageExecuteDTO::getImageTemplate).collect(Collectors.joining(","));
+            imageCreateRequest.setPlanUid(plan.getUid());
+            imageCreateRequest.setBusinessUid(businessUid);
+            imageCreateRequest.setType(XhsCreativeContentTypeEnums.PICTURE.getCode());
+            imageCreateRequest.setTempUid(tempUid);
+            imageCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofImageStyle(imageStyleExecuteRequest));
+            imageCreateRequest.setUsePicture(imageUrlList);
+            xhsCreativeContentCreateReqList.add(imageCreateRequest);
+        }
+
+        // 批量插入任务
+        xhsCreativeContentService.create(xhsCreativeContentCreateReqList);
     }
 
     /**
@@ -352,53 +399,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         List<CreativeSchemeRespVO> schemeList = creativeSchemeService.list(schemeUidList);
         AppValidate.notEmpty(schemeList, ErrorCodeConstants.CREATIVE_PLAN_SCHEME_NOT_EXIST);
         return schemeList;
-    }
-
-    /**
-     * 创建随机任务
-     *
-     * @param plan 创作计划
-     */
-    private void bathRandomTask(CreativePlanRespVO plan, List<CreativePlanExecuteDTO> executeParamsList) {
-        // 获取生成任务数量量
-        Integer total = plan.getTotal();
-        CreativePlanConfigDTO config = plan.getConfig();
-        // 图片素材列表
-        List<String> imageUrlList = config.getImageUrlList();
-        // 插入任务
-        List<XhsCreativeContentCreateReq> xhsCreativeContentCreateReqList = new ArrayList<>(total * 2);
-        for (int i = 0; i < total; i++) {
-            String businessUid = IdUtil.fastSimpleUUID();
-            int randomInt = RandomUtil.randomInt(executeParamsList.size());
-            CreativePlanExecuteDTO executeParam = SerializationUtils.clone(executeParamsList.get(randomInt));
-
-            // 应用执行任务
-            XhsCreativeContentCreateReq appCreateRequest = new XhsCreativeContentCreateReq();
-            // 克隆图片执行参数, 防止引用问题
-            CreativePlanAppExecuteDTO appExecuteRequest = executeParam.getAppExecuteRequest();
-            appCreateRequest.setPlanUid(plan.getUid());
-            appCreateRequest.setBusinessUid(businessUid);
-            appCreateRequest.setType(XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
-            appCreateRequest.setTempUid(appExecuteRequest.getUid());
-            appCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofApp(appExecuteRequest));
-            xhsCreativeContentCreateReqList.add(appCreateRequest);
-
-            // 图片执行任务
-            XhsCreativeContentCreateReq imageCreateRequest = new XhsCreativeContentCreateReq();
-            // 克隆图片执行参数, 防止引用问题
-            CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParam.getImageStyleExecuteRequest();
-            String tempUid = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests()).stream().map(CreativePlanImageExecuteDTO::getImageTemplate).collect(Collectors.joining(","));
-            imageCreateRequest.setPlanUid(plan.getUid());
-            imageCreateRequest.setBusinessUid(businessUid);
-            imageCreateRequest.setType(XhsCreativeContentTypeEnums.PICTURE.getCode());
-            imageCreateRequest.setTempUid(tempUid);
-            imageCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofImageStyle(imageStyleExecuteRequest));
-            imageCreateRequest.setUsePicture(imageUrlList);
-            xhsCreativeContentCreateReqList.add(imageCreateRequest);
-        }
-
-        // 批量插入任务
-        xhsCreativeContentService.create(xhsCreativeContentCreateReqList);
     }
 
     /**
