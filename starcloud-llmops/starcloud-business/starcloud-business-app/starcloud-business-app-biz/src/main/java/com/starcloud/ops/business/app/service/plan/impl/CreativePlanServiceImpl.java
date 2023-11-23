@@ -340,7 +340,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParam.getImageStyleExecuteRequest();
             String tempUid = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests()).stream().map(CreativePlanImageExecuteDTO::getImageTemplate).collect(Collectors.joining(","));
             imageCreateRequest.setPlanUid(plan.getUid());
-            appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
+            imageCreateRequest.setSchemeUid(executeParam.getSchemeUid());
             imageCreateRequest.setBusinessUid(businessUid);
             imageCreateRequest.setType(XhsCreativeContentTypeEnums.PICTURE.getCode());
             imageCreateRequest.setTempUid(tempUid);
