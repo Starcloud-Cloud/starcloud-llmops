@@ -276,11 +276,11 @@ public class XhsServiceImpl implements XhsService {
             }
 
             // 获取海报图片模板
-            List<XhsImageTemplateResponse> posterTemplates = imageTemplates();
-            Optional<XhsImageTemplateResponse> optional = CollectionUtil.emptyIfNull(posterTemplates).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
-            if (!optional.isPresent()) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
-            }
+//            List<XhsImageTemplateResponse> posterTemplates = imageTemplates();
+//            Optional<XhsImageTemplateResponse> optional = CollectionUtil.emptyIfNull(posterTemplates).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
+//            if (!optional.isPresent()) {
+//                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
+//            }
             
             // 执行生成海报图片
             PosterRequest posterRequest = new PosterRequest();

@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.feign.PosterImageClient;
 import com.starcloud.ops.business.app.feign.dto.PosterDTO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
+import com.starcloud.ops.business.app.feign.request.poster.PosterTemplateQuery;
 import com.starcloud.ops.business.app.feign.response.PosterResponse;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,10 @@ public class PosterServiceImpl implements PosterService {
      */
     @Override
     public List<PosterTemplateDTO> templates() {
-        PosterResponse<List<PosterTemplateDTO>> response = posterImageClient.templates();
+        PosterTemplateQuery query = new PosterTemplateQuery();
+        query.setCreateUserId("1");
+        query.setTemplateTypeId("2");
+        PosterResponse<List<PosterTemplateDTO>> response = posterImageClient.templates(query);
         validateResponse(response, "获取海报模板列表失败");
         List<PosterTemplateDTO> templates = response.getData();
         if (CollectionUtil.isEmpty(templates)) {

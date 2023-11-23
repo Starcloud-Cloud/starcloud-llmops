@@ -3,10 +3,12 @@ package com.starcloud.ops.business.app.feign;
 import com.starcloud.ops.business.app.feign.dto.PosterDTO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
+import com.starcloud.ops.business.app.feign.request.poster.PosterTemplateQuery;
 import com.starcloud.ops.business.app.feign.response.PosterResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -23,8 +25,8 @@ public interface PosterImageClient {
      *
      * @return 模板列表
      */
-    @GetMapping(value = "/template-exclude-json")
-    PosterResponse<List<PosterTemplateDTO>> templates();
+    @PostMapping(value = "/template/find-all-exclude-json")
+    PosterResponse<List<PosterTemplateDTO>> templates(@Validated @RequestBody PosterTemplateQuery query);
 
     /**
      * 生成海报
@@ -32,6 +34,6 @@ public interface PosterImageClient {
      * @return 海报
      */
     @PostMapping(value = "/poster")
-    PosterResponse<PosterDTO> poster(PosterRequest request);
+    PosterResponse<PosterDTO> poster(@Validated @RequestBody PosterRequest request);
 
 }

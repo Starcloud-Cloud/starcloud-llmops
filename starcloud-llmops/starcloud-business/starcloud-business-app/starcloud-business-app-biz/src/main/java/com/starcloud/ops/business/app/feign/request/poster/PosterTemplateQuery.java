@@ -6,8 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.Map;
-
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -17,27 +15,21 @@ import java.util.Map;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "PosterRequest", description = "海报请求")
-public class PosterRequest implements java.io.Serializable {
+@Schema(name = "PosterTemplateQuery", description = "海报请求")
+public class PosterTemplateQuery implements java.io.Serializable {
 
     private static final long serialVersionUID = -3977808759871963692L;
 
     /**
-     * 请求ID
+     * 模板类型ID
      */
-    @Schema(description = "请求ID")
-    private String id;
-
+    @Schema(description = "模板类型ID")
+    private String templateTypeId;
+    
     /**
      * 用户ID
      */
     @Schema(description = "用户ID")
     private String createUserId;
-
-    /**
-     * 请求参数
-     */
-    @Schema(description = "请求参数")
-    private Map<String, Object> params;
 
 }

@@ -137,10 +137,11 @@ public class XlsCreativeExecuteManager {
                 contentDO.setCopyWritingContent(copyWriting.getContent());
                 contentDO.setCopyWritingTitle(copyWriting.getTitle());
                 contentDO.setCopyWritingCount(copyWriting.getContent().length());
+                contentDO.setCopyWritingResult(JSONUtil.toJsonStr(copyWriting));
                 contentDO.setStartTime(start);
                 contentDO.setEndTime(end);
                 contentDO.setExecuteTime(executeTime);
-                updateDO(contentDO, StringUtils.EMPTY, contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
+                updateDO(contentDO, StringUtils.EMPTY, 0, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
                 result.put(contentDO.getId(), true);
             }
             log.info("文案执行结束： {} ms", executeTime);
@@ -165,6 +166,19 @@ public class XlsCreativeExecuteManager {
                     result.put(sourceContentDO.getId(), false);
                     continue;
                 }
+
+                // 查询文案执行情况。需要文案执行成功才能执行图片
+                XhsCreativeContentDO businessDO = creativeContentMapper.selectByType(sourceContentDO.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+                if (businessDO == null || !XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(businessDO.getStatus()) ||
+                        StringUtils.isBlank(businessDO.getCopyWritingResult())) {
+                    log.warn("文案未执行成功，不能执行图片生成：{}", sourceContentDO.getId());
+                    result.put(sourceContentDO.getId(), false);
+                    continue;
+                }
+
+                // 文案执行结果
+                CopyWritingContentDTO copyWriting = JSONUtil.toBean(businessDO.getCopyWritingResult(), CopyWritingContentDTO.class);
+
                 // 校验状态 重试次数
                 XhsCreativeContentDO contentDO = getReadyCreative(sourceContentDO.getId(), force);
                 if (contentDO == null) {
@@ -180,9 +194,9 @@ public class XlsCreativeExecuteManager {
                     result.put(contentDO.getId(), false);
                     continue;
                 }
-
+                List<String> useImageList = JSONUtil.parseArray(contentDO.getUsePicture()).toList(String.class);
                 CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
-                XhsBathImageExecuteRequest request = XhsCreativeContentConvert.INSTANCE.toExecuteImageStyle(imageStyleExecuteRequest, JSONUtil.parseArray(contentDO.getUsePicture()).toList(String.class));
+                XhsBathImageExecuteRequest request = XhsCreativeContentConvert.INSTANCE.toExecuteImageStyle(imageStyleExecuteRequest, useImageList, copyWriting);
                 List<XhsImageExecuteResponse> resp = xhsService.bathImageExecute(request);
 
                 if (CollectionUtils.isEmpty(resp)) {

@@ -8,6 +8,11 @@ import java.time.LocalDateTime;
 @Data
 public class XhsCreativeContentDTO {
 
+    /**
+     * 创作方案UID
+     */
+    private String schemeUid;
+
     @Schema(description = "创作计划uid")
     private String planUid;
 
@@ -65,6 +70,12 @@ public class XhsCreativeContentDTO {
 
     @Schema(description = "文案文字数量")
     private String copyWritingCount;
+
+    /**
+     * 文案生成结果
+     */
+    @Schema(description = "文案生成结果")
+    private String copyWritingResult;
 
     @Schema(description = "生成图片数量")
     private Integer pictureNum;

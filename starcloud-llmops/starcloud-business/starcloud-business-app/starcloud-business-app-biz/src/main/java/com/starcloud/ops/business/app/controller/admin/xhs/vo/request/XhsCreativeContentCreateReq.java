@@ -12,6 +12,13 @@ import java.util.List;
 @Schema(description = "创建创作计划")
 public class XhsCreativeContentCreateReq {
 
+    /**
+     * 创作方案UID
+     */
+    @Schema(description = "创作方案UID")
+    @NotBlank(message = "创作方案UID 不能为空")
+    private String schemeUid;
+
     @Schema(description = "创作计划uid")
     @NotBlank(message = "创作计划uid 不能为空")
     private String planUid;

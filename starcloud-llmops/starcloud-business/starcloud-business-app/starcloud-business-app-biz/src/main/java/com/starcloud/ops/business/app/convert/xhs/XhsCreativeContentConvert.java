@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageStyleExecuteDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
@@ -63,7 +64,7 @@ public interface XhsCreativeContentConvert {
         }
 
         XhsCreativeContentDO xhsCreativeContentDO = new XhsCreativeContentDO();
-
+        xhsCreativeContentDO.setSchemeUid(createReq.getSchemeUid());
         xhsCreativeContentDO.setPlanUid(createReq.getPlanUid());
         xhsCreativeContentDO.setTempUid(createReq.getTempUid());
         xhsCreativeContentDO.setUsePicture(toStr(createReq.getUsePicture()));
@@ -126,9 +127,10 @@ public interface XhsCreativeContentConvert {
      *
      * @param imageStyleExecuteRequest 图片风格执行参数
      * @param useImageList             使用的图片
+     * @param copyWriting              文案
      * @return 执行参数
      */
-    default XhsBathImageExecuteRequest toExecuteImageStyle(CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest, List<String> useImageList) {
+    default XhsBathImageExecuteRequest toExecuteImageStyle(CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest, List<String> useImageList, CopyWritingContentDTO copyWriting) {
         XhsBathImageExecuteRequest executeRequest = new XhsBathImageExecuteRequest();
         List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
 
@@ -143,7 +145,16 @@ public interface XhsCreativeContentConvert {
                     params.put(variableItem.getField(), useImageList.get(randomInt));
                 } else {
                     if (Objects.isNull(variableItem.getValue())) {
-                        params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
+                        // 只有主图才会替换标题和副标题
+                        if (imageRequest.getIsMain()) {
+                            if ("TITLE".equals(variableItem.getField())) {
+                                params.put(variableItem.getField(), copyWriting.getImgTitle());
+                            } else if ("SUB_TITLE".equals(variableItem.getField())) {
+                                params.put(variableItem.getField(), copyWriting.getImgSubTitle());
+                            } else {
+                                params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
+                            }
+                        }
                     }
                     params.put(variableItem.getField(), variableItem.getValue());
                 }

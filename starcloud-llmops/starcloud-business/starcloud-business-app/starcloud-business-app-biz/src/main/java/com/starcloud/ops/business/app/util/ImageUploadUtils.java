@@ -93,6 +93,7 @@ public class ImageUploadUtils {
      * @return 是否符合要求
      */
     public static void validateUploadImageSuffix(String imageSuffix) {
+        imageSuffix = imageSuffix.toLowerCase();
         if (!SUPPORTED_SUFFIX_LIST.contains(imageSuffix)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, imageSuffix, SUPPORTED_SUFFIX_LIST);
         }

@@ -327,6 +327,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 克隆图片执行参数, 防止引用问题
             CreativePlanAppExecuteDTO appExecuteRequest = executeParam.getAppExecuteRequest();
             appCreateRequest.setPlanUid(plan.getUid());
+            appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
             appCreateRequest.setBusinessUid(businessUid);
             appCreateRequest.setType(XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
             appCreateRequest.setTempUid(appExecuteRequest.getUid());
@@ -339,6 +340,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParam.getImageStyleExecuteRequest();
             String tempUid = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests()).stream().map(CreativePlanImageExecuteDTO::getImageTemplate).collect(Collectors.joining(","));
             imageCreateRequest.setPlanUid(plan.getUid());
+            appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
             imageCreateRequest.setBusinessUid(businessUid);
             imageCreateRequest.setType(XhsCreativeContentTypeEnums.PICTURE.getCode());
             imageCreateRequest.setTempUid(tempUid);
@@ -381,6 +383,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 // 图片执行参数
                 CreativePlanImageStyleExecuteDTO styleExecute = CreativeUtil.getImageStyleExecuteRequest(style);
                 CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
+                planExecute.setSchemeUid(scheme.getUid());
                 planExecute.setAppExecuteRequest(appExecute);
                 planExecute.setImageStyleExecuteRequest(styleExecute);
                 list.add(planExecute);
