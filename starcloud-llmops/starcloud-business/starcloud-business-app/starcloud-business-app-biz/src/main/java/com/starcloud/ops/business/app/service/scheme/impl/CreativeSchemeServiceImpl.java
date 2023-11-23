@@ -264,7 +264,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @param request 创作方案需求请求
      */
     @Override
-    public void createDemand(CreativeSchemeSseReqVO request) {
+    public void summary(CreativeSchemeSseReqVO request) {
         AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         if (Objects.nonNull(request.getSseEmitter())) {
@@ -287,7 +287,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @return 文案示例
      */
     @Override
-    public List<CopyWritingContentDTO> createExample(CreativeSchemeReqVO request) {
+    public List<CopyWritingContentDTO> example(CreativeSchemeReqVO request) {
         AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(executeApp).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)

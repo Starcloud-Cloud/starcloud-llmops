@@ -65,6 +65,7 @@ public class CreativeUtil {
     private static final String REFERS = "REFERS";
     private static final String IS_PROMOTE_MP = "IS_PROMOTE_MP";
     private static final String MP_CODE = "MP_CODE";
+    private static final String SUMMARY = "SUMMARY";
     private static final String DEMAND = "DEMAND";
     private static final String EXAMPLE = "EXAMPLE";
 
@@ -91,6 +92,7 @@ public class CreativeUtil {
         params.add(ofInputVariableItem(TAGS, String.join(",", CollectionUtil.emptyIfNull(scheme.getTags()))));
         params.add(ofTextAreaVariableItem(DESCRIPTION, scheme.getDescription()));
         params.add(ofTextAreaVariableItem(REFERS, JSONUtil.toJsonStr(CollectionUtil.emptyIfNull(scheme.getRefers()))));
+        params.add(ofTextAreaVariableItem(SUMMARY, copyWritingTemplate.getSummary()));
         params.add(ofTextAreaVariableItem(DEMAND, CreativeUtil.handlerDemand(copyWritingTemplate, variableList)));
         params.add(ofTextAreaVariableItem(EXAMPLE, copyWritingTemplate.getExample()));
 
@@ -183,6 +185,10 @@ public class CreativeUtil {
                     String refers = JSONUtil.toJsonStr(request.getRefers());
                     variableItem.setValue(refers);
                     variableItem.setDefaultValue(refers);
+                } else if (SUMMARY.equals(variableItem.getField()) && StringUtils.isNotBlank(copyWritingTemplate.getSummary())) {
+                    String summary = copyWritingTemplate.getSummary();
+                    variableItem.setValue(summary);
+                    variableItem.setDefaultValue(summary);
 
                 } else if (DEMAND.equals(variableItem.getField()) && StringUtils.isNotBlank(copyWritingTemplate.getDemand())) {
                     String demand = handlerDemand(copyWritingTemplate, null);

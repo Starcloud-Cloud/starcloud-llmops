@@ -103,7 +103,7 @@ public interface CreativeSchemeService {
      *
      * @param request 创作方案需求请求
      */
-    void createDemand(CreativeSchemeSseReqVO request);
+    void summary(CreativeSchemeSseReqVO request);
 
     /**
      * 创建文案示例
@@ -111,6 +111,6 @@ public interface CreativeSchemeService {
      * @param request 创作方案需求请求
      * @return 文案示例
      */
-    List<CopyWritingContentDTO> createExample(CreativeSchemeReqVO request);
+    List<CopyWritingContentDTO> example(CreativeSchemeReqVO request);
 
 }

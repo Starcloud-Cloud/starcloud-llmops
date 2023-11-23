@@ -15,7 +15,7 @@ import java.util.List;
  * @version 1.0.0
  * @since 2021-06-22
  */
-@FeignClient(name = "${starcloud.feign.poster-image.url}", url = "${starcloud.feign.poster-image.url}", path = "/api")
+@FeignClient(name = "${feign.remote.poster.name}", url = "${feign.remote.poster.url}", path = "/api")
 public interface PosterImageClient {
 
     /**

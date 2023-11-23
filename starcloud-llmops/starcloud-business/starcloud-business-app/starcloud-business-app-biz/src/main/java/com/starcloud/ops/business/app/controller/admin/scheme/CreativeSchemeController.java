@@ -115,10 +115,10 @@ public class CreativeSchemeController {
         return CommonResult.success(true);
     }
 
-    @PostMapping(value = "/demand")
+    @PostMapping(value = "/summary")
     @Operation(summary = "小红书需求生成")
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public SseEmitter createDemand(@Validated @RequestBody CreativeSchemeSseReqVO executeRequest, HttpServletResponse httpServletResponse) {
+    public SseEmitter summary(@Validated @RequestBody CreativeSchemeSseReqVO executeRequest, HttpServletResponse httpServletResponse) {
         // 设置响应头
         httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
         httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
@@ -126,15 +126,15 @@ public class CreativeSchemeController {
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "xhs demand");
         executeRequest.setSseEmitter(emitter);
         // 异步执行应用
-        creativeSchemeService.createDemand(executeRequest);
+        creativeSchemeService.summary(executeRequest);
         return emitter;
     }
 
     @PostMapping(value = "/example")
     @Operation(summary = "小红书文案测试生成")
     @ApiOperationSupport(order = 110, author = "nacoyer")
-    public CommonResult<List<CopyWritingContentDTO>> createExample(@Validated @RequestBody CreativeSchemeReqVO executeRequest) {
-        return CommonResult.success(creativeSchemeService.createExample(executeRequest));
+    public CommonResult<List<CopyWritingContentDTO>> example(@Validated @RequestBody CreativeSchemeReqVO executeRequest) {
+        return CommonResult.success(creativeSchemeService.example(executeRequest));
     }
 
 }
