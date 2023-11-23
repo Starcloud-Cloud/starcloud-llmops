@@ -220,35 +220,58 @@ public class XhsServiceImpl implements XhsService {
      * @return 响应
      */
     @Override
+    @SuppressWarnings("all")
     public List<XhsAppCreativeExecuteResponse> bathAppCreativeExecute(List<XhsAppCreativeExecuteRequest> requests) {
+        log.info("小红书执行批量生成应用开始......!");
         if (CollectionUtil.isEmpty(requests)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
         }
-        Map<String, List<XhsAppCreativeExecuteRequest>> groupMap = requests.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getUid));
-
+        // 首先按照创作计划进行分组
+        Map<String, List<XhsAppCreativeExecuteRequest>> planMap = requests.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getPlanUid));
+        log.info("小红书执行批量生成应用，按照创作计划进行分组，共有{}个创作计划, 创作计划UID分别是：{}", planMap.size(), planMap.keySet());
         // 默认执行参数一样
         List<XhsAppCreativeExecuteResponse> responseList = new ArrayList<>();
-        for (Map.Entry<String, List<XhsAppCreativeExecuteRequest>> entry : groupMap.entrySet()) {
-            List<XhsAppCreativeExecuteRequest> value = entry.getValue();
-            if (CollectionUtil.isEmpty(value)) {
+        for (Map.Entry<String, List<XhsAppCreativeExecuteRequest>> planEntry : planMap.entrySet()) {
+            log.info("当前创作计划UID：{}", planEntry.getKey());
+            List<XhsAppCreativeExecuteRequest> planGroupRequestList = planEntry.getValue();
+            if (CollectionUtil.isEmpty(planGroupRequestList)) {
+                log.info("当前创作计划UID：{}，没有执行参数, 跳过！", planEntry.getKey());
                 continue;
             }
-            XhsAppCreativeExecuteRequest request = value.get(0);
-            request.setN(value.size());
-            List<XhsAppExecuteResponse> responses = this.appExecute(request);
-            for (int i = 0; i < responses.size(); i++) {
-                XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
-                XhsAppExecuteResponse item = responses.get(i);
-                String contentUid = Optional.ofNullable(value.get(i)).map(XhsAppCreativeExecuteRequest::getCreativeContentUid).orElse("");
-                response.setUid(item.getUid());
-                response.setSuccess(item.getSuccess());
-                response.setCopyWriting(item.getCopyWriting());
-                response.setErrorCode(item.getErrorCode());
-                response.setErrorMsg(item.getErrorMsg());
-                response.setCreativeContentUid(contentUid);
-                responseList.add(response);
+            // 再按照创作方案进行分组
+            Map<String, List<XhsAppCreativeExecuteRequest>> schemeMap = planGroupRequestList.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getSchemeUid));
+            log.info("当前创作计划UID：{}，按照创作方案进行分组，共有{}个创作方案, 创作方案UID分别是：{}", planEntry.getKey(), schemeMap.size(), schemeMap.keySet());
+            for (Map.Entry<String, List<XhsAppCreativeExecuteRequest>> schemeEntry : schemeMap.entrySet()) {
+                log.info("当前创作计划UID：{}，当前创作方案UID：{}", planEntry.getKey(), schemeEntry.getKey());
+                List<XhsAppCreativeExecuteRequest> schemeGroupRequestList = schemeEntry.getValue();
+                if (CollectionUtil.isEmpty(schemeGroupRequestList)) {
+                    log.info("当前创作计划UID：{}，当前创作方案UID：{}，没有执行参数, 跳过！", planEntry.getKey(), schemeEntry.getKey());
+                    continue;
+                }
+
+                // 执行应用
+                log.info("执行参数：生成条数: {}, 执行参数： \n{}", schemeGroupRequestList.size(), JSONUtil.parse(schemeGroupRequestList).toStringPretty());
+                XhsAppCreativeExecuteRequest request = schemeGroupRequestList.get(0);
+                request.setN(schemeGroupRequestList.size());
+                List<XhsAppExecuteResponse> responses = this.appExecute(request);
+                // 构建响应
+                for (int i = 0; i < responses.size(); i++) {
+                    XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+                    XhsAppExecuteResponse item = responses.get(i);
+                    String contentUid = schemeGroupRequestList.get(i).getCreativeContentUid();
+                    response.setUid(item.getUid());
+                    response.setSuccess(item.getSuccess());
+                    response.setCopyWriting(item.getCopyWriting());
+                    response.setErrorCode(item.getErrorCode());
+                    response.setErrorMsg(item.getErrorMsg());
+                    response.setCreativeContentUid(contentUid);
+                    responseList.add(response);
+                }
+                log.info("创作计划UID：{}，创作方案UID：{}，执行结束！", planEntry.getKey(), schemeEntry.getKey());
             }
+            log.info("创作计划UID：{}，执行结束！", planEntry.getKey());
         }
+        log.info("小红书执行批量生成应用结束......! \n {}", JSONUtil.parse(responseList).toStringPretty());
         return responseList;
     }
 
@@ -276,11 +299,11 @@ public class XhsServiceImpl implements XhsService {
             }
 
             // 获取海报图片模板
-//            List<XhsImageTemplateResponse> posterTemplates = imageTemplates();
-//            Optional<XhsImageTemplateResponse> optional = CollectionUtil.emptyIfNull(posterTemplates).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
-//            if (!optional.isPresent()) {
-//                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
-//            }
+            List<XhsImageTemplateDTO> posterTemplates = imageTemplates();
+            Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(posterTemplates).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
+            if (!optional.isPresent()) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板或者图片模板不存在！"));
+            }
 
             // 执行生成海报图片
             PosterRequest posterRequest = new PosterRequest();

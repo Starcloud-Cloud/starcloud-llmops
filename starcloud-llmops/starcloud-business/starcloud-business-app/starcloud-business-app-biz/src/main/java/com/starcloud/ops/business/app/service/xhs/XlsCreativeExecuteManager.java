@@ -90,14 +90,11 @@ public class XlsCreativeExecuteManager {
             List<XhsAppCreativeExecuteRequest> requests = new ArrayList<>(xhsCreativeContentDOList.size());
             for (XhsCreativeContentDO contentDO : xhsCreativeContentDOList) {
 
-                XhsAppCreativeExecuteRequest executeRequest = new XhsAppCreativeExecuteRequest();
                 CreativePlanExecuteDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(contentDO.getExecuteParams());
                 if (executeParams == null) {
                     continue;
                 }
                 CreativePlanAppExecuteDTO appExecuteRequest = executeParams.getAppExecuteRequest();
-                executeRequest.setUid(appExecuteRequest.getUid());
-                executeRequest.setScene(appExecuteRequest.getScene());
                 Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams()).stream()
                         .collect(Collectors.toMap(VariableItemDTO::getField, item -> {
                             if (Objects.isNull(item.getValue())) {
@@ -105,9 +102,15 @@ public class XlsCreativeExecuteManager {
                             }
                             return item.getValue();
                         }));
+
+                XhsAppCreativeExecuteRequest executeRequest = new XhsAppCreativeExecuteRequest();
+                executeRequest.setPlanUid(contentDO.getPlanUid());
+                executeRequest.setSchemeUid(contentDO.getSchemeUid());
+                executeRequest.setCreativeContentUid(contentDO.getUid());
+                executeRequest.setUid(appExecuteRequest.getUid());
+                executeRequest.setScene(appExecuteRequest.getScene());
                 executeRequest.setParams(params);
                 executeRequest.setUserId(Long.valueOf(contentDO.getCreator()));
-                executeRequest.setCreativeContentUid(contentDO.getUid());
                 requests.add(executeRequest);
             }
 
