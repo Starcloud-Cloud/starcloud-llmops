@@ -65,7 +65,7 @@ public class XhsController {
     @PostMapping("/app/execute1")
     @Operation(summary = "获取应用信息")
     public CommonResult<String> execute1() {
-        List<Long> list = Arrays.asList(1512L, 1514L, 1516L, 1518L, 1520L);
+        List<Long> list = Arrays.asList(1630L, 1632L, 1634L, 1636L, 1638L);
         xhsCreativeContentService.execute(list, XhsCreativeContentTypeEnums.PICTURE.getCode(), true);
         return CommonResult.success("");
     }

@@ -154,9 +154,12 @@ public interface XhsCreativeContentConvert {
                             } else {
                                 params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
                             }
+                        } else {
+                            params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
                         }
+                    } else {
+                        params.put(variableItem.getField(), variableItem.getValue());
                     }
-                    params.put(variableItem.getField(), variableItem.getValue());
                 }
             }
 
