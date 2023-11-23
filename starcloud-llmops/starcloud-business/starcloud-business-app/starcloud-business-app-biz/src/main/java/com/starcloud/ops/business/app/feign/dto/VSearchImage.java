@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.feign.response;
+package com.starcloud.ops.business.app.feign.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * ClipDrop 图片
- *
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-07-12
@@ -20,8 +18,8 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "ClipDropImage", description = "ClipDrop 图片")
-public class ClipDropImage {
+@Schema(name = "StabilityImage", description = "Stability Ai 图片")
+public class VSearchImage {
 
     /**
      * 图片的唯一标识
@@ -43,9 +41,21 @@ public class ClipDropImage {
     private String mediaType;
 
     /**
-     * 图片二进制数据流
+     * 图片生成结果的类型
      */
-    @Schema(description = "图片二进制数据流")
-    private byte[] binary;
+    @Schema(description = "图片生成结果的类型")
+    private Integer type;
 
+    /**
+     * 图片生成结果的原因
+     */
+    @Schema(description = "图片生成结果的原因")
+    @JsonProperty(value = "finish_reason")
+    private Integer finishReason;
+
+    /**
+     * 图片扩散数
+     */
+    @Schema(description = "图片扩散数")
+    private Long seed;
 }

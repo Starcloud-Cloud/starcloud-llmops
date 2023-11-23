@@ -597,6 +597,30 @@ public interface ErrorCodeConstants {
      */
     ErrorCode XHS_APP_EXECUTE_RESULT_FORMAT_ERROR = new ErrorCode(350500111, "执行结果格式不正确！，请稍后重试或者联系管理员（{}）！");
 
+    /**
+     * 海报错误：返回结果不存在！
+     */
+    ErrorCode POSTER_RESPONSE_IS_NULL = new ErrorCode(350700110, "{}：返回结果不存在！");
+
+    /**
+     * 海报错误
+     */
+    ErrorCode POSTER_RESPONSE_IS_NOT_SUCCESS = new ErrorCode(350700111, "{}：{}");
+
+    /**
+     * 海报错误：生成结果不存在！
+     */
+    ErrorCode POSTER_RESPONSE_DATA_IS_NULL = new ErrorCode(350700112, "{}：返回结果不存在！");
+
+    /**
+     * 海报错误：海报模板列表为空！请联系管理员！
+     */
+    ErrorCode POSTER_TEMPLATE_LIST_IS_EMPTY = new ErrorCode(350700113, "海报模板列表为空！请联系管理员！");
+
+    /**
+     * 海报错误：海报URL为空！请联系管理员！
+     */
+    ErrorCode POSTER_URL_IS_BLANK = new ErrorCode(350700114, "海报生成URL不存在！请联系管理员！");
 
     // ========== 图片上传错误码 370 000 xxx ==========
 

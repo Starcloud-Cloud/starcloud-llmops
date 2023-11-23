@@ -404,4 +404,47 @@ public class CreativeUtil {
         return variableItem;
     }
 
+    /**
+     * 获取文本变量
+     *
+     * @param field 字段
+     * @param label 值
+     * @return 文本变量
+     */
+    public static VariableItemDTO ofInputVariable(String field, String label) {
+        VariableItemDTO variableItem = new VariableItemDTO();
+        variableItem.setField(field);
+        variableItem.setLabel(label);
+        variableItem.setDescription(label);
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        variableItem.setOptions(Lists.newArrayList());
+        return variableItem;
+    }
+
+    /**
+     * 获取文本变量
+     *
+     * @param field 字段
+     * @param label 值
+     * @return 文本变量
+     */
+    public static VariableItemDTO ofImageVariable(String field, String label) {
+        VariableItemDTO variableItem = new VariableItemDTO();
+        variableItem.setField(field);
+        variableItem.setLabel(label);
+        variableItem.setDescription(label);
+        variableItem.setOrder(1);
+        variableItem.setType("IMAGE");
+        variableItem.setStyle("IMAGE");
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        variableItem.setOptions(Lists.newArrayList());
+        return variableItem;
+    }
 }
