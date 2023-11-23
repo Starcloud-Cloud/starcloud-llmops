@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 /**
@@ -30,14 +29,12 @@ public class CreativeSchemeCopyWritingTemplateDTO implements java.io.Serializabl
      * 文案总结信息
      */
     @Schema(description = "文案总结信息")
-    @NotBlank(message = "文案总结信息不能为空")
     private String summary;
 
     /**
      * 生成文案的要求
      */
     @Schema(description = "生成文案要求")
-    @NotBlank(message = "生成文案要求不能为空")
     private String demand;
 
     /**
@@ -51,4 +48,5 @@ public class CreativeSchemeCopyWritingTemplateDTO implements java.io.Serializabl
      */
     @Schema(description = "文案生成模板示例")
     private List<CopyWritingContentDTO> example;
+
 }
