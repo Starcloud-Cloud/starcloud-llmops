@@ -563,6 +563,16 @@ public interface ErrorCodeConstants {
     ErrorCode CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL = new ErrorCode(350200112, "创作方案文案模板不能为空！创作方案名称: {}）！");
 
     /**
+     * 创作方案文案模板总结信息不能为空
+     */
+    ErrorCode CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_SUMMARY_NOT_NULL = new ErrorCode(350200112, "创作方案文案模板总结信息不能为空！创作方案名称: {}）！");
+
+    /**
+     * 创作方案文案模板要求不能为空
+     */
+    ErrorCode CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_DEMAND_NOT_NULL = new ErrorCode(350200112, "创作方案文案模板要求不能为空！创作方案名称: {}）！");
+
+    /**
      * 创作方案图片模板不能为空
      */
     ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL = new ErrorCode(350200113, "创作方案图片模板不能为空！创作方案名称: {}）!");

@@ -288,6 +288,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     @Override
     public List<CopyWritingContentDTO> example(CreativeSchemeReqVO request) {
+        handlerAndValidate(request);
         AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(executeApp).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
@@ -342,6 +343,29 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (StringUtils.isBlank(request.getDescription())) {
             request.setDescription(StringUtils.EMPTY);
         }
+        CreativeSchemeConfigDTO configuration = request.getConfiguration();
+        if (Objects.isNull(configuration)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL, request.getName());
+        }
+        CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
+        if (Objects.isNull(imageTemplate)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL, request.getName());
+        }
+        List<XhsImageStyleDTO> styleList = imageTemplate.getStyleList();
+        if (CollectionUtil.isEmpty(styleList)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY, request.getName());
+        }
+
+        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
+        if (Objects.isNull(copyWritingTemplate)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, request.getName());
+        }
+        if (StringUtils.isBlank(copyWritingTemplate.getSummary())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_SUMMARY_NOT_NULL, request.getName());
+        }
+        if (StringUtils.isBlank(copyWritingTemplate.getDemand())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_DEMAND_NOT_NULL, request.getName());
+        }
     }
 
     /**
@@ -352,28 +376,16 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     private void handlerScheme(CreativeSchemeDO scheme, CreativeSchemeReqVO request) {
 
-        // 创作方案配置不能为空
         CreativeSchemeConfigDTO configuration = request.getConfiguration();
-        AppValidate.notNull(configuration, ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL, request.getName());
-
-        // 文案模板不能为空
         CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
-        AppValidate.notNull(copyWritingTemplate, ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, request.getName());
-
         // 设置创作方案的示例文案
         List<CopyWritingContentDTO> copyWritingExamples = Optional.ofNullable(copyWritingTemplate.getExample()).orElse(Lists.newArrayList());
         scheme.setCopyWritingExample(JSONUtil.toJsonStr(copyWritingExamples));
 
-        // 图片模板不能为空
         CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
-        AppValidate.notNull(imageTemplate, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL, request.getName());
-
-        // 图片模板的样式列表不能为空
         List<XhsImageStyleDTO> list = imageTemplate.getStyleList();
-        AppValidate.notEmpty(list, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY, request.getName());
-
         // 从字典中获取图片模板的示例图片
-        List<XhsImageTemplateDTO> imageTemplates = appDictionaryService.xhsImageTemplates();
+        List<XhsImageTemplateDTO> imageTemplates = xhsService.imageTemplates();
         Map<String, XhsImageTemplateDTO> templateMap = CollectionUtil.emptyIfNull(imageTemplates).stream().collect(Collectors.toMap(XhsImageTemplateDTO::getId, item -> item));
 
         List<ImageExampleDTO> imageExampleList = Lists.newArrayList();

@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.xhs;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
+import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
@@ -52,7 +52,7 @@ public class XhsController {
 
     @GetMapping("/imageTemplates")
     @Operation(summary = "获取图片模板列表")
-    public CommonResult<List<XhsImageTemplateResponse>> imageTemplates() {
+    public CommonResult<List<XhsImageTemplateDTO>> imageTemplates() {
         return CommonResult.success(xhsService.imageTemplates());
     }
 

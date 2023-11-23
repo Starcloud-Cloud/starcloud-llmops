@@ -11,7 +11,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
+import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
@@ -71,7 +71,7 @@ public class XhsServiceImpl implements XhsService {
      * @return 图片模板
      */
     @Override
-    public List<XhsImageTemplateResponse> imageTemplates() {
+    public List<XhsImageTemplateDTO> imageTemplates() {
         List<PosterTemplateDTO> templates = posterService.templates();
         return CollectionUtil.emptyIfNull(templates).stream().map(item -> {
             List<PosterParam> params = CollectionUtil.emptyIfNull(item.getParams());
@@ -86,7 +86,7 @@ public class XhsServiceImpl implements XhsService {
                 }
             }).filter(Objects::nonNull).collect(Collectors.toList());
 
-            XhsImageTemplateResponse response = new XhsImageTemplateResponse();
+            XhsImageTemplateDTO response = new XhsImageTemplateDTO();
             response.setId(item.getId());
             response.setName(item.getLabel());
             response.setExample(item.getTempUrl());
@@ -281,7 +281,7 @@ public class XhsServiceImpl implements XhsService {
 //            if (!optional.isPresent()) {
 //                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
 //            }
-            
+
             // 执行生成海报图片
             PosterRequest posterRequest = new PosterRequest();
             posterRequest.setId(request.getImageTemplate());
