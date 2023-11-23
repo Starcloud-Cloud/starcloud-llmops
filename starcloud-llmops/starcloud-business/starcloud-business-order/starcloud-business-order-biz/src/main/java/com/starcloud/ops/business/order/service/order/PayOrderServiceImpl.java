@@ -8,14 +8,12 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.pay.config.PayProperties;
 import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import cn.iocoder.yudao.framework.pay.core.client.PayClientFactory;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
-import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
@@ -48,6 +46,7 @@ import com.starcloud.ops.business.order.enums.notify.PayNotifyTypeEnum;
 import com.starcloud.ops.business.order.enums.order.PayOrderNotifyStatusEnum;
 import com.starcloud.ops.business.order.enums.order.PayOrderStatusEnum;
 import com.starcloud.ops.business.order.enums.refund.PayRefundTypeEnum;
+import com.starcloud.ops.business.order.framework.pay.config.PayProperties;
 import com.starcloud.ops.business.order.service.merchant.PayAppService;
 import com.starcloud.ops.business.order.service.merchant.PayChannelService;
 import com.starcloud.ops.business.order.service.notify.PayNotifyService;
@@ -380,7 +379,7 @@ public class PayOrderServiceImpl implements PayOrderService {
      * @return 支付渠道的回调地址  配置地址 + "/" + channel id
      */
     private String genChannelPayNotifyUrl(PayChannelDO channel) {
-        return payProperties.getCallbackUrl() + "/" + channel.getId();
+        return payProperties.getReturnUrl() + "/" + channel.getId();
     }
 
     private String generateOrderExtensionNo() {

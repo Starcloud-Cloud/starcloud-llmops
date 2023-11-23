@@ -74,6 +74,7 @@
         <jimureport.version>1.6.1</jimureport.version>
         <xercesImpl.version>2.12.2</xercesImpl.version>
         <weixin-java.version>4.5.0</weixin-java.version>
+        <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
     </properties>
 
     <dependencyManagement>
@@ -650,6 +651,13 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-websocket</artifactId>
                 <version>${spring.boot.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>jakarta.json</groupId>
+                <artifactId>jakarta.json-api</artifactId>
+                <version>${jakarta.json-api.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

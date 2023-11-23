@@ -1,8 +1,8 @@
 package com.starcloud.ops.framework.common.api.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,12 +23,12 @@ public class StringUtil {
      * @return 集合
      */
     public static List<String> toList(String source) {
-        if (StringUtils.isBlank(source)) {
+        if (StrUtil.isBlank(source)) {
             return Collections.emptyList();
         }
         return Arrays.stream(source.split(","))
                 .distinct()
-                .filter(StringUtils::isNotBlank)
+                .filter(StrUtil::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.toList());
     }
@@ -42,7 +42,7 @@ public class StringUtil {
     public static List<String> toList(List<String> source) {
         return CollectionUtil.emptyIfNull(source).stream()
                 .distinct()
-                .filter(StringUtils::isNotBlank)
+                .filter(StrUtil::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.toList());
     }
@@ -56,13 +56,13 @@ public class StringUtil {
     public static String toString(List<String> source) {
         return CollectionUtil.emptyIfNull(source).stream()
                 .distinct()
-                .filter(StringUtils::isNotBlank)
+                .filter(StrUtil::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.joining(","));
     }
 
     public static Boolean isBlank(String source) {
-        return StringUtils.isBlank(source);
+        return StrUtil.isBlank(source);
     }
 
     /**

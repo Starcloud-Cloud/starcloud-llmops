@@ -18,7 +18,7 @@ public class TouristWebConfiguration {
      */
     @Bean(name = "touristGroupedOpenApi2")
     public GroupedOpenApi memberGroupedOpenApi() {
-        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("member");
+        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("tourist");
     }
 
 }

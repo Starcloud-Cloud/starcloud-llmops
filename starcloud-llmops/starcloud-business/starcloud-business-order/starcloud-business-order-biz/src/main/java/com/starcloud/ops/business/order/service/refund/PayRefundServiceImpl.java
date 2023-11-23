@@ -4,7 +4,6 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.pay.config.PayProperties;
 import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import cn.iocoder.yudao.framework.pay.core.client.PayClientFactory;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
@@ -26,6 +25,7 @@ import com.starcloud.ops.business.order.enums.order.PayOrderNotifyStatusEnum;
 import com.starcloud.ops.business.order.enums.order.PayOrderStatusEnum;
 import com.starcloud.ops.business.order.enums.refund.PayRefundStatusEnum;
 import com.starcloud.ops.business.order.enums.refund.PayRefundTypeEnum;
+import com.starcloud.ops.business.order.framework.pay.config.PayProperties;
 import com.starcloud.ops.business.order.service.merchant.PayAppService;
 import com.starcloud.ops.business.order.service.merchant.PayChannelService;
 import com.starcloud.ops.business.order.service.notify.PayNotifyService;
@@ -181,7 +181,7 @@ public class PayRefundServiceImpl implements PayRefundService {
      * @return 支付渠道的回调地址  配置地址 + "/" + channel id
      */
     private String genChannelPayNotifyUrl(PayChannelDO channel) {
-        return payProperties.getCallbackUrl() + "/" + channel.getId();
+        return payProperties.getReturnUrl() + "/" + channel.getId();
     }
 
     @Override
