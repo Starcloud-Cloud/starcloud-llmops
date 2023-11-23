@@ -24,6 +24,7 @@ import cn.iocoder.yudao.module.system.service.dept.PostService;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.tenant.TenantService;
 import com.google.common.annotations.VisibleForTesting;
+import kotlin.collections.builders.SetBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -117,7 +118,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         Long userId = reqVO.getId();
         Set<Long> dbPostIds = convertSet(userPostMapper.selectListByUserId(userId), UserPostDO::getPostId);
         // 计算新增和删除的岗位编号
-        Set<Long> postIds = updateObj.getPostIds();
+        Set<Long> postIds = Optional.ofNullable(updateObj.getPostIds()).orElseGet(HashSet::new);
         Collection<Long> createPostIds = CollUtil.subtract(postIds, dbPostIds);
         Collection<Long> deletePostIds = CollUtil.subtract(dbPostIds, postIds);
         // 执行新增和删除。对于已经授权的菜单，不用做任何处理
