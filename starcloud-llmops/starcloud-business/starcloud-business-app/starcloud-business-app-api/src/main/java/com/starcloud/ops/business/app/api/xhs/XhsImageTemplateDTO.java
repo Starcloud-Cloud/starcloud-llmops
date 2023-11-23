@@ -59,7 +59,7 @@ public class XhsImageTemplateDTO implements java.io.Serializable {
      * 图片模板变量
      */
     @Schema(description = "图片模板变量")
-    @NotEmpty(message = "图片模板变量不能为空！")
+//    @NotEmpty(message = "图片模板变量不能为空！")
     private List<VariableItemDTO> variables;
 
 }
