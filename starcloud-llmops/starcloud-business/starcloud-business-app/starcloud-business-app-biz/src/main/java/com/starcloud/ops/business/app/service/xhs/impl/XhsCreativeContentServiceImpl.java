@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -7,10 +8,7 @@ import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
@@ -147,6 +145,23 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         }
         List<XhsCreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(req, PageUtils.getStart(req), req.getPageSize());
         return new PageResult<>(XhsCreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
+    }
+
+    @Override
+    public com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> newPage(XhsCreativeContentPageReq req) {
+        XhsCreativeContentPageReq pageReq = new XhsCreativeContentPageReq();
+        BeanUtil.copyProperties(req,pageReq);
+        PageResult<XhsCreativeContentResp> page = page(pageReq);
+        com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> result = new com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<>(page.getList(), page.getTotal());
+        XhsCreativeContentPageReq countPage = new XhsCreativeContentPageReq();
+        countPage.setPlanUid(req.getPlanUid());
+        countPage.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
+        Long successCount = creativeContentMapper.selectCount(countPage);
+        countPage.setStatus(XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode());
+        Long errorCount = creativeContentMapper.selectCount(countPage);
+        result.setSuccessCount(successCount.intValue() * 2);
+        result.setErrorCount(errorCount.intValue() * 2);
+        return result;
     }
 
     @Override
