@@ -419,7 +419,7 @@ public class PayOrderServiceImpl implements PayOrderService {
             notifyService.createPayNotifyTask(PayNotifyTaskCreateReqDTO.builder()
                     .type(PayNotifyTypeEnum.ORDER.getType()).dataId(order.getId()).build());
             // 发送钉钉通知消息
-            sendMessage(order.getCreator(), order.getProductCode(), order.getAmount());
+            sendMessage(order.getCreator(), order.getSubject(), order.getAmount());
             // 根据商品 code 获取商品预设用户等级
             String roleCode = ProductEnum.getRoleCodeByCode(order.getProductCode());
             // 根据商品 code 获取权益类型
@@ -436,21 +436,22 @@ public class PayOrderServiceImpl implements PayOrderService {
      * 订单钉钉消息通知
      *
      * @param userId      用户 ID
-     * @param productType 商品类型
+     * @param productName 商品名称
      * @param amount      商品金额
      */
     @TenantIgnore
-    private void sendMessage(String userId, String productType, Integer amount) {
+    private void sendMessage(String userId, String productName, Integer amount) {
 
         try {
             AdminUserDO user = userService.getUser(Long.valueOf(userId));
-            ProductEnum productEnum = ProductEnum.getByCode(productType);
+
             Map<String, Object> templateParams = new HashMap<>();
             String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
             templateParams.put("environmentName", environmentName);
             templateParams.put("userName", user.getNickname());
-            templateParams.put("productName", productEnum.getName());
-            templateParams.put("amount", amount / 100);
+            templateParams.put("productName", productName);
+
+            templateParams.put("amount", String.format("%.2f", amount / 100d));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
                             .setUserId(1L).setMobile("17835411844")
@@ -581,7 +582,7 @@ public class PayOrderServiceImpl implements PayOrderService {
             } else {
                 appPayProductDiscountRespVO.setDiscountCouponStatus(false);
             }
-        }else{
+        } else {
             appPayProductDiscountRespVO.setDiscountCouponStatus(false);
         }
         return appPayProductDiscountRespVO;
