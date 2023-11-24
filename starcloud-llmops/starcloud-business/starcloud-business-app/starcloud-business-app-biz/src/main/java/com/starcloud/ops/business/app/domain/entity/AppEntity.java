@@ -236,7 +236,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected String obtainLlmAiModelType(AppExecuteReqVO request) {
-        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
     }
 
     /**
