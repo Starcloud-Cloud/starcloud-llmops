@@ -211,8 +211,7 @@ public class PayOrderController {
     public CommonResult<AppPayProductDiscountRespVO> getOrderProductDiscount(@RequestBody PayOrderDiscountReqVO payOrderDiscountReqVO) {
         return success(payOrderService.getOrderProductDiscount(payOrderDiscountReqVO.getProductCode(), payOrderDiscountReqVO.getNoNeedProductCode(),payOrderDiscountReqVO.getDiscountCode()));
     }
-
-    @Deprecated
+    
     @PostMapping("/discount/newuser")
     @Operation(summary = "获取新用户折扣码")
     public CommonResult<UserDiscountCodeInfoVO> getOrderProductDiscount() {

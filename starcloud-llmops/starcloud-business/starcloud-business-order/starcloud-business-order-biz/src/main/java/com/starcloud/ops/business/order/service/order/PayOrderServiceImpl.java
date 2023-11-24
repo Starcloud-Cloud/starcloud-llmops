@@ -80,6 +80,7 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.*;
 @Service
 @Validated
 @Slf4j
+@Deprecated
 public class PayOrderServiceImpl implements PayOrderService {
 
     @Resource

@@ -23,6 +23,7 @@ import java.util.Map;
  *
  * @author aquan
  */
+@Deprecated
 public interface PayOrderService {
 
     /**

@@ -16,6 +16,7 @@ import java.util.List;
  */
 @Service
 @Validated
+@Deprecated
 public class PayOrderExtensionServiceImpl implements PayOrderExtensionService {
 
     @Resource
