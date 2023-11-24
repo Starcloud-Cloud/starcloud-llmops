@@ -337,7 +337,7 @@ public class ImageUploadUtils {
         if (StringUtils.isBlank(extension)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.FILE_EXTENSION_FAILURE);
         }
-        return extension;
+        return extension.toLowerCase();
     }
 
     /**
