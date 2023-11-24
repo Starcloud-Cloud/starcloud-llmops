@@ -170,19 +170,18 @@ public class XlsCreativeExecuteManager {
                     continue;
                 }
 
-                // 校验状态 重试次数
-                XhsCreativeContentDO contentDO = getReadyCreative(sourceContentDO.getId(), force);
-                if (contentDO == null) {
-                    result.put(sourceContentDO.getId(), false);
-                    continue;
-                }
-
                 // 查询文案执行情况。需要文案执行成功才能执行图片
                 XhsCreativeContentDO businessDO = creativeContentMapper.selectByType(sourceContentDO.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
                 if (businessDO == null || !XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(businessDO.getStatus()) ||
                         StringUtils.isBlank(businessDO.getCopyWritingResult())) {
                     log.warn("文案未执行成功，不能执行图片生成：{}", sourceContentDO.getId());
-                    updateDO(contentDO, "文案生成失败！将不会进行图片生成！", 4, XhsCreativeContentStatusEnums.EXECUTE_ERROR);
+                    result.put(sourceContentDO.getId(), false);
+                    continue;
+                }
+
+                // 校验状态 重试次数
+                XhsCreativeContentDO contentDO = getReadyCreative(sourceContentDO.getId(), force);
+                if (contentDO == null) {
                     result.put(sourceContentDO.getId(), false);
                     continue;
                 }
