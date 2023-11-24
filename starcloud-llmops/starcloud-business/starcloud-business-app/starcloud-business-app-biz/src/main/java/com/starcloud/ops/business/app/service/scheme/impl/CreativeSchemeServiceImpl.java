@@ -46,6 +46,7 @@ import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -302,6 +303,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         executeRequest.setAppUid(executeApp.getUid());
         executeRequest.setStepId(stepWrapper.getField());
         executeRequest.setN(5);
+        executeRequest.setAiModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
         executeRequest.setAppReqVO(CreativeUtil.transform(executeApp, request));
 
         String answer = xhsService.execute(executeRequest);

@@ -308,13 +308,18 @@ public class CreativeUtil {
      */
     public static List<XhsAppExecuteResponse> handleAnswer(String answer, String appUid, Integer n) {
         if (n == 1) {
-            CopyWritingContentDTO copyWriting = JSONUtil.toBean(answer.trim(), CopyWritingContentDTO.class);
-            if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
+            try {
+                CopyWritingContentDTO copyWriting = JSONUtil.toBean(answer.trim(), CopyWritingContentDTO.class);
+                if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
+                    log.error("生成格式不正确：原始数据：{}", answer);
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR);
+                } else {
+                    log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 文案内容: {}", appUid, n, JSONUtil.toJsonStr(copyWriting));
+                    return XhsAppExecuteResponse.success(appUid, copyWriting, n);
+                }
+            } catch (Exception exception) {
                 log.error("生成格式不正确：原始数据：{}", answer);
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR);
-            } else {
-                log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 文案内容: {}", appUid, n, JSONUtil.toJsonStr(copyWriting));
-                return XhsAppExecuteResponse.success(appUid, copyWriting, n);
             }
         } else {
             TypeReference<List<ChatCompletionChoice>> typeReference = new TypeReference<List<ChatCompletionChoice>>() {
@@ -342,17 +347,25 @@ public class CreativeUtil {
                     appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_NOT_EXIST.getMsg());
                     list.add(appExecuteResponse);
                 } else {
-                    CopyWritingContentDTO copyWriting = JSONUtil.toBean(JSONUtil.parseObj(content), CopyWritingContentDTO.class);
-                    if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
+                    try {
+                        CopyWritingContentDTO copyWriting = JSONUtil.toBean(JSONUtil.parseObj(content), CopyWritingContentDTO.class);
+                        if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
+                            log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 原数据: {}", i + 1, appUid, n, content);
+                            appExecuteResponse.setSuccess(Boolean.FALSE);
+                            appExecuteResponse.setErrorCode(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getCode().toString());
+                            appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getMsg());
+                            list.add(appExecuteResponse);
+                        } else {
+                            log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 文案信息: {}", i + 1, appUid, n, JSONUtil.toJsonStr(copyWriting));
+                            appExecuteResponse.setSuccess(Boolean.TRUE);
+                            appExecuteResponse.setCopyWriting(copyWriting);
+                            list.add(appExecuteResponse);
+                        }
+                    } catch (Exception e) {
                         log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 原数据: {}", i + 1, appUid, n, content);
-                        appExecuteResponse.setSuccess(Boolean.FALSE);
+                        appExecuteResponse.setSuccess(Boolean.TRUE);
                         appExecuteResponse.setErrorCode(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getCode().toString());
                         appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getMsg());
-                        list.add(appExecuteResponse);
-                    } else {
-                        log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 文案信息: {}", i + 1, appUid, n, JSONUtil.toJsonStr(copyWriting));
-                        appExecuteResponse.setSuccess(Boolean.TRUE);
-                        appExecuteResponse.setCopyWriting(copyWriting);
                         list.add(appExecuteResponse);
                     }
                 }

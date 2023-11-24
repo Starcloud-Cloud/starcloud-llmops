@@ -58,7 +58,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     @JSONField(serialize = false)
     protected Integer getCostPoints(Request request) {
         Map<String, Object> params = request.getStepParams();
-        String aiModel = String.valueOf(Optional.ofNullable(params.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        String aiModel = String.valueOf(Optional.ofNullable(params.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
         if (ModelTypeEnum.GPT_4_TURBO.getName().equals(aiModel)) {
             return 30;
         }
@@ -87,7 +87,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
 
-        String model = String.valueOf(params.getOrDefault("MODEL", ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        String model = String.valueOf(params.getOrDefault("MODEL", ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
         Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7"));
