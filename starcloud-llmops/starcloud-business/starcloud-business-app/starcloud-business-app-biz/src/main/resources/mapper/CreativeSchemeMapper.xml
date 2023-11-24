@@ -63,6 +63,22 @@
         <include refid="LIST_SELECT_QUERY_CONDITION"/>
     </select>
     
+    <!-- 根据 UID 列表查询创作方案列表 -->
+    <select id="listByUidList" resultType="com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO">
+        SELECT
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
+        FROM llm_creative_scheme
+        <where>
+            <if test="uidList != null and uidList.size() > 0 ">
+                AND `uid` IN
+                <foreach collection='uidList' item='uid' open='(' separator=',' close=')'>
+                    #{uid}
+                </foreach>
+            </if>
+            AND `deleted` = 0
+        </where>
+    </select>
+    
     <!-- 根据条件分页查询创作方案列表 -->
     <select id="page" resultType="com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO">
         SELECT

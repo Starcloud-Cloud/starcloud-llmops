@@ -179,15 +179,15 @@ public class XlsCreativeExecuteManager {
                     continue;
                 }
 
-                // 文案执行结果
-                CopyWritingContentDTO copyWriting = JSONUtil.toBean(businessDO.getCopyWritingResult(), CopyWritingContentDTO.class);
-
                 // 校验状态 重试次数
                 XhsCreativeContentDO contentDO = getReadyCreative(sourceContentDO.getId(), force);
                 if (contentDO == null) {
                     result.put(sourceContentDO.getId(), false);
                     continue;
                 }
+
+                // 文案执行结果
+                CopyWritingContentDTO copyWriting = JSONUtil.toBean(businessDO.getCopyWritingResult(), CopyWritingContentDTO.class);
 
                 LocalDateTime start = LocalDateTime.now();
 
