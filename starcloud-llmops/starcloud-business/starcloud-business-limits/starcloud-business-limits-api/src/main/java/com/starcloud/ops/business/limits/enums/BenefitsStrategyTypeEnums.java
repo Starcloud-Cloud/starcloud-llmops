@@ -80,27 +80,27 @@ public enum BenefitsStrategyTypeEnums {
     /**
      * BASIC套餐
      */
-    PAY_BASIC_MONTH("PAY_BASIC_MONTH", "基础版-月付", "PLUS Package", "PB", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
+    PAY_BASIC_MONTH("PAY_BASIC_MONTH", "魔法ai-基础版-年付", "PLUS Package", "PB", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
     /**
      * BASIC套餐
      */
-    PAY_BASIC_YEAR("PAY_BASIC_YEAR", "基础版-年付", "PLUS Package", "PB", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
+    PAY_BASIC_YEAR("PAY_BASIC_YEAR", "魔法ai-基础版-年付", "PLUS Package", "PB", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
     /**
      * PLUS套餐
      */
-    PAY_PLUS_MONTH("PAY_PLUS_MONTH", "高级版-月付", "PLUS Package", "PL", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
+    PAY_PLUS_MONTH("PAY_PLUS_MONTH", "魔法ai-高级版-月付", "PLUS Package", "PL", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
     /**
      * PLUS套餐
      */
-    PAY_PLUS_YEAR("PAY_PLUS_YEAR", "高级版-年付", "PLUS Package", "PL", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
+    PAY_PLUS_YEAR("PAY_PLUS_YEAR", "魔法ai-高级版-年付", "PLUS Package", "PL", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
     /**
      * PRO套餐
      */
-    PAY_PRO_MONTH("PAY_PRO_MONTH", "团队版-月付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
+    PAY_PRO_MONTH("PAY_PRO_MONTH", "魔法ai-团队版-月付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
     /**
      * PRO套餐
      */
-    PAY_PRO_YEAR("PAY_PRO_YEAR", "高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
+    PAY_PRO_YEAR("PAY_PRO_YEAR", "魔法ai-高级版-年付", "PRO Package", "PR", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
 
     /**
      *
