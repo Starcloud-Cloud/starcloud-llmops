@@ -39,6 +39,14 @@ public interface CreativeSchemeMapper extends BaseMapper<CreativeSchemeDO> {
     List<CreativeSchemeDO> list(@Param("query") CreativeSchemeListReqVO query);
 
     /**
+     * 根据条件查询方案列表
+     *
+     * @param list 方案UID列表
+     * @return 方案列表
+     */
+    List<CreativeSchemeDO> listByUidList(@Param("uidList") List<String> list);
+
+    /**
      * 分页查询方案列表
      *
      * @param page  分页参数
