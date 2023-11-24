@@ -3,7 +3,7 @@
 <mapper namespace="com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper">
 
     <sql id="page_column">
-        pic.business_uid as businessUid, text.temp_uid as copyWritingUid, pic.temp_uid as pictureTempUid, text.use_picture as usePicture,
+        pic.business_uid as businessUid, pic.scheme_uid as schemeUid, text.temp_uid as copyWritingUid, pic.temp_uid as pictureTempUid, text.use_picture as usePicture,
         pic.execute_params as pictureParams, text.execute_params as copyWritingParams, pic.status as pictureStatus, text.status as copyWritingStatus,
         pic.start_time as pictureStartTime, pic.end_time as pictureEndTime, pic.execute_time as pictureExecuteTime,
         text.start_time as copyWritingStartTime, text.end_time as copyWritingEndTime, text.execute_time as copyWritingExecuteTime,
@@ -23,6 +23,9 @@
             <if test="req.planUid != null and req.planUid != ''">
                 and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
             </if>
+            <if test="req.schemeUid != null and req.schemeUid != ''">
+                and pic.scheme_uid = #{req.schemeUid} and text.scheme_uid = #{req.schemeUid}
+            </if>
             <if test="req.claim != null ">
                 and pic.claim = #{req.claim} and text.claim = #{req.claim}
             </if>
@@ -41,6 +44,9 @@
         and pic.deleted = false and text.deleted = false
         <if test="req.planUid != null and req.planUid != ''">
             and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.schemeUid != null and req.schemeUid != ''">
+            and pic.scheme_uid = #{req.schemeUid} and text.scheme_uid = #{req.schemeUid}
         </if>
         <if test="req.claim != null ">
             and pic.claim = #{req.claim} and text.claim = #{req.claim}

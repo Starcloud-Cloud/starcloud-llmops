@@ -1,15 +1,17 @@
 package com.starcloud.ops.business.app.dal.databoject.xhs;
 
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExtendDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 public class XhsCreativeContentDTO {
+
+    /**
+     * 创作方案UID
+     */
+    private String schemeUid;
 
     @Schema(description = "创作计划uid")
     private String planUid;
@@ -68,6 +70,12 @@ public class XhsCreativeContentDTO {
 
     @Schema(description = "文案文字数量")
     private String copyWritingCount;
+
+    /**
+     * 文案生成结果
+     */
+    @Schema(description = "文案生成结果")
+    private String copyWritingResult;
 
     @Schema(description = "生成图片数量")
     private Integer pictureNum;

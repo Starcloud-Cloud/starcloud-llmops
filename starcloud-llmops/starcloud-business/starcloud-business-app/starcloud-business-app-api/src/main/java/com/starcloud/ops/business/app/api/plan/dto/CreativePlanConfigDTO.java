@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.plan.dto;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,6 +13,7 @@ import lombok.ToString;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -38,9 +40,16 @@ public class CreativePlanConfigDTO implements java.io.Serializable {
     /**
      * 应用UID列表
      */
-    @Schema(description = "应用列表")
+    @Schema(description = "创作方案列表")
     @NotEmpty(message = "请选择文案列表！")
     private List<String> schemeUidList;
+
+    /**
+     * 变量列表
+     */
+    @Schema(description = "变量列表")
+    @NotEmpty(message = "请填写变量列表！")
+    private Map<String, List<VariableItemDTO>> paramMap;
 
     /**
      * 校验配置信息

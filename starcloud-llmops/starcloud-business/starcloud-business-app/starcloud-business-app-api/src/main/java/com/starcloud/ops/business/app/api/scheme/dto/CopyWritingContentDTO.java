@@ -15,8 +15,8 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(description = "文案示例")
-public class CopyWritingExample implements java.io.Serializable {
+@Schema(description = "文案内容DTO")
+public class CopyWritingContentDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = -8566370798934412863L;
 
@@ -31,6 +31,18 @@ public class CopyWritingExample implements java.io.Serializable {
      */
     @Schema(description = "文案内容")
     private String content;
+
+    /**
+     * 图片标题
+     */
+    @Schema(description = "图片标题")
+    private String imgTitle;
+
+    /**
+     * 图片副标题
+     */
+    @Schema(description = "图片副标题")
+    private String imgSubTitle;
 
 
 }

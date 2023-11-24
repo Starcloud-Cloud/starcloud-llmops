@@ -53,4 +53,10 @@ public class CreativeSchemeListReqVO implements java.io.Serializable {
      */
     @Schema(description = "登录用户ID")
     private String loginUserId;
+
+    /**
+     * 是否管理员
+     */
+    @Schema(description = "是否管理员")
+    private Boolean isAdmin;
 }

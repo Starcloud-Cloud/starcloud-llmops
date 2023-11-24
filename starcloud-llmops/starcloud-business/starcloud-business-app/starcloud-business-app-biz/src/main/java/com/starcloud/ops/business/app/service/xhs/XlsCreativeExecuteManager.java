@@ -1,14 +1,18 @@
 package com.starcloud.ops.business.app.service.xhs;
 
-import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.plan.dto.CreativePlanAppExecuteDTO;
+import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
+import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageStyleExecuteDTO;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativePictureContentDTO;
 import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
@@ -30,11 +34,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * @author admin
+ */
 @Component
 @Slf4j
 public class XlsCreativeExecuteManager {
@@ -59,7 +68,7 @@ public class XlsCreativeExecuteManager {
         List<Long> ids = xhsCreativeContentDOList.stream().map(XhsCreativeContentDO::getId).sorted().collect(Collectors.toList());
         StringJoiner sj = new StringJoiner("-");
         ids.forEach(id -> sj.add(id.toString()));
-        String key = "xhs-pic-" + sj.toString();
+        String key = "xhs-pic-" + sj;
         RLock lock = redissonClient.getLock(key);
 
         if (lock != null && !lock.tryLock()) {
@@ -80,13 +89,27 @@ public class XlsCreativeExecuteManager {
         try {
             List<XhsAppCreativeExecuteRequest> requests = new ArrayList<>(xhsCreativeContentDOList.size());
             for (XhsCreativeContentDO contentDO : xhsCreativeContentDOList) {
-                XhsAppCreativeExecuteRequest executeRequest = new XhsAppCreativeExecuteRequest();
-                XhsCreativeContentExecuteParamsDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(contentDO.getExecuteParams());
+
+                CreativePlanExecuteDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(contentDO.getExecuteParams());
                 if (executeParams == null) {
                     continue;
                 }
-                BeanUtil.copyProperties(executeParams.getAppExecuteRequest(), executeRequest);
+                CreativePlanAppExecuteDTO appExecuteRequest = executeParams.getAppExecuteRequest();
+                Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams()).stream()
+                        .collect(Collectors.toMap(VariableItemDTO::getField, item -> {
+                            if (Objects.isNull(item.getValue())) {
+                                return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
+                            }
+                            return item.getValue();
+                        }));
+
+                XhsAppCreativeExecuteRequest executeRequest = new XhsAppCreativeExecuteRequest();
+                executeRequest.setPlanUid(contentDO.getPlanUid());
+                executeRequest.setSchemeUid(contentDO.getSchemeUid());
                 executeRequest.setCreativeContentUid(contentDO.getUid());
+                executeRequest.setUid(appExecuteRequest.getUid());
+                executeRequest.setScene(appExecuteRequest.getScene());
+                executeRequest.setParams(params);
                 executeRequest.setUserId(Long.valueOf(contentDO.getCreator()));
                 requests.add(executeRequest);
             }
@@ -107,13 +130,21 @@ public class XlsCreativeExecuteManager {
                     continue;
                 }
 
-                contentDO.setCopyWritingContent(executeResponse.getContent());
-                contentDO.setCopyWritingTitle(executeResponse.getTitle());
-                contentDO.setCopyWritingCount(executeResponse.getContent().length());
+                CopyWritingContentDTO copyWriting = executeResponse.getCopyWriting();
+                if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
+                    result.put(contentDO.getId(), false);
+                    updateDO(contentDO, "文案内容为空", contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_ERROR);
+                    continue;
+                }
+
+                contentDO.setCopyWritingContent(copyWriting.getContent());
+                contentDO.setCopyWritingTitle(copyWriting.getTitle());
+                contentDO.setCopyWritingCount(copyWriting.getContent().length());
+                contentDO.setCopyWritingResult(JSONUtil.toJsonStr(copyWriting));
                 contentDO.setStartTime(start);
                 contentDO.setEndTime(end);
                 contentDO.setExecuteTime(executeTime);
-                updateDO(contentDO, StringUtils.EMPTY, contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
+                updateDO(contentDO, StringUtils.EMPTY, 0, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
                 result.put(contentDO.getId(), true);
             }
             log.info("文案执行结束： {} ms", executeTime);
@@ -138,6 +169,19 @@ public class XlsCreativeExecuteManager {
                     result.put(sourceContentDO.getId(), false);
                     continue;
                 }
+
+                // 查询文案执行情况。需要文案执行成功才能执行图片
+                XhsCreativeContentDO businessDO = creativeContentMapper.selectByType(sourceContentDO.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+                if (businessDO == null || !XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(businessDO.getStatus()) ||
+                        StringUtils.isBlank(businessDO.getCopyWritingResult())) {
+                    log.warn("文案未执行成功，不能执行图片生成：{}", sourceContentDO.getId());
+                    result.put(sourceContentDO.getId(), false);
+                    continue;
+                }
+
+                // 文案执行结果
+                CopyWritingContentDTO copyWriting = JSONUtil.toBean(businessDO.getCopyWritingResult(), CopyWritingContentDTO.class);
+
                 // 校验状态 重试次数
                 XhsCreativeContentDO contentDO = getReadyCreative(sourceContentDO.getId(), force);
                 if (contentDO == null) {
@@ -147,15 +191,15 @@ public class XlsCreativeExecuteManager {
 
                 LocalDateTime start = LocalDateTime.now();
 
-                XhsCreativeContentExecuteParamsDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(contentDO.getExecuteParams());
-                if (executeParams == null || executeParams.getBathImageExecuteRequest() == null) {
+                CreativePlanExecuteDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(contentDO.getExecuteParams());
+                if (executeParams == null || executeParams.getImageStyleExecuteRequest() == null) {
                     log.warn("图片执行参数不存在： {}", contentDO.getId());
                     result.put(contentDO.getId(), false);
                     continue;
                 }
-
-                XhsBathImageExecuteRequest request = executeParams.getBathImageExecuteRequest();
-                request.setImageUrls(JSONUtil.parseArray(contentDO.getUsePicture()).toList(String.class));
+                List<String> useImageList = JSONUtil.parseArray(contentDO.getUsePicture()).toList(String.class);
+                CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
+                XhsBathImageExecuteRequest request = XhsCreativeContentConvert.INSTANCE.toExecuteImageStyle(imageStyleExecuteRequest, useImageList, copyWriting);
                 List<XhsImageExecuteResponse> resp = xhsService.bathImageExecute(request);
 
                 if (CollectionUtils.isEmpty(resp)) {

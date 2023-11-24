@@ -11,7 +11,7 @@ import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
-import com.starcloud.ops.business.app.feign.response.ClipDropImage;
+import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;

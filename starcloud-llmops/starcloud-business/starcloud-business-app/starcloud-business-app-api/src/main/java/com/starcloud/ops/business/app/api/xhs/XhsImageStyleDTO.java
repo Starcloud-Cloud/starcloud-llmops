@@ -49,4 +49,5 @@ public class XhsImageStyleDTO implements java.io.Serializable {
     @Valid
     @NotEmpty(message = "请选择图片模板！")
     private List<XhsImageTemplateDTO> templateList;
+    
 }
