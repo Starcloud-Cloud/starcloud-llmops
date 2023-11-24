@@ -4,23 +4,12 @@
     
     <!-- 通用字段查询 -->
     <sql id="SELECT_GENERAL_COLUMNS">
-        `id`, `uid`, `name`, `type`, `category`, `tags`, `description`, `copy_writing_example`, `image_example`, `deleted`, `creator`, `updater`, `create_time`, `update_time`, `tenant_id`
+        `id`
+        , `uid`, `name`, `type`, `category`, `tags`, `description`, `copy_writing_example`, `image_example`, `deleted`, `creator`, `updater`, `create_time`, `update_time`, `tenant_id`
     </sql>
     
-    <!-- 根据UID查询创作方案详情 -->
-    <select id="get" resultType="com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO">
-        SELECT
-        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
-        FROM llm_creative_scheme
-        WHERE uid = #{uid}
-        AND `deleted` = 0
-    </select>
-    
-    <!-- 根据条件查询创作方案列表 -->
-    <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO">
-        SELECT
-        <include refid="SELECT_GENERAL_COLUMNS"/>
-        FROM llm_creative_scheme
+    <!-- 列表查询条件 -->
+    <sql id="LIST_SELECT_QUERY_CONDITION">
         <where>
             ((`type` = "SYSTEM")
             OR
@@ -44,9 +33,34 @@
                     FIND_IN_SET(#{tag}, tags)
                 </foreach>
             </if>
-            AND `creator` = #{query.loginUserId}))
+            <choose>
+                <when test="query.isAdmin != null and query.isAdmin != true ">
+                    AND `creator` = #{query.loginUserId}))
+                </when>
+                <otherwise>
+                    ))
+                </otherwise>
+            </choose>
+            
             AND `deleted` = 0
         </where>
+    </sql>
+    
+    <!-- 根据UID查询创作方案详情 -->
+    <select id="get" resultType="com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO">
+        SELECT
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
+        FROM llm_creative_scheme
+        WHERE uid = #{uid}
+        AND `deleted` = 0
+    </select>
+    
+    <!-- 根据条件查询创作方案列表 -->
+    <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO">
+        SELECT
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
+        FROM llm_creative_scheme
+        <include refid="LIST_SELECT_QUERY_CONDITION"/>
     </select>
     
     <!-- 根据条件分页查询创作方案列表 -->

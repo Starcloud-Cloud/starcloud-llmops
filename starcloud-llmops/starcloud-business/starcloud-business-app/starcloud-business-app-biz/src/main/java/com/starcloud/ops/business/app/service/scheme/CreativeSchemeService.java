@@ -2,11 +2,14 @@ package com.starcloud.ops.business.app.service.scheme;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeSseReqVO;
 
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,22 @@ public interface CreativeSchemeService {
     List<CreativeSchemeRespVO> list(CreativeSchemeListReqVO query);
 
     /**
+     * 查询并且校验创作方案是否存在
+     *
+     * @param uidList 创作方案UID列表
+     * @return 创作方案列表
+     */
+    List<CreativeSchemeRespVO> list(List<String> uidList);
+
+    /**
+     * 获取创作方案列表
+     *
+     * @param query 查询条件
+     * @return 创作方案列表
+     */
+    List<CreativeSchemeListOptionRespVO> listOption(CreativeSchemeListReqVO query);
+
+    /**
      * 分页查询创作方案
      *
      * @param query 查询条件
@@ -78,4 +97,20 @@ public interface CreativeSchemeService {
      * @param uid 创作方案UID
      */
     void delete(String uid);
+
+    /**
+     * 分析生成要求
+     *
+     * @param request 创作方案需求请求
+     */
+    void summary(CreativeSchemeSseReqVO request);
+
+    /**
+     * 创建文案示例
+     *
+     * @param request 创作方案需求请求
+     * @return 文案示例
+     */
+    List<CopyWritingContentDTO> example(CreativeSchemeReqVO request);
+
 }

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -7,10 +8,7 @@ import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
@@ -35,8 +33,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_GREATER_RETRY;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECTURE_ERROR;
 
+/**
+ * @author admin
+ */
 @Service
 @Slf4j
 public class XhsCreativeContentServiceImpl implements XhsCreativeContentService {
@@ -74,9 +77,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         log.info("开始执行 {} 任务 {}", type, ids);
         try {
             List<XhsCreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
-                    .stream().filter(content -> {
-                        return !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus());
-                    }).collect(Collectors.toList());
+                    .stream().filter(content -> !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())).collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(contentList)) {
                 return Collections.emptyMap();
@@ -147,6 +148,23 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     }
 
     @Override
+    public com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> newPage(XhsCreativeContentPageReq req) {
+        XhsCreativeContentPageReq pageReq = new XhsCreativeContentPageReq();
+        BeanUtil.copyProperties(req,pageReq);
+        PageResult<XhsCreativeContentResp> page = page(pageReq);
+        com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> result = new com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<>(page.getList(), page.getTotal());
+        XhsCreativeContentPageReq countPage = new XhsCreativeContentPageReq();
+        countPage.setPlanUid(req.getPlanUid());
+        countPage.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
+        Long successCount = creativeContentMapper.selectCount(countPage);
+        countPage.setStatus(XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode());
+        Long errorCount = creativeContentMapper.selectCount(countPage);
+        result.setSuccessCount(successCount.intValue() * 2);
+        result.setErrorCount(errorCount.intValue() * 2);
+        return result;
+    }
+
+    @Override
     public XhsCreativeContentResp detail(String businessUid) {
         XhsCreativeContentDTO detail = byBusinessUid(businessUid);
         return XhsCreativeContentConvert.INSTANCE.convert(detail);
@@ -185,7 +203,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     public List<XhsCreativeContentResp> bound(List<String> businessUids) {
         List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids);
         if (xhsCreativeContents.size() < businessUids.size()) {
-            throw exception(new ErrorCode(500,"存在已绑定的创作内容"));
+            throw exception(new ErrorCode(500, "存在已绑定的创作内容"));
         }
         creativeContentMapper.claim(businessUids);
         return XhsCreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);

@@ -13,7 +13,7 @@ import com.starcloud.ops.business.app.feign.request.clipdrop.ReplaceBackgroundCl
 import com.starcloud.ops.business.app.feign.request.clipdrop.SketchToImageClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.TextToImageClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
-import com.starcloud.ops.business.app.feign.response.ClipDropImage;
+import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import feign.FeignException;

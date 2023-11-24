@@ -1,24 +1,17 @@
 package com.starcloud.ops.business.app.service.xhs.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.TypeReference;
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
@@ -28,22 +21,19 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRespo
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsGenerateContentDTO;
-import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
+import com.starcloud.ops.business.app.feign.dto.PosterParam;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
+import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.app.AppService;
-import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.app.service.xhs.FastPosterFactory;
+import com.starcloud.ops.business.app.service.poster.PosterService;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
-import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.theokanning.openai.completion.chat.ChatCompletionChoice;
-import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
-import net.fastposter.client.FastposterClient;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -55,9 +45,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_CONFIG_FAILURE;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_STEP_FAILURE;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_VARIABLE_FAILURE;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE;
 
 /**
  * @author nacoyer
@@ -75,7 +63,7 @@ public class XhsServiceImpl implements XhsService {
     private AppMarketService appMarketService;
 
     @Resource
-    private AppDictionaryService appDictionaryService;
+    private PosterService posterService;
 
     /**
      * 获取图片模板
@@ -83,41 +71,85 @@ public class XhsServiceImpl implements XhsService {
      * @return 图片模板
      */
     @Override
-    public List<XhsImageTemplateResponse> imageTemplates() {
-        List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
-        return CollectionUtil.emptyIfNull(templateList).stream().map(item -> {
-            XhsImageTemplateResponse response = new XhsImageTemplateResponse();
+    public List<XhsImageTemplateDTO> imageTemplates() {
+        List<PosterTemplateDTO> templates = posterService.templates();
+        return CollectionUtil.emptyIfNull(templates).stream().map(item -> {
+            List<PosterParam> params = CollectionUtil.emptyIfNull(item.getParams());
+            int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
+            List<VariableItemDTO> variables = params.stream().map(param -> {
+                if ("image".equals(param.getType())) {
+                    return CreativeUtil.ofImageVariable(param.getId(), param.getName());
+                } else if ("text".equals(param.getType())) {
+                    return CreativeUtil.ofInputVariable(param.getId(), param.getName());
+                } else {
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+
+            XhsImageTemplateDTO response = new XhsImageTemplateDTO();
             response.setId(item.getId());
-            response.setName(item.getName());
-            response.setImageNumber(item.getImageNumber());
-            response.setVariables(item.getVariables());
+            response.setName(item.getLabel());
+            response.setExample(item.getTempUrl());
+            response.setVariables(variables);
+            response.setImageNumber(imageNumber);
             return response;
         }).collect(Collectors.toList());
     }
 
     /**
-     * 获取应用信息
+     * 根据类型获取需要执行的应用信息
      *
-     * @param uid 应用UID
+     * @param type 计划类型
      * @return 应用信息
      */
     @Override
-    public XhsAppResponse getApp(String uid) {
-        AppMarketRespVO appMarket = appMarketService.get(uid);
-        List<VariableItemRespVO> variableList = Optional.ofNullable(appMarket).map(AppMarketRespVO::getWorkflowConfig)
-                .map(WorkflowConfigRespVO::getSteps)
-                .map(steps -> steps.get(0)).map(WorkflowStepWrapperRespVO::getVariable)
-                .map(VariableRespVO::getVariables)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(310900100, "系统步骤不能为空")));
-        variableList = variableList.stream().filter(VariableItemRespVO::getIsShow).collect(Collectors.toList());
-        XhsAppResponse response = new XhsAppResponse();
-        response.setUid(appMarket.getUid());
-        response.setName(appMarket.getName());
-        response.setCategory(appMarket.getCategory());
-        response.setIcon(appMarket.getIcon());
-        response.setDescription(appMarket.getDescription());
-        response.setVariables(variableList);
-        return response;
+    public AppMarketRespVO getExecuteApp(String type) {
+        List<AppMarketRespVO> apps = appMarketplaceList(type);
+        AppValidate.notEmpty(apps, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
+        AppMarketRespVO app = apps.get(0);
+        AppValidate.notNull(app, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
+        return app;
+    }
+
+    /**
+     * 根据类型获取应用列表
+     *
+     * @param type 类型
+     * @return 文案模板列表
+     */
+    @Override
+    public List<AppMarketRespVO> appMarketplaceList(String type) {
+        AppValidate.notBlank(type, ErrorCodeConstants.CREATIVE_PLAN_TYPE_REQUIRED);
+        CreativeTypeEnum typeEnum = CreativeTypeEnum.of(type);
+        if (typeEnum == null) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_TYPE_NOT_SUPPORTED, type);
+        }
+        // 查询
+        AppMarketListQuery query = new AppMarketListQuery();
+        query.setIsSimple(Boolean.FALSE);
+        query.setTags(typeEnum.getTagType().getTags());
+        List<AppMarketRespVO> list = appMarketService.list(query);
+
+        return CollectionUtil.emptyIfNull(list);
+    }
+
+    /**
+     * 通用执行应用
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    @Override
+    public String execute(AppExecuteReqVO request) {
+        try {
+            AppExecuteRespVO executeResponse = appService.execute(request);
+            ActionResponse actionResponse = (ActionResponse) executeResponse.getResult();
+            return actionResponse.getAnswer();
+        } catch (ServiceException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(350500100, exception.getMessage()));
+        }
     }
 
     /**
@@ -130,110 +162,28 @@ public class XhsServiceImpl implements XhsService {
     public List<XhsAppExecuteResponse> appExecute(XhsAppExecuteRequest request) {
         Integer n = Objects.nonNull(request.getN()) && request.getN() > 0 ? request.getN() : 1;
         request.setN(n);
-        // 参数校验
-        if (StringUtils.isBlank(request.getUid())) {
-            log.error("小红书执行应用失败。应用UID不能为空, 生成条数: {}", n);
-            return XhsAppExecuteResponse.failure("350400101", "应用UID不能为空, 生成条数: " + n, n);
-        }
-        // 执行应用
         try {
+            // 参数校验
+            if (StringUtils.isBlank(request.getUid())) {
+                return XhsAppExecuteResponse.failure("350400101", "应用UID不能为空, 生成条数: " + n, n);
+            }
             log.info("小红书执行应用开始。参数为\n：{}", JSONUtil.parse(request).toStringPretty());
             // 获取应用
             AppMarketRespVO appMarket = appMarketService.get(request.getUid());
-            AppExecuteRespVO executeResponse = appService.execute(buildExecuteRequest(appMarket, request));
-            if (!executeResponse.getSuccess()) {
-                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                        request.getUid(), n, executeResponse.getResultCode(), executeResponse.getResultDesc());
-                return XhsAppExecuteResponse.failure(request.getUid(), "350400101", executeResponse.getResultDesc(), n);
-            }
-            ActionResponse actionResult = (ActionResponse) executeResponse.getResult();
-            if (Objects.isNull(actionResult)) {
-                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                        request.getUid(), n, "350400205", "执行结果不存在！请稍候重试或者联系管理员！");
-                return XhsAppExecuteResponse.failure(request.getUid(), "350400205", "执行结果不存在！请稍候重试或者联系管理员！", n);
-            }
-            if (!actionResult.getSuccess()) {
-                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                        request.getUid(), n, actionResult.getErrorCode(), actionResult.getErrorMsg());
-                return XhsAppExecuteResponse.failure(request.getUid(), actionResult.getErrorCode(), actionResult.getErrorMsg(), n);
-            }
-
-            String answer = actionResult.getAnswer();
-            if (StringUtils.isBlank(answer)) {
-                log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                        request.getUid(), n, "350400206", "执行结果内容不存在！请稍候重试或者联系管理员！");
-                return XhsAppExecuteResponse.failure(request.getUid(), "350400206", "执行结果内容不存在！请稍候重试或者联系管理员！", n);
-            }
-
-            if (n == 1) {
-                XhsGenerateContentDTO generateContent = JSONUtil.toBean(answer.trim(), XhsGenerateContentDTO.class);
-
-                if (Objects.isNull(generateContent) || StringUtils.isBlank(generateContent.getTitle()) || StringUtils.isBlank(generateContent.getContent())) {
-                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}, 原始数据：{}",
-                            request.getUid(), n, "350400208", "执行结果内容格式不正确！请稍候重试或者联系管理员！", answer);
-
-                    return XhsAppExecuteResponse.failure(request.getUid(), "350400208", "执行结果内容格式不正确！请稍候重试或者联系管理员！", 1);
-                } else {
-                    String title = generateContent.getTitle();
-                    String text = generateContent.getContent();
-                    log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 标题: {}, 内容: {}", request.getUid(), n, title, text);
-                    return XhsAppExecuteResponse.success(request.getUid(), title, text, 1);
-                }
-            } else {
-                TypeReference<List<ChatCompletionChoice>> typeReference = new TypeReference<List<ChatCompletionChoice>>() {
-                };
-                List<ChatCompletionChoice> choices = JSONUtil.toBean(answer.trim(), typeReference, true);
-                if (CollectionUtil.isEmpty(choices)) {
-                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                            request.getUid(), n, "350400209", "执行结果内容为空！请稍候重试或者联系管理员！");
-                    return XhsAppExecuteResponse.failure(request.getUid(), "350400209", "执行结果内容为空！请稍候重试或者联系管理员！", n);
-                }
-                if (choices.size() != n) {
-                    log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 实际市场条数：{},  错误码: {}, 错误信息: {}",
-                            request.getUid(), n, choices.size(), "350400210", "执行结果内容条数不正确！请稍候重试或者联系管理员！");
-                    return XhsAppExecuteResponse.failure(request.getUid(), "350400210", "执行结果内容条数不正确！请稍候重试或者联系管理员！", n);
-                }
-                List<XhsAppExecuteResponse> list = new ArrayList<>();
-                for (int i = 0; i < choices.size(); i++) {
-                    ChatCompletionChoice choice = choices.get(i);
-                    XhsAppExecuteResponse appExecuteResponse = new XhsAppExecuteResponse();
-                    appExecuteResponse.setUid(request.getUid());
-
-                    String content = Optional.ofNullable(choice).map(ChatCompletionChoice::getMessage).map(ChatMessage::getContent).orElse("");
-                    if (StringUtils.isBlank(content)) {
-                        log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原始数据: {}",
-                                i + 1, request.getUid(), n, "350400211", "执行结果内容为空！", content);
-
-                        appExecuteResponse.setSuccess(Boolean.FALSE);
-                        appExecuteResponse.setErrorCode("350400211");
-                        appExecuteResponse.setErrorMsg("执行结果内容为空！请稍候重试或者联系管理员！");
-                        list.add(appExecuteResponse);
-                    } else {
-                        XhsGenerateContentDTO generateContent = JSONUtil.toBean(JSONUtil.parseObj(content), XhsGenerateContentDTO.class);
-                        if (Objects.isNull(generateContent) || StringUtils.isBlank(generateContent.getTitle()) || StringUtils.isBlank(generateContent.getContent())) {
-                            log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 错误码: {}, 错误信息: {}, 原数据: {}",
-                                    i + 1, request.getUid(), n, "350400212", "执行结果内容格式不正确！请稍候重试或者联系管理员！", content);
-                        } else {
-                            log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 标题: {}, 内容: {}",
-                                    i + 1, request.getUid(), n, generateContent.getTitle(), generateContent.getContent());
-                            appExecuteResponse.setSuccess(Boolean.TRUE);
-                            appExecuteResponse.setTitle(generateContent.getTitle());
-                            appExecuteResponse.setContent(generateContent.getContent());
-                            list.add(appExecuteResponse);
-                        }
-                    }
-                }
-                log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 结果: {}", request.getUid(), n, list);
-                return list;
-            }
+            List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarket).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                    .orElseThrow(() -> ServiceExceptionUtil.exception(WORKFLOW_CONFIG_FAILURE));
+            // 获取第二步的步骤。约定，生成小红书内容为第二步
+            WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
+            request.setStepId(stepWrapper.getField());
+            // 执行应用
+            String answer = execute(CreativeUtil.buildExecuteRequest(appMarket, request));
+            return CreativeUtil.handleAnswer(answer, request.getUid(), n);
         } catch (ServiceException exception) {
-            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                    request.getUid(), n, exception.getCode().toString(), exception.getMessage());
+            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}", request.getUid(), n, exception.getCode().toString(), exception.getMessage());
             return XhsAppExecuteResponse.failure(request.getUid(), exception.getCode().toString(), exception.getMessage(), n);
         } catch (Exception exception) {
-            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}",
-                    request.getUid(), n, "350400200", exception.getMessage());
-            return XhsAppExecuteResponse.failure(request.getUid(), "350400200", exception.getMessage(), n);
+            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}", request.getUid(), n, "350400100", exception.getMessage());
+            return XhsAppExecuteResponse.failure(request.getUid(), "350400100", exception.getMessage(), n);
         }
     }
 
@@ -253,7 +203,12 @@ public class XhsServiceImpl implements XhsService {
         }
         // 获取应用
         AppMarketRespVO appMarket = appMarketService.get(request.getUid());
-        AppExecuteReqVO executeRequest = buildExecuteRequest(appMarket, request);
+        List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarket).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(WORKFLOW_CONFIG_FAILURE));
+        // 获取第二步的步骤。约定，生成小红书内容为第二步
+        WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
+        request.setStepId(stepWrapper.getField());
+        AppExecuteReqVO executeRequest = CreativeUtil.buildExecuteRequest(appMarket, request);
         // 执行应用
         appService.asyncExecute(executeRequest);
     }
@@ -265,36 +220,58 @@ public class XhsServiceImpl implements XhsService {
      * @return 响应
      */
     @Override
+    @SuppressWarnings("all")
     public List<XhsAppCreativeExecuteResponse> bathAppCreativeExecute(List<XhsAppCreativeExecuteRequest> requests) {
+        log.info("小红书执行批量生成应用开始......!");
         if (CollectionUtil.isEmpty(requests)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
         }
-        Map<String, List<XhsAppCreativeExecuteRequest>> groupMap = requests.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getUid));
-
+        // 首先按照创作计划进行分组
+        Map<String, List<XhsAppCreativeExecuteRequest>> planMap = requests.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getPlanUid));
+        log.info("小红书执行批量生成应用，按照创作计划进行分组，共有{}个创作计划, 创作计划UID分别是：{}", planMap.size(), planMap.keySet());
         // 默认执行参数一样
         List<XhsAppCreativeExecuteResponse> responseList = new ArrayList<>();
-        for (Map.Entry<String, List<XhsAppCreativeExecuteRequest>> entry : groupMap.entrySet()) {
-            List<XhsAppCreativeExecuteRequest> value = entry.getValue();
-            if (CollectionUtil.isEmpty(value)) {
+        for (Map.Entry<String, List<XhsAppCreativeExecuteRequest>> planEntry : planMap.entrySet()) {
+            log.info("当前创作计划UID：{}", planEntry.getKey());
+            List<XhsAppCreativeExecuteRequest> planGroupRequestList = planEntry.getValue();
+            if (CollectionUtil.isEmpty(planGroupRequestList)) {
+                log.info("当前创作计划UID：{}，没有执行参数, 跳过！", planEntry.getKey());
                 continue;
             }
-            XhsAppCreativeExecuteRequest request = value.get(0);
-            request.setN(value.size());
-            List<XhsAppExecuteResponse> responses = this.appExecute(request);
-            for (int i = 0; i < responses.size(); i++) {
-                XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
-                XhsAppExecuteResponse item = responses.get(i);
-                String contentUid = Optional.ofNullable(value.get(i)).map(XhsAppCreativeExecuteRequest::getCreativeContentUid).orElse("");
-                response.setUid(item.getUid());
-                response.setSuccess(item.getSuccess());
-                response.setTitle(item.getTitle());
-                response.setContent(item.getContent());
-                response.setErrorCode(item.getErrorCode());
-                response.setErrorMsg(item.getErrorMsg());
-                response.setCreativeContentUid(contentUid);
-                responseList.add(response);
+            // 再按照创作方案进行分组
+            Map<String, List<XhsAppCreativeExecuteRequest>> schemeMap = planGroupRequestList.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getSchemeUid));
+            log.info("当前创作计划UID：{}，按照创作方案进行分组，共有{}个创作方案, 创作方案UID分别是：{}", planEntry.getKey(), schemeMap.size(), schemeMap.keySet());
+            for (Map.Entry<String, List<XhsAppCreativeExecuteRequest>> schemeEntry : schemeMap.entrySet()) {
+                log.info("当前创作计划UID：{}，当前创作方案UID：{}", planEntry.getKey(), schemeEntry.getKey());
+                List<XhsAppCreativeExecuteRequest> schemeGroupRequestList = schemeEntry.getValue();
+                if (CollectionUtil.isEmpty(schemeGroupRequestList)) {
+                    log.info("当前创作计划UID：{}，当前创作方案UID：{}，没有执行参数, 跳过！", planEntry.getKey(), schemeEntry.getKey());
+                    continue;
+                }
+
+                // 执行应用
+                log.info("执行参数：生成条数: {}, 执行参数： \n{}", schemeGroupRequestList.size(), JSONUtil.parse(schemeGroupRequestList).toStringPretty());
+                XhsAppCreativeExecuteRequest request = schemeGroupRequestList.get(0);
+                request.setN(schemeGroupRequestList.size());
+                List<XhsAppExecuteResponse> responses = this.appExecute(request);
+                // 构建响应
+                for (int i = 0; i < responses.size(); i++) {
+                    XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+                    XhsAppExecuteResponse item = responses.get(i);
+                    String contentUid = schemeGroupRequestList.get(i).getCreativeContentUid();
+                    response.setUid(item.getUid());
+                    response.setSuccess(item.getSuccess());
+                    response.setCopyWriting(item.getCopyWriting());
+                    response.setErrorCode(item.getErrorCode());
+                    response.setErrorMsg(item.getErrorMsg());
+                    response.setCreativeContentUid(contentUid);
+                    responseList.add(response);
+                }
+                log.info("创作计划UID：{}，创作方案UID：{}，执行结束！", planEntry.getKey(), schemeEntry.getKey());
             }
+            log.info("创作计划UID：{}，执行结束！", planEntry.getKey());
         }
+        log.info("小红书执行批量生成应用结束......! \n {}", JSONUtil.parse(responseList).toStringPretty());
         return responseList;
     }
 
@@ -321,34 +298,25 @@ public class XhsServiceImpl implements XhsService {
                 throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
             }
 
-            // 获取图片模板
-            List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
-            Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(templateList).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
+            // 获取海报图片模板
+            List<XhsImageTemplateDTO> posterTemplates = imageTemplates();
+            Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(posterTemplates).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
             if (!optional.isPresent()) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
-            }
-            XhsImageTemplateDTO template = optional.get();
-            if (StringUtils.isBlank(template.getToken()) || StringUtils.isBlank(template.getPosterId())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "系统配置异常！请联系管理员！"));
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板或者图片模板不存在！"));
             }
 
-            FastposterClient fastposterClient = getFastPosterClient(imageTemplate);
-            // 执行生成图片
-            log.info("小红书执行生成图片调用 FastPoster 开始!");
-            byte[] bytes = fastposterClient.buildPoster(template.getPosterId()).params(params).build().bytes();
-            if (Objects.isNull(bytes)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "生成图片失败！"));
-            }
-            log.info("小红书执行生成图片成功，调用 FastPoster 成功!");
+            // 执行生成海报图片
+            PosterRequest posterRequest = new PosterRequest();
+            posterRequest.setId(request.getImageTemplate());
+            posterRequest.setParams(request.getParams());
+            String url = posterService.poster(posterRequest);
 
-            // 上传图片
-            UploadImageInfoDTO image = ImageUploadUtils.uploadImage(IdUtil.fastSimpleUUID() + ".png", ImageUploadUtils.UPLOAD, bytes);
-            log.info("小红书执行生成图片，上传图片到OSS成功，url：{}", image.getUrl());
             response.setSuccess(Boolean.TRUE);
             response.setIsMain(request.getIsMain());
             response.setIndex(request.getIndex());
-            response.setUrl(image.getUrl());
-            log.info("小红书执行生成图片成功，imageTemplate：{}，url：{}\n", imageTemplate, image.getUrl());
+            response.setUrl(url);
+            log.info("小红书执行生成图片成功，imageTemplate：{}，url：{}\n", imageTemplate, url);
+
         } catch (ServiceException exception) {
             log.info("小红书生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
             response.setErrorCode(exception.getCode().toString());
@@ -371,133 +339,22 @@ public class XhsServiceImpl implements XhsService {
     @Override
     public List<XhsImageExecuteResponse> bathImageExecute(XhsBathImageExecuteRequest request) {
         log.info("小红书执行批量生成图片开始");
-        List<String> imageUrls = request.getImageUrls();
-        if (CollectionUtil.isEmpty(imageUrls)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400201, "图片URL不能为空！"));
-        }
-
         List<XhsImageExecuteRequest> imageRequestList = request.getImageRequests();
         if (CollectionUtil.isEmpty(imageRequestList)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
         }
         // 图片执行结果
         List<XhsImageExecuteResponse> imageResponses = Lists.newArrayList();
-        for (int i = 0; i < imageRequestList.size(); i++) {
-
-            XhsImageExecuteRequest imageRequest = imageRequestList.get(i);
-            imageRequest.setIndex(i + 1);
-            imageRequest.setIsMain(i == 0 ? Boolean.TRUE : Boolean.FALSE);
-
-            // 处理参数，随机取一个图片URL。
-            Map<String, Object> handlerParams = imageRequest.getParams();
-            for (Map.Entry<String, Object> entry : imageRequest.getParams().entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                // 如果是 IMAGE_VARIABLE，随机取一个图片URL
-                if ("IMAGE_VARIABLE".equals(value)) {
-                    int randomInt = RandomUtil.randomInt(imageUrls.size());
-                    handlerParams.put(key, imageUrls.get(randomInt));
-                } else {
-                    handlerParams.put(key, value);
-                }
-            }
-
-            imageRequest.setParams(handlerParams);
-
+        for (XhsImageExecuteRequest imageRequest : imageRequestList) {
+            imageRequest.setImageTemplate(imageRequest.getImageTemplate());
+            imageRequest.setIndex(imageRequest.getIndex());
+            imageRequest.setIsMain(imageRequest.getIsMain());
+            imageRequest.setParams(imageRequest.getParams());
             XhsImageExecuteResponse response = imageExecute(imageRequest);
             imageResponses.add(response);
         }
         log.info("小红书执行批量生成图片结束");
         return imageResponses;
-    }
-
-    /**
-     * 获取 FastPosterClient
-     *
-     * @param templateId 模板ID
-     * @return FastPosterClient
-     */
-    private FastposterClient getFastPosterClient(String templateId) {
-        List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
-        Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(templateList).stream().filter(item -> StringUtils.equals(item.getId(), templateId)).findFirst();
-        if (!optional.isPresent()) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
-        }
-        String token = optional.get().getToken();
-        if (StringUtils.isBlank(token)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
-        }
-        return FastPosterFactory.factory(token);
-    }
-
-    /**
-     * 构建执行请求
-     *
-     * @param app     应用
-     * @param request 请求
-     * @return 执行请求
-     */
-    private AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, XhsAppExecuteRequest request) {
-        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-        if (Objects.nonNull(request.getSseEmitter())) {
-            executeRequest.setSseEmitter(request.getSseEmitter());
-        }
-        executeRequest.setUserId(request.getUserId());
-        executeRequest.setMode(AppModelEnum.COMPLETION.name());
-        executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());
-        executeRequest.setAppUid(app.getUid());
-        executeRequest.setN(request.getN());
-        executeRequest.setAppReqVO(transform(app, request.getParams()));
-        return executeRequest;
-    }
-
-    /**
-     * 转换请求，转换为应用请求，并且填充参数
-     *
-     * @param app       应用
-     * @param appParams 请求
-     * @return 应用请求
-     */
-    private AppReqVO transform(AppMarketRespVO app, Map<String, Object> appParams) {
-        WorkflowConfigRespVO config = app.getWorkflowConfig();
-        AppValidate.notNull(config, EXECUTE_LISTING_CONFIG_FAILURE);
-
-        List<WorkflowStepWrapperRespVO> steps = config.getSteps();
-        AppValidate.notEmpty(steps, EXECUTE_LISTING_STEP_FAILURE);
-
-        // 直接取第一个步骤，执行第一步骤
-        WorkflowStepWrapperRespVO stepWrapper = steps.get(0);
-        AppValidate.notNull(stepWrapper, EXECUTE_LISTING_STEP_FAILURE);
-
-        VariableRespVO variable = stepWrapper.getVariable();
-        AppValidate.notNull(variable, EXECUTE_LISTING_VARIABLE_FAILURE);
-
-        List<VariableItemRespVO> variables = variable.getVariables();
-        AppValidate.notEmpty(variables, EXECUTE_LISTING_VARIABLE_FAILURE);
-
-        List<VariableItemRespVO> fillVariables = Lists.newArrayList();
-        // 填充变量
-        for (VariableItemRespVO variableItem : variables) {
-            if (appParams.containsKey(variableItem.getField())) {
-                variableItem.setValue(appParams.get(variableItem.getField()));
-                variableItem.setDefaultValue(appParams.get(variableItem.getField()));
-            } else {
-                Object value = variableItem.getValue();
-                if (Objects.isNull(value)) {
-                    if (Objects.nonNull(variableItem.getDefaultValue())) {
-                        value = variableItem.getDefaultValue();
-                    }
-                }
-                variableItem.setValue(value);
-            }
-            fillVariables.add(variableItem);
-        }
-        variable.setVariables(fillVariables);
-        stepWrapper.setVariable(variable);
-        steps.set(0, stepWrapper);
-        config.setSteps(steps);
-        app.setWorkflowConfig(config);
-        return AppMarketConvert.INSTANCE.convert(app);
     }
 
 }

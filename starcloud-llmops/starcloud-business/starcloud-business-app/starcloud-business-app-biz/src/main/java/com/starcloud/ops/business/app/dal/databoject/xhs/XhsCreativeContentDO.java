@@ -30,12 +30,17 @@ public class XhsCreativeContentDO extends TenantBaseDO {
     private String planUid;
 
     /**
+     * 创作方案UID
+     */
+    private String schemeUid;
+
+    /**
      * 任务类型
      */
     private String type;
 
     /**
-     *  业务uid
+     * 业务uid
      */
     private String businessUid;
 
@@ -56,7 +61,6 @@ public class XhsCreativeContentDO extends TenantBaseDO {
     private String executeParams;
 
     /**
-     *
      * 执行状态 {@link com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums}
      */
     private String status;
@@ -90,6 +94,11 @@ public class XhsCreativeContentDO extends TenantBaseDO {
      * 文案字数
      */
     private Integer copyWritingCount;
+
+    /**
+     * 文案生成结果
+     */
+    private String copyWritingResult;
 
     /**
      * 生成图片数量

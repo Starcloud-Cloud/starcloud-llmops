@@ -5,7 +5,6 @@ import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanModifyReqV
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
 import java.util.List;
@@ -16,14 +15,6 @@ import java.util.List;
  * @since 2023-11-07
  */
 public interface CreativePlanService {
-
-    /**
-     * 文案模板列表
-     *
-     * @param type 类型
-     * @return 文案模板列表
-     */
-    List<XhsAppResponse> copyWritingTemplates(String type);
 
     /**
      * 获取创作计划详情
@@ -52,22 +43,25 @@ public interface CreativePlanService {
      * 创建创作计划
      *
      * @param request 创作计划请求
+     * @return 创作计划UID
      */
-    void create(CreativePlanReqVO request);
+    String create(CreativePlanReqVO request);
 
     /**
      * 复制创作计划
      *
      * @param request 创作计划请求
+     * @return 创作计划UID
      */
-    void copy(UidRequest request);
+    String copy(UidRequest request);
 
     /**
      * 修改创作计划
      *
      * @param request 创作计划请求
+     * @return 创作计划UID
      */
-    void modify(CreativePlanModifyReqVO request);
+    String modify(CreativePlanModifyReqVO request);
 
     /**
      * 修改创作计划状态
@@ -79,7 +73,6 @@ public interface CreativePlanService {
 
     /**
      * 更新计划状态
-     *
      */
     void updatePlanStatus(String planUid);
 

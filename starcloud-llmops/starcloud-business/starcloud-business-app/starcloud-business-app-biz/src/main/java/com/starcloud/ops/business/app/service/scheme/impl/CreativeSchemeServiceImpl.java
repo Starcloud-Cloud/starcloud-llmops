@@ -8,8 +8,12 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingExample;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeImageTemplateDTO;
@@ -18,20 +22,31 @@ import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeListRe
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.scheme.vo.CreativeSchemeSseReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.convert.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.scheme.CreativeSchemeMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeTypeEnum;
+import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.scheme.CreativeSchemeService;
+import com.starcloud.ops.business.app.service.xhs.XhsService;
+import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +59,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE;
 
 /**
  * 创作方案服务
@@ -58,6 +75,12 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     @Resource
     private CreativeSchemeMapper creativeSchemeMapper;
+
+    @Resource
+    private XhsService xhsService;
+
+    @Resource
+    private AppService appService;
 
     @Resource
     private AppDictionaryService appDictionaryService;
@@ -101,8 +124,52 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
         }
         query.setLoginUserId(String.valueOf(loginUserId));
+        query.setIsAdmin(UserUtils.isAdmin());
         List<CreativeSchemeDO> list = creativeSchemeMapper.list(query);
         return CreativeSchemeConvert.INSTANCE.convertList(list);
+    }
+
+    /**
+     * 查询并且校验创作方案是否存在
+     *
+     * @param uidList 创作方案UID列表
+     * @return 创作方案列表
+     */
+    @Override
+    public List<CreativeSchemeRespVO> list(List<String> uidList) {
+        // 查询创作方案
+        CreativeSchemeListReqVO schemeQuery = new CreativeSchemeListReqVO();
+        schemeQuery.setUidList(uidList);
+        return list(schemeQuery);
+    }
+
+    /**
+     * 获取创作方案列表
+     *
+     * @param query 查询条件
+     * @return 创作方案列表
+     */
+    @Override
+    public List<CreativeSchemeListOptionRespVO> listOption(CreativeSchemeListReqVO query) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        if (Objects.isNull(loginUserId)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+        }
+        query.setLoginUserId(String.valueOf(loginUserId));
+        query.setIsAdmin(UserUtils.isAdmin());
+        List<CreativeSchemeRespVO> list = list(query);
+        return CollectionUtil.emptyIfNull(list).stream().map(item -> {
+            List<VariableItemDTO> variable = Optional.ofNullable(item.getConfiguration())
+                    .map(CreativeSchemeConfigDTO::getCopyWritingTemplate)
+                    .map(CreativeSchemeCopyWritingTemplateDTO::getVariables).orElse(Lists.newArrayList());
+            CreativeSchemeListOptionRespVO option = new CreativeSchemeListOptionRespVO();
+            option.setUid(item.getUid());
+            option.setName(item.getName());
+            option.setVariables(variable);
+            option.setDescription(item.getDescription());
+            option.setCreateTime(item.getCreateTime());
+            return option;
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -193,6 +260,79 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     }
 
     /**
+     * 分析生成要求
+     *
+     * @param request 创作方案需求请求
+     */
+    @Override
+    public void summary(CreativeSchemeSseReqVO request) {
+        AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
+        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
+        if (Objects.nonNull(request.getSseEmitter())) {
+            executeRequest.setSseEmitter(request.getSseEmitter());
+        }
+        executeRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        executeRequest.setMode(AppModelEnum.COMPLETION.name());
+        executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        executeRequest.setAppUid(executeApp.getUid());
+        executeRequest.setN(1);
+//        executeRequest.setAiModel(ModelTypeEnum.GPT_4_TURBO.getName());
+        executeRequest.setAppReqVO(CreativeUtil.transform(executeApp, request));
+        appService.asyncExecute(executeRequest);
+    }
+
+    /**
+     * 创建文案示例
+     *
+     * @param request 创作方案需求请求
+     * @return 文案示例
+     */
+    @Override
+    public List<CopyWritingContentDTO> example(CreativeSchemeReqVO request) {
+        handlerAndValidate(request);
+        AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
+        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
+        List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(executeApp).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(WORKFLOW_CONFIG_FAILURE));
+        // 获取第二步的步骤。约定，生成小红书内容为第二步
+        WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
+        AppValidate.notNull(stepWrapper, ErrorCodeConstants.WORKFLOW_STEP_NOT_EXIST, executeApp.getName());
+        executeRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        executeRequest.setMode(AppModelEnum.COMPLETION.name());
+        executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        executeRequest.setAppUid(executeApp.getUid());
+        executeRequest.setStepId(stepWrapper.getField());
+        executeRequest.setN(5);
+        executeRequest.setAiModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        executeRequest.setAppReqVO(CreativeUtil.transform(executeApp, request));
+
+        String answer = xhsService.execute(executeRequest);
+        List<XhsAppExecuteResponse> responses = CreativeUtil.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
+        if (CollectionUtil.isEmpty(responses)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_EXAMPLE_FAILURE);
+        }
+
+        String errorMsg = "";
+        List<CopyWritingContentDTO> list = Lists.newArrayList();
+        for (XhsAppExecuteResponse response : responses) {
+            if (!response.getSuccess() ||
+                    Objects.isNull(response.getCopyWriting()) ||
+                    StringUtils.isBlank(response.getCopyWriting().getTitle()) ||
+                    StringUtils.isBlank(response.getCopyWriting().getContent())) {
+                errorMsg = response.getErrorMsg();
+                continue;
+            }
+            list.add(response.getCopyWriting());
+        }
+
+        if (CollectionUtil.isEmpty(list)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_EXAMPLE_FAILURE, errorMsg);
+        }
+        return list;
+    }
+
+
+    /**
      * 处理请求并进行验证
      *
      * @param request 创作方案请求对象
@@ -205,6 +345,29 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (StringUtils.isBlank(request.getDescription())) {
             request.setDescription(StringUtils.EMPTY);
         }
+        CreativeSchemeConfigDTO configuration = request.getConfiguration();
+        if (Objects.isNull(configuration)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL, request.getName());
+        }
+        CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
+        if (Objects.isNull(imageTemplate)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL, request.getName());
+        }
+        List<XhsImageStyleDTO> styleList = imageTemplate.getStyleList();
+        if (CollectionUtil.isEmpty(styleList)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY, request.getName());
+        }
+
+        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
+        if (Objects.isNull(copyWritingTemplate)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, request.getName());
+        }
+        if (StringUtils.isBlank(copyWritingTemplate.getSummary())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_SUMMARY_NOT_NULL, request.getName());
+        }
+        if (StringUtils.isBlank(copyWritingTemplate.getDemand())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_DEMAND_NOT_NULL, request.getName());
+        }
     }
 
     /**
@@ -215,28 +378,16 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     private void handlerScheme(CreativeSchemeDO scheme, CreativeSchemeReqVO request) {
 
-        // 创作方案配置不能为空
         CreativeSchemeConfigDTO configuration = request.getConfiguration();
-        AppValidate.notNull(configuration, ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL, request.getName());
-
-        // 文案模板不能为空
         CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
-        AppValidate.notNull(copyWritingTemplate, ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, request.getName());
-
         // 设置创作方案的示例文案
-        List<CopyWritingExample> copyWritingExamples = Optional.ofNullable(copyWritingTemplate.getExample()).orElse(Lists.newArrayList());
+        List<CopyWritingContentDTO> copyWritingExamples = Optional.ofNullable(copyWritingTemplate.getExample()).orElse(Lists.newArrayList());
         scheme.setCopyWritingExample(JSONUtil.toJsonStr(copyWritingExamples));
 
-        // 图片模板不能为空
         CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
-        AppValidate.notNull(imageTemplate, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL, request.getName());
-
-        // 图片模板的样式列表不能为空
         List<XhsImageStyleDTO> list = imageTemplate.getStyleList();
-        AppValidate.notEmpty(list, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY, request.getName());
-
         // 从字典中获取图片模板的示例图片
-        List<XhsImageTemplateDTO> imageTemplates = appDictionaryService.xhsImageTemplates();
+        List<XhsImageTemplateDTO> imageTemplates = xhsService.imageTemplates();
         Map<String, XhsImageTemplateDTO> templateMap = CollectionUtil.emptyIfNull(imageTemplates).stream().collect(Collectors.toMap(XhsImageTemplateDTO::getId, item -> item));
 
         List<ImageExampleDTO> imageExampleList = Lists.newArrayList();

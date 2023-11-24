@@ -75,7 +75,7 @@ public class DictServiceImpl implements DictService {
         if (CollectionUtil.isNotEmpty(keys)) {
             TreeSet<String> treeSet = CollUtil.toTreeSet(keys, String.CASE_INSENSITIVE_ORDER);
             List<String> distinctKeys = new ArrayList<>(treeSet);
-            execute(distinctKeys, listingDictDO);
+            execute(distinctKeys, listingDictDO, distinctKeys);
         }
         return ListingDictConvert.INSTANCE.convert(listingDictDO);
     }
@@ -84,10 +84,10 @@ public class DictServiceImpl implements DictService {
     public PageResult<DictRespVO> getDictPage(DictPageReqVO reqVO) {
         Long count = dictMapper.count(reqVO);
         if (count == null || count == 0) {
-            return new PageResult<>(Collections.emptyList(),count);
+            return new PageResult<>(Collections.emptyList(), count);
         }
         List<ListingDictDTO> limitList = dictMapper.limitList(reqVO, reqVO.orderSql(), PageUtils.getStart(reqVO), reqVO.getPageSize());
-        return new PageResult<>(ListingDictConvert.INSTANCE.convert(limitList),count);
+        return new PageResult<>(ListingDictConvert.INSTANCE.convert(limitList), count);
     }
 
 
@@ -137,8 +137,6 @@ public class DictServiceImpl implements DictService {
 
         List<String> oldKey = keywordBindMapper.getByDictId(dictDO.getId())
                 .stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
-        newKey.removeAll(oldKey);
-
 
         TreeSet<String> treeSet = CollUtil.toTreeSet(newKey, String.CASE_INSENSITIVE_ORDER);
         treeSet.addAll(oldKey);
@@ -148,7 +146,7 @@ public class DictServiceImpl implements DictService {
         }
 
         oldKey.forEach(treeSet::remove);
-        execute(new ArrayList<>(treeSet), dictDO);
+        execute(new ArrayList<>(treeSet), dictDO, newKey);
     }
 
     @Override
@@ -184,7 +182,7 @@ public class DictServiceImpl implements DictService {
         return DictKeyPageRespVO.builder().status(dictDO.getStatus()).keywordMetadataResp(pageResult).build();
     }
 
-    private void execute(List<String> keys, ListingDictDO dictDO) {
+    private void execute(List<String> keys, ListingDictDO dictDO, List<String> analysisKeys) {
         List<String> keywords = keys.stream().map(String::trim).filter(StringUtils::isNotBlank)
                 .distinct().collect(Collectors.toList());
         dictDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
@@ -196,7 +194,7 @@ public class DictServiceImpl implements DictService {
         executor.execute(() -> {
             try {
                 long start = System.currentTimeMillis();
-                keywordBindService.analysisKeyword(keywords, dictDO.getEndpoint());
+                keywordBindService.analysisKeyword(analysisKeys, dictDO.getEndpoint());
                 long end = System.currentTimeMillis();
                 dictDO.setAnalysisTime(end - start);
                 dictDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());

@@ -194,8 +194,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
                 .map(item -> {
                     String remark = item.getRemark();
                     XhsImageTemplateDTO template = JSONUtil.toBean(remark, XhsImageTemplateDTO.class);
-                    if (StringUtils.isBlank(template.getId()) || StringUtils.isBlank(template.getPosterId()) ||
-                            StringUtils.isBlank(template.getToken()) || StringUtils.isBlank(template.getName()) ||
+                    if (StringUtils.isBlank(template.getId()) || StringUtils.isBlank(template.getName()) ||
                             CollectionUtil.isEmpty(template.getVariables()) || Objects.isNull(template.getImageNumber()) ||
                             StringUtils.isBlank(template.getExample())
                     ) {
