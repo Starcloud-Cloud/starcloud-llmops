@@ -110,13 +110,6 @@
         <repository>
             <id>jitpack</id>
             <url>https://jitpack.io</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
         </repository>
 
     </repositories>
