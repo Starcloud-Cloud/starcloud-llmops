@@ -4,8 +4,11 @@ package com.starcloud.ops.business.limits.controller.admin.userbenefits;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.*;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
+import com.starcloud.ops.business.limits.enums.BenefitsTypesEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.limits.service.userbenefitsstrategy.UserBenefitsStrategyService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +20,7 @@ import javax.annotation.Resource;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_OPERATION_FAIL_CANNOT_USE;
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USAGE_USER_ATTENDANCE_FAIL;
 
 @Tag(name = "星河云海 - 用户权益")
@@ -27,11 +31,17 @@ public class UserBenefitsController {
 
     @Resource
     private UserBenefitsService userBenefitsService;
+    @Resource
+    private UserBenefitsStrategyService userBenefitsStrategyService;
 
     @PostMapping("/code")
     @RateLimiter(name="backendA")
     @Operation(summary = "根据 Code 激活使用权益")
     public CommonResult<Boolean> createUserBenefits(@Validated @RequestParam("code") String code) {
+        UserBenefitsStrategyDO userBenefitsStrategy = userBenefitsStrategyService.getUserBenefitsStrategy(code);
+        if (BenefitsTypesEnums.PAY_BENEFITS.name().equals(userBenefitsStrategy.getTypes())){
+            throw exception(USER_BENEFITS_OPERATION_FAIL_CANNOT_USE);
+        }
         return success(userBenefitsService.addUserBenefitsByCode(code, getLoginUserId()));
     }
 
