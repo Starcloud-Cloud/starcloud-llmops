@@ -285,6 +285,8 @@ public class CreativeUtil {
                     variableItem.setValue(value);
                     variableItem.setDefaultValue(value);
                 } else {
+                    // 1. 直接设置为空 ？
+                    // 2. 抛出异常 ？
                     Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
                     variableItem.setValue(value);
                     variableItem.setDefaultValue(value);
