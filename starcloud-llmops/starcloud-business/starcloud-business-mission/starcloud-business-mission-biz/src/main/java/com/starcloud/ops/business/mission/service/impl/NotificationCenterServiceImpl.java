@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.mission.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationCreateReqVO;
@@ -95,6 +96,13 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         if (StringUtils.isNotBlank(reqVO.getName()) && StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());
         }
+
+        if (NumberUtil.isGreater(reqVO.getSingleBudget(), notificationCenterDO.getSingleBudget())
+                || NumberUtil.isLess(reqVO.getNotificationBudget(), notificationCenterDO.getNotificationBudget())) {
+            // 校验预算
+
+        }
+
         NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
         notificationCenterDO.setUpdateTime(LocalDateTime.now());
         notificationCenterMapper.updateById(notificationCenterDO);
