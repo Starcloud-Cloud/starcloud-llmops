@@ -8,6 +8,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMis
 import com.starcloud.ops.business.mission.service.SingleMissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -27,6 +28,9 @@ public class SingleMissionController {
     public CommonResult<Boolean> addSingleMission(
             @PathVariable("notificationUid") String notificationUid,
             @RequestBody List<String> creativeUids) {
+        if (CollectionUtils.isEmpty(creativeUids)) {
+            return CommonResult.error(500,"绑定的任务uid不能为空");
+        }
         singleMissionService.addSingleMission(notificationUid, creativeUids);
         return CommonResult.success(true);
     }

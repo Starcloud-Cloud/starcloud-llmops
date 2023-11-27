@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.mission.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
@@ -61,8 +62,11 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         }
         List<String> boundCreativeUidList = singleMissionMapper.getByNotificationUid(notificationUid)
                 .stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
-        List<String> toBeBound = new ArrayList<>(CollUtil.subtract(boundCreativeUidList, creativeUids));
-        validBudget(notificationCenterDO, boundCreativeUidList.size() + creativeUids.size());
+        List<String> toBeBound = new ArrayList<>(CollUtil.subtract(creativeUids, boundCreativeUidList));
+        if (CollectionUtils.isEmpty(toBeBound)) {
+            return;
+        }
+        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
 
         List<XhsCreativeContentResp> claimList = creativeContentService.bound(toBeBound);
         List<SingleMissionDO> singleMissions = claimList.stream().map(contentDO -> SingleMissionConvert.INSTANCE.convert(contentDO, notificationCenterDO)).collect(Collectors.toList());
@@ -136,17 +140,26 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         return singleMissionMapper.selectIds(reqVO);
     }
 
-    private void validBudget(NotificationCenterDO notificationCenterDO, Integer missionSize) {
-        if (notificationCenterDO.getNotificationBudget() == null
-                || notificationCenterDO.getNotificationBudget().equals(BigDecimal.ZERO)) {
+    @Override
+    public void validBudget(NotificationCenterDO notificationCenterDO) {
+        List<SingleMissionDO> missionList = singleMissionMapper.getByNotificationUid(notificationCenterDO.getUid());
+        if (CollectionUtils.isEmpty(missionList)) {
+            return;
+        }
+        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), missionList.size());
+    }
+
+    private void validBudget(BigDecimal singleBudget, BigDecimal notificationBudget, Integer missionSize) {
+        if (notificationBudget == null
+                || notificationBudget.equals(BigDecimal.ZERO)) {
             throw exception(NOTIFICATION_BUDGET_ERROR);
         }
-        if (notificationCenterDO.getSingleBudget() == null
-                || notificationCenterDO.getSingleBudget().equals(BigDecimal.ZERO)) {
+        if (singleBudget == null
+                || singleBudget.equals(BigDecimal.ZERO)) {
             throw exception(MISSION_BUDGET_ERROR);
         }
-        int compared = notificationCenterDO.getSingleBudget().multiply(BigDecimal.valueOf(missionSize)).compareTo(notificationCenterDO.getNotificationBudget());
-        if (compared > 0) {
+        NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)),notificationBudget);
+        if (NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)),notificationBudget)) {
             throw exception(TOO_MANY_MISSION);
         }
     }

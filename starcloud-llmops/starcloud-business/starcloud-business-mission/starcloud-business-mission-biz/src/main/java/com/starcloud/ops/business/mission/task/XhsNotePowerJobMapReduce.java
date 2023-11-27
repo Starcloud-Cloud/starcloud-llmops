@@ -12,6 +12,7 @@ import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
 import com.starcloud.ops.business.mission.service.XhsNoteSettlementActuator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import tech.powerjob.worker.core.processor.ProcessResult;
@@ -20,6 +21,7 @@ import tech.powerjob.worker.core.processor.TaskResult;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -56,13 +58,18 @@ public class XhsNotePowerJobMapReduce extends BaseMapReduceTask {
         SingleMissionQueryReqVO queryReqVO = SingleMissionConvert.INSTANCE.convert(xhsTaskContentParams);
 
         List<Long> ids = singleMissionService.selectIds(queryReqVO);
+        if (CollectionUtils.isEmpty(ids)) {
+            return new BaseTaskResult(true, "未找到待执行的任务");
+        }
 
         List<SubTask> subTasks = new ArrayList<>();
-        SubTask subTask = new SubTask();
-        subTask.setSingleMissionIdList(ids);
-        subTasks.add(subTask);
+        for (Long id : ids) {
+            SubTask subTask = new SubTask();
+            subTask.setSingleMissionIdList(Collections.singletonList(id));
+            subTasks.add(subTask);
+        }
         try {
-            map(subTasks, "subTask_RedBook_initTarget");
+            map(subTasks, "subTask_xhs_note");
         } catch (Exception e) {
             log.warn("ROOT_PROCESS_FILE is fail: {}", e.getMessage(), e);
             return new BaseTaskResult(false, "ROOT_PROCESS_FILE:" + e.getMessage());

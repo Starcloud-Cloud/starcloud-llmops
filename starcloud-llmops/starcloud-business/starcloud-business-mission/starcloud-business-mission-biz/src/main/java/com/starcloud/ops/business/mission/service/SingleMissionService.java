@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.mission.service;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
+import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -50,4 +52,9 @@ public interface SingleMissionService {
      * 查询Id
      */
     List<Long> selectIds(@Valid SingleMissionQueryReqVO reqVO);
+
+    /**
+     * 校验预算金额
+     */
+    void validBudget(NotificationCenterDO notificationCenterDO);
 }
