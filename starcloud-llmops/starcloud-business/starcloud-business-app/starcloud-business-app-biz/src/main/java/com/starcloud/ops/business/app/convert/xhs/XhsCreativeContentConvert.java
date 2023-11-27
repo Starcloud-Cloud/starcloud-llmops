@@ -31,6 +31,7 @@ import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -138,11 +139,18 @@ public interface XhsCreativeContentConvert {
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
 
             Map<String, Object> params = Maps.newHashMap();
+            // 图片集合，用于替换图片。
+            List<String> imageList = Collections.synchronizedList(Lists.newArrayList());
             List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
             for (VariableItemDTO variableItem : variableItemList) {
                 if ("IMAGE".equals(variableItem.getStyle())) {
-                    int randomInt = RandomUtil.randomInt(useImageList.size());
-                    params.put(variableItem.getField(), useImageList.get(randomInt));
+                    // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片
+                    if (variableItemList.size() > useImageList.size()) {
+                        params.put(variableItem.getField(), useImageList.get(RandomUtil.randomInt(useImageList.size())));
+                    } else {
+                        // 如果变量图片数量小于使用的图片数量，说明图片够用，随机获取图片，但是不重复
+                        params.put(variableItem.getField(), randomImageList(imageList, useImageList));
+                    }
                 } else {
                     if (Objects.isNull(variableItem.getValue())) {
                         // 只有主图才会替换标题和副标题
@@ -173,6 +181,25 @@ public interface XhsCreativeContentConvert {
 
         executeRequest.setImageRequests(imageExecuteRequests);
         return executeRequest;
+    }
+
+    /**
+     * 随机图片,递归保证图片不重复
+     *
+     * @param imageList    图片集合
+     * @param useImageList 使用的图片
+     * @return 随机图片
+     */
+    static String randomImageList(List<String> imageList, List<String> useImageList) {
+        int randomInt = RandomUtil.randomInt(useImageList.size());
+        String image = useImageList.get(randomInt);
+        // 如果图片不在图片集合中，说明图片没有被使用过。记录图片并返回
+        if (!imageList.contains(image)) {
+            imageList.add(image);
+            return image;
+        }
+        // 如果图片在图片集合中，说明图片已经被使用过，递归获取
+        return randomImageList(imageList, useImageList);
     }
 
 
