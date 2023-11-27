@@ -77,7 +77,7 @@ public class XhsNoteSettlementActuator {
             SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
             modifyReqVO.setStatus(SingleMissionStatusEnum.settlement_error.getCode());
             modifyReqVO.setUid(missionUid);
-            singleMissionService.modifySelective(modifyReqVO);
+            singleMissionService.update(modifyReqVO);
         } finally {
             lock.unlock();
         }
@@ -97,7 +97,7 @@ public class XhsNoteSettlementActuator {
             modifyReqVO.setEstimatedAmount(amount);
             modifyReqVO.setStatus(SingleMissionStatusEnum.pre_settlement.getCode());
         }
-        singleMissionService.modifySelective(modifyReqVO);
+        singleMissionService.update(modifyReqVO);
     }
 
     private void validPostingContent(PostingContentDTO content, XhsNoteDetailRespVO noteDetail) {

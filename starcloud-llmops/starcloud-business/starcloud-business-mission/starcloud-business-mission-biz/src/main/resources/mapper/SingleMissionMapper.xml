@@ -9,11 +9,18 @@
         and n.start_time &lt;= CURDATE() and n.end_time &gt;= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
         and (m.pre_settlement_time is null or m.pre_settlement_time &lt; CURDATE())
         and (m.settlement_time is null or m.settlement_time &lt; CURDATE())
-        and m.status in ('published','pre_settlement')
         and n.status = 'published'
         <if test="reqVO.singleMissionType != null and reqVO.singleMissionType != ''">
             and n.type = #{reqVO.singleMissionType} and m.type = #{reqVO.singleMissionType}
         </if>
+        <choose>
+            <when test="reqVO.singleMissionStatus != null and reqVO.singleMissionStatus != ''">
+                and m.status = #{reqVO.singleMissionStatus}
+            </when>
+            <otherwise>
+                and m.status in ('published','pre_settlement')
+            </otherwise>
+        </choose>
         order by m.id
         <if test="reqVO.limitSize != null and reqVO.limitSize > 0">
             limit #{reqVO.limitSize}
