@@ -93,6 +93,15 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
+    public SingleMissionRespVO update(SingleMissionModifyReqVO reqVO) {
+        SingleMissionDO missionDO = getByUid(reqVO.getUid());
+        SingleMissionConvert.INSTANCE.updateSelective(reqVO, missionDO);
+        missionDO.setUpdateTime(LocalDateTime.now());
+        singleMissionMapper.updateById(missionDO);
+        return SingleMissionConvert.INSTANCE.convert(missionDO);
+    }
+
+    @Override
     public void delete(String uid) {
         SingleMissionDO missionDO = getByUid(uid);
         if (!SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())

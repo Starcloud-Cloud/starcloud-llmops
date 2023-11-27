@@ -25,10 +25,10 @@ public class NotificationModifyReqVO {
     private PostingUnitPriceDTO unitPrice;
 
     @Schema(description = "任务开始时间")
-    private LocalDateTime startTime;
+    private String startTime;
 
     @Schema(description = "任务结束时间")
-    private LocalDateTime endTime;
+    private String endTime;
 
     @Schema(description = "通告总预算")
     private BigDecimal notificationBudget;

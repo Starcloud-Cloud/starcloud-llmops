@@ -6,14 +6,25 @@
         from llm_single_mission m
         inner join llm_notification n on m.notification_Uid = n.uid
         where m.deleted = false and n.deleted = false
-        and n.start_time &lt;= CURDATE() and n.end_time &gt;= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+        and n.start_time &lt;= CURDATE()
         and (m.pre_settlement_time is null or m.pre_settlement_time &lt; CURDATE())
         and (m.settlement_time is null or m.settlement_time &lt; CURDATE())
-        and m.status in ('published','pre_settlement')
         and n.status = 'published'
+        and (m.run_time is null or m.run_time &lt;= CURDATE())
         <if test="reqVO.singleMissionType != null and reqVO.singleMissionType != ''">
             and n.type = #{reqVO.singleMissionType} and m.type = #{reqVO.singleMissionType}
         </if>
+        <choose>
+            <when test="reqVO.failRetry != null and reqVO.failRetry == true">
+                and m.status = 'settlement_error'
+                <!--                最终结算失败允许重试3次 每天一次-->
+                and n.end_time &gt;= DATE_SUB(CURDATE(), INTERVAL 4 DAY)
+            </when>
+            <otherwise>
+                and m.status in ('published','pre_settlement')
+                and n.end_time &gt;= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+            </otherwise>
+        </choose>
         order by m.id
         <if test="reqVO.limitSize != null and reqVO.limitSize > 0">
             limit #{reqVO.limitSize}

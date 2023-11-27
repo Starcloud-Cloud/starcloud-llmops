@@ -43,4 +43,7 @@ public class SingleMissionModifyReqVO {
     @Schema(description = "状态")
     private String status;
 
+    @Schema(description = "定时执行时间")
+    private LocalDateTime runTime;
+
 }

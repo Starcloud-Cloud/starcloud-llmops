@@ -29,6 +29,11 @@ public interface SingleMissionService {
     SingleMissionRespVO modifySelective(@Valid SingleMissionModifyReqVO reqVO);
 
     /**
+     * 更新任务
+     */
+    SingleMissionRespVO update(SingleMissionModifyReqVO reqVO);
+
+    /**
      * 删除
      */
     void delete(String uid);

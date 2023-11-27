@@ -12,4 +12,7 @@ public class XhsTaskContentParams {
     @Schema(description = "查询数量")
     private Integer limitSize;
 
+    @Schema(description = "失败重试")
+    private Boolean failRetry;
+
 }
