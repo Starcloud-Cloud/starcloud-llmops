@@ -104,6 +104,14 @@ public class UserBenefitsStrategyDO extends TenantBaseDO {
      */
     private Long limitIntervalNum;
     /**
+     *  活动开始时间
+     */
+    private LocalDateTime startTime;
+    /**
+     * 活动结束时间
+     */
+    private LocalDateTime endTime;
+    /**
      * 是否启用
      */
     private Boolean enabled;
