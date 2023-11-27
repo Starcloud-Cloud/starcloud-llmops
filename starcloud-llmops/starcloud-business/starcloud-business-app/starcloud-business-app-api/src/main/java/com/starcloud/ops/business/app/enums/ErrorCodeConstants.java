@@ -734,5 +734,9 @@ public interface ErrorCodeConstants {
 
     ErrorCode EXECTURE_ERROR = new ErrorCode(300500006, "{} 执行失败请稍后重试 {}");
 
+    ErrorCode XHS_URL_ERROR = new ErrorCode(300500007, "小红书笔记地址不正确 {}");
+
+    ErrorCode XHS_REMOTE_ERROR = new ErrorCode(300500008, "{}");
+
 
 }

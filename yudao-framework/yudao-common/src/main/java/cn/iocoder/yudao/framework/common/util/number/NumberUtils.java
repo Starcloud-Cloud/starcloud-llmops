@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.framework.common.util.number;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 
 /**
@@ -11,6 +12,10 @@ public class NumberUtils {
 
     public static Long parseLong(String str) {
         return StrUtil.isNotEmpty(str) ? Long.valueOf(str) : null;
+    }
+
+    public static Integer parseInteger(String str) {
+        return NumberUtil.isInteger(str) ? Integer.valueOf(str) : null;
     }
 
 }
