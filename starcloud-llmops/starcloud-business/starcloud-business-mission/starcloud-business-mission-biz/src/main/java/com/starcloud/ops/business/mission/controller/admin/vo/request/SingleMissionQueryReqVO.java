@@ -20,6 +20,7 @@ public class SingleMissionQueryReqVO {
     @Min(value = 1,message = "查询数量要大于0")
     private Integer limitSize;
 
-    private String singleMissionStatus;
+    @Schema(description = "失败重试")
+    private Boolean failRetry;
 
 }

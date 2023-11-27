@@ -89,7 +89,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public NotificationRespVO modifySelective(NotificationModifyReqVO reqVO) {
         NotificationCenterDO notificationCenterDO = getByUid(reqVO.getUid());
-        if (StringUtils.isNotBlank(reqVO.getName()) && StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
+        if (StringUtils.isNotBlank(reqVO.getName()) && !StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());
         }
         NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
