@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -159,6 +161,8 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
         }
         XhsCreativeContentConvert.INSTANCE.updateSelective(modifyReq, contentDO);
+        contentDO.setUpdateTime(LocalDateTime.now());
+        contentDO.setUpdater(WebFrameworkUtils.getLoginUserId().toString());
         creativeContentMapper.updateById(contentDO);
         return XhsCreativeContentConvert.INSTANCE.convert(contentDO);
     }
