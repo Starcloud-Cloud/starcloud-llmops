@@ -21,9 +21,7 @@
     </properties>
 
     <modules>
-        <module>starcloud-connection</module>
         <module>starcloud-business</module>
-        <!--        <module>starcloud-llm</module>-->
         <module>starcloud-framework</module>
         <module>starcloud-server</module>
         <module>starcloud-adapter-ruoyi-pro</module>
