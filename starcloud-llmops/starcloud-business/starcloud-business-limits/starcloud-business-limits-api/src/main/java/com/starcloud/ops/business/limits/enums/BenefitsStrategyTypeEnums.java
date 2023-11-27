@@ -105,7 +105,7 @@ public enum BenefitsStrategyTypeEnums {
     /**
      *
      */
-    DIRECT_DISCOUNT_NEW_USER("DIRECT_DISCOUNT_NEW_USER", "新用户专享-10 元", "direct discount10", "D0", BenefitsTypesEnums.PAY_BENEFITS, 10.00, BenefitsDiscountTypeEnums.DIRECT_DISCOUNT),
+    DIRECT_DISCOUNT_NEW_USER("DIRECT_DISCOUNT_NEW_USER", "新用户特惠 9.9 元", "direct discount10", "D0", BenefitsTypesEnums.PAY_BENEFITS, 49.10, BenefitsDiscountTypeEnums.DIRECT_DISCOUNT),
     DIRECT_DISCOUNT_10("DIRECT_DISCOUNT_10", "直接抵扣券-10 元", "direct discount10", "D1", BenefitsTypesEnums.PAY_BENEFITS, 10.00, BenefitsDiscountTypeEnums.DIRECT_DISCOUNT),
     DIRECT_DISCOUNT_50("DIRECT_DISCOUNT_50", "直接抵扣券-50 元", "direct discount50", "D2", BenefitsTypesEnums.PAY_BENEFITS, 50.00, BenefitsDiscountTypeEnums.DIRECT_DISCOUNT),
     DIRECT_DISCOUNT_100("DIRECT_DISCOUNT_100", "直接抵扣券-100 元", "direct discount100", "D3", BenefitsTypesEnums.PAY_BENEFITS, 100.00, BenefitsDiscountTypeEnums.DIRECT_DISCOUNT),
