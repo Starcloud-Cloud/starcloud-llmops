@@ -7,9 +7,11 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreati
 import com.starcloud.ops.business.dto.PostingContentDTO;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
+import com.starcloud.ops.business.mission.task.XhsTaskContentParams;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -27,6 +29,7 @@ public interface SingleMissionConvert {
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     void updateSelective(SingleMissionModifyReqVO reqVO, @MappingTarget SingleMissionDO singleMissionDO);
 
+    SingleMissionQueryReqVO convert(XhsTaskContentParams params);
 
     default SingleMissionDO convert(XhsCreativeContentResp creativeContentResp, NotificationCenterDO notificationCenterDO) {
         if (creativeContentResp == null) {

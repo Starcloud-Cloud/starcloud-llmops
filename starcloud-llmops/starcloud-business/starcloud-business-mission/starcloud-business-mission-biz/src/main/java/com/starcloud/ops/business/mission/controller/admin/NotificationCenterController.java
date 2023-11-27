@@ -17,27 +17,33 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/llm/notification")
-@Tag(name = "星河云海 - 任务中心", description = "任务中心")
+@Tag(name = "星河云海 - 通告中心", description = "通告中心")
 public class NotificationCenterController {
 
     @Resource
     private NotificationCenterService centerService;
 
     @PostMapping("/create")
-    @Operation(summary = "创建任务", description = "创建任务")
+    @Operation(summary = "创建通告", description = "创建通告")
     public CommonResult<NotificationRespVO> create(@Valid @RequestBody NotificationCreateReqVO reqVO) {
         return CommonResult.success(centerService.create(reqVO));
     }
 
     @GetMapping("/page")
-    @Operation(summary = "分页查询任务列表", description = "分页查询任务列表")
+    @Operation(summary = "分页查询通告列表", description = "分页查询通告列表")
     public CommonResult<PageResult<NotificationRespVO>> page(@Valid NotificationPageQueryReqVO reqVO) {
         PageResult<NotificationRespVO> pageResult = centerService.page(reqVO);
         return CommonResult.success(pageResult);
     }
 
+    @GetMapping("detail/{uid}")
+    @Operation(summary = "分页查询通告列表", description = "分页查询通告列表")
+    public CommonResult<NotificationRespVO> detail(@PathVariable("uid") String uid) {
+        return CommonResult.success(centerService.selectByUid(uid));
+    }
+
     @PutMapping("/publish/{uid}")
-    @Operation(summary = "发布/取消任务", description = "发布/取消任务")
+    @Operation(summary = "发布/取消通告", description = "发布/取消通告")
     public CommonResult<Boolean> publish(@PathVariable("uid") String uid,
                                          @RequestParam("publish") Boolean publish) {
         centerService.publish(uid, publish);
@@ -45,7 +51,7 @@ public class NotificationCenterController {
     }
 
     @DeleteMapping("/delete/{uid}")
-    @Operation(summary = "删除任务", description = "删除任务")
+    @Operation(summary = "删除通告", description = "删除通告")
     public CommonResult<Boolean> delete(@PathVariable("uid") String uid) {
         centerService.delete(uid);
         return CommonResult.success(true);

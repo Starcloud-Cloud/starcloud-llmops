@@ -11,11 +11,12 @@ public enum SingleMissionStatusEnum {
     pre_settlement("pre_settlement", "预结算"),
     settlement("settlement", "结算"),
     close("close", "关闭"),
+    settlement_error("settlement_error","结算异常")
     ;
 
-    private String code;
+    private final String code;
 
-    private String desc;
+    private final String desc;
 
     SingleMissionStatusEnum(String code, String desc) {
         this.code = code;

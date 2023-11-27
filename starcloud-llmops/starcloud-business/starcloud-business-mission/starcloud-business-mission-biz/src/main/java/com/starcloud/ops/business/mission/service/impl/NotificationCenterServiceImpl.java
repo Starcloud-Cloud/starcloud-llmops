@@ -82,6 +82,11 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     }
 
     @Override
+    public NotificationRespVO selectByUid(String uid) {
+        return NotificationCenterConvert.INSTANCE.convert(getByUid(uid));
+    }
+
+    @Override
     public NotificationRespVO modifySelective(NotificationModifyReqVO reqVO) {
         NotificationCenterDO notificationCenterDO = getByUid(reqVO.getUid());
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
