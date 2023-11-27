@@ -4,6 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
 /**
@@ -14,11 +17,17 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 public class UserDiscountCodeInfoVO {
 
     @Schema(description = "优惠券名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private String name;
 
     @Schema(description = "优惠券代码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private String code;
+
+    @Schema(description = " 活动开始时间", requiredMode = Schema.RequiredMode.REQUIRED)
+    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    private LocalDateTime startTime;
+
+    @Schema(description = "活动结束时间", requiredMode = Schema.RequiredMode.REQUIRED)
+    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    private LocalDateTime endTime;
 
 }
