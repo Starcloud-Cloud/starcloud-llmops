@@ -1,6 +1,5 @@
-package com.starcloud.ops.business.order.convert.order;
+package com.starcloud.ops.business.order.convert.sign;
 
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
@@ -9,13 +8,11 @@ import cn.iocoder.yudao.framework.dict.core.util.DictFrameworkUtils;
 import cn.iocoder.yudao.framework.ip.core.utils.AreaUtils;
 import cn.iocoder.yudao.module.member.api.address.dto.MemberAddressRespDTO;
 import cn.iocoder.yudao.module.member.api.user.dto.MemberUserRespDTO;
+import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.enums.DictTypeConstants;
 import cn.iocoder.yudao.module.product.api.comment.dto.ProductCommentCreateReqDTO;
 import cn.iocoder.yudao.module.product.api.property.dto.ProductPropertyValueDetailRespDTO;
-import cn.iocoder.yudao.module.product.api.sku.dto.ProductSkuRespDTO;
 import cn.iocoder.yudao.module.product.api.sku.dto.ProductSkuUpdateStockReqDTO;
-import cn.iocoder.yudao.module.product.api.spu.dto.ProductSpuRespDTO;
-import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.api.order.dto.TradeOrderRespDTO;
 import com.starcloud.ops.business.order.controller.admin.base.member.user.MemberUserRespVO;
 import com.starcloud.ops.business.order.controller.admin.base.product.property.ProductPropertyValueDetailRespVO;
@@ -23,6 +20,7 @@ import com.starcloud.ops.business.order.controller.admin.base.property.AppProduc
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
 import com.starcloud.ops.business.order.controller.admin.order.vo.item.AppTradeOrderItemCommentCreateReqVO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.item.AppTradeOrderItemRespVO;
+import com.starcloud.ops.business.order.controller.admin.sign.vo.AppTradeSignCreateReqVO;
 import com.starcloud.ops.business.order.controller.admin.sign.vo.AppTradeSignSettlementReqVO;
 import com.starcloud.ops.business.order.dal.dataobject.cart.CartDO;
 import com.starcloud.ops.business.order.dal.dataobject.delivery.DeliveryExpressDO;
@@ -49,9 +47,9 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.addTime;
 
 @Mapper
-public interface TradeOrderConvert {
+public interface TradeSignConvert {
 
-    TradeOrderConvert INSTANCE = Mappers.getMapper(TradeOrderConvert.class);
+    TradeSignConvert INSTANCE = Mappers.getMapper(TradeSignConvert.class);
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
@@ -67,7 +65,7 @@ public interface TradeOrderConvert {
             @Mapping(source = "calculateRespBO.price.vipPrice", target = "vipPrice"),
             @Mapping(source = "calculateRespBO.price.payPrice", target = "payPrice")
     })
-    TradeOrderDO convert(Long userId, String userIp, AppTradeOrderCreateReqVO createReqVO,
+    TradeOrderDO convert(Long userId, String userIp, AppTradeSignCreateReqVO createReqVO,
                          TradePriceCalculateRespBO calculateRespBO);
 
     TradeOrderRespDTO convert(TradeOrderDO orderDO);

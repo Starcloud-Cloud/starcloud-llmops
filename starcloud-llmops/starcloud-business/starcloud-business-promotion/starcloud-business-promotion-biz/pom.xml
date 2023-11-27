@@ -20,20 +20,27 @@
     </properties>
 
     <dependencies>
+
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
-            <artifactId>yudao-module-promotion-api</artifactId>
-            <version>${revision}</version>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-promotion-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-product-api</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-product-api</artifactId>
+            <version>${starcloud.revision}</version>
         </dependency>
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
-            <artifactId>yudao-module-product-api</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.iocoder.boot</groupId>
-            <artifactId>yudao-module-trade-api</artifactId>
-            <version>${revision}</version>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-order-api</artifactId>
+            <version>${starcloud.revision}</version>
         </dependency>
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
@@ -82,6 +89,7 @@
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-spring-boot-starter-biz-dict</artifactId>
         </dependency>
+
     </dependencies>
     
 </project>

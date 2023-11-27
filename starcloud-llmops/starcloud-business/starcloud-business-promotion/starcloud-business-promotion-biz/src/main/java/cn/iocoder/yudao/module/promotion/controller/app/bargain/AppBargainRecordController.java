@@ -21,8 +21,9 @@ import cn.iocoder.yudao.module.promotion.enums.bargain.BargainRecordStatusEnum;
 import cn.iocoder.yudao.module.promotion.service.bargain.BargainActivityService;
 import cn.iocoder.yudao.module.promotion.service.bargain.BargainHelpService;
 import cn.iocoder.yudao.module.promotion.service.bargain.BargainRecordService;
-import cn.iocoder.yudao.module.trade.api.order.TradeOrderApi;
-import cn.iocoder.yudao.module.trade.api.order.dto.TradeOrderRespDTO;
+
+import com.starcloud.ops.business.order.api.order.TradeOrderApi;
+import com.starcloud.ops.business.order.api.order.dto.TradeOrderRespDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;

@@ -11,7 +11,7 @@ import cn.iocoder.yudao.module.promotion.controller.app.bargain.vo.record.AppBar
 import cn.iocoder.yudao.module.promotion.controller.app.bargain.vo.record.AppBargainRecordSummaryRespVO;
 import cn.iocoder.yudao.module.promotion.dal.dataobject.bargain.BargainActivityDO;
 import cn.iocoder.yudao.module.promotion.dal.dataobject.bargain.BargainRecordDO;
-import cn.iocoder.yudao.module.trade.api.order.dto.TradeOrderRespDTO;
+import com.starcloud.ops.business.order.api.order.dto.TradeOrderRespDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

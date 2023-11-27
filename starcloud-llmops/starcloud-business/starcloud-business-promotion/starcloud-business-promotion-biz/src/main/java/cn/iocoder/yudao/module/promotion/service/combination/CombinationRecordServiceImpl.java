@@ -22,7 +22,7 @@ import cn.iocoder.yudao.module.promotion.dal.dataobject.combination.CombinationP
 import cn.iocoder.yudao.module.promotion.dal.dataobject.combination.CombinationRecordDO;
 import cn.iocoder.yudao.module.promotion.dal.mysql.combination.CombinationRecordMapper;
 import cn.iocoder.yudao.module.promotion.enums.combination.CombinationRecordStatusEnum;
-import cn.iocoder.yudao.module.trade.api.order.TradeOrderApi;
+import com.starcloud.ops.business.order.api.order.TradeOrderApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;

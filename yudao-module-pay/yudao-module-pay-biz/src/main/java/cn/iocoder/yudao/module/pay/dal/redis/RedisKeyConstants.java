@@ -24,4 +24,12 @@ public interface RedisKeyConstants {
      */
     String PAY_NO = "pay_no:";
 
+    /**
+     * 支付序号的缓存
+     *
+     * KEY 格式：pay_no:{prefix}
+     * VALUE 数据格式：编号自增
+     */
+    String SIGN_NO = "sign_no:";
+
 }

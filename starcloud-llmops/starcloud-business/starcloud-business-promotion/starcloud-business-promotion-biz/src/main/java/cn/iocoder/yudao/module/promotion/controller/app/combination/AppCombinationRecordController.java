@@ -8,7 +8,7 @@ import cn.iocoder.yudao.module.promotion.convert.combination.CombinationActivity
 import cn.iocoder.yudao.module.promotion.dal.dataobject.combination.CombinationRecordDO;
 import cn.iocoder.yudao.module.promotion.enums.combination.CombinationRecordStatusEnum;
 import cn.iocoder.yudao.module.promotion.service.combination.CombinationRecordService;
-import cn.iocoder.yudao.module.trade.api.order.TradeOrderApi;
+import com.starcloud.ops.business.order.api.order.TradeOrderApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;

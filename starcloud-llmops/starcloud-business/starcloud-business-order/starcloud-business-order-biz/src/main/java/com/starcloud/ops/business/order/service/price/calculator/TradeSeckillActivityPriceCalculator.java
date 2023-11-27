@@ -3,6 +3,8 @@ package com.starcloud.ops.business.order.service.price.calculator;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
+import cn.iocoder.yudao.module.promotion.api.seckill.SeckillActivityApi;
+import cn.iocoder.yudao.module.promotion.api.seckill.dto.SeckillValidateJoinRespDTO;
 import com.starcloud.ops.business.order.service.order.TradeOrderQueryService;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateRespBO;
@@ -10,6 +12,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PRICE_CALCULATE_SECKILL_TOTAL_LIMIT_COUNT;
 
 
 // TODO huihui：单测需要补充
@@ -22,8 +27,8 @@ import javax.annotation.Resource;
 @Order(TradePriceCalculator.ORDER_SECKILL_ACTIVITY)
 public class TradeSeckillActivityPriceCalculator implements TradePriceCalculator {
 
-//    @Resource
-//    private SeckillActivityApi seckillActivityApi;
+    @Resource
+    private SeckillActivityApi seckillActivityApi;
 
     @Resource
     private TradeOrderQueryService tradeOrderQueryService;
@@ -53,15 +58,15 @@ public class TradeSeckillActivityPriceCalculator implements TradePriceCalculator
 //        TradePriceCalculatorHelper.recountAllPrice(result);
     }
 
-//    private SeckillValidateJoinRespDTO validateJoinSeckill(Long userId, Long activityId, Long skuId, Integer count) {
-//        // 1. 校验是否可以参与秒杀
-//        SeckillValidateJoinRespDTO seckillActivity = seckillActivityApi.validateJoinSeckill(activityId, skuId, count);
-//        // 2. 校验总限购数量，目前只有 trade 有具体下单的数据，需要交给 trade 价格计算使用
-//        int seckillProductCount = tradeOrderQueryService.getSeckillProductCount(userId, activityId);
-//        if (seckillProductCount + count > seckillActivity.getTotalLimitCount()) {
-//            throw exception(PRICE_CALCULATE_SECKILL_TOTAL_LIMIT_COUNT);
-//        }
-//        return seckillActivity;
-//    }
+    private SeckillValidateJoinRespDTO validateJoinSeckill(Long userId, Long activityId, Long skuId, Integer count) {
+        // 1. 校验是否可以参与秒杀
+        SeckillValidateJoinRespDTO seckillActivity = seckillActivityApi.validateJoinSeckill(activityId, skuId, count);
+        // 2. 校验总限购数量，目前只有 trade 有具体下单的数据，需要交给 trade 价格计算使用
+        int seckillProductCount = tradeOrderQueryService.getSeckillProductCount(userId, activityId);
+        if (seckillProductCount + count > seckillActivity.getTotalLimitCount()) {
+            throw exception(PRICE_CALCULATE_SECKILL_TOTAL_LIMIT_COUNT);
+        }
+        return seckillActivity;
+    }
 
 }

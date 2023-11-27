@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.member.api.level.dto.MemberLevelRespDTO;
 import cn.iocoder.yudao.module.member.api.user.MemberUserApi;
 import cn.iocoder.yudao.module.member.api.user.dto.MemberUserRespDTO;
 
+import cn.iocoder.yudao.module.promotion.enums.common.PromotionTypeEnum;
 import com.starcloud.ops.business.order.enums.order.TradeOrderTypeEnum;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateRespBO;
@@ -13,6 +14,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+
+import static com.starcloud.ops.business.order.service.price.calculator.TradePriceCalculatorHelper.formatPrice;
 
 
 /**
@@ -53,14 +56,14 @@ public class TradeMemberLevelPriceCalculator implements TradePriceCalculator {
                 return;
             }
 
-//            // 2.2 记录优惠明细
-//            if (orderItem.getSelected()) {
-//                // 注意，只有在选中的情况下，才会记录到优惠明细。否则仅仅是更新 SKU 优惠金额，用于展示
-//                TradePriceCalculatorHelper.addPromotion(result, orderItem,
-//                        level.getId(), level.getName(), PromotionTypeEnum.MEMBER_LEVEL.getType(),
-//                        String.format("会员等级折扣：省 %s 元", formatPrice(vipPrice)),
-//                        vipPrice);
-//            }
+            // 2.2 记录优惠明细
+            if (orderItem.getSelected()) {
+                // 注意，只有在选中的情况下，才会记录到优惠明细。否则仅仅是更新 SKU 优惠金额，用于展示
+                TradePriceCalculatorHelper.addPromotion(result, orderItem,
+                        level.getId(), level.getName(), PromotionTypeEnum.MEMBER_LEVEL.getType(),
+                        String.format("会员等级折扣：省 %s 元", formatPrice(vipPrice)),
+                        vipPrice);
+            }
 
             // 2.3 更新 SKU 的优惠金额
             orderItem.setVipPrice(vipPrice);
