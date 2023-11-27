@@ -90,9 +90,6 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public NotificationRespVO modifySelective(NotificationModifyReqVO reqVO) {
         NotificationCenterDO notificationCenterDO = getByUid(reqVO.getUid());
-        if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
-        }
         if (StringUtils.isNotBlank(reqVO.getName()) && StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());
         }
@@ -104,6 +101,8 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         }
 
         NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
+
+        singleMissionService.validBudget(notificationCenterDO);
         notificationCenterDO.setUpdateTime(LocalDateTime.now());
         notificationCenterMapper.updateById(notificationCenterDO);
         return NotificationCenterConvert.INSTANCE.convert(notificationCenterDO);
