@@ -17,11 +17,13 @@
 
     <properties>
         <starcloud.revision>1.0.0-SNAPSHOT</starcloud.revision>
-        <java-langchain.version>master-v1.0.1-g3dc6e6f-12</java-langchain.version>
+        <java-langchain.version>master-v1.0.1-g3f1befe-11</java-langchain.version>
     </properties>
 
     <modules>
+        <module>starcloud-connection</module>
         <module>starcloud-business</module>
+        <!--        <module>starcloud-llm</module>-->
         <module>starcloud-framework</module>
         <module>starcloud-server</module>
         <module>starcloud-adapter-ruoyi-pro</module>
@@ -108,6 +110,13 @@
         <repository>
             <id>jitpack</id>
             <url>https://jitpack.io</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
         </repository>
 
     </repositories>
