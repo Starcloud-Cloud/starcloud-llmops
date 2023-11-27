@@ -54,6 +54,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -137,10 +138,11 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     @Override
     public List<CreativeSchemeRespVO> list(List<String> uidList) {
-        // 查询创作方案
-        CreativeSchemeListReqVO schemeQuery = new CreativeSchemeListReqVO();
-        schemeQuery.setUidList(uidList);
-        return list(schemeQuery);
+        if (CollectionUtil.isEmpty(uidList)) {
+            return Collections.emptyList();
+        }
+        List<CreativeSchemeDO> list = creativeSchemeMapper.listByUidList(uidList);
+        return CreativeSchemeConvert.INSTANCE.convertList(list);
     }
 
     /**
