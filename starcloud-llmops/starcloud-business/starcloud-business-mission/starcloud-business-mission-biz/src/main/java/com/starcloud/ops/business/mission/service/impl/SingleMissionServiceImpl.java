@@ -62,6 +62,9 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         List<String> boundCreativeUidList = singleMissionMapper.getByNotificationUid(notificationUid)
                 .stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
         List<String> toBeBound = new ArrayList<>(CollUtil.subtract(boundCreativeUidList, creativeUids));
+        if (CollectionUtils.isEmpty(toBeBound)) {
+            return;
+        }
         validBudget(notificationCenterDO, boundCreativeUidList.size() + creativeUids.size());
 
         List<XhsCreativeContentResp> claimList = creativeContentService.bound(toBeBound);
