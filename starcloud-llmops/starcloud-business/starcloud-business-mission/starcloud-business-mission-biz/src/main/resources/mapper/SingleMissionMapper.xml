@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.mission.dal.mysql.SingleMissionMapper">
+    <select id="selectIds" resultType="java.lang.Long">
+        select m.id
+        from llm_single_mission m
+        inner join llm_notification n on m.notification_Uid = n.uid
+        where m.deleted = false and n.deleted = false
+        and n.start_time &lt;= CURDATE() and n.end_time &gt;= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+        and (m.pre_settlement_time is null or m.pre_settlement_time &lt; CURDATE())
+        and (m.settlement_time is null or m.settlement_time &lt; CURDATE())
+        and m.status in ('published','pre_settlement')
+        and n.status = 'published'
+        <if test="reqVO.singleMissionType != null and reqVO.singleMissionType != ''">
+            and n.type = #{reqVO.singleMissionType} and m.type = #{reqVO.singleMissionType}
+        </if>
+        order by m.id
+        <if test="reqVO.limitSize != null and reqVO.limitSize > 0">
+            limit #{reqVO.limitSize}
+        </if>
+    </select>
+</mapper>

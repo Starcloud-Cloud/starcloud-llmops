@@ -4,8 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import static com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants.XHS_URL_REGEX;
 
 @Data
 @Schema(description = "修改单条任务")
@@ -15,7 +18,8 @@ public class SingleMissionModifyReqVO {
     @NotBlank(message = "uid 不能为空")
     private String uid;
 
-    @Schema(description = "发布链接")
+    @Schema(description = "发布链接", example ="https://www.xiaohongshu.com/explore/24位数字和字母")
+    @Pattern(regexp = XHS_URL_REGEX, message = "发布链接为浏览器访问地址，如： https://www.xiaohongshu.com/explore/24位数字和字母")
     private String publishUrl;
 
     @Schema(description = "发布时间")
@@ -35,5 +39,8 @@ public class SingleMissionModifyReqVO {
 
     @Schema(description = "支付单号")
     private String paymentOrder;
+
+    @Schema(description = "状态")
+    private String status;
 
 }
