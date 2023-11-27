@@ -56,7 +56,13 @@ public class DebugDingTalkSmsClient extends AbstractSmsClient {
         params.put("msgtype", "markdown");
         this.getSmsTemplate(apiTemplateId);
         String content;
-        if (StrUtil.contains(apiTemplateId,"SELLER_SPRITE_WARN")){
+        if (StrUtil.equals(apiTemplateId, "NOTICE_XHS_LOGIN_WARN")) {
+            content = String.format("#### 【预警通知】\n" +
+                            "> ##### 小红书笔记详情查询异常 %s \n" +
+                            "> - 当前时间:%s",
+                    MapUtils.convertMap(templateParams).get("errorMsg"),
+                    DateUtil.formatChineseDate(DateUtil.date(),false,true));
+        }else if (StrUtil.contains(apiTemplateId,"SELLER_SPRITE_WARN")){
              content = String.format("#### 【预警通知】\n" +
                              "> ##### 卖家精灵账号过期\n" +
                              "> - 当前时间:%s",

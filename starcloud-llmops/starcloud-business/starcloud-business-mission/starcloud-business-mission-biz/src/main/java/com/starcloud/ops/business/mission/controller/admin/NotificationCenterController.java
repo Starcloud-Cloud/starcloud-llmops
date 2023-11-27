@@ -37,7 +37,7 @@ public class NotificationCenterController {
     }
 
     @GetMapping("detail/{uid}")
-    @Operation(summary = "分页查询通告列表", description = "分页查询通告列表")
+    @Operation(summary = "通告明细", description = "通告明细明细")
     public CommonResult<NotificationRespVO> detail(@PathVariable("uid") String uid) {
         return CommonResult.success(centerService.selectByUid(uid));
     }
