@@ -18,7 +18,7 @@ import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.service.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
-import com.starcloud.ops.business.app.service.xhs.XlsCreativeExecuteManager;
+import com.starcloud.ops.business.app.service.xhs.XhsCreativeExecuteManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -48,7 +48,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     private XhsCreativeContentMapper creativeContentMapper;
 
     @Resource
-    private XlsCreativeExecuteManager xlsCreativeExecuteManager;
+    private XhsCreativeExecuteManager xlsCreativeExecuteManager;
 
 
     @Resource
@@ -109,15 +109,16 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         if (textDO.getRetryCount() >= maxRetry || picDO.getRetryCount() >= maxRetry) {
             throw exception(CREATIVE_CONTENT_GREATER_RETRY, maxRetry);
         }
+        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
+        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
+            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
+        }
 
         Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), true);
         if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
             throw exception(EXECTURE_ERROR, "图片", textDO.getId());
         }
-        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
-        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
-            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
-        }
+
         creativePlanService.updatePlanStatus(textDO.getPlanUid());
         return detail(businessUid);
     }

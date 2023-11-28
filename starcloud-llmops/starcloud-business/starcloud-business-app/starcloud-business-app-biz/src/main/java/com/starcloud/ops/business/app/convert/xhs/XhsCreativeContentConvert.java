@@ -11,9 +11,9 @@ import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageStyleExecuteDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExtendDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativePictureContentDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
@@ -31,10 +31,12 @@ import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Mapper
 public interface XhsCreativeContentConvert {
@@ -130,27 +132,34 @@ public interface XhsCreativeContentConvert {
      * @param copyWriting              文案
      * @return 执行参数
      */
-    default XhsBathImageExecuteRequest toExecuteImageStyle(CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest, List<String> useImageList, CopyWritingContentDTO copyWriting) {
-        XhsBathImageExecuteRequest executeRequest = new XhsBathImageExecuteRequest();
+    default XhsImageStyleExecuteRequest toExecuteImageStyle(CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest, List<String> useImageList, CopyWritingContentDTO copyWriting) {
+        XhsImageStyleExecuteRequest executeRequest = new XhsImageStyleExecuteRequest();
         List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
 
         List<CreativePlanImageExecuteDTO> imageRequests = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests());
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
-
             Map<String, Object> params = Maps.newHashMap();
+            // 图片集合，用于替换图片。
+            List<String> imageList = Collections.synchronizedList(Lists.newArrayList());
             List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
+            List<VariableItemDTO> imageVariableItemList = CollectionUtil.emptyIfNull(variableItemList.stream().filter(item -> "IMAGE".equalsIgnoreCase(item.getStyle())).collect(Collectors.toList()));
             for (VariableItemDTO variableItem : variableItemList) {
-                if ("IMAGE".equals(variableItem.getStyle())) {
-                    int randomInt = RandomUtil.randomInt(useImageList.size());
-                    params.put(variableItem.getField(), useImageList.get(randomInt));
+                if ("IMAGE".equalsIgnoreCase(variableItem.getStyle())) {
+                    // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
+                    if (imageVariableItemList.size() > useImageList.size()) {
+                        params.put(variableItem.getField(), useImageList.get(RandomUtil.randomInt(useImageList.size())));
+                    } else {
+                        // 如果变量图片数量小于使用的图片数量，说明图片够用，随机获取图片，但是不重复。
+                        params.put(variableItem.getField(), randomImageList(imageList, useImageList));
+                    }
                 } else {
                     if (Objects.isNull(variableItem.getValue())) {
                         // 只有主图才会替换标题和副标题
                         if (imageRequest.getIsMain()) {
-                            if ("TITLE".equals(variableItem.getField())) {
-                                params.put(variableItem.getField(), copyWriting.getImgTitle());
-                            } else if ("SUB_TITLE".equals(variableItem.getField())) {
-                                params.put(variableItem.getField(), copyWriting.getImgSubTitle());
+                            if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
+                                params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
+                            } else if ("SUB_TITLE".equalsIgnoreCase(variableItem.getField())) {
+                                params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
                             } else {
                                 params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
                             }
@@ -171,8 +180,29 @@ public interface XhsCreativeContentConvert {
             imageExecuteRequests.add(request);
         }
 
+        executeRequest.setId(imageStyleExecuteRequest.getId());
+        executeRequest.setName(imageStyleExecuteRequest.getName());
         executeRequest.setImageRequests(imageExecuteRequests);
         return executeRequest;
+    }
+
+    /**
+     * 随机图片,递归保证图片不重复
+     *
+     * @param imageList    图片集合
+     * @param useImageList 使用的图片
+     * @return 随机图片
+     */
+    static String randomImageList(List<String> imageList, List<String> useImageList) {
+        int randomInt = RandomUtil.randomInt(useImageList.size());
+        String image = useImageList.get(randomInt);
+        // 如果图片不在图片集合中，说明图片没有被使用过。记录图片并返回
+        if (!imageList.contains(image)) {
+            imageList.add(image);
+            return image;
+        }
+        // 如果图片在图片集合中，说明图片已经被使用过，递归获取
+        return randomImageList(imageList, useImageList);
     }
 
 

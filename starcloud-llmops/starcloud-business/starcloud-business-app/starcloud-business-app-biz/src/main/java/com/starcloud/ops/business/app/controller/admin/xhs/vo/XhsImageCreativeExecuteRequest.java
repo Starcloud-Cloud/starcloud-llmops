@@ -10,13 +10,13 @@ import lombok.ToString;
  * @author nacoyer
  */
 @Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "XhsAppCreativeExecuteRequest", description = "小红书创意执行请求")
-public class XhsAppCreativeExecuteRequest extends XhsAppExecuteRequest {
+@Schema(name = "XhsImageCreativeExecuteRequest", description = "小红书创作执行请求")
+public class XhsImageCreativeExecuteRequest implements java.io.Serializable {
 
-    private static final long serialVersionUID = -2675544310134972689L;
+    private static final long serialVersionUID = -2581352572917982820L;
 
     /**
      * 创作计划UID
@@ -41,5 +41,11 @@ public class XhsAppCreativeExecuteRequest extends XhsAppExecuteRequest {
      */
     @Schema(description = "创作任务UID")
     private String contentUid;
+
+    /**
+     * 图片风格请求参数
+     */
+    @Schema(description = "图片风格请求参数")
+    private XhsImageStyleExecuteRequest imageStyleRequest;
 
 }
