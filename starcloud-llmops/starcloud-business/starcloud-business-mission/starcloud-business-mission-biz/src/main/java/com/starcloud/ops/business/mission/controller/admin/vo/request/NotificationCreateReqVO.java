@@ -12,6 +12,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Schema(description = "创建任务")
@@ -42,11 +43,11 @@ public class NotificationCreateReqVO {
 
     @Schema(description = "任务开始时间")
     @NotNull(message = "任务开始时间不能为空")
-    private String startTime;
+    private LocalDateTime startTime;
 
     @Schema(description = "任务结束时间")
     @NotNull(message = "任务结束时间不能为空")
-    private String endTime;
+    private LocalDateTime endTime;
 
     @Schema(description = "通告总预算")
     @NotNull(message = "通告总预算不能为空")
