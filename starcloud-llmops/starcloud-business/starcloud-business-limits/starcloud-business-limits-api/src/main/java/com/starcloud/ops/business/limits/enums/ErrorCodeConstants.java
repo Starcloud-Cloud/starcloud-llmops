@@ -47,6 +47,7 @@ public interface ErrorCodeConstants {
     ErrorCode BENEFITS_STRATEGY_SYS_DATA_NOT_EXISTS = new ErrorCode(2008001010, "策略数据不存在，请刷新后重试！");
 
     ErrorCode BENEFITS_STRATEGY_PREFIX_NO_VALIDITY = new ErrorCode(2008001002, "权益码不合法，请勿修改权益码前缀");
+    ErrorCode BENEFITS_STRATEGY_OUT_OF_VALIDITY = new ErrorCode(2008001003, "权益码不合法，请勿修改权益码前缀");
 
     //======================================用户权益==========================================
     ErrorCode USER_BENEFITS_NOT_EXISTS = new ErrorCode(2008002001, "权益不存在，请重新输入");

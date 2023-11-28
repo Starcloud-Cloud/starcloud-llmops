@@ -620,6 +620,8 @@ public class PayOrderServiceImpl implements PayOrderService {
             }
             userDiscountCodeInfoVO.setCode(masterConfigStrategyByType.getCode());
             userDiscountCodeInfoVO.setName(masterConfigStrategyByType.getStrategyName());
+            userDiscountCodeInfoVO.setStartTime(masterConfigStrategyByType.getStartTime());
+            userDiscountCodeInfoVO.setEndTime(masterConfigStrategyByType.getEndTime());
         } else {
             log.info("当前用户已经存在支付订单，无法获取新用户优惠信息");
         }
