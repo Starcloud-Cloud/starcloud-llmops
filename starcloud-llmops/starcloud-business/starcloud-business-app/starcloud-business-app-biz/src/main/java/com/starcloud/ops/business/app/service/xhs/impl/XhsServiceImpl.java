@@ -18,9 +18,12 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExec
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
@@ -30,19 +33,25 @@ import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.poster.PosterService;
+import com.starcloud.ops.business.app.service.xhs.XhsImageCreativeThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.XhsImageStyleThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE;
@@ -64,6 +73,12 @@ public class XhsServiceImpl implements XhsService {
 
     @Resource
     private PosterService posterService;
+
+    @Resource
+    private XhsImageStyleThreadPoolHolder xhsImageStyleThreadPoolHolder;
+
+    @Resource
+    private XhsImageCreativeThreadPoolHolder xhsImageCreativeThreadPoolHolder;
 
     /**
      * 获取图片模板
@@ -258,13 +273,16 @@ public class XhsServiceImpl implements XhsService {
                 for (int i = 0; i < responses.size(); i++) {
                     XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
                     XhsAppExecuteResponse item = responses.get(i);
-                    String contentUid = schemeGroupRequestList.get(i).getCreativeContentUid();
+                    XhsAppCreativeExecuteRequest executeRequest = schemeGroupRequestList.get(i);
                     response.setUid(item.getUid());
                     response.setSuccess(item.getSuccess());
                     response.setCopyWriting(item.getCopyWriting());
                     response.setErrorCode(item.getErrorCode());
                     response.setErrorMsg(item.getErrorMsg());
-                    response.setCreativeContentUid(contentUid);
+                    response.setPlanUid(executeRequest.getPlanUid());
+                    response.setSchemeUid(executeRequest.getSchemeUid());
+                    response.setBusinessUid(executeRequest.getBusinessUid());
+                    response.setContentUid(executeRequest.getContentUid());
                     responseList.add(response);
                 }
                 log.info("创作计划UID：{}，创作方案UID：{}，执行结束！", planEntry.getKey(), schemeEntry.getKey());
@@ -337,24 +355,123 @@ public class XhsServiceImpl implements XhsService {
      * @return 响应
      */
     @Override
-    public List<XhsImageExecuteResponse> bathImageExecute(XhsBathImageExecuteRequest request) {
-        log.info("小红书执行批量生成图片开始");
-        List<XhsImageExecuteRequest> imageRequestList = request.getImageRequests();
-        if (CollectionUtil.isEmpty(imageRequestList)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
+    public XhsImageStyleExecuteResponse imageStyleExecute(XhsImageStyleExecuteRequest request) {
+        try {
+            log.info("小红书图片风格执行：图片生成开始：风格名称：{}, 风格ID：{}", request.getName(), request.getId());
+            List<XhsImageExecuteRequest> imageRequestList = request.getImageRequests();
+            if (CollectionUtil.isEmpty(imageRequestList)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
+            }
+
+            ThreadPoolExecutor threadPoolExecutor = xhsImageStyleThreadPoolHolder.executor();
+            List<CompletableFuture<XhsImageExecuteResponse>> imageFutureList = Lists.newArrayList();
+            for (XhsImageExecuteRequest imageExecuteRequest : imageRequestList) {
+                CompletableFuture<XhsImageExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageExecute(imageExecuteRequest), threadPoolExecutor);
+                imageFutureList.add(future);
+            }
+            // 合并任务
+            CompletableFuture<Void> allOfFuture = CompletableFuture.allOf(imageFutureList.toArray(new CompletableFuture[0]));
+            // 等待所有任务执行完成并且获取执行结果
+            CompletableFuture<List<XhsImageExecuteResponse>> allFuture = allOfFuture
+                    .thenApply(v -> imageFutureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+            // 获取执行结果
+            List<XhsImageExecuteResponse> imageResponseList = allFuture.join();
+
+            // 全部成功，才算成功。
+            List<XhsImageExecuteResponse> failureList = imageResponseList.stream()
+                    .filter(r -> !r.getSuccess())
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(failureList)) {
+                String message = failureList.stream().map(XhsImageExecuteResponse::getErrorMsg).collect(Collectors.joining("；"));
+                return XhsImageStyleExecuteResponse.failure(request.getId(), request.getName(), 350600119, "小红书图片风格执行：图片生成失败：" + message, imageResponseList);
+            }
+
+            // 构建响应
+            XhsImageStyleExecuteResponse response = new XhsImageStyleExecuteResponse();
+            response.setSuccess(Boolean.TRUE);
+            response.setId(request.getId());
+            response.setName(request.getName());
+            response.setImageResponses(imageResponseList);
+            log.info("小红书图片风格执行：图片生成结束：风格名称：{}, 风格ID：{}", request.getName(), request.getId());
+            return response;
+        } catch (ServiceException exception) {
+            log.info("小红书图片风格执行：图片生成失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
+            return XhsImageStyleExecuteResponse.failure(request.getId(), request.getName(), exception.getCode(), exception.getMessage(), null);
+        } catch (Exception exception) {
+            log.info("小红书图片风格执行：图片生成失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
+            return XhsImageStyleExecuteResponse.failure(request.getId(), request.getName(), 350400200, exception.getMessage(), null);
         }
-        // 图片执行结果
-        List<XhsImageExecuteResponse> imageResponses = Lists.newArrayList();
-        for (XhsImageExecuteRequest imageRequest : imageRequestList) {
-            imageRequest.setImageTemplate(imageRequest.getImageTemplate());
-            imageRequest.setIndex(imageRequest.getIndex());
-            imageRequest.setIsMain(imageRequest.getIsMain());
-            imageRequest.setParams(imageRequest.getParams());
-            XhsImageExecuteResponse response = imageExecute(imageRequest);
-            imageResponses.add(response);
-        }
-        log.info("小红书执行批量生成图片结束");
-        return imageResponses;
     }
+
+    /**
+     * 异步批量执行图片
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    @Override
+    public XhsImageCreativeExecuteResponse imageCreativeExecute(XhsImageCreativeExecuteRequest request) {
+        try {
+            log.info("小红书创作中心执行：图片生成开始：创作计划UID：{}, 创作方案UID：{}, 创作任务UID：{}", request.getPlanUid(), request.getSchemeUid(), request.getContentUid());
+            // 执行图片生成
+            XhsImageStyleExecuteResponse imageStyleResponse = imageStyleExecute(request.getImageStyleRequest());
+            if (Objects.isNull(imageStyleResponse)) {
+                return XhsImageCreativeExecuteResponse.failure(request, 350400200, "小红书创作中心执行：图片生成失败", null);
+            }
+            if (!imageStyleResponse.getSuccess()) {
+                Integer code = Objects.isNull(imageStyleResponse.getErrorCode()) ? 350400200 : imageStyleResponse.getErrorCode();
+                String message = StringUtils.isBlank(imageStyleResponse.getErrorMessage()) ? "小红书创作中心执行：图片生成失败" : imageStyleResponse.getErrorMessage();
+                return XhsImageCreativeExecuteResponse.failure(request, code, message, imageStyleResponse);
+            }
+            // 构建响应
+            XhsImageCreativeExecuteResponse response = new XhsImageCreativeExecuteResponse();
+            response.setSuccess(Boolean.TRUE);
+            response.setPlanUid(request.getPlanUid());
+            response.setSchemeUid(request.getSchemeUid());
+            response.setBusinessUid(request.getBusinessUid());
+            response.setContentUid(request.getContentUid());
+            response.setImageStyleResponse(imageStyleResponse);
+            log.info("小红书创作中心执行：图片生成结束：创作计划UID：{}, 创作方案UID：{}, 创作任务UID：{}", request.getPlanUid(), request.getSchemeUid(), request.getContentUid());
+            return response;
+        } catch (ServiceException exception) {
+            log.info("小红书创作中心执行：图片生成失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
+            return XhsImageCreativeExecuteResponse.failure(request, exception.getCode(), exception.getMessage(), null);
+        } catch (Exception exception) {
+            log.info("小红书创作中心执行：图片生成失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
+            return XhsImageCreativeExecuteResponse.failure(request, 350400200, exception.getMessage(), null);
+        }
+    }
+
+    /**
+     * 批量执行创作中心小红书图片生成
+     *
+     * @param requestList 请求
+     * @return 响应
+     */
+    @Override
+    public List<XhsImageCreativeExecuteResponse> bathImageCreativeExecute(List<XhsImageCreativeExecuteRequest> requestList) {
+        log.info("创作中心：小红书图片生成执行：图片生成开始");
+        if (CollectionUtil.isEmpty(requestList)) {
+            log.warn("创作中心：小红书图片生成执行：参数为空！图片生成结束");
+            return Collections.emptyList();
+        }
+        // 获取异步Future
+        ThreadPoolExecutor executor = xhsImageCreativeThreadPoolHolder.executor();
+        List<CompletableFuture<XhsImageCreativeExecuteResponse>> imageFutureList = Lists.newArrayList();
+        for (XhsImageCreativeExecuteRequest imageCreativeExecuteRequest : requestList) {
+            CompletableFuture<XhsImageCreativeExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageCreativeExecute(imageCreativeExecuteRequest), executor);
+            imageFutureList.add(future);
+        }
+        // 合并任务
+        CompletableFuture<Void> allOfFuture = CompletableFuture.allOf(imageFutureList.toArray(new CompletableFuture[0]));
+        // 等待所有任务执行完成并且获取执行结果
+        CompletableFuture<List<XhsImageCreativeExecuteResponse>> allFuture = allOfFuture
+                .thenApply(v -> imageFutureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+        // 获取执行结果
+        List<XhsImageCreativeExecuteResponse> responses = allFuture.join();
+        log.info("创作中心：小红书图片生成执行：图片生成结束");
+        return responses;
+    }
+
 
 }

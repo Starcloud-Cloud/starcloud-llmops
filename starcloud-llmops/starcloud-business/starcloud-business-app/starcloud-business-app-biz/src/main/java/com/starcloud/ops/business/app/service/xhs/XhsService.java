@@ -7,9 +7,12 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExec
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteResponse;
 
 import java.util.List;
 
@@ -75,7 +78,7 @@ public interface XhsService {
     List<XhsAppCreativeExecuteResponse> bathAppCreativeExecute(List<XhsAppCreativeExecuteRequest> requests);
 
     /**
-     * 异步执行图片
+     * 执行生成小红书图片
      *
      * @param request 请求
      * @return 响应
@@ -83,10 +86,27 @@ public interface XhsService {
     XhsImageExecuteResponse imageExecute(XhsImageExecuteRequest request);
 
     /**
-     * 异步批量执行图片
+     * 小红书图片风格执行，一个风格可能多个图片
      *
      * @param request 请求
      * @return 响应
      */
-    List<XhsImageExecuteResponse> bathImageExecute(XhsBathImageExecuteRequest request);
+    XhsImageStyleExecuteResponse imageStyleExecute(XhsImageStyleExecuteRequest request);
+
+    /**
+     * 执行创作中心小红书图片生成
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    XhsImageCreativeExecuteResponse imageCreativeExecute(XhsImageCreativeExecuteRequest request);
+
+    /**
+     * 批量执行创作中心小红书图片生成
+     *
+     * @param requests 请求
+     * @return 响应
+     */
+    List<XhsImageCreativeExecuteResponse> bathImageCreativeExecute(List<XhsImageCreativeExecuteRequest> requests);
+
 }

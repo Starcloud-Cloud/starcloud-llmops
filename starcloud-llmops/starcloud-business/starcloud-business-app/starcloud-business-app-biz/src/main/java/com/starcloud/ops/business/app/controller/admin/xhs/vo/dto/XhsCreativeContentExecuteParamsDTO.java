@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.vo.dto;
 
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -22,6 +22,6 @@ public class XhsCreativeContentExecuteParamsDTO implements java.io.Serializable 
     /**
      * 批量图片请求
      */
-    private XhsBathImageExecuteRequest bathImageExecuteRequest;
+    private XhsImageStyleExecuteRequest bathImageExecuteRequest;
 
 }
