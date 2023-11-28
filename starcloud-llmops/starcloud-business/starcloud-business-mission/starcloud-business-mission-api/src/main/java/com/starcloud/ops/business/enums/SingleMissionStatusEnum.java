@@ -1,9 +1,10 @@
 package com.starcloud.ops.business.enums;
 
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
 @Getter
-public enum SingleMissionStatusEnum {
+public enum SingleMissionStatusEnum implements IEnumable<String> {
     init("init","待发布"),
     stay_claim("stay_claim", "待认领"),
     claimed("claimed", "已认领"),
@@ -21,5 +22,10 @@ public enum SingleMissionStatusEnum {
     SingleMissionStatusEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;
+    }
+
+    @Override
+    public String getLabel() {
+        return code;
     }
 }
