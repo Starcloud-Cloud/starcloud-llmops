@@ -8,22 +8,31 @@ import com.starcloud.ops.business.dto.PostingContentDTO;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
 import com.starcloud.ops.business.mission.task.XhsTaskContentParams;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
 @Mapper
 public interface SingleMissionConvert {
 
     SingleMissionConvert INSTANCE = Mappers.getMapper(SingleMissionConvert.class);
 
-
     PageResult<SingleMissionRespVO> convert(PageResult<SingleMissionDO> page);
 
     SingleMissionRespVO convert(SingleMissionDO singleMissionDO);
+
+    List<SingleMissionExportVO> convert(List<SingleMissionDO> missionList);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
@@ -51,6 +60,14 @@ public interface SingleMissionConvert {
 
     default String toStr(PostingContentDTO postingContentDTO) {
         return JSONUtil.toJsonStr(postingContentDTO);
+    }
+
+    default String format(LocalDateTime time) {
+        if (time == null) {
+            return StringUtils.EMPTY;
+        }
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND);
+        return time.format(dateTimeFormatter);
     }
 
     default PostingContentDTO toPostingContent(String string) {

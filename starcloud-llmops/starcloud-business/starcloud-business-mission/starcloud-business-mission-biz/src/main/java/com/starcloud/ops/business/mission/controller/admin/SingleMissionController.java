@@ -2,8 +2,10 @@ package com.starcloud.ops.business.mission.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +14,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -29,7 +33,7 @@ public class SingleMissionController {
             @PathVariable("notificationUid") String notificationUid,
             @RequestBody List<String> creativeUids) {
         if (CollectionUtils.isEmpty(creativeUids)) {
-            return CommonResult.error(500,"绑定的任务uid不能为空");
+            return CommonResult.error(500, "绑定的任务uid不能为空");
         }
         singleMissionService.addSingleMission(notificationUid, creativeUids);
         return CommonResult.success(true);
@@ -61,4 +65,14 @@ public class SingleMissionController {
         singleMissionService.pick(uid);
         return CommonResult.success(true);
     }
+
+    @GetMapping("/export/{notificationUid}")
+    @Operation(summary = "导出任务", description = "导出任务")
+    public void exportSettlement(@PathVariable("notificationUid") String notificationUid, HttpServletResponse response) throws IOException {
+        List<SingleMissionExportVO> exported = singleMissionService.exportSettlement(notificationUid);
+        String fileName = notificationUid + ".xls";
+        ExcelUtils.write(response, fileName, notificationUid, SingleMissionExportVO.class, exported);
+    }
+
+
 }
