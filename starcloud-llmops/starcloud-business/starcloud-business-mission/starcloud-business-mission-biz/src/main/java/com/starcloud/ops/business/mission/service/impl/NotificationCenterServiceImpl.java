@@ -57,6 +57,9 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Transactional(rollbackFor = Exception.class)
     public void publish(String uid, Boolean publish) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
+        if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
+            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+        }
         if (BooleanUtils.isTrue(publish)) {
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.published.getCode());
         } else {
@@ -69,6 +72,9 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public void delete(String uid) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
+        if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
+            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+        }
         notificationCenterMapper.deleteById(notificationCenterDO.getId());
     }
 
@@ -89,6 +95,9 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public NotificationRespVO modifySelective(NotificationModifyReqVO reqVO) {
         NotificationCenterDO notificationCenterDO = getByUid(reqVO.getUid());
+        if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
+            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+        }
         if (StringUtils.isNotBlank(reqVO.getName()) && !StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());
         }
