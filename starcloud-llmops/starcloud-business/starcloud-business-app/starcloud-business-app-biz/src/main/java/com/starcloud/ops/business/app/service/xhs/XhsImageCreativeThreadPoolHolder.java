@@ -30,7 +30,7 @@ public class XhsImageCreativeThreadPoolHolder {
     /**
      * 小红书图片风格化线程池
      */
-    private static final ThreadPoolExecutor XHS_IMAGE_CREATIVE_THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(4, 16,
+    private static final ThreadPoolExecutor XHS_IMAGE_CREATIVE_THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(8, 16,
             60, TimeUnit.SECONDS, BLOCKING_QUEUE, new XhsImageCreativeThreadFactory(), new XhsImageCreativeRejectedExecutionHandler());
 
     /**
