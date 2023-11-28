@@ -32,6 +32,7 @@ public enum PayChannelEnum {
     ALIPAY_AGREEMENT_QUERY("alipay_agreement_query", "支付宝签约查询", AlipayPayClientConfig.class),
     ALIPAY_AGREEMENT_PAY("alipay_agreement_pay", "支付宝签约支付", AlipayPayClientConfig.class),
     ALIPAY_AGREEMENT_PAY_QUERY("alipay_agreement_pay_query", "支付宝签约支付查询", AlipayPayClientConfig.class),
+    ALIPAY_AGREEMENT_APP("alipay_agreement_app", "支付宝签约支付查询", AlipayPayClientConfig.class),
     MOCK("mock", "模拟支付", NonePayClientConfig.class),
 
     WALLET("wallet", "钱包支付", NonePayClientConfig.class);

@@ -53,6 +53,14 @@ public interface PayClient {
      */
     PayOrderRespDTO getOrder(String outTradeNo);
 
+    /**
+     * 获得签约信息
+     *
+     * @param outTradeNo 外部订单号
+     * @return 支付订单信息
+     */
+    PayOrderRespDTO getSign(String outTradeNo);
+
     // ============ 退款相关 ==========
 
     /**

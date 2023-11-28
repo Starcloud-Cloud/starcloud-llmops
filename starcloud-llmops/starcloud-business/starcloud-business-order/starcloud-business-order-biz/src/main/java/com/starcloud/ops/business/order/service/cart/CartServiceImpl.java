@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.order.service.cart;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.iocoder.yudao.module.product.api.sku.ProductSkuApi;
-import cn.iocoder.yudao.module.product.api.sku.dto.ProductSkuRespDTO;
-import cn.iocoder.yudao.module.product.api.spu.ProductSpuApi;
-import cn.iocoder.yudao.module.product.api.spu.dto.ProductSpuRespDTO;
+import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
+import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
+import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
+import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
 
 import com.starcloud.ops.business.order.controller.admin.cart.vo.*;
 import com.starcloud.ops.business.order.convert.cart.TradeCartConvert;
@@ -19,8 +19,8 @@ import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
-import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.SKU_NOT_EXISTS;
-import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.SKU_STOCK_NOT_ENOUGH;
+import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_NOT_EXISTS;
+import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_STOCK_NOT_ENOUGH;
 import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.CARD_ITEM_NOT_FOUND;
 import static java.util.Collections.emptyList;
 

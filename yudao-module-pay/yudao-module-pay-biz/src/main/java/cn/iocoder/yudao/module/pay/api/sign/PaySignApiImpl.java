@@ -2,6 +2,7 @@ package cn.iocoder.yudao.module.pay.api.sign;
 
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
+import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
 
 public class PaySignApiImpl implements PaySignApi {
 
@@ -13,7 +14,7 @@ public class PaySignApiImpl implements PaySignApi {
      * @return 签约编号
      */
     @Override
-    public Long createSign(PayOrderCreateReqDTO reqDTO) {
+    public Long createSign(PaySignCreateReqDTO reqDTO) {
         return null;
     }
 

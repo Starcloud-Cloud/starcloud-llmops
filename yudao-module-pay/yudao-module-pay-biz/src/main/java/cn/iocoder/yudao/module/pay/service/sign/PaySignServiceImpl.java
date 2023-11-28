@@ -13,20 +13,22 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDT
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
-import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderExportReqVO;
-import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderPageReqVO;
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderSubmitReqVO;
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderSubmitRespVO;
+import cn.iocoder.yudao.module.pay.controller.admin.sign.vo.PaySignExportReqVO;
+import cn.iocoder.yudao.module.pay.controller.admin.sign.vo.PaySignPageReqVO;
 import cn.iocoder.yudao.module.pay.convert.order.PayOrderConvert;
+import cn.iocoder.yudao.module.pay.convert.sign.PaySignConvert;
 import cn.iocoder.yudao.module.pay.dal.dataobject.app.PayAppDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.channel.PayChannelDO;
-import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderDO;
-import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderExtensionDO;
-import cn.iocoder.yudao.module.pay.dal.mysql.order.PayOrderExtensionMapper;
-import cn.iocoder.yudao.module.pay.dal.mysql.order.PayOrderMapper;
-import cn.iocoder.yudao.module.pay.dal.redis.no.PayNoRedisDAO;
+import cn.iocoder.yudao.module.pay.dal.dataobject.sign.PaySignDO;
+import cn.iocoder.yudao.module.pay.dal.dataobject.sign.PaySignExtensionDO;
+import cn.iocoder.yudao.module.pay.dal.mysql.sign.PaySignExtensionMapper;
+import cn.iocoder.yudao.module.pay.dal.mysql.sign.PaySignMapper;
+import cn.iocoder.yudao.module.pay.dal.redis.no.SignNoRedisDAO;
 import cn.iocoder.yudao.module.pay.enums.notify.PayNotifyTypeEnum;
 import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;
+import cn.iocoder.yudao.module.pay.enums.sign.PaySignStatusEnum;
 import cn.iocoder.yudao.module.pay.framework.pay.config.PayProperties;
 import cn.iocoder.yudao.module.pay.service.app.PayAppService;
 import cn.iocoder.yudao.module.pay.service.channel.PayChannelService;
@@ -60,11 +62,11 @@ public class PaySignServiceImpl implements PaySignService {
     private PayProperties payProperties;
 
     @Resource
-    private PayOrderMapper orderMapper;
+    private PaySignMapper signMapper;
     @Resource
-    private PayOrderExtensionMapper orderExtensionMapper;
+    private PaySignExtensionMapper signExtensionMapper;
     @Resource
-    private PayNoRedisDAO noRedisDAO;
+    private SignNoRedisDAO noRedisDAO;
 
     @Resource
     private PayAppService appService;
@@ -74,81 +76,81 @@ public class PaySignServiceImpl implements PaySignService {
     private PayNotifyService notifyService;
 
     @Override
-    public PayOrderDO getOrder(Long id) {
-        return orderMapper.selectById(id);
+    public PaySignDO getSign(Long id) {
+        return signMapper.selectById(id);
     }
 
     @Override
-    public PayOrderDO getOrder(Long appId, String merchantOrderId) {
-        return orderMapper.selectByAppIdAndMerchantOrderId(appId, merchantOrderId);
+    public PaySignDO getSign(Long appId, String merchantSignId) {
+        return signMapper.selectByAppIdAndMerchantSignId(appId, merchantSignId);
     }
 
     @Override
-    public Long getOrderCountByAppId(Long appId) {
-        return orderMapper.selectCountByAppId(appId);
+    public Long getSignCountByAppId(Long appId) {
+        return signMapper.selectCountByAppId(appId);
     }
 
     @Override
-    public PageResult<PayOrderDO> getOrderPage(PayOrderPageReqVO pageReqVO) {
-        return orderMapper.selectPage(pageReqVO);
+    public PageResult<PaySignDO> getSignPage(PaySignPageReqVO pageReqVO) {
+        return signMapper.selectPage(pageReqVO);
     }
 
     @Override
-    public List<PayOrderDO> getOrderList(PayOrderExportReqVO exportReqVO) {
-        return orderMapper.selectList(exportReqVO);
+    public List<PaySignDO> getSignList(PaySignExportReqVO exportReqVO) {
+        return signMapper.selectList(exportReqVO);
     }
 
     @Override
-    public Long createOrder(PaySignCreateReqDTO reqDTO) {
+    public Long createSign(PaySignCreateReqDTO reqDTO) {
         // 校验 App
         PayAppDO app = appService.validPayApp(reqDTO.getAppId());
 
         // 查询对应的支付交易单是否已经存在。如果是，则直接返回
-        PayOrderDO order = orderMapper.selectByAppIdAndMerchantOrderId(
-                reqDTO.getAppId(), reqDTO.getMerchantOrderId());
-        if (order != null) {
-            log.warn("[createOrder][appId({}) merchantOrderId({}) 已经存在对应的支付单({})]", order.getAppId(),
-                    order.getMerchantOrderId(), toJsonString(order)); // 理论来说，不会出现这个情况
-            return order.getId();
+        PaySignDO signDO = signMapper.selectByAppIdAndMerchantSignId(
+                reqDTO.getAppId(), reqDTO.getMerchantSignId());
+        if (signDO != null) {
+            log.warn("[createSign][appId({}) merchantSignId({}) 已经存在对应的支付单({})]", signDO.getAppId(),
+                    signDO.getMerchantSignId(), toJsonString(signDO)); // 理论来说，不会出现这个情况
+            return signDO.getId();
         }
 
         // 创建支付交易单
-        order = PayOrderConvert.INSTANCE.convert(reqDTO).setAppId(app.getId())
+        signDO = PaySignConvert.INSTANCE.convert(reqDTO)
+                .setAppId(app.getId())
                 // 商户相关字段
                 .setNotifyUrl(app.getOrderNotifyUrl())
                 // 订单相关字段
-                .setStatus(PayOrderStatusEnum.WAITING.getStatus())
-                // 退款相关字段
-                .setRefundPrice(0);
-        orderMapper.insert(order);
-        return order.getId();
+                .setStatus(PaySignStatusEnum.WAITING.getStatus());
+        signMapper.insert(signDO);
+        return signDO.getId();
     }
 
     @Override // 注意，这里不能添加事务注解，避免调用支付渠道失败时，将 PayOrderExtensionDO 回滚了
-    public PayOrderSubmitRespVO submitOrder(PayOrderSubmitReqVO reqVO, String userIp) {
+    public PayOrderSubmitRespVO submitSign(PayOrderSubmitReqVO reqVO, String userIp) {
         // 1.1 获得 PayOrderDO ，并校验其是否存在
-        PayOrderDO order = validateOrderCanSubmit(reqVO.getId());
+        PaySignDO signDO = validateOrderCanSubmit(reqVO.getId());
         // 1.32 校验支付渠道是否有效
-        PayChannelDO channel = validateChannelCanSubmit(order.getAppId(), reqVO.getChannelCode());
+        PayChannelDO channel = validateChannelCanSubmit(signDO.getAppId(), reqVO.getChannelCode());
         PayClient client = channelService.getPayClient(channel.getId());
 
         // 2. 插入 PayOrderExtensionDO
         String no = noRedisDAO.generate(payProperties.getOrderNoPrefix());
-        PayOrderExtensionDO orderExtension = PayOrderConvert.INSTANCE.convert(reqVO, userIp)
-                .setOrderId(order.getId()).setNo(no)
+        PaySignExtensionDO signExtension = PaySignConvert.INSTANCE.convert(reqVO, userIp)
+                .setSignId(signDO.getId()).setNo(no)
                 .setChannelId(channel.getId()).setChannelCode(channel.getCode())
                 .setStatus(PayOrderStatusEnum.WAITING.getStatus());
-        orderExtensionMapper.insert(orderExtension);
+        signExtensionMapper.insert(signExtension);
 
         // 3. 调用三方接口
         PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(reqVO, userIp)
                 // 商户相关的字段
-                .setOutTradeNo(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
-                .setSubject(order.getSubject()).setBody(order.getBody())
+                .setOutTradeNo(signExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
+                .setSubject(signDO.getSubject()).setBody(signDO.getBody())
                 .setNotifyUrl(genChannelOrderNotifyUrl(channel))
                 .setReturnUrl(reqVO.getReturnUrl())
                 // 订单相关字段
-                .setPrice(order.getPrice()).setExpireTime(order.getExpireTime());
+                .setPrice(signDO.getPrice())
+                .setExpireTime(signDO.getExpireTime());
         PayOrderRespDTO unifiedOrderResp = client.unifiedOrder(unifiedOrderReqDTO);
 
         // 4. 如果调用直接支付成功，则直接更新支付单状态为成功。例如说：付款码支付，免密支付时，就直接验证支付成功
@@ -160,29 +162,29 @@ public class PaySignServiceImpl implements PaySignService {
                         unifiedOrderResp.getChannelErrorMsg());
             }
             // 此处需要读取最新的状态
-            order = orderMapper.selectById(order.getId());
+            signDO = signMapper.selectById(signDO.getId());
         }
-        return PayOrderConvert.INSTANCE.convert(order, unifiedOrderResp);
+        return PaySignConvert.INSTANCE.convert(signDO, unifiedOrderResp);
     }
 
-    private PayOrderDO validateOrderCanSubmit(Long id) {
-        PayOrderDO order = orderMapper.selectById(id);
-        if (order == null) { // 是否存在
+    private PaySignDO validateOrderCanSubmit(Long id) {
+        PaySignDO signDO = signMapper.selectById(id);
+        if (signDO == null) { // 是否存在
             throw exception(PAY_ORDER_NOT_FOUND);
         }
-        if (PayOrderStatusEnum.isSuccess(order.getStatus())) { // 校验状态，发现已支付
+        if (PayOrderStatusEnum.isSuccess(signDO.getStatus())) { // 校验状态，发现已支付
             throw exception(PAY_ORDER_STATUS_IS_SUCCESS);
         }
-        if (!PayOrderStatusEnum.WAITING.getStatus().equals(order.getStatus())) { // 校验状态，必须是待支付
+        if (!PayOrderStatusEnum.WAITING.getStatus().equals(signDO.getStatus())) { // 校验状态，必须是待支付
             throw exception(PAY_ORDER_STATUS_IS_NOT_WAITING);
         }
-        if (LocalDateTimeUtils.beforeNow(order.getExpireTime())) { // 校验是否过期
+        if (LocalDateTimeUtils.beforeNow(signDO.getExpireTime())) { // 校验是否过期
             throw exception(PAY_ORDER_IS_EXPIRED);
         }
 
         // 【重要】校验是否支付拓展单已支付，只是没有回调、或者数据不正常
         validateOrderActuallyPaid(id);
-        return order;
+        return signDO;
     }
 
     /**
@@ -192,21 +194,21 @@ public class PaySignServiceImpl implements PaySignService {
      */
     @VisibleForTesting
     void validateOrderActuallyPaid(Long id) {
-        List<PayOrderExtensionDO> orderExtensions = orderExtensionMapper.selectListByOrderId(id);
-        orderExtensions.forEach(orderExtension -> {
+        List<PaySignExtensionDO> signExtensions = signExtensionMapper.selectListBySignId(id);
+        signExtensions.forEach(signExtension -> {
             // 情况一：校验数据库中的 orderExtension 是不是已支付
-            if (PayOrderStatusEnum.isSuccess(orderExtension.getStatus())) {
+            if (PayOrderStatusEnum.isSuccess(signExtension.getStatus())) {
                 log.warn("[validateOrderCanSubmit][order({}) 的 extension({}) 已支付，可能是数据不一致]",
-                        id, orderExtension.getId());
+                        id, signExtension.getId());
                 throw exception(PAY_ORDER_EXTENSION_IS_PAID);
             }
             // 情况二：调用三方接口，查询支付单状态，是不是已支付
-            PayClient payClient = channelService.getPayClient(orderExtension.getChannelId());
+            PayClient payClient = channelService.getPayClient(signExtension.getChannelId());
             if (payClient == null) {
-                log.error("[validateOrderCanSubmit][渠道编号({}) 找不到对应的支付客户端]", orderExtension.getChannelId());
+                log.error("[validateOrderCanSubmit][渠道编号({}) 找不到对应的支付客户端]", signExtension.getChannelId());
                 return;
             }
-            PayOrderRespDTO respDTO = payClient.getOrder(orderExtension.getNo());
+            PayOrderRespDTO respDTO = payClient.getSign(signExtension.getNo());
             if (respDTO != null && PayOrderStatusRespEnum.isSuccess(respDTO.getStatus())) {
                 log.warn("[validateOrderCanSubmit][order({}) 的 PayOrderRespDTO({}) 已支付，可能是回调延迟]",
                         id, toJsonString(respDTO));
@@ -239,7 +241,7 @@ public class PaySignServiceImpl implements PaySignService {
     }
 
     @Override
-    public void notifyOrder(Long channelId, PayOrderRespDTO notify) {
+    public void notifySign(Long channelId, PayOrderRespDTO notify) {
         // 校验支付渠道是否有效
         PayChannelDO channel = channelService.validPayChannel(channelId);
         // 更新支付订单为已支付
@@ -270,16 +272,16 @@ public class PaySignServiceImpl implements PaySignService {
 
     private void notifyOrderSuccess(PayChannelDO channel, PayOrderRespDTO notify) {
         // 1. 更新 PayOrderExtensionDO 支付成功
-        PayOrderExtensionDO orderExtension = updateOrderSuccess(notify);
+        PaySignExtensionDO signExtension = updateSignSuccess(notify);
         // 2. 更新 PayOrderDO 支付成功
-        Boolean paid = updateOrderSuccess(channel, orderExtension, notify);
+        Boolean paid = updateSignSuccess(channel, signExtension, notify);
         if (paid) { // 如果之前已经成功回调，则直接返回，不用重复记录支付通知记录；例如说：支付平台重复回调
             return;
         }
 
         // 3. 插入支付通知记录
-        notifyService.createPayNotifyTask(PayNotifyTypeEnum.ORDER.getType(),
-                orderExtension.getOrderId());
+        notifyService.createPayNotifyTask(PayNotifyTypeEnum.SIGN.getType(),
+                signExtension.getSignId());
     }
 
     /**
@@ -288,67 +290,69 @@ public class PaySignServiceImpl implements PaySignService {
      * @param notify 通知
      * @return PayOrderExtensionDO 对象
      */
-    private PayOrderExtensionDO updateOrderSuccess(PayOrderRespDTO notify) {
+    private PaySignExtensionDO updateSignSuccess(PayOrderRespDTO notify) {
         // 1. 查询 PayOrderExtensionDO
-        PayOrderExtensionDO orderExtension = orderExtensionMapper.selectByNo(notify.getOutTradeNo());
-        if (orderExtension == null) {
+        PaySignExtensionDO signExtension = signExtensionMapper.selectByNo(notify.getOutTradeNo());
+        if (signExtension == null) {
             throw exception(PAY_ORDER_EXTENSION_NOT_FOUND);
         }
-        if (PayOrderStatusEnum.isSuccess(orderExtension.getStatus())) { // 如果已经是成功，直接返回，不用重复更新
-            log.info("[updateOrderExtensionSuccess][orderExtension({}) 已经是已支付，无需更新]", orderExtension.getId());
-            return orderExtension;
+        if (PayOrderStatusEnum.isSuccess(signExtension.getStatus())) { // 如果已经是成功，直接返回，不用重复更新
+            log.info("[updateOrderExtensionSuccess][orderExtension({}) 已经是已支付，无需更新]", signExtension.getId());
+            return signExtension;
         }
-        if (ObjectUtil.notEqual(orderExtension.getStatus(), PayOrderStatusEnum.WAITING.getStatus())) { // 校验状态，必须是待支付
+        if (ObjectUtil.notEqual(signExtension.getStatus(), PayOrderStatusEnum.WAITING.getStatus())) { // 校验状态，必须是待支付
             throw exception(PAY_ORDER_EXTENSION_STATUS_IS_NOT_WAITING);
         }
 
         // 2. 更新 PayOrderExtensionDO
-        int updateCounts = orderExtensionMapper.updateByIdAndStatus(orderExtension.getId(), orderExtension.getStatus(),
-                PayOrderExtensionDO.builder().status(PayOrderStatusEnum.SUCCESS.getStatus()).channelNotifyData(toJsonString(notify)).build());
+        int updateCounts = signExtensionMapper.updateByIdAndStatus(signExtension.getId(), signExtension.getStatus(),
+                PaySignExtensionDO.builder().status(PayOrderStatusEnum.SUCCESS.getStatus()).channelNotifyData(toJsonString(notify)).build());
         if (updateCounts == 0) { // 校验状态，必须是待支付
             throw exception(PAY_ORDER_EXTENSION_STATUS_IS_NOT_WAITING);
         }
-        log.info("[updateOrderExtensionSuccess][orderExtension({}) 更新为已支付]", orderExtension.getId());
-        return orderExtension;
+        log.info("[updateOrderExtensionSuccess][orderExtension({}) 更新为已支付]", signExtension.getId());
+        return signExtension;
     }
 
     /**
-     * 更新 PayOrderDO 支付成功
+     * 更新 PaySignDO 支付成功
      *
      * @param channel        支付渠道
-     * @param orderExtension 支付拓展单
+     * @param signExtension 支付拓展单
      * @param notify         通知回调
      * @return 是否之前已经成功回调
      */
-    private Boolean updateOrderSuccess(PayChannelDO channel, PayOrderExtensionDO orderExtension,
+    private Boolean updateSignSuccess(PayChannelDO channel, PaySignExtensionDO signExtension,
                                        PayOrderRespDTO notify) {
-        // 1. 判断 PayOrderDO 是否处于待支付
-        PayOrderDO order = orderMapper.selectById(orderExtension.getOrderId());
-        if (order == null) {
+        // 1. 判断 PaySignDO 是否处于待支付
+        PaySignDO signDO = signMapper.selectById(signExtension.getSignId());
+        if (signDO == null) {
             throw exception(PAY_ORDER_NOT_FOUND);
         }
-        if (PayOrderStatusEnum.isSuccess(order.getStatus()) // 如果已经是成功，直接返回，不用重复更新
-                && Objects.equals(order.getExtensionId(), orderExtension.getId())) {
-            log.info("[updateOrderExtensionSuccess][order({}) 已经是已支付，无需更新]", order.getId());
+        if (PayOrderStatusEnum.isSuccess(signDO.getStatus()) // 如果已经是成功，直接返回，不用重复更新
+                && Objects.equals(signDO.getExtensionId(), signExtension.getId())) {
+            log.info("[updateOrderExtensionSuccess][order({}) 已经是已支付，无需更新]", signDO.getId());
             return true;
         }
-        if (!PayOrderStatusEnum.WAITING.getStatus().equals(order.getStatus())) { // 校验状态，必须是待支付
+        if (!PayOrderStatusEnum.WAITING.getStatus().equals(signDO.getStatus())) { // 校验状态，必须是待支付
             throw exception(PAY_ORDER_STATUS_IS_NOT_WAITING);
         }
 
         // 2. 更新 PayOrderDO
-        int updateCounts = orderMapper.updateByIdAndStatus(order.getId(), PayOrderStatusEnum.WAITING.getStatus(),
-                PayOrderDO.builder().status(PayOrderStatusEnum.SUCCESS.getStatus())
+        int updateCounts = signMapper.updateByIdAndStatus(signDO.getId(), PayOrderStatusEnum.WAITING.getStatus(),
+                PaySignDO.builder().status(PayOrderStatusEnum.SUCCESS.getStatus())
                         .channelId(channel.getId()).channelCode(channel.getCode())
-                        .successTime(notify.getSuccessTime()).extensionId(orderExtension.getId()).no(orderExtension.getNo())
-                        .channelOrderNo(notify.getChannelOrderNo()).channelUserId(notify.getChannelUserId())
+                        .extensionId(signExtension.getId())
+                        .no(signExtension.getNo())
+                        .channelOrderNo(notify.getChannelOrderNo())
+                        .channelUserId(notify.getChannelUserId())
                         .channelFeeRate(channel.getFeeRate())
-                        .channelFeePrice(MoneyUtils.calculateRatePrice(order.getPrice(), channel.getFeeRate()))
+                        .channelFeePrice(MoneyUtils.calculateRatePrice(signDO.getPrice(), channel.getFeeRate()))
                         .build());
         if (updateCounts == 0) { // 校验状态，必须是待支付
             throw exception(PAY_ORDER_STATUS_IS_NOT_WAITING);
         }
-        log.info("[updateOrderExtensionSuccess][order({}) 更新为已支付]", order.getId());
+        log.info("[updateOrderExtensionSuccess][order({}) 更新为已支付]", signDO.getId());
         return false;
     }
 
@@ -357,60 +361,60 @@ public class PaySignServiceImpl implements PaySignService {
     }
 
     private void updateOrderExtensionClosed(PayChannelDO channel, PayOrderRespDTO notify) {
-        // 1. 查询 PayOrderExtensionDO
-        PayOrderExtensionDO orderExtension = orderExtensionMapper.selectByNo(notify.getOutTradeNo());
-        if (orderExtension == null) {
+        // 1. 查询 PaySignExtensionDO
+        PaySignExtensionDO signExtension = signExtensionMapper.selectByNo(notify.getOutTradeNo());
+        if (signExtension == null) {
             throw exception(PAY_ORDER_EXTENSION_NOT_FOUND);
         }
-        if (PayOrderStatusEnum.isClosed(orderExtension.getStatus())) { // 如果已经是关闭，直接返回，不用重复更新
-            log.info("[updateOrderExtensionClosed][orderExtension({}) 已经是支付关闭，无需更新]", orderExtension.getId());
+        if (PayOrderStatusEnum.isClosed(signExtension.getStatus())) { // 如果已经是关闭，直接返回，不用重复更新
+            log.info("[updateOrderExtensionClosed][orderExtension({}) 已经是支付关闭，无需更新]", signExtension.getId());
             return;
         }
         // 一般出现先是支付成功，然后支付关闭，都是全部退款导致关闭的场景。这个情况，我们不更新支付拓展单，只通过退款流程，更新支付单
-        if (PayOrderStatusEnum.isSuccess(orderExtension.getStatus())) {
-            log.info("[updateOrderExtensionClosed][orderExtension({}) 是已支付，无需更新为支付关闭]", orderExtension.getId());
+        if (PayOrderStatusEnum.isSuccess(signExtension.getStatus())) {
+            log.info("[updateOrderExtensionClosed][orderExtension({}) 是已支付，无需更新为支付关闭]", signExtension.getId());
             return;
         }
-        if (ObjectUtil.notEqual(orderExtension.getStatus(), PayOrderStatusEnum.WAITING.getStatus())) { // 校验状态，必须是待支付
+        if (ObjectUtil.notEqual(signExtension.getStatus(), PayOrderStatusEnum.WAITING.getStatus())) { // 校验状态，必须是待支付
             throw exception(PAY_ORDER_EXTENSION_STATUS_IS_NOT_WAITING);
         }
 
         // 2. 更新 PayOrderExtensionDO
-        int updateCounts = orderExtensionMapper.updateByIdAndStatus(orderExtension.getId(), orderExtension.getStatus(),
-                PayOrderExtensionDO.builder().status(PayOrderStatusEnum.CLOSED.getStatus()).channelNotifyData(toJsonString(notify))
+        int updateCounts = signExtensionMapper.updateByIdAndStatus(signExtension.getId(), signExtension.getStatus(),
+                PaySignExtensionDO.builder().status(PaySignStatusEnum.CLOSED.getStatus()).channelNotifyData(toJsonString(notify))
                         .channelErrorCode(notify.getChannelErrorCode()).channelErrorMsg(notify.getChannelErrorMsg()).build());
         if (updateCounts == 0) { // 校验状态，必须是待支付
             throw exception(PAY_ORDER_EXTENSION_STATUS_IS_NOT_WAITING);
         }
-        log.info("[updateOrderExtensionClosed][orderExtension({}) 更新为支付关闭]", orderExtension.getId());
+        log.info("[updateOrderExtensionClosed][orderExtension({}) 更新为支付关闭]", signExtension.getId());
     }
 
-    @Override
-    public void updateOrderRefundPrice(Long id, Integer incrRefundPrice) {
-        PayOrderDO order = orderMapper.selectById(id);
-        if (order == null) {
-            throw exception(PAY_ORDER_NOT_FOUND);
-        }
-        if (!PayOrderStatusEnum.isSuccessOrRefund(order.getStatus())) {
-            throw exception(PAY_ORDER_REFUND_FAIL_STATUS_ERROR);
-        }
-        if (order.getRefundPrice() + incrRefundPrice > order.getPrice()) {
-            throw exception(REFUND_PRICE_EXCEED);
-        }
+//    @Override
+//    public void updateSignRefundPrice(Long id, Integer incrRefundPrice) {
+//        PaySignDO order = signMapper.selectById(id);
+//        if (order == null) {
+//            throw exception(PAY_ORDER_NOT_FOUND);
+//        }
+//        if (!PayOrderStatusEnum.isSuccessOrRefund(order.getStatus())) {
+//            throw exception(PAY_ORDER_REFUND_FAIL_STATUS_ERROR);
+//        }
+//        if (order.getRefundPrice() + incrRefundPrice > order.getPrice()) {
+//            throw exception(REFUND_PRICE_EXCEED);
+//        }
+//
+//        // 更新订单
+//        PayOrderDO updateObj = new PayOrderDO()
+//                .setRefundPrice(order.getRefundPrice() + incrRefundPrice)
+//                .setStatus(PayOrderStatusEnum.REFUND.getStatus());
+//        int updateCount = signMapper.updateByIdAndStatus(id, order.getStatus(), updateObj);
+//        if (updateCount == 0) {
+//            throw exception(PAY_ORDER_REFUND_FAIL_STATUS_ERROR);
+//        }
+//    }
 
-        // 更新订单
-        PayOrderDO updateObj = new PayOrderDO()
-                .setRefundPrice(order.getRefundPrice() + incrRefundPrice)
-                .setStatus(PayOrderStatusEnum.REFUND.getStatus());
-        int updateCount = orderMapper.updateByIdAndStatus(id, order.getStatus(), updateObj);
-        if (updateCount == 0) {
-            throw exception(PAY_ORDER_REFUND_FAIL_STATUS_ERROR);
-        }
-    }
-
     @Override
-    public void updatePayOrderPrice(Long id, Integer payPrice) {
-        PayOrderDO order = orderMapper.selectById(id);
+    public void updatePaySignPrice(Long id, Integer payPrice) {
+        PaySignDO order = signMapper.selectById(id);
         if (order == null) {
             throw exception(PAY_ORDER_NOT_FOUND);
         }
@@ -423,31 +427,31 @@ public class PaySignServiceImpl implements PaySignService {
 
         // TODO 芋艿：应该 new 出来更新
         order.setPrice(payPrice);
-        orderMapper.updateById(order);
+        signMapper.updateById(order);
     }
 
     @Override
-    public PayOrderExtensionDO getOrderExtension(Long id) {
-        return orderExtensionMapper.selectById(id);
+    public PaySignExtensionDO getSignExtension(Long id) {
+        return signExtensionMapper.selectById(id);
     }
 
     @Override
-    public PayOrderExtensionDO getOrderExtensionByNo(String no) {
-        return orderExtensionMapper.selectByNo(no);
+    public PaySignExtensionDO getSignExtensionByNo(String no) {
+        return signExtensionMapper.selectByNo(no);
     }
 
     @Override
-    public int syncOrder(LocalDateTime minCreateTime) {
+    public int syncSign(LocalDateTime minCreateTime) {
         // 1. 查询指定创建时间内的待支付订单
-        List<PayOrderExtensionDO> orderExtensions = orderExtensionMapper.selectListByStatusAndCreateTimeGe(
+        List<PaySignExtensionDO> signExtensions = signExtensionMapper.selectListByStatusAndCreateTimeGe(
                 PayOrderStatusEnum.WAITING.getStatus(), minCreateTime);
-        if (CollUtil.isEmpty(orderExtensions)) {
+        if (CollUtil.isEmpty(signExtensions)) {
             return 0;
         }
         // 2. 遍历执行
         int count = 0;
-        for (PayOrderExtensionDO orderExtension : orderExtensions) {
-            count += syncOrder(orderExtension) ? 1 : 0;
+        for (PaySignExtensionDO signExtension : signExtensions) {
+            count += syncSign(signExtension) ? 1 : 0;
         }
         return count;
     }
@@ -455,33 +459,33 @@ public class PaySignServiceImpl implements PaySignService {
     /**
      * 同步单个支付拓展单
      *
-     * @param orderExtension 支付拓展单
+     * @param signExtension 支付拓展单
      * @return 是否已支付
      */
-    private boolean syncOrder(PayOrderExtensionDO orderExtension) {
+    private boolean syncSign(PaySignExtensionDO signExtension) {
         try {
             // 1.1 查询支付订单信息
-            PayClient payClient = channelService.getPayClient(orderExtension.getChannelId());
+            PayClient payClient = channelService.getPayClient(signExtension.getChannelId());
             if (payClient == null) {
-                log.error("[syncOrder][渠道编号({}) 找不到对应的支付客户端]", orderExtension.getChannelId());
+                log.error("[syncOrder][渠道编号({}) 找不到对应的支付客户端]", signExtension.getChannelId());
                 return false;
             }
-            PayOrderRespDTO respDTO = payClient.getOrder(orderExtension.getNo());
+            PayOrderRespDTO respDTO = payClient.getOrder(signExtension.getNo());
             // 1.2 回调支付结果
-            notifyOrder(orderExtension.getChannelId(), respDTO);
+            notifySign(signExtension.getChannelId(), respDTO);
 
             // 2. 如果是已支付，则返回 true
             return PayOrderStatusRespEnum.isSuccess(respDTO.getStatus());
         } catch (Throwable e) {
-            log.error("[syncOrder][orderExtension({}) 同步支付状态异常]", orderExtension.getId(), e);
+            log.error("[syncOrder][orderExtension({}) 同步支付状态异常]", signExtension.getId(), e);
             return false;
         }
     }
 
     @Override
-    public int expireOrder() {
+    public int expireSign() {
         // 1. 查询过期的待支付订单
-        List<PayOrderDO> orders = orderMapper.selectListByStatusAndExpireTimeLt(
+        List<PaySignDO> orders = signMapper.selectListByStatusAndExpireTimeLt(
                 PayOrderStatusEnum.WAITING.getStatus(), LocalDateTime.now());
         if (CollUtil.isEmpty(orders)) {
             return 0;
@@ -489,8 +493,8 @@ public class PaySignServiceImpl implements PaySignService {
 
         // 2. 遍历执行
         int count = 0;
-        for (PayOrderDO order : orders) {
-            count += expireOrder(order) ? 1 : 0;
+        for (PaySignDO signDO : orders) {
+            count += expireSign(signDO) ? 1 : 0;
         }
         return count;
     }
@@ -498,21 +502,21 @@ public class PaySignServiceImpl implements PaySignService {
     /**
      * 同步单个支付单
      *
-     * @param order 支付单
+     * @param sign 签约记录
      * @return 是否已过期
      */
-    private boolean expireOrder(PayOrderDO order) {
+    private boolean expireSign(PaySignDO sign) {
         try {
             // 1. 需要先处理关联的支付拓展单，避免错误的过期已支付 or 已退款的订单
-            List<PayOrderExtensionDO> orderExtensions = orderExtensionMapper.selectListByOrderId(order.getId());
-            for (PayOrderExtensionDO orderExtension : orderExtensions) {
+            List<PaySignExtensionDO> signExtensions = signExtensionMapper.selectListBySignId(sign.getId());
+            for (PaySignExtensionDO orderExtension : signExtensions) {
                 if (PayOrderStatusEnum.isClosed(orderExtension.getStatus())) {
                     continue;
                 }
                 // 情况一：校验数据库中的 orderExtension 是不是已支付
                 if (PayOrderStatusEnum.isSuccess(orderExtension.getStatus())) {
                     log.error("[expireOrder][order({}) 的 extension({}) 已支付，可能是数据不一致]",
-                            order.getId(), orderExtension.getId());
+                            sign.getId(), orderExtension.getId());
                     return false;
                 }
                 // 情况二：调用三方接口，查询支付单状态，是不是已支付/已退款
@@ -530,30 +534,30 @@ public class PaySignServiceImpl implements PaySignService {
                     return false;
                 }
                 if (PayOrderStatusRespEnum.isSuccess(respDTO.getStatus())) {
-                    notifyOrder(orderExtension.getChannelId(), respDTO);
+                    notifySign(orderExtension.getChannelId(), respDTO);
                     return false;
                 }
                 // 兜底逻辑：将支付拓展单更新为已关闭
-                PayOrderExtensionDO updateObj = new PayOrderExtensionDO().setStatus(PayOrderStatusEnum.CLOSED.getStatus())
+                PaySignExtensionDO updateObj = new PaySignExtensionDO().setStatus(PaySignStatusEnum.CLOSED.getStatus())
                         .setChannelNotifyData(toJsonString(respDTO));
-                if (orderExtensionMapper.updateByIdAndStatus(orderExtension.getId(), PayOrderStatusEnum.WAITING.getStatus(),
+                if (signExtensionMapper.updateByIdAndStatus(orderExtension.getId(), PaySignStatusEnum.WAITING.getStatus(),
                         updateObj) == 0) {
-                    log.error("[expireOrder][extension({}) 更新为支付关闭失败]", orderExtension.getId());
+                    log.error("[expireOrder][extension({}) 更新为签约关闭失败]", orderExtension.getId());
                     return false;
                 }
-                log.info("[expireOrder][extension({}) 更新为支付关闭成功]", orderExtension.getId());
+                log.info("[expireOrder][extension({}) 更新为签约关闭成功]", orderExtension.getId());
             }
 
             // 2. 都没有上述情况，可以安心更新为已关闭
-            PayOrderDO updateObj = new PayOrderDO().setStatus(PayOrderStatusEnum.CLOSED.getStatus());
-            if (orderMapper.updateByIdAndStatus(order.getId(), order.getStatus(), updateObj) == 0) {
-                log.error("[expireOrder][order({}) 更新为支付关闭失败]", order.getId());
+            PaySignDO updateObj = new PaySignDO().setStatus(PaySignStatusEnum.CLOSED.getStatus());
+            if (signMapper.updateByIdAndStatus(sign.getId(), sign.getStatus(), updateObj) == 0) {
+                log.error("[expireOrder][order({}) 更新为支付关闭失败]", sign.getId());
                 return false;
             }
-            log.info("[expireOrder][order({}) 更新为支付关闭失败]", order.getId());
+            log.info("[expireOrder][order({}) 更新为支付关闭失败]", sign.getId());
             return true;
         } catch (Throwable e) {
-            log.error("[expireOrder][order({}) 过期订单异常]", order.getId(), e);
+            log.error("[expireOrder][order({}) 过期订单异常]", sign.getId(), e);
             return false;
         }
     }

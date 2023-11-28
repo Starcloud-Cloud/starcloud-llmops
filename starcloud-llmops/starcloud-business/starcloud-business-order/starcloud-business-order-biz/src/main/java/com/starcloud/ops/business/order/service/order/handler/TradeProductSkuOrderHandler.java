@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.order.service.order.handler;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.iocoder.yudao.module.product.api.sku.ProductSkuApi;
+import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 
 import com.starcloud.ops.business.order.convert.order.TradeOrderConvert;
 import com.starcloud.ops.business.order.dal.dataobject.order.TradeOrderDO;

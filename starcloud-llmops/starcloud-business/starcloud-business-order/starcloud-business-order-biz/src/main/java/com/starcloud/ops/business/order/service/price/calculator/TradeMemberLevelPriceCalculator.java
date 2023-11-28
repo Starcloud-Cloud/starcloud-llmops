@@ -6,7 +6,7 @@ import cn.iocoder.yudao.module.member.api.level.dto.MemberLevelRespDTO;
 import cn.iocoder.yudao.module.member.api.user.MemberUserApi;
 import cn.iocoder.yudao.module.member.api.user.dto.MemberUserRespDTO;
 
-import cn.iocoder.yudao.module.promotion.enums.common.PromotionTypeEnum;
+import com.starcloud.ops.business.promotion.enums.common.PromotionTypeEnum;
 import com.starcloud.ops.business.order.enums.order.TradeOrderTypeEnum;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateRespBO;

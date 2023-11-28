@@ -7,8 +7,10 @@ import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderExportReqVO
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderPageReqVO;
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderSubmitReqVO;
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderSubmitRespVO;
-import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderDO;
-import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderExtensionDO;
+import cn.iocoder.yudao.module.pay.controller.admin.sign.vo.PaySignExportReqVO;
+import cn.iocoder.yudao.module.pay.controller.admin.sign.vo.PaySignPageReqVO;
+import cn.iocoder.yudao.module.pay.dal.dataobject.sign.PaySignDO;
+import cn.iocoder.yudao.module.pay.dal.dataobject.sign.PaySignExtensionDO;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -28,16 +30,16 @@ public interface PaySignService {
      * @param id 编号
      * @return 支付订单
      */
-    PayOrderDO getOrder(Long id);
+    PaySignDO getSign(Long id);
 
     /**
      * 获得支付订单
      *
-     * @param appId           应用编号
-     * @param merchantOrderId 商户订单编号
+     * @param appId          应用编号
+     * @param merchantSignId 商户订单编号
      * @return 支付订单
      */
-    PayOrderDO getOrder(Long appId, String merchantOrderId);
+    PaySignDO getSign(Long appId, String merchantSignId);
 
     /**
      * 获得指定应用的订单数量
@@ -45,7 +47,7 @@ public interface PaySignService {
      * @param appId 应用编号
      * @return 订单数量
      */
-    Long getOrderCountByAppId(Long appId);
+    Long getSignCountByAppId(Long appId);
 
     /**
      * 获得支付订单分页
@@ -53,7 +55,7 @@ public interface PaySignService {
      * @param pageReqVO 分页查询
      * @return 支付订单分页
      */
-    PageResult<PayOrderDO> getOrderPage(PayOrderPageReqVO pageReqVO);
+    PageResult<PaySignDO> getSignPage(PaySignPageReqVO pageReqVO);
 
     /**
      * 获得支付订单列表, 用于 Excel 导出
@@ -61,7 +63,7 @@ public interface PaySignService {
      * @param exportReqVO 查询条件
      * @return 支付订单列表
      */
-    List<PayOrderDO> getOrderList(PayOrderExportReqVO exportReqVO);
+    List<PaySignDO> getSignList(PaySignExportReqVO exportReqVO);
 
     /**
      * 创建支付单
@@ -69,7 +71,7 @@ public interface PaySignService {
      * @param reqDTO 创建请求
      * @return 支付单编号
      */
-    Long createOrder(@Valid PaySignCreateReqDTO reqDTO);
+    Long createSign(@Valid PaySignCreateReqDTO reqDTO);
 
     /**
      * 提交支付
@@ -79,8 +81,8 @@ public interface PaySignService {
      * @param userIp 提交 IP
      * @return 提交结果
      */
-    PayOrderSubmitRespVO submitOrder(@Valid PayOrderSubmitReqVO reqVO,
-                                     @NotEmpty(message = "提交 IP 不能为空") String userIp);
+    PayOrderSubmitRespVO submitSign(@Valid PayOrderSubmitReqVO reqVO,
+                                    @NotEmpty(message = "提交 IP 不能为空") String userIp);
 
     /**
      * 通知支付单成功
@@ -88,23 +90,23 @@ public interface PaySignService {
      * @param channelId 渠道编号
      * @param notify    通知
      */
-    void notifyOrder(Long channelId, PayOrderRespDTO notify);
-
-    /**
-     * 更新支付订单的退款金额
-     *
-     * @param id              编号
-     * @param incrRefundPrice 增加的退款金额
-     */
-    void updateOrderRefundPrice(Long id, Integer incrRefundPrice);
+    void notifySign(Long channelId, PayOrderRespDTO notify);
+//
+//    /**
+//     * 更新支付订单的退款金额
+//     *
+//     * @param id              编号
+//     * @param incrRefundPrice 增加的退款金额
+//     */
+//    void updateOrderRefundPrice(Long id, Integer incrRefundPrice);
 
     /**
      * 更新支付订单价格
      *
-     * @param id 支付单编号
-     * @param payPrice   支付单价格
+     * @param id       支付单编号
+     * @param payPrice 支付单价格
      */
-    void updatePayOrderPrice(Long id, Integer payPrice);
+    void updatePaySignPrice(Long id, Integer payPrice);
 
     /**
      * 获得支付订单
@@ -112,7 +114,7 @@ public interface PaySignService {
      * @param id 编号
      * @return 支付订单
      */
-    PayOrderExtensionDO getOrderExtension(Long id);
+    PaySignExtensionDO getSignExtension(Long id);
 
     /**
      * 获得支付订单
@@ -120,7 +122,7 @@ public interface PaySignService {
      * @param no 支付订单 no
      * @return 支付订单
      */
-    PayOrderExtensionDO getOrderExtensionByNo(String no);
+    PaySignExtensionDO getSignExtensionByNo(String no);
 
     /**
      * 同步订单的支付状态
@@ -128,13 +130,13 @@ public interface PaySignService {
      * @param minCreateTime 最小创建时间
      * @return 同步到已支付的订单数量
      */
-    int syncOrder(LocalDateTime minCreateTime);
+    int syncSign(LocalDateTime minCreateTime);
 
     /**
      * 将已过期的订单，状态修改为已关闭
      *
      * @return 过期的订单数量
      */
-    int expireOrder();
+    int expireSign();
 
 }

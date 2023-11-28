@@ -11,6 +11,8 @@ public interface DictTypeConstants {
 
     String ORDER_STATUS = "pay_order_status"; // 支付渠道
 
+    String SIGN_STATUS = "pay_sign_status"; // 支付渠道
+
     String REFUND_STATUS = "pay_order_status"; // 退款状态
 
     String NOTIFY_STATUS = "pay_notify_status"; // 回调状态

@@ -129,6 +129,19 @@ public abstract class AbstractPayClient<Config extends PayClientConfig> implemen
         }
     }
 
+
+    /**
+     * 获得签约信息
+     *
+     * @param outTradeNo 外部订单号
+     * @return 支付订单信息
+     */
+    @Override
+    public PayOrderRespDTO getSign(String outTradeNo) {
+        // FIXME: 2023/11/28  获取签约结果
+        return null;
+    }
+
     protected abstract PayOrderRespDTO doGetOrder(String outTradeNo)
             throws Throwable;
 

@@ -8,9 +8,10 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
- * 支付单创建 Request DTO
+ * 签约单创建 Request DTO
  */
 @Data
 public class PaySignCreateReqDTO implements Serializable {
@@ -34,7 +35,7 @@ public class PaySignCreateReqDTO implements Serializable {
      * 商户订单编号
      */
     @NotEmpty(message = "商户订单编号不能为空")
-    private String merchantOrderId;
+    private String merchantSignId;
     /**
      * 商品标题
      */
@@ -53,13 +54,36 @@ public class PaySignCreateReqDTO implements Serializable {
      * 支付金额，单位：分
      */
     @NotNull(message = "支付金额不能为空")
-    @DecimalMin(value = "0", inclusive = false, message = "支付金额必须大于零")
+    @DecimalMin(value = "0", inclusive = false, message = "签约金额必须大于 0 元")
     private Integer price;
 
     /**
-     * 支付过期时间
+     * 支付金额，单位：分
      */
-    @NotNull(message = "支付过期时间不能为空")
-    private LocalDateTime expireTime;
+    @NotNull(message = " 首次支付金额不能为空")
+    @DecimalMin(value = "0", inclusive = false, message = "首次支付金额必须大于 0 元")
+    private Integer firstPrice;
+
+
+    // ========== 签约相关字段 ==========
+    @NotEmpty(message = "周期类型不可以为空，枚举值为 DAY 和 MONTH\"")
+    private String periodUnit;
+
+    @NotEmpty(message = "周期数 不能为空")
+    private String period;
+
+    @NotEmpty(message = "扣款时间 不能为空")
+    private Date payTime;
+
+//    @NotEmpty(message = "单次扣款最大金额")
+//    @DecimalMin(value = "0", inclusive = false, message = "支付金额必须大于零")
+    private String singleAmount;
+
+    // @DecimalMin(value = "0", inclusive = false, message = "支付金额必须大于零")
+    private String totalAmount;
+
+    // @Schema(description = "总扣款次数")
+    private String totalPayments;
+
 
 }

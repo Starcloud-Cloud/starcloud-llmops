@@ -1,22 +1,6 @@
 package com.starcloud.ops.business.order.service.order.handler;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Assert;
-import cn.iocoder.yudao.module.member.api.user.MemberUserApi;
-import cn.iocoder.yudao.module.member.api.user.dto.MemberUserRespDTO;
-import cn.iocoder.yudao.module.product.api.sku.ProductSkuApi;
-import cn.iocoder.yudao.module.product.api.sku.dto.ProductSkuRespDTO;
-import cn.iocoder.yudao.module.product.api.spu.ProductSpuApi;
-import cn.iocoder.yudao.module.product.api.spu.dto.ProductSpuRespDTO;
-
-import com.starcloud.ops.business.order.convert.order.TradeOrderConvert;
-import com.starcloud.ops.business.order.dal.dataobject.order.TradeOrderDO;
-import com.starcloud.ops.business.order.dal.dataobject.order.TradeOrderItemDO;
-import com.starcloud.ops.business.order.enums.brokerage.BrokerageRecordBizTypeEnum;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * 订单分销的 {@link TradeOrderHandler} 实现类

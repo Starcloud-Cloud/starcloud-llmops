@@ -1,7 +1,7 @@
 package cn.iocoder.yudao.module.pay.api.sign;
 
-import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
+import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
 
 import javax.validation.Valid;
 
@@ -19,7 +19,7 @@ public interface PaySignApi {
      * @param reqDTO 创建请求
      * @return 签约编号
      */
-    Long createSign(@Valid PayOrderCreateReqDTO reqDTO);
+    Long createSign(@Valid PaySignCreateReqDTO reqDTO);
 
     /**
      * 获得签约记录

@@ -3,9 +3,9 @@ package com.starcloud.ops.business.order.service.price.calculator;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
-import cn.iocoder.yudao.module.promotion.api.combination.CombinationRecordApi;
-import cn.iocoder.yudao.module.promotion.api.combination.dto.CombinationValidateJoinRespDTO;
-import cn.iocoder.yudao.module.promotion.enums.common.PromotionTypeEnum;
+import com.starcloud.ops.business.promotion.api.combination.CombinationRecordApi;
+import com.starcloud.ops.business.promotion.api.combination.dto.CombinationValidateJoinRespDTO;
+import com.starcloud.ops.business.promotion.enums.common.PromotionTypeEnum;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateRespBO;
 import org.springframework.core.annotation.Order;

@@ -3,8 +3,8 @@ package com.starcloud.ops.business.order.service.price.calculator;
 import cn.hutool.core.lang.Assert;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 
-import cn.iocoder.yudao.module.product.api.sku.dto.ProductSkuRespDTO;
-import cn.iocoder.yudao.module.product.api.spu.dto.ProductSpuRespDTO;
+import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
+import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
 import com.starcloud.ops.business.order.dal.dataobject.order.TradeOrderItemDO;
 import com.starcloud.ops.business.order.enums.order.TradeOrderTypeEnum;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateReqBO;

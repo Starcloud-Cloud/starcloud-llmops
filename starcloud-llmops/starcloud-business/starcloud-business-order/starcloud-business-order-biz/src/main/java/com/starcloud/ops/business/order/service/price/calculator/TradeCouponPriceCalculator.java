@@ -4,12 +4,12 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.module.promotion.api.coupon.CouponApi;
-import cn.iocoder.yudao.module.promotion.api.coupon.dto.CouponRespDTO;
-import cn.iocoder.yudao.module.promotion.api.coupon.dto.CouponValidReqDTO;
-import cn.iocoder.yudao.module.promotion.enums.common.PromotionDiscountTypeEnum;
-import cn.iocoder.yudao.module.promotion.enums.common.PromotionProductScopeEnum;
-import cn.iocoder.yudao.module.promotion.enums.common.PromotionTypeEnum;
+import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponValidReqDTO;
+import com.starcloud.ops.business.promotion.enums.common.PromotionDiscountTypeEnum;
+import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
+import com.starcloud.ops.business.promotion.enums.common.PromotionTypeEnum;
 import com.starcloud.ops.business.order.enums.order.TradeOrderTypeEnum;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateRespBO;
@@ -22,8 +22,8 @@ import java.util.function.Predicate;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.filterList;
-import static cn.iocoder.yudao.module.promotion.enums.ErrorCodeConstants.COUPON_NO_MATCH_SPU;
-import static cn.iocoder.yudao.module.promotion.enums.ErrorCodeConstants.COUPON_NO_MATCH_MIN_PRICE;
+import static com.starcloud.ops.business.promotion.enums.ErrorCodeConstants.COUPON_NO_MATCH_SPU;
+import static com.starcloud.ops.business.promotion.enums.ErrorCodeConstants.COUPON_NO_MATCH_MIN_PRICE;
 import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PRICE_CALCULATE_COUPON_NOT_MATCH_NORMAL_ORDER;
 
 

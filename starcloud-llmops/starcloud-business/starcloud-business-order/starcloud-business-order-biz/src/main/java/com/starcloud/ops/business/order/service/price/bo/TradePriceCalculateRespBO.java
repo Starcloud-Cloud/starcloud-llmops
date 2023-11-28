@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.order.service.price.bo;
 
-import cn.iocoder.yudao.module.product.api.property.dto.ProductPropertyValueDetailRespDTO;
+import com.starcloud.ops.business.product.api.property.dto.ProductPropertyValueDetailRespDTO;
 
 import com.starcloud.ops.business.order.enums.order.TradeOrderTypeEnum;
 import lombok.Data;

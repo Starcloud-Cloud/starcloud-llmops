@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.order.service.price.calculator;
 
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
-
-import cn.iocoder.yudao.module.promotion.api.seckill.SeckillActivityApi;
-import cn.iocoder.yudao.module.promotion.api.seckill.dto.SeckillValidateJoinRespDTO;
+import com.starcloud.ops.business.promotion.api.seckill.SeckillActivityApi;
+import com.starcloud.ops.business.promotion.api.seckill.dto.SeckillValidateJoinRespDTO;
 import com.starcloud.ops.business.order.service.order.TradeOrderQueryService;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateRespBO;

@@ -4,9 +4,9 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 
-import cn.iocoder.yudao.module.promotion.api.bargain.BargainRecordApi;
-import cn.iocoder.yudao.module.promotion.api.bargain.dto.BargainValidateJoinRespDTO;
-import cn.iocoder.yudao.module.promotion.enums.common.PromotionTypeEnum;
+import com.starcloud.ops.business.promotion.api.bargain.BargainRecordApi;
+import com.starcloud.ops.business.promotion.api.bargain.dto.BargainValidateJoinRespDTO;
+import com.starcloud.ops.business.promotion.enums.common.PromotionTypeEnum;
 import com.starcloud.ops.business.order.enums.order.TradeOrderTypeEnum;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.order.service.price.bo.TradePriceCalculateRespBO;
