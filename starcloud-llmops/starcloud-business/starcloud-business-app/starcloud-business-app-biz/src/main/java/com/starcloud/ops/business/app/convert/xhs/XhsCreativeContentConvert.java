@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Mapper
 public interface XhsCreativeContentConvert {
@@ -141,10 +142,11 @@ public interface XhsCreativeContentConvert {
             // 图片集合，用于替换图片。
             List<String> imageList = Collections.synchronizedList(Lists.newArrayList());
             List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
+            List<VariableItemDTO> imageVariableItemList = CollectionUtil.emptyIfNull(variableItemList.stream().filter(item -> "IMAGE".equalsIgnoreCase(item.getStyle())).collect(Collectors.toList()));
             for (VariableItemDTO variableItem : variableItemList) {
-                if ("IMAGE".equals(variableItem.getStyle())) {
+                if ("IMAGE".equalsIgnoreCase(variableItem.getStyle())) {
                     // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
-                    if (variableItemList.size() > useImageList.size()) {
+                    if (imageVariableItemList.size() > useImageList.size()) {
                         params.put(variableItem.getField(), useImageList.get(RandomUtil.randomInt(useImageList.size())));
                     } else {
                         // 如果变量图片数量小于使用的图片数量，说明图片够用，随机获取图片，但是不重复。
@@ -154,9 +156,9 @@ public interface XhsCreativeContentConvert {
                     if (Objects.isNull(variableItem.getValue())) {
                         // 只有主图才会替换标题和副标题
                         if (imageRequest.getIsMain()) {
-                            if ("TITLE".equals(variableItem.getField())) {
+                            if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
                                 params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
-                            } else if ("SUB_TITLE".equals(variableItem.getField())) {
+                            } else if ("SUB_TITLE".equalsIgnoreCase(variableItem.getField())) {
                                 params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
                             } else {
                                 params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
@@ -177,7 +179,7 @@ public interface XhsCreativeContentConvert {
             request.setParams(params);
             imageExecuteRequests.add(request);
         }
-        
+
         executeRequest.setId(imageStyleExecuteRequest.getId());
         executeRequest.setName(imageStyleExecuteRequest.getName());
         executeRequest.setImageRequests(imageExecuteRequests);
