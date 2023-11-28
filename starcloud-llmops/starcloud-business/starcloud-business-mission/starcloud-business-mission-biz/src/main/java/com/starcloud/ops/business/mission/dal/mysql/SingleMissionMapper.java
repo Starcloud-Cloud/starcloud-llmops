@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,6 +19,9 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
     default PageResult<SingleMissionDO> page(SinglePageQueryReqVO reqVO) {
         LambdaQueryWrapper<SingleMissionDO> wrapper = Wrappers.lambdaQuery(SingleMissionDO.class)
                 .eq(SingleMissionDO::getNotificationUid, reqVO.getNotificationUid())
+                .eq(StringUtils.isNotBlank(reqVO.getStatus()),SingleMissionDO::getStatus,reqVO.getStatus())
+                .eq(StringUtils.isNotBlank(reqVO.getClaimUser()),SingleMissionDO::getClaimUsername,reqVO.getClaimUser())
+                .eq(StringUtils.isNotBlank(reqVO.getClaimUserId()),SingleMissionDO::getClaimUserId,reqVO.getClaimUserId())
                 .orderByDesc(SingleMissionDO::getId);
         return selectPage(reqVO, wrapper);
     }
