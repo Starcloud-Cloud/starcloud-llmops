@@ -10,6 +10,7 @@ import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
@@ -28,6 +29,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -158,6 +160,15 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), missionList.size());
     }
 
+    @Override
+    public List<SingleMissionExportVO> exportSettlement(String notificationUid) {
+        List<SingleMissionDO> missionList = singleMissionMapper.getByNotificationUid(notificationUid);
+        if (CollectionUtils.isEmpty(missionList)) {
+            return Collections.emptyList();
+        }
+        return SingleMissionConvert.INSTANCE.convert(missionList);
+    }
+
     private void validBudget(BigDecimal singleBudget, BigDecimal notificationBudget, Integer missionSize) {
         if (notificationBudget == null
                 || notificationBudget.equals(BigDecimal.ZERO)) {
@@ -167,8 +178,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
                 || singleBudget.equals(BigDecimal.ZERO)) {
             throw exception(MISSION_BUDGET_ERROR);
         }
-        NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)),notificationBudget);
-        if (NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)),notificationBudget)) {
+        NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget);
+        if (NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget)) {
             throw exception(TOO_MANY_MISSION);
         }
     }
