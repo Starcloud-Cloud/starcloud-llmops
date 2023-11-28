@@ -66,7 +66,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.cancel_published.getCode());
         }
         notificationCenterMapper.updateById(notificationCenterDO);
-        singleMissionService.publish(notificationCenterDO.getStatus(), publish);
+        singleMissionService.publish(notificationCenterDO.getUid(), publish);
     }
 
     @Override
