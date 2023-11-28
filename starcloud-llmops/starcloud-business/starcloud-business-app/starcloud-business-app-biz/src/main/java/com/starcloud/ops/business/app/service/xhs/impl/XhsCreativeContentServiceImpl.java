@@ -111,15 +111,16 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         if (textDO.getRetryCount() >= maxRetry || picDO.getRetryCount() >= maxRetry) {
             throw exception(CREATIVE_CONTENT_GREATER_RETRY, maxRetry);
         }
+        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
+        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
+            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
+        }
 
         Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), true);
         if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
             throw exception(EXECTURE_ERROR, "图片", textDO.getId());
         }
-        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
-        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
-            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
-        }
+
         creativePlanService.updatePlanStatus(textDO.getPlanUid());
         return detail(businessUid);
     }
