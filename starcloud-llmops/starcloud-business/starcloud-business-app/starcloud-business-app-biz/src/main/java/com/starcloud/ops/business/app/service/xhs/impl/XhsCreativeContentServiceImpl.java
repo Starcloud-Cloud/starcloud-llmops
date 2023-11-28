@@ -19,7 +19,7 @@ import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.service.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
-import com.starcloud.ops.business.app.service.xhs.XlsCreativeExecuteManager;
+import com.starcloud.ops.business.app.service.xhs.XhsCreativeExecuteManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -50,7 +50,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     private XhsCreativeContentMapper creativeContentMapper;
 
     @Resource
-    private XlsCreativeExecuteManager xlsCreativeExecuteManager;
+    private XhsCreativeExecuteManager xlsCreativeExecuteManager;
 
 
     @Resource

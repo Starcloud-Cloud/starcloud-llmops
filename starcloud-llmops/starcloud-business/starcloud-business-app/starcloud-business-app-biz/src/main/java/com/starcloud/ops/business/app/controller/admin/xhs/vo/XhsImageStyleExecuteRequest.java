@@ -18,10 +18,22 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "XhsBathImageExecuteRequest", description = "小红书批量图片生成请求")
-public class XhsBathImageExecuteRequest implements java.io.Serializable {
+@Schema(name = "XhsImageStyleExecuteRequest", description = "小红书风格图片执行请求")
+public class XhsImageStyleExecuteRequest implements java.io.Serializable {
 
     private static final long serialVersionUID = 5822526666346723864L;
+
+    /**
+     * 风格ID
+     */
+    @Schema(description = "风格ID")
+    private String id;
+
+    /**
+     * 风格名称
+     */
+    @Schema(description = "风格名称")
+    private String name;
 
     /**
      * 图片请求

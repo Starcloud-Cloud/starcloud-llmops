@@ -11,9 +11,9 @@ import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageStyleExecuteDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExtendDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativePictureContentDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
@@ -131,24 +131,23 @@ public interface XhsCreativeContentConvert {
      * @param copyWriting              文案
      * @return 执行参数
      */
-    default XhsBathImageExecuteRequest toExecuteImageStyle(CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest, List<String> useImageList, CopyWritingContentDTO copyWriting) {
-        XhsBathImageExecuteRequest executeRequest = new XhsBathImageExecuteRequest();
+    default XhsImageStyleExecuteRequest toExecuteImageStyle(CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest, List<String> useImageList, CopyWritingContentDTO copyWriting) {
+        XhsImageStyleExecuteRequest executeRequest = new XhsImageStyleExecuteRequest();
         List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
 
         List<CreativePlanImageExecuteDTO> imageRequests = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests());
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
-
             Map<String, Object> params = Maps.newHashMap();
             // 图片集合，用于替换图片。
             List<String> imageList = Collections.synchronizedList(Lists.newArrayList());
             List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
             for (VariableItemDTO variableItem : variableItemList) {
                 if ("IMAGE".equals(variableItem.getStyle())) {
-                    // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片
+                    // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
                     if (variableItemList.size() > useImageList.size()) {
                         params.put(variableItem.getField(), useImageList.get(RandomUtil.randomInt(useImageList.size())));
                     } else {
-                        // 如果变量图片数量小于使用的图片数量，说明图片够用，随机获取图片，但是不重复
+                        // 如果变量图片数量小于使用的图片数量，说明图片够用，随机获取图片，但是不重复。
                         params.put(variableItem.getField(), randomImageList(imageList, useImageList));
                     }
                 } else {
@@ -156,9 +155,9 @@ public interface XhsCreativeContentConvert {
                         // 只有主图才会替换标题和副标题
                         if (imageRequest.getIsMain()) {
                             if ("TITLE".equals(variableItem.getField())) {
-                                params.put(variableItem.getField(), copyWriting.getImgTitle());
+                                params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
                             } else if ("SUB_TITLE".equals(variableItem.getField())) {
-                                params.put(variableItem.getField(), copyWriting.getImgSubTitle());
+                                params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
                             } else {
                                 params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
                             }
@@ -178,7 +177,9 @@ public interface XhsCreativeContentConvert {
             request.setParams(params);
             imageExecuteRequests.add(request);
         }
-
+        
+        executeRequest.setId(imageStyleExecuteRequest.getId());
+        executeRequest.setName(imageStyleExecuteRequest.getName());
         executeRequest.setImageRequests(imageExecuteRequests);
         return executeRequest;
     }
