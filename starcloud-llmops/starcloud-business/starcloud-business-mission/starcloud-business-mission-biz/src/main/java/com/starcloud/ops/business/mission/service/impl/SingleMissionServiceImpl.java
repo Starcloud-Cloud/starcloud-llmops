@@ -82,8 +82,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     @Override
     public SingleMissionRespVO modifySelective(SingleMissionModifyReqVO reqVO) {
         SingleMissionDO missionDO = getByUid(reqVO.getUid());
-        if (!SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())
-                && !SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())) {
+        if (SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())
+                && SingleMissionStatusEnum.stay_claim.getCode().equals(missionDO.getStatus())) {
             throw exception(MISSION_STATUS_NOT_SUPPORT);
         }
         SingleMissionConvert.INSTANCE.updateSelective(reqVO, missionDO);
