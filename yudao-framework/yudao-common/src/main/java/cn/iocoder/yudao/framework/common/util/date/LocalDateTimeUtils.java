@@ -60,4 +60,26 @@ public class LocalDateTimeUtils {
         return LocalDateTimeUtil.isIn(LocalDateTime.now(), startTime, endTime);
     }
 
+    /**
+     * 判断是否是昨天最后一秒之后
+     */
+    public static boolean afterYesterday(LocalDateTime dateTime) {
+        LocalDateTime yesterdayEnd = LocalDateTimeUtil.endOfDay(LocalDateTime.now().minusDays(1));
+        return dateTime != null
+                && dateTime.isAfter(yesterdayEnd);
+    }
+
+    /**
+     * 判断是否是昨天
+     */
+    public static boolean isYesterday(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return false;
+        }
+        LocalDateTime today = LocalDateTime.now();
+        LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
+        return dateTime.isAfter(LocalDateTimeUtil.beginOfDay(yesterday))
+                && dateTime.isBefore(LocalDateTimeUtil.beginOfDay(today));
+    }
+
 }

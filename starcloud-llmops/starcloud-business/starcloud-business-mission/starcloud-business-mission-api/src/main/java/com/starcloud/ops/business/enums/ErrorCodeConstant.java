@@ -17,4 +17,10 @@ public interface ErrorCodeConstant {
     ErrorCode MISSION_STATUS_NOT_SUPPORT = new ErrorCode(700010006, "当前状态不支持操作");
 
     ErrorCode NOTIFICATION_NAME_EXISTS = new ErrorCode(700010007, "通告名称已存在，{}");
+
+    ErrorCode NOTIFICATION_BUDGET_ERROR = new ErrorCode(700010008, "通告总预算要大于0");
+
+    ErrorCode MISSION_BUDGET_ERROR = new ErrorCode(700010009, "单个任务预算要大于0");
+
+    ErrorCode TOO_MANY_MISSION = new ErrorCode(700010010, "绑定太多任务，总预算不足");
 }
