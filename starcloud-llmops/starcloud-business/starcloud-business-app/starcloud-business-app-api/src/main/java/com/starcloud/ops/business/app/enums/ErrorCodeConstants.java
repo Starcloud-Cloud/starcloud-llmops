@@ -42,6 +42,16 @@ public interface ErrorCodeConstants {
      */
     ErrorCode TEMPERATURE_FORMAT_ERROR = new ErrorCode(300000406, "温度值格式错误（{}）温度值必须是数字且需要在0～2之间，请检查后重试！");
 
+    /**
+     * 应用配置错误
+     */
+    ErrorCode WORKFLOW_CONFIG_FAILURE = new ErrorCode(300000407, "应用配置错误，请检查后重试！");
+
+    /**
+     * 应用执行步骤不存在
+     */
+    ErrorCode WORKFLOW_STEP_NOT_EXIST = new ErrorCode(300000407, "应用执行步骤不存在，请稍后重试或者联系管理员！");
+
     // ========== 基本增删改查错误码 ==========
 
     // 1.========== 应用错误码 300 100 xxx ==========
@@ -302,8 +312,12 @@ public interface ErrorCodeConstants {
     /**
      * 执行结果不存在
      */
-    ErrorCode EXECUTE_APP_GET_COST_FAILURE = new ErrorCode(31010510, "应用执行获取扣除魔力值数值异常！");
+    ErrorCode EXECUTE_APP_ANSWER_NOT_EXIST = new ErrorCode(31010511, "生成内容不存在！请稍后重试或者联系管理员（{}）！");
 
+    /**
+     * 执行结果不存在
+     */
+    ErrorCode EXECUTE_APP_GET_COST_FAILURE = new ErrorCode(31010512, "应用执行获取扣除魔力值数值异常！");
 
     // ========== 应用市场执行错误码 310 200 xxx ==========
 
@@ -544,6 +558,16 @@ public interface ErrorCodeConstants {
     ErrorCode CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL = new ErrorCode(350200112, "创作方案文案模板不能为空！创作方案名称: {}）！");
 
     /**
+     * 创作方案文案模板总结信息不能为空
+     */
+    ErrorCode CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_SUMMARY_NOT_NULL = new ErrorCode(350200112, "创作方案文案模板总结信息不能为空！创作方案名称: {}）！");
+
+    /**
+     * 创作方案文案模板要求不能为空
+     */
+    ErrorCode CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_DEMAND_NOT_NULL = new ErrorCode(350200112, "创作方案文案模板要求不能为空！创作方案名称: {}）！");
+
+    /**
      * 创作方案图片模板不能为空
      */
     ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL = new ErrorCode(350200113, "创作方案图片模板不能为空！创作方案名称: {}）!");
@@ -562,6 +586,46 @@ public interface ErrorCodeConstants {
      * 创作方案图片模板风格的模板列表不能为空
      */
     ErrorCode CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY = new ErrorCode(350200116, "创作方案图片模板风格的模板列表不能为空！风格名称: {}）!");
+
+    /**
+     * 生成文案示例失败
+     */
+    ErrorCode CREATIVE_SCHEME_EXAMPLE_FAILURE = new ErrorCode(350200116, "生成文案示例失败, 请稍候重试！{}");
+
+    /**
+     * 应用执行结果不存在
+     */
+    ErrorCode XHS_APP_EXECUTE_RESULT_NOT_EXIST = new ErrorCode(350500110, "应用执行结果内容不存在，请稍后重试或者联系管理员（{}）！");
+
+    /**
+     * 应用执行结果不存在
+     */
+    ErrorCode XHS_APP_EXECUTE_RESULT_FORMAT_ERROR = new ErrorCode(350500111, "执行结果格式不正确！，请稍后重试或者联系管理员（{}）！");
+
+    /**
+     * 海报错误：返回结果不存在！
+     */
+    ErrorCode POSTER_RESPONSE_IS_NULL = new ErrorCode(350700110, "{}：返回结果不存在！");
+
+    /**
+     * 海报错误
+     */
+    ErrorCode POSTER_RESPONSE_IS_NOT_SUCCESS = new ErrorCode(350700111, "{}：{}");
+
+    /**
+     * 海报错误：生成结果不存在！
+     */
+    ErrorCode POSTER_RESPONSE_DATA_IS_NULL = new ErrorCode(350700112, "{}：返回结果不存在！");
+
+    /**
+     * 海报错误：海报模板列表为空！请联系管理员！
+     */
+    ErrorCode POSTER_TEMPLATE_LIST_IS_EMPTY = new ErrorCode(350700113, "海报模板列表为空！请联系管理员！");
+
+    /**
+     * 海报错误：海报URL为空！请联系管理员！
+     */
+    ErrorCode POSTER_URL_IS_BLANK = new ErrorCode(350700114, "海报生成URL不存在！请联系管理员！");
 
     // ========== 图片上传错误码 370 000 xxx ==========
 
@@ -664,6 +728,10 @@ public interface ErrorCodeConstants {
     ErrorCode UNSUPPORTED_TYPE = new ErrorCode(300500005, "不支持的任务类型 {}");
 
     ErrorCode EXECTURE_ERROR = new ErrorCode(300500006, "{} 执行失败请稍后重试 {}");
+
+    ErrorCode XHS_URL_ERROR = new ErrorCode(300500007, "小红书笔记地址不正确 {}");
+
+    ErrorCode XHS_REMOTE_ERROR = new ErrorCode(300500008, "{}");
 
 
 }

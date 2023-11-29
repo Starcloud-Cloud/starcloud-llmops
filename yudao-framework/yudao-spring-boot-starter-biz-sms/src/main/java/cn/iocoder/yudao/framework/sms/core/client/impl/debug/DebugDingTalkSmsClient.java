@@ -1,11 +1,14 @@
 package cn.iocoder.yudao.framework.sms.core.client.impl.debug;
 
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.crypto.digest.HmacAlgorithm;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.common.core.KeyValue;
 import cn.iocoder.yudao.framework.sms.core.client.SmsCommonResult;
@@ -17,19 +20,23 @@ import cn.iocoder.yudao.framework.sms.core.enums.SmsTemplateAuditStatusEnum;
 import cn.iocoder.yudao.framework.sms.core.property.SmsChannelProperties;
 import cn.iocoder.yudao.framework.common.util.collection.MapUtils;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * 基于钉钉 WebHook 实现的调试的短信客户端实现类
- *
+ * <p>
  * 考虑到省钱，我们使用钉钉 WebHook 模拟发送短信，方便调试。
  *
  * @author 芋道源码
  */
+@Slf4j
 public class DebugDingTalkSmsClient extends AbstractSmsClient {
+
 
     public DebugDingTalkSmsClient(SmsChannelProperties properties) {
         super(properties, new DebugDingTalkCodeMapping());
@@ -47,21 +54,50 @@ public class DebugDingTalkSmsClient extends AbstractSmsClient {
         // 构建请求
         String url = buildUrl("robot/send");
         Map<String, Object> params = new HashMap<>();
-        params.put("msgtype", "text");
-        String content = String.format("【模拟短信】\n手机号：%s\n短信日志编号：%d\n模板参数：%s",
-                mobile, sendLogId, MapUtils.convertMap(templateParams));
-        params.put("text", MapUtil.builder().put("content", content).build());
+        params.put("msgtype", "markdown");
+        this.getSmsTemplate(apiTemplateId);
+        String content;
+        if (StrUtil.equals(apiTemplateId, "NOTICE_XHS_LOGIN_WARN")) {
+            content = String.format("#### 【预警通知】 %s \n" +
+                            "> ##### 小红书笔记详情查询异常 %s \n" +
+                            "> - 当前时间:%s",
+                    SpringUtil.getActiveProfile(),
+                    MapUtils.convertMap(templateParams).get("errorMsg"),
+                    DateUtil.formatChineseDate(DateUtil.date(),false,true));
+        }else if (StrUtil.contains(apiTemplateId,"SELLER_SPRITE_WARN")){
+             content = String.format("#### 【预警通知】\n" +
+                             "> ##### 卖家精灵账号过期\n" +
+                             "> - 当前时间:%s",
+                    DateUtil.formatChineseDate(DateUtil.date(),false,true));
+        }else {
+                     content = String.format("#### 支付通知 \n" +
+                        ">   ##### 【%s】\n" +
+                        ">   ###### 叮～～ 收到一笔新的支付订单，请注意查收\n" +
+                        "> - 会员名称:%s\n" +
+                        "> - 商品名称:%s\n" +
+                        "> - 支付金额:%s 元\n" +
+                        "> - 支付时间:%s\n" +
+                        ">  ###### 魔法 AI发布 [支付提醒](https://www.mofaai.com.cn/)",
+                MapUtils.convertMap(templateParams).get("environmentName"),
+                MapUtils.convertMap(templateParams).get("userName"),
+                MapUtils.convertMap(templateParams).get("productName"),
+                MapUtils.convertMap(templateParams).get("amount"),
+                DateUtil.formatChineseDate(DateUtil.date(),false,true));
+        }
+
+        params.put("markdown", MapUtil.builder().put("title", "通知").put("text", content).build());
         // 执行请求
         String responseText = HttpUtil.post(url, JsonUtils.toJsonString(params));
         // 解析结果
         Map<?, ?> responseObj = JsonUtils.parseObject(responseText, Map.class);
+        log.info("钉钉消息发送,请求为【{}】,解析结果为【{}】", responseText, responseObj);
         return SmsCommonResult.build(MapUtil.getStr(responseObj, "errcode"), MapUtil.getStr(responseObj, "errorMsg"),
                 null, new SmsSendRespDTO().setSerialNo(StrUtil.uuid()), codeMapping);
     }
 
     /**
      * 构建请求地址
-     *
+     * <p>
      * 参见 https://developers.dingtalk.com/document/app/custom-robot-access/title-nfv-794-g71 文档
      *
      * @param path 请求路径

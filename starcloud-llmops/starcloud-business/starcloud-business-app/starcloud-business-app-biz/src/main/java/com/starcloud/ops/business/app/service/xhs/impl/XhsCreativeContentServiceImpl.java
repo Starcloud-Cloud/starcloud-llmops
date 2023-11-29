@@ -1,16 +1,15 @@
 package com.starcloud.ops.business.app.service.xhs.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
@@ -20,7 +19,7 @@ import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.service.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
-import com.starcloud.ops.business.app.service.xhs.XlsCreativeExecuteManager;
+import com.starcloud.ops.business.app.service.xhs.XhsCreativeExecuteManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -29,14 +28,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_GREATER_RETRY;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECTURE_ERROR;
 
+/**
+ * @author admin
+ */
 @Service
 @Slf4j
 public class XhsCreativeContentServiceImpl implements XhsCreativeContentService {
@@ -45,7 +50,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     private XhsCreativeContentMapper creativeContentMapper;
 
     @Resource
-    private XlsCreativeExecuteManager xlsCreativeExecuteManager;
+    private XhsCreativeExecuteManager xlsCreativeExecuteManager;
 
 
     @Resource
@@ -74,9 +79,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         log.info("开始执行 {} 任务 {}", type, ids);
         try {
             List<XhsCreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
-                    .stream().filter(content -> {
-                        return !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus());
-                    }).collect(Collectors.toList());
+                    .stream().filter(content -> !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())).collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(contentList)) {
                 return Collections.emptyMap();
@@ -108,15 +111,16 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         if (textDO.getRetryCount() >= maxRetry || picDO.getRetryCount() >= maxRetry) {
             throw exception(CREATIVE_CONTENT_GREATER_RETRY, maxRetry);
         }
+        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
+        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
+            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
+        }
 
         Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), true);
         if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
             throw exception(EXECTURE_ERROR, "图片", textDO.getId());
         }
-        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
-        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
-            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
-        }
+
         creativePlanService.updatePlanStatus(textDO.getPlanUid());
         return detail(businessUid);
     }
@@ -147,6 +151,35 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     }
 
     @Override
+    public com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> newPage(XhsCreativeContentPageReq req) {
+        XhsCreativeContentPageReq pageReq = new XhsCreativeContentPageReq();
+        BeanUtil.copyProperties(req, pageReq);
+        PageResult<XhsCreativeContentResp> page = page(pageReq);
+        com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> result = new com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<>(page.getList(), page.getTotal());
+
+        List<XhsCreativeContentDO> xhsCreativeContents = creativeContentMapper.selectByPlanUid(req.getPlanUid());
+        Map<String, List<XhsCreativeContentDO>> contentGroup = xhsCreativeContents.stream().collect(Collectors.groupingBy(XhsCreativeContentDO::getBusinessUid));
+        int successCount = 0, errorCount = 0;
+
+        for (String bizId : contentGroup.keySet()) {
+            List<XhsCreativeContentDO> contentList = contentGroup.get(bizId);
+            if (CollectionUtils.isEmpty(contentList)) {
+                continue;
+            }
+            boolean error = contentList.stream()
+                    .anyMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(x.getStatus()));
+            if (error) {
+                errorCount++;
+            } else {
+                successCount++;
+            }
+        }
+        result.setSuccessCount(successCount);
+        result.setErrorCount(errorCount);
+        return result;
+    }
+
+    @Override
     public XhsCreativeContentResp detail(String businessUid) {
         XhsCreativeContentDTO detail = byBusinessUid(businessUid);
         return XhsCreativeContentConvert.INSTANCE.convert(detail);
@@ -159,6 +192,8 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
         }
         XhsCreativeContentConvert.INSTANCE.updateSelective(modifyReq, contentDO);
+        contentDO.setUpdateTime(LocalDateTime.now());
+        contentDO.setUpdater(WebFrameworkUtils.getLoginUserId().toString());
         creativeContentMapper.updateById(contentDO);
         return XhsCreativeContentConvert.INSTANCE.convert(contentDO);
     }
@@ -185,7 +220,7 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     public List<XhsCreativeContentResp> bound(List<String> businessUids) {
         List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids);
         if (xhsCreativeContents.size() < businessUids.size()) {
-            throw exception(new ErrorCode(500,"存在已绑定的创作内容"));
+            throw exception(new ErrorCode(500, "存在已绑定的创作内容"));
         }
         creativeContentMapper.claim(businessUids);
         return XhsCreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);

@@ -13,6 +13,12 @@ import java.util.List;
 @Schema(description = "创作内容")
 public class XhsCreativeContentResp {
 
+    /**
+     * 创作方案UID
+     */
+    @Schema(description = "创作方案UID")
+    private String schemeUid;
+
     @Schema(description = "创作计划uid")
     private String planUid;
 

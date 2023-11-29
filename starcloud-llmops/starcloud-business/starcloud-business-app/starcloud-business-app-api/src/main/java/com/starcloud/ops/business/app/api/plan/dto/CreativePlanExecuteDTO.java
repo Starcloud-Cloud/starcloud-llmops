@@ -21,6 +21,12 @@ public class CreativePlanExecuteDTO implements java.io.Serializable {
     private static final long serialVersionUID = -5322081881706423889L;
 
     /**
+     * 创作方案UID
+     */
+    @Schema(description = "创作方案UID")
+    private String schemeUid;
+
+    /**
      * 小红书文案请求数据
      */
     @Schema(description = "小红书文案请求数据")

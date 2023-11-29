@@ -18,6 +18,8 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Keywo
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -192,10 +194,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                 log.error("卖家精灵登录失效");
                 this.sendMessage();
+                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
             }
             return null;
         } catch (Exception e) {
-            return null;
+            throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
 
 
@@ -219,10 +222,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                 log.error("卖家精灵登录失效");
                 this.sendMessage();
+                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
             }
             return null;
         } catch (Exception e) {
-            return null;
+            throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
     }
 

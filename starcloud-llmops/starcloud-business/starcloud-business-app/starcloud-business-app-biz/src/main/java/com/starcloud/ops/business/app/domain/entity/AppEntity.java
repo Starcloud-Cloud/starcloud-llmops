@@ -236,7 +236,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected String obtainLlmAiModelType(AppExecuteReqVO request) {
-        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
     }
 
     /**
@@ -323,6 +323,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             log.error("应用工作流执行异常(ActionResponse success 为 false): 步骤 ID: {}", appContext.getStepId());
             throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, StringUtils.isBlank(result.getErrorMsg()) ? "执行失败" : result.getErrorMsg());
         }
+
+        String answer = result.getAnswer();
+        if (StringUtils.isBlank(answer)) {
+            log.error("应用工作流执行异常(ActionResponse answer 为空): 步骤 ID: {}", appContext.getStepId());
+            throw exception(ErrorCodeConstants.EXECUTE_APP_ANSWER_NOT_EXIST, appContext.getStepId());
+        }
+        result.setAnswer(answer.trim());
 
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
         return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result, appContext.getConversationUid());

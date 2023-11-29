@@ -11,7 +11,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
 import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
-import com.starcloud.ops.business.app.feign.response.VSearchImage;
+import com.starcloud.ops.business.app.feign.dto.VSearchImage;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 

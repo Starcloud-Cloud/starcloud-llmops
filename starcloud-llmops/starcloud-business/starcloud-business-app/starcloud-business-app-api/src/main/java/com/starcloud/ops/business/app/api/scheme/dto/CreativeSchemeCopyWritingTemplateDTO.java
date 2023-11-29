@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
@@ -27,22 +26,15 @@ public class CreativeSchemeCopyWritingTemplateDTO implements java.io.Serializabl
     private static final long serialVersionUID = 2702779004299599670L;
 
     /**
-     * 是否推广到微信公共号
+     * 文案总结信息
      */
-    @Schema(description = "是否推广到微信公共号")
-    private Boolean isPromoteMp;
-
-    /**
-     * 微信公共号
-     */
-    @Schema(description = "微信公共号")
-    private String mpCode;
+    @Schema(description = "文案总结信息")
+    private String summary;
 
     /**
      * 生成文案的要求
      */
     @Schema(description = "生成文案要求")
-    @NotBlank(message = "生成文案要求不能为空")
     private String demand;
 
     /**
@@ -55,5 +47,6 @@ public class CreativeSchemeCopyWritingTemplateDTO implements java.io.Serializabl
      * 文案生成模板示例
      */
     @Schema(description = "文案生成模板示例")
-    private List<CopyWritingExample> example;
+    private List<CopyWritingContentDTO> example;
+
 }

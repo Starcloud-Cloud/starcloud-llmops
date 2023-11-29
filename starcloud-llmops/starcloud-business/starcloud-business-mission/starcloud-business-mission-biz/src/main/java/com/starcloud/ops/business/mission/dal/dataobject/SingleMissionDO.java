@@ -98,4 +98,10 @@ public class SingleMissionDO extends TenantBaseDO {
      */
     private String paymentOrder;
 
+    /**
+     * 定时执行时间
+     */
+    private LocalDateTime runTime;
+
+
 }

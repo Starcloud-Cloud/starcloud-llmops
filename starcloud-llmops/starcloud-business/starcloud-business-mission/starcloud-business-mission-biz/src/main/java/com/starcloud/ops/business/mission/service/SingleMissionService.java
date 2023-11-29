@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.mission.service;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
+import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 
+import javax.validation.Valid;
 import java.util.List;
 
 public interface SingleMissionService {
@@ -22,7 +24,12 @@ public interface SingleMissionService {
     /**
      * 修改任务
      */
-    SingleMissionRespVO modifySelective(SingleMissionModifyReqVO reqVO);
+    SingleMissionRespVO modifySelective(@Valid SingleMissionModifyReqVO reqVO);
+
+    /**
+     * 更新任务
+     */
+    SingleMissionRespVO update(SingleMissionModifyReqVO reqVO);
 
     /**
      * 删除
@@ -38,4 +45,24 @@ public interface SingleMissionService {
      * 发布任务
      */
     void publish(String notificationUid, Boolean publish);
+
+    /**
+     * 查询
+     */
+    SingleMissionRespVO getById(Long id);
+
+    /**
+     * 查询Id
+     */
+    List<Long> selectIds(@Valid SingleMissionQueryReqVO reqVO);
+
+    /**
+     * 校验预算金额
+     */
+    void validBudget(NotificationCenterDO notificationCenterDO);
+
+    /**
+     * 导出结算信息
+     */
+    List<SingleMissionExportVO> exportSettlement(String notificationUid);
 }

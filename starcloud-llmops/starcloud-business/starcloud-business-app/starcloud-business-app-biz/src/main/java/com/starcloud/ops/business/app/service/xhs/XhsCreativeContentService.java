@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 
@@ -45,6 +42,8 @@ public interface XhsCreativeContentService {
      * 分页查询创作内容
      */
     PageResult<XhsCreativeContentResp> page(XhsCreativeContentPageReq req);
+
+    com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> newPage(XhsCreativeContentPageReq req);
 
     /**
      * 查询详情
