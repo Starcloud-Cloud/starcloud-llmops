@@ -69,6 +69,8 @@ public interface ErrorCodeConstants {
     ErrorCode USER_COMPUTATIONAL_POWER_NOT_ADEQUATE = new ErrorCode(2008002011, "魔法豆不足，请充值");
     ErrorCode USER_IMAGE_NOT_ADEQUATE = new ErrorCode(2008002012, "图片不足，请充值");
     ErrorCode USER_BENEFITS_OPERATION_FAIL_NO_USER = new ErrorCode(2008002013, "权益操作失败，缺少用户信息");
+    ErrorCode USER_BENEFITS_OPERATION_FAIL_CANNOT_USE = new ErrorCode(2008002014, "兑换码使用失败，当前兑换码仅限支付时使用");
+    ErrorCode USER_BENEFITS_OPERATION_FAIL_USER_LEVEL_ERROR = new ErrorCode(2008002015, "兑换码使用失败，用户等级异常");
 
 
     //======================================用户权益使用记录======================================

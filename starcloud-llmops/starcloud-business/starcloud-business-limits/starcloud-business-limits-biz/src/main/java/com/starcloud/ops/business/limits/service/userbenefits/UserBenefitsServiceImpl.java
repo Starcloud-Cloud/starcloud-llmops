@@ -149,6 +149,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return 编号
      */
     @Override
+    @Transactional(rollbackFor = Exception.class) // 添加事务，异常则回滚
     public Boolean addUserBenefitsByCode(String code, Long userId) {
         log.info("[addUserBenefitsByCode][准备通过 权益code增加权益：用户ID({})|租户 ID({})｜权益代码({})]", userId, getTenantId(), code);
         // 根据 code 获取权益策略
@@ -158,10 +159,55 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         } catch (RuntimeException e) {
             throw exception(USER_BENEFITS_USELESS_INTEREST);
         }
-
         // 获取当前策略枚举
-        // BenefitsStrategyTypeEnums strategyTypeEnums = BenefitsStrategyTypeEnums.getByCode(benefitsStrategy.getStrategyType());
+        validateUserLimit(userId, benefitsStrategy);
+        // 检测权益使用频率是否合法
+        validateIntervalLimit(userId, benefitsStrategy);
 
+        // 如果可以使用，使用 userBenefitsMapper新增权益
+        UserBenefitsDO userBenefitsDO = createUserBenefits(userId, benefitsStrategy, LocalDateTime.now());
+        userBenefitsMapper.insert(userBenefitsDO);
+        // 增加记录
+        userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
+        log.info("[addUserBenefitsByCode][增加权益结束：用户ID({})｜权益代码({})]", userId, code);
+        // 是否需要设置用户等级
+        if (StrUtil.isBlank(benefitsStrategy.getUserLevel())) {
+            return true;
+        }
+        // 是否需要设置用户等级
+        UserLevelEnums userLevelEnums;
+        try {
+            // 是否需要设置用户等级
+            userLevelEnums = UserLevelEnums.valueOf(benefitsStrategy.getUserLevel());
+            permissionService.addUserRole(userId, userLevelEnums.getRoleCode());
+            return true;
+        } catch (RuntimeException e) {
+            throw exception(USER_BENEFITS_OPERATION_FAIL_USER_LEVEL_ERROR);
+        }
+    }
+
+    /**
+     * 检测权益使用频率是否合法
+     *
+     * @param userId
+     * @param benefitsStrategy
+     */
+    private void validateIntervalLimit(Long userId, UserBenefitsStrategyDO benefitsStrategy) {
+        if (benefitsStrategy.getLimitIntervalNum() > 0) {
+            if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
+                log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
+                throw exception(USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED);
+            }
+        }
+    }
+
+    /**
+     * 兑换限制校验
+     *
+     * @param userId
+     * @param benefitsStrategy
+     */
+    private void validateUserLimit(Long userId, UserBenefitsStrategyDO benefitsStrategy) {
         if (benefitsStrategy.getLimitNum() != -1) {
             // 查询条件-检验是否超过兑换限制
             LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
@@ -172,22 +218,6 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
                 throw exception(USER_BENEFITS_CASH_COUNT_EXCEEDED);
             }
         }
-        // 检测权益使用频率是否合法
-        if (benefitsStrategy.getLimitIntervalNum() > 0) {
-            if (!checkBenefitsUsageFrequency(benefitsStrategy, userId)) {
-                log.error("[addUserBenefitsByCode][权益使用频率超出限制：用户ID({})｜权益类型({})]", userId, benefitsStrategy.getStrategyType());
-                throw exception(USER_BENEFITS_USAGE_FREQUENCY_EXCEEDED);
-            }
-        }
-
-        // 如果可以使用，使用 userBenefitsMapper新增权益
-        UserBenefitsDO userBenefitsDO = createUserBenefits(userId, benefitsStrategy, LocalDateTime.now());
-        userBenefitsMapper.insert(userBenefitsDO);
-
-        // 增加记录
-        userBenefitsUsageLogService.batchCreateUserBenefitsUsageBatchLog(userBenefitsDO, benefitsStrategy);
-        log.info("[addUserBenefitsByCode][增加权益结束：用户ID({})｜权益代码({})]", userId, code);
-        return true;
     }
 
     /**
@@ -480,6 +510,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             userLevelEnums = UserLevelEnums.FREE;
         }
         userBenefitsInfoResultVO.setUserLevel(userLevelEnums.getCode().toLowerCase());
+        userBenefitsInfoResultVO.setUserLevelName(userLevelEnums.getMsg());
 
 
         List<UserBenefitsBaseResultVO> benefitsList = new ArrayList<>();
