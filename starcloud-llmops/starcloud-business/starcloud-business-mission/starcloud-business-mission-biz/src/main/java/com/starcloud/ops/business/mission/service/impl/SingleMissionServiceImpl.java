@@ -1,12 +1,16 @@
 package com.starcloud.ops.business.mission.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
@@ -19,9 +23,13 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +39,7 @@ import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
 
 @Slf4j
 @Service
+@Validated
 public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Resource
@@ -53,7 +62,15 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         if (CollectionUtils.isNotEmpty(missions)) {
             throw exception(EXISTING_BOUND_CREATIVE);
         }
-        List<XhsCreativeContentResp> claimList = creativeContentService.bound(creativeUids);
+        List<String> boundCreativeUidList = singleMissionMapper.getByNotificationUid(notificationUid)
+                .stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
+        List<String> toBeBound = new ArrayList<>(CollUtil.subtract(creativeUids, boundCreativeUidList));
+        if (CollectionUtils.isEmpty(toBeBound)) {
+            return;
+        }
+        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
+
+        List<XhsCreativeContentResp> claimList = creativeContentService.bound(toBeBound);
         List<SingleMissionDO> singleMissions = claimList.stream().map(contentDO -> SingleMissionConvert.INSTANCE.convert(contentDO, notificationCenterDO)).collect(Collectors.toList());
         singleMissionMapper.insertBatch(singleMissions);
     }
@@ -67,13 +84,22 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     @Override
     public SingleMissionRespVO modifySelective(SingleMissionModifyReqVO reqVO) {
         SingleMissionDO missionDO = getByUid(reqVO.getUid());
-        if (!SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())
-                && !SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())) {
+        if (SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())
+                && SingleMissionStatusEnum.stay_claim.getCode().equals(missionDO.getStatus())) {
             throw exception(MISSION_STATUS_NOT_SUPPORT);
         }
         SingleMissionConvert.INSTANCE.updateSelective(reqVO, missionDO);
         missionDO.setUpdateTime(LocalDateTime.now());
-        singleMissionMapper.updateBatch(missionDO);
+        singleMissionMapper.updateById(missionDO);
+        return SingleMissionConvert.INSTANCE.convert(missionDO);
+    }
+
+    @Override
+    public SingleMissionRespVO update(SingleMissionModifyReqVO reqVO) {
+        SingleMissionDO missionDO = getByUid(reqVO.getUid());
+        SingleMissionConvert.INSTANCE.updateSelective(reqVO, missionDO);
+        missionDO.setUpdateTime(LocalDateTime.now());
+        singleMissionMapper.updateById(missionDO);
         return SingleMissionConvert.INSTANCE.convert(missionDO);
     }
 
@@ -113,6 +139,49 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             missionDO.setStatus(status);
         });
         singleMissionMapper.updateBatch(singleMissionList, singleMissionList.size());
+    }
+
+    @Override
+    public SingleMissionRespVO getById(Long id) {
+        return SingleMissionConvert.INSTANCE.convert(singleMissionMapper.selectById(id));
+    }
+
+    @Override
+    public List<Long> selectIds(SingleMissionQueryReqVO reqVO) {
+        return singleMissionMapper.selectIds(reqVO);
+    }
+
+    @Override
+    public void validBudget(NotificationCenterDO notificationCenterDO) {
+        List<SingleMissionDO> missionList = singleMissionMapper.getByNotificationUid(notificationCenterDO.getUid());
+        if (CollectionUtils.isEmpty(missionList)) {
+            return;
+        }
+        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), missionList.size());
+    }
+
+    @Override
+    public List<SingleMissionExportVO> exportSettlement(String notificationUid) {
+        List<SingleMissionDO> missionList = singleMissionMapper.getByNotificationUid(notificationUid);
+        if (CollectionUtils.isEmpty(missionList)) {
+            return Collections.emptyList();
+        }
+        return SingleMissionConvert.INSTANCE.convert(missionList);
+    }
+
+    private void validBudget(BigDecimal singleBudget, BigDecimal notificationBudget, Integer missionSize) {
+        if (notificationBudget == null
+                || notificationBudget.equals(BigDecimal.ZERO)) {
+            throw exception(NOTIFICATION_BUDGET_ERROR);
+        }
+        if (singleBudget == null
+                || singleBudget.equals(BigDecimal.ZERO)) {
+            throw exception(MISSION_BUDGET_ERROR);
+        }
+        NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget);
+        if (NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget)) {
+            throw exception(TOO_MANY_MISSION);
+        }
     }
 
     private SingleMissionDO getByUid(String uid) {

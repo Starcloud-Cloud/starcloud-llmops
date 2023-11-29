@@ -52,4 +52,15 @@ public class PermissionApiImpl implements PermissionApi {
         return permissionService.mapRoleCodeListByUserIds(userIds);
     }
 
+    /**
+     * 【管理员】新增用户角色
+     *
+     * @param userId   用户编号集合
+     * @param roleCode 角色编码
+     */
+    @Override
+    public void appendRole(Long userId, String roleCode) {
+         permissionService.addUserRole(userId,roleCode);
+    }
+
 }

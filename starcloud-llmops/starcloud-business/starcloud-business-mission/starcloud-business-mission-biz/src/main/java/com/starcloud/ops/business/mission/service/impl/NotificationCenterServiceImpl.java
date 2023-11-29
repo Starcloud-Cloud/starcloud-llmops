@@ -58,17 +58,26 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     public void publish(String uid, Boolean publish) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
         if (BooleanUtils.isTrue(publish)) {
+            if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
+                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+            }
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.published.getCode());
         } else {
+            if (!NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
+                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+            }
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.cancel_published.getCode());
         }
         notificationCenterMapper.updateById(notificationCenterDO);
-        singleMissionService.publish(notificationCenterDO.getStatus(), publish);
+        singleMissionService.publish(notificationCenterDO.getUid(), publish);
     }
 
     @Override
     public void delete(String uid) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
+        if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
+            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+        }
         notificationCenterMapper.deleteById(notificationCenterDO.getId());
     }
 
@@ -82,15 +91,22 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     }
 
     @Override
+    public NotificationRespVO selectByUid(String uid) {
+        return NotificationCenterConvert.INSTANCE.convert(getByUid(uid));
+    }
+
+    @Override
     public NotificationRespVO modifySelective(NotificationModifyReqVO reqVO) {
         NotificationCenterDO notificationCenterDO = getByUid(reqVO.getUid());
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
+            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
         }
-        if (StringUtils.isNotBlank(reqVO.getName()) && StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
+        if (StringUtils.isNotBlank(reqVO.getName()) && !StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());
         }
         NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
+
+        singleMissionService.validBudget(notificationCenterDO);
         notificationCenterDO.setUpdateTime(LocalDateTime.now());
         notificationCenterMapper.updateById(notificationCenterDO);
         return NotificationCenterConvert.INSTANCE.convert(notificationCenterDO);

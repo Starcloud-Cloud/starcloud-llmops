@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.*;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -151,17 +153,29 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     @Override
     public com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> newPage(XhsCreativeContentPageReq req) {
         XhsCreativeContentPageReq pageReq = new XhsCreativeContentPageReq();
-        BeanUtil.copyProperties(req,pageReq);
+        BeanUtil.copyProperties(req, pageReq);
         PageResult<XhsCreativeContentResp> page = page(pageReq);
         com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> result = new com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<>(page.getList(), page.getTotal());
-        XhsCreativeContentPageReq countPage = new XhsCreativeContentPageReq();
-        countPage.setPlanUid(req.getPlanUid());
-        countPage.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
-        Long successCount = creativeContentMapper.selectCount(countPage);
-        countPage.setStatus(XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode());
-        Long errorCount = creativeContentMapper.selectCount(countPage);
-        result.setSuccessCount(successCount.intValue() * 2);
-        result.setErrorCount(errorCount.intValue() * 2);
+
+        List<XhsCreativeContentDO> xhsCreativeContents = creativeContentMapper.selectByPlanUid(req.getPlanUid());
+        Map<String, List<XhsCreativeContentDO>> contentGroup = xhsCreativeContents.stream().collect(Collectors.groupingBy(XhsCreativeContentDO::getBusinessUid));
+        int successCount = 0, errorCount = 0;
+
+        for (String bizId : contentGroup.keySet()) {
+            List<XhsCreativeContentDO> contentList = contentGroup.get(bizId);
+            if (CollectionUtils.isEmpty(contentList)) {
+                continue;
+            }
+            boolean error = contentList.stream()
+                    .anyMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(x.getStatus()));
+            if (error) {
+                errorCount++;
+            } else {
+                successCount++;
+            }
+        }
+        result.setSuccessCount(successCount);
+        result.setErrorCount(errorCount);
         return result;
     }
 
@@ -178,6 +192,8 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
         }
         XhsCreativeContentConvert.INSTANCE.updateSelective(modifyReq, contentDO);
+        contentDO.setUpdateTime(LocalDateTime.now());
+        contentDO.setUpdater(WebFrameworkUtils.getLoginUserId().toString());
         creativeContentMapper.updateById(contentDO);
         return XhsCreativeContentConvert.INSTANCE.convert(contentDO);
     }

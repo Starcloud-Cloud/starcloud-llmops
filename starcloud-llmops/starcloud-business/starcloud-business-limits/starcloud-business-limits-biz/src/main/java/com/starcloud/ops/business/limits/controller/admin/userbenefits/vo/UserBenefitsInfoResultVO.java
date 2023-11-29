@@ -19,6 +19,9 @@ public class UserBenefitsInfoResultVO {
     @Schema(description = "用户等级")
     private String userLevel;
 
+    @Schema(description = "用户等级")
+    private String userLevelName;
+
     @Schema(description = "权益数据")
     private List<UserBenefitsBaseResultVO> benefits;
 
