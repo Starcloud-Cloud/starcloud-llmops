@@ -56,4 +56,12 @@ public interface PermissionApi {
      */
     Map<Long, List<String>> mapRoleCodeListByUserIds(Collection<Long> userIds);
 
+    /**
+     * 【管理员】新增用户角色
+     *
+     * @param userId   用户编号集合
+     * @param roleCode 角色编码
+     */
+    void appendRole(Long userId, String roleCode);
+
 }

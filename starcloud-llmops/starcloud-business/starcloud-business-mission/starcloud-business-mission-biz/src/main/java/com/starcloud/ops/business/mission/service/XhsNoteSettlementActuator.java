@@ -52,8 +52,9 @@ public class XhsNoteSettlementActuator {
         try {
             SingleMissionRespVO singleMissionRespVO = singleMissionService.getById(singleMissionId);
             if (!SingleMissionStatusEnum.published.getCode().equals(singleMissionRespVO.getStatus())
+                    && !SingleMissionStatusEnum.settlement_error.getCode().equals(singleMissionRespVO.getStatus())
                     && !SingleMissionStatusEnum.pre_settlement.getCode().equals(singleMissionRespVO.getStatus())) {
-                log.info("{} 状态不允许结算 {}", singleMissionId, singleMissionRespVO.getSettlementAmount());
+                log.info("{} 状态不允许结算 {}", singleMissionId, singleMissionRespVO.getStatus());
                 return;
             }
 

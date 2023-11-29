@@ -245,14 +245,27 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 return;
             }
             List<XhsCreativeContentDO> contentList = xhsCreativeContentService.listByPlanUid(planUid);
-            // 是否全部执行结束
-            boolean unComplete = contentList.stream().anyMatch(xhsCreativeContentDO -> {
-                if (xhsCreativeContentDO.getRetryCount() != null && xhsCreativeContentDO.getRetryCount() > 3) {
-                    return false;
-                }
-                return !XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(xhsCreativeContentDO.getStatus());
+
+            boolean fail = contentList.stream().anyMatch(contentDO -> {
+                return contentDO.getRetryCount() != null && contentDO.getRetryCount() >= 3 && XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(contentDO.getStatus());
             });
-            updateStatus(planUid, unComplete ? CreativePlanStatusEnum.RUNNING.name() : CreativePlanStatusEnum.COMPLETE.name());
+            if (fail) {
+                updateStatus(planUid,  CreativePlanStatusEnum.FAILURE.name());
+            }
+
+            boolean running = contentList.stream().anyMatch(contentDO -> {
+                return contentDO.getRetryCount() == null || contentDO.getRetryCount() < 3;
+            });
+            if (running) {
+                updateStatus(planUid,  CreativePlanStatusEnum.RUNNING.name());
+            }
+
+            boolean complete = contentList.stream().allMatch(contentDO -> {
+                return XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus());
+            });
+            if (complete) {
+                updateStatus(planUid,  CreativePlanStatusEnum.COMPLETE.name());
+            }
         } catch (Exception e) {
             log.warn("更新计划失败", e);
         } finally {

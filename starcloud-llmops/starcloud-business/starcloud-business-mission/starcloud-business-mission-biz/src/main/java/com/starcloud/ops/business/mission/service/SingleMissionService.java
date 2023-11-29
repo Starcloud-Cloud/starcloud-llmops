@@ -1,10 +1,8 @@
 package com.starcloud.ops.business.mission.service;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 
@@ -62,4 +60,9 @@ public interface SingleMissionService {
      * 校验预算金额
      */
     void validBudget(NotificationCenterDO notificationCenterDO);
+
+    /**
+     * 导出结算信息
+     */
+    List<SingleMissionExportVO> exportSettlement(String notificationUid);
 }

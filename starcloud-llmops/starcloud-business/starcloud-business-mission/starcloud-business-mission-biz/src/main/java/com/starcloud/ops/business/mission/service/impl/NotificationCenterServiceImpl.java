@@ -58,16 +58,19 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Transactional(rollbackFor = Exception.class)
     public void publish(String uid, Boolean publish) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
-        if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
-        }
         if (BooleanUtils.isTrue(publish)) {
+            if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
+                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+            }
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.published.getCode());
         } else {
+            if (!NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
+                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+            }
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.cancel_published.getCode());
         }
         notificationCenterMapper.updateById(notificationCenterDO);
-        singleMissionService.publish(notificationCenterDO.getStatus(), publish);
+        singleMissionService.publish(notificationCenterDO.getUid(), publish);
     }
 
     @Override

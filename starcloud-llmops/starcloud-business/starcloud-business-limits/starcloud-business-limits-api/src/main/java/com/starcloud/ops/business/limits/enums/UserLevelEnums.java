@@ -1,20 +1,22 @@
 package com.starcloud.ops.business.limits.enums;
 
+import cn.iocoder.yudao.framework.common.core.IntArrayValuable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.checkerframework.checker.units.qual.C;
 
 @Getter
 @AllArgsConstructor
-public enum UserLevelEnums {
+public enum UserLevelEnums implements IntArrayValuable {
 
-    FREE("FREE", "普通用户", "MOFAAI_FREE",1,1,1,1,0),
+    FREE("FREE", "免费", "MOFAAI_FREE",1,1,1,1,0),
 
-    BASIC("BASIC", "BASIC用户", "MOFAAI_BASIC",5,5,1,5,1),
+    BASIC("BASIC", "基础", "MOFAAI_BASIC",5,5,1,5,1),
 
-    PLUS("PLUS", "PLUS用户", "MOFAAI_PLUS",20,20,10,20,3),
+    PLUS("PLUS", "高级", "MOFAAI_PLUS",20,20,10,20,3),
 
-    PRO("PRO", "PRO用户", "MOFAAI_PRO",-1,-1,-1,-1,10),
+    PRO("PRO", "团队", "MOFAAI_PRO",-1,-1,-1,-1,10),
+
+    MEDIA("MEDIA", "矩阵号", "MOFAAI_MEDIA",1,1,1,1,0),
     ;
 
     private final String code;
@@ -42,5 +44,13 @@ public enum UserLevelEnums {
         }
         // 返回FREE对应的roleCode作为默认值
         return UserLevelEnums.FREE.getRoleCode();
+    }
+
+    /**
+     * @return int 数组
+     */
+    @Override
+    public int[] array() {
+        return new int[0];
     }
 }
