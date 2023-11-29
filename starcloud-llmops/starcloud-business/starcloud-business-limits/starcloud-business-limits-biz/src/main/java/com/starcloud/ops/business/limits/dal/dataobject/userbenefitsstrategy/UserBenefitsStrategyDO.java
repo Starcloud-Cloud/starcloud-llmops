@@ -61,6 +61,11 @@ public class UserBenefitsStrategyDO extends TenantBaseDO {
      * 权益类型（字典中管理）
      */
     private String strategyType;
+
+    /**
+     * 用户等级
+     */
+    private String userLevel;
     /**
      * 应用数
      */
