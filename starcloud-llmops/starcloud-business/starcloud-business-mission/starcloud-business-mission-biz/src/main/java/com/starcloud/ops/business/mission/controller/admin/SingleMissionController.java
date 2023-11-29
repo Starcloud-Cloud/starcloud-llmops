@@ -48,8 +48,9 @@ public class SingleMissionController {
 
     @PutMapping("/modify")
     @Operation(summary = "修改单条任务", description = "修改单条任务")
-    public CommonResult<SingleMissionRespVO> modify(@Valid @RequestBody SingleMissionModifyReqVO reqVO) {
-        return CommonResult.success(singleMissionService.modifySelective(reqVO));
+    public CommonResult<Boolean> modify(@Valid @RequestBody SingleMissionModifyReqVO reqVO) {
+        singleMissionService.modifySelective(reqVO);
+        return CommonResult.success(true);
     }
 
     @DeleteMapping("/delete/{uid}")

@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 @Schema(description = "任务详情")
 public class NotificationRespVO {
 
+    @Schema(description = "id")
+    private Long id;
+
     @Schema(description = "uid")
     private String uid;
 
