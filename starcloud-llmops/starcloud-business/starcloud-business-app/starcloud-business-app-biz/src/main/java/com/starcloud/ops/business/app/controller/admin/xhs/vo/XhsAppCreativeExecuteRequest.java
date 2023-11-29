@@ -19,21 +19,27 @@ public class XhsAppCreativeExecuteRequest extends XhsAppExecuteRequest {
     private static final long serialVersionUID = -2675544310134972689L;
 
     /**
-     * 计划uid
+     * 创作计划UID
      */
-    @Schema(description = "计划uid")
+    @Schema(description = "创作计划UID")
     private String planUid;
 
     /**
-     * 方案uid
+     * 创作方案UID
      */
-    @Schema(description = "方案uid")
+    @Schema(description = "创作方案UID")
     private String schemeUid;
 
     /**
-     * 任务uid
+     * 业务UID
      */
-    @Schema(description = "任务uid")
-    private String creativeContentUid;
+    @Schema(description = "业务UID")
+    private String businessUid;
+
+    /**
+     * 创作任务UID
+     */
+    @Schema(description = "创作任务UID")
+    private String contentUid;
 
 }

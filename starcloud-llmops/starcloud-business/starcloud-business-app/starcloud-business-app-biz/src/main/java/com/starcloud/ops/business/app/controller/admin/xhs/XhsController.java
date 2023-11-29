@@ -4,12 +4,14 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteResponse;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
+import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -80,8 +82,18 @@ public class XhsController {
 
     @PostMapping(value = "/bathImageExecute")
     @Operation(summary = "小红书图片批量执行")
-    public CommonResult<List<XhsImageExecuteResponse>> bathImageExecute(@Validated @RequestBody XhsBathImageExecuteRequest request) {
-        return CommonResult.success(xhsService.bathImageExecute(request));
+    public CommonResult<XhsImageStyleExecuteResponse> bathImageExecute(@Validated @RequestBody XhsImageStyleExecuteRequest request) {
+        return CommonResult.success(xhsService.imageStyleExecute(request));
+    }
+
+    @Resource
+    private XhsCreativeContentService xhsCreativeContentService;
+
+    @PostMapping(value = "/execute1")
+    @Operation(summary = "小红书图片执行")
+    public CommonResult<String> imageExecute(@RequestBody List<Long> idList) {
+        xhsCreativeContentService.execute(idList, XhsCreativeContentTypeEnums.PICTURE.getCode(), true);
+        return CommonResult.success("");
     }
 
 }

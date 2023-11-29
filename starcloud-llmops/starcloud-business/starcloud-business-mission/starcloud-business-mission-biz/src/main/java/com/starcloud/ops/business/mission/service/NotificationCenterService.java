@@ -34,6 +34,9 @@ public interface NotificationCenterService {
      */
     NotificationCenterDO getByUid(String uid);
 
+
+    NotificationRespVO selectByUid(String uid);
+
     /**
      * 编辑
      */

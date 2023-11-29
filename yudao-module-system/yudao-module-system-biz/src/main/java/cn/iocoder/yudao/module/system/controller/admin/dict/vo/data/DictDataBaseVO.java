@@ -25,7 +25,6 @@ public class DictDataBaseVO {
 
     @Schema(description = "字典值", required = true, example = "iocoder")
     @NotBlank(message = "字典键值不能为空")
-    @Size(max = 500, message = "字典键值长度不能超过500个字符")
     private String value;
 
     @Schema(description = "字典类型", required = true, example = "sys_common_sex")

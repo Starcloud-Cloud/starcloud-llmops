@@ -49,4 +49,5 @@ public class XhsImageExecuteRequest implements java.io.Serializable {
      */
     @Schema(description = "图片生成参数")
     private Map<String, Object> params;
+
 }

@@ -21,8 +21,27 @@ public class XhsAppCreativeExecuteResponse extends XhsAppExecuteResponse {
     private static final long serialVersionUID = 6728431346119515076L;
 
     /**
-     * 任务uid
+     * 创作计划UID
      */
-    @Schema(description = "任务uid")
-    private String creativeContentUid;
+    @Schema(description = "创作计划UID")
+    private String planUid;
+
+    /**
+     * 创作方案UID
+     */
+    @Schema(description = "创作方案UID")
+    private String schemeUid;
+
+    /**
+     * 业务UID
+     */
+    @Schema(description = "业务UID")
+    private String businessUid;
+
+    /**
+     * 创作任务UID
+     */
+    @Schema(description = "创作任务UID")
+    private String contentUid;
+
 }
