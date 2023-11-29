@@ -140,25 +140,36 @@ public class XhsCreativeExecuteManager {
                 XhsAppCreativeExecuteResponse executeResponse = respMap.get(contentDO.getUid());
                 if (!executeResponse.getSuccess()) {
                     result.put(contentDO.getId(), false);
-                    updateContent(contentDO, executeResponse.getErrorMsg(), contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_ERROR);
+                    if (contentDO.getRetryCount() >= maxRetry) {
+                        updateFailureFinished(contentDO.getId(), start, executeResponse.getErrorMsg(), maxRetry);
+                    } else {
+                        updateFailure(contentDO.getId(), start, executeResponse.getErrorMsg());
+                    }
                     continue;
                 }
 
                 CopyWritingContentDTO copyWriting = executeResponse.getCopyWriting();
                 if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
                     result.put(contentDO.getId(), false);
-                    updateContent(contentDO, "文案内容为空", contentDO.getRetryCount() + 1, XhsCreativeContentStatusEnums.EXECUTE_ERROR);
+                    if (contentDO.getRetryCount() >= maxRetry) {
+                        updateFailureFinished(contentDO.getId(), start, "文案内容为空", maxRetry);
+                    } else {
+                        updateFailure(contentDO.getId(), start, "文案内容为空");
+                    }
                     continue;
                 }
 
-                contentDO.setCopyWritingContent(copyWriting.getContent());
-                contentDO.setCopyWritingTitle(copyWriting.getTitle());
-                contentDO.setCopyWritingCount(copyWriting.getContent().length());
-                contentDO.setCopyWritingResult(JSONUtil.toJsonStr(copyWriting));
-                contentDO.setStartTime(start);
-                contentDO.setEndTime(end);
-                contentDO.setExecuteTime(executeTime);
-                updateContent(contentDO, StringUtils.EMPTY, 0, XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
+                XhsCreativeContentDO updateContent = new XhsCreativeContentDO();
+                updateContent.setId(contentDO.getId());
+                updateContent.setCopyWritingContent(copyWriting.getContent());
+                updateContent.setCopyWritingTitle(copyWriting.getTitle());
+                updateContent.setCopyWritingCount(copyWriting.getContent().length());
+                updateContent.setCopyWritingResult(JSONUtil.toJsonStr(copyWriting));
+                updateContent.setStartTime(start);
+                updateContent.setEndTime(end);
+                updateContent.setExecuteTime(executeTime);
+                updateContent.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
+                creativeContentMapper.updateById(updateContent);
                 result.put(contentDO.getId(), true);
             }
             log.info("文案执行结束： {} ms", executeTime);
@@ -221,44 +232,81 @@ public class XhsCreativeExecuteManager {
         // 获取锁
         String lockKey = "xhs-image-creative-" + content.getId();
         RLock lock = redissonClient.getLock(lockKey);
-
         if (lock != null && !lock.tryLock()) {
             log.warn("创作中心：生成图片正在执行中，重复调用(内容ID：{})！", content.getId());
-            throw ServiceExceptionUtil.exception(new ErrorCode(350600112, "图片执行：创作内容为空"));
+            return XhsImageCreativeExecuteResponse.failure(content, 350600110, formatErrorMsg("创作中心：生成图片正在执行中，重复调用(内容ID：%s)！", content.getId()), null);
         }
 
         try {
             // 开始执行时间
             LocalDateTime start = LocalDateTime.now();
             log.info("创作中心：生成图片正在执行开始：{}，{}", content.getId(), start);
+            // 最大重试次数
+            Integer maxRetry = getMaxRetry(force);
+
+            // 查询文案执行情况。需要文案执行成功才能执行图片
+            XhsCreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+            if (Objects.isNull(business)) {
+                // 此时说明数据存在问题，直接更新为最终失败
+                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务不存在，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+                throw exception(350600141, "创作中心：文案任务不存在，不能执行图片生成(ID: %s)！", content.getUid());
+            }
+            if (XhsCreativeContentStatusEnums.INIT.getCode().equals(business.getStatus())) {
+                // 文案未执行，直接跳出，不执行图片生成，等待下次执行
+                throw exception(350600142, "创作中心：文案任务初始化中，不能执行图片生成(ID: %s)！", content.getUid());
+
+            } else if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(business.getStatus())) {
+                // 文案执行中，直接跳出，不执行图片生成，等待下次执行
+                throw exception(350600143, "创作中心：文案任务执行中，不能执行图片生成(ID: %s)！", content.getUid());
+
+            } else if (XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode().equals(business.getStatus())) {
+                // 文案最终执行失败，图片更新为最终失败
+                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+                throw exception(350600144, "创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid());
+
+            } else if (XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(business.getStatus())) {
+                // 文案执行失败
+                // 重试次数大于阈值，更新为最终失败
+                if (business.getRetryCount() >= maxRetry) {
+                    updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+                }
+                throw exception(350600145, "创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid());
+
+            } else if (XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(business.getStatus())) {
+                // 文案执行成功，但是文案执行结果为空，说明数据存在问题，直接更新为最终失败
+                if (StringUtils.isBlank(business.getCopyWritingResult())) {
+                    updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行结果不存在，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+                    throw exception(350600146, "创作中心：文案任务执行结果不存在，不能执行图片生成(ID: %s)！", content.getUid());
+                }
+            } else {
+                // 文案状态异常。直接更新为最终失败
+                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行状态异常，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+                throw exception(350600147, "创作中心：文案任务执行状态异常，不能执行图片生成(ID: %s)！", content.getUid());
+            }
+
+            // 文案执行结果
+            CopyWritingContentDTO copyWriting = JSONUtil.toBean(business.getCopyWritingResult(), CopyWritingContentDTO.class);
+            if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getImgTitle()) || StringUtils.isBlank(copyWriting.getImgSubTitle())) {
+                // 文案执行结果为空，说明数据存在问题，直接更新为最终失败
+                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid()), maxRetry);
+                throw exception(350600148, "创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid());
+            }
+
             // 获取最新的创作内容并且校验
-            XhsCreativeContentDO latestContent = getImageContentAndValidate(content.getId(), force);
+            XhsCreativeContentDO latestContent = getImageContentAndValidate(content.getId(), maxRetry, force);
             // 获取并且校验使用图片
             List<String> useImageList = JSONUtil.parseArray(latestContent.getUsePicture()).toList(String.class);
             if (CollectionUtils.isEmpty(useImageList)) {
-                // 需要更新状态
-                updateFailureContent(latestContent, start, "创作中心：图片执行可使用图片为空！");
-                throw ServiceExceptionUtil.exception(new ErrorCode(350600113, "创作中心：图片执行可使用图片为空(ID: " + latestContent.getId() + ")！"));
+                // 可用图片为空，说明该任务数据存在问题。需要更新状态
+                updateFailureFinished(latestContent.getId(), start, formatErrorMsg("创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", latestContent.getUid()), maxRetry);
+                throw exception(350600113, "创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", latestContent.getUid());
             }
             // 获取并且校验执行参数
             CreativePlanExecuteDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(latestContent.getExecuteParams());
             if (Objects.isNull(executeParams) || Objects.isNull(executeParams.getImageStyleExecuteRequest())) {
-                // 需要更新状态
-                updateFailureContent(latestContent, start, "创作中心：图片执行参数为空！");
-                throw ServiceExceptionUtil.exception(new ErrorCode(350600114, "创作中心：图片执行参数为空(ID: " + latestContent.getId() + ")！"));
-            }
-            // 查询文案执行情况。需要文案执行成功才能执行图片
-            XhsCreativeContentDO business = creativeContentMapper.selectByType(latestContent.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
-            if (Objects.isNull(business) || !XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(business.getStatus()) ||
-                    StringUtils.isBlank(business.getCopyWritingResult())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350600115, "创作中心：文案未执行成功，不能执行图片生成(ID: " + latestContent.getId() + ")！"));
-            }
-            // 文案执行结果
-            CopyWritingContentDTO copyWriting = JSONUtil.toBean(business.getCopyWritingResult(), CopyWritingContentDTO.class);
-            if (Objects.isNull(copyWriting)) {
-                // 需要更新状态
-                updateFailureContent(latestContent, start, "创作中心：图片执行参数为空，执行文案不存在");
-                throw ServiceExceptionUtil.exception(new ErrorCode(350600117, "创作中心：图片执行参数为空，执行文案不存在(ID: " + latestContent.getId() + ")！"));
+                // 执行参数为空，说明该任务数据存在问题。需要更新状态
+                updateFailureFinished(latestContent.getId(), start, formatErrorMsg("创作中心：图片执行参数不存在，请联系管理员(ID: %s)！", latestContent.getUid()), maxRetry);
+                throw exception(350600114, "创作中心：图片执行参数不存在，请联系管理员(ID: %s)！", latestContent.getUid());
             }
 
             // 构建请求
@@ -275,36 +323,41 @@ public class XhsCreativeExecuteManager {
 
             // 校验结果
             if (Objects.isNull(response)) {
-                updateFailureContent(latestContent, start, "创作中心：图片生成结果为空！");
-                throw ServiceExceptionUtil.exception(new ErrorCode(350600118, "创作中心：图片生成结果为空(ID: " + latestContent.getId() + ")！"));
+                updateFailure(latestContent.getId(), start, formatErrorMsg("创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid()));
+                throw exception(350600115, "创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid());
             }
             // 是否成功
             if (!response.getSuccess()) {
                 Integer errorCode = Objects.isNull(response.getErrorCode()) ? 350600119 : response.getErrorCode();
                 String message = StringUtils.isBlank(response.getErrorMessage()) ? "创作中心：图片生成失败！" : response.getErrorMessage();
-                updateFailureContent(latestContent, start, response.getErrorMessage());
-                throw ServiceExceptionUtil.exception(new ErrorCode(errorCode, message));
+                updateFailure(latestContent.getId(), start, message);
+                throw exception(errorCode, message);
             }
             // 图片生成结果
             List<XhsImageExecuteResponse> imageResponseList = CollectionUtil.emptyIfNull(response.getImageStyleResponse().getImageResponses());
             if (CollectionUtils.isEmpty(imageResponseList)) {
-                updateFailureContent(latestContent, start, "创作中心：图片生成结果为空！");
-                throw ServiceExceptionUtil.exception(new ErrorCode(350600120, "创作中心：图片生成结果为空(ID: " + latestContent.getId() + ")！"));
+                updateFailure(latestContent.getId(), start, formatErrorMsg("创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid()));
+                throw exception(350600120, "创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid());
             }
+
             // 更新创作内容
             LocalDateTime end = LocalDateTime.now();
-            List<XhsCreativePictureContentDTO> pictureContent = XhsCreativeContentConvert.INSTANCE.convert2(imageResponseList);
-            latestContent.setPictureContent(JSONUtil.toJsonStr(pictureContent));
-            latestContent.setStartTime(start);
-            latestContent.setEndTime(end);
-            latestContent.setPictureNum(pictureContent.size());
             long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
-            // 计算平均执行时间
             executeTime = new BigDecimal(String.valueOf(executeTime)).divide(new BigDecimal(String.valueOf(imageResponseList.size())), 2, RoundingMode.HALF_UP).longValue();
-            latestContent.setExecuteTime(executeTime);
-            updateContent(latestContent, StringUtils.EMPTY, latestContent.getRetryCount(), XhsCreativeContentStatusEnums.EXECUTE_SUCCESS);
-            log.info("创作中心：图片执行成功：ID：{}, 好事： {} ms", latestContent.getId(), executeTime);
+            List<XhsCreativePictureContentDTO> pictureContent = XhsCreativeContentConvert.INSTANCE.convert2(imageResponseList);
 
+            XhsCreativeContentDO updateContent = new XhsCreativeContentDO();
+            updateContent.setId(latestContent.getId());
+            updateContent.setPictureContent(JSONUtil.toJsonStr(pictureContent));
+            updateContent.setPictureNum(pictureContent.size());
+            updateContent.setStartTime(start);
+            updateContent.setEndTime(end);
+            updateContent.setExecuteTime(executeTime);
+            updateContent.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
+            updateContent.setUpdateTime(end);
+            creativeContentMapper.updateById(updateContent);
+
+            log.info("创作中心：图片执行成功：ID：{}, 耗时： {} ms", latestContent.getId(), executeTime);
             return response;
         } catch (ServiceException exception) {
             log.error("创作中心：图片执行失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
@@ -320,7 +373,16 @@ public class XhsCreativeExecuteManager {
         }
     }
 
-    private void updateFailureContent(XhsCreativeContentDO content, LocalDateTime start, String errorMsg) {
+    /**
+     * 执行失败，更新创作内容
+     *
+     * @param id       创作内容ID
+     * @param start    开始时间
+     * @param errorMsg 错误信息
+     */
+    private void updateFailure(Long id, LocalDateTime start, String errorMsg) {
+        XhsCreativeContentDO content = new XhsCreativeContentDO();
+        content.setId(id);
         content.setErrorMsg(errorMsg);
         content.setRetryCount(content.getRetryCount() + 1);
         content.setStatus(XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode());
@@ -333,55 +395,116 @@ public class XhsCreativeExecuteManager {
         creativeContentMapper.updateById(content);
     }
 
-    private void updateContent(XhsCreativeContentDO xhsCreativeContentDO,
-                               String errorMsg, Integer retryCount,
-                               XhsCreativeContentStatusEnums statusEnums) {
-        xhsCreativeContentDO.setErrorMsg(errorMsg);
-        xhsCreativeContentDO.setRetryCount(retryCount);
-        xhsCreativeContentDO.setStatus(statusEnums.getCode());
-        xhsCreativeContentDO.setUpdateTime(LocalDateTime.now());
-        creativeContentMapper.updateById(xhsCreativeContentDO);
+    /**
+     * 执行失败，更新创作内容, 更新为最终失败
+     *
+     * @param id       创作内容ID
+     * @param start    开始时间
+     * @param errorMsg 错误信息
+     */
+    private void updateFailureFinished(Long id, LocalDateTime start, String errorMsg, Integer maxRetry) {
+        XhsCreativeContentDO content = new XhsCreativeContentDO();
+        content.setId(id);
+        content.setErrorMsg(errorMsg);
+        content.setRetryCount(maxRetry);
+        content.setStatus(XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode());
+        content.setStartTime(start);
+        LocalDateTime end = LocalDateTime.now();
+        content.setEndTime(end);
+        Long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+        content.setExecuteTime(executeTime);
+        content.setUpdateTime(end);
+        creativeContentMapper.updateById(content);
     }
 
+    /**
+     * 获取图片执行任务
+     *
+     * @param id    任务ID
+     * @param force 是否强制执行
+     * @return 图片执行任务
+     */
+    private XhsCreativeContentDO getImageContentAndValidate(Long id, Integer maxRetry, Boolean force) {
+        XhsCreativeContentDO content = creativeContentMapper.selectById(id);
+        if (Objects.isNull(content)) {
+            throw exception(350600211, "未找到对应的创作任务(ID: %s)！", id);
+        }
+
+        if (!XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(content.getType())) {
+            throw exception(350600212, "创作任务类型不是图片(ID: %s)！", id);
+        }
+
+        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())) {
+            throw exception(350600213, "创作任务正在执行(ID: %s)！", id);
+        }
+
+        if (!force) {
+            if (XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(content.getStatus())) {
+                throw exception(350600214, "创作任务已经执行成功(ID: %s)！", id);
+            }
+            if (XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus()) || content.getRetryCount() >= maxRetry) {
+                throw exception(350600215, "创作任务: %s，重试次数：%s，最多重试次数：%s ！", id, content.getRetryCount(), maxRetry);
+            }
+        }
+        return content;
+    }
+
+    /**
+     * 获取最大重试次数
+     *
+     * @param force 是否强制执行
+     * @return 最大失败次数
+     */
     private Integer getMaxRetry(Boolean force) {
         if (BooleanUtils.isTrue(force)) {
             return Integer.MAX_VALUE;
         }
-        DictDataDO dictDataDO = dictDataService.parseDictData("xhs", "max_retry");
-        if (dictDataDO == null || dictDataDO.getValue() == null) {
+        try {
+            DictDataDO dictDataDO = dictDataService.parseDictData("xhs", "max_retry");
+            if (dictDataDO == null || dictDataDO.getValue() == null) {
+                return 3;
+            } else {
+                return Integer.valueOf(dictDataDO.getValue());
+            }
+        } catch (Exception exception) {
             return 3;
         }
-        return Integer.valueOf(dictDataDO.getValue());
     }
 
-    private XhsCreativeContentDO getImageContentAndValidate(Long id, Boolean force) {
-        XhsCreativeContentDO content = creativeContentMapper.selectById(id);
-        if (Objects.isNull(content)) {
-            log.warn("未找到对应的创作任务：{}", id);
-            throw ServiceExceptionUtil.exception(new ErrorCode(350600211, "未找到对应的创作任务(ID: " + id + ")！"));
-        }
-
-        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())) {
-            log.warn("创作任务在执行中：{}", id);
-            throw ServiceExceptionUtil.exception(new ErrorCode(350600212, "创作任务在执行中(ID: " + id + ")！"));
-        }
-
-        if (!force && XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(content.getStatus())) {
-            log.warn("创作任务已成功：{}", id);
-            throw ServiceExceptionUtil.exception(new ErrorCode(350600213, "创作任务已成功(ID: " + id + ")！"));
-        }
-
-        if (!XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(content.getType())) {
-            log.warn("不是图片类型的任务{}", id);
-            throw ServiceExceptionUtil.exception(new ErrorCode(350600214, "不是图片类型的任务(ID: " + id + ")！"));
-        }
-
-        Integer maxRetry = getMaxRetry(force);
-        if (content.getRetryCount() >= maxRetry) {
-            log.warn("创作任务: {} 在重试次数：{}， 最多重试次数：{}", id, content.getRetryCount(), maxRetry);
-            throw ServiceExceptionUtil.exception(new ErrorCode(350600215, "创作任务: " + id + "，在重试次数：" + content.getRetryCount() + "， 最多重试次数：" + maxRetry + "！"));
-        }
-
-        return content;
+    /**
+     * 执行失败，更新创作内容
+     *
+     * @param code    错误码
+     * @param message 错误信息
+     * @param args    参数
+     * @return {@link ServiceException}
+     */
+    private static ServiceException exception(Integer code, String message, Object... args) {
+        return ServiceExceptionUtil.exception(ofError(code, message, args));
     }
+
+    /**
+     * 执行失败，更新创作内容
+     *
+     * @param code    错误码
+     * @param message 错误信息
+     * @param args    参数
+     * @return {@link ErrorCode}
+     */
+    private static ErrorCode ofError(Integer code, String message, Object... args) {
+        return new ErrorCode(code, formatErrorMsg(message, args));
+    }
+
+    /**
+     * 格式化错误信息
+     *
+     * @param message 错误信息
+     * @param args    参数
+     * @return 格式化后的错误信息
+     */
+    private static String formatErrorMsg(String message, Object... args) {
+        return String.format(message, args);
+    }
+
+
 }

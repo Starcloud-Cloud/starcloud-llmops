@@ -127,7 +127,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public PageResp<CreativePlanRespVO> page(CreativePlanPageQuery query) {
-        IPage<CreativePlanPO> page = creativePlanMapper.pageCreativePlan(PageUtil.page(query), query);
+        IPage<CreativePlanPO> page = creativePlanMapper.page(PageUtil.page(query), query);
         return CreativePlanConvert.INSTANCE.convertPage(page);
     }
 

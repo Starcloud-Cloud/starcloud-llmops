@@ -36,7 +36,7 @@
     </select>
     
     <!-- 分页查询创意计划列表  -->
-    <select id="pageCreativePlan"
+    <select id="page"
             resultType="com.starcloud.ops.business.app.dal.databoject.plan.CreativePlanPO">
         SELECT
         <include refid="SELECT_COLUMNS"/>

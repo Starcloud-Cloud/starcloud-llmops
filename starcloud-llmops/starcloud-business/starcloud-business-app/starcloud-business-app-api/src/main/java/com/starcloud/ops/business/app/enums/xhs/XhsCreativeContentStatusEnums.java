@@ -10,9 +10,12 @@ public enum XhsCreativeContentStatusEnums {
 
     EXECUTE_SUCCESS("execute_success", "执行成功"),
 
-    EXECUTE_ERROR("execute_error", "执行失败")
+    EXECUTE_ERROR("execute_error", "执行失败"),
 
-    ;
+    /**
+     * 执行失败，且失败次数大于阈值时候
+     */
+    EXECUTE_ERROR_FINISHED("execute__error_finished", "执行最终错误");
 
     private String code;
 
