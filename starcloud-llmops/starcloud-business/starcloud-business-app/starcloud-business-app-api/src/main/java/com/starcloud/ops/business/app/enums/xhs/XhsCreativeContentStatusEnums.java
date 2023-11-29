@@ -15,7 +15,7 @@ public enum XhsCreativeContentStatusEnums {
     /**
      * 执行失败，且失败次数大于阈值时候
      */
-    EXECUTE_ERROR_FINISHED("execute__error_finished", "执行最终错误");
+    EXECUTE_ERROR_FINISHED("execute_error_finished", "执行最终错误");
 
     private String code;
 
