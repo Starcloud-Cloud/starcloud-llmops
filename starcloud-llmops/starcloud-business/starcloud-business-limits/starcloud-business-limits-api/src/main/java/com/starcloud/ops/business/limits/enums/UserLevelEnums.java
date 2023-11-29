@@ -16,7 +16,7 @@ public enum UserLevelEnums implements IntArrayValuable {
 
     PRO("PRO", "团队", "MOFAAI_PRO",-1,-1,-1,-1,10),
 
-    RED_BOOK("RED_BOOK", "矩阵号", "MOFAAI_MEDIA",1,1,1,1,0),
+    MEDIA("MEDIA", "矩阵号", "MOFAAI_MEDIA",1,1,1,1,0),
     ;
 
     private final String code;
