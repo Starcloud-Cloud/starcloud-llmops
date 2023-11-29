@@ -3,13 +3,16 @@ package com.starcloud.ops.business.mission.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.XhsNoteDetailService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
@@ -21,6 +24,7 @@ import com.starcloud.ops.business.mission.service.SingleMissionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -31,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -50,6 +55,10 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Resource
     private NotificationCenterService notificationCenterService;
+
+    @Resource
+    private XhsNoteDetailService noteDetailService;
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -82,16 +91,37 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
-    public SingleMissionRespVO modifySelective(SingleMissionModifyReqVO reqVO) {
+    public void modifySelective(SingleMissionModifyReqVO reqVO) {
         SingleMissionDO missionDO = getByUid(reqVO.getUid());
-        if (SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())
-                && SingleMissionStatusEnum.stay_claim.getCode().equals(missionDO.getStatus())) {
+        if (SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())) {
             throw exception(MISSION_STATUS_NOT_SUPPORT);
         }
-        SingleMissionConvert.INSTANCE.updateSelective(reqVO, missionDO);
-        missionDO.setUpdateTime(LocalDateTime.now());
-        singleMissionMapper.updateById(missionDO);
-        return SingleMissionConvert.INSTANCE.convert(missionDO);
+        if (SingleMissionStatusEnum.init.getCode().equals(reqVO.getStatus())) {
+            return;
+        } else if (SingleMissionStatusEnum.stay_claim.getCode().equals(reqVO.getStatus())) {
+            update(missionDO);
+        } else if (SingleMissionStatusEnum.claimed.getCode().equals(reqVO.getStatus())) {
+            Optional.ofNullable(reqVO.getClaimName()).orElseThrow(() -> exception(500,"认领人不能为空"));
+            missionDO.setClaimUsername(reqVO.getClaimName());
+            LocalDateTime claimTime = Optional.ofNullable(reqVO.getClaimTime()).orElse(LocalDateTime.now());
+            missionDO.setClaimTime(claimTime);
+        } else if (SingleMissionStatusEnum.published.getCode().equals(reqVO.getStatus())) {
+            missionDO.setPublishUrl(reqVO.getPublishUrl());
+            LocalDateTime publishTime = Optional.ofNullable(reqVO.getPublishTime()).orElse(LocalDateTime.now());
+            missionDO.setClaimTime(publishTime);
+        } else if (SingleMissionStatusEnum.pre_settlement.getCode().equals(reqVO.getStatus())) {
+            NotificationRespVO respVO = notificationCenterService.selectByUid(missionDO.getNotificationUid());
+            BigDecimal estimatedAmount = respVO.getUnitPrice().calculationAmount(reqVO.getLikedCount(), reqVO.getCommentCount(), respVO.getSingleBudget());
+            missionDO.setEstimatedAmount(estimatedAmount);
+            LocalDateTime preSettlementTime = Optional.ofNullable(reqVO.getPreSettlementTime()).orElse(LocalDateTime.now());
+            missionDO.setPreSettlementTime(preSettlementTime);
+        } else if (SingleMissionStatusEnum.settlement.getCode().equals(reqVO.getStatus())) {
+            missionDO.setSettlementAmount(reqVO.getSettlementAmount());
+            LocalDateTime settlementTime = Optional.ofNullable(reqVO.getSettlementTime()).orElse(LocalDateTime.now());
+            missionDO.setSettlementTime(settlementTime);
+        }
+        missionDO.setStatus(reqVO.getStatus());
+        update(missionDO);
     }
 
     @Override
@@ -190,5 +220,11 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             throw exception(MISSION_NOT_EXISTS, uid);
         }
         return missionDO;
+    }
+
+    private void update(SingleMissionDO singleMissionDO) {
+        singleMissionDO.setUpdateTime(LocalDateTime.now());
+        singleMissionDO.setUpdater(WebFrameworkUtils.getLoginUserId().toString());
+        singleMissionMapper.updateById(singleMissionDO);
     }
 }

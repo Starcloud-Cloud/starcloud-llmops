@@ -168,9 +168,11 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             }
             boolean error = contentList.stream()
                     .anyMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(x.getStatus()));
+            boolean success = contentList.stream()
+                    .allMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(x.getStatus()));
             if (error) {
                 errorCount++;
-            } else {
+            } else if (success) {
                 successCount++;
             }
         }
