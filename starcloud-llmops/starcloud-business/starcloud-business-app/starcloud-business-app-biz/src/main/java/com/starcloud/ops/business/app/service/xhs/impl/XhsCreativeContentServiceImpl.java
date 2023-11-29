@@ -9,9 +9,13 @@ import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
+import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper;
@@ -138,6 +142,17 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
     @TenantIgnore
     public List<XhsCreativeContentDO> listByPlanUid(String planUid) {
         return creativeContentMapper.selectByPlanUid(planUid);
+    }
+
+    /**
+     * 计划下的所有任务根据 业务uid 分组
+     *
+     * @param planUidList 计划uid
+     * @return 业务uid
+     */
+    @Override
+    public List<XhsCreativeContentBusinessPO> listGroupByBusinessUid(List<String> planUidList) {
+        return creativeContentMapper.listGroupByBusinessUid(planUidList);
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
+import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,8 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
                 .eq(XhsCreativeContentDO::getPlanUid, planUid);
         return selectList(wrapper);
     }
+
+    List<XhsCreativeContentBusinessPO> listGroupByBusinessUid(@Param("planUidList") List<String> planUidList);
 
     default XhsCreativeContentDO selectByType(String businessUid, String type) {
         LambdaQueryWrapper<XhsCreativeContentDO> wrapper = Wrappers.lambdaQuery(XhsCreativeContentDO.class)
@@ -90,7 +93,7 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
 
     List<XhsCreativeContentDO> jobQuery(@Param("req") XhsCreativeQueryReq queryReq);
 
-    Long countByBusinessUid(@Param("businessUids")List<String> businessUids);
+    Long countByBusinessUid(@Param("businessUids") List<String> businessUids);
 
-    List<XhsCreativeContentDTO> selectByBusinessUid(@Param("businessUids")List<String> businessUids);
+    List<XhsCreativeContentDTO> selectByBusinessUid(@Param("businessUids") List<String> businessUids);
 }
