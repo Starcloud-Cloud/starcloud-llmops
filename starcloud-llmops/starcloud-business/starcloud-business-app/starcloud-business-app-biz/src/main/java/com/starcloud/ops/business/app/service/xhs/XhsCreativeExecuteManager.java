@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
@@ -169,6 +170,8 @@ public class XhsCreativeExecuteManager {
                 updateContent.setEndTime(end);
                 updateContent.setExecuteTime(executeTime);
                 updateContent.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
+                updateContent.setUpdateTime(LocalDateTime.now());
+                updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
                 creativeContentMapper.updateById(updateContent);
                 result.put(contentDO.getId(), true);
             }
@@ -355,6 +358,7 @@ public class XhsCreativeExecuteManager {
             updateContent.setExecuteTime(executeTime);
             updateContent.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
             updateContent.setUpdateTime(end);
+            updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
             creativeContentMapper.updateById(updateContent);
 
             log.info("创作中心：图片执行成功：ID：{}, 耗时： {} ms", latestContent.getId(), executeTime);
@@ -392,6 +396,7 @@ public class XhsCreativeExecuteManager {
         Long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         content.setExecuteTime(executeTime);
         content.setUpdateTime(end);
+        content.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         creativeContentMapper.updateById(content);
     }
 
@@ -414,6 +419,7 @@ public class XhsCreativeExecuteManager {
         Long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         content.setExecuteTime(executeTime);
         content.setUpdateTime(end);
+        content.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         creativeContentMapper.updateById(content);
     }
 
