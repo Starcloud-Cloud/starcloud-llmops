@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Mapper
-public interface PayAppMapper extends BaseMapperX<PayAppDO> {
+public interface PayOldAppMapper extends BaseMapperX<PayAppDO> {
 
     default PageResult<PayAppDO> selectPage(PayAppPageReqVO reqVO, Collection<Long> merchantIds) {
         return selectPage(reqVO, new QueryWrapperX<PayAppDO>()

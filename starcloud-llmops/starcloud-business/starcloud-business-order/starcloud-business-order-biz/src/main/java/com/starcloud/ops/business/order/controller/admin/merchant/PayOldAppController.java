@@ -32,7 +32,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RestController
 @RequestMapping("/llm/pay/app")
 @Validated
-public class PayAppController {
+public class PayOldAppController {
 
     @Resource
     private PayAppService appService;

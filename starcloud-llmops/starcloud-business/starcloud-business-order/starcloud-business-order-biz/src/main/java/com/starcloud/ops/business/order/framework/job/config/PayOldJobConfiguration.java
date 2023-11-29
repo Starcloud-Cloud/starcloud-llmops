@@ -7,9 +7,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration(proxyBeanMethods = false)
-public class PayJobConfiguration {
+public class PayOldJobConfiguration {
 
-    public static final String NOTIFY_THREAD_POOL_TASK_EXECUTOR = "NOTIFY_THREAD_POOL_TASK_EXECUTOR";
+    public static final String NOTIFY_THREAD_POOL_TASK_EXECUTOR = "OLD_NOTIFY_THREAD_POOL_TASK_EXECUTOR";
 
     @Bean(NOTIFY_THREAD_POOL_TASK_EXECUTOR)
     public ThreadPoolTaskExecutor notifyThreadPoolTaskExecutor() {

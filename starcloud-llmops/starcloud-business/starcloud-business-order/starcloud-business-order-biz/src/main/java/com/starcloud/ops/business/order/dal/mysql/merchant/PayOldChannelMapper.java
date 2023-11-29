@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Mapper
-public interface PayChannelMapper extends BaseMapperX<PayChannelDO> {
+public interface PayOldChannelMapper extends BaseMapperX<PayChannelDO> {
 
     default PayChannelDO selectByAppIdAndCode(Long appId, String code) {
         return selectOne(PayChannelDO::getAppId, appId, PayChannelDO::getCode, code);

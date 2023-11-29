@@ -62,12 +62,12 @@
         </dependency>
 
 
-        <!-- 支付服务 -->
-        <!--        <dependency>-->
-        <!--            <groupId>cn.iocoder.boot</groupId>-->
-        <!--            <artifactId>yudao-module-pay-biz</artifactId>-->
-        <!--            <version>${revision}</version>-->
-        <!--        </dependency>-->
+<!--         支付服务 -->
+                <dependency>
+                    <groupId>cn.iocoder.boot</groupId>
+                    <artifactId>yudao-module-pay-biz</artifactId>
+                    <version>${revision}</version>
+                </dependency>
 
         <!-- spring boot 配置所需依赖 -->
         <dependency>

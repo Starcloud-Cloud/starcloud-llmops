@@ -12,7 +12,7 @@ import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
 @Mapper
-public interface PayMerchantMapper extends BaseMapperX<PayMerchantDO> {
+public interface PayOldMerchantMapper extends BaseMapperX<PayMerchantDO> {
 
     default PageResult<PayMerchantDO> selectPage(PayMerchantPageReqVO reqVO) {
         return selectPage(reqVO, new QueryWrapperX<PayMerchantDO>()

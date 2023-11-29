@@ -29,7 +29,7 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.CHANNEL_
 @RequestMapping("/llm/pay/notify")
 @Validated
 @Slf4j
-public class PayNotifyController {
+public class PayOldNotifyController {
 
     @Resource
     private PayOrderService orderService;

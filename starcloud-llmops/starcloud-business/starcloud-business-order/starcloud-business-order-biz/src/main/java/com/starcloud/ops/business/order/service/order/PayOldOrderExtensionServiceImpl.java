@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.order.service.order;
 
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderExtensionDO;
-import com.starcloud.ops.business.order.dal.mysql.order.PayOrderExtensionMapper;
+import com.starcloud.ops.business.order.dal.mysql.order.PayOldOrderExtensionMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -17,10 +17,10 @@ import java.util.List;
 @Service
 @Validated
 @Deprecated
-public class PayOrderExtensionServiceImpl implements PayOrderExtensionService {
+public class PayOldOrderExtensionServiceImpl implements PayOrderExtensionService {
 
     @Resource
-    private PayOrderExtensionMapper orderExtensionMapper;
+    private PayOldOrderExtensionMapper orderExtensionMapper;
 
     @Override
     public PayOrderExtensionDO getOrderExtension(Long id) {

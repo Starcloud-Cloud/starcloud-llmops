@@ -39,8 +39,8 @@ import com.starcloud.ops.business.order.dal.dataobject.merchant.PayAppDO;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayChannelDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderExtensionDO;
-import com.starcloud.ops.business.order.dal.mysql.order.PayOrderExtensionMapper;
-import com.starcloud.ops.business.order.dal.mysql.order.PayOrderMapper;
+import com.starcloud.ops.business.order.dal.mysql.order.PayOldOrderExtensionMapper;
+import com.starcloud.ops.business.order.dal.mysql.order.PayOldOrderMapper;
 import com.starcloud.ops.business.order.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.order.enums.notify.PayNotifyTypeEnum;
 import com.starcloud.ops.business.order.enums.order.PayOrderNotifyStatusEnum;
@@ -81,7 +81,7 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.*;
 @Validated
 @Slf4j
 @Deprecated
-public class PayOrderServiceImpl implements PayOrderService {
+public class PayOldOrderServiceImpl implements PayOrderService {
 
     @Resource
     private PayProperties payProperties;
@@ -93,9 +93,9 @@ public class PayOrderServiceImpl implements PayOrderService {
     private PayClientFactory payClientFactory;
 
     @Resource
-    private PayOrderMapper orderMapper;
+    private PayOldOrderMapper orderMapper;
     @Resource
-    private PayOrderExtensionMapper orderExtensionMapper;
+    private PayOldOrderExtensionMapper orderExtensionMapper;
 
     @Resource
     private PayAppService appService;

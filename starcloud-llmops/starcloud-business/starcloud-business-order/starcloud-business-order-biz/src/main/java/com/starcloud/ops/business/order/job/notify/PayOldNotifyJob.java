@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.order.job.notify;
 
 import cn.iocoder.yudao.framework.quartz.core.handler.JobHandler;
-import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
 import com.starcloud.ops.business.order.service.notify.PayNotifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +16,7 @@ import javax.annotation.Resource;
 @Component
 // 多租户
 @Slf4j
-public class PayNotifyJob implements JobHandler {
+public class PayOldNotifyJob implements JobHandler {
 
     @Resource
     private PayNotifyService payNotifyCoreService;

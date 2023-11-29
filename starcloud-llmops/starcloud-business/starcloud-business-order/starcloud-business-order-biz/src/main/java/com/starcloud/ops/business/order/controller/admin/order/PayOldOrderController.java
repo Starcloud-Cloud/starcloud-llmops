@@ -50,7 +50,7 @@ import static cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder
 @RequestMapping("/llm/pay/order")
 @Validated
 @Slf4j
-public class PayOrderController {
+public class PayOldOrderController {
 
     @Resource
     private PayOrderService payOrderService;
@@ -219,7 +219,7 @@ public class PayOrderController {
     }
 
     // @PostMapping("/update-paid")
-    // @Operation(summary = "更新示例订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob
+    // @Operation(summary = "更新示例订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayOldNotifyJob
     // @PermitAll // 无需登录，安全由 PayDemoOrderService 内部校验实现
     // @OperateLog(enable = false) // 禁用操作日志，因为没有操作人
     // public CommonResult<Boolean> updateDemoOrderPaid(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {

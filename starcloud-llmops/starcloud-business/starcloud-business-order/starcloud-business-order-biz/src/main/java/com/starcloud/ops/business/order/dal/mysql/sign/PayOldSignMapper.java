@@ -6,7 +6,7 @@ import com.starcloud.ops.business.order.dal.dataobject.sign.PaySignDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface PaySignMapper extends BaseMapperX<PaySignDO> {
+public interface PayOldSignMapper extends BaseMapperX<PaySignDO> {
 
     default PaySignDO selectByAppIdAndMerchantSignId(Long appId, String merchantSignId) {
         return selectOne(new QueryWrapper<PaySignDO>().eq("app_id", appId)

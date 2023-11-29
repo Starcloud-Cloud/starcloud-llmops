@@ -24,7 +24,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RestController
 @RequestMapping("/llm/pay/merchant")
 @Validated
-public class PayMerchantController {
+public class PayOldMerchantController {
 
     @Resource
     private PayMerchantService merchantService;

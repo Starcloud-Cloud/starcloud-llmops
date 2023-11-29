@@ -29,7 +29,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RestController
 @RequestMapping("/llm/pay/channel")
 @Validated
-public class PayChannelController {
+public class PayOldChannelController {
 
     @Resource
     private PayChannelService channelService;

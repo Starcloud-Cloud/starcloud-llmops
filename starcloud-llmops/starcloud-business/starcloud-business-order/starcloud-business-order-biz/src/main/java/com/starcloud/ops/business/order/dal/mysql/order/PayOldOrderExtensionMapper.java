@@ -6,7 +6,7 @@ import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderExtensionDO
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface PayOrderExtensionMapper extends BaseMapperX<PayOrderExtensionDO> {
+public interface PayOldOrderExtensionMapper extends BaseMapperX<PayOrderExtensionDO> {
 
     default PayOrderExtensionDO selectByNo(String no) {
         return selectOne(PayOrderExtensionDO::getNo, no);

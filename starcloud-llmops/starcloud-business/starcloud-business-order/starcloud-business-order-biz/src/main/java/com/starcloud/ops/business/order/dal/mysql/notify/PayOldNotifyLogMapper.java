@@ -5,5 +5,5 @@ import com.starcloud.ops.business.order.dal.dataobject.notify.PayNotifyLogDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface PayNotifyLogMapper extends BaseMapperX<PayNotifyLogDO> {
+public interface PayOldNotifyLogMapper extends BaseMapperX<PayNotifyLogDO> {
 }

@@ -11,8 +11,8 @@ import com.starcloud.ops.business.order.controller.admin.merchant.vo.merchant.Pa
 import com.starcloud.ops.business.order.controller.admin.merchant.vo.merchant.PayMerchantUpdateReqVO;
 import com.starcloud.ops.business.order.convert.merchant.PayMerchantConvert;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayMerchantDO;
-import com.starcloud.ops.business.order.dal.mysql.merchant.PayAppMapper;
-import com.starcloud.ops.business.order.dal.mysql.merchant.PayMerchantMapper;
+import com.starcloud.ops.business.order.dal.mysql.merchant.PayOldAppMapper;
+import com.starcloud.ops.business.order.dal.mysql.merchant.PayOldMerchantMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -31,13 +31,13 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.*;
  */
 @Service
 @Validated
-public class PayMerchantServiceImpl implements PayMerchantService {
+public class PayOldMerchantServiceImpl implements PayMerchantService {
 
     @Resource
-    private PayMerchantMapper merchantMapper;
+    private PayOldMerchantMapper merchantMapper;
 
     @Resource
-    private PayAppMapper payAppMapper;
+    private PayOldAppMapper payAppMapper;
 
     @Override
     public Long createMerchant(PayMerchantCreateReqVO createReqVO) {

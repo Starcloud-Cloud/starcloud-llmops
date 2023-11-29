@@ -36,8 +36,8 @@ import com.starcloud.ops.business.order.dal.dataobject.merchant.PayChannelDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderExtensionDO;
 import com.starcloud.ops.business.order.dal.dataobject.sign.PaySignDO;
-import com.starcloud.ops.business.order.dal.mysql.order.PayOrderExtensionMapper;
-import com.starcloud.ops.business.order.dal.mysql.sign.PaySignMapper;
+import com.starcloud.ops.business.order.dal.mysql.order.PayOldOrderExtensionMapper;
+import com.starcloud.ops.business.order.dal.mysql.sign.PayOldSignMapper;
 import com.starcloud.ops.business.order.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.order.enums.order.PayOrderStatusEnum;
 import com.starcloud.ops.business.order.enums.sign.PaySignStatusEnum;
@@ -68,13 +68,13 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.PAY_SIGN
 @Service
 @Validated
 @Slf4j
-public class PaySignServiceImpl implements PaySignService {
+public class PayOldSignServiceImpl implements PaySignService {
 
     @Resource
     private PayProperties payProperties;
 
     @Resource
-    private PaySignMapper signMapper;
+    private PayOldSignMapper signMapper;
 
     @Resource
     private PayOrderService orderService;
@@ -87,7 +87,7 @@ public class PaySignServiceImpl implements PaySignService {
     private PayClientFactory payClientFactory;
 
     @Resource
-    private PayOrderExtensionMapper orderExtensionMapper;
+    private PayOldOrderExtensionMapper orderExtensionMapper;
 
 
     @Resource

@@ -18,7 +18,7 @@ public class PayProperties {
     /**
      * 支付回调地址
      *
-     * 实际上，对应的 PayNotifyController 的 notifyOrder 方法的 URL
+     * 实际上，对应的 PayOldNotifyController 的 notifyOrder 方法的 URL
      *
      * 回调顺序：支付渠道（支付宝支付、微信支付） => yudao-module-pay 的 orderNotifyUrl 地址 => 业务的 PayAppDO.orderNotifyUrl 地址
      */
@@ -29,7 +29,7 @@ public class PayProperties {
     /**
      * 退款回调地址
      *
-     * 实际上，对应的 PayNotifyController 的 notifyRefund 方法的 URL
+     * 实际上，对应的 PayOldNotifyController 的 notifyRefund 方法的 URL
      *
      * 回调顺序：支付渠道（支付宝支付、微信支付） => yudao-module-pay 的 refundNotifyUrl 地址 => 业务的 PayAppDO.notifyRefundUrl 地址
      */
@@ -41,7 +41,7 @@ public class PayProperties {
 //    /**
 //     * 退款回调地址
 //     *
-//     * 实际上，对应的 PayNotifyController 的 notifyRefund 方法的 URL
+//     * 实际上，对应的 PayOldNotifyController 的 notifyRefund 方法的 URL
 //     *
 //     * 回调顺序：支付渠道（支付宝支付、微信支付） => yudao-module-pay 的 refundNotifyUrl 地址 => 业务的 PayAppDO.notifyRefundUrl 地址
 //     */

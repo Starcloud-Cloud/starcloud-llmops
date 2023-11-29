@@ -13,10 +13,10 @@ import com.starcloud.ops.business.order.controller.admin.merchant.vo.app.PayAppU
 import com.starcloud.ops.business.order.convert.app.PayAppConvert;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayAppDO;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayMerchantDO;
-import com.starcloud.ops.business.order.dal.mysql.merchant.PayAppMapper;
-import com.starcloud.ops.business.order.dal.mysql.merchant.PayMerchantMapper;
-import com.starcloud.ops.business.order.dal.mysql.order.PayOrderMapper;
-import com.starcloud.ops.business.order.dal.mysql.refund.PayRefundMapper;
+import com.starcloud.ops.business.order.dal.mysql.merchant.PayOldAppMapper;
+import com.starcloud.ops.business.order.dal.mysql.merchant.PayOldMerchantMapper;
+import com.starcloud.ops.business.order.dal.mysql.order.PayOldOrderMapper;
+import com.starcloud.ops.business.order.dal.mysql.refund.PayOldRefundMapper;
 import com.starcloud.ops.business.order.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.order.enums.order.PayOrderStatusEnum;
 import com.starcloud.ops.business.order.enums.refund.PayRefundStatusEnum;
@@ -39,17 +39,17 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.*;
 @Slf4j
 @Service
 @Validated
-public class PayAppServiceImpl implements PayAppService {
+public class PayOldAppServiceImpl implements PayAppService {
 
     @Resource
-    private PayAppMapper payAppMapper;
+    private PayOldAppMapper payAppMapper;
     // TODO @aquan：使用对方的 Service。模块与模块之间，避免直接调用对方的 mapper
     @Resource
-    private PayMerchantMapper merchantMapper;
+    private PayOldMerchantMapper merchantMapper;
     @Resource
-    private PayOrderMapper orderMapper;
+    private PayOldOrderMapper orderMapper;
     @Resource
-    private PayRefundMapper refundMapper;
+    private PayOldRefundMapper refundMapper;
 
     @Override
     public Long createApp(PayAppCreateReqVO createReqVO) {

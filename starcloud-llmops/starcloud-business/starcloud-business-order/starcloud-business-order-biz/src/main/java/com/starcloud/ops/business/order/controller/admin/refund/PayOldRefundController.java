@@ -40,7 +40,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RestController
 @RequestMapping("/llm/pay/refund")
 @Validated
-public class PayRefundController {
+public class PayOldRefundController {
 
     @Resource
     private PayRefundService refundService;

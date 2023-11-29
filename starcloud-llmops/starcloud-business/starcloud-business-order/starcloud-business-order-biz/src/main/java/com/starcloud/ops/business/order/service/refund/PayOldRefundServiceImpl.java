@@ -17,8 +17,8 @@ import com.starcloud.ops.business.order.dal.dataobject.merchant.PayChannelDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderExtensionDO;
 import com.starcloud.ops.business.order.dal.dataobject.refund.PayRefundDO;
-import com.starcloud.ops.business.order.dal.mysql.order.PayOrderMapper;
-import com.starcloud.ops.business.order.dal.mysql.refund.PayRefundMapper;
+import com.starcloud.ops.business.order.dal.mysql.order.PayOldOrderMapper;
+import com.starcloud.ops.business.order.dal.mysql.refund.PayOldRefundMapper;
 import com.starcloud.ops.business.order.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.order.enums.notify.PayNotifyTypeEnum;
 import com.starcloud.ops.business.order.enums.order.PayOrderNotifyStatusEnum;
@@ -50,7 +50,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 @Validated
-public class PayRefundServiceImpl implements PayRefundService {
+public class PayOldRefundServiceImpl implements PayRefundService {
 
     @Resource
     private PayProperties payProperties;
@@ -59,9 +59,9 @@ public class PayRefundServiceImpl implements PayRefundService {
     private PayClientFactory payClientFactory;
 
     @Resource
-    private PayRefundMapper refundMapper;
+    private PayOldRefundMapper refundMapper;
     @Resource
-    private PayOrderMapper orderMapper; // TODO @jason：需要改成不直接操作 db；
+    private PayOldOrderMapper orderMapper; // TODO @jason：需要改成不直接操作 db；
 
     @Resource
     private PayOrderService orderService;

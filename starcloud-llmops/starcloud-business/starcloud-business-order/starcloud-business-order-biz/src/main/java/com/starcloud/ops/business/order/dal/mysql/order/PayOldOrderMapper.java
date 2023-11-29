@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Mapper
-public interface PayOrderMapper extends BaseMapperX<PayOrderDO> {
+public interface PayOldOrderMapper extends BaseMapperX<PayOrderDO> {
 
     default PageResult<PayOrderDO> selectPage(PayOrderPageReqVO reqVO) {
         return selectPage(reqVO, new QueryWrapperX<PayOrderDO>()

@@ -13,7 +13,7 @@ import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
 @Mapper
-public interface PayRefundMapper extends BaseMapperX<PayRefundDO> {
+public interface PayOldRefundMapper extends BaseMapperX<PayRefundDO> {
 
     default PageResult<PayRefundDO> selectPage(PayRefundPageReqVO reqVO) {
         return selectPage(reqVO, new QueryWrapperX<PayRefundDO>()

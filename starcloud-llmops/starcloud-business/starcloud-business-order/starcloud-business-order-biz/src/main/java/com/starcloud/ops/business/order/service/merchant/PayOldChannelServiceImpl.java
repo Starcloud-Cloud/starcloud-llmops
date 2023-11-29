@@ -3,7 +3,6 @@ package com.starcloud.ops.business.order.service.merchant;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import cn.iocoder.yudao.framework.pay.core.client.PayClientConfig;
@@ -18,7 +17,7 @@ import com.starcloud.ops.business.order.controller.admin.merchant.vo.channel.Pay
 import com.starcloud.ops.business.order.controller.admin.merchant.vo.channel.PayChannelUpdateReqVO;
 import com.starcloud.ops.business.order.convert.channel.PayChannelConvert;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayChannelDO;
-import com.starcloud.ops.business.order.dal.mysql.merchant.PayChannelMapper;
+import com.starcloud.ops.business.order.dal.mysql.merchant.PayOldChannelMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,7 +44,7 @@ import static com.starcloud.ops.business.order.enums.ErrorCodeConstants.*;
 @Service
 @Slf4j
 @Validated
-public class PayChannelServiceImpl implements PayChannelService {
+public class PayOldChannelServiceImpl implements PayChannelService {
 
     /**
      * {@link PayClient} 缓存，通过它异步清空 smsClientFactory
@@ -75,7 +74,7 @@ public class PayChannelServiceImpl implements PayChannelService {
     private PayClientFactory payClientFactory;
 
     @Resource
-    private PayChannelMapper channelMapper;
+    private PayOldChannelMapper channelMapper;
 
     @Resource
     private Validator validator;

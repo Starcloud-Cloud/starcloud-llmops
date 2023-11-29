@@ -11,12 +11,12 @@ import org.springframework.context.annotation.Configuration;
  * @author 芋道源码
  */
 @Configuration(proxyBeanMethods = false)
-public class PayWebConfiguration {
+public class PayOldWebConfiguration {
 
     /**
      * pay 模块的 API 分组
      */
-    @Bean
+    @Bean(name ="payGroupedOpenApi_old" )
     public GroupedOpenApi payGroupedOpenApi() {
         return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("pay");
     }

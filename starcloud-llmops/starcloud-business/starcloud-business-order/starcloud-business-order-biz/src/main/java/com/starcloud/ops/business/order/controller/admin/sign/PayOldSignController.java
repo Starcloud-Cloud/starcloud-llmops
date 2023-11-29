@@ -30,7 +30,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/llm/pay/sign")
 @Validated
 @Slf4j
-public class PaySignController {
+public class PayOldSignController {
 
     @Resource
     private PaySignService paySignService;

@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * @author 芋道源码
  */
 @Repository
-public class PayNotifyLockRedisDAO {
+public class PayOldNotifyLockRedisDAO {
 
     @Resource
     private RedissonClient redissonClient;
