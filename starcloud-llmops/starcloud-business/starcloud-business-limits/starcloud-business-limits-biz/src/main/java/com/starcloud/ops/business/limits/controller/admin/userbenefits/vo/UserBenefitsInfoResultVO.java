@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.limits.controller.admin.userbenefits.vo;
 
+import cn.iocoder.yudao.framework.common.validation.InEnum;
+import com.starcloud.ops.business.limits.enums.UserLevelEnums;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
@@ -18,6 +20,9 @@ public class UserBenefitsInfoResultVO {
 
     @Schema(description = "用户等级")
     private String userLevel;
+
+    @Schema(description = "用户等级")
+    private String userLevelName;
 
     @Schema(description = "权益数据")
     private List<UserBenefitsBaseResultVO> benefits;

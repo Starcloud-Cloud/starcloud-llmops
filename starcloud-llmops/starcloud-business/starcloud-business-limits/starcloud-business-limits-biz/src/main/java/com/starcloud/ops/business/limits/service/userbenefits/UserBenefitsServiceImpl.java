@@ -510,6 +510,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
             userLevelEnums = UserLevelEnums.FREE;
         }
         userBenefitsInfoResultVO.setUserLevel(userLevelEnums.getCode().toLowerCase());
+        userBenefitsInfoResultVO.setUserLevelName(userLevelEnums.getMsg());
 
 
         List<UserBenefitsBaseResultVO> benefitsList = new ArrayList<>();
