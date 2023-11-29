@@ -24,7 +24,7 @@ public interface SingleMissionService {
     /**
      * 修改任务
      */
-    SingleMissionRespVO modifySelective(@Valid SingleMissionModifyReqVO reqVO);
+    void modifySelective(@Valid SingleMissionModifyReqVO reqVO);
 
     /**
      * 更新任务
@@ -52,7 +52,7 @@ public interface SingleMissionService {
     SingleMissionRespVO getById(Long id);
 
     /**
-     * 查询Id
+     * 查询预结算 Id
      */
     List<Long> selectIds(@Valid SingleMissionQueryReqVO reqVO);
 

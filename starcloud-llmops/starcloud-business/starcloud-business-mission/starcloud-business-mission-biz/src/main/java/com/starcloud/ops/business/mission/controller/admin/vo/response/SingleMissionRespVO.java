@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 @Schema(description = "单条任务")
 public class SingleMissionRespVO {
 
+    @Schema(description = "id")
+    private Long id;
+
     @Schema(description = "uid")
     private String uid;
 

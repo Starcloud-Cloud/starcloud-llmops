@@ -18,12 +18,27 @@ public class SingleMissionModifyReqVO {
     @NotBlank(message = "uid 不能为空")
     private String uid;
 
+    @Schema(description = "认领Id")
+    private String claimId;
+
+    @Schema(description = "认领人")
+    private String claimName;
+
+    @Schema(description = "认领时间")
+    private LocalDateTime claimTime;
+
     @Schema(description = "发布链接", example ="https://www.xiaohongshu.com/explore/24位数字和字母")
     @Pattern(regexp = XHS_URL_REGEX, message = "发布链接为浏览器访问地址，如： https://www.xiaohongshu.com/explore/24位数字和字母")
     private String publishUrl;
 
     @Schema(description = "发布时间")
     private LocalDateTime publishTime;
+
+    @Schema(description = "点赞数")
+    private Integer likedCount;
+
+    @Schema(description = "评论数")
+    private Integer commentCount;
 
     @Schema(description = "预结算时间")
     private LocalDateTime preSettlementTime;

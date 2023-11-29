@@ -55,7 +55,7 @@
         <if test="req.status != null and req.status != ''">
             and pic.status = #{req.status} and text.status = #{req.status}
         </if>
-        order by pic.create_time desc limit #{start},#{end}
+        order by pic.update_time limit #{start},#{end}
     </select>
 
     <select id="detail" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO">
