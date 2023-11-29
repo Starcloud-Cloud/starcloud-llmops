@@ -141,22 +141,14 @@ public class XhsCreativeExecuteManager {
                 XhsAppCreativeExecuteResponse executeResponse = respMap.get(contentDO.getUid());
                 if (!executeResponse.getSuccess()) {
                     result.put(contentDO.getId(), false);
-                    if (contentDO.getRetryCount() >= maxRetry) {
-                        updateFailureFinished(contentDO.getId(), start, executeResponse.getErrorMsg(), maxRetry);
-                    } else {
-                        updateFailure(contentDO.getId(), contentDO.getRetryCount() + 1, start, executeResponse.getErrorMsg());
-                    }
+                    updateFailure(contentDO.getId(), start, executeResponse.getErrorMsg(), contentDO.getRetryCount(), maxRetry);
                     continue;
                 }
 
                 CopyWritingContentDTO copyWriting = executeResponse.getCopyWriting();
                 if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
                     result.put(contentDO.getId(), false);
-                    if (contentDO.getRetryCount() >= maxRetry) {
-                        updateFailureFinished(contentDO.getId(), start, "文案内容为空", maxRetry);
-                    } else {
-                        updateFailure(contentDO.getId(), contentDO.getRetryCount() + 1, start, "文案内容为空");
-                    }
+                    updateFailure(contentDO.getId(), start, "文案内容为空", contentDO.getRetryCount(), maxRetry);
                     continue;
                 }
 
@@ -326,20 +318,20 @@ public class XhsCreativeExecuteManager {
 
             // 校验结果
             if (Objects.isNull(response)) {
-                updateFailure(latestContent.getId(), latestContent.getRetryCount() + 1, start, formatErrorMsg("创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid()));
+                updateFailure(latestContent.getId(), start, formatErrorMsg("创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid()), latestContent.getRetryCount(), maxRetry);
                 throw exception(350600115, "创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid());
             }
             // 是否成功
             if (!response.getSuccess()) {
                 Integer errorCode = Objects.isNull(response.getErrorCode()) ? 350600119 : response.getErrorCode();
                 String message = StringUtils.isBlank(response.getErrorMessage()) ? "创作中心：图片生成失败！" : response.getErrorMessage();
-                updateFailure(latestContent.getId(), latestContent.getRetryCount() + 1, start, message);
+                updateFailure(latestContent.getId(), start, message, latestContent.getRetryCount(), maxRetry);
                 throw exception(errorCode, message);
             }
             // 图片生成结果
             List<XhsImageExecuteResponse> imageResponseList = CollectionUtil.emptyIfNull(response.getImageStyleResponse().getImageResponses());
             if (CollectionUtils.isEmpty(imageResponseList)) {
-                updateFailure(latestContent.getId(), latestContent.getRetryCount() + 1, start, formatErrorMsg("创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid()));
+                updateFailure(latestContent.getId(), start, formatErrorMsg("创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid()), latestContent.getRetryCount(), maxRetry);
                 throw exception(350600120, "创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid());
             }
 
@@ -381,15 +373,21 @@ public class XhsCreativeExecuteManager {
      * 执行失败，更新创作内容
      *
      * @param id       创作内容ID
-     * @param retry    重试次数
      * @param start    开始时间
      * @param errorMsg 错误信息
+     * @param retry    重试次数
+     * @param maxRetry 最大重试次数
      */
-    private void updateFailure(Long id, Integer retry, LocalDateTime start, String errorMsg) {
+    private void updateFailure(Long id, LocalDateTime start, String errorMsg, Integer retry, Integer maxRetry) {
+        // 重试次数大于阈值，更新为最终失败
+        if (retry >= maxRetry) {
+            updateFailureFinished(id, start, errorMsg, maxRetry);
+            return;
+        }
         XhsCreativeContentDO content = new XhsCreativeContentDO();
         content.setId(id);
         content.setErrorMsg(errorMsg);
-        content.setRetryCount(retry);
+        content.setRetryCount(retry + 1);
         content.setStatus(XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode());
         content.setStartTime(start);
         LocalDateTime end = LocalDateTime.now();

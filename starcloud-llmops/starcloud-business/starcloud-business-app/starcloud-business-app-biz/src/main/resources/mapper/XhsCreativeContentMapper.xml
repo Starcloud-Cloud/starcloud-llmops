@@ -129,4 +129,25 @@
         </if>
         order by pic.create_time desc
     </select>
+    
+    <select id="listGroupByBusinessUid"
+            resultType="com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentBusinessPO">
+        SELECT
+            plan_uid AS planUid,
+            business_uid AS businessUid,
+            SUM(CASE WHEN status = 'execute_success' THEN 1 ELSE 0 END) AS successCount,
+            SUM(CASE WHEN status = 'execute_error_finished' THEN 1 ELSE 0 END) AS failureCount
+        FROM
+            llm_creative_content
+        WHERE
+            plan_uid IN
+            <foreach collection="planUidList" item="planUid" open="(" close=")" separator=",">
+                #{planUid}
+            </foreach>
+          AND deleted = 0
+        GROUP BY
+            plan_uid, business_uid
+        ORDER BY
+            id DESC
+    </select>
 </mapper>
