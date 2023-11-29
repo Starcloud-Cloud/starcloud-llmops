@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.mission.service;
 
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
@@ -24,7 +24,7 @@ public interface SingleMissionService {
     /**
      * 修改任务
      */
-    SingleMissionRespVO modifySelective(@Valid SingleMissionModifyReqVO reqVO);
+    void modifySelective(@Valid SingleMissionModifyReqVO reqVO);
 
     /**
      * 更新任务
@@ -52,7 +52,7 @@ public interface SingleMissionService {
     SingleMissionRespVO getById(Long id);
 
     /**
-     * 查询Id
+     * 查询预结算 Id
      */
     List<Long> selectIds(@Valid SingleMissionQueryReqVO reqVO);
 
@@ -64,5 +64,15 @@ public interface SingleMissionService {
     /**
      * 导出结算信息
      */
-    List<SingleMissionExportVO> exportSettlement(String notificationUid);
+    List<SingleMissionExportVO> exportSettlement(SinglePageQueryReqVO reqVO);
+
+    /**
+     * 刷新小红书笔记
+     */
+    void refreshNote(String uid);
+
+    /**
+     * 结算更新
+     */
+    void settlement(SingleMissionRespVO singleMissionRespVO);
 }

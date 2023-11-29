@@ -6,7 +6,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationPageQueryReqVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
+import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface NotificationCenterMapper extends BaseMapperX<NotificationCenterDO> {
@@ -29,4 +33,9 @@ public interface NotificationCenterMapper extends BaseMapperX<NotificationCenter
                 .last(" limit 1");
         return selectOne(wrapper);
     }
+
+    Long pageCount(@Param("reqVO") NotificationPageQueryReqVO reqVO);
+
+    List<NotificationCenterDTO> pageDetail(@Param("reqVO") NotificationPageQueryReqVO reqVO,
+                                           @Param("start") Integer start, @Param("end") Integer end);
 }

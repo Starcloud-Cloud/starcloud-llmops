@@ -2,6 +2,7 @@ package com.starcloud.ops.business.mission.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationCreateReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
@@ -9,6 +10,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.request.Notificati
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
 import com.starcloud.ops.business.mission.convert.NotificationCenterConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
+import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
 import com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper;
 import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
@@ -49,8 +52,12 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
 
     @Override
     public PageResult<NotificationRespVO> page(NotificationPageQueryReqVO reqVO) {
-        PageResult<NotificationCenterDO> page = notificationCenterMapper.page(reqVO);
-        return NotificationCenterConvert.INSTANCE.convert(page);
+        Long count = notificationCenterMapper.pageCount(reqVO);
+        if (count == null || count <= 0) {
+            return PageResult.empty();
+        }
+        List<NotificationCenterDTO> centerDTOList = notificationCenterMapper.pageDetail(reqVO, PageUtils.getStart(reqVO), reqVO.getPageSize());
+        return new PageResult<>(NotificationCenterConvert.INSTANCE.convert(centerDTOList), count);
     }
 
     @Override
@@ -59,12 +66,12 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         NotificationCenterDO notificationCenterDO = getByUid(uid);
         if (BooleanUtils.isTrue(publish)) {
             if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
             }
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.published.getCode());
         } else {
             if (!NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
             }
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.cancel_published.getCode());
         }
@@ -76,7 +83,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     public void delete(String uid) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
         }
         notificationCenterMapper.deleteById(notificationCenterDO.getId());
     }
@@ -99,7 +106,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     public NotificationRespVO modifySelective(NotificationModifyReqVO reqVO) {
         NotificationCenterDO notificationCenterDO = getByUid(reqVO.getUid());
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
         }
         if (StringUtils.isNotBlank(reqVO.getName()) && !StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());

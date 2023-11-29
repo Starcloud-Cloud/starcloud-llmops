@@ -11,10 +11,13 @@ import java.time.LocalDateTime;
 @Schema(description = "任务详情")
 public class NotificationRespVO {
 
+    @Schema(description = "id")
+    private Long id;
+
     @Schema(description = "uid")
     private String uid;
 
-    @Schema(description = "任务名称")
+    @Schema(description = "通告名称")
     private String name;
 
     @Schema(description = "平台")
@@ -49,4 +52,22 @@ public class NotificationRespVO {
 
     @Schema(description = "备注")
     private String remark;
+
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
+
+    @Schema(description = "更新时间")
+    private LocalDateTime updateTime;
+
+    @Schema(description = "总量")
+    private Long total;
+
+    @Schema(description = "待领取数")
+    private Long stayClaimCount;
+
+    @Schema(description = "领取数")
+    private Long claimCount;
+
+    @Schema(description = "完成数")
+    private Long settlementCount;
 }

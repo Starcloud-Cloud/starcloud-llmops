@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper">
+
+
+    <select id="pageCount" resultType="java.lang.Long">
+        select count(*)
+        from llm_notification
+        where deleted = false
+    </select>
+
+    <select id="pageDetail" resultType="com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO">
+        select n.*,
+               COUNT(CASE WHEN m.status = 'stay_claim' THEN 1 END) AS stayClaimCount,
+               COUNT(CASE WHEN m.status = 'claimed' THEN 1 END) AS claimCount,
+               COUNT(CASE WHEN m.status = 'settlement' THEN 1 END) AS settlementCount,
+               COUNT(m.id) AS total
+        from llm_notification n
+                 left join llm_single_mission m on m.notification_Uid = n.uid
+        where n.deleted = false
+          and (m.deleted = false or m.deleted is null)
+        group by n.uid
+        order by create_time desc
+        limit #{start},#{end}
+    </select>
+</mapper>

@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.mission.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
@@ -48,8 +48,9 @@ public class SingleMissionController {
 
     @PutMapping("/modify")
     @Operation(summary = "修改单条任务", description = "修改单条任务")
-    public CommonResult<SingleMissionRespVO> modify(@Valid @RequestBody SingleMissionModifyReqVO reqVO) {
-        return CommonResult.success(singleMissionService.modifySelective(reqVO));
+    public CommonResult<Boolean> modify(@Valid @RequestBody SingleMissionModifyReqVO reqVO) {
+        singleMissionService.modifySelective(reqVO);
+        return CommonResult.success(true);
     }
 
     @DeleteMapping("/delete/{uid}")
@@ -66,13 +67,19 @@ public class SingleMissionController {
         return CommonResult.success(true);
     }
 
-    @GetMapping("/export/{notificationUid}")
+    @GetMapping("/export")
     @Operation(summary = "导出任务", description = "导出任务")
-    public void exportSettlement(@PathVariable("notificationUid") String notificationUid, HttpServletResponse response) throws IOException {
-        List<SingleMissionExportVO> exported = singleMissionService.exportSettlement(notificationUid);
-        String fileName = notificationUid + ".xls";
-        ExcelUtils.write(response, fileName, notificationUid, SingleMissionExportVO.class, exported);
+    public void exportSettlement(@Valid @RequestBody SinglePageQueryReqVO reqVO, HttpServletResponse response) throws IOException {
+        List<SingleMissionExportVO> exported = singleMissionService.exportSettlement(reqVO);
+        String fileName = reqVO.getNotificationUid() + ".xls";
+        ExcelUtils.write(response, fileName, reqVO.getNotificationUid(), SingleMissionExportVO.class, exported);
     }
 
+    @PostMapping("/refresh/note/{uid}")
+    @Operation(summary = "刷新结算", description = "刷新笔记 重新结算")
+    public CommonResult<Boolean> refreshNote(@PathVariable("uid") String uid) {
+        singleMissionService.refreshNote(uid);
+        return CommonResult.success(true);
+    }
 
 }

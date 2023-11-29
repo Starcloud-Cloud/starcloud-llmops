@@ -12,6 +12,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMis
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
+import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
 import com.starcloud.ops.business.mission.task.XhsTaskContentParams;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.*;
@@ -33,6 +34,10 @@ public interface SingleMissionConvert {
     SingleMissionRespVO convert(SingleMissionDO singleMissionDO);
 
     List<SingleMissionExportVO> convert(List<SingleMissionDO> missionList);
+
+    List<SingleMissionRespVO> pageConvert(List<SingleMissionDTO> singleMissionList);
+
+    SingleMissionRespVO convert(SingleMissionDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
