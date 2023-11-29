@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.promotion.convert.diy;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.module.promotion.controller.admin.diy.vo.page.*;
 import com.starcloud.ops.business.promotion.controller.admin.diy.vo.page.*;
 import com.starcloud.ops.business.promotion.dal.dataobject.diy.DiyPageDO;
 import org.mapstruct.Mapper;

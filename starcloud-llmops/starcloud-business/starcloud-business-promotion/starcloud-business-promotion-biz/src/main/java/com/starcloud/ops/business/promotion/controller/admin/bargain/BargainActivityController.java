@@ -5,7 +5,6 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
-import cn.iocoder.yudao.module.promotion.controller.admin.bargain.vo.activity.*;
 import com.starcloud.ops.business.promotion.controller.admin.bargain.vo.activity.*;
 import com.starcloud.ops.business.promotion.convert.bargain.BargainActivityConvert;
 import com.starcloud.ops.business.promotion.dal.dataobject.bargain.BargainActivityDO;

@@ -6,8 +6,10 @@ import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 import com.starcloud.ops.business.order.convert.order.TradeOrderConvert;
 import com.starcloud.ops.business.order.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.TradeOrderItemDO;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.List;
 
@@ -23,6 +25,12 @@ public class TradeProductSkuOrderHandler implements TradeOrderHandler {
 
     @Resource
     private ProductSkuApi productSkuApi;
+
+    @PostConstruct
+    public void ss() {
+        System.out.println("");
+        System.out.println(productSkuApi);
+    }
 
     @Override
     public void beforeOrderCreate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {

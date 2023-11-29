@@ -3,7 +3,6 @@ package com.starcloud.ops.business.promotion.controller.admin.seckill;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.module.promotion.controller.admin.seckill.vo.config.*;
 import com.starcloud.ops.business.promotion.controller.admin.seckill.vo.config.*;
 import com.starcloud.ops.business.promotion.convert.seckill.seckillconfig.SeckillConfigConvert;
 import com.starcloud.ops.business.promotion.dal.dataobject.seckill.SeckillConfigDO;

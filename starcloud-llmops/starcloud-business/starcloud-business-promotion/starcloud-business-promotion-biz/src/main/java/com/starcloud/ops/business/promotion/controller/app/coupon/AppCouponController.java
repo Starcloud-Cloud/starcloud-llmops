@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
-import cn.iocoder.yudao.module.promotion.controller.app.coupon.vo.coupon.*;
 import com.starcloud.ops.business.promotion.controller.app.coupon.vo.coupon.*;
 import com.starcloud.ops.business.promotion.convert.coupon.CouponConvert;
 import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponDO;

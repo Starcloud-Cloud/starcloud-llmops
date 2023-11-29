@@ -8,6 +8,7 @@ import com.starcloud.ops.business.product.service.sku.ProductSkuService;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
@@ -19,8 +20,12 @@ import java.util.List;
  * @since 2022-09-06
  */
 @Service
-@Validated
 public class ProductSkuApiImpl implements ProductSkuApi {
+
+    @PostConstruct
+    public void ss() {
+        System.out.println("sssss");
+    }
 
     @Resource
     private ProductSkuService productSkuService;

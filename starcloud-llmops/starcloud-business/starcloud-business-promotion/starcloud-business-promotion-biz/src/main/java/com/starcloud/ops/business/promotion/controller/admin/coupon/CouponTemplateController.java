@@ -2,7 +2,6 @@ package com.starcloud.ops.business.promotion.controller.admin.coupon;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.module.promotion.controller.admin.coupon.vo.template.*;
 import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.*;
 import com.starcloud.ops.business.promotion.convert.coupon.CouponTemplateConvert;
 import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponTemplateDO;
