@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.limits.controller.admin.userbenefits.vo;
 
-import cn.iocoder.yudao.framework.common.validation.InEnum;
-import com.starcloud.ops.business.limits.enums.UserLevelEnums;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
