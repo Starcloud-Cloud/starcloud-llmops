@@ -29,6 +29,13 @@ public class XhsCreativeContentController {
         return CommonResult.success(result);
     }
 
+    @GetMapping("/newPage")
+    @Operation(summary = "分页查询")
+    public CommonResult<com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp>> newPage(@Valid XhsCreativeContentPageReq req) {
+        com.starcloud.ops.business.app.controller.admin.xhs.vo.response.PageResult<XhsCreativeContentResp> result = creativeContentService.newPage(req);
+        return CommonResult.success(result);
+    }
+
     @GetMapping("/detail/{businessUid}")
     @Operation(summary = "创作内容详情")
     public CommonResult<XhsCreativeContentResp> detail(

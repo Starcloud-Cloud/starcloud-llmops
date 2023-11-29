@@ -24,6 +24,9 @@
             <if test="req.planUid != null and req.planUid != ''">
                 and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
             </if>
+            <if test="req.schemeUid != null and req.schemeUid != ''">
+                and pic.scheme_uid = #{req.schemeUid} and text.scheme_uid = #{req.schemeUid}
+            </if>
             <if test="req.claim != null ">
                 and pic.claim = #{req.claim} and text.claim = #{req.claim}
             </if>
@@ -42,6 +45,9 @@
         and pic.deleted = false and text.deleted = false
         <if test="req.planUid != null and req.planUid != ''">
             and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.schemeUid != null and req.schemeUid != ''">
+            and pic.scheme_uid = #{req.schemeUid} and text.scheme_uid = #{req.schemeUid}
         </if>
         <if test="req.claim != null ">
             and pic.claim = #{req.claim} and text.claim = #{req.claim}

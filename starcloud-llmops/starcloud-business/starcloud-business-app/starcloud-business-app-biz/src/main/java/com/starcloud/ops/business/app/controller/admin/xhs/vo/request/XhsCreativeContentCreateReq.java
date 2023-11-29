@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.vo.request;
 
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
+import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExtendDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -11,6 +11,13 @@ import java.util.List;
 @Data
 @Schema(description = "创建创作计划")
 public class XhsCreativeContentCreateReq {
+
+    /**
+     * 创作方案UID
+     */
+    @Schema(description = "创作方案UID")
+    @NotBlank(message = "创作方案UID 不能为空")
+    private String schemeUid;
 
     @Schema(description = "创作计划uid")
     @NotBlank(message = "创作计划uid 不能为空")
@@ -35,7 +42,7 @@ public class XhsCreativeContentCreateReq {
     private List<String> usePicture;
 
     @Schema(description = "执行参数")
-    private XhsCreativeContentExecuteParamsDTO executeParams;
+    private CreativePlanExecuteDTO executeParams;
 
     @Schema(description = "拓展信息")
     private XhsCreativeContentExtendDTO extend;

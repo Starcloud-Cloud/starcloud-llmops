@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.limits.controller.admin.userbenefitsstrategy.vo.UserBenefitsStrategyCreateReqVO;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -129,7 +131,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
 
 
         // 输入转换
-        UserBenefitsStrategyDO userBenefitsStrategy = UserBenefitsStrategyConvert.convert(createReqVO);
+        UserBenefitsStrategyDO userBenefitsStrategy = UserBenefitsStrategyConvert.INSTANCE.convert(createReqVO);
         // 设置 code 前缀
         userBenefitsStrategy.setCode(userBenefitsStrategy.getCode());
         // 数据插入
@@ -187,7 +189,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         // 校验数据是否可以修改
         validateCanModify(updateReqVO.getId());
         // 更新
-        UserBenefitsStrategyDO updateObj = UserBenefitsStrategyConvert.convert(updateReqVO);
+        UserBenefitsStrategyDO updateObj = UserBenefitsStrategyConvert.INSTANCE.convert(updateReqVO);
         userBenefitsStrategyMapper.updateById(updateObj);
         log.info("[deleteUserBenefitsStrategy][修改用户权益策略成功。：策略ID({})|用户ID({})", updateReqVO.getId(), getLoginUserId());
     }
@@ -245,6 +247,7 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         wrapper.eq(UserBenefitsStrategyDO::getStrategyType, strategyType);
         wrapper.eq(UserBenefitsStrategyDO::getEnabled, true);
 
+
         List<UserBenefitsStrategyDO> userBenefitsStrategyDOS = userBenefitsStrategyMapper.selectList(wrapper);
         int size = userBenefitsStrategyDOS.size();
         if (size == 0) {
@@ -255,8 +258,13 @@ public class UserBenefitsStrategyServiceImpl implements UserBenefitsStrategyServ
         if (size > 1) {
             log.warn("[getMasterConfigStrategyByType][根据类型获取权益策略失败！存在多条同类型系统配置：策略类型({})", strategyType);
         }
+        UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsStrategyDOS.get(0);
 
-        return userBenefitsStrategyDOS.get(0);
+        if (!LocalDateTimeUtils.isBetween(userBenefitsStrategyDO.getStartTime(),userBenefitsStrategyDO.getEndTime())){
+            log.warn("[getMasterConfigStrategyByType][不在有效期范围内：策略类型({})", strategyType);
+            throw exception(BENEFITS_STRATEGY_OUT_OF_VALIDITY);
+        }
+        return userBenefitsStrategyDO;
     }
 
     @Override

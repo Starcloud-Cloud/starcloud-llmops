@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.dashscope.aigc.generation.GenerationResult;
@@ -15,6 +16,7 @@ import com.starcloud.ops.llm.langchain.core.model.chat.ChatOpenAI;
 import com.starcloud.ops.llm.langchain.core.model.chat.ChatQwen;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMResult;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.BaseLLMUsage;
+import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
@@ -26,6 +28,7 @@ import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.theokanning.openai.OpenAiHttpException;
+import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +37,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Open AI 执行
@@ -110,6 +115,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
                 chatOpenAI.setStream(request.getStream());
                 chatOpenAI.setMaxTokens(request.getMaxTokens());
                 chatOpenAI.setTemperature(request.getTemperature());
+                chatOpenAI.setN(request.getN());
                 chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
 
                 //数据集支持
@@ -120,12 +126,24 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
                 ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
 
                 baseLLMUsage = chatResult.getUsage();
-                msg = chatResult.getText();
+                if (request.getN() == 1) {
+                    msg = chatResult.getText();
+                } else {
+                    List<ChatCompletionResult> collect = CollectionUtil.emptyIfNull(chatResult.getChatGenerations()).stream()
+                            .map(ChatGeneration::getGenerationInfo).filter(Objects::nonNull).collect(Collectors.toList());
+                    if (CollectionUtil.isEmpty(collect)) {
+                        msg = "[]";
+                    } else {
+                        ChatCompletionResult chatCompletionResult = collect.get(0);
+                        List<ChatCompletionChoice> choices = CollectionUtil.emptyIfNull(chatCompletionResult.getChoices()).stream().peek(item -> item.setFinishReason(null)).collect(Collectors.toList());
+                        msg = JSONUtil.toJsonStr(choices);
+                    }
+                }
             }
 
             //组装参数
-            appStepResponse.setAnswer(msg);
             appStepResponse.setSuccess(true);
+            appStepResponse.setAnswer(msg);
             appStepResponse.setOutput(msg);
             appStepResponse.setMessageTokens(baseLLMUsage.getPromptTokens());
             appStepResponse.setAnswerTokens(baseLLMUsage.getCompletionTokens());
@@ -200,7 +218,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         /**
          * AI 模型, 默认 ChatGPT 3.5 Turbo
          */
-        private String model = ModelTypeEnum.GPT_3_5_TURBO.getName();
+        private String model = ModelTypeEnum.GPT_3_5_TURBO_16K.getName();
 
         /**
          * 后续新参数 都是一个个独立字段即可

@@ -10,7 +10,9 @@ import lombok.ToString;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
@@ -23,7 +25,7 @@ import java.util.Map;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "XhsAppRequest", description = "小红书应用请求")
+@Schema(name = "XhsAppExecuteRequest", description = "小红书应用请求")
 public class XhsAppExecuteRequest implements java.io.Serializable {
 
     private static final long serialVersionUID = 8420397508429949580L;
@@ -56,10 +58,18 @@ public class XhsAppExecuteRequest implements java.io.Serializable {
     private Long userId;
 
     /**
-     * 是否需要标签
+     * 步骤ID
      */
-    @Schema(description = "是否需要标签")
-    private Boolean needTag;
+    @Schema(description = "步骤ID")
+    private String stepId;
+
+    /**
+     * 生成数量
+     */
+    @Schema(description = "生成数量")
+    @NotNull(message = "生成条数不能为空！")
+    @Min(value = 1, message = "生成条数不能小于1！")
+    private Integer n;
 
     /**
      * 应用生成参数

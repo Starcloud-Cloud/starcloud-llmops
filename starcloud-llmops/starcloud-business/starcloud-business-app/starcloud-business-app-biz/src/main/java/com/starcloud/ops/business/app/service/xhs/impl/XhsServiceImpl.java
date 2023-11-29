@@ -1,57 +1,60 @@
 package com.starcloud.ops.business.app.service.xhs.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsAppResponse;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateResponse;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsBathImageExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
-import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
+import com.starcloud.ops.business.app.feign.dto.PosterParam;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
+import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.app.AppService;
-import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.app.service.xhs.FastPosterFactory;
+import com.starcloud.ops.business.app.service.poster.PosterService;
+import com.starcloud.ops.business.app.service.xhs.XhsImageCreativeThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.XhsImageStyleThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
-import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import lombok.extern.slf4j.Slf4j;
-import net.fastposter.client.FastposterClient;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_CONFIG_FAILURE;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_STEP_FAILURE;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECUTE_LISTING_VARIABLE_FAILURE;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE;
 
 /**
  * @author nacoyer
@@ -69,7 +72,13 @@ public class XhsServiceImpl implements XhsService {
     private AppMarketService appMarketService;
 
     @Resource
-    private AppDictionaryService appDictionaryService;
+    private PosterService posterService;
+
+    @Resource
+    private XhsImageStyleThreadPoolHolder xhsImageStyleThreadPoolHolder;
+
+    @Resource
+    private XhsImageCreativeThreadPoolHolder xhsImageCreativeThreadPoolHolder;
 
     /**
      * 获取图片模板
@@ -77,41 +86,85 @@ public class XhsServiceImpl implements XhsService {
      * @return 图片模板
      */
     @Override
-    public List<XhsImageTemplateResponse> imageTemplates() {
-        List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
-        return CollectionUtil.emptyIfNull(templateList).stream().map(item -> {
-            XhsImageTemplateResponse response = new XhsImageTemplateResponse();
+    public List<XhsImageTemplateDTO> imageTemplates() {
+        List<PosterTemplateDTO> templates = posterService.templates();
+        return CollectionUtil.emptyIfNull(templates).stream().map(item -> {
+            List<PosterParam> params = CollectionUtil.emptyIfNull(item.getParams());
+            int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
+            List<VariableItemDTO> variables = params.stream().map(param -> {
+                if ("image".equals(param.getType())) {
+                    return CreativeUtil.ofImageVariable(param.getId(), param.getName());
+                } else if ("text".equals(param.getType())) {
+                    return CreativeUtil.ofInputVariable(param.getId(), param.getName());
+                } else {
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+
+            XhsImageTemplateDTO response = new XhsImageTemplateDTO();
             response.setId(item.getId());
-            response.setName(item.getName());
-            response.setImageNumber(item.getImageNumber());
-            response.setVariables(item.getVariables());
+            response.setName(item.getLabel());
+            response.setExample(item.getTempUrl());
+            response.setVariables(variables);
+            response.setImageNumber(imageNumber);
             return response;
         }).collect(Collectors.toList());
     }
 
     /**
-     * 获取应用信息
+     * 根据类型获取需要执行的应用信息
      *
-     * @param uid 应用UID
+     * @param type 计划类型
      * @return 应用信息
      */
     @Override
-    public XhsAppResponse getApp(String uid) {
-        AppMarketRespVO appMarket = appMarketService.get(uid);
-        List<VariableItemRespVO> variableList = Optional.ofNullable(appMarket).map(AppMarketRespVO::getWorkflowConfig)
-                .map(WorkflowConfigRespVO::getSteps)
-                .map(steps -> steps.get(0)).map(WorkflowStepWrapperRespVO::getVariable)
-                .map(VariableRespVO::getVariables)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(310900100, "系统步骤不能为空")));
-        variableList = variableList.stream().filter(VariableItemRespVO::getIsShow).collect(Collectors.toList());
-        XhsAppResponse response = new XhsAppResponse();
-        response.setUid(appMarket.getUid());
-        response.setName(appMarket.getName());
-        response.setCategory(appMarket.getCategory());
-        response.setIcon(appMarket.getIcon());
-        response.setDescription(appMarket.getDescription());
-        response.setVariables(variableList);
-        return response;
+    public AppMarketRespVO getExecuteApp(String type) {
+        List<AppMarketRespVO> apps = appMarketplaceList(type);
+        AppValidate.notEmpty(apps, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
+        AppMarketRespVO app = apps.get(0);
+        AppValidate.notNull(app, ErrorCodeConstants.CREATIVE_PLAN_APP_NOT_EXIST);
+        return app;
+    }
+
+    /**
+     * 根据类型获取应用列表
+     *
+     * @param type 类型
+     * @return 文案模板列表
+     */
+    @Override
+    public List<AppMarketRespVO> appMarketplaceList(String type) {
+        AppValidate.notBlank(type, ErrorCodeConstants.CREATIVE_PLAN_TYPE_REQUIRED);
+        CreativeTypeEnum typeEnum = CreativeTypeEnum.of(type);
+        if (typeEnum == null) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_TYPE_NOT_SUPPORTED, type);
+        }
+        // 查询
+        AppMarketListQuery query = new AppMarketListQuery();
+        query.setIsSimple(Boolean.FALSE);
+        query.setTags(typeEnum.getTagType().getTags());
+        List<AppMarketRespVO> list = appMarketService.list(query);
+
+        return CollectionUtil.emptyIfNull(list);
+    }
+
+    /**
+     * 通用执行应用
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    @Override
+    public String execute(AppExecuteReqVO request) {
+        try {
+            AppExecuteRespVO executeResponse = appService.execute(request);
+            ActionResponse actionResponse = (ActionResponse) executeResponse.getResult();
+            return actionResponse.getAnswer();
+        } catch (ServiceException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(350500100, exception.getMessage()));
+        }
     }
 
     /**
@@ -121,69 +174,31 @@ public class XhsServiceImpl implements XhsService {
      * @return 响应
      */
     @Override
-    public XhsAppExecuteResponse appExecute(XhsAppExecuteRequest request) {
-        XhsAppExecuteResponse response = new XhsAppExecuteResponse();
-        response.setSuccess(Boolean.FALSE);
-        // 执行应用
+    public List<XhsAppExecuteResponse> appExecute(XhsAppExecuteRequest request) {
+        Integer n = Objects.nonNull(request.getN()) && request.getN() > 0 ? request.getN() : 1;
+        request.setN(n);
         try {
             // 参数校验
             if (StringUtils.isBlank(request.getUid())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400101, "应用UID不能为空！"));
+                return XhsAppExecuteResponse.failure("350400101", "应用UID不能为空, 生成条数: " + n, n);
             }
-            response.setUid(request.getUid());
-            if (CollectionUtil.isEmpty(request.getParams())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
-            }
+            log.info("小红书执行应用开始。参数为\n：{}", JSONUtil.parse(request).toStringPretty());
             // 获取应用
             AppMarketRespVO appMarket = appMarketService.get(request.getUid());
-            if (request.getNeedTag()) {
-                Map<String, Object> params = request.getParams();
-                params.put("NEED_TAG", true);
-                request.setParams(params);
-            }
-            AppExecuteRespVO executeResponse = appService.execute(buildExecuteRequest(appMarket, request));
-            if (!executeResponse.getSuccess()) {
-                response.setErrorCode(executeResponse.getResultCode());
-                response.setErrorMsg(executeResponse.getResultDesc());
-                return response;
-            }
-            ActionResponse actionResult = (ActionResponse) executeResponse.getResult();
-            if (Objects.isNull(actionResult)) {
-                response.setErrorCode("350400205");
-                response.setErrorMsg("执行结果不存在！请稍候重试或者联系管理员！");
-                return response;
-            }
-            if (!actionResult.getSuccess()) {
-                response.setErrorCode(actionResult.getErrorCode());
-                response.setErrorMsg(actionResult.getErrorMsg());
-                return response;
-            }
-            if (StringUtils.isBlank(actionResult.getAnswer())) {
-                response.setErrorCode("350400206");
-                response.setErrorMsg("执行结果内容不存在！请稍候重试或者联系管理员！");
-                return response;
-            }
-
-            response.setSuccess(Boolean.TRUE);
-            String answer = actionResult.getAnswer();
-            if (request.getNeedTag()) {
-                String title = answer.substring(answer.indexOf("<TITLE_START>") + 13, answer.indexOf("<TITLE_END>"));
-                String text = answer.substring(answer.indexOf("<TEXT_START>") + 12, answer.indexOf("<TEXT_END>"));
-                response.setTitle(title);
-                response.setText(text);
-            } else {
-                response.setTitle(answer);
-            }
-
-            return response;
+            List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarket).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                    .orElseThrow(() -> ServiceExceptionUtil.exception(WORKFLOW_CONFIG_FAILURE));
+            // 获取第二步的步骤。约定，生成小红书内容为第二步
+            WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
+            request.setStepId(stepWrapper.getField());
+            // 执行应用
+            String answer = execute(CreativeUtil.buildExecuteRequest(appMarket, request));
+            return CreativeUtil.handleAnswer(answer, request.getUid(), n);
         } catch (ServiceException exception) {
-            response.setErrorCode(exception.getCode().toString());
-            response.setErrorMsg(exception.getMessage());
-            return response;
+            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}", request.getUid(), n, exception.getCode().toString(), exception.getMessage());
+            return XhsAppExecuteResponse.failure(request.getUid(), exception.getCode().toString(), exception.getMessage(), n);
         } catch (Exception exception) {
-            response.setErrorCode("350400200");
-            response.setErrorMsg(exception.getMessage());
-            return response;
+            log.error("小红书执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}", request.getUid(), n, "350400100", exception.getMessage());
+            return XhsAppExecuteResponse.failure(request.getUid(), "350400100", exception.getMessage(), n);
         }
     }
 
@@ -203,7 +218,12 @@ public class XhsServiceImpl implements XhsService {
         }
         // 获取应用
         AppMarketRespVO appMarket = appMarketService.get(request.getUid());
-        AppExecuteReqVO executeRequest = buildExecuteRequest(appMarket, request);
+        List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarket).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(WORKFLOW_CONFIG_FAILURE));
+        // 获取第二步的步骤。约定，生成小红书内容为第二步
+        WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
+        request.setStepId(stepWrapper.getField());
+        AppExecuteReqVO executeRequest = CreativeUtil.buildExecuteRequest(appMarket, request);
         // 执行应用
         appService.asyncExecute(executeRequest);
     }
@@ -215,26 +235,62 @@ public class XhsServiceImpl implements XhsService {
      * @return 响应
      */
     @Override
+    @SuppressWarnings("all")
     public List<XhsAppCreativeExecuteResponse> bathAppCreativeExecute(List<XhsAppCreativeExecuteRequest> requests) {
+        log.info("小红书执行批量生成应用开始......!");
         if (CollectionUtil.isEmpty(requests)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "应用参数不能为空！"));
         }
-        // 应用任务集合
-        List<XhsAppCreativeExecuteResponse> appResponses = new ArrayList<>();
-        for (XhsAppCreativeExecuteRequest request : requests) {
-            XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
-            request.setNeedTag(Boolean.TRUE);
-            XhsAppExecuteResponse appExecuteResponse = this.appExecute(request);
-            response.setUid(request.getUid());
-            response.setCreativeContentUid(request.getCreativeContentUid());
-            response.setSuccess(appExecuteResponse.getSuccess());
-            response.setErrorCode(appExecuteResponse.getErrorCode());
-            response.setErrorMsg(appExecuteResponse.getErrorMsg());
-            response.setTitle(appExecuteResponse.getTitle());
-            response.setText(appExecuteResponse.getText());
-            appResponses.add(response);
+        // 首先按照创作计划进行分组
+        Map<String, List<XhsAppCreativeExecuteRequest>> planMap = requests.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getPlanUid));
+        log.info("小红书执行批量生成应用，按照创作计划进行分组，共有{}个创作计划, 创作计划UID分别是：{}", planMap.size(), planMap.keySet());
+        // 默认执行参数一样
+        List<XhsAppCreativeExecuteResponse> responseList = new ArrayList<>();
+        for (Map.Entry<String, List<XhsAppCreativeExecuteRequest>> planEntry : planMap.entrySet()) {
+            log.info("当前创作计划UID：{}", planEntry.getKey());
+            List<XhsAppCreativeExecuteRequest> planGroupRequestList = planEntry.getValue();
+            if (CollectionUtil.isEmpty(planGroupRequestList)) {
+                log.info("当前创作计划UID：{}，没有执行参数, 跳过！", planEntry.getKey());
+                continue;
+            }
+            // 再按照创作方案进行分组
+            Map<String, List<XhsAppCreativeExecuteRequest>> schemeMap = planGroupRequestList.stream().collect(Collectors.groupingBy(XhsAppCreativeExecuteRequest::getSchemeUid));
+            log.info("当前创作计划UID：{}，按照创作方案进行分组，共有{}个创作方案, 创作方案UID分别是：{}", planEntry.getKey(), schemeMap.size(), schemeMap.keySet());
+            for (Map.Entry<String, List<XhsAppCreativeExecuteRequest>> schemeEntry : schemeMap.entrySet()) {
+                log.info("当前创作计划UID：{}，当前创作方案UID：{}", planEntry.getKey(), schemeEntry.getKey());
+                List<XhsAppCreativeExecuteRequest> schemeGroupRequestList = schemeEntry.getValue();
+                if (CollectionUtil.isEmpty(schemeGroupRequestList)) {
+                    log.info("当前创作计划UID：{}，当前创作方案UID：{}，没有执行参数, 跳过！", planEntry.getKey(), schemeEntry.getKey());
+                    continue;
+                }
+
+                // 执行应用
+                log.info("执行参数：生成条数: {}, 执行参数： \n{}", schemeGroupRequestList.size(), JSONUtil.parse(schemeGroupRequestList).toStringPretty());
+                XhsAppCreativeExecuteRequest request = schemeGroupRequestList.get(0);
+                request.setN(schemeGroupRequestList.size());
+                List<XhsAppExecuteResponse> responses = this.appExecute(request);
+                // 构建响应
+                for (int i = 0; i < responses.size(); i++) {
+                    XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+                    XhsAppExecuteResponse item = responses.get(i);
+                    XhsAppCreativeExecuteRequest executeRequest = schemeGroupRequestList.get(i);
+                    response.setUid(item.getUid());
+                    response.setSuccess(item.getSuccess());
+                    response.setCopyWriting(item.getCopyWriting());
+                    response.setErrorCode(item.getErrorCode());
+                    response.setErrorMsg(item.getErrorMsg());
+                    response.setPlanUid(executeRequest.getPlanUid());
+                    response.setSchemeUid(executeRequest.getSchemeUid());
+                    response.setBusinessUid(executeRequest.getBusinessUid());
+                    response.setContentUid(executeRequest.getContentUid());
+                    responseList.add(response);
+                }
+                log.info("创作计划UID：{}，创作方案UID：{}，执行结束！", planEntry.getKey(), schemeEntry.getKey());
+            }
+            log.info("创作计划UID：{}，执行结束！", planEntry.getKey());
         }
-        return appResponses;
+        log.info("小红书执行批量生成应用结束......! \n {}", JSONUtil.parse(responseList).toStringPretty());
+        return responseList;
     }
 
     /**
@@ -260,34 +316,25 @@ public class XhsServiceImpl implements XhsService {
                 throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
             }
 
-            // 获取图片模板
-            List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
-            Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(templateList).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
+            // 获取海报图片模板
+            List<XhsImageTemplateDTO> posterTemplates = imageTemplates();
+            Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(posterTemplates).stream().filter(item -> StringUtils.equals(item.getId(), imageTemplate)).findFirst();
             if (!optional.isPresent()) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
-            }
-            XhsImageTemplateDTO template = optional.get();
-            if (StringUtils.isBlank(template.getToken()) || StringUtils.isBlank(template.getPosterId())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "系统配置异常！请联系管理员！"));
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板或者图片模板不存在！"));
             }
 
-            FastposterClient fastposterClient = getFastPosterClient(imageTemplate);
-            // 执行生成图片
-            log.info("小红书执行生成图片调用 FastPoster 开始!");
-            byte[] bytes = fastposterClient.buildPoster(template.getPosterId()).params(params).build().bytes();
-            if (Objects.isNull(bytes)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400205, "生成图片失败！"));
-            }
-            log.info("小红书执行生成图片成功，调用 FastPoster 成功!");
+            // 执行生成海报图片
+            PosterRequest posterRequest = new PosterRequest();
+            posterRequest.setId(request.getImageTemplate());
+            posterRequest.setParams(request.getParams());
+            String url = posterService.poster(posterRequest);
 
-            // 上传图片
-            UploadImageInfoDTO image = ImageUploadUtils.uploadImage(IdUtil.fastSimpleUUID() + ".png", ImageUploadUtils.UPLOAD, bytes);
-            log.info("小红书执行生成图片，上传图片到OSS成功，url：{}", image.getUrl());
             response.setSuccess(Boolean.TRUE);
             response.setIsMain(request.getIsMain());
             response.setIndex(request.getIndex());
-            response.setUrl(image.getUrl());
-            log.info("小红书执行生成图片成功，imageTemplate：{}，url：{}\n", imageTemplate, image.getUrl());
+            response.setUrl(url);
+            log.info("小红书执行生成图片成功，imageTemplate：{}，url：{}\n", imageTemplate, url);
+
         } catch (ServiceException exception) {
             log.info("小红书生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
             response.setErrorCode(exception.getCode().toString());
@@ -308,111 +355,123 @@ public class XhsServiceImpl implements XhsService {
      * @return 响应
      */
     @Override
-    public List<XhsImageExecuteResponse> bathImageExecute(XhsBathImageExecuteRequest request) {
-        log.info("小红书执行批量生成图片开始");
-        List<XhsImageExecuteRequest> imageRequestList = request.getImageRequests();
-        if (CollectionUtil.isEmpty(imageRequestList)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
-        }
-        // 图片执行结果
-        List<XhsImageExecuteResponse> imageResponses = Lists.newArrayList();
-        for (int i = 0; i < imageRequestList.size(); i++) {
-            XhsImageExecuteRequest imageRequest = imageRequestList.get(i);
-            imageRequest.setIndex(i + 1);
-            imageRequest.setIsMain(i == 0 ? Boolean.TRUE : Boolean.FALSE);
-            XhsImageExecuteResponse response = imageExecute(imageRequest);
-            imageResponses.add(response);
-        }
-        log.info("小红书执行批量生成图片结束");
-        return imageResponses;
-    }
-
-    /**
-     * 获取 FastPosterClient
-     *
-     * @param templateId 模板ID
-     * @return FastPosterClient
-     */
-    private FastposterClient getFastPosterClient(String templateId) {
-        List<XhsImageTemplateDTO> templateList = appDictionaryService.xhsImageTemplates();
-        Optional<XhsImageTemplateDTO> optional = CollectionUtil.emptyIfNull(templateList).stream().filter(item -> StringUtils.equals(item.getId(), templateId)).findFirst();
-        if (!optional.isPresent()) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
-        }
-        String token = optional.get().getToken();
-        if (StringUtils.isBlank(token)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400203, "不支持的图片模板！"));
-        }
-        return FastPosterFactory.factory(token);
-    }
-
-    /**
-     * 构建执行请求
-     *
-     * @param app     应用
-     * @param request 请求
-     * @return 执行请求
-     */
-    private AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, XhsAppExecuteRequest request) {
-        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-        if (Objects.nonNull(request.getSseEmitter())) {
-            executeRequest.setSseEmitter(request.getSseEmitter());
-        }
-        executeRequest.setUserId(request.getUserId());
-        executeRequest.setMode(AppModelEnum.COMPLETION.name());
-        executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());
-        executeRequest.setAppUid(app.getUid());
-        executeRequest.setAppReqVO(transform(app, request.getParams()));
-        return executeRequest;
-    }
-
-    /**
-     * 转换请求，转换为应用请求，并且填充参数
-     *
-     * @param app       应用
-     * @param appParams 请求
-     * @return 应用请求
-     */
-    private AppReqVO transform(AppMarketRespVO app, Map<String, Object> appParams) {
-        WorkflowConfigRespVO config = app.getWorkflowConfig();
-        AppValidate.notNull(config, EXECUTE_LISTING_CONFIG_FAILURE);
-
-        List<WorkflowStepWrapperRespVO> steps = config.getSteps();
-        AppValidate.notEmpty(steps, EXECUTE_LISTING_STEP_FAILURE);
-
-        // 直接取第一个步骤，执行第一步骤
-        WorkflowStepWrapperRespVO stepWrapper = steps.get(0);
-        AppValidate.notNull(stepWrapper, EXECUTE_LISTING_STEP_FAILURE);
-
-        VariableRespVO variable = stepWrapper.getVariable();
-        AppValidate.notNull(variable, EXECUTE_LISTING_VARIABLE_FAILURE);
-
-        List<VariableItemRespVO> variables = variable.getVariables();
-        AppValidate.notEmpty(variables, EXECUTE_LISTING_VARIABLE_FAILURE);
-
-        List<VariableItemRespVO> fillVariables = Lists.newArrayList();
-        // 填充变量
-        for (VariableItemRespVO variableItem : variables) {
-            if (appParams.containsKey(variableItem.getField())) {
-                variableItem.setValue(appParams.get(variableItem.getField()));
-                variableItem.setDefaultValue(appParams.get(variableItem.getField()));
-            } else {
-                Object value = variableItem.getValue();
-                if (Objects.isNull(value)) {
-                    if (Objects.nonNull(variableItem.getDefaultValue())) {
-                        value = variableItem.getDefaultValue();
-                    }
-                }
-                variableItem.setValue(value);
+    public XhsImageStyleExecuteResponse imageStyleExecute(XhsImageStyleExecuteRequest request) {
+        try {
+            log.info("小红书图片风格执行：图片生成开始：风格名称：{}, 风格ID：{}", request.getName(), request.getId());
+            List<XhsImageExecuteRequest> imageRequestList = request.getImageRequests();
+            if (CollectionUtil.isEmpty(imageRequestList)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400202, "图片参数不能为空！"));
             }
-            fillVariables.add(variableItem);
+
+            ThreadPoolExecutor threadPoolExecutor = xhsImageStyleThreadPoolHolder.executor();
+            List<CompletableFuture<XhsImageExecuteResponse>> imageFutureList = Lists.newArrayList();
+            for (XhsImageExecuteRequest imageExecuteRequest : imageRequestList) {
+                CompletableFuture<XhsImageExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageExecute(imageExecuteRequest), threadPoolExecutor);
+                imageFutureList.add(future);
+            }
+            // 合并任务
+            CompletableFuture<Void> allOfFuture = CompletableFuture.allOf(imageFutureList.toArray(new CompletableFuture[0]));
+            // 等待所有任务执行完成并且获取执行结果
+            CompletableFuture<List<XhsImageExecuteResponse>> allFuture = allOfFuture
+                    .thenApply(v -> imageFutureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+            // 获取执行结果
+            List<XhsImageExecuteResponse> imageResponseList = allFuture.join();
+
+            // 全部成功，才算成功。
+            List<XhsImageExecuteResponse> failureList = imageResponseList.stream()
+                    .filter(r -> !r.getSuccess())
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(failureList)) {
+                String message = failureList.stream().map(XhsImageExecuteResponse::getErrorMsg).collect(Collectors.joining("；"));
+                return XhsImageStyleExecuteResponse.failure(request.getId(), request.getName(), 350600119, "小红书图片风格执行：图片生成失败：" + message, imageResponseList);
+            }
+
+            // 构建响应
+            XhsImageStyleExecuteResponse response = new XhsImageStyleExecuteResponse();
+            response.setSuccess(Boolean.TRUE);
+            response.setId(request.getId());
+            response.setName(request.getName());
+            response.setImageResponses(imageResponseList);
+            log.info("小红书图片风格执行：图片生成结束：风格名称：{}, 风格ID：{}", request.getName(), request.getId());
+            return response;
+        } catch (ServiceException exception) {
+            log.info("小红书图片风格执行：图片生成失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
+            return XhsImageStyleExecuteResponse.failure(request.getId(), request.getName(), exception.getCode(), exception.getMessage(), null);
+        } catch (Exception exception) {
+            log.info("小红书图片风格执行：图片生成失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
+            return XhsImageStyleExecuteResponse.failure(request.getId(), request.getName(), 350400200, exception.getMessage(), null);
         }
-        variable.setVariables(fillVariables);
-        stepWrapper.setVariable(variable);
-        steps.set(0, stepWrapper);
-        config.setSteps(steps);
-        app.setWorkflowConfig(config);
-        return AppMarketConvert.INSTANCE.convert(app);
     }
+
+    /**
+     * 异步批量执行图片
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    @Override
+    public XhsImageCreativeExecuteResponse imageCreativeExecute(XhsImageCreativeExecuteRequest request) {
+        try {
+            log.info("小红书创作中心执行：图片生成开始：创作计划UID：{}, 创作方案UID：{}, 创作任务UID：{}", request.getPlanUid(), request.getSchemeUid(), request.getContentUid());
+            // 执行图片生成
+            XhsImageStyleExecuteResponse imageStyleResponse = imageStyleExecute(request.getImageStyleRequest());
+            if (Objects.isNull(imageStyleResponse)) {
+                return XhsImageCreativeExecuteResponse.failure(request, 350400200, "小红书创作中心执行：图片生成失败", null);
+            }
+            if (!imageStyleResponse.getSuccess()) {
+                Integer code = Objects.isNull(imageStyleResponse.getErrorCode()) ? 350400200 : imageStyleResponse.getErrorCode();
+                String message = StringUtils.isBlank(imageStyleResponse.getErrorMessage()) ? "小红书创作中心执行：图片生成失败" : imageStyleResponse.getErrorMessage();
+                return XhsImageCreativeExecuteResponse.failure(request, code, message, imageStyleResponse);
+            }
+            // 构建响应
+            XhsImageCreativeExecuteResponse response = new XhsImageCreativeExecuteResponse();
+            response.setSuccess(Boolean.TRUE);
+            response.setPlanUid(request.getPlanUid());
+            response.setSchemeUid(request.getSchemeUid());
+            response.setBusinessUid(request.getBusinessUid());
+            response.setContentUid(request.getContentUid());
+            response.setImageStyleResponse(imageStyleResponse);
+            log.info("小红书创作中心执行：图片生成结束：创作计划UID：{}, 创作方案UID：{}, 创作任务UID：{}", request.getPlanUid(), request.getSchemeUid(), request.getContentUid());
+            return response;
+        } catch (ServiceException exception) {
+            log.info("小红书创作中心执行：图片生成失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
+            return XhsImageCreativeExecuteResponse.failure(request, exception.getCode(), exception.getMessage(), null);
+        } catch (Exception exception) {
+            log.info("小红书创作中心执行：图片生成失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
+            return XhsImageCreativeExecuteResponse.failure(request, 350400200, exception.getMessage(), null);
+        }
+    }
+
+    /**
+     * 批量执行创作中心小红书图片生成
+     *
+     * @param requestList 请求
+     * @return 响应
+     */
+    @Override
+    public List<XhsImageCreativeExecuteResponse> bathImageCreativeExecute(List<XhsImageCreativeExecuteRequest> requestList) {
+        log.info("创作中心：小红书图片生成执行：图片生成开始");
+        if (CollectionUtil.isEmpty(requestList)) {
+            log.warn("创作中心：小红书图片生成执行：参数为空！图片生成结束");
+            return Collections.emptyList();
+        }
+        // 获取异步Future
+        ThreadPoolExecutor executor = xhsImageCreativeThreadPoolHolder.executor();
+        List<CompletableFuture<XhsImageCreativeExecuteResponse>> imageFutureList = Lists.newArrayList();
+        for (XhsImageCreativeExecuteRequest imageCreativeExecuteRequest : requestList) {
+            CompletableFuture<XhsImageCreativeExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageCreativeExecute(imageCreativeExecuteRequest), executor);
+            imageFutureList.add(future);
+        }
+        // 合并任务
+        CompletableFuture<Void> allOfFuture = CompletableFuture.allOf(imageFutureList.toArray(new CompletableFuture[0]));
+        // 等待所有任务执行完成并且获取执行结果
+        CompletableFuture<List<XhsImageCreativeExecuteResponse>> allFuture = allOfFuture
+                .thenApply(v -> imageFutureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+        // 获取执行结果
+        List<XhsImageCreativeExecuteResponse> responses = allFuture.join();
+        log.info("创作中心：小红书图片生成执行：图片生成结束");
+        return responses;
+    }
+
 
 }

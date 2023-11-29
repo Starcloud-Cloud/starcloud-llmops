@@ -75,30 +75,6 @@ public class ImageUploadUtils {
     }
 
     /**
-     * 校验图片媒体类型是否符合要求
-     *
-     * @param imageType 图片媒体类型
-     * @return
-     */
-    public static void validateUploadImageMediaType(String imageType) {
-        if (!SUPPORTED_MEDIA_TYPE_LIST.contains(imageType)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, imageType, SUPPORTED_MEDIA_TYPE_LIST);
-        }
-    }
-
-    /**
-     * 校验图片后缀是否符合要求
-     *
-     * @param imageSuffix 图片后缀
-     * @return 是否符合要求
-     */
-    public static void validateUploadImageSuffix(String imageSuffix) {
-        if (!SUPPORTED_SUFFIX_LIST.contains(imageSuffix)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, imageSuffix, SUPPORTED_SUFFIX_LIST);
-        }
-    }
-
-    /**
      * 上传图片
      *
      * @param content  内容
@@ -325,21 +301,6 @@ public class ImageUploadUtils {
     }
 
     /**
-     * 获取文件的后缀名
-     *
-     * @param filename 文件名称
-     * @return 后缀名
-     */
-    public static String getExtension(String filename) {
-        // 获取图片的后缀名
-        String extension = StringUtils.substringAfterLast(filename, ".");
-        if (StringUtils.isBlank(extension)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.FILE_EXTENSION_FAILURE);
-        }
-        return extension;
-    }
-
-    /**
      * 处理图片为 64 的倍数
      *
      * @param image 图片
@@ -469,19 +430,58 @@ public class ImageUploadUtils {
     }
 
     /**
+     * 校验图片媒体类型是否符合要求
+     *
+     * @param imageType 图片媒体类型
+     * @return
+     */
+    public static void validateUploadImageMediaType(String imageType) {
+        if (!SUPPORTED_MEDIA_TYPE_LIST.contains(imageType.toLowerCase())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, imageType, SUPPORTED_MEDIA_TYPE_LIST);
+        }
+    }
+
+    /**
+     * 校验图片后缀是否符合要求
+     *
+     * @param imageSuffix 图片后缀
+     * @return 是否符合要求
+     */
+    public static void validateUploadImageSuffix(String imageSuffix) {
+        if (!SUPPORTED_SUFFIX_LIST.contains(imageSuffix.toLowerCase())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, imageSuffix, SUPPORTED_SUFFIX_LIST);
+        }
+    }
+
+    /**
+     * 获取文件的后缀名
+     *
+     * @param filename 文件名称
+     * @return 后缀名
+     */
+    public static String getExtension(String filename) {
+        // 获取图片的后缀名
+        String extension = StringUtils.substringAfterLast(filename, ".");
+        if (StringUtils.isBlank(extension)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.FILE_EXTENSION_FAILURE);
+        }
+        return extension.toLowerCase();
+    }
+
+    /**
      * 根据 mediaType 获取后缀
      *
      * @param mediaType
      * @return 后缀
      */
     private static String getExtensionByMediaType(String mediaType) {
-        if ("image/png".equals(mediaType)) {
+        if ("image/png".equalsIgnoreCase(mediaType)) {
             return "png";
         }
-        if (mediaType.equals("image/jpg") || "image/jpeg".equals(mediaType)) {
+        if ("image/jpg".equalsIgnoreCase(mediaType) || "image/jpeg".equalsIgnoreCase(mediaType)) {
             return "jpeg";
         }
-        if ("image/webp".equals(mediaType)) {
+        if ("image/webp".equalsIgnoreCase(mediaType)) {
             return "webp";
         }
         throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, mediaType, SUPPORTED_MEDIA_TYPE_LIST);
@@ -494,16 +494,16 @@ public class ImageUploadUtils {
      * @return 媒体类型
      */
     private static String getMediaTypeByExtension(String extension) {
-        if ("png".equals(extension)) {
+        if ("png".equalsIgnoreCase(extension)) {
             return "image/png";
         }
-        if (extension.equals("jpg")) {
+        if (extension.equalsIgnoreCase("jpg")) {
             return "image/jpg";
         }
-        if ("jpeg".equals(extension)) {
+        if ("jpeg".equalsIgnoreCase(extension)) {
             return "image/jpeg";
         }
-        if ("webp".equals(extension)) {
+        if ("webp".equalsIgnoreCase(extension)) {
             return "image/webp";
         }
         throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, extension, SUPPORTED_MEDIA_TYPE_LIST);

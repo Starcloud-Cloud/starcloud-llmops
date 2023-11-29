@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.service.vsearch;
 
 import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.request.vsearch.VSearchUpscaleImageRequest;
-import com.starcloud.ops.business.app.feign.response.VSearchImage;
+import com.starcloud.ops.business.app.feign.dto.VSearchImage;
 
 import java.util.List;
 

@@ -2,8 +2,8 @@ package com.starcloud.ops.business.app.convert.image;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
-import com.starcloud.ops.business.app.feign.response.ClipDropImage;
-import com.starcloud.ops.business.app.feign.response.VSearchImage;
+import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
+import com.starcloud.ops.business.app.feign.dto.VSearchImage;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.vo.response;
 
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
+import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExtendDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativePictureContentDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,6 +12,12 @@ import java.util.List;
 @Data
 @Schema(description = "创作内容")
 public class XhsCreativeContentResp {
+
+    /**
+     * 创作方案UID
+     */
+    @Schema(description = "创作方案UID")
+    private String schemeUid;
 
     @Schema(description = "创作计划uid")
     private String planUid;
@@ -29,10 +35,10 @@ public class XhsCreativeContentResp {
     private List<String> usePicture;
 
     @Schema(description = "图片执行参数")
-    private XhsCreativeContentExecuteParamsDTO pictureParams;
+    private CreativePlanExecuteDTO pictureParams;
 
     @Schema(description = "文案执行参数")
-    private XhsCreativeContentExecuteParamsDTO copyWritingParams;
+    private CreativePlanExecuteDTO copyWritingParams;
 
     /**
      * {@link com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums}

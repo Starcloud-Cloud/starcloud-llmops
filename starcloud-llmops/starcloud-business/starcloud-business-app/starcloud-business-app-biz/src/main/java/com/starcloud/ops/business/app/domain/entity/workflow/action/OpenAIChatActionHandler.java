@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -57,7 +58,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     @JSONField(serialize = false)
     protected Integer getCostPoints(Request request) {
         Map<String, Object> params = request.getStepParams();
-        String aiModel = String.valueOf(Optional.ofNullable(params.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        String aiModel = String.valueOf(Optional.ofNullable(params.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
         if (ModelTypeEnum.GPT_4_TURBO.getName().equals(aiModel)) {
             return 30;
         }
@@ -86,18 +87,20 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
 
-        String model = String.valueOf(params.getOrDefault("MODEL", ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        String model = String.valueOf(params.getOrDefault("MODEL", ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
         Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7"));
+        Integer n = Integer.valueOf(params.getOrDefault("N", 1).toString());
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
-        handlerRequest.setStream(true);
+        handlerRequest.setStream(Objects.nonNull(this.getAppContext().getSseEmitter()));
         handlerRequest.setModel(model);
         handlerRequest.setPrompt(prompt);
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
+        handlerRequest.setN(n);
         // 数据集支持
         if (request.getEnabledDateset()) {
             handlerRequest.setDocsUid(request.getDatesetList());
