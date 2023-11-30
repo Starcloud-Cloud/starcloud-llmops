@@ -3,8 +3,7 @@ package com.starcloud.ops.business.mission.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
+import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsNoteDetailRespVO;
@@ -18,21 +17,22 @@ import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMiss
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
+import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
 import com.starcloud.ops.business.mission.dal.mysql.SingleMissionMapper;
 import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.NumberUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
@@ -45,7 +45,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.XHS_URL_ERROR;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
 
 
@@ -93,8 +92,21 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Override
     public PageResult<SingleMissionRespVO> page(SinglePageQueryReqVO reqVO) {
-        PageResult<SingleMissionDO> page = singleMissionMapper.page(reqVO);
-        return SingleMissionConvert.INSTANCE.convert(page);
+        Long count = singleMissionMapper.pageCount(reqVO);
+        if (count == null || count <= 0) {
+            return PageResult.empty();
+        }
+        List<SingleMissionDTO> singleMissionDTOList = singleMissionMapper.pageDetail(reqVO, PageUtils.getStart(reqVO), reqVO.getPageSize());
+        PageResult<SingleMissionRespVO> result = new PageResult<>( SingleMissionConvert.INSTANCE.pageConvert(singleMissionDTOList), count);
+        SinglePageQueryReqVO countVo = new SinglePageQueryReqVO();
+        countVo.setNotificationUid(reqVO.getNotificationUid());
+        countVo.setStatus(SingleMissionStatusEnum.stay_claim.getCode());
+        result.setStayClaimCount(singleMissionMapper.pageCount(countVo));
+        countVo.setStatus(SingleMissionStatusEnum.claimed.getCode());
+        result.setClaimCount(singleMissionMapper.pageCount(countVo));
+        countVo.setStatus(SingleMissionStatusEnum.settlement.getCode());
+        result.setSettlementCount(singleMissionMapper.pageCount(countVo));
+        return result;
     }
 
     @Override
@@ -115,6 +127,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } else if (SingleMissionStatusEnum.published.getCode().equals(reqVO.getStatus())) {
             XhsDetailConstants.validNoteUrl(reqVO.getPublishUrl());
             missionDO.setPublishUrl(reqVO.getPublishUrl());
+            String noteId = ReUtil.delAll(XhsDetailConstants.DOMAIN, reqVO.getPublishUrl());
+            missionDO.setNoteId(noteId);
             LocalDateTime publishTime = Optional.ofNullable(reqVO.getPublishTime()).orElse(LocalDateTime.now());
             missionDO.setClaimTime(publishTime);
         } else if (SingleMissionStatusEnum.pre_settlement.getCode().equals(reqVO.getStatus())) {
