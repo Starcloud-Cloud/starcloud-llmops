@@ -37,7 +37,7 @@ public class PayOldMerchantServiceImpl implements PayMerchantService {
     private PayOldMerchantMapper merchantMapper;
 
     @Resource
-    private PayOldAppMapper payAppMapper;
+    private PayOldAppMapper payOldAppMapper;
 
     @Override
     public Long createMerchant(PayMerchantCreateReqVO createReqVO) {
@@ -131,7 +131,7 @@ public class PayOldMerchantServiceImpl implements PayMerchantService {
      * @param id 商户ID
      */
     private void validateAppExists(Long id) {
-        if (payAppMapper.selectCount(id) > 0) {
+        if (payOldAppMapper.selectCount(id) > 0) {
             throw exception(CHANNEL_NOT_FOUND);
         }
     }

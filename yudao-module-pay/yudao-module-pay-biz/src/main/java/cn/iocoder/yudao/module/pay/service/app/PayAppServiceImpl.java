@@ -32,7 +32,7 @@ import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.*;
 public class PayAppServiceImpl implements PayAppService {
 
     @Resource
-    private PayAppMapper appMapper;
+    private PayAppMapper payAppMapper;
 
     @Resource
     @Lazy // 延迟加载，避免循环依赖报错
@@ -45,7 +45,7 @@ public class PayAppServiceImpl implements PayAppService {
     public Long createApp(PayAppCreateReqVO createReqVO) {
         // 插入
         PayAppDO app = PayAppConvert.INSTANCE.convert(createReqVO);
-        appMapper.insert(app);
+        payAppMapper.insert(app);
         // 返回
         return app.getId();
     }
@@ -56,7 +56,7 @@ public class PayAppServiceImpl implements PayAppService {
         validateAppExists(updateReqVO.getId());
         // 更新
         PayAppDO updateObj = PayAppConvert.INSTANCE.convert(updateReqVO);
-        appMapper.updateById(updateObj);
+        payAppMapper.updateById(updateObj);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class PayAppServiceImpl implements PayAppService {
         // 校验商户存在
         validateAppExists(id);
         // 更新状态
-        appMapper.updateById(new PayAppDO().setId(id).setStatus(status));
+        payAppMapper.updateById(new PayAppDO().setId(id).setStatus(status));
     }
 
     @Override
@@ -80,38 +80,38 @@ public class PayAppServiceImpl implements PayAppService {
         }
 
         // 删除
-        appMapper.deleteById(id);
+        payAppMapper.deleteById(id);
     }
 
     private void validateAppExists(Long id) {
-        if (appMapper.selectById(id) == null) {
+        if (payAppMapper.selectById(id) == null) {
             throw exception(APP_NOT_FOUND);
         }
     }
 
     @Override
     public PayAppDO getApp(Long id) {
-        return appMapper.selectById(id);
+        return payAppMapper.selectById(id);
     }
 
     @Override
     public List<PayAppDO> getAppList(Collection<Long> ids) {
-        return appMapper.selectBatchIds(ids);
+        return payAppMapper.selectBatchIds(ids);
     }
 
     @Override
     public List<PayAppDO> getAppList() {
-         return appMapper.selectList();
+         return payAppMapper.selectList();
     }
 
     @Override
     public PageResult<PayAppDO> getAppPage(PayAppPageReqVO pageReqVO) {
-        return appMapper.selectPage(pageReqVO);
+        return payAppMapper.selectPage(pageReqVO);
     }
 
     @Override
     public PayAppDO validPayApp(Long id) {
-        PayAppDO app = appMapper.selectById(id);
+        PayAppDO app = payAppMapper.selectById(id);
         // 校验是否存在
         if (app == null) {
             throw exception(ErrorCodeConstants.APP_NOT_FOUND);

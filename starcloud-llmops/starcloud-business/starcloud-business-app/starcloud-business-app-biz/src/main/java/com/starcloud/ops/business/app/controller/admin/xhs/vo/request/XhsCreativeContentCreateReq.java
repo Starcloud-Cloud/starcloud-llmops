@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.vo.request;
 
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExecuteParamsDTO;
+import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativeContentExtendDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -42,7 +42,7 @@ public class XhsCreativeContentCreateReq {
     private List<String> usePicture;
 
     @Schema(description = "执行参数")
-    private XhsCreativeContentExecuteParamsDTO executeParams;
+    private CreativePlanExecuteDTO executeParams;
 
     @Schema(description = "拓展信息")
     private XhsCreativeContentExtendDTO extend;

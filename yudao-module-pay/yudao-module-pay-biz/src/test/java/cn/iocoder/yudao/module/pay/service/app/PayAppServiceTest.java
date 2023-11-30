@@ -42,7 +42,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
     private PayAppServiceImpl appService;
 
     @Resource
-    private PayAppMapper appMapper;
+    private PayAppMapper payAppMapper;
 
     @MockBean
     private PayOrderService orderService;
@@ -61,7 +61,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
         Long appId = appService.createApp(reqVO);
         // 断言
         assertNotNull(appId);
-        PayAppDO app = appMapper.selectById(appId);
+        PayAppDO app = payAppMapper.selectById(appId);
         assertPojoEquals(reqVO, app);
     }
 
@@ -69,7 +69,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
     public void testUpdateApp_success() {
         // mock 数据
         PayAppDO dbApp = randomPojo(PayAppDO.class);
-        appMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
         // 准备参数
         PayAppUpdateReqVO reqVO = randomPojo(PayAppUpdateReqVO.class, o -> {
             o.setStatus(CommonStatusEnum.ENABLE.getStatus());
@@ -80,7 +80,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
         // 调用
         appService.updateApp(reqVO);
         // 校验是否更新正确
-        PayAppDO app = appMapper.selectById(reqVO.getId()); // 获取最新的
+        PayAppDO app = payAppMapper.selectById(reqVO.getId()); // 获取最新的
         assertPojoEquals(reqVO, app);
     }
 
@@ -98,7 +98,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
         // mock 数据
         PayAppDO dbApp = randomPojo(PayAppDO.class, o ->
                 o.setStatus(CommonStatusEnum.DISABLE.getStatus()));
-        appMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
 
         // 准备参数
         Long id = dbApp.getId();
@@ -106,7 +106,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
         // 调用
         appService.updateAppStatus(id, status);
         // 断言
-        PayAppDO app = appMapper.selectById(id); // 获取最新的
+        PayAppDO app = payAppMapper.selectById(id); // 获取最新的
         assertEquals(status, app.getStatus());
     }
 
@@ -114,14 +114,14 @@ public class PayAppServiceTest extends BaseDbUnitTest {
     public void testDeleteApp_success() {
         // mock 数据
         PayAppDO dbApp = randomPojo(PayAppDO.class);
-        appMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
         // 准备参数
         Long id = dbApp.getId();
 
         // 调用
         appService.deleteApp(id);
         // 校验数据不存在了
-        assertNull(appMapper.selectById(id));
+        assertNull(payAppMapper.selectById(id));
     }
 
     @Test
@@ -137,7 +137,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
     public void testDeleteApp_existOrder() {
         // mock 数据
         PayAppDO dbApp = randomPojo(PayAppDO.class);
-        appMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
         // 准备参数
         Long id = dbApp.getId();
         // mock 订单有订单
@@ -151,7 +151,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
     public void testDeleteApp_existRefund() {
         // mock 数据
         PayAppDO dbApp = randomPojo(PayAppDO.class);
-        appMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
         // 准备参数
         Long id = dbApp.getId();
         // mock 订单有订单
@@ -165,7 +165,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
     public void testApp() {
         // mock 数据
         PayAppDO dbApp = randomPojo(PayAppDO.class);
-        appMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
         // 准备参数
         Long id = dbApp.getId();
 
@@ -179,9 +179,9 @@ public class PayAppServiceTest extends BaseDbUnitTest {
     public void testAppMap() {
         // mock 数据
         PayAppDO dbApp01 = randomPojo(PayAppDO.class);
-        appMapper.insert(dbApp01);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp01);// @Sql: 先插入出一条存在的数据
         PayAppDO dbApp02 = randomPojo(PayAppDO.class);
-        appMapper.insert(dbApp02);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp02);// @Sql: 先插入出一条存在的数据
         // 准备参数
         Long id = dbApp01.getId();
 
@@ -201,13 +201,13 @@ public class PayAppServiceTest extends BaseDbUnitTest {
             o.setCreateTime(buildTime(2021,11,20));
         });
 
-        appMapper.insert(dbApp);
+        payAppMapper.insert(dbApp);
         // 测试 name 不匹配
-        appMapper.insert(cloneIgnoreId(dbApp, o -> o.setName("敏敏姐的杂货铺")));
+        payAppMapper.insert(cloneIgnoreId(dbApp, o -> o.setName("敏敏姐的杂货铺")));
         // 测试 status 不匹配
-        appMapper.insert(cloneIgnoreId(dbApp, o -> o.setStatus(CommonStatusEnum.DISABLE.getStatus())));
+        payAppMapper.insert(cloneIgnoreId(dbApp, o -> o.setStatus(CommonStatusEnum.DISABLE.getStatus())));
         // 测试 createTime 不匹配
-        appMapper.insert(cloneIgnoreId(dbApp, o -> o.setCreateTime(buildTime(2021,12,21))));
+        payAppMapper.insert(cloneIgnoreId(dbApp, o -> o.setCreateTime(buildTime(2021,12,21))));
         // 准备参数
         PayAppPageReqVO reqVO = new PayAppPageReqVO();
         reqVO.setName("灿灿姐的杂货铺");
@@ -227,7 +227,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
         // mock 数据
         PayAppDO dbApp = randomPojo(PayAppDO.class,
                 o -> o.setStatus(CommonStatusEnum.ENABLE.getStatus()));
-        appMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
         // 准备参数
         Long id = dbApp.getId();
 
@@ -247,7 +247,7 @@ public class PayAppServiceTest extends BaseDbUnitTest {
         // mock 数据
         PayAppDO dbApp = randomPojo(PayAppDO.class,
                 o -> o.setStatus(CommonStatusEnum.DISABLE.getStatus()));
-        appMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
+        payAppMapper.insert(dbApp);// @Sql: 先插入出一条存在的数据
         // 准备参数
         Long id = dbApp.getId();
 
