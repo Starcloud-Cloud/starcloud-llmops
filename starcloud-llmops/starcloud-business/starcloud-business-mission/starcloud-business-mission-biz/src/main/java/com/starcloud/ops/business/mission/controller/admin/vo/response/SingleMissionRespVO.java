@@ -64,4 +64,21 @@ public class SingleMissionRespVO {
 
     @Schema(description = "结算失败原因")
     private String errorMsg;
+
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
+
+    @Schema(description = "更新时间")
+    private LocalDateTime updateTime;
+
+    @Schema(description = "点赞数")
+    private Integer likedCount;
+
+    @Schema(description = "收藏数")
+    private Integer collectedCount;
+
+    @Schema(description = "评论数")
+    private Integer commentCount;
+
+
 }

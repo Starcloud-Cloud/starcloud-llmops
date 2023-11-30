@@ -30,4 +30,37 @@
             limit #{reqVO.limitSize}
         </if>
     </select>
+
+    <select id="pageCount" resultType="java.lang.Long">
+        select count(*)
+        from llm_single_mission
+        where deleted = false and notification_Uid = #{reqVO.notificationUid}
+        <if test="reqVO.status != null and reqVO.status != ''">
+            and status = #{reqVO.status}
+        </if>
+        <if test="reqVO.claimUserId != null and reqVO.claimUserId != ''">
+            and claim_user_id = #{reqVO.claimUserId}
+        </if>
+        <if test="reqVO.claimUser != null and reqVO.claimUser != ''">
+            and claim_username = #{reqVO.claimUser}
+        </if>
+    </select>
+
+    <select id="pageDetail" resultType="com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO">
+        select m.*, n.liked_count as likedCount,n.collected_count as collectedCount,n.comment_count as commentCount
+        from llm_single_mission m
+        left join llm_xhs_note_detail n on m.note_id = n.note_id
+        where m.deleted = false and m.notification_Uid = #{reqVO.notificationUid}
+        <if test="reqVO.status != null and reqVO.status != ''">
+            and m.status = #{reqVO.status}
+        </if>
+        <if test="reqVO.claimUserId != null and reqVO.claimUserId != ''">
+            and m.claim_user_id = #{reqVO.claimUserId}
+        </if>
+        <if test="reqVO.claimUser != null and reqVO.claimUser != ''">
+            and m.claim_username = #{reqVO.claimUser}
+        </if>
+        order by m.id
+        limit #{start},#{end}
+    </select>
 </mapper>

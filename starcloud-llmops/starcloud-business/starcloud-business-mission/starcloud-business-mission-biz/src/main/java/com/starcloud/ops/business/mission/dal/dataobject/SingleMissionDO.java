@@ -69,6 +69,11 @@ public class SingleMissionDO extends TenantBaseDO {
     private String publishUrl;
 
     /**
+     * 发布内容id
+     */
+    private String noteId;
+
+    /**
      * 发布时间
      */
     private LocalDateTime publishTime;
