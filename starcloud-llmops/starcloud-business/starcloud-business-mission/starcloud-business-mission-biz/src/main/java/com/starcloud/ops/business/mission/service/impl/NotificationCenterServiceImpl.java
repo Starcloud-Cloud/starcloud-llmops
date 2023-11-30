@@ -105,13 +105,6 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         if (StringUtils.isNotBlank(reqVO.getName()) && !StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());
         }
-
-        if (NumberUtil.isGreater(reqVO.getSingleBudget(), notificationCenterDO.getSingleBudget())
-                || NumberUtil.isLess(reqVO.getNotificationBudget(), notificationCenterDO.getNotificationBudget())) {
-            // 校验预算
-
-        }
-
         NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
 
         singleMissionService.validBudget(notificationCenterDO);
