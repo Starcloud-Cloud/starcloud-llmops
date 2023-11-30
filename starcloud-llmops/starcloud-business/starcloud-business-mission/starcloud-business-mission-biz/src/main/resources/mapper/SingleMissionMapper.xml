@@ -41,8 +41,8 @@
         <if test="reqVO.claimUserId != null and reqVO.claimUserId != ''">
             and claim_user_id = #{reqVO.claimUserId}
         </if>
-        <if test="reqVO.claimUser != null and reqVO.claimUser != ''">
-            and claim_username = #{reqVO.claimUser}
+        <if test="reqVO.claimUsername != null and reqVO.claimUsername != ''">
+            and claim_username = #{reqVO.claimUsername}
         </if>
     </select>
 
@@ -57,8 +57,8 @@
         <if test="reqVO.claimUserId != null and reqVO.claimUserId != ''">
             and m.claim_user_id = #{reqVO.claimUserId}
         </if>
-        <if test="reqVO.claimUser != null and reqVO.claimUser != ''">
-            and m.claim_username = #{reqVO.claimUser}
+        <if test="reqVO.claimUsername != null and reqVO.claimUsername != ''">
+            and m.claim_username = #{reqVO.claimUsername}
         </if>
         order by m.create_time desc
         limit #{start},#{end}
