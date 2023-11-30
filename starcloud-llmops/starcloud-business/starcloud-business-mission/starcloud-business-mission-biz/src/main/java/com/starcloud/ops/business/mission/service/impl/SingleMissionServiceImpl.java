@@ -120,8 +120,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } else if (SingleMissionStatusEnum.stay_claim.getCode().equals(reqVO.getStatus())) {
             update(missionDO);
         } else if (SingleMissionStatusEnum.claimed.getCode().equals(reqVO.getStatus())) {
-            Optional.ofNullable(reqVO.getClaimName()).orElseThrow(() -> exception(500, "认领人不能为空"));
-            missionDO.setClaimUsername(reqVO.getClaimName());
+            Optional.ofNullable(reqVO.getClaimUsername()).orElseThrow(() -> exception(500, "认领人不能为空"));
+            missionDO.setClaimUsername(reqVO.getClaimUsername());
             LocalDateTime claimTime = Optional.ofNullable(reqVO.getClaimTime()).orElse(LocalDateTime.now());
             missionDO.setClaimTime(claimTime);
         } else if (SingleMissionStatusEnum.published.getCode().equals(reqVO.getStatus())) {

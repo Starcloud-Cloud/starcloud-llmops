@@ -58,4 +58,16 @@ public class NotificationRespVO {
 
     @Schema(description = "更新时间")
     private LocalDateTime updateTime;
+
+    @Schema(description = "总量")
+    private Long total;
+
+    @Schema(description = "待领取数")
+    private Long stayClaimCount;
+
+    @Schema(description = "领取数")
+    private Long claimCount;
+
+    @Schema(description = "完成数")
+    private Long settlementCount;
 }

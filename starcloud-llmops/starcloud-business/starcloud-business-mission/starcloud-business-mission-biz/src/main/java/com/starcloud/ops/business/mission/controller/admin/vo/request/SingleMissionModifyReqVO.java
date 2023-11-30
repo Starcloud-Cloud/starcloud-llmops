@@ -19,10 +19,10 @@ public class SingleMissionModifyReqVO {
     private String uid;
 
     @Schema(description = "认领Id")
-    private String claimId;
+    private String claimUserId;
 
     @Schema(description = "认领人")
-    private String claimName;
+    private String claimUsername;
 
     @Schema(description = "认领时间")
     private LocalDateTime claimTime;

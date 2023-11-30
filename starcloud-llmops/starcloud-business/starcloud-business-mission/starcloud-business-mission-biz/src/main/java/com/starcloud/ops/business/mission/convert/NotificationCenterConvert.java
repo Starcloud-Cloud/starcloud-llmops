@@ -7,6 +7,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.request.Notificati
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
+import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -15,6 +16,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY;
@@ -29,6 +31,10 @@ public interface NotificationCenterConvert {
     PageResult<NotificationRespVO> convert(PageResult<NotificationCenterDO> page);
 
     NotificationRespVO convert(NotificationCenterDO centerDO);
+
+    List<NotificationRespVO> convert(List<NotificationCenterDTO> centerDTOList);
+
+    NotificationRespVO convert(NotificationCenterDTO centerDTO);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
