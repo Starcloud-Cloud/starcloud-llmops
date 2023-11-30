@@ -5,6 +5,7 @@ import com.starcloud.ops.business.product.api.sku.dto.ProductSkuUpdateStockReqDT
 import com.starcloud.ops.business.product.convert.sku.ProductSkuConvert;
 import com.starcloud.ops.business.product.dal.dataobject.sku.ProductSkuDO;
 import com.starcloud.ops.business.product.service.sku.ProductSkuService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -19,7 +20,9 @@ import java.util.List;
  * @author LeeYan9
  * @since 2022-09-06
  */
+@Slf4j
 @Service
+@Validated
 public class ProductSkuApiImpl implements ProductSkuApi {
 
     @PostConstruct

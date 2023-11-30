@@ -15,6 +15,7 @@ import com.starcloud.ops.business.product.service.sku.ProductSkuService;
 import com.starcloud.ops.business.product.service.spu.ProductSpuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -45,14 +46,12 @@ public class ProductSpuController {
 
     @PostMapping("/create")
     @Operation(summary = "创建商品 SPU")
-    @PreAuthorize("@ss.hasPermission('product:spu:create')")
     public CommonResult<Long> createProductSpu(@Valid @RequestBody ProductSpuCreateReqVO createReqVO) {
         return success(productSpuService.createSpu(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新商品 SPU")
-    @PreAuthorize("@ss.hasPermission('product:spu:update')")
     public CommonResult<Boolean> updateSpu(@Valid @RequestBody ProductSpuUpdateReqVO updateReqVO) {
         productSpuService.updateSpu(updateReqVO);
         return success(true);
@@ -60,7 +59,6 @@ public class ProductSpuController {
 
     @PutMapping("/update-status")
     @Operation(summary = "更新商品 SPU Status")
-    @PreAuthorize("@ss.hasPermission('product:spu:update')")
     public CommonResult<Boolean> updateStatus(@Valid @RequestBody ProductSpuUpdateStatusReqVO updateReqVO) {
         productSpuService.updateSpuStatus(updateReqVO);
         return success(true);
@@ -69,7 +67,6 @@ public class ProductSpuController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除商品 SPU")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('product:spu:delete')")
     public CommonResult<Boolean> deleteSpu(@RequestParam("id") Long id) {
         productSpuService.deleteSpu(id);
         return success(true);
@@ -92,7 +89,6 @@ public class ProductSpuController {
 
     @GetMapping("/list-all-simple")
     @Operation(summary = "获得商品 SPU 精简列表")
-    @PreAuthorize("@ss.hasPermission('product:spu:query')")
     public CommonResult<List<ProductSpuSimpleRespVO>> getSpuSimpleList() {
         List<ProductSpuDO> list = productSpuService.getSpuListByStatus(ProductSpuStatusEnum.ENABLE.getStatus());
         // 降序排序后，返回给前端
@@ -103,7 +99,6 @@ public class ProductSpuController {
     @GetMapping("/list")
     @Operation(summary = "获得商品 SPU 详情列表")
     @Parameter(name = "spuIds", description = "spu 编号列表", required = true, example = "[1,2,3]")
-    @PreAuthorize("@ss.hasPermission('product:spu:query')")
     public CommonResult<List<ProductSpuDetailRespVO>> getSpuList(@RequestParam("spuIds") Collection<Long> spuIds) {
         return success(ProductSpuConvert.INSTANCE.convertForSpuDetailRespListVO(
                 productSpuService.getSpuList(spuIds), productSkuService.getSkuListBySpuId(spuIds)));
@@ -111,21 +106,18 @@ public class ProductSpuController {
 
     @GetMapping("/page")
     @Operation(summary = "获得商品 SPU 分页")
-    @PreAuthorize("@ss.hasPermission('product:spu:query')")
     public CommonResult<PageResult<ProductSpuRespVO>> getSpuPage(@Valid ProductSpuPageReqVO pageVO) {
         return success(ProductSpuConvert.INSTANCE.convertPage(productSpuService.getSpuPage(pageVO)));
     }
 
     @GetMapping("/get-count")
     @Operation(summary = "获得商品 SPU 分页 tab count")
-    @PreAuthorize("@ss.hasPermission('product:spu:query')")
     public CommonResult<Map<Integer, Long>> getSpuCount() {
         return success(productSpuService.getTabsCount());
     }
 
     @GetMapping("/export")
     @Operation(summary = "导出商品")
-    @PreAuthorize("@ss.hasPermission('product:spu:export')")
     @OperateLog(type = EXPORT)
     public void exportUserList(@Validated ProductSpuExportReqVO reqVO,
                                HttpServletResponse response) throws IOException {

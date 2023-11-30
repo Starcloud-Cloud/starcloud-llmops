@@ -40,7 +40,7 @@ import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLogi
 
 @Tag(name = "管理后台 - 支付订单")
 @RestController
-@RequestMapping("/pay/order")
+@RequestMapping("/pay/sign")
 @Validated
 public class PaySignController {
 
