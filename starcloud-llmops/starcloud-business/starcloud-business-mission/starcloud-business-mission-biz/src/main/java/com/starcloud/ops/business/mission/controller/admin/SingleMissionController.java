@@ -69,7 +69,7 @@ public class SingleMissionController {
 
     @GetMapping("/export")
     @Operation(summary = "导出任务", description = "导出任务")
-    public void exportSettlement(@Valid @RequestBody SinglePageQueryReqVO reqVO, HttpServletResponse response) throws IOException {
+    public void exportSettlement(@Valid SinglePageQueryReqVO reqVO, HttpServletResponse response) throws IOException {
         List<SingleMissionExportVO> exported = singleMissionService.exportSettlement(reqVO);
         String fileName = reqVO.getNotificationUid() + ".xls";
         ExcelUtils.write(response, fileName, reqVO.getNotificationUid(), SingleMissionExportVO.class, exported);
