@@ -61,4 +61,7 @@ public class SingleMissionRespVO {
 
     @Schema(description = "支付单号")
     private String paymentOrder;
+
+    @Schema(description = "结算失败原因")
+    private String errorMsg;
 }
