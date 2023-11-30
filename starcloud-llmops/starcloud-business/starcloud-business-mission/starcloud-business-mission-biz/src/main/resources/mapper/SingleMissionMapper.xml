@@ -60,7 +60,7 @@
         <if test="reqVO.claimUser != null and reqVO.claimUser != ''">
             and m.claim_username = #{reqVO.claimUser}
         </if>
-        order by m.id
+        order by m.create_time desc
         limit #{start},#{end}
     </select>
 </mapper>
