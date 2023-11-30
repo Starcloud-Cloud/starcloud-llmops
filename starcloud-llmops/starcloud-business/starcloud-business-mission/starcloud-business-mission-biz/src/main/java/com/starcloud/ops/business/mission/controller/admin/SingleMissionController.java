@@ -75,5 +75,11 @@ public class SingleMissionController {
         ExcelUtils.write(response, fileName, notificationUid, SingleMissionExportVO.class, exported);
     }
 
+    @PostMapping("/refresh/note/{uid}")
+    @Operation(summary = "刷新结算", description = "刷新笔记 重新结算")
+    public CommonResult<Boolean> refreshNote(@PathVariable("uid") String uid) {
+        singleMissionService.refreshNote(uid);
+        return CommonResult.success(true);
+    }
 
 }

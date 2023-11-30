@@ -41,14 +41,14 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
 
     @Override
     public XhsNoteDetailRespVO selectByNoteUrl(String noteUrl) {
-        validNoteUrl(noteUrl);
+        XhsDetailConstants.validNoteUrl(noteUrl);
         String noteId = ReUtil.delAll(XhsDetailConstants.DOMAIN, noteUrl);
         return selectByNoteId(noteId);
     }
 
     @Override
     public XhsNoteDetailRespVO refreshByNoteUrl(String noteUrl) {
-        validNoteUrl(noteUrl);
+        XhsDetailConstants.validNoteUrl(noteUrl);
         String noteId = ReUtil.delAll(XhsDetailConstants.DOMAIN, noteUrl);
         return refreshByNoteId(noteId);
     }
@@ -65,13 +65,6 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
             noteDetailMapper.updateById(xhsNoteDetailDO);
         }
         return XhsNoteDetailConvert.INSTANCE.convert(xhsNoteDetailDO);
-    }
-
-    private void validNoteUrl(String noteUrl) {
-        boolean match = ReUtil.isMatch(XhsDetailConstants.XHS_URL_REGEX, noteUrl);
-        if (!match) {
-            throw exception(XHS_URL_ERROR, noteUrl);
-        }
     }
 
 }
