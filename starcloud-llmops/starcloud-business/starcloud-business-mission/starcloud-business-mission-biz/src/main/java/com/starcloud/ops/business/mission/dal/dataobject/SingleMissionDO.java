@@ -103,5 +103,10 @@ public class SingleMissionDO extends TenantBaseDO {
      */
     private LocalDateTime runTime;
 
+    /**
+     * 失败信息
+     */
+    private String errorMsg;
+
 
 }

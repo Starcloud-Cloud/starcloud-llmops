@@ -65,4 +65,14 @@ public interface SingleMissionService {
      * 导出结算信息
      */
     List<SingleMissionExportVO> exportSettlement(String notificationUid);
+
+    /**
+     * 刷新小红书笔记
+     */
+    void refreshNote(String uid);
+
+    /**
+     * 结算更新
+     */
+    void settlement(SingleMissionRespVO singleMissionRespVO);
 }

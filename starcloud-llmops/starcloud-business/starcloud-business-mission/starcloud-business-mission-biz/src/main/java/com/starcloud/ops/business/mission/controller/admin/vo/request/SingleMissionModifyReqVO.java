@@ -61,4 +61,6 @@ public class SingleMissionModifyReqVO {
     @Schema(description = "定时执行时间")
     private LocalDateTime runTime;
 
+    private String errorMsg;
+
 }

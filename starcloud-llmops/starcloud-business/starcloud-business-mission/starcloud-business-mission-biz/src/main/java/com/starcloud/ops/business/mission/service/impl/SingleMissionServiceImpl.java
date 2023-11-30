@@ -2,11 +2,16 @@ package com.starcloud.ops.business.mission.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ReUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsNoteDetailRespVO;
+import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.XhsNoteDetailService;
+import com.starcloud.ops.business.dto.PostingContentDTO;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
@@ -24,6 +29,7 @@ import com.starcloud.ops.business.mission.service.SingleMissionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +45,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.XHS_URL_ERROR;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
 
 
@@ -101,11 +108,12 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } else if (SingleMissionStatusEnum.stay_claim.getCode().equals(reqVO.getStatus())) {
             update(missionDO);
         } else if (SingleMissionStatusEnum.claimed.getCode().equals(reqVO.getStatus())) {
-            Optional.ofNullable(reqVO.getClaimName()).orElseThrow(() -> exception(500,"认领人不能为空"));
+            Optional.ofNullable(reqVO.getClaimName()).orElseThrow(() -> exception(500, "认领人不能为空"));
             missionDO.setClaimUsername(reqVO.getClaimName());
             LocalDateTime claimTime = Optional.ofNullable(reqVO.getClaimTime()).orElse(LocalDateTime.now());
             missionDO.setClaimTime(claimTime);
         } else if (SingleMissionStatusEnum.published.getCode().equals(reqVO.getStatus())) {
+            XhsDetailConstants.validNoteUrl(reqVO.getPublishUrl());
             missionDO.setPublishUrl(reqVO.getPublishUrl());
             LocalDateTime publishTime = Optional.ofNullable(reqVO.getPublishTime()).orElse(LocalDateTime.now());
             missionDO.setClaimTime(publishTime);
@@ -198,6 +206,63 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         }
         return SingleMissionConvert.INSTANCE.convert(missionList);
     }
+
+    @Override
+    public void refreshNote(String uid) {
+        SingleMissionDO missionDO = getByUid(uid);
+
+        if (!SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
+                && !SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
+                && !SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
+            // 状态不允许刷新
+            throw exception(MISSION_STATUS_NOT_SUPPORT);
+        }
+        XhsDetailConstants.validNoteUrl(missionDO.getPublishUrl());
+        settlement(SingleMissionConvert.INSTANCE.convert(missionDO));
+    }
+
+    @Override
+    public void settlement(SingleMissionRespVO singleMissionRespVO) {
+        try {
+            XhsNoteDetailRespVO noteDetail = noteDetailService.refreshByNoteUrl(singleMissionRespVO.getPublishUrl());
+            NotificationRespVO notificationRespVO = notificationCenterService.selectByUid(singleMissionRespVO.getNotificationUid());
+            // 校验note内容
+            validPostingContent(singleMissionRespVO.getContent(), noteDetail);
+            BigDecimal amount = calculationAmount(noteDetail, notificationRespVO);
+            updateSingleMission(singleMissionRespVO.getUid(), amount);
+        } catch (Exception e) {
+            log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
+            SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
+            modifyReqVO.setStatus(SingleMissionStatusEnum.settlement_error.getCode());
+            modifyReqVO.setUid(singleMissionRespVO.getUid());
+            modifyReqVO.setRunTime(LocalDateTime.now());
+            modifyReqVO.setErrorMsg(e.getMessage());
+            update(modifyReqVO);
+        }
+    }
+
+
+    private void updateSingleMission(String uid, BigDecimal amount) {
+        SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
+        modifyReqVO.setUid(uid);
+        modifyReqVO.setPreSettlementTime(LocalDateTime.now());
+        modifyReqVO.setEstimatedAmount(amount);
+        modifyReqVO.setStatus(SingleMissionStatusEnum.pre_settlement.getCode());
+        modifyReqVO.setRunTime(LocalDateTime.now());
+        update(modifyReqVO);
+    }
+
+    private void validPostingContent(PostingContentDTO content, XhsNoteDetailRespVO noteDetail) {
+
+    }
+
+    private BigDecimal calculationAmount(XhsNoteDetailRespVO noteDetail, NotificationRespVO notificationRespVO) {
+        if (notificationRespVO.getUnitPrice() == null) {
+            return BigDecimal.ZERO;
+        }
+        return notificationRespVO.getUnitPrice().calculationAmount(noteDetail, notificationRespVO.getSingleBudget());
+    }
+
 
     private void validBudget(BigDecimal singleBudget, BigDecimal notificationBudget, Integer missionSize) {
         if (notificationBudget == null
