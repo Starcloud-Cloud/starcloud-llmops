@@ -301,7 +301,7 @@ public class XhsServiceImpl implements XhsService {
      */
     @Override
     public XhsImageExecuteResponse imageExecute(XhsImageExecuteRequest request) {
-        log.info("小红书执行生成图片开始");
+        log.info("小红书执行生成图片开始: 执行参数: \n{}", JSONUtil.parse(request).toStringPretty());
         XhsImageExecuteResponse response = XhsImageExecuteResponse.ofBase();
         try {
             String imageTemplate = request.getImageTemplate();

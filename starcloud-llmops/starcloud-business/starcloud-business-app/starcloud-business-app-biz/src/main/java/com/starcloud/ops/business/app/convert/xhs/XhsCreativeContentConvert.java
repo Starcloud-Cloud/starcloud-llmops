@@ -31,7 +31,6 @@ import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -140,7 +139,7 @@ public interface XhsCreativeContentConvert {
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
             Map<String, Object> params = Maps.newHashMap();
             // 图片集合，用于替换图片。
-            List<String> imageList = Collections.synchronizedList(Lists.newArrayList());
+            List<String> imageList = Lists.newArrayList();
             List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
             List<VariableItemDTO> imageVariableItemList = CollectionUtil.emptyIfNull(variableItemList.stream().filter(item -> "IMAGE".equalsIgnoreCase(item.getStyle())).collect(Collectors.toList()));
             for (VariableItemDTO variableItem : variableItemList) {
