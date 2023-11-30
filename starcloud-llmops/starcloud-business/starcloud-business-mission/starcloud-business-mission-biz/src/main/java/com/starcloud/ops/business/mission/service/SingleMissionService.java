@@ -64,7 +64,7 @@ public interface SingleMissionService {
     /**
      * 导出结算信息
      */
-    List<SingleMissionExportVO> exportSettlement(String notificationUid);
+    List<SingleMissionExportVO> exportSettlement(SinglePageQueryReqVO reqVO);
 
     /**
      * 刷新小红书笔记

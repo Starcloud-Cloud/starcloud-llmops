@@ -213,8 +213,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
-    public List<SingleMissionExportVO> exportSettlement(String notificationUid) {
-        List<SingleMissionDO> missionList = singleMissionMapper.getByNotificationUid(notificationUid);
+    public List<SingleMissionExportVO> exportSettlement(SinglePageQueryReqVO reqVO) {
+        List<SingleMissionDO> missionList = singleMissionMapper.export(reqVO);
         if (CollectionUtils.isEmpty(missionList)) {
             return Collections.emptyList();
         }
