@@ -25,11 +25,6 @@ import java.util.List;
 @Validated
 public class ProductSkuApiImpl implements ProductSkuApi {
 
-    @PostConstruct
-    public void ss() {
-        System.out.println("sssss");
-    }
-
     @Resource
     private ProductSkuService productSkuService;
 

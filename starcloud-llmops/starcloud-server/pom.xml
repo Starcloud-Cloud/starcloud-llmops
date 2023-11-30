@@ -94,6 +94,16 @@
             <artifactId>yudao-spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-product-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-promotion-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
 
     </dependencies>
 

@@ -54,7 +54,7 @@ public interface PayOldChannelMapper extends BaseMapperX<PayChannelDO> {
      */
     default Integer selectCount(Long merchantId, Long appid, String code) {
         return this.selectCount(new QueryWrapper<PayChannelDO>().lambda()
-                .eq(PayChannelDO::getMerchantId, merchantId)
+//                .eq(PayChannelDO::getMerchantId, merchantId)
                 .eq(PayChannelDO::getAppId, appid)
                 .eq(PayChannelDO::getCode, code)).intValue();
     }
@@ -69,7 +69,7 @@ public interface PayOldChannelMapper extends BaseMapperX<PayChannelDO> {
      */
     default PayChannelDO selectOne(Long merchantId, Long appI, String code) {
         return this.selectOne((new QueryWrapper<PayChannelDO>().lambda()
-                .eq(PayChannelDO::getMerchantId, merchantId)
+//                .eq(PayChannelDO::getMerchantId, merchantId)
                 .eq(PayChannelDO::getAppId, appI)
                 .eq(PayChannelDO::getCode, code)
         ));

@@ -67,7 +67,7 @@ public class TradeOrderController {
 
     //    ========================SYSTEM=======================ADMIN=======================
 
-    @GetMapping("/page")
+    @GetMapping("/orderPage")
     @Operation(summary = "获得交易订单分页")
     @PreAuthorize("@ss.hasPermission('trade:order:query')")
     public CommonResult<PageResult<TradeOrderPageItemRespVO>> getOrderPage(TradeOrderPageReqVO reqVO) {
@@ -213,7 +213,7 @@ public class TradeOrderController {
         return success(true);
     }
 
-    @GetMapping("/get-detail")
+    @GetMapping("/get-order-detail")
     @Operation(summary = "获得交易订单")
     @Parameter(name = "id", description = "交易订单编号")
     public CommonResult<AppTradeOrderDetailRespVO> getOrder(@RequestParam("id") Long id) {

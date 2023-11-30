@@ -30,7 +30,7 @@ import static cn.iocoder.yudao.framework.pay.core.client.impl.alipay.AlipayPayCl
 public class AlipaySignClient extends AbstractAlipayPayClient {
 
     public AlipaySignClient(Long channelId, AlipayPayClientConfig config) {
-        super(channelId, PayChannelEnum.ALIPAY_QR.getCode(), config);
+        super(channelId, PayChannelEnum.ALIPAY_AGREEMENT_APP.getCode(), config);
     }
 
     @Override

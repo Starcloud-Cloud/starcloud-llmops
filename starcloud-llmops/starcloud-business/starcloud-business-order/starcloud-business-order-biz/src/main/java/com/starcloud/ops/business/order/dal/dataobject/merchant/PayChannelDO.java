@@ -58,7 +58,7 @@ public class PayChannelDO extends TenantBaseDO {
      *
      * 关联 {@link PayMerchantDO#getId()}
      */
-    private Long merchantId;
+//    private Long merchantId;
     /**
      * 应用编号
      *

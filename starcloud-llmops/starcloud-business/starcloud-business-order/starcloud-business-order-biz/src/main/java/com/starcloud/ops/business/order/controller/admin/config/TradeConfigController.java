@@ -41,7 +41,7 @@ public class TradeConfigController {
         return success(true);
     }
 
-    @GetMapping("/get")
+    @GetMapping("/getConfig")
     @Operation(summary = "获得交易中心配置")
     @PreAuthorize("@ss.hasPermission('trade:config:query')")
     public CommonResult<TradeConfigRespVO> getConfig() {
@@ -54,7 +54,7 @@ public class TradeConfigController {
     }
 //==========================APP================================
 
-    @GetMapping("/get")
+    @GetMapping("/getTradeConfig")
     @Operation(summary = "获得交易配置")
     public CommonResult<AppTradeConfigRespVO> getTradeConfig() {
         TradeConfigDO config = ObjUtil.defaultIfNull(tradeConfigService.getTradeConfig(), new TradeConfigDO());

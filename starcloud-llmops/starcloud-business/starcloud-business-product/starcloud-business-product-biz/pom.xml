@@ -80,6 +80,10 @@
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-spring-boot-starter-test</artifactId>
+        </dependency>
 
     </dependencies>
 

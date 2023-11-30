@@ -26,12 +26,6 @@ public class TradeProductSkuOrderHandler implements TradeOrderHandler {
     @Resource
     private ProductSkuApi productSkuApi;
 
-    @PostConstruct
-    public void ss() {
-        System.out.println("");
-        System.out.println(productSkuApi);
-    }
-
     @Override
     public void beforeOrderCreate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
         productSkuApi.updateSkuStock(TradeOrderConvert.INSTANCE.convertNegative(orderItems));

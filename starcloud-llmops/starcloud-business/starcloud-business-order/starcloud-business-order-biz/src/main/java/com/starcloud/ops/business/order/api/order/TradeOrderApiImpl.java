@@ -5,6 +5,10 @@ import com.starcloud.ops.business.order.api.order.dto.TradeOrderRespDTO;
 import com.starcloud.ops.business.order.convert.order.TradeOrderConvert;
 import com.starcloud.ops.business.order.service.order.TradeOrderQueryService;
 import com.starcloud.ops.business.order.service.order.TradeOrderUpdateService;
+import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 

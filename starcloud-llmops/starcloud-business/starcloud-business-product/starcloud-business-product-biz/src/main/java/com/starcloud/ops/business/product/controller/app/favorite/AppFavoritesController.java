@@ -28,7 +28,7 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 @Tag(name = "用户 APP - 商品收藏")
 @RestController
 @RequestMapping("/product/favorite")
-public class AppFavoriteController {
+public class AppFavoritesController {
 
     @Resource
     private ProductFavoriteService productFavoriteService;
