@@ -624,9 +624,9 @@ public class PayOrderServiceImpl implements PayOrderService {
                 userDiscountCodeInfoVO.setStartTime(masterConfigStrategyByType.getStartTime());
                 userDiscountCodeInfoVO.setEndTime(masterConfigStrategyByType.getEndTime());
 
-            }catch (RuntimeException e){
+            } catch (RuntimeException e) {
                 log.warn("新用户权益配置已经过期");
-               return userDiscountCodeInfoVO;
+                return userDiscountCodeInfoVO;
             }
 
         } else {
