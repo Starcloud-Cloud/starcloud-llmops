@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.controller.admin.xhs.vo.response;
+package com.starcloud.ops.business.mission.controller.admin.vo.response;
 
 import com.starcloud.ops.business.app.api.xhs.note.NoteImage;
 import com.starcloud.ops.business.app.api.xhs.note.NoteVideo;
@@ -6,11 +6,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
 @Schema(description = "小红书笔记详情")
 public class XhsNoteDetailRespVO {
+
+    @Schema(description = "自增id")
+    private Long id;
 
     @Schema(description = "小红书笔记id")
     private String nodeId;
@@ -38,5 +42,8 @@ public class XhsNoteDetailRespVO {
 
     @Schema(description = "视频")
     private NoteVideo video;
+
+    @Schema(description = "预结算金额")
+    private BigDecimal amount;
 
 }

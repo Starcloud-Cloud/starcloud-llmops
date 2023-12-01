@@ -37,6 +37,11 @@ public interface SingleMissionService {
     void delete(String uid);
 
     /**
+     * 批量删除
+     */
+    void batchDelete(List<String> uids);
+
+    /**
      * 领取任务
      */
     void pick(String uid);
@@ -44,7 +49,7 @@ public interface SingleMissionService {
     /**
      * 发布任务
      */
-    void publish(String notificationUid, Boolean publish);
+    void publish(NotificationCenterDO notificationCenterDO, Boolean publish);
 
     /**
      * 查询

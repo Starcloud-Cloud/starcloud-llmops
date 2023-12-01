@@ -1,9 +1,9 @@
-package com.starcloud.ops.business.app.controller.admin.xhs;
+package com.starcloud.ops.business.mission.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.NoteDetailQueryReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsNoteDetailRespVO;
-import com.starcloud.ops.business.app.service.xhs.XhsNoteDetailService;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.NoteDetailQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
+import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;

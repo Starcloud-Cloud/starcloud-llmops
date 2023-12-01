@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationCreateReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationPageQueryReqVO;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/llm/notification")
@@ -22,6 +24,13 @@ public class NotificationCenterController {
 
     @Resource
     private NotificationCenterService centerService;
+
+
+    @GetMapping("/metadata")
+    @Operation(summary = "获取通告中心元数据", description = "获取通告中心元数据")
+    public CommonResult<Map<String, Object>> metadata() {
+        return CommonResult.success(centerService.metadata());
+    }
 
     @PostMapping("/create")
     @Operation(summary = "创建通告", description = "创建通告")

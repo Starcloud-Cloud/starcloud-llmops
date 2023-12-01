@@ -116,7 +116,10 @@
         llm_creative_content pic
         INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
         WHERE pic.type = 'picture' and text.type = 'copy_writing'
-        and pic.deleted = false and text.deleted = false and pic.claim = false and text.claim = false
+        and pic.deleted = false and text.deleted = false
+        <if test="claim != null">
+            and pic.claim = #{claim} and text.claim = #{claim}
+        </if>
         <if test="businessUids != null and businessUids.size() > 0">
             and pic.business_uid in
             <foreach collection="businessUids" item="item" open="(" close=")" separator=",">

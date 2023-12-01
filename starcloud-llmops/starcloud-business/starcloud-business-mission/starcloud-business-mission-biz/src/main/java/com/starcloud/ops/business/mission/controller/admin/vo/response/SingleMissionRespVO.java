@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.response;
 
 import com.starcloud.ops.business.dto.PostingContentDTO;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -79,6 +80,9 @@ public class SingleMissionRespVO {
 
     @Schema(description = "评论数")
     private Integer commentCount;
+
+    @Schema(description = "价格明细")
+    private SingleMissionPostingPriceDTO unitPrice;
 
 
 }

@@ -82,4 +82,11 @@ public class SingleMissionController {
         return CommonResult.success(true);
     }
 
+    @DeleteMapping("/batch/delete")
+    @Operation(summary = "批量删除", description = "批量删除")
+    public CommonResult<Boolean> batchDelete(@RequestBody List<String> uids) {
+        singleMissionService.batchDelete(uids);
+        return CommonResult.success(true);
+    }
+
 }

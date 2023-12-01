@@ -61,6 +61,16 @@ public class SingleMissionModifyReqVO {
     @Schema(description = "定时执行时间")
     private LocalDateTime runTime;
 
-    private String errorMsg;
+    @Schema(description = "笔记详情自增id")
+    private Long noteDetailId;
+
+    @Schema(description = "预结算失败信息")
+    private String preSettlementMsg;
+
+    @Schema(description = "关闭信息")
+    private String closeMsg;
+
+    @Schema(description = "结算失败信息")
+    private String settlementMsg;
 
 }

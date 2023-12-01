@@ -1,12 +1,16 @@
-package com.starcloud.ops.business.app.dal.databoject.xhs;
+package com.starcloud.ops.business.mission.dal.dataobject;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
+import java.math.BigDecimal;
 
 
 @Data
@@ -62,4 +66,14 @@ public class XhsNoteDetailDO extends BaseDO {
      * 视频
      */
     private String video;
+
+    /**
+     * 预结算时的价格明细
+     */
+    private String unitPrice;
+
+    /**
+     * 预结算金额
+     */
+    private BigDecimal amount;
 }

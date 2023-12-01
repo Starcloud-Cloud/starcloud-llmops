@@ -4,7 +4,12 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
+import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeRefersSourceEnum;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
+import com.starcloud.ops.business.enums.NotificationPlatformEnum;
+import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationCreateReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationPageQueryReqVO;
@@ -26,6 +31,7 @@ import javax.annotation.Resource;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
@@ -40,6 +46,20 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Resource
     @Lazy
     private SingleMissionService singleMissionService;
+
+    @Resource
+    private AppDictionaryService appDictionaryService;
+
+    @Override
+    public Map<String, Object> metadata() {
+        Map<String, Object> metadata = Maps.newHashMap();
+        metadata.put("platform", NotificationPlatformEnum.options());
+        metadata.put("notificationStatusEnum", NotificationCenterStatusEnum.options());
+        metadata.put("singleMissionStatusEnum", SingleMissionStatusEnum.options());
+        metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
+        return metadata;
+
+    }
 
     @Override
     public NotificationRespVO create(NotificationCreateReqVO reqVO) {
@@ -77,7 +97,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.cancel_published.getCode());
         }
         notificationCenterMapper.updateById(notificationCenterDO);
-        singleMissionService.publish(notificationCenterDO.getUid(), publish);
+        singleMissionService.publish(notificationCenterDO, publish);
     }
 
     @Override

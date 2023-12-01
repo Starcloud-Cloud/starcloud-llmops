@@ -1,6 +1,6 @@
-package com.starcloud.ops.business.dto;
+package com.starcloud.ops.business.mission.controller.admin.vo.dto;
 
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsNoteDetailRespVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -28,7 +28,6 @@ public class PostingUnitPriceDTO {
      * 结算
      *
      * @param noteDetailRespVO 互动统计
-     * @param singleBudget     单个任务最大金额
      * @return 结算金额
      */
     public BigDecimal calculationAmount(XhsNoteDetailRespVO noteDetailRespVO,

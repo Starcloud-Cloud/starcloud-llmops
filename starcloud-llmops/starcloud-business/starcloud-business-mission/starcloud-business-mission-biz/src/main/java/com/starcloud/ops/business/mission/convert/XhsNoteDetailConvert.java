@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.convert.xhs;
+package com.starcloud.ops.business.mission.convert;
 
 
 import cn.hutool.json.JSONUtil;
@@ -6,8 +6,8 @@ import com.starcloud.ops.business.app.api.xhs.note.NoteDetail;
 import com.starcloud.ops.business.app.api.xhs.note.NoteImage;
 import com.starcloud.ops.business.app.api.xhs.note.NoteInteractInfo;
 import com.starcloud.ops.business.app.api.xhs.note.NoteVideo;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsNoteDetailRespVO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.XhsNoteDetailDO;
+import com.starcloud.ops.business.mission.dal.dataobject.XhsNoteDetailDO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
