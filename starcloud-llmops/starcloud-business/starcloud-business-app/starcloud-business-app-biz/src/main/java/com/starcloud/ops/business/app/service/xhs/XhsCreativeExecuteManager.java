@@ -437,7 +437,7 @@ public class XhsCreativeExecuteManager {
      */
     private void updateFailure(Long id, LocalDateTime start, String errorMsg, Integer retry, Integer maxRetry) {
         // 重试次数大于阈值，更新为最终失败
-        if (retry >= maxRetry) {
+        if (retry >= (maxRetry - 1)) {
             updateFailureFinished(id, start, errorMsg, maxRetry);
             return;
         }
