@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.request;
 
-import com.starcloud.ops.business.dto.PostingUnitPriceDTO;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
 import com.starcloud.ops.business.enums.MisssionTypeEnum;
 import com.starcloud.ops.business.enums.NotificationPlatformEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;

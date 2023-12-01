@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,6 +79,7 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
         try {
             Map<String, Object> templateParams = new HashMap<>();
             templateParams.put("errorMsg", errorMsg);
+            templateParams.put("date", LocalDateTime.now());
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
                             .setUserId(1L).setMobile("17835411844")

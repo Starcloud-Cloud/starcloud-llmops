@@ -74,4 +74,9 @@ public interface XhsCreativeContentService {
      */
     List<XhsCreativeContentResp> bound(List<String> businessUids);
 
+    /**
+     * 解绑
+     */
+    void unBound(List<String> businessUids);
+
 }

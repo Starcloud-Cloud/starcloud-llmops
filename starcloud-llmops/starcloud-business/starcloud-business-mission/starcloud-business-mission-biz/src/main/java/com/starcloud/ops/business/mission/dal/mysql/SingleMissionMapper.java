@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.dal.mysql;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
@@ -37,6 +38,19 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
         LambdaQueryWrapper<SingleMissionDO> wrapper = Wrappers.lambdaQuery(SingleMissionDO.class)
                 .eq(SingleMissionDO::getUid, uid);
         return selectOne(wrapper);
+    }
+
+    default List<SingleMissionDO> listByUids(List<String> uids) {
+        LambdaQueryWrapper<SingleMissionDO> wrapper = Wrappers.lambdaQuery(SingleMissionDO.class)
+                .in(SingleMissionDO::getUid, uids)
+                .orderByAsc(SingleMissionDO::getId);
+        return selectList(wrapper);
+    }
+
+    default void batchDelete(List<String> uids) {
+        LambdaQueryWrapper<SingleMissionDO> wrapper = Wrappers.lambdaQuery(SingleMissionDO.class)
+                .in(SingleMissionDO::getUid, uids);
+        delete(wrapper);
     }
 
     default List<SingleMissionDO> getByNotificationUid(String notificationUid) {

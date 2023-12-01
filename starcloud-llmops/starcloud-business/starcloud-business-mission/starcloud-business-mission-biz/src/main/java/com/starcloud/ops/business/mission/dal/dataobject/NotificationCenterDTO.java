@@ -20,7 +20,17 @@ public class NotificationCenterDTO extends NotificationCenterDO{
     private Long claimCount;
 
     /**
+     * 用户发布数
+     */
+    private Long publishedCount;
+
+    /**
      * 完成数
      */
     private Long settlementCount;
+
+    /**
+     * 创建人
+     */
+    private String createUser;
 }

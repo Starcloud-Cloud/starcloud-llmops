@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.response;
 
-import com.starcloud.ops.business.dto.PostingUnitPriceDTO;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -68,6 +68,9 @@ public class NotificationRespVO {
     @Schema(description = "领取数")
     private Long claimCount;
 
-    @Schema(description = "完成数")
+    @Schema(description = "用户发布数")
+    private Long publishedCount;
+
+    @Schema(description = "结算数")
     private Long settlementCount;
 }
