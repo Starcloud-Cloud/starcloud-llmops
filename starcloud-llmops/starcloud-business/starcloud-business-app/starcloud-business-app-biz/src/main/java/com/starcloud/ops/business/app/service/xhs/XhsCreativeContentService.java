@@ -94,4 +94,11 @@ public interface XhsCreativeContentService {
      */
     void like(String businessUid);
 
+    /**
+     * 取消点赞
+     *
+     * @param businessUid 业务uid
+     */
+    void unlike(String businessUid);
+
 }
