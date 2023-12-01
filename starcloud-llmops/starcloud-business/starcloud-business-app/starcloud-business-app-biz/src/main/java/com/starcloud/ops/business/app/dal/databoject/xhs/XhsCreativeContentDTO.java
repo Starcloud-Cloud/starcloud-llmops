@@ -11,6 +11,7 @@ public class XhsCreativeContentDTO {
     /**
      * 创作方案UID
      */
+    @Schema(description = "创作方案UID")
     private String schemeUid;
 
     @Schema(description = "创作计划uid")
@@ -103,4 +104,10 @@ public class XhsCreativeContentDTO {
 
     @Schema(description = "是否认领")
     private Boolean claim;
+
+    /**
+     * 喜欢数量
+     */
+    @Schema(description = "喜欢数量")
+    private Long likeCount;
 }

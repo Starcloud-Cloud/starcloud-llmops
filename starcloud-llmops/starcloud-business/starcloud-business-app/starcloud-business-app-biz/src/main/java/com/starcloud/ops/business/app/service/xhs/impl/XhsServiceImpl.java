@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -93,13 +94,13 @@ public class XhsServiceImpl implements XhsService {
             int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
             List<VariableItemDTO> variables = params.stream().map(param -> {
                 if ("image".equals(param.getType())) {
-                    return CreativeUtil.ofImageVariable(param.getId(), param.getName());
+                    return CreativeUtil.ofImageVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
                 } else if ("text".equals(param.getType())) {
-                    return CreativeUtil.ofInputVariable(param.getId(), param.getName());
+                    return CreativeUtil.ofInputVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
                 } else {
                     return null;
                 }
-            }).filter(Objects::nonNull).collect(Collectors.toList());
+            }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemDTO::getOrder)).collect(Collectors.toList());
 
             XhsImageTemplateDTO response = new XhsImageTemplateDTO();
             response.setId(item.getId());

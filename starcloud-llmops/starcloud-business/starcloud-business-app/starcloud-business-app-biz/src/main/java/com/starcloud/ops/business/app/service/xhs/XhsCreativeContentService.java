@@ -87,4 +87,11 @@ public interface XhsCreativeContentService {
      */
     List<XhsCreativeContentResp> bound(List<String> businessUids);
 
+    /**
+     * 点赞
+     *
+     * @param businessUid 业务uid
+     */
+    void like(String businessUid);
+
 }

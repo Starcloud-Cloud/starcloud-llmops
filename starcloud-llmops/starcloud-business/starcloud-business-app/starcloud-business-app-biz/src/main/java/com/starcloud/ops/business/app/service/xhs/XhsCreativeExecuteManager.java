@@ -12,7 +12,6 @@ import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
-import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageStyleExecuteDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
@@ -26,10 +25,12 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.util.XhsImageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
@@ -252,81 +253,17 @@ public class XhsCreativeExecuteManager {
             log.info("创作中心：生成图片正在执行开始：{}，{}", content.getId(), start);
             // 最大重试次数
             Integer maxRetry = getMaxRetry(force);
-
-            // 查询文案执行情况。需要文案执行成功才能执行图片
-            XhsCreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
-            if (Objects.isNull(business)) {
-                // 此时说明数据存在问题，直接更新为最终失败
-                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务不存在，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
-                throw exception(350600141, "创作中心：文案任务不存在，不能执行图片生成(ID: %s)！", content.getUid());
-            }
-            if (XhsCreativeContentStatusEnums.INIT.getCode().equals(business.getStatus())) {
-                // 文案未执行，直接跳出，不执行图片生成，等待下次执行
-                throw exception(350600142, "创作中心：文案任务初始化中，不能执行图片生成(ID: %s)！", content.getUid());
-
-            } else if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(business.getStatus())) {
-                // 文案执行中，直接跳出，不执行图片生成，等待下次执行
-                throw exception(350600143, "创作中心：文案任务执行中，不能执行图片生成(ID: %s)！", content.getUid());
-
-            } else if (XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode().equals(business.getStatus())) {
-                // 文案最终执行失败，图片更新为最终失败
-                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
-                throw exception(350600144, "创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid());
-
-            } else if (XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(business.getStatus())) {
-                // 文案执行失败
-                // 重试次数大于阈值，更新为最终失败
-                if (business.getRetryCount() >= maxRetry) {
-                    updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
-                }
-                throw exception(350600145, "创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid());
-
-            } else if (XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(business.getStatus())) {
-                // 文案执行成功，但是文案执行结果为空，说明数据存在问题，直接更新为最终失败
-                if (StringUtils.isBlank(business.getCopyWritingResult())) {
-                    updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行结果不存在，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
-                    throw exception(350600146, "创作中心：文案任务执行结果不存在，不能执行图片生成(ID: %s)！", content.getUid());
-                }
-            } else {
-                // 文案状态异常。直接更新为最终失败
-                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行状态异常，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
-                throw exception(350600147, "创作中心：文案任务执行状态异常，不能执行图片生成(ID: %s)！", content.getUid());
-            }
-
-            // 文案执行结果
-            CopyWritingContentDTO copyWriting = JSONUtil.toBean(business.getCopyWritingResult(), CopyWritingContentDTO.class);
-            if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getImgTitle()) || StringUtils.isBlank(copyWriting.getImgSubTitle())) {
-                // 文案执行结果为空，说明数据存在问题，直接更新为最终失败
-                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid()), maxRetry);
-                throw exception(350600148, "创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid());
-            }
-
+            // 获取文案执行结果
+            CopyWritingContentDTO copyWriting = getCopyWritingContent(content, start, maxRetry);
             // 获取最新的创作内容并且校验
-            XhsCreativeContentDO latestContent = getImageContentAndValidate(content.getId(), maxRetry, force);
-            // 获取并且校验使用图片
-            List<String> useImageList = JSONUtil.parseArray(latestContent.getUsePicture()).toList(String.class);
-            if (CollectionUtils.isEmpty(useImageList)) {
-                // 可用图片为空，说明该任务数据存在问题。需要更新状态
-                updateFailureFinished(latestContent.getId(), start, formatErrorMsg("创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", latestContent.getUid()), maxRetry);
-                throw exception(350600113, "创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", latestContent.getUid());
-            }
-            // 获取并且校验执行参数
-            CreativePlanExecuteDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(latestContent.getExecuteParams());
-            if (Objects.isNull(executeParams) || Objects.isNull(executeParams.getImageStyleExecuteRequest())) {
-                // 执行参数为空，说明该任务数据存在问题。需要更新状态
-                updateFailureFinished(latestContent.getId(), start, formatErrorMsg("创作中心：图片执行参数不存在，请联系管理员(ID: %s)！", latestContent.getUid()), maxRetry);
-                throw exception(350600114, "创作中心：图片执行参数不存在，请联系管理员(ID: %s)！", latestContent.getUid());
-            }
-
+            XhsCreativeContentDO latestContent = getImageContent(content.getId(), start, maxRetry, force);
             // 构建请求
-            CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
-            XhsImageStyleExecuteRequest imageStyleRequest = XhsCreativeContentConvert.INSTANCE.toExecuteImageStyle(imageStyleExecuteRequest, useImageList, copyWriting);
             XhsImageCreativeExecuteRequest request = new XhsImageCreativeExecuteRequest();
+            request.setContentUid(latestContent.getUid());
             request.setPlanUid(latestContent.getPlanUid());
             request.setSchemeUid(latestContent.getSchemeUid());
             request.setBusinessUid(latestContent.getBusinessUid());
-            request.setContentUid(latestContent.getUid());
-            request.setImageStyleRequest(imageStyleRequest);
+            request.setImageStyleRequest(XhsImageUtils.transformExecuteImageStyle(latestContent, copyWriting, force));
             // 执行请求
             XhsImageCreativeExecuteResponse response = xhsService.imageCreativeExecute(request);
 
@@ -384,6 +321,112 @@ public class XhsCreativeExecuteManager {
     }
 
     /**
+     * 获取文案执行结果
+     *
+     * @param content  图片创作内容
+     * @param start    开始时间
+     * @param maxRetry 最大重试次数
+     * @return 文案执行结果
+     */
+    @NotNull
+    private CopyWritingContentDTO getCopyWritingContent(XhsCreativeContentDO content, LocalDateTime start, Integer maxRetry) {
+        // 查询文案执行情况。需要文案执行成功才能执行图片
+        XhsCreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+        if (Objects.isNull(business)) {
+            // 此时说明数据存在问题，直接更新为最终失败
+            updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务不存在，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+            throw exception(350600141, "创作中心：文案任务不存在，不能执行图片生成(ID: %s)！", content.getUid());
+        }
+        if (XhsCreativeContentStatusEnums.INIT.getCode().equals(business.getStatus())) {
+            // 文案未执行，直接跳出，不执行图片生成，等待下次执行
+            throw exception(350600142, "创作中心：文案任务初始化中，不能执行图片生成(ID: %s)！", content.getUid());
+
+        } else if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(business.getStatus())) {
+            // 文案执行中，直接跳出，不执行图片生成，等待下次执行
+            throw exception(350600143, "创作中心：文案任务执行中，不能执行图片生成(ID: %s)！", content.getUid());
+
+        } else if (XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode().equals(business.getStatus())) {
+            // 文案最终执行失败，图片更新为最终失败
+            updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+            throw exception(350600144, "创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid());
+
+        } else if (XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(business.getStatus())) {
+            // 文案执行失败
+            if (business.getRetryCount() >= maxRetry) {
+                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+            }
+            throw exception(350600145, "创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid());
+
+        } else if (XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(business.getStatus())) {
+            // 文案执行成功，但是文案执行结果为空，说明数据存在问题，直接更新为最终失败
+            if (StringUtils.isBlank(business.getCopyWritingResult())) {
+                updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行结果不存在，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+                throw exception(350600146, "创作中心：文案任务执行结果不存在，不能执行图片生成(ID: %s)！", content.getUid());
+            }
+        } else {
+            // 文案状态异常。直接更新为最终失败
+            updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行状态异常，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
+            throw exception(350600147, "创作中心：文案任务执行状态异常，不能执行图片生成(ID: %s)！", content.getUid());
+        }
+
+        // 文案执行结果
+        CopyWritingContentDTO copyWriting = JSONUtil.toBean(business.getCopyWritingResult(), CopyWritingContentDTO.class);
+        if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getImgTitle()) || StringUtils.isBlank(copyWriting.getImgSubTitle())) {
+            // 文案执行结果为空，说明数据存在问题，直接更新为最终失败
+            updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid()), maxRetry);
+            throw exception(350600148, "创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid());
+        }
+        return copyWriting;
+    }
+
+    /**
+     * 获取图片执行任务
+     *
+     * @param id    任务ID
+     * @param force 是否强制执行
+     * @return 图片执行任务
+     */
+    private XhsCreativeContentDO getImageContent(Long id, LocalDateTime start, Integer maxRetry, Boolean force) {
+        XhsCreativeContentDO content = creativeContentMapper.selectById(id);
+        if (Objects.isNull(content)) {
+            throw exception(350600211, "未找到对应的创作任务(ID: %s)！", id);
+        }
+
+        if (!XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(content.getType())) {
+            throw exception(350600212, "创作任务类型不是图片(ID: %s)！", id);
+        }
+
+        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())) {
+            throw exception(350600213, "创作任务正在执行(ID: %s)！", id);
+        }
+
+        if (!force) {
+            if (XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(content.getStatus())) {
+                throw exception(350600214, "创作任务已经执行成功(ID: %s)！", id);
+            }
+            if (XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus()) || content.getRetryCount() >= maxRetry) {
+                throw exception(350600215, "创作任务: %s，重试次数：%s，最多重试次数：%s ！", id, content.getRetryCount(), maxRetry);
+            }
+        }
+
+        // 获取并且校验使用图片
+        List<String> useImageList = JSONUtil.parseArray(content.getUsePicture()).toList(String.class);
+        if (CollectionUtils.isEmpty(useImageList)) {
+            // 可用图片为空，说明该任务数据存在问题。需要更新状态
+            updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", content.getUid()), maxRetry);
+            throw exception(350600113, "创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", content.getUid());
+        }
+        // 获取并且校验执行参数
+        CreativePlanExecuteDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
+        if (Objects.isNull(executeParams) || Objects.isNull(executeParams.getImageStyleExecuteRequest())) {
+            // 执行参数为空，说明该任务数据存在问题。需要更新状态
+            updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：图片执行参数不存在，请联系管理员(ID: %s)！", content.getUid()), maxRetry);
+            throw exception(350600114, "创作中心：图片执行参数不存在，请联系管理员(ID: %s)！", content.getUid());
+        }
+        return content;
+    }
+
+    /**
      * 执行失败，更新创作内容
      *
      * @param id       创作内容ID
@@ -434,38 +477,6 @@ public class XhsCreativeExecuteManager {
         content.setUpdateTime(end);
         content.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         creativeContentMapper.updateById(content);
-    }
-
-    /**
-     * 获取图片执行任务
-     *
-     * @param id    任务ID
-     * @param force 是否强制执行
-     * @return 图片执行任务
-     */
-    private XhsCreativeContentDO getImageContentAndValidate(Long id, Integer maxRetry, Boolean force) {
-        XhsCreativeContentDO content = creativeContentMapper.selectById(id);
-        if (Objects.isNull(content)) {
-            throw exception(350600211, "未找到对应的创作任务(ID: %s)！", id);
-        }
-
-        if (!XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(content.getType())) {
-            throw exception(350600212, "创作任务类型不是图片(ID: %s)！", id);
-        }
-
-        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())) {
-            throw exception(350600213, "创作任务正在执行(ID: %s)！", id);
-        }
-
-        if (!force) {
-            if (XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(content.getStatus())) {
-                throw exception(350600214, "创作任务已经执行成功(ID: %s)！", id);
-            }
-            if (XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus()) || content.getRetryCount() >= maxRetry) {
-                throw exception(350600215, "创作任务: %s，重试次数：%s，最多重试次数：%s ！", id, content.getRetryCount(), maxRetry);
-            }
-        }
-        return content;
     }
 
     /**

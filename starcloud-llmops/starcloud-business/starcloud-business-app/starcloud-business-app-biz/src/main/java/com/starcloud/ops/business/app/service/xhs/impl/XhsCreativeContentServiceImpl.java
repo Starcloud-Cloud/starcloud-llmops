@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -239,6 +240,24 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         }
         creativeContentMapper.claim(businessUids);
         return XhsCreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);
+    }
+
+    /**
+     * 点赞
+     *
+     * @param businessUid 业务uid
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void like(String businessUid) {
+        List<XhsCreativeContentDO> xhsCreativeContents = creativeContentMapper.listByBusinessUid(businessUid);
+        if (CollectionUtils.isEmpty(xhsCreativeContents)) {
+            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+        }
+        for (XhsCreativeContentDO content : xhsCreativeContents) {
+            content.setLikeCount(Optional.ofNullable(content.getLikeCount()).orElse(0L) + 1);
+            creativeContentMapper.updateById(content);
+        }
     }
 
     private XhsCreativeContentDTO byBusinessUid(String businessUid) {

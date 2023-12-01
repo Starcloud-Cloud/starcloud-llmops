@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
+import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanAppExecuteDTO;
@@ -46,6 +47,7 @@ import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
+import com.starcloud.ops.business.app.util.XhsImageUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -130,6 +133,24 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public PageResp<CreativePlanRespVO> page(CreativePlanPageQuery query) {
+        LocalDateTime[] createTime = query.getCreateTime();
+        if (createTime != null) {
+            if (createTime.length == 1) {
+                query.setStartTime(createTime[0]);
+                query.setEndTime(null);
+            }
+            if (createTime.length == 2) {
+                query.setStartTime(createTime[0]);
+                query.setEndTime(createTime[1]);
+            } else {
+                query.setStartTime(null);
+                query.setEndTime(null);
+            }
+        } else {
+            query.setStartTime(null);
+            query.setEndTime(null);
+        }
+
         IPage<CreativePlanPO> page = creativePlanMapper.page(PageUtil.page(query), query);
         if (page == null) {
             return PageResp.of(Collections.emptyList(), 0L, 1L, 10L);
@@ -349,8 +370,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigDTO config = plan.getConfig();
         // 图片素材列表
         List<String> imageUrlList = config.getImageUrlList();
+
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> executeParamsList = handlerCreativeContentExecuteParams(plan);
+        // 随机打散图片素材列表
+        List<String> disperseImageUrlList = disperseImageUrlList(imageUrlList, total);
         // 插入任务
         List<XhsCreativeContentCreateReq> xhsCreativeContentCreateReqList = new ArrayList<>(total * 2);
         for (int i = 0; i < total; i++) {
@@ -360,7 +384,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
             // 应用执行任务
             XhsCreativeContentCreateReq appCreateRequest = new XhsCreativeContentCreateReq();
-            // 克隆图片执行参数, 防止引用问题
             CreativePlanAppExecuteDTO appExecuteRequest = executeParam.getAppExecuteRequest();
             appCreateRequest.setPlanUid(plan.getUid());
             appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
@@ -372,8 +395,30 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
             // 图片执行任务
             XhsCreativeContentCreateReq imageCreateRequest = new XhsCreativeContentCreateReq();
-            // 克隆图片执行参数, 防止引用问题
+
             CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParam.getImageStyleExecuteRequest();
+            List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
+            Optional<CreativePlanImageExecuteDTO> mainImageOptional = imageRequests.stream().filter(CreativePlanImageExecuteDTO::getIsMain).findFirst();
+            if (!mainImageOptional.isPresent()) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_IMAGE_STYLE_EMPTY);
+            }
+            CreativePlanImageExecuteDTO mainImageRequest = mainImageOptional.get();
+            List<VariableItemDTO> mainImageRequestParams = mainImageRequest.getParams();
+            List<VariableItemDTO> mainImageTypeRequestParams = mainImageRequestParams.stream().filter(item -> "IMAGE".equalsIgnoreCase(item.getType())).collect(Collectors.toList());
+
+            // 替换图片素材
+            List<String> imageParamList = Lists.newArrayList();
+            for (int j = 0; j < mainImageTypeRequestParams.size(); j++) {
+                VariableItemDTO variableItem = mainImageTypeRequestParams.get(j);
+                if (j == 0) {
+                    String imageUrl = disperseImageUrlList.get(i);
+                    variableItem.setValue(imageUrl);
+                    imageParamList.add(imageUrl);
+                } else {
+                    variableItem.setValue(XhsImageUtils.randomImageList(imageParamList, imageUrlList));
+                }
+            }
+
             String tempUid = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests()).stream().map(CreativePlanImageExecuteDTO::getImageTemplate).collect(Collectors.joining(","));
             imageCreateRequest.setPlanUid(plan.getUid());
             imageCreateRequest.setSchemeUid(executeParam.getSchemeUid());
@@ -384,9 +429,23 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             imageCreateRequest.setUsePicture(imageUrlList);
             xhsCreativeContentCreateReqList.add(imageCreateRequest);
         }
-
         // 批量插入任务
         xhsCreativeContentService.create(xhsCreativeContentCreateReqList);
+    }
+
+    private List<String> disperseImageUrlList(List<String> imageUrlList, Integer total) {
+        List<String> disperseImageUrlList = SerializationUtils.clone((ArrayList<String>) imageUrlList);
+        Collections.shuffle(disperseImageUrlList);
+        // 如果图片素材数量大于等于任务数量，直接返回打撒后的图片素材列表
+        if (imageUrlList.size() >= total) {
+            return disperseImageUrlList;
+        }
+        // 如果图片素材数量小于任务数量，需要循环使用图片素材
+        List<String> dilatationDisperseImageUrlList = Lists.newArrayList();
+        for (int i = 0; i < total; i++) {
+            dilatationDisperseImageUrlList.add(disperseImageUrlList.get(i % disperseImageUrlList.size()));
+        }
+        return dilatationDisperseImageUrlList;
     }
 
     /**
@@ -417,7 +476,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 List<XhsImageTemplateDTO> templateList = style.getTemplateList();
                 AppValidate.notEmpty(templateList, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY, style.getName());
                 // 图片执行参数
-                CreativePlanImageStyleExecuteDTO styleExecute = CreativeUtil.getImageStyleExecuteRequest(style);
+                CreativePlanImageStyleExecuteDTO styleExecute = XhsImageUtils.getImageStyleExecuteRequest(style, planConfig.getImageUrlList());
                 CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
                 planExecute.setSchemeUid(scheme.getUid());
                 planExecute.setAppExecuteRequest(appExecute);
