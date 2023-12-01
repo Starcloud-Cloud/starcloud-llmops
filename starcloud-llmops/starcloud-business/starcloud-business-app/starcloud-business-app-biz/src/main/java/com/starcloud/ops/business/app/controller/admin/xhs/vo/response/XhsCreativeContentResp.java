@@ -103,4 +103,10 @@ public class XhsCreativeContentResp {
 
     @Schema(description = "是否绑定")
     private Boolean claim;
+
+    /**
+     * 喜欢数量
+     */
+    @Schema(description = "喜欢数量")
+    private Long likeCount;
 }

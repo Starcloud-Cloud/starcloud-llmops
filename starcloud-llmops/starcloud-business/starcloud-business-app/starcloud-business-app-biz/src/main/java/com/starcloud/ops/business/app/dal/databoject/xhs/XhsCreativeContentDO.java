@@ -130,4 +130,9 @@ public class XhsCreativeContentDO extends TenantBaseDO {
      */
     private Boolean claim;
 
+    /**
+     * 喜欢数量
+     */
+    private Long likeCount;
+
 }

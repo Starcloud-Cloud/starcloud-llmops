@@ -14,15 +14,11 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespV
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.plan.dto.CreativePlanConfigDTO;
-import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageExecuteDTO;
-import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageStyleExecuteDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
@@ -101,33 +97,6 @@ public class CreativeUtil {
         appExecute.setParams(params);
         appExecute.setScene(AppSceneEnum.XHS_WRITING.name());
         return appExecute;
-    }
-
-    /**
-     * 获取小红书批量图片执行参数
-     *
-     * @param style 图片模板列表
-     * @return 图片执行参数
-     */
-    public static CreativePlanImageStyleExecuteDTO getImageStyleExecuteRequest(XhsImageStyleDTO style) {
-        // 图片参数信息
-        List<CreativePlanImageExecuteDTO> imageExecuteRequestList = Lists.newArrayList();
-        List<XhsImageTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
-        for (int i = 0; i < templateList.size(); i++) {
-            XhsImageTemplateDTO template = templateList.get(i);
-            CreativePlanImageExecuteDTO imageExecuteRequest = new CreativePlanImageExecuteDTO();
-            imageExecuteRequest.setIndex(i + 1);
-            imageExecuteRequest.setIsMain(i == 0);
-            imageExecuteRequest.setImageTemplate(template.getId());
-            imageExecuteRequest.setParams(template.getVariables());
-            imageExecuteRequestList.add(imageExecuteRequest);
-        }
-        // 图片风格执行参数
-        CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = new CreativePlanImageStyleExecuteDTO();
-        imageStyleExecuteRequest.setId(style.getId());
-        imageStyleExecuteRequest.setName(style.getName());
-        imageStyleExecuteRequest.setImageRequests(imageExecuteRequestList);
-        return imageStyleExecuteRequest;
     }
 
     /**
@@ -432,12 +401,12 @@ public class CreativeUtil {
      * @param label 值
      * @return 文本变量
      */
-    public static VariableItemDTO ofInputVariable(String field, String label) {
+    public static VariableItemDTO ofInputVariable(String field, String label, Integer order) {
         VariableItemDTO variableItem = new VariableItemDTO();
         variableItem.setField(field);
         variableItem.setLabel(label);
         variableItem.setDescription(label);
-        variableItem.setOrder(1);
+        variableItem.setOrder(order);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
@@ -454,12 +423,12 @@ public class CreativeUtil {
      * @param label 值
      * @return 文本变量
      */
-    public static VariableItemDTO ofImageVariable(String field, String label) {
+    public static VariableItemDTO ofImageVariable(String field, String label, Integer order) {
         VariableItemDTO variableItem = new VariableItemDTO();
         variableItem.setField(field);
         variableItem.setLabel(label);
         variableItem.setDescription(label);
-        variableItem.setOrder(1);
+        variableItem.setOrder(order);
         variableItem.setType("IMAGE");
         variableItem.setStyle("IMAGE");
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());

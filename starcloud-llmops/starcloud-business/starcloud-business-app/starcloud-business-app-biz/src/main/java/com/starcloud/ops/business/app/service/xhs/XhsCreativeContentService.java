@@ -92,4 +92,11 @@ public interface XhsCreativeContentService {
      */
     void unBound(List<String> businessUids);
 
+    /**
+     * 点赞
+     *
+     * @param businessUid 业务uid
+     */
+    void like(String businessUid);
+
 }

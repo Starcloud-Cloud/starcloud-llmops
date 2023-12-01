@@ -52,6 +52,12 @@
             <if test="query.status!= null and query.status!= '' ">
                 AND a.`status` = #{query.status}
             </if>
+            <if test="query.startTime != null ">
+                AND a.`create_time` &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null ">
+                AND a.`create_time` &lt;= #{query.endTime}
+            </if>
             AND a.`deleted` = 0
         </where>
         GROUP BY a.`id`
