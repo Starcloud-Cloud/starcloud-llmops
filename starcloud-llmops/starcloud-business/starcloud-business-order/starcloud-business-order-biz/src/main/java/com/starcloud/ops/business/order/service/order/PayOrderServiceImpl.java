@@ -614,14 +614,21 @@ public class PayOrderServiceImpl implements PayOrderService {
         Long payOrderSuccess = orderMapper.selectCount(Wrappers.lambdaQuery(PayOrderDO.class).eq(PayOrderDO::getStatus, PayOrderStatusEnum.SUCCESS.getStatus()).eq(PayOrderDO::getCreator, getLoginUserId()));
 
         if (payOrderSuccess == 0) {
-            UserBenefitsStrategyDO masterConfigStrategyByType = userBenefitsStrategyService.getMasterConfigStrategyByType(BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_NEW_USER.getName());
-            if (ObjectUtil.isNull(masterConfigStrategyByType)) {
-                log.error("后台缺失新用户优惠券配置");
+            try {
+                UserBenefitsStrategyDO masterConfigStrategyByType = userBenefitsStrategyService.getMasterConfigStrategyByType(BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_NEW_USER.getName());
+                if (ObjectUtil.isNull(masterConfigStrategyByType)) {
+                    log.error("后台缺失新用户优惠券配置");
+                }
+                userDiscountCodeInfoVO.setCode(masterConfigStrategyByType.getCode());
+                userDiscountCodeInfoVO.setName(masterConfigStrategyByType.getStrategyName());
+                userDiscountCodeInfoVO.setStartTime(masterConfigStrategyByType.getStartTime());
+                userDiscountCodeInfoVO.setEndTime(masterConfigStrategyByType.getEndTime());
+
+            }catch (RuntimeException e){
+                log.warn("新用户权益配置已经过期");
+               return userDiscountCodeInfoVO;
             }
-            userDiscountCodeInfoVO.setCode(masterConfigStrategyByType.getCode());
-            userDiscountCodeInfoVO.setName(masterConfigStrategyByType.getStrategyName());
-            userDiscountCodeInfoVO.setStartTime(masterConfigStrategyByType.getStartTime());
-            userDiscountCodeInfoVO.setEndTime(masterConfigStrategyByType.getEndTime());
+
         } else {
             log.info("当前用户已经存在支付订单，无法获取新用户优惠信息");
         }
