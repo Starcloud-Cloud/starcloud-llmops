@@ -133,24 +133,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public PageResp<CreativePlanRespVO> page(CreativePlanPageQuery query) {
-        LocalDateTime[] createTime = query.getCreateTime();
-        if (createTime != null) {
-            if (createTime.length == 1) {
-                query.setStartTime(createTime[0]);
-                query.setEndTime(null);
-            }
-            if (createTime.length == 2) {
-                query.setStartTime(createTime[0]);
-                query.setEndTime(createTime[1]);
-            } else {
-                query.setStartTime(null);
-                query.setEndTime(null);
-            }
-        } else {
-            query.setStartTime(null);
-            query.setEndTime(null);
-        }
-
         IPage<CreativePlanPO> page = creativePlanMapper.page(PageUtil.page(query), query);
         if (page == null) {
             return PageResp.of(Collections.emptyList(), 0L, 1L, 10L);
