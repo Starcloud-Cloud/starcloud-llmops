@@ -17,7 +17,7 @@
 
     <properties>
         <starcloud.revision>1.0.0-SNAPSHOT</starcloud.revision>
-        <java-langchain.version>master-v1.0.1-g3dc6e6f-12</java-langchain.version>
+        <java-langchain.version>v1.0.3</java-langchain.version>
     </properties>
 
     <modules>
