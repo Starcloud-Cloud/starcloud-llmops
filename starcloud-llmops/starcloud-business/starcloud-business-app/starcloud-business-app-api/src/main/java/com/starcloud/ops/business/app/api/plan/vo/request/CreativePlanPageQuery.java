@@ -50,13 +50,6 @@ public class CreativePlanPageQuery extends PageQuery {
     @Schema(description = "创作计划状态")
     private String status;
 
-    /**
-     * 创作计划开始时间
-     */
-    @Schema(description = "创作计划开始时间")
-    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
-    private LocalDateTime[] createTime;
-
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
