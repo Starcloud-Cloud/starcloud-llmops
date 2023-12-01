@@ -18,7 +18,7 @@ public class PayOldWebConfiguration {
      */
     @Bean(name ="payGroupedOpenApi_old" )
     public GroupedOpenApi payGroupedOpenApi() {
-        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("pay");
+        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("payOrder");
     }
 
 }
