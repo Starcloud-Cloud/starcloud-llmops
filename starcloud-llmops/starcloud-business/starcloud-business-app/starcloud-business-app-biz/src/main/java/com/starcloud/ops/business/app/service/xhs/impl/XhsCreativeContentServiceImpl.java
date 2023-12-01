@@ -262,7 +262,27 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
         for (XhsCreativeContentDO content : xhsCreativeContents) {
-            content.setLikeCount(Optional.ofNullable(content.getLikeCount()).orElse(0L) + 1);
+            content.setLikeCount(Optional.ofNullable(content.getLikeCount()).orElse(0L) + 1L);
+            creativeContentMapper.updateById(content);
+        }
+    }
+
+    /**
+     * 取消点赞
+     *
+     * @param businessUid 业务uid
+     */
+    @Override
+    public void unlike(String businessUid) {
+        List<XhsCreativeContentDO> xhsCreativeContents = creativeContentMapper.listByBusinessUid(businessUid);
+        if (CollectionUtils.isEmpty(xhsCreativeContents)) {
+            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+        }
+        for (XhsCreativeContentDO content : xhsCreativeContents) {
+            if (content.getLikeCount() == null || content.getLikeCount() <= 0) {
+                continue;
+            }
+            content.setLikeCount(content.getLikeCount() - 1L);
             creativeContentMapper.updateById(content);
         }
     }

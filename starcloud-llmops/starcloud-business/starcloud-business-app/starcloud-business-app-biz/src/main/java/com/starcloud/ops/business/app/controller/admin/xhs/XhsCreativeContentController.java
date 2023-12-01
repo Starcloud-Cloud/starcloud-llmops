@@ -83,4 +83,12 @@ public class XhsCreativeContentController {
         return CommonResult.success("点赞成功");
     }
 
+    @PostMapping("/unlike")
+    @Operation(summary = "取消点赞", description = "取消点赞")
+    @ApiOperationSupport(order = 80, author = "nacoyer")
+    public CommonResult<String> unlike(@Validated @RequestBody XhsCreativeContentBusinessReq request) {
+        creativeContentService.unlike(request.getBusinessUid());
+        return CommonResult.success("取消点赞成功");
+    }
+
 }
