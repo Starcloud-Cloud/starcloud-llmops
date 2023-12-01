@@ -1,10 +1,8 @@
 package cn.iocoder.yudao.module.mp.service.message;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.autoreply.MpAutoReplyCreateReqVO;
@@ -21,7 +19,6 @@ import cn.iocoder.yudao.module.mp.service.message.bo.MpMessageSendOutReqBO;
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -29,7 +26,6 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import javax.validation.Validator;
 import java.util.List;
-import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.mp.enums.ErrorCodeConstants.*;
@@ -58,21 +54,6 @@ public class MpAutoReplyServiceImpl implements MpAutoReplyService {
     @Override
     public PageResult<MpAutoReplyDO> getAutoReplyPage(MpMessagePageReqVO pageVO) {
         return mpAutoReplyMapper.selectPage(pageVO);
-    }
-
-    @Override
-    public MpAutoReplyDO selectListByAppIdAndMessage(String appId, String requestMessageType) {
-
-        List<MpAutoReplyDO> mpAutoReplyDOS = mpAutoReplyMapper.selectListByAppIdAndMessage(appId, requestMessageType);
-        if (CollUtil.isEmpty(mpAutoReplyDOS)) {
-            return null;
-        }
-        return CollUtil.getFirst(mpAutoReplyDOS);
-    }
-
-    @Override
-    public MpAutoReplyDO selectOneByAppIdAndType(String appId, Integer type) {
-        return mpAutoReplyMapper.selectOneByAppIdAndType(appId, type);
     }
 
     @Override
@@ -115,16 +96,16 @@ public class MpAutoReplyServiceImpl implements MpAutoReplyService {
 
     /**
      * 校验自动回复是否冲突
-     * <p>
+     *
      * 不同的 type，会有不同的逻辑：
      * 1. type = SUBSCRIBE 时，不允许有其他的自动回复
      * 2. type = MESSAGE 时，校验 requestMessageType 已经存在自动回复
      * 3. type = KEYWORD 时，校验 keyword 已经存在自动回复
      *
-     * @param id                 自动回复编号
-     * @param accountId          公众号账号的编号
-     * @param type               类型
-     * @param requestKeyword     请求关键词
+     * @param id 自动回复编号
+     * @param accountId 公众号账号的编号
+     * @param type 类型
+     * @param requestKeyword 请求关键词
      * @param requestMessageType 请求消息类型
      */
     private void validateAutoReplyConflict(Long id, Long accountId, Integer type,
@@ -199,24 +180,6 @@ public class MpAutoReplyServiceImpl implements MpAutoReplyService {
 
     @Override
     public WxMpXmlOutMessage replyForSubscribe(String appId, WxMpXmlMessage wxMessage) {
-        return replyForSubscribe(appId, wxMessage, null);
-    }
-
-    @Override
-    public WxMpXmlOutMessage replyForSubscribe(String appId, String suffix, WxMpXmlMessage wxMessage) {
-        // 第一步，匹配自动回复
-        List<MpAutoReplyDO> replies = mpAutoReplyMapper.selectListByAppIdAndSubscribe(appId);
-        MpAutoReplyDO reply = CollUtil.isNotEmpty(replies) ? CollUtil.getFirst(replies)
-                : buildDefaultSubscribeAutoReply(appId); // 如果不存在，提供一个默认末班
-        MpMessageSendOutReqBO sendReqBO = MpAutoReplyConvert.INSTANCE.convert(wxMessage.getFromUser(), reply);
-        if (StringUtils.isNotBlank(suffix)) {
-            sendReqBO.setContent(sendReqBO.getContent() + "\n\n\n" + suffix);
-        }
-        return mpMessageService.sendOutMessage(sendReqBO);
-    }
-
-    @Override
-    public WxMpXmlOutMessage replyForSubscribe(String appId, WxMpXmlMessage wxMessage, Map<String, Object> params) {
         // 第一步，匹配自动回复
         List<MpAutoReplyDO> replies = mpAutoReplyMapper.selectListByAppIdAndSubscribe(appId);
         MpAutoReplyDO reply = CollUtil.isNotEmpty(replies) ? CollUtil.getFirst(replies)
@@ -224,10 +187,6 @@ public class MpAutoReplyServiceImpl implements MpAutoReplyService {
 
         // 第二步，基于自动回复，创建消息
         MpMessageSendOutReqBO sendReqBO = MpAutoReplyConvert.INSTANCE.convert(wxMessage.getFromUser(), reply);
-        if (!CollectionUtil.isEmpty(params)) {
-            String content = StrUtil.format(sendReqBO.getContent(), params);
-            sendReqBO.setContent(content);
-        }
         return mpMessageService.sendOutMessage(sendReqBO);
     }
 

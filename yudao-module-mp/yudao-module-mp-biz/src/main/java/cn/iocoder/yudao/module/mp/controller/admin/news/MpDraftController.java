@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.draft.*;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +38,6 @@ import static cn.iocoder.yudao.module.mp.enums.ErrorCodeConstants.*;
 public class MpDraftController {
 
     @Resource
-    @Lazy
     private MpServiceFactory mpServiceFactory;
 
     @Resource

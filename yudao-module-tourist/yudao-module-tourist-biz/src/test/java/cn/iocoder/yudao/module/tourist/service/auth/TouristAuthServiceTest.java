@@ -1,19 +1,18 @@
 package cn.iocoder.yudao.module.tourist.service.auth;
 
-import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.collection.ArrayUtils;
 import cn.iocoder.yudao.framework.redis.config.YudaoRedisAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbAndRedisUnitTest;
+import cn.iocoder.yudao.module.system.api.logger.LoginLogApi;
+import cn.iocoder.yudao.module.system.api.oauth2.OAuth2TokenApi;
+import cn.iocoder.yudao.module.system.api.sms.SmsCodeApi;
+import cn.iocoder.yudao.module.system.api.social.SocialUserApi;
 import cn.iocoder.yudao.module.tourist.controller.app.auth.vo.AppAuthResetPasswordReqVO;
 import cn.iocoder.yudao.module.tourist.controller.app.auth.vo.AppAuthUpdatePasswordReqVO;
 import cn.iocoder.yudao.module.tourist.dal.dataobject.user.TouristDO;
 import cn.iocoder.yudao.module.tourist.dal.mysql.user.TouristMapper;
 import cn.iocoder.yudao.module.tourist.service.user.TouristService;
-import cn.iocoder.yudao.module.system.api.oauth2.OAuth2TokenApi;
-import cn.iocoder.yudao.module.system.api.logger.LoginLogApi;
-import cn.iocoder.yudao.module.system.api.sms.SmsCodeApi;
-import cn.iocoder.yudao.module.system.api.social.SocialUserApi;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -53,8 +52,8 @@ public class TouristAuthServiceTest extends BaseDbAndRedisUnitTest {
     private OAuth2TokenApi oauth2TokenApi;
     @MockBean
     private SocialUserApi socialUserApi;
-    @MockBean
-    private WxMaService wxMaService;
+//    @MockBean
+//    private WxMaService wxMaService;
     @MockBean
     private PasswordEncoder passwordEncoder;
 

@@ -36,6 +36,7 @@ import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString
  * @author  jason
  */
 @Slf4j
+@Deprecated
 public abstract class AbstractAlipayClient extends AbstractPayClient<AlipayPayClientConfig> {
 
     protected DefaultAlipayClient client;

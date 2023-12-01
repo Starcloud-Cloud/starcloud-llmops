@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Deprecated
 public class PayOrderNotifyRespDTO {
 
     /**

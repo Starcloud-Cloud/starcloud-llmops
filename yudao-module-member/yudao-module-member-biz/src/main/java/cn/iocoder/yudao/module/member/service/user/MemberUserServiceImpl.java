@@ -157,7 +157,7 @@ public class MemberUserServiceImpl implements MemberUserService {
         MemberUserDO user = validateUserExists(userId);
         // 校验验证码
         smsCodeApi.useSmsCode(new SmsCodeUseReqDTO().setMobile(user.getMobile()).setCode(reqVO.getCode())
-                .setScene(SmsSceneEnum.MEMBER_FORGET_PASSWORD.getScene()).setUsedIp(getClientIP()));
+                .setScene(SmsSceneEnum.MEMBER_UPDATE_PASSWORD.getScene()).setUsedIp(getClientIP()));
 
         // 更新用户密码
         memberUserMapper.updateById(MemberUserDO.builder().id(userId)
@@ -170,7 +170,7 @@ public class MemberUserServiceImpl implements MemberUserService {
         MemberUserDO user = validateUserExists(reqVO.getMobile());
 
         // 使用验证码
-        smsCodeApi.useSmsCode(AuthConvert.INSTANCE.convert(reqVO, SmsSceneEnum.MEMBER_FORGET_PASSWORD,
+        smsCodeApi.useSmsCode(AuthConvert.INSTANCE.convert(reqVO, SmsSceneEnum.MEMBER_RESET_PASSWORD,
                 getClientIP()));
 
         // 更新密码

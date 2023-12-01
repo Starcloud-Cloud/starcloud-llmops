@@ -40,8 +40,6 @@ public interface SocialClientService {
      */
     AuthUser getAuthUser(Integer socialType, Integer userType, String code, String state);
 
-    // =================== 微信公众号独有 ===================
-
     /**
      * 创建微信公众号的 JS SDK 初始化所需的签名
      *

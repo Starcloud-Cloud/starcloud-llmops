@@ -74,6 +74,7 @@
         <jimureport.version>1.6.1</jimureport.version>
         <xercesImpl.version>2.12.2</xercesImpl.version>
         <weixin-java.version>4.5.7.B</weixin-java.version>
+        <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
     </properties>
 
     <dependencyManagement>
@@ -85,6 +86,12 @@
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>jakarta.json</groupId>
+                        <artifactId>jakarta.json-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!-- 业务组件 -->
@@ -535,6 +542,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty-all.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.xingyuv</groupId>
                 <artifactId>spring-boot-starter-captcha-plus</artifactId>
                 <version>${captcha-plus.version}</version>
@@ -653,6 +666,13 @@
                 <artifactId>spring-boot-starter-websocket</artifactId>
                 <version>${spring.boot.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>jakarta.json</groupId>
+                <artifactId>jakarta.json-api</artifactId>
+                <version>${jakarta.json-api.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

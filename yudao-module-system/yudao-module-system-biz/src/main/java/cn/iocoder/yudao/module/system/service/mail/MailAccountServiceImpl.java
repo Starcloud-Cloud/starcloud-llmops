@@ -8,21 +8,16 @@ import cn.iocoder.yudao.module.system.convert.mail.MailAccountConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.mail.MailAccountDO;
 import cn.iocoder.yudao.module.system.dal.mysql.mail.MailAccountMapper;
 import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
-import cn.iocoder.yudao.module.system.mq.producer.mail.MailProducer;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.MAIL_ACCOUNT_NOT_EXISTS;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.MAIL_ACCOUNT_RELATE_TEMPLATE_EXISTS;
 
@@ -42,30 +37,6 @@ public class MailAccountServiceImpl implements MailAccountService {
 
     @Resource
     private MailTemplateService mailTemplateService;
-
-    @Resource
-    private MailProducer mailProducer;
-
-    /**
-     * 邮箱账号缓存
-     * key：邮箱账号编码 {@link MailAccountDO#getId()}
-     *
-     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
-     */
-    @Getter
-    private volatile Map<Long, MailAccountDO> mailAccountCache;
-
-    @Override
-    @PostConstruct
-    public void initLocalCache() {
-        // 第一步：查询数据
-        List<MailAccountDO> accounts = mailAccountMapper.selectList();
-        log.info("[initLocalCache][缓存邮箱账号，数量:{}]", accounts.size());
-
-        // 第二步：构建缓存
-        mailAccountCache = convertMap(accounts, MailAccountDO::getId);
-    }
-
 
     @Override
     public Long createMailAccount(MailAccountCreateReqVO createReqVO) {

@@ -16,10 +16,7 @@ import static java.util.Collections.singleton;
  */
 public interface PermissionService {
 
-    /**
-     * 初始化权限的本地缓存
-     */
-    void initLocalCache();
+
     /**
      * 判断是否有权限，任一一个即可
      *

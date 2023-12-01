@@ -5,11 +5,8 @@ import cn.iocoder.yudao.module.mp.controller.admin.message.vo.autoreply.MpAutoRe
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.autoreply.MpAutoReplyUpdateReqVO;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessagePageReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpAutoReplyDO;
-import cn.iocoder.yudao.module.mp.enums.message.MpAutoReplyTypeEnum;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
-
-import java.util.Map;
 
 /**
  * 公众号的自动回复 Service 接口
@@ -25,18 +22,6 @@ public interface MpAutoReplyService {
      * @return 自动回复分页结果
      */
     PageResult<MpAutoReplyDO> getAutoReplyPage(MpMessagePageReqVO pageVO);
-
-
-    /**
-     * 获得一个公众号自动
-     *
-     * @param appId
-     * @param requestMessageType
-     * @return
-     */
-    MpAutoReplyDO selectListByAppIdAndMessage(String appId, String requestMessageType);
-
-    MpAutoReplyDO selectOneByAppIdAndType(String appId, Integer type);
 
     /**
      * 获得公众号自动回复
@@ -72,7 +57,7 @@ public interface MpAutoReplyService {
     /**
      * 当收到消息时，自动回复
      *
-     * @param appId     微信公众号 appId
+     * @param appId 微信公众号 appId
      * @param wxMessage 消息
      * @return 回复的消息
      */
@@ -81,22 +66,10 @@ public interface MpAutoReplyService {
     /**
      * 当粉丝关注时，自动回复
      *
-     * @param appId     微信公众号 appId
+     * @param appId 微信公众号 appId
      * @param wxMessage 消息
      * @return 回复的消息
      */
     WxMpXmlOutMessage replyForSubscribe(String appId, WxMpXmlMessage wxMessage);
-
-    WxMpXmlOutMessage replyForSubscribe(String appId, String suffix, WxMpXmlMessage wxMessage);
-
-    /**
-     * 当粉丝关注时，自动回复
-     *
-     * @param appId
-     * @param wxMessage
-     * @param params
-     * @return
-     */
-    WxMpXmlOutMessage replyForSubscribe(String appId, WxMpXmlMessage wxMessage, Map<String, Object> params);
 
 }

@@ -94,6 +94,11 @@ public class YudaoTenantAutoConfiguration {
         registrationBean.setFilter(new TenantSecurityWebFilter(tenantProperties, webProperties,
                 globalExceptionHandler, tenantFrameworkService,adminUserApi));
         registrationBean.setOrder(WebFilterOrderEnum.TENANT_SECURITY_FILTER);
+//        FilterRegistrationBean<TenantSecurityWebFilter> registrationBean = new FilterRegistrationBean<>();
+//        registrationBean.setFilter(new TenantSecurityWebFilter(tenantProperties, webProperties,
+//                globalExceptionHandler, tenantFrameworkService));
+//        registrationBean.setOrder(WebFilterOrderEnum.TENANT_SECURITY_FILTER);
+//        return registrationBean;
         return registrationBean;
     }
 

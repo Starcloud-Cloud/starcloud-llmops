@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @ToString
 @Builder
+@Deprecated
 public class PayRefundNotifyRespDTO {
 
     /**

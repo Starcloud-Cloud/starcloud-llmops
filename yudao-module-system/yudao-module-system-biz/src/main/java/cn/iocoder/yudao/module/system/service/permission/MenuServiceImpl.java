@@ -1,7 +1,6 @@
 package cn.iocoder.yudao.module.system.service.permission;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.module.system.controller.admin.permission.vo.menu.MenuCreateReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.permission.vo.menu.MenuListReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.permission.vo.menu.MenuUpdateReqVO;
@@ -10,14 +9,8 @@ import cn.iocoder.yudao.module.system.dal.dataobject.permission.MenuDO;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.MenuMapper;
 import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
 import cn.iocoder.yudao.module.system.enums.permission.MenuTypeEnum;
-import cn.iocoder.yudao.module.system.mq.producer.permission.MenuProducer;
 import cn.iocoder.yudao.module.system.service.tenant.TenantService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -25,11 +18,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
@@ -45,26 +36,6 @@ import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 @Slf4j
 public class MenuServiceImpl implements MenuService {
 
-    /**
-     * 菜单缓存
-     * key：菜单编号
-     *
-     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
-     */
-    @Getter
-    @Setter
-    private volatile Map<Long, MenuDO> menuCache;
-    /**
-     * 权限与菜单缓存
-     * key：权限 {@link MenuDO#getPermission()}
-     * value：MenuDO 数组，因为一个权限可能对应多个 MenuDO 对象
-     *
-     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
-     */
-    @Getter
-    @Setter
-    private volatile Multimap<String, MenuDO> permissionMenuCache;
-
     @Resource
     private MenuMapper menuMapper;
     @Resource
@@ -73,34 +44,6 @@ public class MenuServiceImpl implements MenuService {
     @Lazy // 延迟，避免循环依赖报错
     private TenantService tenantService;
 
-    @Resource
-    private MenuProducer menuProducer;
-
-    /**
-     * 初始化 {@link #menuCache} 和 {@link #permissionMenuCache} 缓存
-     */
-    @Override
-    @PostConstruct
-    public synchronized void initLocalCache() {
-        // 第一步：查询数据
-        List<MenuDO> menuList = menuMapper.selectList();
-        log.info("[initLocalCache][缓存菜单，数量为:{}]", menuList.size());
-
-        // 第二步：构建缓存
-        ImmutableMap.Builder<Long, MenuDO> menuCacheBuilder = ImmutableMap.builder();
-        ImmutableMultimap.Builder<String, MenuDO> permMenuCacheBuilder = ImmutableMultimap.builder();
-        menuList.forEach(menuDO -> {
-            menuCacheBuilder.put(menuDO.getId(), menuDO);
-            if (StrUtil.isNotEmpty(menuDO.getPermission())) { // 会存在 permission 为 null 的情况，导致 put 报 NPE 异常
-                permMenuCacheBuilder.put(menuDO.getPermission(), menuDO);
-            }
-        });
-        menuCache = menuCacheBuilder.build();
-        permissionMenuCache = permMenuCacheBuilder.build();
-    }
-    /**
-     * 初始化 {@link #menuCache} 和 {@link #permissionMenuCache} 缓存
-     */
     @Override
     @CacheEvict(value = RedisKeyConstants.PERMISSION_MENU_ID_LIST, key = "#reqVO.permission",
             condition = "#reqVO.permission != null")

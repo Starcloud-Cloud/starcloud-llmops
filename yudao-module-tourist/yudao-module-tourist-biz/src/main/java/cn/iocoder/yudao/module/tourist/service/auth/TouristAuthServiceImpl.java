@@ -1,18 +1,11 @@
 package cn.iocoder.yudao.module.tourist.service.auth;
 
-import cn.binarywang.wx.miniapp.api.WxMaService;
-import cn.binarywang.wx.miniapp.bean.WxMaPhoneNumberInfo;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
-import cn.iocoder.yudao.module.tourist.controller.app.auth.vo.*;
-import cn.iocoder.yudao.module.tourist.convert.auth.AuthConvert;
-import cn.iocoder.yudao.module.tourist.dal.dataobject.user.TouristDO;
-import cn.iocoder.yudao.module.tourist.dal.mysql.user.TouristMapper;
-import cn.iocoder.yudao.module.tourist.service.user.TouristService;
 import cn.iocoder.yudao.module.system.api.logger.LoginLogApi;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.api.oauth2.OAuth2TokenApi;
@@ -25,7 +18,11 @@ import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
 import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
 import cn.iocoder.yudao.module.system.enums.sms.SmsSceneEnum;
-import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
+import cn.iocoder.yudao.module.tourist.controller.app.auth.vo.*;
+import cn.iocoder.yudao.module.tourist.convert.auth.AuthConvert;
+import cn.iocoder.yudao.module.tourist.dal.dataobject.user.TouristDO;
+import cn.iocoder.yudao.module.tourist.dal.mysql.user.TouristMapper;
+import cn.iocoder.yudao.module.tourist.service.user.TouristService;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -58,9 +55,6 @@ public class TouristAuthServiceImpl implements TouristAuthService {
     private SocialUserApi socialUserApi;
     @Resource
     private OAuth2TokenApi oauth2TokenApi;
-
-    @Resource
-    private WxMaService wxMaService;
 
     @Resource
     private PasswordEncoder passwordEncoder;
@@ -116,27 +110,6 @@ public class TouristAuthServiceImpl implements TouristAuthService {
         if (user == null) {
             throw exception(USER_NOT_EXISTS);
         }
-
-        // 创建 Token 令牌，记录登录日志
-        return createTokenAfterLoginSuccess(user, user.getMobile(), LoginLogTypeEnum.LOGIN_SOCIAL);
-    }
-
-    @Override
-    public AppAuthLoginRespVO weixinMiniAppLogin(AppAuthWeixinMiniAppLoginReqVO reqVO) {
-        // 获得对应的手机号信息
-        WxMaPhoneNumberInfo phoneNumberInfo;
-        try {
-            phoneNumberInfo = wxMaService.getUserService().getNewPhoneNoInfo(reqVO.getPhoneCode());
-        } catch (Exception exception) {
-            throw exception(AUTH_WEIXIN_MINI_APP_PHONE_CODE_ERROR);
-        }
-        // 获得获得注册用户
-        TouristDO user = userService.createUserIfAbsent(phoneNumberInfo.getPurePhoneNumber(), getClientIP());
-        Assert.notNull(user, "获取用户失败，结果为空");
-
-        // 绑定社交用户
-        socialUserApi.bindSocialUser(new SocialUserBindReqDTO(user.getId(), getUserType().getValue(),
-                SocialTypeEnum.WECHAT_MINI_APP.getType(), reqVO.getLoginCode(), ""));
 
         // 创建 Token 令牌，记录登录日志
         return createTokenAfterLoginSuccess(user, user.getMobile(), LoginLogTypeEnum.LOGIN_SOCIAL);
@@ -225,7 +198,7 @@ public class TouristAuthServiceImpl implements TouristAuthService {
         TouristDO userDO = checkUserIfExists(reqVO.getMobile());
 
         // 使用验证码
-        smsCodeApi.useSmsCode(AuthConvert.INSTANCE.convert(reqVO, SmsSceneEnum.MEMBER_FORGET_PASSWORD,
+        smsCodeApi.useSmsCode(AuthConvert.INSTANCE.convert(reqVO, SmsSceneEnum.MEMBER_RESET_PASSWORD,
                 getClientIP()));
 
         // 更新密码

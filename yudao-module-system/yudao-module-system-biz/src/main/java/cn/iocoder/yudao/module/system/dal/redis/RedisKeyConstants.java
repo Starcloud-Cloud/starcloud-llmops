@@ -98,12 +98,4 @@ public interface RedisKeyConstants {
      * VALUE 数据格式：String 模版信息
      */
     String SMS_TEMPLATE = "sms_template";
-
-    /**
-     * 短信模版的缓存
-     * <p>
-     * KEY 格式：sms_template:{id}
-     * VALUE 数据格式：String 模版信息
-     */
-    String CAPTCHA_CODE = "captcha_code";
 }

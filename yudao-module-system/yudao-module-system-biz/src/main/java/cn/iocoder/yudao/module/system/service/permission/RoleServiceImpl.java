@@ -6,7 +6,6 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.controller.admin.permission.vo.role.RoleCreateReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.permission.vo.role.RoleExportReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.permission.vo.role.RolePageReqVO;
@@ -18,9 +17,7 @@ import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
 import cn.iocoder.yudao.module.system.enums.permission.DataScopeEnum;
 import cn.iocoder.yudao.module.system.enums.permission.RoleCodeEnum;
 import cn.iocoder.yudao.module.system.enums.permission.RoleTypeEnum;
-import cn.iocoder.yudao.module.system.mq.producer.permission.RoleProducer;
 import com.google.common.annotations.VisibleForTesting;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.*;
 
@@ -46,40 +42,12 @@ import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 @Slf4j
 public class RoleServiceImpl implements RoleService {
 
-    /**
-     * 角色缓存
-     * key：角色编号 {@link RoleDO#getId()}
-     *
-     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
-     */
-    @Getter
-    private volatile Map<Long, RoleDO> roleCache;
-
     @Resource
     private PermissionService permissionService;
 
     @Resource
     private RoleMapper roleMapper;
 
-    @Resource
-    private RoleProducer roleProducer;
-
-    /**
-     * 初始化 {@link #roleCache} 缓存
-     */
-    @Override
-    @PostConstruct
-    public void initLocalCache() {
-        // 注意：忽略自动多租户，因为要全局初始化缓存
-        TenantUtils.executeIgnore(() -> {
-            // 第一步：查询数据
-            List<RoleDO> roleList = roleMapper.selectList();
-            log.info("[initLocalCache][缓存角色，数量为:{}]", roleList.size());
-
-            // 第二步：构建缓存
-            roleCache = convertMap(roleList, RoleDO::getId);
-        });
-    }
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createRole(RoleCreateReqVO reqVO, Integer type) {

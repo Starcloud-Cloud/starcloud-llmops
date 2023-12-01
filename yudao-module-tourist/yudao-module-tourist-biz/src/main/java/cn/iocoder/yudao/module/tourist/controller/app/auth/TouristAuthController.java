@@ -47,10 +47,10 @@ public class TouristAuthController {
     @PermitAll
     @Operation(summary = "登出系统")
     public CommonResult<Boolean> logout(HttpServletRequest request) {
-        String token = SecurityFrameworkUtils.obtainAuthorization(request, securityProperties.getTokenHeader());
-        if (StrUtil.isNotBlank(token)) {
-            authService.logout(token);
-        }
+//        String token = SecurityFrameworkUtils.obtainAuthorization(request, securityProperties.getTokenHeader());
+//        if (StrUtil.isNotBlank(token)) {
+//            authService.logout(token);
+//        }
         return success(true);
     }
 
@@ -112,10 +112,5 @@ public class TouristAuthController {
         return success(authService.socialLogin(reqVO));
     }
 
-    @PostMapping("/weixin-mini-app-login")
-    @Operation(summary = "微信小程序的一键登录")
-    public CommonResult<AppAuthLoginRespVO> weixinMiniAppLogin(@RequestBody @Valid AppAuthWeixinMiniAppLoginReqVO reqVO) {
-        return success(authService.weixinMiniAppLogin(reqVO));
-    }
 
 }

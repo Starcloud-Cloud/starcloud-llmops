@@ -11,16 +11,13 @@ import cn.iocoder.yudao.module.system.convert.mail.MailTemplateConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.mail.MailTemplateDO;
 import cn.iocoder.yudao.module.system.dal.mysql.mail.MailTemplateMapper;
 import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
-import cn.iocoder.yudao.module.system.mq.producer.mail.MailProducer;
 import com.google.common.annotations.VisibleForTesting;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
@@ -28,8 +25,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
-import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.MAIL_TEMPLATE_CODE_EXISTS;
+import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.MAIL_TEMPLATE_NOT_EXISTS;
 
 /**
  * 邮箱模版 Service 实现类
@@ -49,29 +46,6 @@ public class MailTemplateServiceImpl implements MailTemplateService {
 
     @Resource
     private MailTemplateMapper mailTemplateMapper;
-
-    @Resource
-    private MailProducer mailProducer;
-
-    /**
-     * 邮件模板缓存
-     * key：邮件模版标识 {@link MailTemplateDO#getCode()}
-     *
-     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
-     */
-    @Getter
-    private volatile Map<String, MailTemplateDO> mailTemplateCache;
-
-    @Override
-    @PostConstruct
-    public void initLocalCache() {
-        // 第一步：查询数据
-        List<MailTemplateDO> templates = mailTemplateMapper.selectList();
-        log.info("[initLocalCache][缓存邮件模版，数量:{}]", templates.size());
-
-        // 第二步：构建缓存
-        mailTemplateCache = convertMap(templates, MailTemplateDO::getCode);
-    }
 
     @Override
     public Long createMailTemplate(MailTemplateCreateReqVO createReqVO) {

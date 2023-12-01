@@ -15,6 +15,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Deprecated
 public class PayRefundUnifiedRespDTO {
 
     /**

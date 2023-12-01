@@ -17,7 +17,6 @@ import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMenuMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
 import cn.iocoder.yudao.module.system.enums.permission.DataScopeEnum;
-import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.dynamic.datasource.annotation.DSTransactional;
@@ -34,7 +33,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.PostConstruct;
@@ -54,38 +52,6 @@ import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString
 @Slf4j
 public class PermissionServiceImpl implements PermissionService {
 
-    /**
-     * 角色编号与菜单编号的缓存映射
-     * key：角色编号
-     * value：菜单编号的数组
-     * <p>
-     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
-     */
-    @Getter
-    @Setter // 单元测试需要
-    private volatile Multimap<Long, Long> roleMenuCache;
-    /**
-     * 菜单编号与角色编号的缓存映射
-     * key：菜单编号
-     * value：角色编号的数组
-     * <p>
-     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
-     */
-    @Getter
-    @Setter // 单元测试需要
-    private volatile Multimap<Long, Long> menuRoleCache;
-
-    /**
-     * 用户编号与角色编号的缓存映射
-     * key：用户编号
-     * value：角色编号的数组
-     * <p>
-     * 这里声明 volatile 修饰的原因是，每次刷新时，直接修改指向
-     */
-    @Getter
-    @Setter // 单元测试需要
-    private volatile Map<Long, Set<Long>> userRoleCache;
-
     @Resource
     private RoleMenuMapper roleMenuMapper;
     @Resource
@@ -100,56 +66,6 @@ public class PermissionServiceImpl implements PermissionService {
     @Resource
     private AdminUserService userService;
 
-    @Resource
-    private PermissionProducer permissionProducer;
-
-    @Override
-    @PostConstruct
-    public void initLocalCache() {
-        initLocalCacheForRoleMenu();
-        initLocalCacheForUserRole();
-    }
-
-    /**
-     * 刷新 RoleMenu 本地缓存
-     */
-    @VisibleForTesting
-    void initLocalCacheForRoleMenu() {
-        // 注意：忽略自动多租户，因为要全局初始化缓存
-        TenantUtils.executeIgnore(() -> {
-            // 第一步：查询数据
-            List<RoleMenuDO> roleMenus = roleMenuMapper.selectList();
-            log.info("[initLocalCacheForRoleMenu][缓存角色与菜单，数量为:{}]", roleMenus.size());
-
-            // 第二步：构建缓存
-            ImmutableMultimap.Builder<Long, Long> roleMenuCacheBuilder = ImmutableMultimap.builder();
-            ImmutableMultimap.Builder<Long, Long> menuRoleCacheBuilder = ImmutableMultimap.builder();
-            roleMenus.forEach(roleMenuDO -> {
-                roleMenuCacheBuilder.put(roleMenuDO.getRoleId(), roleMenuDO.getMenuId());
-                menuRoleCacheBuilder.put(roleMenuDO.getMenuId(), roleMenuDO.getRoleId());
-            });
-            roleMenuCache = roleMenuCacheBuilder.build();
-            menuRoleCache = menuRoleCacheBuilder.build();
-        });
-    }
-
-    /**
-     * 刷新 UserRole 本地缓存
-     */
-    @VisibleForTesting
-    void initLocalCacheForUserRole() {
-        // 注意：忽略自动多租户，因为要全局初始化缓存
-        TenantUtils.executeIgnore(() -> {
-            // 第一步：加载数据
-            List<UserRoleDO> userRoles = userRoleMapper.selectList();
-            log.info("[initLocalCacheForUserRole][缓存用户与角色，数量为:{}]", userRoles.size());
-
-            // 第二步：构建缓存。
-            ImmutableMultimap.Builder<Long, Long> userRoleCacheBuilder = ImmutableMultimap.builder();
-            userRoles.forEach(userRoleDO -> userRoleCacheBuilder.put(userRoleDO.getUserId(), userRoleDO.getRoleId()));
-            userRoleCache = CollectionUtils.convertMultiMap2(userRoles, UserRoleDO::getUserId, UserRoleDO::getRoleId);
-        });
-    }
 
     @Override
     public boolean hasAnyPermissions(Long userId, String... permissions) {
@@ -230,8 +146,9 @@ public class PermissionServiceImpl implements PermissionService {
         // 获得角色拥有菜单编号
         Set<Long> dbMenuIds = convertSet(roleMenuMapper.selectListByRoleId(roleId), RoleMenuDO::getMenuId);
         // 计算新增和删除的菜单编号
-        Collection<Long> createMenuIds = CollUtil.subtract(menuIds, dbMenuIds);
-        Collection<Long> deleteMenuIds = CollUtil.subtract(dbMenuIds, menuIds);
+        Set<Long> menuIdList = CollUtil.emptyIfNull(menuIds);
+        Collection<Long> createMenuIds = CollUtil.subtract(menuIdList, dbMenuIds);
+        Collection<Long> deleteMenuIds = CollUtil.subtract(dbMenuIds, menuIdList);
         // 执行新增和删除。对于已经授权的菜单，不用做任何处理
         if (CollUtil.isNotEmpty(createMenuIds)) {
             roleMenuMapper.insertBatch(CollectionUtils.convertList(createMenuIds, menuId -> {
@@ -297,8 +214,9 @@ public class PermissionServiceImpl implements PermissionService {
         Set<Long> dbRoleIds = convertSet(userRoleMapper.selectListByUserId(userId),
                 UserRoleDO::getRoleId);
         // 计算新增和删除的角色编号
-        Collection<Long> createRoleIds = CollUtil.subtract(roleIds, dbRoleIds);
-        Collection<Long> deleteMenuIds = CollUtil.subtract(dbRoleIds, roleIds);
+        Set<Long> roleIdList = CollUtil.emptyIfNull(roleIds);
+        Collection<Long> createRoleIds = CollUtil.subtract(roleIdList, dbRoleIds);
+        Collection<Long> deleteMenuIds = CollUtil.subtract(dbRoleIds, roleIdList);
         // 执行新增和删除。对于已经授权的角色，不用做任何处理
         if (!CollectionUtil.isEmpty(createRoleIds)) {
             userRoleMapper.insertBatch(CollectionUtils.convertList(createRoleIds, roleId -> {
@@ -313,7 +231,6 @@ public class PermissionServiceImpl implements PermissionService {
         }
     }
 
-
     @Override
     @CacheEvict(value = RedisKeyConstants.USER_ROLE_ID_LIST, key = "#userId")
     public void processUserDeleted(Long userId) {
@@ -322,18 +239,9 @@ public class PermissionServiceImpl implements PermissionService {
 
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = RedisKeyConstants.USER_ROLE_ID_LIST, key = "#userId")
     public void processRoleDeleted(Long userId, Long roleId) {
         userRoleMapper.deleteUserRole(userId, roleId);
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-
-            @Override
-            public void afterCommit() {
-                permissionProducer.sendRoleMenuRefreshMessage();
-                permissionProducer.sendUserRoleRefreshMessage();
-            }
-
-        });
     }
 
     @Override
@@ -432,6 +340,7 @@ public class PermissionServiceImpl implements PermissionService {
         return result;
     }
     @Override
+    @Cacheable(value = RedisKeyConstants.USER_ROLE_ID_LIST, key = "#userId")
     public void addUserRole(Long userId, String role) {
         if (hasAnyRoles(userId, role)) {
             log.warn("{} 用户已存在角色 {}", userId, role);
@@ -448,13 +357,6 @@ public class PermissionServiceImpl implements PermissionService {
         entity.setRoleId(roleByCode.getId());
         userRoleMapper.insert(entity);
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                permissionProducer.sendUserRoleRefreshMessage();
-            }
-
-        });
     }
     /**
      * 获得自身的代理对象，解决 AOP 生效问题
