@@ -19,7 +19,7 @@ public class JsoupUtil {
     /**
      * 代理服务器地址
      */
-    private static final String PROXY_HOST = "18.221.99.174";
+    private static final String PROXY_HOST = "18.118.101.217";
     /**
      * 代理服务器端口
      */
