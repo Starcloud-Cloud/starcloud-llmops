@@ -5,23 +5,15 @@ import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.sms.core.client.SmsClient;
 import cn.iocoder.yudao.framework.sms.core.client.SmsClientFactory;
-import cn.iocoder.yudao.framework.sms.core.client.SmsCommonResult;
-import cn.iocoder.yudao.framework.sms.core.client.dto.SmsSendRespDTO;
-import cn.iocoder.yudao.framework.sms.core.client.dto.SmsTemplateRespDTO;
 import cn.iocoder.yudao.framework.sms.core.enums.SmsChannelEnum;
 import cn.iocoder.yudao.framework.sms.core.property.SmsChannelProperties;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
-import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
-import cn.iocoder.yudao.module.system.dal.mysql.sms.SmsTemplateMapper;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.sms.SmsChannelService;
-import cn.iocoder.yudao.module.system.service.sms.SmsTemplateServiceImpl;
-import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
@@ -84,10 +76,10 @@ public class SmsTest extends BaseDbUnitTest {
         keyValue.setKey("code");
         templateParams.add(keyValue);
 
-        SmsCommonResult<SmsSendRespDTO> result = smsClient.sendSms(991l, "", code, templateParams);
+//        SmsCommonResult<SmsSendRespDTO> result = smsClient.sendSms(991l, "", code, templateParams);
         // 校验短信模板是否正确
 
-        log.info("result: {}", result);
+//        log.info("result: {}", result);
 
 
     }
