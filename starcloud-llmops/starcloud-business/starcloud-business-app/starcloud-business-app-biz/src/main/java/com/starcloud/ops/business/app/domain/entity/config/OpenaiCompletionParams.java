@@ -10,7 +10,7 @@ public class OpenaiCompletionParams {
      */
     private String model = "gpt-3.5-turbo";
 
-    private Integer maxTokens = 550;
+    private Integer maxTokens = 1000;
 
     private Double temperature = 1d;
 
