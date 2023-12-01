@@ -9,9 +9,13 @@ import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
 import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
+import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.XhsCreativeContentMapper;
@@ -32,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -140,6 +145,17 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
         return creativeContentMapper.selectByPlanUid(planUid);
     }
 
+    /**
+     * 计划下的所有任务根据 业务uid 分组
+     *
+     * @param planUidList 计划uid
+     * @return 业务uid
+     */
+    @Override
+    public List<XhsCreativeContentBusinessPO> listGroupByBusinessUid(List<String> planUidList) {
+        return creativeContentMapper.listGroupByBusinessUid(planUidList);
+    }
+
     @Override
     public PageResult<XhsCreativeContentResp> page(XhsCreativeContentPageReq req) {
         Long count = creativeContentMapper.selectCount(req);
@@ -168,9 +184,11 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
             }
             boolean error = contentList.stream()
                     .anyMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(x.getStatus()));
+            boolean success = contentList.stream()
+                    .allMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(x.getStatus()));
             if (error) {
                 errorCount++;
-            } else {
+            } else if (success) {
                 successCount++;
             }
         }
@@ -218,12 +236,55 @@ public class XhsCreativeContentServiceImpl implements XhsCreativeContentService 
 
     @Override
     public List<XhsCreativeContentResp> bound(List<String> businessUids) {
-        List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids);
+        List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids, false);
         if (xhsCreativeContents.size() < businessUids.size()) {
             throw exception(new ErrorCode(500, "存在已绑定的创作内容"));
         }
-        creativeContentMapper.claim(businessUids);
+        creativeContentMapper.claim(businessUids, true);
         return XhsCreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);
+    }
+
+    @Override
+    public void unBound(List<String> businessUids) {
+        creativeContentMapper.claim(businessUids, false);
+    }
+
+    /**
+     * 点赞
+     *
+     * @param businessUid 业务uid
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void like(String businessUid) {
+        List<XhsCreativeContentDO> xhsCreativeContents = creativeContentMapper.listByBusinessUid(businessUid);
+        if (CollectionUtils.isEmpty(xhsCreativeContents)) {
+            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+        }
+        for (XhsCreativeContentDO content : xhsCreativeContents) {
+            content.setLikeCount(Optional.ofNullable(content.getLikeCount()).orElse(0L) + 1L);
+            creativeContentMapper.updateById(content);
+        }
+    }
+
+    /**
+     * 取消点赞
+     *
+     * @param businessUid 业务uid
+     */
+    @Override
+    public void unlike(String businessUid) {
+        List<XhsCreativeContentDO> xhsCreativeContents = creativeContentMapper.listByBusinessUid(businessUid);
+        if (CollectionUtils.isEmpty(xhsCreativeContents)) {
+            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+        }
+        for (XhsCreativeContentDO content : xhsCreativeContents) {
+            if (content.getLikeCount() == null || content.getLikeCount() <= 0) {
+                continue;
+            }
+            content.setLikeCount(content.getLikeCount() - 1L);
+            creativeContentMapper.updateById(content);
+        }
     }
 
     private XhsCreativeContentDTO byBusinessUid(String businessUid) {

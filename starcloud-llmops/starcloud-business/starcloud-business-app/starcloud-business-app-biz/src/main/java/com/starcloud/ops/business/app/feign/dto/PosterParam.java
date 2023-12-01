@@ -35,6 +35,12 @@ public class PosterParam implements java.io.Serializable {
     /**
      * 参数值
      */
+    @Schema(description = "排序")
+    private Integer order;
+
+    /**
+     * 参数值
+     */
     @Schema(description = "参数类型")
     private String type;
 

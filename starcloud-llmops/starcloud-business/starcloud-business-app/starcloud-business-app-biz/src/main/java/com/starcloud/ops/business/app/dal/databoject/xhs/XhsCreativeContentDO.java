@@ -126,8 +126,13 @@ public class XhsCreativeContentDO extends TenantBaseDO {
     private String extend;
 
     /**
-     * 是否认领
+     * 是否绑定
      */
     private Boolean claim;
+
+    /**
+     * 喜欢数量
+     */
+    private Long likeCount;
 
 }

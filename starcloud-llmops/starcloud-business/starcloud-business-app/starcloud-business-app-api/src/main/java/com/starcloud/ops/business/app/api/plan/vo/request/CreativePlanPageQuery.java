@@ -6,6 +6,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
+
+import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
 /**
  * @author nacoyer
@@ -45,5 +50,7 @@ public class CreativePlanPageQuery extends PageQuery {
     @Schema(description = "创作计划状态")
     private String status;
 
+    private LocalDateTime startTime;
 
+    private LocalDateTime endTime;
 }

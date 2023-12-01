@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.response;
 
 import com.starcloud.ops.business.dto.PostingContentDTO;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -10,6 +11,9 @@ import java.time.LocalDateTime;
 @Data
 @Schema(description = "单条任务")
 public class SingleMissionRespVO {
+
+    @Schema(description = "id")
+    private Long id;
 
     @Schema(description = "uid")
     private String uid;
@@ -58,4 +62,27 @@ public class SingleMissionRespVO {
 
     @Schema(description = "支付单号")
     private String paymentOrder;
+
+    @Schema(description = "结算失败原因")
+    private String errorMsg;
+
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
+
+    @Schema(description = "更新时间")
+    private LocalDateTime updateTime;
+
+    @Schema(description = "点赞数")
+    private Integer likedCount;
+
+    @Schema(description = "收藏数")
+    private Integer collectedCount;
+
+    @Schema(description = "评论数")
+    private Integer commentCount;
+
+    @Schema(description = "价格明细")
+    private SingleMissionPostingPriceDTO unitPrice;
+
+
 }

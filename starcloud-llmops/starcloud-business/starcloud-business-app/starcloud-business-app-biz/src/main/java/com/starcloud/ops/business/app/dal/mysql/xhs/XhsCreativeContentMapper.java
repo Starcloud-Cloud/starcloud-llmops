@@ -2,13 +2,16 @@ package com.starcloud.ops.business.app.dal.mysql.xhs;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
+import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDTO;
+import com.starcloud.ops.business.app.util.UserUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -43,6 +46,8 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
         return selectList(wrapper);
     }
 
+    List<XhsCreativeContentBusinessPO> listGroupByBusinessUid(@Param("planUidList") List<String> planUidList);
+
     default XhsCreativeContentDO selectByType(String businessUid, String type) {
         LambdaQueryWrapper<XhsCreativeContentDO> wrapper = Wrappers.lambdaQuery(XhsCreativeContentDO.class)
                 .eq(XhsCreativeContentDO::getBusinessUid, businessUid)
@@ -50,6 +55,16 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
                 .orderByDesc(XhsCreativeContentDO::getCreateTime)
                 .last(" limit 1");
         return selectOne(wrapper);
+    }
+
+    default List<XhsCreativeContentDO> listByBusinessUid(String businessUid) {
+        LambdaQueryWrapper<XhsCreativeContentDO> wrapper = Wrappers.lambdaQuery(XhsCreativeContentDO.class)
+                .eq(XhsCreativeContentDO::getBusinessUid, businessUid);
+        if (UserUtils.isNotAdmin()) {
+            wrapper.eq(XhsCreativeContentDO::getCreator, String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        }
+
+        return selectList(wrapper);
     }
 
 
@@ -72,10 +87,10 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
         return selectList(wrapper);
     }
 
-    default int claim(List<String> businessUids) {
+    default int claim(List<String> businessUids, Boolean claim) {
         LambdaUpdateWrapper<XhsCreativeContentDO> updateWrapper = Wrappers.lambdaUpdate(XhsCreativeContentDO.class)
                 .in(XhsCreativeContentDO::getBusinessUid, businessUids)
-                .set(XhsCreativeContentDO::getClaim, true);
+                .set(XhsCreativeContentDO::getClaim, claim);
         return this.update(null, updateWrapper);
     }
 
@@ -90,7 +105,7 @@ public interface XhsCreativeContentMapper extends BaseMapperX<XhsCreativeContent
 
     List<XhsCreativeContentDO> jobQuery(@Param("req") XhsCreativeQueryReq queryReq);
 
-    Long countByBusinessUid(@Param("businessUids")List<String> businessUids);
+    Long countByBusinessUid(@Param("businessUids") List<String> businessUids);
 
-    List<XhsCreativeContentDTO> selectByBusinessUid(@Param("businessUids")List<String> businessUids);
+    List<XhsCreativeContentDTO> selectByBusinessUid(@Param("businessUids") List<String> businessUids, @Param("claim") Boolean claim);
 }

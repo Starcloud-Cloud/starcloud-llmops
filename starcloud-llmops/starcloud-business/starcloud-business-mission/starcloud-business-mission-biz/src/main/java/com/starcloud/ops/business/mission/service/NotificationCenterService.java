@@ -7,6 +7,8 @@ import com.starcloud.ops.business.mission.controller.admin.vo.request.Notificati
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 
+import java.util.Map;
+
 public interface NotificationCenterService {
 
     /**
@@ -41,4 +43,11 @@ public interface NotificationCenterService {
      * 编辑
      */
     NotificationRespVO modifySelective(NotificationModifyReqVO reqVO);
+
+    /**
+     * 枚举值
+     * @return
+     */
+    Map<String, Object> metadata();
+
 }

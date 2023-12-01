@@ -69,6 +69,11 @@ public class SingleMissionDO extends TenantBaseDO {
     private String publishUrl;
 
     /**
+     * 详情自增id
+     */
+    private String noteDetailId;
+
+    /**
      * 发布时间
      */
     private LocalDateTime publishTime;
@@ -102,6 +107,26 @@ public class SingleMissionDO extends TenantBaseDO {
      * 定时执行时间
      */
     private LocalDateTime runTime;
+
+    /**
+     * 预结算单价 json
+     */
+    private String unitPrice;
+
+    /**
+     * 预结算失败信息
+     */
+    private String preSettlementMsg;
+
+    /**
+     * 关闭信息
+     */
+    private String closeMsg;
+
+    /**
+     * 结算失败信息
+     */
+    private String settlementMsg;
 
 
 }

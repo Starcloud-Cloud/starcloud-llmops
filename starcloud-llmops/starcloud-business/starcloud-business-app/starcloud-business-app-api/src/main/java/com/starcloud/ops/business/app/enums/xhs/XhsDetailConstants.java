@@ -1,6 +1,11 @@
 package com.starcloud.ops.business.app.enums.xhs;
 
 
+import cn.hutool.core.util.ReUtil;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.XHS_URL_ERROR;
+
 public class XhsDetailConstants {
 
     public static final String SCRIPT = "script";
@@ -21,5 +26,11 @@ public class XhsDetailConstants {
 
     public static final String XHS_URL_REGEX = "^(https://www.xiaohongshu.com/explore/{1,1}\\w{24,24})$";
 
+    public static void validNoteUrl(String noteUrl) {
+        boolean match = ReUtil.isMatch(XhsDetailConstants.XHS_URL_REGEX, noteUrl);
+        if (!match) {
+            throw exception(XHS_URL_ERROR, noteUrl);
+        }
+    }
 
 }

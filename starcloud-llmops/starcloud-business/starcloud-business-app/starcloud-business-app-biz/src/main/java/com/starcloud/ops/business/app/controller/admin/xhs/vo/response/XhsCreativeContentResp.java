@@ -101,6 +101,12 @@ public class XhsCreativeContentResp {
     @Schema(description = "文案拓展信息")
     private XhsCreativeContentExtendDTO copyWritingExtend;
 
-    @Schema(description = "是否认领")
+    @Schema(description = "是否绑定")
     private Boolean claim;
+
+    /**
+     * 喜欢数量
+     */
+    @Schema(description = "喜欢数量")
+    private Long likeCount;
 }

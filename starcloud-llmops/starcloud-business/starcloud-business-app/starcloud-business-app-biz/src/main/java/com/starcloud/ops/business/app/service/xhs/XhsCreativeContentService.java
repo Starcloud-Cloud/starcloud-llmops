@@ -1,8 +1,12 @@
 package com.starcloud.ops.business.app.service.xhs;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentCreateReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentModifyReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeContentPageReq;
+import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
 import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
+import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 
 import java.util.List;
@@ -39,6 +43,14 @@ public interface XhsCreativeContentService {
     List<XhsCreativeContentDO> listByPlanUid(String planUid);
 
     /**
+     * 计划下的所有任务根据 业务uid 分组
+     *
+     * @param planUidList 计划uid
+     * @return 业务uid
+     */
+    List<XhsCreativeContentBusinessPO> listGroupByBusinessUid(List<String> planUidList);
+
+    /**
      * 分页查询创作内容
      */
     PageResult<XhsCreativeContentResp> page(XhsCreativeContentPageReq req);
@@ -65,6 +77,7 @@ public interface XhsCreativeContentService {
 
     /**
      * 删除计划下的所有创作内容
+     *
      * @param planUid 计划uid
      */
     void deleteByPlanUid(String planUid);
@@ -73,5 +86,24 @@ public interface XhsCreativeContentService {
      * 绑定任务
      */
     List<XhsCreativeContentResp> bound(List<String> businessUids);
+
+    /**
+     * 解绑
+     */
+    void unBound(List<String> businessUids);
+
+    /**
+     * 点赞
+     *
+     * @param businessUid 业务uid
+     */
+    void like(String businessUid);
+
+    /**
+     * 取消点赞
+     *
+     * @param businessUid 业务uid
+     */
+    void unlike(String businessUid);
 
 }

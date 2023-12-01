@@ -8,9 +8,6 @@
         a.`uid`,
         a.`name`,
         a.`type`,
-        COUNT(CASE WHEN b.`status` = "execute_error" AND b.`deleted` = 0 THEN 1 END) AS failureCount,
-        COUNT(CASE WHEN b.`status` = "execute_success" AND b.`deleted` = 0 THEN 1 END) AS successCount,
-        COUNT(CASE WHEN b.`deleted` = 0 THEN 1 END) AS total,
         a.`status`,
         a.`start_time`,
         a.`end_time`,
@@ -36,12 +33,11 @@
     </select>
     
     <!-- 分页查询创意计划列表  -->
-    <select id="pageCreativePlan"
+    <select id="page"
             resultType="com.starcloud.ops.business.app.dal.databoject.plan.CreativePlanPO">
         SELECT
         <include refid="SELECT_COLUMNS"/>
         FROM llm_creative_plan a
-        LEFT JOIN llm_creative_content b ON a.`uid` = b.`plan_uid`
         <where>
             <if test="query.uid != null and query.uid != '' ">
                 AND a.`uid` = #{query.uid}
@@ -55,6 +51,12 @@
             </if>
             <if test="query.status!= null and query.status!= '' ">
                 AND a.`status` = #{query.status}
+            </if>
+            <if test="query.startTime != null ">
+                AND a.`create_time` &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null ">
+                AND a.`create_time` &lt;= #{query.endTime}
             </if>
             AND a.`deleted` = 0
         </where>
