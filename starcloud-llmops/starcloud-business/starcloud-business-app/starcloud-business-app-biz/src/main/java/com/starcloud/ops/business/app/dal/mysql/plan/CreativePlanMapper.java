@@ -45,7 +45,7 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
      * @param query 查询条件
      * @return 分页结果
      */
-    IPage<CreativePlanPO> pageCreativePlan(IPage<CreativePlanDO> page, @Param("query") CreativePlanPageQuery query);
+    IPage<CreativePlanPO> page(IPage<CreativePlanDO> page, @Param("query") CreativePlanPageQuery query);
 
     /**
      * 根据名称查询

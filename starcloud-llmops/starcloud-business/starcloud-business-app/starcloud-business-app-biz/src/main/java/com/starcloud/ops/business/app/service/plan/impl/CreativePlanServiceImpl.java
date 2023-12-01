@@ -30,6 +30,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativ
 import com.starcloud.ops.business.app.convert.plan.CreativePlanConvert;
 import com.starcloud.ops.business.app.dal.databoject.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.plan.CreativePlanPO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -44,6 +45,7 @@ import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.util.PageUtil;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +61,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -127,8 +130,41 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public PageResp<CreativePlanRespVO> page(CreativePlanPageQuery query) {
-        IPage<CreativePlanPO> page = creativePlanMapper.pageCreativePlan(PageUtil.page(query), query);
-        return CreativePlanConvert.INSTANCE.convertPage(page);
+        IPage<CreativePlanPO> page = creativePlanMapper.page(PageUtil.page(query), query);
+        if (page == null) {
+            return PageResp.of(Collections.emptyList(), 0L, 1L, 10L);
+        }
+        List<CreativePlanPO> records = page.getRecords();
+        if (CollectionUtil.isEmpty(records)) {
+            return PageResp.of(Collections.emptyList(), page.getTotal(), page.getCurrent(), page.getSize());
+        }
+        List<String> planUidList = records.stream().map(CreativePlanPO::getUid).collect(Collectors.toList());
+        List<XhsCreativeContentBusinessPO> businessList = xhsCreativeContentService.listGroupByBusinessUid(planUidList);
+        Map<String, List<XhsCreativeContentBusinessPO>> businessMap = businessList.stream().collect(Collectors.groupingBy(XhsCreativeContentBusinessPO::getPlanUid));
+
+        // 用户创建者ID列表。
+        List<Long> creatorList = records.stream().map(item -> Long.valueOf(item.getCreator())).distinct().collect(Collectors.toList());
+        // 获取用户创建者ID，昵称 Map。
+        Map<Long, String> creatorMap = UserUtils.getUserNicknameMapByIds(creatorList);
+
+        List<CreativePlanRespVO> collect = records.stream().map(item -> {
+            CreativePlanRespVO response = CreativePlanConvert.INSTANCE.convertResponse(item);
+            response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
+            // 总数
+            List<XhsCreativeContentBusinessPO> businessItemList = CollectionUtil.emptyIfNull(businessMap.get(item.getUid()));
+            // 全部成功才算成功
+            List<XhsCreativeContentBusinessPO> successList = businessItemList.stream()
+                    .filter(businessItem -> businessItem.getSuccessCount() == XhsCreativeContentTypeEnums.values().length).collect(Collectors.toList());
+            // 全部失败才算失败
+            List<XhsCreativeContentBusinessPO> failureList = businessItemList.stream()
+                    .filter(businessItem -> businessItem.getFailureCount() != 0).collect(Collectors.toList());
+            response.setTotal(businessItemList.size());
+            response.setSuccessCount(successList.size());
+            response.setFailureCount(failureList.size());
+            return response;
+        }).collect(Collectors.toList());
+
+        return PageResp.of(collect, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
     /**
