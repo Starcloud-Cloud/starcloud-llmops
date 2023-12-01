@@ -14,7 +14,8 @@ public enum PayNotifyTypeEnum {
 
     ORDER(1, "支付单"),
     REFUND(2, "退款单"),
-    SIGN(3, "签约单"),
+    TRANSFER(3, "转账单"),
+    SIGN(4, "签约单"),
 
     ;
 

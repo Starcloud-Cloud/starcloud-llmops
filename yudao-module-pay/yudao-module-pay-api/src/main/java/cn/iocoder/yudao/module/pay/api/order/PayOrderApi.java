@@ -37,6 +37,4 @@ public interface PayOrderApi {
      */
     void updatePayOrderPrice(Long id, Integer payPrice);
 
-
-
 }

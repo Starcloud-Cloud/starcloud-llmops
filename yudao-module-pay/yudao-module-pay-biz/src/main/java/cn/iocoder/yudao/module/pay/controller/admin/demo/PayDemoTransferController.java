@@ -3,6 +3,8 @@ package cn.iocoder.yudao.module.pay.controller.admin.demo;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import cn.iocoder.yudao.module.pay.api.notify.dto.PayTransferNotifyReqDTO;
 import cn.iocoder.yudao.module.pay.controller.admin.demo.vo.transfer.PayDemoTransferCreateReqVO;
 import cn.iocoder.yudao.module.pay.controller.admin.demo.vo.transfer.PayDemoTransferRespVO;
 import cn.iocoder.yudao.module.pay.convert.demo.PayDemoTransferConvert;
