@@ -2,13 +2,20 @@ package com.starcloud.ops.business.mission.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.PageUtils;
+import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeRefersSourceEnum;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
+import com.starcloud.ops.business.enums.NotificationPlatformEnum;
+import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationCreateReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationPageQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
 import com.starcloud.ops.business.mission.convert.NotificationCenterConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
+import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
 import com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper;
 import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
@@ -22,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
@@ -37,6 +46,20 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Lazy
     private SingleMissionService singleMissionService;
 
+    @Resource
+    private AppDictionaryService appDictionaryService;
+
+    @Override
+    public Map<String, Object> metadata() {
+        Map<String, Object> metadata = Maps.newHashMap();
+        metadata.put("platform", NotificationPlatformEnum.options());
+        metadata.put("notificationStatusEnum", NotificationCenterStatusEnum.options());
+        metadata.put("singleMissionStatusEnum", SingleMissionStatusEnum.options());
+        metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
+        return metadata;
+
+    }
+
     @Override
     public NotificationRespVO create(NotificationCreateReqVO reqVO) {
         validName(reqVO.getName());
@@ -49,8 +72,12 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
 
     @Override
     public PageResult<NotificationRespVO> page(NotificationPageQueryReqVO reqVO) {
-        PageResult<NotificationCenterDO> page = notificationCenterMapper.page(reqVO);
-        return NotificationCenterConvert.INSTANCE.convert(page);
+        Long count = notificationCenterMapper.pageCount(reqVO);
+        if (count == null || count <= 0) {
+            return PageResult.empty();
+        }
+        List<NotificationCenterDTO> centerDTOList = notificationCenterMapper.pageDetail(reqVO, PageUtils.getStart(reqVO), reqVO.getPageSize());
+        return new PageResult<>(NotificationCenterConvert.INSTANCE.convert(centerDTOList), count);
     }
 
     @Override
@@ -59,25 +86,27 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         NotificationCenterDO notificationCenterDO = getByUid(uid);
         if (BooleanUtils.isTrue(publish)) {
             if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
             }
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.published.getCode());
         } else {
             if (!NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+                throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
             }
             notificationCenterDO.setStatus(NotificationCenterStatusEnum.cancel_published.getCode());
         }
         notificationCenterMapper.updateById(notificationCenterDO);
-        singleMissionService.publish(notificationCenterDO.getUid(), publish);
+        singleMissionService.publish(notificationCenterDO, publish);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
         }
+        singleMissionService.deleteNotification(notificationCenterDO.getUid());
         notificationCenterMapper.deleteById(notificationCenterDO.getId());
     }
 
@@ -99,7 +128,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     public NotificationRespVO modifySelective(NotificationModifyReqVO reqVO) {
         NotificationCenterDO notificationCenterDO = getByUid(reqVO.getUid());
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
-            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT,notificationCenterDO.getStatus());
+            throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
         }
         if (StringUtils.isNotBlank(reqVO.getName()) && !StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());

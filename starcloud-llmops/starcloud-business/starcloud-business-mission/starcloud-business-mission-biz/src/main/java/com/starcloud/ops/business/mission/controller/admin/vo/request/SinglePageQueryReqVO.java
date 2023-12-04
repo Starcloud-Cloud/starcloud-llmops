@@ -21,7 +21,7 @@ public class SinglePageQueryReqVO extends PageParam {
     private String status;
 
     @Schema(description = "认领人")
-    private String claimUser;
+    private String claimUsername;
 
     @Schema(description = "认领人Id")
     private String claimUserId;

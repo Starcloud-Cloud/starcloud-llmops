@@ -1,6 +1,6 @@
-package com.starcloud.ops.business.dto;
+package com.starcloud.ops.business.mission.controller.admin.vo.dto;
 
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsNoteDetailRespVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -26,18 +26,25 @@ public class PostingUnitPriceDTO {
 
     /**
      * 结算
+     *
      * @param noteDetailRespVO 互动统计
-     * @param singleBudget 单个任务最大金额
      * @return 结算金额
      */
     public BigDecimal calculationAmount(XhsNoteDetailRespVO noteDetailRespVO,
                                         BigDecimal singleBudget) {
         Integer likeCount = Optional.ofNullable(noteDetailRespVO).map(XhsNoteDetailRespVO::getLikedCount).orElse(0);
         Integer commentCount = Optional.ofNullable(noteDetailRespVO).map(XhsNoteDetailRespVO::getCommentCount).orElse(0);
+        return calculationAmount(likeCount, commentCount, singleBudget);
+    }
+
+    public BigDecimal calculationAmount(Integer likeCount, Integer commentCount,
+                                        BigDecimal singleBudget) {
+        likeCount = Optional.ofNullable(likeCount).orElse(0);
+        commentCount = Optional.ofNullable(commentCount).orElse(0);
         this.likeUnitPrice = Optional.ofNullable(likeUnitPrice).orElse(BigDecimal.ZERO);
         this.replyUnitPrice = Optional.ofNullable(replyUnitPrice).orElse(BigDecimal.ZERO);
         this.postingUnitPrice = Optional.ofNullable(postingUnitPrice).orElse(BigDecimal.ZERO);
-        BigDecimal totalAmount = replyUnitPrice.multiply(BigDecimal.valueOf(likeCount)).add(replyUnitPrice.multiply(BigDecimal.valueOf(commentCount))).add(postingUnitPrice);
+        BigDecimal totalAmount = likeUnitPrice.multiply(BigDecimal.valueOf(likeCount)).add(replyUnitPrice.multiply(BigDecimal.valueOf(commentCount))).add(postingUnitPrice);
         return totalAmount.min(Optional.ofNullable(singleBudget).orElse(BigDecimal.ZERO));
     }
 }

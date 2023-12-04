@@ -184,9 +184,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             }
             boolean error = contentList.stream()
                     .anyMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(x.getStatus()));
+            boolean success = contentList.stream()
+                    .allMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(x.getStatus()));
             if (error) {
                 errorCount++;
-            } else {
+            } else if (success) {
                 successCount++;
             }
         }
@@ -233,13 +235,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
     @Override
-    public List<CreativeContentRespVO> bound(List<String> businessUids) {
-        List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids);
+    public List<XhsCreativeContentResp> bound(List<String> businessUids) {
+        List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids, false);
         if (xhsCreativeContents.size() < businessUids.size()) {
             throw exception(new ErrorCode(500, "存在已绑定的创作内容"));
         }
-        creativeContentMapper.claim(businessUids);
-        return CreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);
+        creativeContentMapper.claim(businessUids, true);
+        return XhsCreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);
     }
 
     /**
@@ -278,6 +280,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             content.setLikeCount(content.getLikeCount() - 1L);
             creativeContentMapper.updateById(content);
         }
+    }
+
+    @Override
+    public void unBound(List<String> businessUids) {
+        creativeContentMapper.claim(businessUids, false);
     }
 
     private XhsCreativeContentDTO byBusinessUid(String businessUid) {

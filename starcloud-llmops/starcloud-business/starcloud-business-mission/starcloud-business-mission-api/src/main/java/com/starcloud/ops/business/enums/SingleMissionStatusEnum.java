@@ -1,7 +1,13 @@
 package com.starcloud.ops.business.enums;
 
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 public enum SingleMissionStatusEnum implements IEnumable<String> {
@@ -12,6 +18,7 @@ public enum SingleMissionStatusEnum implements IEnumable<String> {
     pre_settlement("pre_settlement", "预结算"),
     settlement("settlement", "结算"),
     close("close", "关闭"),
+    pre_settlement_error("pre_settlement_error","预结算异常"),
     settlement_error("settlement_error","结算异常")
     ;
 
@@ -27,5 +34,20 @@ public enum SingleMissionStatusEnum implements IEnumable<String> {
     @Override
     public String getLabel() {
         return code;
+    }
+
+    /**
+     * 获取类型枚举
+     *
+     * @return 类型枚举
+     */
+    public static List<Option> options() {
+        return Arrays.stream(values()).sorted(Comparator.comparingInt(SingleMissionStatusEnum::ordinal))
+                .map(item -> {
+                    Option option = new Option();
+                    option.setLabel(item.getDesc());
+                    option.setValue(item.getCode());
+                    return option;
+                }).collect(Collectors.toList());
     }
 }

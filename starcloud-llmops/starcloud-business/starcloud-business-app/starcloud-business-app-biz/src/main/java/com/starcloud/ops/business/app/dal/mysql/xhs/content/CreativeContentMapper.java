@@ -87,10 +87,10 @@ public interface CreativeContentMapper extends BaseMapperX<XhsCreativeContentDO>
         return selectList(wrapper);
     }
 
-    default int claim(List<String> businessUids) {
+    default int claim(List<String> businessUids, Boolean claim) {
         LambdaUpdateWrapper<XhsCreativeContentDO> updateWrapper = Wrappers.lambdaUpdate(XhsCreativeContentDO.class)
                 .in(XhsCreativeContentDO::getBusinessUid, businessUids)
-                .set(XhsCreativeContentDO::getClaim, true);
+                .set(XhsCreativeContentDO::getClaim, claim);
         return this.update(null, updateWrapper);
     }
 
@@ -107,5 +107,5 @@ public interface CreativeContentMapper extends BaseMapperX<XhsCreativeContentDO>
 
     Long countByBusinessUid(@Param("businessUids") List<String> businessUids);
 
-    List<XhsCreativeContentDTO> selectByBusinessUid(@Param("businessUids") List<String> businessUids);
+    List<XhsCreativeContentDTO> selectByBusinessUid(@Param("businessUids") List<String> businessUids, @Param("claim") Boolean claim);
 }

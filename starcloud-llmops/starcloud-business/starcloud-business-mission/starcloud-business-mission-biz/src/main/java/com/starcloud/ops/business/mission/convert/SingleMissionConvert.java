@@ -5,6 +5,8 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.dto.PostingContentDTO;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
@@ -12,6 +14,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMis
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
+import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
 import com.starcloud.ops.business.mission.task.XhsTaskContentParams;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.*;
@@ -34,13 +37,28 @@ public interface SingleMissionConvert {
 
     List<SingleMissionExportVO> convert(List<SingleMissionDO> missionList);
 
+    List<SingleMissionRespVO> pageConvert(List<SingleMissionDTO> singleMissionList);
+
+    SingleMissionRespVO convert(SingleMissionDTO dto);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     void updateSelective(SingleMissionModifyReqVO reqVO, @MappingTarget SingleMissionDO singleMissionDO);
 
     SingleMissionQueryReqVO convert(XhsTaskContentParams params);
 
-    default SingleMissionDO convert(CreativeContentRespVO creativeContentResp, NotificationCenterDO notificationCenterDO) {
+    default SingleMissionPostingPriceDTO convert(NotificationCenterDO notificationCenterDO){
+        PostingUnitPriceDTO price = NotificationCenterConvert.INSTANCE.toPrice(notificationCenterDO.getUnitPrice());
+        SingleMissionPostingPriceDTO priceDTO = new SingleMissionPostingPriceDTO();
+        priceDTO.setSingleBudget(notificationCenterDO.getSingleBudget());
+        priceDTO.setNotificationBudget(notificationCenterDO.getNotificationBudget());
+        priceDTO.setLikeUnitPrice(price.getLikeUnitPrice());
+        priceDTO.setReplyUnitPrice(price.getReplyUnitPrice());
+        priceDTO.setPostingUnitPrice(price.getPostingUnitPrice());
+        return priceDTO;
+    }
+
+    default SingleMissionDO convert(XhsCreativeContentResp creativeContentResp, NotificationCenterDO notificationCenterDO) {
         if (creativeContentResp == null) {
             return null;
         }
@@ -56,6 +74,14 @@ public interface SingleMissionConvert {
         singleMissionDO.setContent(toStr(postingContentDTO));
         singleMissionDO.setStatus(SingleMissionStatusEnum.init.getCode());
         return singleMissionDO;
+    }
+
+    default String toStr(SingleMissionPostingPriceDTO postingPriceDTO) {
+        return JSONUtil.toJsonStr(postingPriceDTO);
+    }
+
+    default SingleMissionPostingPriceDTO toPriceDTO(String str) {
+        return JSONUtil.toBean(str, SingleMissionPostingPriceDTO.class);
     }
 
     default String toStr(PostingContentDTO postingContentDTO) {
