@@ -134,8 +134,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } else if (SingleMissionStatusEnum.pre_settlement.getCode().equals(reqVO.getStatus())) {
             LocalDateTime preSettlementTime = Optional.ofNullable(reqVO.getPreSettlementTime()).orElse(LocalDateTime.now());
             missionDO.setPreSettlementTime(preSettlementTime);
-            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlement(reqVO.getLikedCount(),
-                    reqVO.getCommentCount(),SingleMissionConvert.INSTANCE.toPriceDTO(missionDO.getUnitPrice()));
+            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlement(missionDO.getUid(), reqVO.getLikedCount(),
+                    reqVO.getCommentCount(), SingleMissionConvert.INSTANCE.toPriceDTO(missionDO.getUnitPrice()));
             missionDO.setEstimatedAmount(noteDetail.getAmount());
             missionDO.setNoteDetailId(noteDetail.getId());
         } else if (SingleMissionStatusEnum.settlement.getCode().equals(reqVO.getStatus())) {
@@ -279,7 +279,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     @Override
     public void settlement(SingleMissionRespVO singleMissionRespVO) {
         try {
-            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
+            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
             // 校验note内容
             validPostingContent(singleMissionRespVO.getContent(), noteDetail);
             updateSingleMission(singleMissionRespVO.getUid(), noteDetail.getAmount(), noteDetail.getId());
