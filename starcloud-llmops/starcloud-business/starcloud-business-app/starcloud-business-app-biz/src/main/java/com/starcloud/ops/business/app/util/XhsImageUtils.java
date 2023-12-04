@@ -6,16 +6,16 @@ import cn.hutool.json.JSONUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.plan.dto.CreativePlanExecuteDTO;
-import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageExecuteDTO;
-import com.starcloud.ops.business.app.api.plan.dto.CreativePlanImageStyleExecuteDTO;
-import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageExecuteDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageStyleExecuteDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
-import com.starcloud.ops.business.app.convert.xhs.XhsCreativeContentConvert;
-import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
+import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,7 @@ public class XhsImageUtils {
         // 获取使用图片
         List<String> useImageList = JSONUtil.parseArray(content.getUsePicture()).toList(String.class);
         // 获取执行参数
-        CreativePlanExecuteDTO executeParams = XhsCreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
+        CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
         // 获取图片风格执行参数
         CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
         // 获取风格中图片执行参数

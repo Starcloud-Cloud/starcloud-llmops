@@ -3,8 +3,8 @@ package com.starcloud.ops.business.mission.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
-import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
@@ -46,7 +46,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     private SingleMissionMapper singleMissionMapper;
 
     @Resource
-    private XhsCreativeContentService creativeContentService;
+    private CreativeContentService creativeContentService;
 
     @Resource
     private NotificationCenterService notificationCenterService;
@@ -70,7 +70,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         }
         validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
 
-        List<XhsCreativeContentResp> claimList = creativeContentService.bound(toBeBound);
+        List<CreativeContentRespVO> claimList = creativeContentService.bound(toBeBound);
         List<SingleMissionDO> singleMissions = claimList.stream().map(contentDO -> SingleMissionConvert.INSTANCE.convert(contentDO, notificationCenterDO)).collect(Collectors.toList());
         singleMissionMapper.insertBatch(singleMissions);
     }

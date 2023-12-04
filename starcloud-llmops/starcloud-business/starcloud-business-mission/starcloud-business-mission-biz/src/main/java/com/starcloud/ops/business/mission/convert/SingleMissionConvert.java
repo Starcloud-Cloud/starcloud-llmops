@@ -3,7 +3,7 @@ package com.starcloud.ops.business.mission.convert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.dto.PostingContentDTO;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
@@ -40,7 +40,7 @@ public interface SingleMissionConvert {
 
     SingleMissionQueryReqVO convert(XhsTaskContentParams params);
 
-    default SingleMissionDO convert(XhsCreativeContentResp creativeContentResp, NotificationCenterDO notificationCenterDO) {
+    default SingleMissionDO convert(CreativeContentRespVO creativeContentResp, NotificationCenterDO notificationCenterDO) {
         if (creativeContentResp == null) {
             return null;
         }

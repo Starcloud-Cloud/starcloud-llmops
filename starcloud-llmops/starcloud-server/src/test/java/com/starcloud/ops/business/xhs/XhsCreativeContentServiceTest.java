@@ -6,8 +6,8 @@ import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
-import com.starcloud.ops.business.app.enums.xhs.XhsCreativeContentTypeEnums;
-import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
+import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ public class XhsCreativeContentServiceTest extends BaseDbUnitTest {
     private FileApi fileApi;
 
     @Autowired
-    private XhsCreativeContentService xhsCreativeContentService;
+    private CreativeContentService xhsCreativeContentService;
 
 
     @Test

@@ -12,16 +12,16 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.plan.dto.CreativePlanAppExecuteDTO;
-import com.starcloud.ops.business.app.api.plan.dto.CreativePlanConfigDTO;
-import com.starcloud.ops.business.app.api.scheme.dto.CopyWritingContentDTO;
-import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeConfigDTO;
-import com.starcloud.ops.business.app.api.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
-import com.starcloud.ops.business.app.api.scheme.vo.request.CreativeSchemeReqVO;
-import com.starcloud.ops.business.app.api.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -213,9 +213,9 @@ public class CreativeUtil {
      */
     public static AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, XhsAppExecuteRequest request) {
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-        if (Objects.nonNull(request.getSseEmitter())) {
-            executeRequest.setSseEmitter(request.getSseEmitter());
-        }
+//        if (Objects.nonNull(request.getSseEmitter())) {
+//            executeRequest.setSseEmitter(request.getSseEmitter());
+//        }
         executeRequest.setStepId(request.getStepId());
         executeRequest.setUserId(request.getUserId());
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
