@@ -23,4 +23,6 @@ public interface ErrorCodeConstant {
     ErrorCode MISSION_BUDGET_ERROR = new ErrorCode(700010009, "单个任务预算要大于0");
 
     ErrorCode TOO_MANY_MISSION = new ErrorCode(700010010, "绑定太多任务，总预算不足");
+
+    ErrorCode DONT_ALLOW_DELETE =  new ErrorCode(700010011, "存在已认领任务不允许删除");
 }

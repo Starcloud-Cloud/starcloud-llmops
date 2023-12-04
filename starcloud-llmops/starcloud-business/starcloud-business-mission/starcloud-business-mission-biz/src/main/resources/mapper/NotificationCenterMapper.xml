@@ -10,19 +10,23 @@
     </select>
 
     <select id="pageDetail" resultType="com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO">
-        select n.*, u.username as createUser,
-               COUNT(CASE WHEN m.status = 'stay_claim' THEN 1 END) AS stayClaimCount,
-               COUNT(CASE WHEN m.status in ('claimed') THEN 1 END) AS claimCount,
-               COUNT(CASE WHEN m.status in ('published','pre_settlement','pre_settlement_error')THEN 1 END) AS publishedCount,
-               COUNT(CASE WHEN m.status in ('settlement','settlement_error')THEN 1 END) AS settlementCount,
-               COUNT(m.id) AS total
+        select n.*,
+               u.username                                                                                       as createUser,
+               COUNT(CASE WHEN m.deleted = false and m.status = 'stay_claim' THEN 1 END)                        AS stayClaimCount,
+               COUNT(CASE WHEN m.deleted = false and m.status in ('claimed') THEN 1 END)                        AS claimCount,
+               COUNT(CASE
+                         WHEN m.deleted = false and m.status in ('published', 'pre_settlement', 'pre_settlement_error')
+                             THEN 1 END)                                                                        AS publishedCount,
+               COUNT(CASE
+                         WHEN m.deleted = false and m.status in ('settlement', 'settlement_error')
+                             THEN 1 END)                                                                        AS settlementCount,
+               COUNT(CASE WHEN m.deleted = false THEN 1 END)                                                    AS total
         from llm_notification n
                  left join llm_single_mission m on m.notification_Uid = n.uid
-                  left join system_users u on m.creator = u.id
+                 left join system_users u on m.creator = u.id
         where n.deleted = false
-          and (m.deleted = false or m.deleted is null)
         group by n.uid
-        order by create_time desc
+        order by n.create_time desc
         limit #{start},#{end}
     </select>
 </mapper>
