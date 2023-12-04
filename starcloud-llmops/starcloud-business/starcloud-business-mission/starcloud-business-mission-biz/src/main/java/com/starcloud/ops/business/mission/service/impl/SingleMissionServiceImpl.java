@@ -205,7 +205,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     @Override
     public void publish(NotificationCenterDO notificationCenterDO, Boolean publish) {
         List<SingleMissionDO> singleMissionList = singleMissionMapper.getByNotificationUid(notificationCenterDO.getUid());
-        if (CollectionUtils.isEmpty(singleMissionList)) {
+        if (publish && CollectionUtils.isEmpty(singleMissionList)) {
             throw exception(NOTIFICATION_NOT_BOUND_MISSION, notificationCenterDO.getUid());
         }
         if (BooleanUtils.isTrue(publish)) {
