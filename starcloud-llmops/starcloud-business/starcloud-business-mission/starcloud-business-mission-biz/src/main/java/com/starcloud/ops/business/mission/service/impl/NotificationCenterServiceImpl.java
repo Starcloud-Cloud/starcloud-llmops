@@ -100,11 +100,13 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
             throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
         }
+        singleMissionService.deleteNotification(notificationCenterDO.getUid());
         notificationCenterMapper.deleteById(notificationCenterDO.getId());
     }
 

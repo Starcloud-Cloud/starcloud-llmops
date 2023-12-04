@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.service.xhs.XhsNoteDetailWrapper;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -56,11 +57,26 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
         ServerRequestInfo requestInfo = xhsNoteDetailWrapper.requestDetail(noteId);
         XhsNoteDetailDO xhsNoteDetailDO = XhsNoteDetailConvert.INSTANCE.convertDo(requestInfo.getNoteDetail());
         // 结算时间 金额
-        BigDecimal amount = unitPriceDTO.calculationAmount(xhsNoteDetailDO.getLikedCount(),xhsNoteDetailDO.getCommentCount());
+        BigDecimal amount = unitPriceDTO.calculationAmount(xhsNoteDetailDO.getLikedCount(), xhsNoteDetailDO.getCommentCount());
         xhsNoteDetailDO.setAmount(amount);
         xhsNoteDetailDO.setUnitPrice(SingleMissionConvert.INSTANCE.toStr(unitPriceDTO));
         noteDetailMapper.insert(xhsNoteDetailDO);
         return XhsNoteDetailConvert.INSTANCE.convert(xhsNoteDetailDO);
     }
 
+    @Override
+    public XhsNoteDetailRespVO preSettlement(Integer likedCount, Integer commentCount, SingleMissionPostingPriceDTO unitPriceDTO) {
+        BigDecimal amount = unitPriceDTO.calculationAmount(likedCount, commentCount);
+        XhsNoteDetailDO xhsNoteDetailDO = new XhsNoteDetailDO();
+        xhsNoteDetailDO.setAmount(amount);
+        xhsNoteDetailDO.setUnitPrice(SingleMissionConvert.INSTANCE.toStr(unitPriceDTO));
+        xhsNoteDetailDO.setNoteId(StringUtils.EMPTY);
+        xhsNoteDetailDO.setTitle(StringUtils.EMPTY);
+        xhsNoteDetailDO.setDescription(StringUtils.EMPTY);
+        xhsNoteDetailDO.setTitle(StringUtils.EMPTY);
+        xhsNoteDetailDO.setLikedCount(likedCount);
+        xhsNoteDetailDO.setCommentCount(commentCount);
+        noteDetailMapper.insert(xhsNoteDetailDO);
+        return XhsNoteDetailConvert.INSTANCE.convert(xhsNoteDetailDO);
+    }
 }

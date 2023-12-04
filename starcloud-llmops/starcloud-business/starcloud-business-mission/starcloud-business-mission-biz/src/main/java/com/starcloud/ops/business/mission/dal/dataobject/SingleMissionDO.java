@@ -71,7 +71,7 @@ public class SingleMissionDO extends TenantBaseDO {
     /**
      * 详情自增id
      */
-    private String noteDetailId;
+    private Long noteDetailId;
 
     /**
      * 发布时间

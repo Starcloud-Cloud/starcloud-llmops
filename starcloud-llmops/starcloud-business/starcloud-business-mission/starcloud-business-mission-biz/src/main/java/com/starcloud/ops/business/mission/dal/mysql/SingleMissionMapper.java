@@ -3,7 +3,6 @@ package com.starcloud.ops.business.mission.dal.mysql;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
@@ -24,6 +23,13 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
                 .eq(StringUtils.isNotBlank(reqVO.getClaimUsername()), SingleMissionDO::getClaimUsername, reqVO.getClaimUsername())
                 .eq(StringUtils.isNotBlank(reqVO.getClaimUserId()), SingleMissionDO::getClaimUserId, reqVO.getClaimUserId())
                 .orderByDesc(SingleMissionDO::getId);
+        return selectList(wrapper);
+    }
+
+    default List<SingleMissionDO> listByNotification(String notificationUid) {
+        LambdaQueryWrapper<SingleMissionDO> wrapper = Wrappers.lambdaQuery(SingleMissionDO.class)
+                .in(SingleMissionDO::getNotificationUid, notificationUid)
+                ;
         return selectList(wrapper);
     }
 

@@ -28,4 +28,9 @@ public interface XhsNoteDetailService {
      * @param noteUrl 小红书访问url
      */
     XhsNoteDetailRespVO preSettlementByUrl(String noteUrl, SingleMissionPostingPriceDTO unitPriceDTO);
+
+    /**
+     * 预结算
+     */
+    XhsNoteDetailRespVO preSettlement(Integer likedCount, Integer commentCount,SingleMissionPostingPriceDTO unitPriceDTO);
 }

@@ -17,7 +17,6 @@ import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
@@ -110,6 +109,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void modifySelective(SingleMissionModifyReqVO reqVO) {
         SingleMissionDO missionDO = getByUid(reqVO.getUid());
         if (SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())) {
@@ -129,17 +129,15 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } else if (SingleMissionStatusEnum.published.getCode().equals(reqVO.getStatus())) {
             XhsDetailConstants.validNoteUrl(reqVO.getPublishUrl());
             missionDO.setPublishUrl(reqVO.getPublishUrl());
-//            String noteId = ReUtil.delAll(XhsDetailConstants.DOMAIN, reqVO.getPublishUrl());
-//            missionDO.setNoteId(noteId);
-//            //
             LocalDateTime publishTime = Optional.ofNullable(reqVO.getPublishTime()).orElse(LocalDateTime.now());
             missionDO.setClaimTime(publishTime);
         } else if (SingleMissionStatusEnum.pre_settlement.getCode().equals(reqVO.getStatus())) {
-            NotificationRespVO respVO = notificationCenterService.selectByUid(missionDO.getNotificationUid());
-            BigDecimal estimatedAmount = respVO.getUnitPrice().calculationAmount(reqVO.getLikedCount(), reqVO.getCommentCount(), respVO.getSingleBudget());
-            missionDO.setEstimatedAmount(estimatedAmount);
             LocalDateTime preSettlementTime = Optional.ofNullable(reqVO.getPreSettlementTime()).orElse(LocalDateTime.now());
             missionDO.setPreSettlementTime(preSettlementTime);
+            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlement(reqVO.getLikedCount(),
+                    reqVO.getCommentCount(),SingleMissionConvert.INSTANCE.toPriceDTO(missionDO.getUnitPrice()));
+            missionDO.setEstimatedAmount(noteDetail.getAmount());
+            missionDO.setNoteDetailId(noteDetail.getId());
         } else if (SingleMissionStatusEnum.settlement.getCode().equals(reqVO.getStatus())) {
             missionDO.setSettlementAmount(reqVO.getSettlementAmount());
             LocalDateTime settlementTime = Optional.ofNullable(reqVO.getSettlementTime()).orElse(LocalDateTime.now());
@@ -177,8 +175,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Override
     public void batchDelete(List<String> uids) {
-        List<SingleMissionDO> singleMissionDOS = singleMissionMapper.listByUids(uids);
-        boolean unAllowed = singleMissionDOS.stream().anyMatch(missionDO -> {
+        List<SingleMissionDO> singleMissionDOList = singleMissionMapper.listByUids(uids);
+        boolean unAllowed = singleMissionDOList.stream().anyMatch(missionDO -> {
             return !SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())
                     && !SingleMissionStatusEnum.stay_claim.getCode().equals(missionDO.getStatus())
                     && !SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus());
@@ -212,7 +210,6 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         }
         if (BooleanUtils.isTrue(publish)) {
             // 发布 只修改未发布的状态 更新单价明细
-
             for (SingleMissionDO missionDO : singleMissionList) {
                 if (SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())) {
                     missionDO.setStatus(SingleMissionStatusEnum.stay_claim.getCode());
@@ -229,6 +226,9 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             stayClaimList.forEach(missionDO -> {
                 missionDO.setStatus(SingleMissionStatusEnum.init.getCode());
             });
+            if (CollectionUtils.isEmpty(stayClaimList)) {
+                return;
+            }
             singleMissionMapper.updateBatch(stayClaimList, stayClaimList.size());
         }
     }
@@ -267,6 +267,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
         if (!SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
                 && !SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
+                && !SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())
                 && !SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
             // 状态不允许刷新
             throw exception(MISSION_STATUS_NOT_SUPPORT);
@@ -293,6 +294,23 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         }
     }
 
+    @Override
+    public void deleteNotification(String notificationUid) {
+        List<SingleMissionDO> singleMissionDOList = singleMissionMapper.listByNotification(notificationUid);
+        if (CollectionUtils.isEmpty(singleMissionDOList)) {
+            return;
+        }
+
+        for (SingleMissionDO missionDO : singleMissionDOList) {
+            if (SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
+                throw exception(DONT_ALLOW_DELETE);
+            }
+        }
+        singleMissionMapper.batchDelete(singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
+    }
 
     private void updateSingleMission(String uid, BigDecimal amount, Long noteDetailId) {
         SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();

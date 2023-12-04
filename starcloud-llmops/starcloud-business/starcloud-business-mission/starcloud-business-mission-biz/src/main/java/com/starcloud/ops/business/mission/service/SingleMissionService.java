@@ -80,4 +80,6 @@ public interface SingleMissionService {
      * 结算更新
      */
     void settlement(SingleMissionRespVO singleMissionRespVO);
+
+    void deleteNotification(String notificationUid);
 }

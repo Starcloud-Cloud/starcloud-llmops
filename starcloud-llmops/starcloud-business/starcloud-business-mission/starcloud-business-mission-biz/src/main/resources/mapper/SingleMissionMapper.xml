@@ -5,11 +5,12 @@
         select m.id
         from llm_single_mission m
         inner join llm_notification n on m.notification_Uid = n.uid
-        where m.deleted = false and n.deleted = false
+        where m.deleted = false
+<!--        and n.deleted = false-->
         and n.start_time &lt;= now()
         and (m.pre_settlement_time is null or m.pre_settlement_time &lt; CURDATE())
         and (m.settlement_time is null or m.settlement_time &lt; CURDATE())
-        and n.status = 'published'
+<!--        and n.status = 'published'-->
         and (m.run_time is null or m.run_time &lt;= CURDATE())
         <if test="reqVO.singleMissionType != null and reqVO.singleMissionType != ''">
             and n.type = #{reqVO.singleMissionType} and m.type = #{reqVO.singleMissionType}

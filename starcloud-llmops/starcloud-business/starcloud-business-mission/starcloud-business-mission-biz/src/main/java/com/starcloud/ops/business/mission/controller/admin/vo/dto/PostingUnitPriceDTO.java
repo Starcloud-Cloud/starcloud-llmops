@@ -44,7 +44,7 @@ public class PostingUnitPriceDTO {
         this.likeUnitPrice = Optional.ofNullable(likeUnitPrice).orElse(BigDecimal.ZERO);
         this.replyUnitPrice = Optional.ofNullable(replyUnitPrice).orElse(BigDecimal.ZERO);
         this.postingUnitPrice = Optional.ofNullable(postingUnitPrice).orElse(BigDecimal.ZERO);
-        BigDecimal totalAmount = replyUnitPrice.multiply(BigDecimal.valueOf(likeCount)).add(replyUnitPrice.multiply(BigDecimal.valueOf(commentCount))).add(postingUnitPrice);
+        BigDecimal totalAmount = likeUnitPrice.multiply(BigDecimal.valueOf(likeCount)).add(replyUnitPrice.multiply(BigDecimal.valueOf(commentCount))).add(postingUnitPrice);
         return totalAmount.min(Optional.ofNullable(singleBudget).orElse(BigDecimal.ZERO));
     }
 }
