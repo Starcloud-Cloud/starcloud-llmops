@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.enums;
 
-import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;

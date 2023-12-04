@@ -3,8 +3,8 @@ package com.starcloud.ops.business.mission.convert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.dto.PostingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
@@ -58,7 +58,7 @@ public interface SingleMissionConvert {
         return priceDTO;
     }
 
-    default SingleMissionDO convert(XhsCreativeContentResp creativeContentResp, NotificationCenterDO notificationCenterDO) {
+    default SingleMissionDO convert(CreativeContentRespVO creativeContentResp, NotificationCenterDO notificationCenterDO) {
         if (creativeContentResp == null) {
             return null;
         }

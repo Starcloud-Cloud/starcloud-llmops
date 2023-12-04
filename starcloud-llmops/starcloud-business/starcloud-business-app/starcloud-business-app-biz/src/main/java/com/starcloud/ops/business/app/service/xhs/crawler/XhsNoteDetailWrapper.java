@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service.xhs;
+package com.starcloud.ops.business.app.service.xhs.crawler;
 
 import com.starcloud.ops.business.app.api.xhs.note.ServerRequestInfo;
 

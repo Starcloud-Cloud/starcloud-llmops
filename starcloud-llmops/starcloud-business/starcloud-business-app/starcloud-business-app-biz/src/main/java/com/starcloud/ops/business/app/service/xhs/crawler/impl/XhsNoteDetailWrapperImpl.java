@@ -1,9 +1,7 @@
-package com.starcloud.ops.business.app.service.xhs.impl;
+package com.starcloud.ops.business.app.service.xhs.crawler.impl;
 
-import cn.hutool.core.date.DateUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import com.alibaba.fastjson.JSON;
@@ -12,7 +10,7 @@ import com.starcloud.ops.business.app.api.xhs.note.NoteDetail;
 import com.starcloud.ops.business.app.api.xhs.note.ServerRequestInfo;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.feign.XhsCilent;
-import com.starcloud.ops.business.app.service.xhs.XhsNoteDetailWrapper;
+import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;

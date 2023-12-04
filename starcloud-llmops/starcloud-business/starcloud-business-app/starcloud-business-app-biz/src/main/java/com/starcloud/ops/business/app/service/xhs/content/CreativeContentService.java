@@ -88,6 +88,12 @@ public interface CreativeContentService {
     List<CreativeContentRespVO> bound(List<String> businessUids);
 
     /**
+     * 解绑
+     * @param businessUids
+     */
+    void unBound(List<String> businessUids);
+
+    /**
      * 点赞
      *
      * @param businessUid 业务uid

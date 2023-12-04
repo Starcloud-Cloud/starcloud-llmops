@@ -235,13 +235,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
     @Override
-    public List<XhsCreativeContentResp> bound(List<String> businessUids) {
+    public List<CreativeContentRespVO> bound(List<String> businessUids) {
         List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids, false);
         if (xhsCreativeContents.size() < businessUids.size()) {
             throw exception(new ErrorCode(500, "存在已绑定的创作内容"));
         }
         creativeContentMapper.claim(businessUids, true);
-        return XhsCreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);
+        return CreativeContentConvert.INSTANCE.convertDto(xhsCreativeContents);
     }
 
     /**

@@ -8,7 +8,7 @@ import com.starcloud.ops.business.mission.convert.XhsNoteDetailConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.XhsNoteDetailDO;
 import com.starcloud.ops.business.mission.dal.mysql.XhsNoteDetailMapper;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
-import com.starcloud.ops.business.app.service.xhs.XhsNoteDetailWrapper;
+import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
 import lombok.extern.slf4j.Slf4j;
