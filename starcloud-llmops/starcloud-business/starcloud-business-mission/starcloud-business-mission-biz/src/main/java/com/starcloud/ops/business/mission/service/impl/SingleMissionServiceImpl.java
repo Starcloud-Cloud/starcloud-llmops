@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.NumberUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
@@ -120,7 +121,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } else if (SingleMissionStatusEnum.stay_claim.getCode().equals(reqVO.getStatus())) {
             update(missionDO);
         } else if (SingleMissionStatusEnum.claimed.getCode().equals(reqVO.getStatus())) {
-            Optional.ofNullable(reqVO.getClaimUsername()).orElseThrow(() -> exception(500, "认领人不能为空"));
+            Optional.ofNullable(reqVO.getClaimUsername()).orElseThrow(() -> exception(new ErrorCode(500, "认领人不能为空")));
             Assert.notBlank(reqVO.getClaimUsername(), "认领人不能为空");
             missionDO.setClaimUsername(reqVO.getClaimUsername());
             missionDO.setClaimUserId(Optional.ofNullable(reqVO.getClaimUserId()).orElse("0"));
@@ -182,7 +183,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
                     && !SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus());
         });
         if (unAllowed) {
-            throw exception(500, "只允许删除 待发布 待认领 关闭状态的任务");
+            throw exception(new ErrorCode(500, "只允许删除 待发布 待认领 关闭状态的任务"));
         }
         singleMissionMapper.batchDelete(uids);
     }
