@@ -76,4 +76,9 @@ public class XhsNoteDetailDO extends BaseDO {
      * 预结算金额
      */
     private BigDecimal amount;
+
+    /**
+     * 单条任务Id
+     */
+    private String missionUid;
 }

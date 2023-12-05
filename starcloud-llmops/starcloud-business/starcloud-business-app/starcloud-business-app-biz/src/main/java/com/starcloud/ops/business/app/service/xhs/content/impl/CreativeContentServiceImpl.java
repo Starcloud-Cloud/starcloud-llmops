@@ -284,6 +284,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public void unBound(List<String> businessUids) {
+        if (CollectionUtils.isEmpty(businessUids)) {
+            return;
+        }
         creativeContentMapper.claim(businessUids, false);
     }
 

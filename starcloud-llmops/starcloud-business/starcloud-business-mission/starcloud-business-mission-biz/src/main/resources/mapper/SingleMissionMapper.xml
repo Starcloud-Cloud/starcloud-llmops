@@ -43,7 +43,7 @@
             and claim_user_id = #{reqVO.claimUserId}
         </if>
         <if test="reqVO.claimUsername != null and reqVO.claimUsername != ''">
-            and claim_username = #{reqVO.claimUsername}
+            and claim_username like concat(#{reqVO.claimUsername},'%')
         </if>
     </select>
 
@@ -59,7 +59,7 @@
             and m.claim_user_id = #{reqVO.claimUserId}
         </if>
         <if test="reqVO.claimUsername != null and reqVO.claimUsername != ''">
-            and m.claim_username = #{reqVO.claimUsername}
+            and m.claim_username like concat(#{reqVO.claimUsername},'%')
         </if>
         order by m.create_time desc
         limit #{start},#{end}

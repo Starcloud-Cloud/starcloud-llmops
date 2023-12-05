@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.NumberUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
@@ -120,7 +121,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } else if (SingleMissionStatusEnum.stay_claim.getCode().equals(reqVO.getStatus())) {
             update(missionDO);
         } else if (SingleMissionStatusEnum.claimed.getCode().equals(reqVO.getStatus())) {
-            Optional.ofNullable(reqVO.getClaimUsername()).orElseThrow(() -> exception(500, "认领人不能为空"));
+            Optional.ofNullable(reqVO.getClaimUsername()).orElseThrow(() -> exception(new ErrorCode(500, "认领人不能为空")));
             Assert.notBlank(reqVO.getClaimUsername(), "认领人不能为空");
             missionDO.setClaimUsername(reqVO.getClaimUsername());
             missionDO.setClaimUserId(Optional.ofNullable(reqVO.getClaimUserId()).orElse("0"));
@@ -134,8 +135,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } else if (SingleMissionStatusEnum.pre_settlement.getCode().equals(reqVO.getStatus())) {
             LocalDateTime preSettlementTime = Optional.ofNullable(reqVO.getPreSettlementTime()).orElse(LocalDateTime.now());
             missionDO.setPreSettlementTime(preSettlementTime);
-            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlement(reqVO.getLikedCount(),
-                    reqVO.getCommentCount(),SingleMissionConvert.INSTANCE.toPriceDTO(missionDO.getUnitPrice()));
+            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlement(missionDO.getUid(), reqVO.getLikedCount(),
+                    reqVO.getCommentCount(), SingleMissionConvert.INSTANCE.toPriceDTO(missionDO.getUnitPrice()));
             missionDO.setEstimatedAmount(noteDetail.getAmount());
             missionDO.setNoteDetailId(noteDetail.getId());
         } else if (SingleMissionStatusEnum.settlement.getCode().equals(reqVO.getStatus())) {
@@ -169,11 +170,12 @@ public class SingleMissionServiceImpl implements SingleMissionService {
                 && !SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())) {
             throw exception(MISSION_STATUS_NOT_SUPPORT);
         }
-        creativeContentService.unBound(Collections.singletonList(uid));
+        creativeContentService.unBound(Collections.singletonList(missionDO.getCreativeUid()));
         singleMissionMapper.deleteById(missionDO.getId());
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void batchDelete(List<String> uids) {
         List<SingleMissionDO> singleMissionDOList = singleMissionMapper.listByUids(uids);
         boolean unAllowed = singleMissionDOList.stream().anyMatch(missionDO -> {
@@ -182,8 +184,10 @@ public class SingleMissionServiceImpl implements SingleMissionService {
                     && !SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus());
         });
         if (unAllowed) {
-            throw exception(500, "只允许删除 待发布 待认领 关闭状态的任务");
+            throw exception(new ErrorCode(500, "只允许删除 待发布 待认领 关闭状态的任务"));
         }
+        List<String> creativeUids = singleMissionDOList.stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
+        creativeContentService.unBound(creativeUids);
         singleMissionMapper.batchDelete(uids);
     }
 
@@ -279,7 +283,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     @Override
     public void settlement(SingleMissionRespVO singleMissionRespVO) {
         try {
-            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
+            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
             // 校验note内容
             validPostingContent(singleMissionRespVO.getContent(), noteDetail);
             updateSingleMission(singleMissionRespVO.getUid(), noteDetail.getAmount(), noteDetail.getId());
@@ -309,6 +313,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
                 throw exception(DONT_ALLOW_DELETE);
             }
         }
+        List<String> creativeUids = singleMissionDOList.stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
+        creativeContentService.unBound(creativeUids);
         singleMissionMapper.batchDelete(singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
     }
 
