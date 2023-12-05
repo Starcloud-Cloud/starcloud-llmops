@@ -170,11 +170,12 @@ public class SingleMissionServiceImpl implements SingleMissionService {
                 && !SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())) {
             throw exception(MISSION_STATUS_NOT_SUPPORT);
         }
-        creativeContentService.unBound(Collections.singletonList(uid));
+        creativeContentService.unBound(Collections.singletonList(missionDO.getCreativeUid()));
         singleMissionMapper.deleteById(missionDO.getId());
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void batchDelete(List<String> uids) {
         List<SingleMissionDO> singleMissionDOList = singleMissionMapper.listByUids(uids);
         boolean unAllowed = singleMissionDOList.stream().anyMatch(missionDO -> {
@@ -185,6 +186,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         if (unAllowed) {
             throw exception(new ErrorCode(500, "只允许删除 待发布 待认领 关闭状态的任务"));
         }
+        List<String> creativeUids = singleMissionDOList.stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
+        creativeContentService.unBound(creativeUids);
         singleMissionMapper.batchDelete(uids);
     }
 
@@ -310,6 +313,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
                 throw exception(DONT_ALLOW_DELETE);
             }
         }
+        List<String> creativeUids = singleMissionDOList.stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
+        creativeContentService.unBound(creativeUids);
         singleMissionMapper.batchDelete(singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
     }
 
