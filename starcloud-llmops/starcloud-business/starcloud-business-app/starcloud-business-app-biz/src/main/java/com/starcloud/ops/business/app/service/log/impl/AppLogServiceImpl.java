@@ -635,6 +635,7 @@ public class AppLogServiceImpl implements AppLogService {
     private AppLogMessageRespVO transformAppLogMessage(LogAppMessageDO message, LogAppConversationDO conversation, String images) {
         AppLogMessageRespVO appLogMessageResponse = transformAppLogMessage(message, conversation);
         appLogMessageResponse.setImages(AppUtils.split(images));
+        appLogMessageResponse.setAiModel(message.getAiModel());
         return appLogMessageResponse;
     }
 
