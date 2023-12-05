@@ -32,6 +32,7 @@ import com.starcloud.ops.business.mission.service.SingleMissionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -328,7 +329,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             Collection<String> subtract = CollUtil.subtract(uidList, singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
             throw exception(NOT_EXIST_UID, subtract.toString());
         }
-
+        Map<String, Long> doMap = singleMissionDOList.stream().collect(Collectors.toMap(SingleMissionDO::getUid, SingleMissionDO::getId));
         List<SingleMissionDO> updateList = new ArrayList<>(importVOList.size());
         String userId = WebFrameworkUtils.getLoginUserId().toString();
         LocalDateTime now = LocalDateTime.now();
@@ -342,6 +343,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             missionDO.setUpdater(userId);
             missionDO.setUpdateTime(now);
             missionDO.setPublishTime(now);
+            missionDO.setId(doMap.get(importVO.getUid()));
             updateList.add(missionDO);
         }
         singleMissionMapper.updateBatch(updateList, updateList.size());
@@ -359,7 +361,12 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     private void validPostingContent(PostingContentDTO content, XhsNoteDetailRespVO noteDetail) {
-
+        if (content != null && noteDetail != null
+                && StringUtils.equals(content.getTitle(), noteDetail.getTitle())
+                && StringUtils.equals(content.getText(), noteDetail.getDesc())) {
+            return;
+        }
+        throw exception(CONTENT_INCONSISTENT);
     }
 
 
