@@ -32,6 +32,7 @@ import com.starcloud.ops.business.mission.service.SingleMissionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -359,7 +360,12 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     private void validPostingContent(PostingContentDTO content, XhsNoteDetailRespVO noteDetail) {
-
+        if (content != null && noteDetail != null
+                && StringUtils.equals(content.getTitle(), noteDetail.getTitle())
+                && StringUtils.equals(content.getText(), noteDetail.getDesc())) {
+            return;
+        }
+        throw exception(CONTENT_INCONSISTENT);
     }
 
 
