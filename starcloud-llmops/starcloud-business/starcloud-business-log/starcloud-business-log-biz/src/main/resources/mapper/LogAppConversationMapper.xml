@@ -39,16 +39,16 @@
             <if test="query.appUid != null and query.appUid != '' ">
                 AND co.app_uid = #{query.appUid}
             </if>
-
+            
             <if test="query.appName != null and query.appName != '' ">
                 <bind name="appName" value="query.appName+'%'"/>
                 AND co.app_name LIKE #{appName}
             </if>
-
+            
             <if test="query.appMode != null and query.appMode != '' ">
                 AND co.app_mode = #{query.appMode}
             </if>
-
+            
             <choose>
                 <when test="query.fromScene != null and query.fromScene != '' ">
                     AND co.from_scene = #{query.fromScene}
@@ -60,23 +60,27 @@
                     </foreach>
                 </when>
             </choose>
-
+            
             <if test="query.aiModel != null and query.aiModel != '' ">
                 AND co.ai_model = #{query.aiModel}
             </if>
-
+            
+            <if test="query.userId != null and query.userId != '' ">
+                AND co.creator = #{query.userId}
+            </if>
+            
             <if test="query.status != null and query.status != '' ">
                 AND co.status = #{query.status}
             </if>
-
+            
             <if test="query.startTime != null and query.endTime != null">
                 AND co.update_time between #{query.startTime} and #{query.endTime}
             </if>
-
+        
         </where>
         GROUP BY co.id
         ORDER BY co.update_time DESC
-
+    
     </select>
 
     <!-- 分页查询会话列表 -->
@@ -99,19 +103,21 @@
                     AND co.app_uid = #{query.marketUid}
                 </when>
             </choose>
-
+            <if test="query.userId != null and query.userId != '' ">
+                AND co.creator = #{query.userId}
+            </if>
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND co.from_scene = #{query.fromScene}
             </if>
-
+            
             <if test="query.aiModel != null and query.aiModel != '' ">
                 AND co.ai_model = #{query.aiModel}
             </if>
-
+            
             <if test="query.status != null and query.status != '' ">
                 AND co.status = #{query.status}
             </if>
-
+            
             <if test="query.startTime != null and query.endTime != null">
                 AND co.create_time between #{query.startTime} and #{query.endTime}
             </if>

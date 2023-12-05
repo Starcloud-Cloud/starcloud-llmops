@@ -132,8 +132,8 @@ public class CreativeContentDO extends TenantBaseDO {
     private Boolean claim;
 
     /**
-     * 喜欢数量
+     * 是否喜欢
      */
-    private Long likeCount;
+    private Boolean liked;
 
 }

@@ -86,16 +86,16 @@
             <if test="query.appUid != null and query.appUid != '' ">
                 AND ms.app_uid = #{query.appUid}
             </if>
-
+            
             <if test="query.appName != null and query.appName != '' ">
                 <bind name="appName" value="query.appName+'%'"/>
                 AND co.app_name LIKE #{appName}
             </if>
-
+            
             <if test="query.appMode != null and query.appMode != '' ">
                 AND ms.app_mode = #{query.appMode}
             </if>
-
+            
             <choose>
                 <when test="query.fromScene != null and query.fromScene != '' ">
                     AND ms.from_scene = #{query.fromScene}
@@ -107,15 +107,18 @@
                     </foreach>
                 </when>
             </choose>
-
+            <if test="query.userId != null and query.userId != '' ">
+                AND co.creator = #{query.userId}
+            </if>
+            
             <if test="query.aiModel != null and query.aiModel != '' ">
                 AND ms.ai_model = #{query.aiModel}
             </if>
-
+            
             <if test="query.status != null and query.status != '' ">
                 AND ms.status = #{query.status}
             </if>
-
+            
             <if test="query.startTime != null and query.endTime != null">
                 AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
@@ -141,19 +144,23 @@
                     AND ms.app_uid = #{query.appUid}
                 </otherwise>
             </choose>
-
+            
             <if test="query.fromScene != null and query.fromScene != '' ">
                 AND ms.from_scene = #{query.fromScene}
             </if>
-
+            
             <if test="query.aiModel != null and query.aiModel != '' ">
                 AND ms.ai_model = #{query.aiModel}
             </if>
-
+            
+            <if test="query.userId != null and query.userId != '' ">
+                AND co.creator = #{query.userId}
+            </if>
+            
             <if test="query.status != null and query.status != '' ">
                 AND ms.status = #{query.status}
             </if>
-
+            
             <if test="query.startTime != null and query.endTime != null">
                 AND ms.create_time between #{query.startTime} and #{query.endTime}
             </if>
