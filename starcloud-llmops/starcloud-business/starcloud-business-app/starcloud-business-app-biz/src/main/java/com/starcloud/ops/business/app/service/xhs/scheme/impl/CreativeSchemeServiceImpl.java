@@ -310,6 +310,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     @Override
     public List<CreativeSchemeExampleDTO> example(CreativeSchemeReqVO request) {
+        log.info("生成示例开始.....");
         handlerAndValidate(request);
         if (CollectionUtil.isEmpty(request.getUseImages())) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPLOAD_IMAGE_EMPTY);
@@ -332,6 +333,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         executeRequest.setAiModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
         executeRequest.setAppReqVO(CreativeAppUtils.transform(executeApp, request, stepWrapper.getField()));
 
+        log.info("生成文案示开始....");
         String answer = creativeAppManager.execute(executeRequest);
         List<XhsAppExecuteResponse> responses = CreativeAppUtils.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
         if (CollectionUtil.isEmpty(responses)) {
@@ -344,10 +346,13 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                     Objects.isNull(response.getCopyWriting()) ||
                     StringUtils.isBlank(response.getCopyWriting().getTitle()) ||
                     StringUtils.isBlank(response.getCopyWriting().getContent())) {
+                log.error("生成文案示例失败！{}", response.getErrorMsg());
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, response.getErrorMsg());
             }
         }
+        log.info("生成文案示例成功！");
 
+        log.info("生成图片示例开始....");
         // 图片素材列表
         List<String> imageUrlList = request.getUseImages();
         // 随机打散图片素材列表
@@ -364,6 +369,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         List<CreativeImageStyleDTO> styleList = imageTemplate.getStyleList();
         List<CreativeSchemeExampleDTO> resultList = Lists.newArrayList();
         for (int i = 0; i < responses.size(); i++) {
+            log.info("生成第【{}】图片示例 开始.... ", i + 1);
             CreativeSchemeExampleDTO example = new CreativeSchemeExampleDTO();
             CopyWritingContentDTO copyWriting = responses.get(i).getCopyWriting();
             // 随机获取一个图片样式
@@ -377,7 +383,6 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             XhsImageStyleExecuteRequest imageStyleExecuteRequest = new XhsImageStyleExecuteRequest();
             List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
 
-            List<String> imageParamList = Lists.newArrayList();
             for (int j = 0; j < templateList.size(); j++) {
                 CreativeImageTemplateDTO template = templateList.get(j);
                 if (!posterMap.containsKey(template.getId())) {
@@ -392,6 +397,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                 imageExecuteRequest.setIsMain(j == 0);
 
                 Map<String, Object> params = Maps.newHashMap();
+                List<String> imageParamList = Lists.newArrayList();
                 // 获取第主图模板的参数
                 if (j == 0) {
                     List<VariableItemDTO> mainImageVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream().filter(item -> "IMAGE".equals(item.getStyle())).collect(Collectors.toList());
@@ -402,7 +408,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                             params.put(variableItem.getField(), imageUrl);
                             imageParamList.add(imageUrl);
                         } else {
-                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList));
+                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList, mainImageVariableList.size()));
                         }
                     }
                     List<VariableItemDTO> mainOtherVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream().filter(item -> !"IMAGE".equals(item.getStyle())).collect(Collectors.toList());
@@ -420,9 +426,10 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                         }
                     }
                 } else {
+                    List<VariableItemDTO> imageVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream().filter(item -> "IMAGE".equals(item.getStyle())).collect(Collectors.toList());
                     for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(posterTemplate.getVariables())) {
                         if ("IMAGE".equals(variableItem.getStyle())) {
-                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList));
+                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList, imageVariableList.size()));
                         } else if ("TEXT".equals(variableItem.getStyle())) {
                             if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
                                 params.put(variableItem.getField(), copyWriting.getImgTitle());
@@ -443,8 +450,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             imageStyleExecuteRequest.setName(creativeImageStyle.getName());
             imageStyleExecuteRequest.setImageRequests(imageExecuteRequests);
             XhsImageStyleExecuteResponse styleResponse = creativeImageManager.styleExecute(imageStyleExecuteRequest);
-            if (Objects.isNull(styleResponse) || CollectionUtil.isEmpty(styleResponse.getImageResponses())) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, "图片生成失败");
+            if (Objects.isNull(styleResponse) || !styleResponse.getSuccess() || CollectionUtil.isEmpty(styleResponse.getImageResponses())) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, styleResponse.getErrorMessage());
             }
             List<XhsImageExecuteResponse> imageResponses = styleResponse.getImageResponses();
             List<CreativeImageDTO> collect = imageResponses.stream().map(item -> {
@@ -457,8 +464,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             example.setCopyWriting(copyWriting);
             example.setImages(collect);
             resultList.add(example);
+            log.info("生成第【{}】图片示例 结束.... ", i + 1);
         }
-
+        log.info("生成创作方案示例成功！");
         return resultList;
     }
 

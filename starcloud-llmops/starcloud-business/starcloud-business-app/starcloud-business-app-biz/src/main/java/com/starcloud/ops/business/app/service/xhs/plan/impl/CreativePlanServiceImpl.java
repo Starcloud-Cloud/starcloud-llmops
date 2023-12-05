@@ -388,7 +388,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     variableItem.setValue(imageUrl);
                     imageParamList.add(imageUrl);
                 } else {
-                    variableItem.setValue(CreativeImageUtils.randomImageList(imageParamList, imageUrlList));
+                    variableItem.setValue(CreativeImageUtils.randomImageList(imageParamList, imageUrlList, mainImageTypeRequestParams.size()));
                 }
             }
 
