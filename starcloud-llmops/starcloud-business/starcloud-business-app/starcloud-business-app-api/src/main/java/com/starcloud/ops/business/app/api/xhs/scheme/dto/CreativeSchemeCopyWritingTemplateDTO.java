@@ -50,12 +50,6 @@ public class CreativeSchemeCopyWritingTemplateDTO implements java.io.Serializabl
     private List<VariableItemDTO> variables;
 
     /**
-     * 文案生成模板示例
-     */
-    @Schema(description = "文案生成模板示例")
-    private List<CopyWritingContentDTO> example;
-
-    /**
      * 校验
      *
      * @param name 方案名称

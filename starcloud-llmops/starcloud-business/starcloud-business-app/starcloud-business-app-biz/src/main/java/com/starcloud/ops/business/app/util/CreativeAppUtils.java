@@ -118,7 +118,6 @@ public class CreativeAppUtils {
         params.add(ofTextAreaVariableItem(REFERS, JSONUtil.toJsonStr(CollectionUtil.emptyIfNull(scheme.getRefers()))));
         params.add(ofTextAreaVariableItem(SUMMARY, copyWritingTemplate.getSummary()));
         params.add(ofTextAreaVariableItem(DEMAND, CreativeAppUtils.handlerDemand(copyWritingTemplate, variableList)));
-        params.add(ofTextAreaVariableItem(EXAMPLE, copyWritingTemplate.getExample()));
 
         CreativePlanAppExecuteDTO appExecute = new CreativePlanAppExecuteDTO();
         appExecute.setUid(appUid);
@@ -194,11 +193,6 @@ public class CreativeAppUtils {
                     String demand = handlerDemand(copyWritingTemplate, null);
                     variableItem.setValue(demand);
                     variableItem.setDefaultValue(demand);
-
-                } else if (EXAMPLE.equals(variableItem.getField()) && CollectionUtil.isNotEmpty(copyWritingTemplate.getExample())) {
-                    String example = JSONUtil.toJsonStr(copyWritingTemplate.getExample());
-                    variableItem.setValue(example);
-                    variableItem.setDefaultValue(example);
                 }
             }
             variable.setVariables(variableList);
