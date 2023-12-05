@@ -522,7 +522,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         messageCreateReqVO.setVariables(variables);
         messageCreateReqVO.setAiModel(modelType.getName());
-        messageCreateReqVO.setCostPoints(computationalPower(modelType.getName()).intValue());
+        Long costPoints = computationalPower(modelType.getName(), Math.toIntExact(answerTokens) + Math.toIntExact(messageTokens));
+        messageCreateReqVO.setCostPoints(costPoints.intValue());
 
         messageCreateReqVO.setMessageTokens(Math.toIntExact(messageTokens));
         messageCreateReqVO.setMessageUnitPrice(messageUnitPrice);
