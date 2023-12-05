@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
@@ -16,6 +17,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
@@ -78,24 +80,24 @@ public class CreativeImageUtils {
      * @param style 图片模板列表
      * @return 图片执行参数
      */
-    public static CreativePlanImageStyleExecuteDTO getImageStyleExecuteRequest(CreativeImageStyleDTO style, List<String> useImageList, Map<String, CreativeImageTemplateDTO> posterMap) {
+    public static CreativePlanImageStyleExecuteDTO getImageStyleExecuteRequest(String schemeName, CreativeImageStyleDTO style, List<String> useImageList, Map<String, CreativeImageTemplateDTO> posterMap) {
         // 图片参数信息
         List<CreativePlanImageExecuteDTO> imageExecuteRequestList = Lists.newArrayList();
         List<CreativeImageTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
         for (int i = 0; i < templateList.size(); i++) {
             CreativeImageTemplateDTO template = templateList.get(i);
             if (Objects.isNull(template)) {
-                continue;
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_IMAGE_TEMPLATE_NOT_EXIST, schemeName, style.getName());
             }
             // 海报模板不存在，直接跳过
             if (!posterMap.containsKey(template.getId())) {
-                log.warn("风格: {}, 海报ID: {}，的海报模板不存在!", style.getName(), template.getId());
-                continue;
+                log.warn("方案：{}, 风格: {}, 海报ID: {}，的海报模板不存在!", schemeName, style.getName(), template.getId());
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_IMAGE_TEMPLATE_NOT_EXIST, schemeName, style.getName());
             }
             CreativeImageTemplateDTO posterTemplate = posterMap.get(template.getId());
             if (Objects.isNull(posterTemplate)) {
-                log.warn("风格: {}, 海报ID: {}，的海报模板不存在!", style.getName(), template.getId());
-                continue;
+                log.warn("方案：{}, 风格: {}, 海报ID: {}，的海报模板不存在!", schemeName, style.getName(), template.getId());
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_IMAGE_TEMPLATE_NOT_EXIST, schemeName, style.getName());
             }
             CreativePlanImageExecuteDTO imageExecuteRequest = new CreativePlanImageExecuteDTO();
             imageExecuteRequest.setIndex(i + 1);
