@@ -81,5 +81,13 @@ public interface SingleMissionService {
      */
     void settlement(SingleMissionRespVO singleMissionRespVO);
 
+    /**
+     * 删除通告
+     */
     void deleteNotification(String notificationUid);
+
+    /**
+     * 导入
+     */
+    void importSettlement(List<SingleMissionImportVO> importVOList);
 }

@@ -2,6 +2,7 @@ package com.starcloud.ops.business.mission.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -73,6 +75,14 @@ public class SingleMissionController {
         List<SingleMissionExportVO> exported = singleMissionService.exportSettlement(reqVO);
         String fileName = reqVO.getNotificationUid() + ".xls";
         ExcelUtils.write(response, fileName, reqVO.getNotificationUid(), SingleMissionExportVO.class, exported);
+    }
+
+    @PostMapping("/import")
+    @Operation(summary = "导入", description = "导入")
+    public CommonResult<Boolean> importMission(@RequestParam("file") MultipartFile file) throws IOException {
+        List<SingleMissionImportVO> importVOList = ExcelUtils.read(file, SingleMissionImportVO.class);
+        singleMissionService.importSettlement(importVOList);
+        return CommonResult.success(true);
     }
 
     @PostMapping("/refresh/note/{uid}")

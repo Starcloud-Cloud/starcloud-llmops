@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
@@ -38,10 +39,8 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -290,10 +289,10 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } catch (Exception e) {
             log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
             SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
-            modifyReqVO.setStatus(SingleMissionStatusEnum.settlement_error.getCode());
+            modifyReqVO.setStatus(SingleMissionStatusEnum.pre_settlement_error.getCode());
             modifyReqVO.setUid(singleMissionRespVO.getUid());
             modifyReqVO.setRunTime(LocalDateTime.now());
-            modifyReqVO.setPreSettlementMsg(e.getStackTrace().toString());
+            modifyReqVO.setPreSettlementMsg(e.getMessage());
             update(modifyReqVO);
         }
     }
@@ -316,6 +315,36 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         List<String> creativeUids = singleMissionDOList.stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
         creativeContentService.unBound(creativeUids);
         singleMissionMapper.batchDelete(singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
+    }
+
+    @Override
+    public void importSettlement(List<SingleMissionImportVO> importVOList) {
+        if (CollectionUtils.isEmpty(importVOList)) {
+            throw exception(EXCEL_IS_EMPTY);
+        }
+        List<String> uidList = importVOList.stream().map(SingleMissionImportVO::getUid).collect(Collectors.toList());
+        List<SingleMissionDO> singleMissionDOList = singleMissionMapper.listByUids(uidList);
+        if (singleMissionDOList.size() < importVOList.size()) {
+            Collection<String> subtract = CollUtil.subtract(uidList, singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
+            throw exception(NOT_EXIST_UID, subtract.toString());
+        }
+
+        List<SingleMissionDO> updateList = new ArrayList<>(importVOList.size());
+        String userId = WebFrameworkUtils.getLoginUserId().toString();
+        LocalDateTime now = LocalDateTime.now();
+        for (SingleMissionImportVO importVO : importVOList) {
+            importVO.valid();
+            SingleMissionDO missionDO = new SingleMissionDO();
+            missionDO.setClaimUsername(importVO.getClaimUsername());
+            missionDO.setPublishUrl(importVO.getPublishUrl());
+            missionDO.setUid(importVO.getUid());
+            missionDO.setStatus(SingleMissionStatusEnum.published.getCode());
+            missionDO.setUpdater(userId);
+            missionDO.setUpdateTime(now);
+            missionDO.setPublishTime(now);
+            updateList.add(missionDO);
+        }
+        singleMissionMapper.updateBatch(updateList, updateList.size());
     }
 
     private void updateSingleMission(String uid, BigDecimal amount, Long noteDetailId) {
