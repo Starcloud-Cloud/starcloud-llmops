@@ -118,7 +118,7 @@ yudao:
     title: 芋道快速开发平台
     description: 提供管理后台、用户 App 的所有功能
     version: ${yudao.info.version}
-    url: ${yudao.web.admin-ui.url}f
+    url: ${yudao.web.admin-ui.url}
     email: xingyu4j@vip.qq.com
     license: MIT
     license-url: https://gitee.com/zhijiantianya/ruoyi-vue-pro/blob/master/LICENSE
