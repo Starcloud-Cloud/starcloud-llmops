@@ -21,9 +21,9 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContent
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
-import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -36,7 +36,6 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -257,7 +256,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
         for (CreativeContentDO content : xhsCreativeContents) {
-            content.setLikeCount(Optional.ofNullable(content.getLikeCount()).orElse(0L) + 1L);
+            content.setLiked(Boolean.TRUE);
             creativeContentMapper.updateById(content);
         }
     }
@@ -274,10 +273,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
         for (CreativeContentDO content : xhsCreativeContents) {
-            if (content.getLikeCount() == null || content.getLikeCount() <= 0) {
-                continue;
-            }
-            content.setLikeCount(content.getLikeCount() - 1L);
+            content.setLiked(Boolean.FALSE);
             creativeContentMapper.updateById(content);
         }
     }

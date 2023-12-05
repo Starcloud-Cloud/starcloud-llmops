@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.api.xhs.content.vo.response;
 
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExtendDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -109,5 +109,5 @@ public class CreativeContentRespVO {
      * 喜欢数量
      */
     @Schema(description = "喜欢数量")
-    private Long likeCount;
+    private Boolean liked;
 }

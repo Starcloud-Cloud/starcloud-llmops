@@ -110,5 +110,5 @@ public class CreativeContentDTO {
      * 喜欢数量
      */
     @Schema(description = "喜欢数量")
-    private Long likeCount;
+    private Boolean liked;
 }
