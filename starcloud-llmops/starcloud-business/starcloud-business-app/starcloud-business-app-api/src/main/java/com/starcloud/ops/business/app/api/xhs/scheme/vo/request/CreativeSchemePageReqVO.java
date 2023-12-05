@@ -26,12 +26,6 @@ public class CreativeSchemePageReqVO extends PageQuery {
     private static final long serialVersionUID = -1651898420947771210L;
 
     /**
-     * UID 列表
-     */
-    @Schema(description = "UID")
-    private List<String> uidList;
-
-    /**
      * 创作方案名称
      */
     @Schema(description = "创作方案名称")

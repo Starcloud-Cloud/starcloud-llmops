@@ -52,6 +52,12 @@ public class AppLogMessageStatisticsListUidReqVO implements Serializable {
     private String aiModel;
 
     /**
+     * 用户ID
+     */
+    @Schema(description = "用户ID")
+    private String userId;
+
+    /**
      * 应用状态
      */
     @Schema(description = "应用状态")

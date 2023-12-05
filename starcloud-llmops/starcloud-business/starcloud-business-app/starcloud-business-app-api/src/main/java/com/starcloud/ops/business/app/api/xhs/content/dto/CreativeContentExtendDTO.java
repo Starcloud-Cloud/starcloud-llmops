@@ -5,5 +5,5 @@ import lombok.Data;
 
 @Data
 @Schema(description = "拓展内容")
-public class XhsCreativeContentExtendDTO {
+public class CreativeContentExtendDTO {
 }

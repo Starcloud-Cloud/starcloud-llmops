@@ -6,10 +6,9 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.ImageExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
@@ -57,6 +56,8 @@ public interface CreativeSchemeConvert {
         if (request.getConfiguration() != null) {
             creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
         }
+        creativeScheme.setUseImages(JSONUtil.toJsonStr(request.getUseImages()));
+        creativeScheme.setExample(JSONUtil.toJsonStr(request.getExample()));
         creativeScheme.setCreateTime(LocalDateTime.now());
         creativeScheme.setUpdateTime(LocalDateTime.now());
         creativeScheme.setDeleted(Boolean.FALSE);
@@ -97,15 +98,15 @@ public interface CreativeSchemeConvert {
         if (StringUtils.isNotBlank(creativeScheme.getConfiguration())) {
             creativeSchemeResponse.setConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
         }
-        if (StringUtils.isNotBlank(creativeScheme.getCopyWritingExample())) {
-            TypeReference<List<CopyWritingContentDTO>> typeReference = new TypeReference<List<CopyWritingContentDTO>>() {
+        if (StringUtils.isNotBlank(creativeScheme.getUseImages())) {
+            TypeReference<List<String>> typeReference = new TypeReference<List<String>>() {
             };
-            creativeSchemeResponse.setCopyWritingExample(JSONUtil.toBean(creativeScheme.getCopyWritingExample(), typeReference, Boolean.TRUE));
+            creativeSchemeResponse.setUseImages(JSONUtil.toBean(creativeScheme.getUseImages(), typeReference, Boolean.TRUE));
         }
-        if (StringUtils.isNotBlank(creativeScheme.getImageExample())) {
-            TypeReference<List<ImageExampleDTO>> typeReference = new TypeReference<List<ImageExampleDTO>>() {
+        if (StringUtils.isNotBlank(creativeScheme.getExample())) {
+            TypeReference<List<CreativeSchemeExampleDTO>> typeReference = new TypeReference<List<CreativeSchemeExampleDTO>>() {
             };
-            creativeSchemeResponse.setImageExample(JSONUtil.toBean(creativeScheme.getImageExample(), typeReference, Boolean.TRUE));
+            creativeSchemeResponse.setExample(JSONUtil.toBean(creativeScheme.getExample(), typeReference, Boolean.TRUE));
         }
         creativeSchemeResponse.setCreator(creativeScheme.getCreator());
         creativeSchemeResponse.setUpdater(creativeScheme.getUpdater());

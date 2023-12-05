@@ -1,10 +1,9 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.ImageExampleDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -81,16 +80,16 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
     private CreativeSchemeConfigDTO configuration;
 
     /**
-     * 创作方案文案示例
+     * 创作方案图片
      */
-    @Schema(description = "创作方案文案示例")
-    private List<CopyWritingContentDTO> copyWritingExample;
+    @Schema(description = "创作方案图片")
+    private List<String> useImages;
 
     /**
-     * 创作方案图片示例
+     * 创作方案示例
      */
-    @Schema(description = "创作方案图片示例")
-    private List<ImageExampleDTO> imageExample;
+    @Schema(description = "创作方案示例")
+    private List<CreativeSchemeExampleDTO> example;
 
     /**
      * 创建人

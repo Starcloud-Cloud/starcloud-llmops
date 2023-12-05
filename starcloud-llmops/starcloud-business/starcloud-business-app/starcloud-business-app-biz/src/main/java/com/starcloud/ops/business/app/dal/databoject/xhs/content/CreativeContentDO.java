@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @TableName("llm_creative_content")
-public class XhsCreativeContentDO extends TenantBaseDO {
+public class CreativeContentDO extends TenantBaseDO {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
@@ -132,8 +132,8 @@ public class XhsCreativeContentDO extends TenantBaseDO {
     private Boolean claim;
 
     /**
-     * 喜欢数量
+     * 是否喜欢
      */
-    private Long likeCount;
+    private Boolean liked;
 
 }

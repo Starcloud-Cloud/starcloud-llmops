@@ -14,7 +14,7 @@
         text.copy_writing_title as copyWritingTitle,text.copy_writing_content as copyWritingContent, pic.picture_num as pictureNum,
         pic.picture_content as pictureContent, pic.error_msg as pictureErrorMsg, text.error_msg as copyWritingErrorMsg,
         pic.retry_count as pictureRetryCount, text.retry_count as copyWritingRetryCount,text.copy_writing_count as copyWritingCount,
-        pic.extend as pictureExtend, text.extend as copyWritingExtend,pic.claim as claim, text.like_count as likeCount
+        pic.extend as pictureExtend, text.extend as copyWritingExtend,pic.claim as claim, text.liked as liked
     </sql>
     
     
@@ -38,7 +38,7 @@
         </if>
     </select>
     
-    <select id="pageSelect" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDTO">
+    <select id="pageSelect" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
         select
         <include refid="page_column"/>
         FROM
@@ -61,7 +61,7 @@
         order by pic.update_time limit #{start},#{end}
     </select>
     
-    <select id="detail" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDTO">
+    <select id="detail" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
         select
         <include refid="page_column"/>
         FROM
@@ -71,7 +71,7 @@
         and pic.business_uid = #{businessUid} and text.business_uid = #{businessUid}
     </select>
     
-    <select id="jobQuery" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDO">
+    <select id="jobQuery" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO">
         SELECT a.* FROM
         llm_creative_content a
         INNER JOIN llm_creative_plan b on a.plan_uid = b.uid
@@ -112,7 +112,7 @@
     </select>
     
     <select id="selectByBusinessUid"
-            resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDTO">
+            resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
         select
         <include refid="page_column"/>
         FROM
@@ -137,7 +137,7 @@
     </select>
     
     <select id="listGroupByBusinessUid"
-            resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentBusinessPO">
+            resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO">
         SELECT
         plan_uid AS planUid,
         business_uid AS businessUid,
