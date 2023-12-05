@@ -5,11 +5,12 @@
         select m.id
         from llm_single_mission m
         inner join llm_notification n on m.notification_Uid = n.uid
-        where m.deleted = false and n.deleted = false
-        and n.start_time &lt;= CURDATE()
+        where m.deleted = false
+<!--        and n.deleted = false-->
+        and n.start_time &lt;= now()
         and (m.pre_settlement_time is null or m.pre_settlement_time &lt; CURDATE())
         and (m.settlement_time is null or m.settlement_time &lt; CURDATE())
-        and n.status = 'published'
+<!--        and n.status = 'published'-->
         and (m.run_time is null or m.run_time &lt;= CURDATE())
         <if test="reqVO.singleMissionType != null and reqVO.singleMissionType != ''">
             and n.type = #{reqVO.singleMissionType} and m.type = #{reqVO.singleMissionType}
@@ -22,12 +23,45 @@
             </when>
             <otherwise>
                 and m.status in ('published','pre_settlement')
-                and n.end_time &gt;= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                and n.end_time &gt;= now()
             </otherwise>
         </choose>
         order by m.id
         <if test="reqVO.limitSize != null and reqVO.limitSize > 0">
             limit #{reqVO.limitSize}
         </if>
+    </select>
+
+    <select id="pageCount" resultType="java.lang.Long">
+        select count(*)
+        from llm_single_mission
+        where deleted = false and notification_Uid = #{reqVO.notificationUid}
+        <if test="reqVO.status != null and reqVO.status != ''">
+            and status = #{reqVO.status}
+        </if>
+        <if test="reqVO.claimUserId != null and reqVO.claimUserId != ''">
+            and claim_user_id = #{reqVO.claimUserId}
+        </if>
+        <if test="reqVO.claimUsername != null and reqVO.claimUsername != ''">
+            and claim_username like concat(#{reqVO.claimUsername},'%')
+        </if>
+    </select>
+
+    <select id="pageDetail" resultType="com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO">
+        select m.*, n.liked_count as likedCount,n.collected_count as collectedCount,n.comment_count as commentCount
+        from llm_single_mission m
+        left join llm_xhs_note_detail n on m.note_detail_id = n.id
+        where m.deleted = false and m.notification_Uid = #{reqVO.notificationUid}
+        <if test="reqVO.status != null and reqVO.status != ''">
+            and m.status = #{reqVO.status}
+        </if>
+        <if test="reqVO.claimUserId != null and reqVO.claimUserId != ''">
+            and m.claim_user_id = #{reqVO.claimUserId}
+        </if>
+        <if test="reqVO.claimUsername != null and reqVO.claimUsername != ''">
+            and m.claim_username like concat(#{reqVO.claimUsername},'%')
+        </if>
+        order by m.create_time desc
+        limit #{start},#{end}
     </select>
 </mapper>

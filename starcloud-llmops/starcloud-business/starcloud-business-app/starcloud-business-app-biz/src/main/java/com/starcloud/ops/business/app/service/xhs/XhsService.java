@@ -3,16 +3,16 @@ package com.starcloud.ops.business.app.service.xhs;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
 
 import java.util.List;
 

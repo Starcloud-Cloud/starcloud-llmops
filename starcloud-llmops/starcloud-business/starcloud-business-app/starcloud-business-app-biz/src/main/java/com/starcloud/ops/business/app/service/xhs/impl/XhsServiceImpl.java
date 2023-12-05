@@ -14,27 +14,27 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppCreativeExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsAppExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageCreativeExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageExecuteResponse;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteRequest;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.XhsImageStyleExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.plan.CreativeTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterParam;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.poster.PosterService;
-import com.starcloud.ops.business.app.service.xhs.XhsImageCreativeThreadPoolHolder;
-import com.starcloud.ops.business.app.service.xhs.XhsImageStyleThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.executor.XhsImageCreativeThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.executor.XhsImageStyleThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.XhsService;
 import com.starcloud.ops.business.app.util.CreativeUtil;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -93,13 +94,13 @@ public class XhsServiceImpl implements XhsService {
             int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
             List<VariableItemDTO> variables = params.stream().map(param -> {
                 if ("image".equals(param.getType())) {
-                    return CreativeUtil.ofImageVariable(param.getId(), param.getName());
+                    return CreativeUtil.ofImageVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
                 } else if ("text".equals(param.getType())) {
-                    return CreativeUtil.ofInputVariable(param.getId(), param.getName());
+                    return CreativeUtil.ofInputVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
                 } else {
                     return null;
                 }
-            }).filter(Objects::nonNull).collect(Collectors.toList());
+            }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemDTO::getOrder)).collect(Collectors.toList());
 
             XhsImageTemplateDTO response = new XhsImageTemplateDTO();
             response.setId(item.getId());
@@ -301,7 +302,7 @@ public class XhsServiceImpl implements XhsService {
      */
     @Override
     public XhsImageExecuteResponse imageExecute(XhsImageExecuteRequest request) {
-        log.info("小红书执行生成图片开始");
+        log.info("小红书执行生成图片开始: 执行参数: \n{}", JSONUtil.parse(request).toStringPretty());
         XhsImageExecuteResponse response = XhsImageExecuteResponse.ofBase();
         try {
             String imageTemplate = request.getImageTemplate();

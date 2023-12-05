@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.dto;
 
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.dto.XhsCreativePictureContentDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.XhsCreativePictureContentDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
