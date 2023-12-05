@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.powerjob.base.BaseMapReduceTask;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskContext;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskResult;
@@ -86,17 +86,17 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         queryReq.setType(params.getRunType());
         queryReq.setRetryProcess(params.getRetryProcess());
         queryReq.setBathCount(params.getBathCount());
-        List<XhsCreativeContentDO> creativeContentList = xhsCreativeContentService.jobQuery(queryReq);
+        List<CreativeContentDO> creativeContentList = xhsCreativeContentService.jobQuery(queryReq);
         if (CollectionUtils.isEmpty(creativeContentList)) {
             return new BaseTaskResult(true, "ROOT_PROCESS_SUCCESS : 未找到待执行的任务");
         }
 
-        Map<String, List<XhsCreativeContentDO>> planUidGroup = creativeContentList.stream().collect(Collectors.groupingBy(XhsCreativeContentDO::getPlanUid));
+        Map<String, List<CreativeContentDO>> planUidGroup = creativeContentList.stream().collect(Collectors.groupingBy(CreativeContentDO::getPlanUid));
 
         List<SubTask> subTasks = new ArrayList<>(planUidGroup.size());
         Integer subSize = params.getSubSize() == null ? 5 : params.getSubSize();
         for (String planUid : planUidGroup.keySet()) {
-            List<Long> ids = planUidGroup.get(planUid).stream().map(XhsCreativeContentDO::getId).collect(Collectors.toList());
+            List<Long> ids = planUidGroup.get(planUid).stream().map(CreativeContentDO::getId).collect(Collectors.toList());
             List<List<Long>> split = CollUtil.split(ids, subSize);
             for (List<Long> longs : split) {
                 SubTask subTask = new SubTask();

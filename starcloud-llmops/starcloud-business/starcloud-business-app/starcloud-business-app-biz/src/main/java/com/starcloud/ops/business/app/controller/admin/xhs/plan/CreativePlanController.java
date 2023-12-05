@@ -9,7 +9,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQu
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanStatusReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -45,13 +44,6 @@ public class CreativePlanController {
     @ApiOperationSupport(order = 20, author = "nacoyer")
     public CommonResult<CreativePlanRespVO> get(@PathVariable String uid) {
         return CommonResult.success(creativePlanService.get(uid));
-    }
-
-    @GetMapping("/listTemplates")
-    @Operation(summary = "获取默认模板列表", description = "获取默认模板列表")
-    @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<List<CreativePlanRespVO>> listTemplates() {
-        return CommonResult.success(creativePlanService.listTemplates());
     }
 
     @GetMapping("/page")
@@ -89,7 +81,7 @@ public class CreativePlanController {
         if (!CreativePlanStatusEnum.PAUSE.name().equals(request.getStatus()) &&
                 !CreativePlanStatusEnum.RUNNING.name().equals(request.getStatus()) &&
                 !CreativePlanStatusEnum.CANCELED.name().equals(request.getStatus())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_STATUS_NOT_SUPPORTED);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORTED);
         }
         creativePlanService.updateStatus(request.getUid(), request.getStatus());
         return CommonResult.success("创作计划更新成功");

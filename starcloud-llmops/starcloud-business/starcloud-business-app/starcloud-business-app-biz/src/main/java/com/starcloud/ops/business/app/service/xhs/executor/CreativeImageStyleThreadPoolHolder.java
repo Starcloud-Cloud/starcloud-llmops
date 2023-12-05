@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 @Slf4j
-public class XhsImageCreativeThreadPoolHolder {
+public class CreativeImageStyleThreadPoolHolder {
 
     /**
      * 阻塞队列
@@ -30,8 +30,8 @@ public class XhsImageCreativeThreadPoolHolder {
     /**
      * 小红书图片风格化线程池
      */
-    private static final ThreadPoolExecutor XHS_IMAGE_CREATIVE_THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(8, 16,
-            60, TimeUnit.SECONDS, BLOCKING_QUEUE, new XhsImageCreativeThreadFactory(), new XhsImageCreativeRejectedExecutionHandler());
+    private static final ThreadPoolExecutor XHS_IMAGE_STYLE_THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(8, 16,
+            60, TimeUnit.SECONDS, BLOCKING_QUEUE, new XhsImageStyleThreadFactory(), new XhsImageStyleRejectedExecutionHandler());
 
     /**
      * 获取线程池
@@ -39,7 +39,7 @@ public class XhsImageCreativeThreadPoolHolder {
      * @return 线程池
      */
     public ThreadPoolExecutor executor() {
-        return XHS_IMAGE_CREATIVE_THREAD_POOL_EXECUTOR;
+        return XHS_IMAGE_STYLE_THREAD_POOL_EXECUTOR;
     }
 
     /**
@@ -49,7 +49,7 @@ public class XhsImageCreativeThreadPoolHolder {
      * @version 1.0.0
      * @since 2023-11-27
      */
-    private static class XhsImageCreativeThreadFactory implements ThreadFactory {
+    private static class XhsImageStyleThreadFactory implements ThreadFactory {
 
         /**
          * 新建线程
@@ -59,7 +59,7 @@ public class XhsImageCreativeThreadPoolHolder {
          */
         @Override
         public Thread newThread(@NotNull Runnable runnable) {
-            Thread thread = new Thread(runnable, "xhs-image-creative-thread");
+            Thread thread = new Thread(runnable, "xhs-image-style-thread");
             thread.setDaemon(true);
             return thread;
         }
@@ -68,7 +68,7 @@ public class XhsImageCreativeThreadPoolHolder {
     /**
      * 拒绝策略
      */
-    private static class XhsImageCreativeRejectedExecutionHandler implements RejectedExecutionHandler {
+    private static class XhsImageStyleRejectedExecutionHandler implements RejectedExecutionHandler {
 
         /**
          * 拒绝执行，不做任何处理
@@ -78,7 +78,7 @@ public class XhsImageCreativeThreadPoolHolder {
          */
         @Override
         public void rejectedExecution(Runnable runnable, ThreadPoolExecutor executor) {
-            log.warn("The xhs-image-creative-thread pool is full");
+            log.warn("The xhs-image-style-thread pool is full");
         }
 
     }

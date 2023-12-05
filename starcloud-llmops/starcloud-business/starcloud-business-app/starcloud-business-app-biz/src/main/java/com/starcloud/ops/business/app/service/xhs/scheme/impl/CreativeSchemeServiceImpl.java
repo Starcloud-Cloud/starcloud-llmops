@@ -2,47 +2,53 @@ package com.starcloud.ops.business.app.service.xhs.scheme.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeImageTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.ImageExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.scheme.CreativeSchemeMapper;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
-import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
-import com.starcloud.ops.business.app.service.xhs.XhsService;
-import com.starcloud.ops.business.app.util.CreativeUtil;
+import com.starcloud.ops.business.app.util.CreativeAppUtils;
+import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -59,9 +65,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE;
 
 /**
  * 创作方案服务
@@ -78,13 +83,23 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     private CreativeSchemeMapper creativeSchemeMapper;
 
     @Resource
-    private XhsService xhsService;
+    private CreativeAppManager creativeAppManager;
 
     @Resource
-    private AppService appService;
+    private CreativeImageManager creativeImageManager;
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    /**
+     * 获取图片模板
+     *
+     * @return 图片模板
+     */
+    @Override
+    public List<CreativeImageTemplateDTO> templates() {
+        return creativeImageManager.templates();
+    }
 
     /**
      * 获取创作方案元数据
@@ -108,7 +123,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     @Override
     public CreativeSchemeRespVO get(String uid) {
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(uid);
-        AppValidate.notNull(creativeScheme, ErrorCodeConstants.CREATIVE_SCHEME_NOT_EXIST);
+        AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
         return CreativeSchemeConvert.INSTANCE.convertResponse(creativeScheme);
     }
 
@@ -195,10 +210,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     public void create(CreativeSchemeReqVO request) {
         handlerAndValidate(request);
         if (creativeSchemeMapper.distinctName(request.getName())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_NAME_EXIST);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_NAME_EXIST);
         }
         CreativeSchemeDO scheme = CreativeSchemeConvert.INSTANCE.convertCreateRequest(request);
-        handlerScheme(scheme, request);
         creativeSchemeMapper.insert(scheme);
     }
 
@@ -210,7 +224,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     @Override
     public void copy(UidRequest request) {
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(request.getUid());
-        AppValidate.notNull(creativeScheme, ErrorCodeConstants.CREATIVE_SCHEME_NOT_EXIST);
+        AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
 
         CreativeSchemeDO scheme = new CreativeSchemeDO();
         scheme.setUid(IdUtil.simpleUUID());
@@ -221,8 +235,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         scheme.setDescription(creativeScheme.getDescription());
         scheme.setRefers(creativeScheme.getRefers());
         scheme.setConfiguration(creativeScheme.getConfiguration());
-        scheme.setCopyWritingExample(creativeScheme.getCopyWritingExample());
-        scheme.setImageExample(creativeScheme.getImageExample());
+        scheme.setUseImages(creativeScheme.getUseImages());
+        scheme.setExample(creativeScheme.getExample());
         scheme.setCreateTime(LocalDateTime.now());
         scheme.setUpdateTime(LocalDateTime.now());
         scheme.setDeleted(Boolean.FALSE);
@@ -238,14 +252,13 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     public void modify(CreativeSchemeModifyReqVO request) {
         handlerAndValidate(request);
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(request.getUid());
-        AppValidate.notNull(creativeScheme, ErrorCodeConstants.CREATIVE_SCHEME_NOT_EXIST);
+        AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
         // 如果修改了名称，校验名称是否重复
         if (!creativeScheme.getName().equals(request.getName()) && creativeSchemeMapper.distinctName(request.getName())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_NAME_EXIST);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_NAME_EXIST);
         }
         CreativeSchemeDO scheme = CreativeSchemeConvert.INSTANCE.convertModifyRequest(request);
         scheme.setId(creativeScheme.getId());
-        handlerScheme(scheme, request);
         creativeSchemeMapper.updateById(scheme);
     }
 
@@ -257,7 +270,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     @Override
     public void delete(String uid) {
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(uid);
-        AppValidate.notNull(creativeScheme, ErrorCodeConstants.CREATIVE_SCHEME_NOT_EXIST);
+        AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
         creativeSchemeMapper.deleteById(creativeScheme.getId());
     }
 
@@ -268,7 +281,13 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     @Override
     public void summary(CreativeSchemeSseReqVO request) {
-        AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        if (Objects.isNull(loginUserId)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+        }
+        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(CreativeTypeEnum.XHS.name());
+        WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.firstStep(executeApp);
+
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         if (Objects.nonNull(request.getSseEmitter())) {
             executeRequest.setSseEmitter(request.getSseEmitter());
@@ -277,10 +296,10 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
         executeRequest.setAppUid(executeApp.getUid());
+        executeRequest.setStepId(stepWrapper.getField());
         executeRequest.setN(1);
-//        executeRequest.setAiModel(ModelTypeEnum.GPT_4_TURBO.getName());
-        executeRequest.setAppReqVO(CreativeUtil.transform(executeApp, request));
-        appService.asyncExecute(executeRequest);
+        executeRequest.setAppReqVO(CreativeAppUtils.transform(executeApp, request, stepWrapper.getField()));
+        creativeAppManager.asyncAppExecute(executeRequest);
     }
 
     /**
@@ -290,47 +309,157 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @return 文案示例
      */
     @Override
-    public List<CopyWritingContentDTO> example(CreativeSchemeReqVO request) {
+    public List<CreativeSchemeExampleDTO> example(CreativeSchemeReqVO request) {
         handlerAndValidate(request);
-        AppMarketRespVO executeApp = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
+        if (CollectionUtil.isEmpty(request.getUseImages())) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPLOAD_IMAGE_EMPTY);
+        }
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        if (Objects.isNull(loginUserId)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+        }
+        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(CreativeTypeEnum.XHS.name());
+
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-        List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(executeApp).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(WORKFLOW_CONFIG_FAILURE));
         // 获取第二步的步骤。约定，生成小红书内容为第二步
-        WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
-        AppValidate.notNull(stepWrapper, ErrorCodeConstants.WORKFLOW_STEP_NOT_EXIST, executeApp.getName());
-        executeRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.secondStep(executeApp);
+        executeRequest.setUserId(loginUserId);
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
         executeRequest.setAppUid(executeApp.getUid());
         executeRequest.setStepId(stepWrapper.getField());
-        executeRequest.setN(5);
+        executeRequest.setN(3);
         executeRequest.setAiModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        executeRequest.setAppReqVO(CreativeUtil.transform(executeApp, request));
+        executeRequest.setAppReqVO(CreativeAppUtils.transform(executeApp, request, stepWrapper.getField()));
 
-        String answer = xhsService.execute(executeRequest);
-        List<XhsAppExecuteResponse> responses = CreativeUtil.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
+        String answer = creativeAppManager.execute(executeRequest);
+        List<XhsAppExecuteResponse> responses = CreativeAppUtils.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
         if (CollectionUtil.isEmpty(responses)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_EXAMPLE_FAILURE);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE);
         }
 
-        String errorMsg = "";
-        List<CopyWritingContentDTO> list = Lists.newArrayList();
+        // 一条失败，全部失败
         for (XhsAppExecuteResponse response : responses) {
             if (!response.getSuccess() ||
                     Objects.isNull(response.getCopyWriting()) ||
                     StringUtils.isBlank(response.getCopyWriting().getTitle()) ||
                     StringUtils.isBlank(response.getCopyWriting().getContent())) {
-                errorMsg = response.getErrorMsg();
-                continue;
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, response.getErrorMsg());
             }
-            list.add(response.getCopyWriting());
         }
 
-        if (CollectionUtil.isEmpty(list)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_EXAMPLE_FAILURE, errorMsg);
+        // 图片素材列表
+        List<String> imageUrlList = request.getUseImages();
+        // 随机打散图片素材列表
+        List<String> disperseImageUrlList = CreativeImageUtils.disperseImageUrlList(imageUrlList, executeRequest.getN());
+
+        // 查询Poster模板列表，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。
+        List<CreativeImageTemplateDTO> posterTemplateList = creativeImageManager.templates();
+        // Poster模板Map
+        Map<String, CreativeImageTemplateDTO> posterMap = CollectionUtil.emptyIfNull(posterTemplateList).stream()
+                .collect(Collectors.toMap(CreativeImageTemplateDTO::getId, Function.identity()));
+
+        CreativeSchemeConfigDTO configuration = request.getConfiguration();
+        CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
+        List<CreativeImageStyleDTO> styleList = imageTemplate.getStyleList();
+        List<CreativeSchemeExampleDTO> resultList = Lists.newArrayList();
+        for (int i = 0; i < responses.size(); i++) {
+            CreativeSchemeExampleDTO example = new CreativeSchemeExampleDTO();
+            CopyWritingContentDTO copyWriting = responses.get(i).getCopyWriting();
+            // 随机获取一个图片样式
+            int randomInt = RandomUtil.randomInt(styleList.size());
+            CreativeImageStyleDTO creativeImageStyle = styleList.get(randomInt);
+
+            List<CreativeImageTemplateDTO> templateList = creativeImageStyle.getTemplateList();
+            if (CollectionUtil.isEmpty(templateList)) {
+                continue;
+            }
+            XhsImageStyleExecuteRequest imageStyleExecuteRequest = new XhsImageStyleExecuteRequest();
+            List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
+
+            List<String> imageParamList = Lists.newArrayList();
+            for (int j = 0; j < templateList.size(); j++) {
+                CreativeImageTemplateDTO template = templateList.get(j);
+                if (!posterMap.containsKey(template.getId())) {
+                    continue;
+                }
+                CreativeImageTemplateDTO posterTemplate = posterMap.get(template.getId());
+
+                XhsImageExecuteRequest imageExecuteRequest = new XhsImageExecuteRequest();
+                imageExecuteRequest.setId(posterTemplate.getId());
+                imageExecuteRequest.setName(posterTemplate.getName());
+                imageExecuteRequest.setIndex(j + 1);
+                imageExecuteRequest.setIsMain(j == 0);
+
+                Map<String, Object> params = Maps.newHashMap();
+                // 获取第主图模板的参数
+                if (j == 0) {
+                    List<VariableItemDTO> mainImageVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream().filter(item -> "IMAGE".equals(item.getStyle())).collect(Collectors.toList());
+                    for (int k = 0; k < mainImageVariableList.size(); k++) {
+                        VariableItemDTO variableItem = mainImageVariableList.get(k);
+                        if (k == 0) {
+                            String imageUrl = disperseImageUrlList.get(i);
+                            params.put(variableItem.getField(), imageUrl);
+                            imageParamList.add(imageUrl);
+                        } else {
+                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList));
+                        }
+                    }
+                    List<VariableItemDTO> mainOtherVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream().filter(item -> !"IMAGE".equals(item.getStyle())).collect(Collectors.toList());
+                    for (VariableItemDTO variableItem : mainOtherVariableList) {
+                        if ("TEXT".equals(variableItem.getStyle())) {
+                            if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
+                                params.put(variableItem.getField(), copyWriting.getImgTitle());
+                            } else if ("SUB_TITLE".equalsIgnoreCase(variableItem.getField())) {
+                                params.put(variableItem.getField(), copyWriting.getImgSubTitle());
+                            } else {
+                                params.put(variableItem.getField(), variableItem.getValue());
+                            }
+                        } else {
+                            params.put(variableItem.getField(), variableItem.getValue());
+                        }
+                    }
+                } else {
+                    for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(posterTemplate.getVariables())) {
+                        if ("IMAGE".equals(variableItem.getStyle())) {
+                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList));
+                        } else if ("TEXT".equals(variableItem.getStyle())) {
+                            if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
+                                params.put(variableItem.getField(), copyWriting.getImgTitle());
+                            } else if ("SUB_TITLE".equalsIgnoreCase(variableItem.getField())) {
+                                params.put(variableItem.getField(), copyWriting.getImgSubTitle());
+                            } else {
+                                params.put(variableItem.getField(), variableItem.getValue());
+                            }
+                        } else {
+                            params.put(variableItem.getField(), variableItem.getValue());
+                        }
+                    }
+                }
+                imageExecuteRequest.setParams(params);
+                imageExecuteRequests.add(imageExecuteRequest);
+            }
+            imageStyleExecuteRequest.setId(creativeImageStyle.getId());
+            imageStyleExecuteRequest.setName(creativeImageStyle.getName());
+            imageStyleExecuteRequest.setImageRequests(imageExecuteRequests);
+            XhsImageStyleExecuteResponse styleResponse = creativeImageManager.styleExecute(imageStyleExecuteRequest);
+            if (Objects.isNull(styleResponse) || CollectionUtil.isEmpty(styleResponse.getImageResponses())) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, "图片生成失败");
+            }
+            List<XhsImageExecuteResponse> imageResponses = styleResponse.getImageResponses();
+            List<CreativeImageDTO> collect = imageResponses.stream().map(item -> {
+                CreativeImageDTO image = new CreativeImageDTO();
+                image.setIndex(item.getIndex());
+                image.setIsMain(item.getIsMain());
+                image.setUrl(item.getUrl());
+                return image;
+            }).collect(Collectors.toList());
+            example.setCopyWriting(copyWriting);
+            example.setImages(collect);
+            resultList.add(example);
         }
-        return list;
+
+        return resultList;
     }
 
 
@@ -347,79 +476,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (StringUtils.isBlank(request.getDescription())) {
             request.setDescription(StringUtils.EMPTY);
         }
-        CreativeSchemeConfigDTO configuration = request.getConfiguration();
-        if (Objects.isNull(configuration)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL, request.getName());
-        }
-        CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
-        if (Objects.isNull(imageTemplate)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL, request.getName());
-        }
-        List<XhsImageStyleDTO> styleList = imageTemplate.getStyleList();
-        if (CollectionUtil.isEmpty(styleList)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY, request.getName());
-        }
-
-        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
-        if (Objects.isNull(copyWritingTemplate)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, request.getName());
-        }
-        if (StringUtils.isBlank(copyWritingTemplate.getSummary())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_SUMMARY_NOT_NULL, request.getName());
-        }
-        if (StringUtils.isBlank(copyWritingTemplate.getDemand())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_DEMAND_NOT_NULL, request.getName());
-        }
-    }
-
-    /**
-     * 处理创作方案配置
-     *
-     * @param scheme  创作方案
-     * @param request 请求
-     */
-    private void handlerScheme(CreativeSchemeDO scheme, CreativeSchemeReqVO request) {
-
-        CreativeSchemeConfigDTO configuration = request.getConfiguration();
-        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
-        // 设置创作方案的示例文案
-        List<CopyWritingContentDTO> copyWritingExamples = Optional.ofNullable(copyWritingTemplate.getExample()).orElse(Lists.newArrayList());
-        scheme.setCopyWritingExample(JSONUtil.toJsonStr(copyWritingExamples));
-
-        CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
-        List<XhsImageStyleDTO> list = imageTemplate.getStyleList();
-        // 从字典中获取图片模板的示例图片
-        List<XhsImageTemplateDTO> imageTemplates = xhsService.imageTemplates();
-        Map<String, XhsImageTemplateDTO> templateMap = CollectionUtil.emptyIfNull(imageTemplates).stream().collect(Collectors.toMap(XhsImageTemplateDTO::getId, item -> item));
-
-        List<ImageExampleDTO> imageExampleList = Lists.newArrayList();
-        for (XhsImageStyleDTO style : list) {
-            List<XhsImageTemplateDTO> templateList = style.getTemplateList();
-            if (CollectionUtil.isEmpty(templateList)) {
-                continue;
-            }
-            List<XhsImageTemplateDTO> imageTemplateList = Lists.newArrayList();
-            for (XhsImageTemplateDTO template : templateList) {
-                if (templateMap.containsKey(template.getId())) {
-                    XhsImageTemplateDTO templateDTO = templateMap.get(template.getId());
-                    if (StringUtils.isNotBlank(templateDTO.getExample())) {
-                        XhsImageTemplateDTO xhsImageTemplateDTO = new XhsImageTemplateDTO();
-                        xhsImageTemplateDTO.setId(templateDTO.getId());
-                        xhsImageTemplateDTO.setName(templateDTO.getName());
-                        xhsImageTemplateDTO.setExample(templateDTO.getExample());
-                        imageTemplateList.add(xhsImageTemplateDTO);
-                    }
-                }
-            }
-            ImageExampleDTO imageExample = new ImageExampleDTO();
-            imageExample.setId(style.getId());
-            imageExample.setName(style.getName());
-            imageExample.setTemplateList(imageTemplateList);
-            imageExampleList.add(imageExample);
-        }
-        // 设置创作方案的示例图片
-        scheme.setImageExample(JSONUtil.toJsonStr(imageExampleList));
-
+        request.validate();
     }
 
     /**

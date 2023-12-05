@@ -3,15 +3,15 @@ package com.starcloud.ops.business.app.convert.xhs.content;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
-import com.starcloud.ops.business.app.api.xhs.content.dto.XhsCreativeContentExtendDTO;
-import com.starcloud.ops.business.app.api.xhs.content.dto.XhsCreativePictureContentDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExtendDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDTO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO;
 import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.BeanMapping;
@@ -28,29 +28,29 @@ public interface CreativeContentConvert {
 
     CreativeContentConvert INSTANCE = Mappers.getMapper(CreativeContentConvert.class);
 
-    PageResult<CreativeContentRespVO> convert(PageResult<XhsCreativeContentDO> pageResult);
+    PageResult<CreativeContentRespVO> convert(PageResult<CreativeContentDO> pageResult);
 
-    CreativeContentRespVO convert(XhsCreativeContentDO creativeContentDO);
+    CreativeContentRespVO convert(CreativeContentDO creativeContentDO);
 
-    CreativeContentRespVO convert(XhsCreativeContentDTO dto);
+    CreativeContentRespVO convert(CreativeContentDTO dto);
 
-    List<CreativeContentRespVO> convertDto(List<XhsCreativeContentDTO> dtoList);
+    List<CreativeContentRespVO> convertDto(List<CreativeContentDTO> dtoList);
 
-    List<XhsCreativeContentDO> convert(List<CreativeContentCreateReqVO> createReqs);
+    List<CreativeContentDO> convert(List<CreativeContentCreateReqVO> createReqs);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-    void updateSelective(CreativeContentModifyReqVO modifyReq, @MappingTarget XhsCreativeContentDO contentDO);
+    void updateSelective(CreativeContentModifyReqVO modifyReq, @MappingTarget CreativeContentDO contentDO);
 
 
-    List<XhsCreativePictureContentDTO> convert2(List<XhsImageExecuteResponse> resp);
+    List<CreativeImageDTO> convert2(List<XhsImageExecuteResponse> resp);
 
-    default XhsCreativeContentDO convert(CreativeContentCreateReqVO createReq) {
+    default CreativeContentDO convert(CreativeContentCreateReqVO createReq) {
         if (createReq == null) {
             return null;
         }
 
-        XhsCreativeContentDO xhsCreativeContentDO = new XhsCreativeContentDO();
+        CreativeContentDO xhsCreativeContentDO = new CreativeContentDO();
         xhsCreativeContentDO.setSchemeUid(createReq.getSchemeUid());
         xhsCreativeContentDO.setPlanUid(createReq.getPlanUid());
         xhsCreativeContentDO.setTempUid(createReq.getTempUid());
@@ -73,7 +73,7 @@ public interface CreativeContentConvert {
         return JSONUtil.toJsonStr(executeParamsDTO);
     }
 
-    default String toStr(XhsCreativeContentExtendDTO extendDTO) {
+    default String toStr(CreativeContentExtendDTO extendDTO) {
         return JSONUtil.toJsonStr(extendDTO);
     }
 
@@ -91,18 +91,18 @@ public interface CreativeContentConvert {
         return JSONUtil.toBean(string, CreativePlanExecuteDTO.class);
     }
 
-    default XhsCreativeContentExtendDTO toExtend(String string) {
+    default CreativeContentExtendDTO toExtend(String string) {
         if (StringUtils.isBlank(string)) {
             return null;
         }
-        return JSONUtil.toBean(string, XhsCreativeContentExtendDTO.class);
+        return JSONUtil.toBean(string, CreativeContentExtendDTO.class);
     }
 
-    default List<XhsCreativePictureContentDTO> toContent(String string) {
+    default List<CreativeImageDTO> toContent(String string) {
         if (StringUtils.isBlank(string)) {
             return null;
         }
-        return JSONUtil.parseArray(string).toList(XhsCreativePictureContentDTO.class);
+        return JSONUtil.parseArray(string).toList(CreativeImageDTO.class);
     }
 
 }

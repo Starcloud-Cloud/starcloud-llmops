@@ -10,24 +10,23 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.xhs.content.dto.XhsCreativePictureContentDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
-import com.starcloud.ops.business.app.service.xhs.XhsService;
-import com.starcloud.ops.business.app.service.xhs.executor.XhsImageCreativeThreadPoolHolder;
-import com.starcloud.ops.business.app.util.XhsImageUtils;
+import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageCreativeThreadPoolHolder;
+import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -60,13 +59,13 @@ import java.util.stream.Collectors;
  */
 @Component
 @Slf4j
-public class XhsCreativeExecuteManager {
+public class CreativeExecuteManager {
 
     @Resource
     private RedissonClient redissonClient;
 
     @Resource
-    private XhsService xhsService;
+    private CreativeAppManager creativeAppManager;
 
     @Resource
     private CreativeContentMapper creativeContentMapper;
@@ -75,7 +74,10 @@ public class XhsCreativeExecuteManager {
     private DictDataService dictDataService;
 
     @Resource
-    private XhsImageCreativeThreadPoolHolder xhsImageCreativeThreadPoolHolder;
+    private CreativeImageManager creativeImageManager;
+
+    @Resource
+    private CreativeImageCreativeThreadPoolHolder creativeImageCreativeThreadPoolHolder;
 
     /**
      * 批量执行文案生成任务
@@ -84,11 +86,11 @@ public class XhsCreativeExecuteManager {
      * @param force       是否强制执行
      * @return 执行结果
      */
-    public Map<Long, Boolean> executeCopyWriting(List<XhsCreativeContentDO> contentList, Boolean force) {
+    public Map<Long, Boolean> executeCopyWriting(List<CreativeContentDO> contentList, Boolean force) {
         Map<Long, Boolean> result = new HashMap<>(contentList.size());
 
         // 排序 id 加锁
-        List<Long> ids = contentList.stream().map(XhsCreativeContentDO::getId).sorted().collect(Collectors.toList());
+        List<Long> ids = contentList.stream().map(CreativeContentDO::getId).sorted().collect(Collectors.toList());
         StringJoiner sj = new StringJoiner("-");
         ids.forEach(id -> sj.add(id.toString()));
         String key = "xhs-creative-content-copy-writing-" + sj;
@@ -109,7 +111,7 @@ public class XhsCreativeExecuteManager {
 
         try {
             List<XhsAppCreativeExecuteRequest> requests = new ArrayList<>(contentList.size());
-            for (XhsCreativeContentDO content : contentList) {
+            for (CreativeContentDO content : contentList) {
 
                 CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
                 if (executeParams == null) {
@@ -138,7 +140,7 @@ public class XhsCreativeExecuteManager {
             }
 
             LocalDateTime start = LocalDateTime.now();
-            List<XhsAppCreativeExecuteResponse> resp = xhsService.bathAppCreativeExecute(requests);
+            List<XhsAppCreativeExecuteResponse> resp = creativeAppManager.bathAppCreativeExecute(requests);
             if (CollectionUtils.isEmpty(resp)) {
                 return result;
             }
@@ -147,7 +149,7 @@ public class XhsCreativeExecuteManager {
             Long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
             // 计算平均执行时间
             executeTime = new BigDecimal(String.valueOf(executeTime)).divide(new BigDecimal(String.valueOf(resp.size())), 2, RoundingMode.HALF_UP).longValue();
-            for (XhsCreativeContentDO contentDO : contentList) {
+            for (CreativeContentDO contentDO : contentList) {
                 XhsAppCreativeExecuteResponse executeResponse = respMap.get(contentDO.getUid());
                 if (!executeResponse.getSuccess()) {
                     result.put(contentDO.getId(), false);
@@ -162,7 +164,7 @@ public class XhsCreativeExecuteManager {
                     continue;
                 }
 
-                XhsCreativeContentDO updateContent = new XhsCreativeContentDO();
+                CreativeContentDO updateContent = new CreativeContentDO();
                 updateContent.setId(contentDO.getId());
                 updateContent.setCopyWritingContent(copyWriting.getContent());
                 updateContent.setCopyWritingTitle(copyWriting.getTitle());
@@ -195,7 +197,7 @@ public class XhsCreativeExecuteManager {
      * @param force       是否强制执行
      * @return 执行结果
      */
-    public Map<Long, Boolean> executePicture(List<XhsCreativeContentDO> contentList, Boolean force) {
+    public Map<Long, Boolean> executePicture(List<CreativeContentDO> contentList, Boolean force) {
         Map<Long, Boolean> result = new HashMap<>(contentList.size());
 
         if (CollectionUtil.isEmpty(contentList)) {
@@ -203,9 +205,9 @@ public class XhsCreativeExecuteManager {
             return Collections.emptyMap();
         }
         // 获取异步Future
-        ThreadPoolExecutor executor = xhsImageCreativeThreadPoolHolder.executor();
+        ThreadPoolExecutor executor = creativeImageCreativeThreadPoolHolder.executor();
         List<CompletableFuture<XhsImageCreativeExecuteResponse>> imageFutureList = Lists.newArrayList();
-        for (XhsCreativeContentDO content : contentList) {
+        for (CreativeContentDO content : contentList) {
             CompletableFuture<XhsImageCreativeExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageExecute(content, force), executor);
             imageFutureList.add(future);
         }
@@ -217,9 +219,9 @@ public class XhsCreativeExecuteManager {
         // 获取执行结果
         List<XhsImageCreativeExecuteResponse> responses = allFuture.join();
         // 处理执行结果
-        Map<String, XhsCreativeContentDO> map = contentList.stream().collect(Collectors.toMap(XhsCreativeContentDO::getUid, Function.identity()));
+        Map<String, CreativeContentDO> map = contentList.stream().collect(Collectors.toMap(CreativeContentDO::getUid, Function.identity()));
         for (XhsImageCreativeExecuteResponse response : responses) {
-            XhsCreativeContentDO content = map.get(response.getContentUid());
+            CreativeContentDO content = map.get(response.getContentUid());
             if (Objects.isNull(content)) {
                 continue;
             }
@@ -240,7 +242,7 @@ public class XhsCreativeExecuteManager {
      * @param content 创作内容
      * @return 创作结果
      */
-    public XhsImageCreativeExecuteResponse imageExecute(XhsCreativeContentDO content, Boolean force) {
+    public XhsImageCreativeExecuteResponse imageExecute(CreativeContentDO content, Boolean force) {
         // 获取锁
         String lockKey = "xhs-creative-content-image-" + content.getId();
         RLock lock = redissonClient.getLock(lockKey);
@@ -258,16 +260,16 @@ public class XhsCreativeExecuteManager {
             // 获取文案执行结果
             CopyWritingContentDTO copyWriting = getCopyWritingContent(content, start, maxRetry);
             // 获取最新的创作内容并且校验
-            XhsCreativeContentDO latestContent = getImageContent(content.getId(), start, maxRetry, force);
+            CreativeContentDO latestContent = getImageContent(content.getId(), start, maxRetry, force);
             // 构建请求
             XhsImageCreativeExecuteRequest request = new XhsImageCreativeExecuteRequest();
             request.setContentUid(latestContent.getUid());
             request.setPlanUid(latestContent.getPlanUid());
             request.setSchemeUid(latestContent.getSchemeUid());
             request.setBusinessUid(latestContent.getBusinessUid());
-            request.setImageStyleRequest(XhsImageUtils.transformExecuteImageStyle(latestContent, copyWriting, force));
+            request.setImageStyleRequest(CreativeImageUtils.transformExecuteImageStyle(latestContent, copyWriting, force));
             // 执行请求
-            XhsImageCreativeExecuteResponse response = xhsService.imageCreativeExecute(request);
+            XhsImageCreativeExecuteResponse response = creativeImageManager.creativeExecute(request);
 
             // 校验结果
             if (Objects.isNull(response)) {
@@ -292,9 +294,9 @@ public class XhsCreativeExecuteManager {
             LocalDateTime end = LocalDateTime.now();
             long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
             executeTime = new BigDecimal(String.valueOf(executeTime)).divide(new BigDecimal(String.valueOf(imageResponseList.size())), 2, RoundingMode.HALF_UP).longValue();
-            List<XhsCreativePictureContentDTO> pictureContent = CreativeContentConvert.INSTANCE.convert2(imageResponseList);
+            List<CreativeImageDTO> pictureContent = CreativeContentConvert.INSTANCE.convert2(imageResponseList);
 
-            XhsCreativeContentDO updateContent = new XhsCreativeContentDO();
+            CreativeContentDO updateContent = new CreativeContentDO();
             updateContent.setId(latestContent.getId());
             updateContent.setPictureContent(JSONUtil.toJsonStr(pictureContent));
             updateContent.setPictureNum(pictureContent.size());
@@ -331,9 +333,9 @@ public class XhsCreativeExecuteManager {
      * @return 文案执行结果
      */
     @NotNull
-    private CopyWritingContentDTO getCopyWritingContent(XhsCreativeContentDO content, LocalDateTime start, Integer maxRetry) {
+    private CopyWritingContentDTO getCopyWritingContent(CreativeContentDO content, LocalDateTime start, Integer maxRetry) {
         // 查询文案执行情况。需要文案执行成功才能执行图片
-        XhsCreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+        CreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
         if (Objects.isNull(business)) {
             // 此时说明数据存在问题，直接更新为最终失败
             updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务不存在，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
@@ -388,8 +390,8 @@ public class XhsCreativeExecuteManager {
      * @param force 是否强制执行
      * @return 图片执行任务
      */
-    private XhsCreativeContentDO getImageContent(Long id, LocalDateTime start, Integer maxRetry, Boolean force) {
-        XhsCreativeContentDO content = creativeContentMapper.selectById(id);
+    private CreativeContentDO getImageContent(Long id, LocalDateTime start, Integer maxRetry, Boolean force) {
+        CreativeContentDO content = creativeContentMapper.selectById(id);
         if (Objects.isNull(content)) {
             throw exception(350600211, "未找到对应的创作任务(ID: %s)！", id);
         }
@@ -443,7 +445,7 @@ public class XhsCreativeExecuteManager {
             updateFailureFinished(id, start, errorMsg, maxRetry);
             return;
         }
-        XhsCreativeContentDO content = new XhsCreativeContentDO();
+        CreativeContentDO content = new CreativeContentDO();
         content.setId(id);
         content.setErrorMsg(errorMsg);
         content.setRetryCount(retry + 1);
@@ -466,7 +468,7 @@ public class XhsCreativeExecuteManager {
      * @param errorMsg 错误信息
      */
     private void updateFailureFinished(Long id, LocalDateTime start, String errorMsg, Integer maxRetry) {
-        XhsCreativeContentDO content = new XhsCreativeContentDO();
+        CreativeContentDO content = new CreativeContentDO();
         content.setId(id);
         content.setErrorMsg(errorMsg);
         content.setRetryCount(maxRetry);
@@ -547,7 +549,7 @@ public class XhsCreativeExecuteManager {
      * @param imageStyleResponse 图片风格响应参数
      * @return 失败响应
      */
-    public static XhsImageCreativeExecuteResponse failure(XhsCreativeContentDO content, Integer errorCode, String errorMessage, XhsImageStyleExecuteResponse imageStyleResponse) {
+    public static XhsImageCreativeExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage, XhsImageStyleExecuteResponse imageStyleResponse) {
         XhsImageCreativeExecuteResponse response = new XhsImageCreativeExecuteResponse();
         if (Objects.nonNull(content)) {
             response.setPlanUid(content.getPlanUid());

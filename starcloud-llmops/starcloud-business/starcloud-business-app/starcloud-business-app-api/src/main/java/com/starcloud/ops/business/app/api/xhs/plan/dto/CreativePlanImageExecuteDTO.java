@@ -29,7 +29,7 @@ public class CreativePlanImageExecuteDTO implements java.io.Serializable {
      */
     @Schema(description = "图片模板")
     @NotBlank(message = "图片模板不能为空")
-    private String imageTemplate;
+    private String id;
 
     /**
      * 应用UID
