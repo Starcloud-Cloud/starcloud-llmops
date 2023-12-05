@@ -43,7 +43,7 @@
             and claim_user_id = #{reqVO.claimUserId}
         </if>
         <if test="reqVO.claimUsername != null and reqVO.claimUsername != ''">
-            and claim_username = #{reqVO.claimUsername}
+            and claim_username like concat(#{reqVO.claimUsername},'%')
         </if>
     </select>
 
