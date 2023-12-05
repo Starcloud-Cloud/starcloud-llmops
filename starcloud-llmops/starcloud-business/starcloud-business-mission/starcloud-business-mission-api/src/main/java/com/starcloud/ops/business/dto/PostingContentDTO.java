@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.dto;
 
-import com.starcloud.ops.business.app.api.xhs.content.dto.XhsCreativePictureContentDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -17,5 +17,5 @@ public class PostingContentDTO {
     private String text;
 
     @Schema(description = "发帖图片")
-    private List<XhsCreativePictureContentDTO> picture;
+    private List<CreativeImageDTO> picture;
 }

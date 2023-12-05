@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
@@ -31,6 +32,7 @@ import com.starcloud.ops.business.mission.service.SingleMissionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -38,10 +40,8 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -290,10 +290,10 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } catch (Exception e) {
             log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
             SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
-            modifyReqVO.setStatus(SingleMissionStatusEnum.settlement_error.getCode());
+            modifyReqVO.setStatus(SingleMissionStatusEnum.pre_settlement_error.getCode());
             modifyReqVO.setUid(singleMissionRespVO.getUid());
             modifyReqVO.setRunTime(LocalDateTime.now());
-            modifyReqVO.setPreSettlementMsg(e.getStackTrace().toString());
+            modifyReqVO.setPreSettlementMsg(e.getMessage());
             update(modifyReqVO);
         }
     }
@@ -318,6 +318,37 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         singleMissionMapper.batchDelete(singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
     }
 
+    @Override
+    public void importSettlement(List<SingleMissionImportVO> importVOList) {
+        if (CollectionUtils.isEmpty(importVOList)) {
+            throw exception(EXCEL_IS_EMPTY);
+        }
+        List<String> uidList = importVOList.stream().map(SingleMissionImportVO::getUid).collect(Collectors.toList());
+        List<SingleMissionDO> singleMissionDOList = singleMissionMapper.listByUids(uidList);
+        if (singleMissionDOList.size() < importVOList.size()) {
+            Collection<String> subtract = CollUtil.subtract(uidList, singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
+            throw exception(NOT_EXIST_UID, subtract.toString());
+        }
+        Map<String, Long> doMap = singleMissionDOList.stream().collect(Collectors.toMap(SingleMissionDO::getUid, SingleMissionDO::getId));
+        List<SingleMissionDO> updateList = new ArrayList<>(importVOList.size());
+        String userId = WebFrameworkUtils.getLoginUserId().toString();
+        LocalDateTime now = LocalDateTime.now();
+        for (SingleMissionImportVO importVO : importVOList) {
+            importVO.valid();
+            SingleMissionDO missionDO = new SingleMissionDO();
+            missionDO.setClaimUsername(importVO.getClaimUsername());
+            missionDO.setPublishUrl(importVO.getPublishUrl());
+            missionDO.setUid(importVO.getUid());
+            missionDO.setStatus(SingleMissionStatusEnum.published.getCode());
+            missionDO.setUpdater(userId);
+            missionDO.setUpdateTime(now);
+            missionDO.setPublishTime(now);
+            missionDO.setId(doMap.get(importVO.getUid()));
+            updateList.add(missionDO);
+        }
+        singleMissionMapper.updateBatch(updateList, updateList.size());
+    }
+
     private void updateSingleMission(String uid, BigDecimal amount, Long noteDetailId) {
         SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
         modifyReqVO.setUid(uid);
@@ -330,7 +361,12 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     private void validPostingContent(PostingContentDTO content, XhsNoteDetailRespVO noteDetail) {
-
+        if (content != null && noteDetail != null
+                && StringUtils.equals(content.getTitle(), noteDetail.getTitle())
+                && StringUtils.equals(content.getText(), noteDetail.getDesc())) {
+            return;
+        }
+        throw exception(CONTENT_INCONSISTENT);
     }
 
 

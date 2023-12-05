@@ -4,8 +4,7 @@
     
     <!-- 通用字段查询 -->
     <sql id="SELECT_GENERAL_COLUMNS">
-        `id`
-        , `uid`, `name`, `type`, `category`, `tags`, `description`, `copy_writing_example`, `image_example`, `deleted`, `creator`, `updater`, `create_time`, `update_time`, `tenant_id`
+        `id`, `uid`, `name`, `type`, `category`, `tags`, `description`, `use_images`, `example`, `deleted`, `creator`, `updater`, `create_time`, `update_time`, `tenant_id`
     </sql>
     
     <!-- 列表查询条件 -->
@@ -14,12 +13,6 @@
             ((`type` = "SYSTEM")
             OR
             (`type` = "USER"
-            <if test="query.uidList != null and query.uidList.size() > 0 ">
-                AND `uid` IN
-                <foreach collection='query.uidList' item='uid' open='(' separator=',' close=')'>
-                    #{uid}
-                </foreach>
-            </if>
             <if test="query.name != null and query.name != '' ">
                 <bind name="name" value="query.name+'%'"/>
                 AND `name` LIKE #{name}
@@ -85,12 +78,6 @@
         <include refid="SELECT_GENERAL_COLUMNS"/>
         FROM llm_creative_scheme
         <where>
-            <if test="query.uidList != null and query.uidList.size() > 0 ">
-                AND `uid` IN
-                <foreach collection='query.uidList' item='uid' open='(' separator=',' close=')'>
-                    #{uid}
-                </foreach>
-            </if>
             <if test="query.name != null and query.name != '' ">
                 <bind name="name" value="query.name+'%'"/>
                 AND `name` LIKE #{name}

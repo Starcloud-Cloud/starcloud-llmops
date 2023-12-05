@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
-import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,6 +34,16 @@ public class CreativeSchemeImageTemplateDTO implements java.io.Serializable {
     @Valid
     @NotEmpty(message = "图片生成模板：图片风格不能为空")
     @Schema(description = "图片生成风格List")
-    private List<XhsImageStyleDTO> styleList;
+    private List<CreativeImageStyleDTO> styleList;
 
+    /**
+     * 校验
+     *
+     * @param name 方案名称
+     */
+    public void validate(String name) {
+        if (CollectionUtil.isEmpty(styleList)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY, name);
+        }
+    }
 }

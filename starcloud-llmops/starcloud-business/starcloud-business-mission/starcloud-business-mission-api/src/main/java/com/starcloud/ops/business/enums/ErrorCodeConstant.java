@@ -25,4 +25,10 @@ public interface ErrorCodeConstant {
     ErrorCode TOO_MANY_MISSION = new ErrorCode(700010010, "绑定太多任务，总预算不足");
 
     ErrorCode DONT_ALLOW_DELETE =  new ErrorCode(700010011, "存在已认领任务不允许删除");
+
+    ErrorCode EXCEL_IS_EMPTY =  new ErrorCode(700010012, "导入的excel为空");
+
+    ErrorCode  NOT_EXIST_UID =  new ErrorCode(700010014, "导入的uid不存在 {}");
+
+    ErrorCode  CONTENT_INCONSISTENT =  new ErrorCode(700010015, "任务内容和用户发布内容不一致");
 }

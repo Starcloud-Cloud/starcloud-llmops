@@ -1,7 +1,12 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.vo.request;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,6 +18,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 创作方案DO
@@ -45,7 +51,6 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
     /**
      * 创作方案类目
      */
-
     @NotBlank(message = "创作方案类目不能为空")
     @Schema(description = "创作方案类目")
     private String category;
@@ -66,8 +71,8 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
      * 创作方案参考
      */
     @Valid
-    @NotEmpty(message = "创作方案参考账号不能为空！")
-    @Schema(description = "创作方案参考账号")
+    @NotEmpty(message = "创作方案参考内容不能为空！")
+    @Schema(description = "创作方案参考内容")
     private List<CreativeSchemeReferenceDTO> refers;
 
     /**
@@ -79,8 +84,34 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
     private CreativeSchemeConfigDTO configuration;
 
     /**
-     * 生成测试数据
+     * 创作方案图片
      */
-//    private List<XhsCreativeContentResp> examples;
+    @Schema(description = "创作方案图片")
+    private List<String> useImages;
+
+    /**
+     * 创作方案示例
+     */
+    @Schema(description = "创作方案示例")
+    private List<CreativeSchemeExampleDTO> example;
+
+    /**
+     * 校验创作方案
+     */
+    public void validate() {
+        if (StrUtil.isBlank(name)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_NAME_REQUIRED);
+        }
+        if (StrUtil.isBlank(category)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CATEGORY_REQUIRED, name);
+        }
+        if ((CollectionUtil.isEmpty(refers))) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_REFERS_NOT_EMPTY, name);
+        }
+        if (Objects.isNull(configuration)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL, name);
+        }
+        configuration.validate(name);
+    }
 
 }

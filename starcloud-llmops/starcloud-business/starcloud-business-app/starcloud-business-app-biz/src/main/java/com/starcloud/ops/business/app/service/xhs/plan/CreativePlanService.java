@@ -7,8 +7,6 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
-import java.util.List;
-
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -23,13 +21,6 @@ public interface CreativePlanService {
      * @return 创作计划详情
      */
     CreativePlanRespVO get(String uid);
-
-    /**
-     * 获取模板列表
-     *
-     * @return 模板列表
-     */
-    List<CreativePlanRespVO> listTemplates();
 
     /**
      * 获取创作计划分页列表
