@@ -373,7 +373,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             Optional<CreativePlanImageExecuteDTO> mainImageOptional = imageRequests.stream().filter(CreativePlanImageExecuteDTO::getIsMain).findFirst();
             // 首图不存在，直接跳过先
             if (!mainImageOptional.isPresent()) {
-                continue;
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_IMAGE_MAIN_NOT_EXIST, imageStyleExecuteRequest.getName());
             }
             CreativePlanImageExecuteDTO mainImageRequest = mainImageOptional.get();
             List<VariableItemDTO> mainImageRequestParams = mainImageRequest.getParams();
@@ -438,7 +438,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 List<CreativeImageTemplateDTO> templateList = style.getTemplateList();
                 AppValidate.notEmpty(templateList, CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY, style.getName());
                 // 图片执行参数
-                CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getImageStyleExecuteRequest(style, planConfig.getImageUrlList(), posterMap);
+                CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getImageStyleExecuteRequest(scheme.getName(), style, planConfig.getImageUrlList(), posterMap);
                 CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
                 planExecute.setSchemeUid(scheme.getUid());
                 planExecute.setAppExecuteRequest(appExecute);
