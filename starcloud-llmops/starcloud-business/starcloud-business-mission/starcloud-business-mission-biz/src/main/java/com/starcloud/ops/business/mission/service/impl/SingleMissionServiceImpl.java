@@ -329,7 +329,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             Collection<String> subtract = CollUtil.subtract(uidList, singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
             throw exception(NOT_EXIST_UID, subtract.toString());
         }
-
+        Map<String, Long> doMap = singleMissionDOList.stream().collect(Collectors.toMap(SingleMissionDO::getUid, SingleMissionDO::getId));
         List<SingleMissionDO> updateList = new ArrayList<>(importVOList.size());
         String userId = WebFrameworkUtils.getLoginUserId().toString();
         LocalDateTime now = LocalDateTime.now();
@@ -343,6 +343,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             missionDO.setUpdater(userId);
             missionDO.setUpdateTime(now);
             missionDO.setPublishTime(now);
+            missionDO.setId(doMap.get(importVO.getUid()));
             updateList.add(missionDO);
         }
         singleMissionMapper.updateBatch(updateList, updateList.size());
