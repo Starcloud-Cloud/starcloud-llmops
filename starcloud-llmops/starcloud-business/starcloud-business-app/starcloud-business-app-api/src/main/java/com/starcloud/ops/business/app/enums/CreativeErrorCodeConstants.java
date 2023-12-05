@@ -162,6 +162,26 @@ public interface CreativeErrorCodeConstants {
     ErrorCode POSTER_NOT_SUPPORTED = new ErrorCode(750100113, "不支持的图片模板或者图片模板不存在({})！");
 
     /**
+     * 海报错误：返回结果不存在！
+     */
+    ErrorCode POSTER_RESPONSE_IS_NULL = new ErrorCode(350700110, "{}：返回结果不存在！");
+
+    /**
+     * 海报错误
+     */
+    ErrorCode POSTER_RESPONSE_IS_NOT_SUCCESS = new ErrorCode(350700111, "{}：{}");
+
+    /**
+     * 海报错误：生成结果不存在！
+     */
+    ErrorCode POSTER_RESPONSE_DATA_IS_NULL = new ErrorCode(350700112, "{}：返回结果不存在！");
+
+    /**
+     * 海报错误：海报URL为空！请联系管理员！
+     */
+    ErrorCode POSTER_URL_IS_BLANK = new ErrorCode(350700114, "海报生成URL不存在！请联系管理员！");
+
+    /**
      * 该风格下的图片模板不能为空
      */
     ErrorCode STYLE_IMAGE_TEMPLATE_NOT_EMPTY = new ErrorCode(750100211, "该风格下的图片模板不能为空！({})！");
