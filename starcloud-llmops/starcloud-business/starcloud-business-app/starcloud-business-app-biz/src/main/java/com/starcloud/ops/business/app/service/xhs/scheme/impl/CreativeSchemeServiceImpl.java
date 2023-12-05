@@ -377,7 +377,6 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             XhsImageStyleExecuteRequest imageStyleExecuteRequest = new XhsImageStyleExecuteRequest();
             List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
 
-            List<String> imageParamList = Lists.newArrayList();
             for (int j = 0; j < templateList.size(); j++) {
                 CreativeImageTemplateDTO template = templateList.get(j);
                 if (!posterMap.containsKey(template.getId())) {
@@ -392,6 +391,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                 imageExecuteRequest.setIsMain(j == 0);
 
                 Map<String, Object> params = Maps.newHashMap();
+                List<String> imageParamList = Lists.newArrayList();
                 // 获取第主图模板的参数
                 if (j == 0) {
                     List<VariableItemDTO> mainImageVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream().filter(item -> "IMAGE".equals(item.getStyle())).collect(Collectors.toList());
@@ -402,7 +402,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                             params.put(variableItem.getField(), imageUrl);
                             imageParamList.add(imageUrl);
                         } else {
-                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList));
+                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList, mainImageVariableList.size()));
                         }
                     }
                     List<VariableItemDTO> mainOtherVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream().filter(item -> !"IMAGE".equals(item.getStyle())).collect(Collectors.toList());
@@ -420,9 +420,10 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                         }
                     }
                 } else {
+                    List<VariableItemDTO> imageVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream().filter(item -> "IMAGE".equals(item.getStyle())).collect(Collectors.toList());
                     for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(posterTemplate.getVariables())) {
                         if ("IMAGE".equals(variableItem.getStyle())) {
-                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList));
+                            params.put(variableItem.getField(), CreativeImageUtils.randomImageList(imageParamList, imageUrlList, imageVariableList.size()));
                         } else if ("TEXT".equals(variableItem.getStyle())) {
                             if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
                                 params.put(variableItem.getField(), copyWriting.getImgTitle());
