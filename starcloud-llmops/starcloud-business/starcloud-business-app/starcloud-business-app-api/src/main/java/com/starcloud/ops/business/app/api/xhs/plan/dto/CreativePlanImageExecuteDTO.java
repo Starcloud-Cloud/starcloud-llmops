@@ -34,9 +34,15 @@ public class CreativePlanImageExecuteDTO implements java.io.Serializable {
     /**
      * 应用UID
      */
+    @Schema(description = "模板名称")
+    private String name;
+
+    /**
+     * 应用UID
+     */
     @Schema(description = "图片序号")
     private Integer index;
-
+    
     /**
      * 是否是主图
      */

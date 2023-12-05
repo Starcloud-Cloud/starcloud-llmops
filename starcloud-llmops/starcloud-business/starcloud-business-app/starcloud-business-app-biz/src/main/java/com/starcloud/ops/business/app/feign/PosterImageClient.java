@@ -26,7 +26,7 @@ public interface PosterImageClient {
      * @return 模板列表
      */
     @PostMapping(value = "/template/find-all-exclude-json")
-    PosterResponse<List<PosterTemplateDTO>> templates(@Validated @RequestBody PosterTemplateQuery query);
+    PosterResponse<List<PosterTemplateDTO>> templates();
 
     /**
      * 生成海报

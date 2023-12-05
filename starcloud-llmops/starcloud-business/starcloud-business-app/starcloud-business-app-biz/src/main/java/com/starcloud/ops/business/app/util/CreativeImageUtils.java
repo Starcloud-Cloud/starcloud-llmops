@@ -60,6 +60,7 @@ public class CreativeImageUtils {
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
             XhsImageExecuteRequest request = new XhsImageExecuteRequest();
             request.setId(imageRequest.getId());
+            request.setName(imageRequest.getName());
             request.setIndex(imageRequest.getIndex());
             request.setIsMain(imageRequest.getIsMain());
             request.setParams(transformParams(imageRequest, useImageList, copyWriting, force));
@@ -100,6 +101,7 @@ public class CreativeImageUtils {
             imageExecuteRequest.setIndex(i + 1);
             imageExecuteRequest.setIsMain(i == 0);
             imageExecuteRequest.setId(posterTemplate.getId());
+            imageExecuteRequest.setName(posterTemplate.getName());
             imageExecuteRequest.setParams(transformParams(posterTemplate, useImageList));
             imageExecuteRequestList.add(imageExecuteRequest);
         }
