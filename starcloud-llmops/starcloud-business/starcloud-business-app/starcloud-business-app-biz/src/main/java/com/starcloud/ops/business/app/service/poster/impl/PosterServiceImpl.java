@@ -40,7 +40,6 @@ public class PosterServiceImpl implements PosterService {
     public List<PosterTemplateDTO> templates() {
         PosterTemplateQuery query = new PosterTemplateQuery();
         query.setCreateUserId("1");
-        query.setTemplateTypeId("2");
         PosterResponse<List<PosterTemplateDTO>> response = posterImageClient.templates(query);
         validateResponse(response, "获取海报模板列表失败");
         List<PosterTemplateDTO> templates = response.getData();
