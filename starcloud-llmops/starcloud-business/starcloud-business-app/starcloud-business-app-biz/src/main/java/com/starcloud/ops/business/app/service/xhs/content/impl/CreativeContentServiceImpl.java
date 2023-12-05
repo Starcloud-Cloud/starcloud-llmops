@@ -15,15 +15,15 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentBusinessPO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDTO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
 import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
-import com.starcloud.ops.business.app.service.xhs.manager.XhsCreativeExecuteManager;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -55,7 +55,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     private CreativeContentMapper creativeContentMapper;
 
     @Resource
-    private XhsCreativeExecuteManager xlsCreativeExecuteManager;
+    private CreativeExecuteManager xlsCreativeExecuteManager;
 
 
     @Resource
@@ -71,7 +71,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public void create(List<CreativeContentCreateReqVO> createReqs) {
 
         for (CreativeContentCreateReqVO createReq : createReqs) {
-            XhsCreativeContentDO contentDO = CreativeContentConvert.INSTANCE.convert(createReq);
+            CreativeContentDO contentDO = CreativeContentConvert.INSTANCE.convert(createReq);
             contentDO.setUid(IdUtil.fastSimpleUUID());
             contentDO.setStatus(XhsCreativeContentStatusEnums.INIT.getCode());
             creativeContentMapper.insert(contentDO);
@@ -83,7 +83,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public Map<Long, Boolean> execute(List<Long> ids, String type, Boolean force) {
         log.info("开始执行 {} 任务 {}", type, ids);
         try {
-            List<XhsCreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
+            List<CreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
                     .stream().filter(content -> !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())).collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(contentList)) {
@@ -104,8 +104,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public CreativeContentRespVO retry(String businessUid) {
-        XhsCreativeContentDO textDO = creativeContentMapper.selectByType(businessUid, XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
-        XhsCreativeContentDO picDO = creativeContentMapper.selectByType(businessUid, XhsCreativeContentTypeEnums.PICTURE.getCode());
+        CreativeContentDO textDO = creativeContentMapper.selectByType(businessUid, XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+        CreativeContentDO picDO = creativeContentMapper.selectByType(businessUid, XhsCreativeContentTypeEnums.PICTURE.getCode());
 
         if (textDO == null || picDO == null) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
@@ -132,7 +132,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     @TenantIgnore
-    public List<XhsCreativeContentDO> jobQuery(CreativeQueryReqVO queryReq) {
+    public List<CreativeContentDO> jobQuery(CreativeQueryReqVO queryReq) {
         if (!queryReq.valid()) {
             return Collections.emptyList();
         }
@@ -141,7 +141,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     @TenantIgnore
-    public List<XhsCreativeContentDO> listByPlanUid(String planUid) {
+    public List<CreativeContentDO> listByPlanUid(String planUid) {
         return creativeContentMapper.selectByPlanUid(planUid);
     }
 
@@ -152,7 +152,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      * @return 业务uid
      */
     @Override
-    public List<XhsCreativeContentBusinessPO> listGroupByBusinessUid(List<String> planUidList) {
+    public List<CreativeContentBusinessPO> listGroupByBusinessUid(List<String> planUidList) {
         return creativeContentMapper.listGroupByBusinessUid(planUidList);
     }
 
@@ -162,7 +162,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         if (count == null || count <= 0) {
             return PageResult.empty();
         }
-        List<XhsCreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(req, PageUtils.getStart(req), req.getPageSize());
+        List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(req, PageUtils.getStart(req), req.getPageSize());
         return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
     }
 
@@ -173,12 +173,12 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         PageResult<CreativeContentRespVO> page = page(pageReq);
         com.starcloud.ops.business.app.api.xhs.content.vo.response.PageResult<CreativeContentRespVO> result = new com.starcloud.ops.business.app.api.xhs.content.vo.response.PageResult<>(page.getList(), page.getTotal());
 
-        List<XhsCreativeContentDO> xhsCreativeContents = creativeContentMapper.selectByPlanUid(req.getPlanUid());
-        Map<String, List<XhsCreativeContentDO>> contentGroup = xhsCreativeContents.stream().collect(Collectors.groupingBy(XhsCreativeContentDO::getBusinessUid));
+        List<CreativeContentDO> xhsCreativeContents = creativeContentMapper.selectByPlanUid(req.getPlanUid());
+        Map<String, List<CreativeContentDO>> contentGroup = xhsCreativeContents.stream().collect(Collectors.groupingBy(CreativeContentDO::getBusinessUid));
         int successCount = 0, errorCount = 0;
 
         for (String bizId : contentGroup.keySet()) {
-            List<XhsCreativeContentDO> contentList = contentGroup.get(bizId);
+            List<CreativeContentDO> contentList = contentGroup.get(bizId);
             if (CollectionUtils.isEmpty(contentList)) {
                 continue;
             }
@@ -199,13 +199,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public CreativeContentRespVO detail(String businessUid) {
-        XhsCreativeContentDTO detail = byBusinessUid(businessUid);
+        CreativeContentDTO detail = byBusinessUid(businessUid);
         return CreativeContentConvert.INSTANCE.convert(detail);
     }
 
     @Override
     public CreativeContentRespVO modify(CreativeContentModifyReqVO modifyReq) {
-        XhsCreativeContentDO contentDO = creativeContentMapper.selectByType(modifyReq.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+        CreativeContentDO contentDO = creativeContentMapper.selectByType(modifyReq.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
         if (contentDO == null) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
         }
@@ -236,7 +236,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public List<CreativeContentRespVO> bound(List<String> businessUids) {
-        List<XhsCreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids, false);
+        List<CreativeContentDTO> xhsCreativeContents = creativeContentMapper.selectByBusinessUid(businessUids, false);
         if (xhsCreativeContents.size() < businessUids.size()) {
             throw exception(new ErrorCode(500, "存在已绑定的创作内容"));
         }
@@ -252,11 +252,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void like(String businessUid) {
-        List<XhsCreativeContentDO> xhsCreativeContents = creativeContentMapper.listByBusinessUid(businessUid);
+        List<CreativeContentDO> xhsCreativeContents = creativeContentMapper.listByBusinessUid(businessUid);
         if (CollectionUtils.isEmpty(xhsCreativeContents)) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
-        for (XhsCreativeContentDO content : xhsCreativeContents) {
+        for (CreativeContentDO content : xhsCreativeContents) {
             content.setLikeCount(Optional.ofNullable(content.getLikeCount()).orElse(0L) + 1L);
             creativeContentMapper.updateById(content);
         }
@@ -269,11 +269,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public void unlike(String businessUid) {
-        List<XhsCreativeContentDO> xhsCreativeContents = creativeContentMapper.listByBusinessUid(businessUid);
+        List<CreativeContentDO> xhsCreativeContents = creativeContentMapper.listByBusinessUid(businessUid);
         if (CollectionUtils.isEmpty(xhsCreativeContents)) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
-        for (XhsCreativeContentDO content : xhsCreativeContents) {
+        for (CreativeContentDO content : xhsCreativeContents) {
             if (content.getLikeCount() == null || content.getLikeCount() <= 0) {
                 continue;
             }
@@ -290,8 +290,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         creativeContentMapper.claim(businessUids, false);
     }
 
-    private XhsCreativeContentDTO byBusinessUid(String businessUid) {
-        XhsCreativeContentDTO detail = creativeContentMapper.detail(businessUid);
+    private CreativeContentDTO byBusinessUid(String businessUid) {
+        CreativeContentDTO detail = creativeContentMapper.detail(businessUid);
         if (detail == null) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }

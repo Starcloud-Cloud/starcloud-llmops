@@ -8,8 +8,6 @@ import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.limit.AppLimitConfigEnum;
@@ -24,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -179,65 +176,6 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         return CollectionUtil.emptyIfNull(dictionaryList).stream()
                 .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getValue()))
                 .map(DictDataDO::getValue).collect(Collectors.toList());
-    }
-
-    /**
-     * 小红书图片模板
-     *
-     * @return 小红书图片模板
-     */
-    @Override
-    public List<XhsImageTemplateDTO> xhsImageTemplates() {
-        List<DictDataDO> dictionaryList = getDictionaryList(AppConstants.APP_LIMIT_XHS_IMAGE_TEMPLATE_LIST);
-        return CollectionUtil.emptyIfNull(dictionaryList).stream()
-                .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getValue()) && StringUtils.isNotBlank(item.getRemark()))
-                .map(item -> {
-                    String remark = item.getRemark();
-                    XhsImageTemplateDTO template = JSONUtil.toBean(remark, XhsImageTemplateDTO.class);
-                    if (StringUtils.isBlank(template.getId()) || StringUtils.isBlank(template.getName()) ||
-                            CollectionUtil.isEmpty(template.getVariables()) || Objects.isNull(template.getImageNumber()) ||
-                            StringUtils.isBlank(template.getExample())
-                    ) {
-                        return null;
-                    }
-                    return template;
-                }).filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    /**
-     * 小红书图片风格
-     *
-     * @return 小红书图片风格
-     */
-    @Override
-    public List<XhsImageStyleDTO> xhsImageStyles() {
-        List<DictDataDO> dictionaryList = getDictionaryList(AppConstants.APP_LIMIT_XHS_IMAGE_STYLE_LIST);
-        if (CollectionUtil.isEmpty(dictionaryList)) {
-            return Collections.emptyList();
-        }
-        List<XhsImageTemplateDTO> templateList = this.xhsImageTemplates();
-        Map<String, XhsImageTemplateDTO> templateMap = templateList.stream().collect(Collectors.toMap(XhsImageTemplateDTO::getId, item -> item));
-
-        return dictionaryList.stream().map(item -> {
-            if (StringUtils.isBlank(item.getRemark())) {
-                return null;
-            }
-            List<String> templateIds = Arrays.stream(item.getRemark().split(",")).filter(StringUtils::isNotBlank).map(String::trim).collect(Collectors.toList());
-            List<XhsImageTemplateDTO> collect = CollectionUtil.emptyIfNull(templateIds).stream().map(templateItem -> {
-                if (templateMap.containsKey(templateItem)) {
-                    return templateMap.get(templateItem);
-                }
-                return null;
-            }).filter(Objects::nonNull).collect(Collectors.toList());
-            if (CollectionUtil.isEmpty(collect)) {
-                return null;
-            }
-            XhsImageStyleDTO style = new XhsImageStyleDTO();
-            style.setId(item.getValue());
-            style.setName(item.getLabel());
-            style.setTemplateList(collect);
-            return style;
-        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     /**

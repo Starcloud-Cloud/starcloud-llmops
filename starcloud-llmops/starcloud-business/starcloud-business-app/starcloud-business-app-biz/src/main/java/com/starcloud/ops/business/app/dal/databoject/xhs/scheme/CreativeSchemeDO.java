@@ -81,15 +81,15 @@ public class CreativeSchemeDO extends TenantBaseDO {
     private String configuration;
 
     /**
-     * 创作方案文案示例
+     * 创作方案使用图片
      */
-    @TableField("copy_writing_example")
-    private String copyWritingExample;
+    @TableField("use_images")
+    private String useImages;
 
     /**
-     * 创作方案图片示例
+     * 创作方案示例
      */
-    @TableField("image_example")
-    private String imageExample;
+    @TableField("example")
+    private String example;
 
 }

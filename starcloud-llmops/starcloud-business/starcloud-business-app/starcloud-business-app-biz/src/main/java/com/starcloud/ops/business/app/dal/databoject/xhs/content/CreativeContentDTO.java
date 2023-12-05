@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class XhsCreativeContentDTO {
+public class CreativeContentDTO {
 
     /**
      * 创作方案UID

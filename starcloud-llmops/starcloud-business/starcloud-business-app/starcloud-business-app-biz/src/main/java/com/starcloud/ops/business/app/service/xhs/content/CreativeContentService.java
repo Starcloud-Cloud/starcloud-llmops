@@ -6,8 +6,8 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentBusinessPO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 
 import java.util.List;
 import java.util.Map;
@@ -35,12 +35,12 @@ public interface CreativeContentService {
     /**
      * 查询任务
      */
-    List<XhsCreativeContentDO> jobQuery(CreativeQueryReqVO queryReq);
+    List<CreativeContentDO> jobQuery(CreativeQueryReqVO queryReq);
 
     /**
      * 查询计划的所有任务
      */
-    List<XhsCreativeContentDO> listByPlanUid(String planUid);
+    List<CreativeContentDO> listByPlanUid(String planUid);
 
     /**
      * 计划下的所有任务根据 业务uid 分组
@@ -48,7 +48,7 @@ public interface CreativeContentService {
      * @param planUidList 计划uid
      * @return 业务uid
      */
-    List<XhsCreativeContentBusinessPO> listGroupByBusinessUid(List<String> planUidList);
+    List<CreativeContentBusinessPO> listGroupByBusinessUid(List<String> planUidList);
 
     /**
      * 分页查询创作内容

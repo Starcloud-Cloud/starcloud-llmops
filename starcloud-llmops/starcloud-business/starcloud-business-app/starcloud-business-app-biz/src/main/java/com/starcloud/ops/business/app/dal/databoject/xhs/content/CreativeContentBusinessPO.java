@@ -11,7 +11,7 @@ import lombok.ToString;
 @Data
 @ToString
 @EqualsAndHashCode
-public class XhsCreativeContentBusinessPO implements java.io.Serializable {
+public class CreativeContentBusinessPO implements java.io.Serializable {
 
     private static final long serialVersionUID = -8083569201030271228L;
 

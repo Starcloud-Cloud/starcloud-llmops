@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.service.poster.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.PosterImageClient;
 import com.starcloud.ops.business.app.feign.dto.PosterDTO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
@@ -64,8 +64,8 @@ public class PosterServiceImpl implements PosterService {
         PosterDTO poster = response.getData();
         String url = poster.getUrl();
         if (StringUtils.isBlank(url)) {
-            log.error("[Poster] 调用海报生成接口失败：错误信息: {}", ErrorCodeConstants.POSTER_URL_IS_BLANK.getMsg());
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.POSTER_URL_IS_BLANK);
+            log.error("[Poster] 调用海报生成接口失败：错误信息: {}", CreativeErrorCodeConstants.POSTER_URL_IS_BLANK.getMsg());
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_URL_IS_BLANK);
         }
         log.info("[Poster] 调用海报生成接口完成：海报URL：{}", url);
         return url;
@@ -79,16 +79,16 @@ public class PosterServiceImpl implements PosterService {
     private void validateResponse(PosterResponse<?> response, String errorMessage) {
         if (Objects.isNull(response)) {
             log.error("[poster] 海报请求响应为空");
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.POSTER_RESPONSE_IS_NULL, errorMessage);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_RESPONSE_IS_NULL, errorMessage);
         }
         if (!response.getSuccess()) {
             String message = StringUtils.isBlank(response.getMessage()) ? "海报请求响应失败" : response.getMessage();
             log.error("[poster] 海报请求响应失败， code: {}, message:{}", response.getCode(), message);
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.POSTER_RESPONSE_IS_NOT_SUCCESS, errorMessage, message);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_RESPONSE_IS_NOT_SUCCESS, errorMessage, message);
         }
         if (Objects.isNull(response.getData())) {
             log.error("[poster] 海报请求响应数据为空");
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.POSTER_RESPONSE_DATA_IS_NULL, errorMessage);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_RESPONSE_DATA_IS_NULL, errorMessage);
         }
     }
 }
